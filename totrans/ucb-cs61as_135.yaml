@@ -1,40 +1,60 @@
 - en: Separating Analysis from Execution
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将分析与执行分开
 - en: Analyzing Evaluator
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分析评估器
 - en: 'To work with the ideas in this section, get the analyzing metacircular evaluator:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本节中的思想，请获取分析元循环评估器：
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The Metacircular Evaluator implementation in Lesson 12 is simple, but it is
     very inefficient because of how the syntactic analysis of expressions is interleaved
     with their execution. Thus, if a program is executed many times, its syntax is
     analyzed many times. Let's consider an example.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 第12课中的元循环评估器实现很简单，但非常低效，因为表达式的语法分析与执行交织在一起。因此，如果一个程序被多次执行，其语法将被多次分析。让我们考虑一个例子。
 - en: 'Suppose we’ve defined the `factorial` function as follows:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们已经定义了`factorial`函数如下：
 - en: '[PRE1]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: What happens when we compute `(fact 3)`?
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们计算`(fact 3)`时会发生什么？
 - en: '[PRE2]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Four separate times, the evaluator has to examine the procedure body, decide
     that it’s an if expression, pull out its component parts, and evaluate those parts
     (which in turn involves deciding what type of expression each part is).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 评估器必须四次检查过程体，确定它是一个if表达式，提取其组成部分，并评估这些部分（这反过来又涉及决定每个部分是什么类型的表达式）。
 - en: 'This is one reason why interpreted languages are so much slower than [compiled
     languages](https://en.wikipedia.org/wiki/Compiled_language): The interpreter does
     the syntactic analysis of the program over and over again. The compiler does the
@@ -42,135 +62,202 @@
     that depends on the actual values of variables. In this section, we will study
     the analyzing evaluator to see how to prevent the repetitive analysis of a program''s
     syntax.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是解释性语言比[编译语言](https://en.wikipedia.org/wiki/Compiled_language)慢得多的原因之一：解释器一遍又一遍地进行程序的语法分析。编译器只进行一次分析，而编译后的程序只需执行依赖于变量实际值的计算部分。在本节中，我们将研究分析评估器，以了解如何防止程序语法的重复分析。
 - en: The Separation
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分离
 - en: '`eval` takes two arguments, an expression and an environment. Of those, the
     expression argument is the same every time we revisit the same expression, whereas
     the environment will be different each time. For example, when we compute `(fact
     3)`, we evaluate the body of `fact` in an environment in which `num` has the value
     `3`. That body includes a recursive call to compute `(fact 2)`, in which we evaluate
     the same body, but now in an environment with `num` bound to `2`.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '`eval`接受两个参数，一个表达式和一个环境。其中，表达式参数在我们重新访问相同表达式时是相同的，而环境每次都会不同。例如，当我们计算`(fact
+    3)`时，我们在`num`的值为`3`的环境中评估`fact`的主体。该主体包括一个递归调用来计算`(fact 2)`，在其中我们在`num`绑定为`2`的环境中评估相同的主体。'
 - en: Our plan is to look at the evaluation process, find those parts which depend
     only on `exp` and not on `env`, and do those only once. The procedure that does
     this work is called `analyze`.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的计划是查看评估过程，找到那些仅依赖于`exp`而不依赖于`env`的部分，并仅执行一次。执行此工作的过程称为`analyze`。
 - en: What is the result of `analyze`? It has to be something that can be combined
     somehow with an environment in order to return a value. The solution is that `analyze`
     returns a procedure that takes only `env` as an argument, and does the rest of
     the evaluation.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`analyze`的结果是什么？它必须是某种可以与环境结合以返回值的东西。解决方案是`analyze`返回一个只接受`env`作为参数的过程，并完成其余的评估。'
 - en: Instead of
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 而不是
 - en: '[PRE3]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: we now have
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '**Test Your Understanding**'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '**检验你的理解**'
 - en: What type of argument(s) does the procedure returned by analyze accept?
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 分析返回的过程接受什么类型的参数？
 - en: When we evaluate the same expression again, we only have to repeat step 2\.
     What we’re doing is akin to memoization, in that we remember the result of a computation
     to avoid having to repeat it. The difference is that now we’re remembering something
     that’s only part of the solution to the overall problem, instead of a complete
     solution.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们再次评估相同的表达式时，我们只需重复第2步。我们所做的类似于记忆化，我们记住计算的结果以避免重复计算。不同之处在于，现在我们记住的是整体问题的部分解，而不是完整解的一部分。
 - en: 'We can duplicate the effect of the original `eval` this way:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过以下方式复制原始`eval`的效果：
 - en: '[PRE5]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '`analyze`'
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '`analyze`'
 - en: '`analyze` has a structure similar to that of the original `eval`:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '`analyze`的结构与原始`eval`类似：'
 - en: '[PRE6]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The difference is that the procedures such as `eval-if` that take an expression
     and an environment as arguments have been replaced by procedures such as `analyze-if`
     that take only the expression as argument. How do these analysis procedures work?
     As an intermediate step in our understanding, here is a version of `analyze-if`
     that exactly follows the structure of `eval-if` and doesn’t save any time:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 区别在于接受表达式和环境作为参数的诸如`eval-if`之类的过程已被接受仅接受表达式作为参数的诸如`analyze-if`之类的过程所取代。这些分析过程如何工作？作为我们理解的中间步骤，这里有一个完全遵循`eval-if`结构并且不节省时间的`analyze-if`版本：
 - en: '**`eval-if`:**'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '**`eval-if`:**'
 - en: '[PRE7]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '**`analyze-if`:**'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '**`analyze-if`:**'
 - en: '[PRE8]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This version of `analyze-if` returns a procedure with `env` as its argument,
     whose body is exactly the same as the body of the original `eval-if`. Therefore,
     if we do
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个版本的`analyze-if`返回一个以`env`为参数的过程，其主体与原始`eval-if`的主体完全相同。因此，如果我们这样做
 - en: '[PRE9]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: the result will be the same as if we’d said
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果将与我们说
 - en: '[PRE10]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: in the original metacircular evaluator.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在原始元循环评估器中。
 - en: But we’d like to improve on this first version of `analyze-if` because it doesn’t
     really avoid any work. Each time we call the procedure that `analyze- if` returns,
     it will do all of the work that the original `eval-if` did.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们希望改进这个`analyze-if`的第一个版本，因为它实际上并没有避免任何工作。每次调用`analyze-if`返回的过程时，它将执行原始`eval-if`执行的所有工作。
 - en: 'The first version of `analyze-if` contains three calls to `eval`. Each of those
     calls does an analysis of an expression and then a computation of the value in
     the given environment. What we’d like to do is split each of those `eval` calls
     into its two separate parts, and do the first part only once, not every time:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个版本的`analyze-if`包含三个对`eval`的调用。每个调用都对表达式进行分析，然后在给定环境中计算值。我们希望将这些`eval`调用分成两个独立的部分，并且仅在第一次执行时执行第一部分：
 - en: '[PRE11]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: In this final version, the procedure returned by `analyze-if` doesn’t contain
     any analysis steps. All of the components were already analyzed before we call
     that procedure, so no further analysis is needed.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个最终版本中，`analyze-if`返回的过程不包含任何分析步骤。在调用该过程之前，所有组件都已经被分析过，因此不需要进一步分析。
 - en: The biggest gain in efficiency comes from the way in which `lambda` expressions
     are handled. In the original metacircular evaluator, leaving out some of the data
     abstraction for clarity here, we have
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 效率上的最大收益来自对`lambda`表达式的处理方式。在原始元循环评估器中，为了清晰起见，我们省略了一些数据抽象，我们有
 - en: '[PRE12]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The evaluator does essentially nothing for a `lambda` expression except to remember
     the procedure’s text and the environment in which it was created. But in the analyzing
     evaluator we analyze the body of the procedure (using the `analyze-sequence` procedure);
@@ -178,183 +265,277 @@
     Instead, the evaluator represents a procedure in the metacircular Scheme as a
     procedure in the underlying Scheme, along with the formal parameters and the defining
     environment.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 评估器对`lambda`表达式实际上什么也不做，除了记住过程的文本和创建它的环境。但是在分析评估器中，我们分析过程的主体（使用`analyze-sequence`过程）；存储为过程的表示不包括其文本！相反，评估器在元循环Scheme中表示一个过程为底层Scheme中的一个过程，以及形式参数和定义环境。
 - en: (Be sure to read [Section 4.1.7](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)
     from SICP to see how all of the syntactic analysis procedures are implemented).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: （务必阅读[SICP的第4.1.7节](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)以了解所有的语法分析过程是如何实现的）。
 - en: Level Confusion
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 级别混淆
 - en: The analyzing evaluator turns an expression such as
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 分析评估器将表达式转换为
 - en: '[PRE13]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: into a procedure
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 转换为一个过程
 - en: '[PRE14]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This may seem like a step backward; we’re trying to implement `if` and we end
     up with a procedure that does an `if`. Isn’t this an infinite regress?
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可能看起来像是一种倒退；我们试图实现`if`，最终得到一个执行`if`的过程。这不是一个无限回归吗？
 - en: No, it isn’t. The `if` in the execution procedure is handled by the underlying
     Scheme, not by the metacircular Scheme. Therefore, there’s no regress; we don’t
     call `analyze-if` for that one. Also, the `if` in the underlying Scheme is much
     faster than having to do the syntactic analysis for the `if` in the meta-Scheme.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 不，不是。执行过程中的`if`由底层Scheme处理，而不是由元循环Scheme处理。因此，没有回归；我们不为那个调用`analyze-if`。此外，底层Scheme中的`if`比在元Scheme中进行`if`的语法分析要快得多。
 - en: So What?
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 那又怎样？
 - en: The syntactic analysis of expressions is a large part of what a compiler does.
     In a sense, this analyzing evaluator is a compiler! It compiles Scheme into Scheme,
     so it’s not a very useful compiler, but it’s really not that much harder to compile
     into something else, such as the machine language of a particular computer.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 表达式的语法分析是编译器的主要工作之一。在某种意义上，这个分析评估器就是一个编译器！它将 Scheme 编译成 Scheme，所以它不是一个非常有用的编译器，但是编译成其他东西，比如特���计算机的机器语言，其实并不难。
 - en: A compiler whose structure is similar to this one is called a *recursive descent*
     compiler. Today, in practice, most compilers use a different technique (called
     a stack machine) because it’s possible to automate the writing of a parser that
     way. (I mentioned this earlier as an example of data- directed programming.) But
     if you’re writing a parser by hand, it’s easiest to use recursive descent.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构类似于这个的编译器被称为*递归下降*编译器。如今，在实践中，大多数编译器使用一种不同的技术（称为堆栈机），因为可以通过这种方式自动编写解析器。 （我之前提到过这是数据导向编程的一个例子。）但是，如果你手动编写解析器，最容易使用递归下降。
 - en: (Be sure to read section [4.1.7](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)
     of SICP before proceeding).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: （在继续之前，请务必阅读 SICP 的[4.1.7](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)部分）。
 - en: An Example
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个例子
 - en: 'Here is a nice example of evaluating `factorial` using the analyzing evaluator.
     Let''s consider the following Scheme code:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个使用分析评估器评估`阶乘`的好例子。让我们考虑以下 Scheme 代码：
 - en: '[PRE15]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'There are two statements here: one definition and one application.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有两个语句：一个定义和一个应用。
 - en: 'We start with the definition, which we will call `d` here (where `d` stands
     for ''(define (factorial n) ...)''):'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从定义开始，我们将在这里称之为`d`（其中`d`代表'(define (factorial n) ...)')：
 - en: '[PRE16]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '`analyze-definition` will first analyze the `definition-value` and then create
     an execution procedure that, when executed, will `define` the variable name to
     the analyzed `definition-value`.'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '`analyze-definition`将首先分析`definition-value`，然后创建一个执行过程，当执行时，将`define`变量名为分析的`definition-value`。'
 - en: This point is crucial. We are not just assigning a `lambda` to `factorial`,
     we are assigning an *analyzed* `lambda` to `factorial`. This will provide a performance
     boon later on.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一点至关重要。我们不只是将`lambda`分配给`factorial`，我们将*分析的*`lambda`分配给`factorial`。这将在以后提供性能优势。
 - en: So, to figure out the value of `factorial`, we analyze the `lambda`, with...
     `analyze-lambda`, of course (through the dispatch in analyze).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了找出`factorial`的值，我们使用...当然是通过`analyze-lambda`来分析`lambda`（通过分析中的分派）。
 - en: The boon that `analyze-lambda` provides is really from analyzing the body *once*,
     and then making a procedure Abstract Data Type with an `analyzed` body (a scheme
     procedure), instead of a simple list of instructions, like in the old `eval`.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`analyze-lambda`提供的好处真的是从*一次*分析主体开始，然后制作一个具有`analyzed`主体（一个 Scheme 过程）的过程抽象数据类型，而不是像旧的`eval`中那样简单的指令列表。'
 - en: The point is that, on invocations of our `lambda`, we won't have to deal with
     parsing. Parsing will *only* be done upon creating the `lambda`.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键是，在调用我们的`lambda`时，我们不必处理解析。解析*仅*在创建`lambda`时完成。
 - en: Let's see this in action.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看这个过程。
 - en: '(NOTE: I''ll be using `:=` as a way to denote storing:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: （注意：我将使用`:=`来表示存储：
 - en: '[PRE17]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: This isn't really scheme, but I think it's easier than having a bunch of `let`
     statements.)
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这并不是真正的 Scheme，但我认为这比有一堆`let`语句更容易。）
 - en: '[PRE18]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Now we need to `analyze` the body, then store it for later, so that we don't
     redundantly `analyze` the body again.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们需要`analyze`主体，然后将其存储以供以后使用，这样我们就不会再次冗余地`analyze`主体。
 - en: '[PRE19]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '`analyze-if` analyzes everything it''s given, stores it, and then creates a
     new execution procedure with those stored values.'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '`analyze-if`分析其所给的所有内容，存储它，然后使用这些存储的值创建一个新的执行过程。'
 - en: '[PRE20]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: And now that we know that result, let's go back to `analyze-lambda`.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道了结果，让我们回到`analyze-lambda`。
 - en: '[PRE21]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'We store the last expression into the `factorial` variable, and we''re done
     defining `factorial`. Note that we only analyze the body *ONCE*: during the analysis
     stage. We never `analyze` during the evaluation stage! This means that during
     evaluation, every time we call this `factorial` function, we know its body contains
     an `if` statement, and that the `if` statement checks if `n` equals `0` (and what
     to do if the predicate is true or false).'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将最后一个表达式存储到`factorial`变量中，然后我们完成了定义`factorial`。请注意，我们只在分析阶段*一次*分析主体：在评估阶段我们永远不会`analyze`！这意味着在评估期间，每次调用此`factorial`函数时，我们知道其主体包含一个`if`语句，并且`if`语句检查`n`是否等于`0`（以及如果谓词为真或假时该怎么做）。
 - en: Now, on to evaluating factorial. This is where you'll see all the cryptic analyzing
     work pay off.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，继续评估阶乘。这就是你将看到所有神秘分析工作的价值所在。
 - en: '[PRE22]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Here, `n = 2 != 0`, so we''ll end up calling executing `(if-false env2)`. `if-false`
     will do an application of `*` to `(factorial (- n 1))` and `n`, but these arguments
     have already been `analyzed` (when we did `analyze-lambda`). So we evaluate the
     analyzed `(factorial (- n 1))`, which is:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，`n = 2 != 0`，所以我们最终会执行`(if-false env2)`。`if-false`会对`(factorial (- n 1))`和`n`进行`*`的应用，但这些参数已经被`分析`过了（当我们进行`analyze-lambda`时）。所以我们评估已经分析过的`(factorial
+    (- n 1))`，即：
 - en: '[PRE23]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'We recurse again, in the same fashion:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们再次以相同的方式递归：
 - en: '[PRE24]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Here, `n` actually equals `0`, so we call `(if-true env4).` `if-true` disregards
     `env4` and returns the number `1`. Then, we go back to all the execute-application
     primitive applications and multiply everything together.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，`n`实际上等于`0`，所以我们调用`(if-true env4)`。`if-true`忽略`env4`并返回数字`1`。然后，我们回到所有执行应用程序原语应用并将所有内容相乘。
 - en: And we get... `2`.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们得到... `2`。
 - en: So, we're done.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们完成了。
 - en: Notice that during the evaluation phase, we never check the syntax of a statement.
     The syntax has already been looked at, and `analyzed`. We simply carry out what
     these `analyzed` statements tell us to do. Think about the gain in efficiency
     here when computing something like `(factorial 100)`.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在评估阶段，我们从不检查语句的语法。语法已经被查看并`分析`过了。我们只是执行这些`分析`过的语句告诉我们要做的事情。想想当计算类似`(factorial
+    100)`这样的东西时，这里的效率提高了多少。
