@@ -4047,41 +4047,50 @@
   id: totrans-616
   prefs: []
   type: TYPE_NORMAL
+  zh: 当接收线程调用绑定到 after-thread 的延续时，控制返回到 begin 序列中第一条语句的末尾。因此，传递给延续的值被忽略了（因此可以是任意虚拟值；我们将选择'dummy，这样如果它出现在不希望出现的地方，我们就可以很容易地发现它）。然后，控制继续进行，将最近调用的线程追加到线程列表的末尾（即，将列表视为循环队列）。现在让我们定义一个线程。正如我们所说，它将是一个带有一个参数（调度程序的延续）的过程。因为线程需要恢复，即继续上次的位置，所以它可能必须存储上次的位置：我们将其称为线程恢复器。最初，这是整个线程体，但在后续实例中，它将是一个延续：具体来说，是调用
+    yield 的延续。因此，我们得到以下骨架：
 - en: '| (define-syntax thread-0 |'
   id: totrans-617
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (定义语法 线程-0 |'
 - en: '|   (syntax-rules () |'
   id: totrans-618
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (语法规则 () |'
 - en: '|     [(thread (yielder) b ...) |'
   id: totrans-619
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     [(线程（生成器）b ...） |'
 - en: '|      (letrec ([thread-resumer (lambda (_) |'
   id: totrans-620
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|      (letrec ([线程恢复器 (lambda (_) |'
 - en: '|                                 (begin b ...))]) |'
   id: totrans-621
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                                 (begin b ...))]) |'
 - en: '|        (lambda (sched-k) |'
   id: totrans-622
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|        (lambda (sched-k) |'
 - en: '|          (thread-resumer ''dummy)))])) |'
   id: totrans-623
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|          (线程恢复器 ''dummy)))])) |'
 - en: 'That still leaves the yielder. It needs to be a procedure of no arguments that
     stores the thread’s continuation in thread-resumer, and then invoke the scheduler
     continuation with ’dummy. However, which scheduler continuation does it need to
@@ -4093,101 +4102,122 @@
   id: totrans-624
   prefs: []
   type: TYPE_NORMAL
+  zh: 这仍然留下了生成器。它需要是一个没有参数的过程，它将线程的延续存储在线程恢复器中，然后用'dummy调用调度程序延续。但是，它需要调用哪个调度程序延续？不是在线程初始化时提供的那个，而是最近的一个。因此，我们必须以某种方式“线程化”sched-k的值传递给生成器。有许多方法可以实现它，但最简单、也许最残酷的方法是在每次线程恢复时简单地重建生成器，始终封闭在sched-k的最新值之上：
 - en: '| (define-syntax thread-0 |'
   id: totrans-625
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (定义语法 线程-0 |'
 - en: '|   (syntax-rules () |'
   id: totrans-626
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (语法规则 () |'
 - en: '|     [(thread (yielder) b ...) |'
   id: totrans-627
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     [(线程（生成器）b ...） |'
 - en: '|      (letrec ([thread-resumer (lambda (_) |'
   id: totrans-628
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|      (letrec ([线程恢复器 (lambda (_) |'
 - en: '|                                 (begin b ...))] |'
   id: totrans-629
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                                 (begin b ...))] |'
 - en: '|               [yielder (lambda () (error ''yielder "nothing here"))]) |'
   id: totrans-630
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               [生成器（lambda () (error ''生成器 "这里什么都没有"))]) |'
 - en: '|        (lambda (sched-k) |'
   id: totrans-631
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|        (lambda (sched-k) |'
 - en: '|          (begin |'
   id: totrans-632
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|          (begin |'
 - en: '|            (set! yielder |'
   id: totrans-633
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|            (set! 生成器 |'
 - en: '|                  (lambda () |'
   id: totrans-634
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                  (lambda () |'
 - en: '|                    (let/cc thread-k |'
   id: totrans-635
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                    (let/cc thread-k |'
 - en: '|                      (begin |'
   id: totrans-636
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                      (begin |'
 - en: '|                        (set! thread-resumer thread-k) |'
   id: totrans-637
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                        (set! 线程恢复器 thread-k) |'
 - en: '|                        (sched-k ''dummy))))) |'
   id: totrans-638
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                        (sched-k ''dummy))))) |'
 - en: '|            (thread-resumer ''tres))))])) |'
   id: totrans-639
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|            (线程恢复器 ''tres))))])) |'
 - en: 'When we run this ensemble, we get:'
   id: totrans-640
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们运行这个集合时，我们得到：
 - en: '| t1-1  t2-1  t3-1  t1-2  t2-2  t3-2  t1-3 t2-3 t3-3 |'
   id: totrans-641
   prefs: []
   type: TYPE_TB
+  zh: '| t1-1  t2-1  t3-1  t1-2  t2-2  t3-2  t1-3 t2-3 t3-3 |'
 - en: 'Hey, that’s what we wanted! But it continues:'
   id: totrans-642
   prefs: []
   type: TYPE_NORMAL
+  zh: 嘿，这正是我们想要的！但它继续说：
 - en: '| t1-3 t2-3 t3-3 t1-3 t2-3 t3-3 t1-3 t2-3 t3-3 |'
   id: totrans-643
   prefs: []
   type: TYPE_TB
+  zh: '| t1-3 t2-3 t3-3 t1-3 t2-3 t3-3 t1-3 t2-3 t3-3 |'
 - en: Hmmm.
   id: totrans-644
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯。
 - en: 'What’s happening? Well, we’ve been quiet all along about what needs to happen
     when a thread reaches its end. In fact, control just returns to the thread scheduler,
     which appends the thread to the end of the queue, and when the thread comes to
