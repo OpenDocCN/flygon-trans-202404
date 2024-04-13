@@ -1497,6 +1497,7 @@
   id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个重要的区别。当我们评估一个术语时，通常根据语言的作用域规则为其所有子术语使用相同的环境。因此，环境以递归下降模式流动。相反，存储是经过线程化的：我们不是在所有分支中使用相同的存储，而是从一个分支获取存储，然后传递给下一个分支，并将结果发送回去。这种模式称为存储传递风格。
 - en: 'Now the penny drops. We see that store-passing style is our secret ingredient:
     it enables the environment to preserve lexical scope while still giving a binding
     structure that can reflect changes. Our intution told us that the environment
@@ -1507,6 +1508,7 @@
   id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在一切都水到渠成了。我们看到，传递存储的风格是我们的秘密武器：它使环境能够保留词法范围，同时仍然提供可以反映更改的绑定结构。我们的直觉告诉我们，环境必须以某种方式参与获取相同语法表达式的不同结果，现在我们可以看到它是如何做到的：不是直接通过自身更改，而是间接地通过引用存储，然后更新。现在我们只需要看看存储本身是如何“改变”的。
 - en: 'Let’s begin with boxing. To store a value in a box, we have to first allocate
     a new place in the store where its value will reside. The value corresponding
     to a box will then remember this location, for use in box mutation. To obtain
@@ -1515,6 +1517,7 @@
   id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从盒子开始。要将值存储在盒子中，我们首先必须在存储中分配一个新的位置，该值将驻留在其中。然后，与盒子对应的值将记住此位置，以供盒子变异时使用。为了每次都能获得新值，我们将使用我们之前见过的有状态计数器示例（[突变与闭包的相互作用：计数器](State__Change__and_More_Equality.html#%28part._state-closures-counter%29）：
 - en: '[PRE6]'
   id: totrans-243
   prefs: []
@@ -1525,31 +1528,38 @@
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们现在可以定义盒子创建的解释：<mut-str-interp/boxC> ::=
 - en: '|   &#124; boxC(v) => |'
   id: totrans-245
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; boxC(v) => |'
 - en: '|     val = interp(v, nv, st) |'
   id: totrans-246
   prefs: []
   type: TYPE_TB
+  zh: '|     val = interp(v, nv, st) |'
 - en: '|     loc = new-loc() |'
   id: totrans-247
   prefs: []
   type: TYPE_TB
+  zh: '|     loc = new-loc() |'
 - en: '|     ret(boxV(loc), |'
   id: totrans-248
   prefs: []
   type: TYPE_TB
+  zh: '|     ret(boxV(loc), |'
 - en: '|       xtnd-sto(cell(loc, val.v), st)) |'
   id: totrans-249
   prefs: []
   type: TYPE_TB
+  zh: '|       xtnd-sto(cell(loc, val.v), st)) |'
 - en: Do Now!
   id: totrans-250
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在动手！
 - en: ''
   id: totrans-251
   prefs:
@@ -1563,6 +1573,7 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 请注意，我们在上面依赖了new-loc，它本身是基于盒子实现的！这是彻头彻尾的作弊。您将如何修改解释器，以便我们不再需要突变来处理这一小段状态？
 - en: 'To eliminate new-loc, the simplest option would be to add another parameter
     to and return value from the interpreter, representing the largest address used
     so far. Every operation that allocates in the store would return an incremented
@@ -1575,23 +1586,28 @@
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 要消除new-loc，最简单的选项是向解释器添加另一个参数，并从解释器返回值，表示到目前为止使用的最大地址。每个在存储中分配的操作都将返回一个递增的地址，而所有其他操作都将保持不变。换句话说，这正是存储传递模式的另一个应用。以这种方式编写解释器将使其非常笨重，并可能掩盖更重要的存储传递模式的使用，这就是我们没有这样做的原因。但是，重要的是要确保我们可以做到：这告诉我们，我们不依赖状态来向语言添加状态。
 - en: Now that boxes are recording the location in memory, getting the value corresponding
     to them is easy.<mut-str-interp/unboxC> ::=
   id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在盒子记录了内存中的位置，获取与之对应的值就很容易了。<mut-str-interp/unboxC> ::=
 - en: '|   &#124; unboxC(b) => |'
   id: totrans-255
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; unboxC(b) => |'
 - en: '|     val = interp(b, nv, st) |'
   id: totrans-256
   prefs: []
   type: TYPE_TB
+  zh: '|     val = interp(b, nv, st) |'
 - en: '|     ret(fetch(val.v.l, val.st), val.st) |'
   id: totrans-257
   prefs: []
   type: TYPE_TB
+  zh: '|     ret(fetch(val.v.l, val.st), val.st) |'
 - en: It’s the same pattern we saw before, where we have to use fetch to obtain the
     actual value residing at that location. Note that we are relying on Racket to
     halt with an error if the underlying value isn’t actually a boxV; otherwise it
@@ -1600,23 +1616,28 @@
   id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与我们之前看到的模式相同，我们必须使用fetch来获取实际驻留在该位置的值。请注意，我们依赖于Racket在底层值实际上不是boxV时出错停止；否则，不检查将是危险的，因为这等同于对任意内存进行解引用[REF
+    memory safety]。
 - en: Let’s now see how to update the value held in a box. First we have to evaluate
     the box expression to obtain a box, and the value expression to obtain the new
     value to store in it. The box’s value is going to be a boxV holding a location.
   id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们看看如何更新盒子中保存的值。首先，我们必须评估盒子表达式以获得一个盒子，以及值表达式以获得要存储在其中的新值。盒子的值将是一个包含位置的盒子V。
 - en: In principle we want to “change”, or override, the value at that location in
     the store. We can do this in two ways.
   id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 原则上，我们希望“更改”或覆盖存储中该位置的值。我们可以通过两种方式实现这一点。
 - en: One is to traverse the store, find the old binding for that location, and replace
     it with the new one, copying all the other store bindings unchanged.
   id: totrans-261
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 其中一个是遍历存储，找到该位置的旧绑定，并用新的替换它，同时保持所有其他存储绑定不变。
 - en: The other, lazier, option is to simply extend the store with a new binding for
     that location, which works provided we always obtain the most recent binding for
     a location (which is how lookup works in the environment, so fetch can do the
@@ -1626,42 +1647,51 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 另一个更懒惰的选择是简单地为该位置扩展存储，这在我们总是获得位置的最新绑定时有效（这就是环境中查找的工作方式，因此获取可以在存储中执行相同的操作）。请注意，后一种选择迫使我们承诺使用列表而不是集合。
 - en: The code below is written to be independent of these options:<mut-str-interp/setboxC>
     ::=
   id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码是独立于这些选项的编写：<mut-str-interp/setboxC> ::=
 - en: '|   &#124; setboxC(b, v) => |'
   id: totrans-264
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; setboxC(b, v) => |'
 - en: '|     b-val = interp(b, nv, st) |'
   id: totrans-265
   prefs: []
   type: TYPE_TB
+  zh: '|     b-val = interp(b, nv, st) |'
 - en: '|     v-val = interp(v, nv, b-val.st) |'
   id: totrans-266
   prefs: []
   type: TYPE_TB
+  zh: '|     v-val = interp(v, nv, b-val.st) |'
 - en: '|     ret(v-val.v, |'
   id: totrans-267
   prefs: []
   type: TYPE_TB
+  zh: '|     ret(v-val.v, |'
 - en: '|       xtnd-sto(cell(b-val.v.l, v-val.v), v-val.st)) |'
   id: totrans-268
   prefs: []
   type: TYPE_TB
+  zh: '|       xtnd-sto(cell(b-val.v.l, v-val.v), v-val.st)) |'
 - en: If we’ve implemented xtnd-sto as link above, we’ve actually taken the lazier
     (and slightly riskier, because of its dependence on the implementation of fetch)
     option.
   id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们像上面的链接一样实现了xtnd-sto，实际上我们已经采取了更懒惰的（稍微更危险，因为它依赖于fetch实现）选择。
 - en: Exercise
   id: totrans-270
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-271
   prefs:
@@ -1674,11 +1704,13 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 实现存储更改的另一版本，通过更新现有绑定来避免在存储中为位置创建多个绑定。
 - en: Exercise
   id: totrans-273
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-274
   prefs:
@@ -1692,6 +1724,7 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 当我们寻找要覆盖其存储的值的位置时，该位置可能不存在吗？如果是这样，请编写一个演示此情况的程序。如果不是，请解释解释器的不变性防止这种情况发生。
 - en: 'Alright, we’re now done with everything other than application! Most of application
     should already be familiar: evaluate the function position, evaluate the argument
     position, interpret the closure body in an extension of the closure’s environment...but
@@ -1699,31 +1732,40 @@
   id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 好了，除了应用程序之外，我们现在已经完成了一切！大部分应用程序应该已经很熟悉了：评估函数位置，评估参数位置，在扩展闭包环境中解释闭包体...但存储如何与此交互？<mut-str-interp/appC>
+    ::=
 - en: '|   &#124; appC(f, a) => |'
   id: totrans-277
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; appC(f, a) => |'
 - en: '|     clos = interp(f, nv, st) |'
   id: totrans-278
   prefs: []
   type: TYPE_TB
+  zh: '|     clos = interp(f, nv, st) |'
 - en: '|     clos-v :: Value = clos.v |'
   id: totrans-279
   prefs: []
   type: TYPE_TB
+  zh: '|     clos-v :: Value = clos.v |'
 - en: '|     clos-st :: Store = clos.st |'
   id: totrans-280
   prefs: []
   type: TYPE_TB
+  zh: '|     clos-st :: Store = clos.st |'
 - en: '|     arg-val = interp(a, nv, clos-st) |'
   id: totrans-281
   prefs: []
   type: TYPE_TB
+  zh: '|     arg-val = interp(a, nv, clos-st) |'
 - en: '|     [<mut-str-interp/appC/core>](#%28elem._mut-str-interp%2Fapp.C%2Fcore%29)
     |'
   id: totrans-282
   prefs: []
   type: TYPE_TB
+  zh: '|     [<mut-str-interp/appC/core>](#%28elem._mut-str-interp%2Fapp.C%2Fcore%29)
+    |'
 - en: Let’s start by thinking about extending the closure environment. The name we’re
     extending it with is obviously the name of the function’s formal parameter. But
     what location do we bind it to? To avoid any confusion with already-used locations
@@ -1734,22 +1776,28 @@
   id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从考虑扩展闭包环境开始。我们要扩展的名称显然是函数形式参数的名称。但我们将它绑定到哪个位置呢？为了避免与已使用位置混淆（我们稍后将明确介绍的混淆！—<wbr>[参考参数传递](#%28part._reference-param%29)），让我们只分配一个新位置。此位置在环境中使用，并且参数的值驻留在存储器中的此位置：<mut-str-interp/appC/core>
+    ::=
 - en: '|   new-loc = new-loc() |'
   id: totrans-284
   prefs: []
   type: TYPE_TB
+  zh: '|   new-loc = new-loc() |'
 - en: '|   interp(clos-v.f.body, |'
   id: totrans-285
   prefs: []
   type: TYPE_TB
+  zh: '|   interp(clos-v.f.body, |'
 - en: '|     xtnd-env(bind(clos-v.f.arg, new-loc), clos-v.e), |'
   id: totrans-286
   prefs: []
   type: TYPE_TB
+  zh: '|     xtnd-env(bind(clos-v.f.arg, new-loc), clos-v.e), |'
 - en: '|     xtnd-sto(cell(new-loc, arg-val.v), arg-val.st)) |'
   id: totrans-287
   prefs: []
   type: TYPE_TB
+  zh: '|     xtnd-sto(cell(new-loc, arg-val.v), arg-val.st)) |'
 - en: 'Because we have not said the function parameter is mutable, there is no real
     need to have implemented procedure calls this way. We could instead have followed
     the same strategy as before. Indeed, observe that the mutability of this location
@@ -1761,11 +1809,13 @@
   id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为我们没有说函数参数是可变的，所以没有必要以这种方式实现过程调用。我们可以像以前一样遵循相同的策略。事实上，观察到这个位置的可变性永远不会被使用：只有setboxC改变了已存在存储位置中的内容（上面的xtnd-sto在技术上是一个存储器初始化），而且只有在它们被boxVs引用时才这样做，但上面没有分配任何盒子。你可以称之为无用的应用存储器。然而，我们选择以这种方式实现应用程序是为了统一性，并减少我们需要处理的情况的数量。
 - en: Exercise
   id: totrans-289
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-290
   prefs:
@@ -1778,47 +1828,56 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尝试将存储位置的使用限制在盒子中是一种有用的练习。你需要做多少改变？
 - en: '31.3.6Implementing Mutation: Subtleties and Variations'
   id: totrans-292
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.3.6实现突变：微妙和变化
 - en: Even though we’ve finished the implementation, there are still many subtleties
     and insights to discuss.
   id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们已经完成了实现，仍然有许多微妙之处和见解需要讨论。
 - en: 'Implicit in our implementation is a subtle and important decision: the order
     of evaluation. For instance, why did we not implement addition thus?'
   id: totrans-294
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们实现中的一个微妙而重要的决定是评估顺序。例如，为什么我们没有这样实现加法呢？
 - en: <mut-str-interp/plusC/alt> ::=
   id: totrans-295
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: <mut-str-interp/plusC/alt> ::=
 - en: '|   &#124; plusC(l, r) => |'
   id: totrans-296
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|   &#124; plusC(l, r) => |'
 - en: '|     rv = interp(r, nv, st) |'
   id: totrans-297
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     rv = interp(r, nv, st) |'
 - en: '|     lv = interp(l, nv, rv.st) |'
   id: totrans-298
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     lv = interp(l, nv, rv.st) |'
 - en: '|     ret(plus-v(lv.v, rv.v), lv.st) |'
   id: totrans-299
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     ret(plus-v(lv.v, rv.v), lv.st) |'
 - en: 'It would have been perfectly consistent to do so. Similarly, embodied in the
     pattern of store-passing is the decision to evaluate the function position before
     the argument. Observe that:'
@@ -1826,6 +1885,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这样做也完全一致。同样，存储传递模式中体现出的是在评估函数位置之前评估参数的决定。观察到：
 - en: Previously, we delegated such decisions to the underlying language implementation.
     Now, store-passing has forced us to sequentialize the computation, and hence make
     this decision ourselves (whether we realized it or not).
@@ -1834,6 +1894,7 @@
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以前，我们将这些决定委托给底层语言实现。现在，传递存储已经迫使我们将计算序列化，并因此自行做出这个决定（无论我们是否意识到了这一点）。
 - en: Even more importantly, this decision is now a semantic one. Before there were
     mutations, one branch of an addition, for instance, could not affect the value
     produced by the other branch.The only effect they could have was halting with
@@ -1917,11 +1978,13 @@
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     val = interp(b, nv, st) |'
 - en: '|     ret(fetch(val.v.l, st), val.st) |'
   id: totrans-310
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     ret(fetch(val.v.l, st), val.st) |'
 - en: Did you notice? We fetched the location from st, not val.st. But st reflects
     mutations up to but before the evaluation of the unboxC expression, not any within
     it. Could there possibly be any? Mais oui!
@@ -1929,47 +1992,57 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你注意到了吗？我们从`st`而不是`val.st`中提取了位置。但是`st`反映了`unboxC`表达式评估之前但在其中之前的突变，而不是其中的任何突变。可能有吗？当然有！
 - en: '| (let ([b (box 0)]) |'
   id: totrans-312
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| (let ([b (box 0)]) |'
 - en: '|   (unbox (begin (set-box! b 1) |'
   id: totrans-313
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|   (unbox (begin (set-box! b 1) |'
 - en: '|                 b))) |'
   id: totrans-314
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|                 b))) |'
 - en: With the incorrect code above, this would evaluate to 0 rather than 1.
   id: totrans-315
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在上述错误的代码中，这将评估为0而不是1。
 - en: Here’s another, similar, error (again compare with [<mut-str-interp/unboxC>](#%28elem._mut-str-interp%2Funbox.C%29)):<mut-str-interp/unboxC/alt-2>
     ::=
   id: totrans-316
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这是另一个类似的错误（再次与[<mut-str-interp/unboxC>](#%28elem._mut-str-interp%2Funbox.C%29)比较）：<mut-str-interp/unboxC/alt-2>
+    ::=
 - en: '|   &#124; unboxC(b) => |'
   id: totrans-317
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|   &#124; unboxC(b) => |'
 - en: '|     val = interp(b, nv, st) |'
   id: totrans-318
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     val = interp(b, nv, st) |'
 - en: '|     ret(fetch(val.v.l, val.st), st) |'
   id: totrans-319
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|     ret(fetch(val.v.l, val.st), st) |'
 - en: How do we break this? In the end we’re returning the old store, the one before
     any mutations in the unboxC happened. Thus, we just need the outside context to
     depend on one of them.
@@ -1977,44 +2050,52 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 我们如何打破这个？最后我们返回旧存储，即在`unboxC`中的任何突变之前的存储。因此，我们只需要外部上下文依赖于其中一个。
 - en: '| (let ([b (box 0)]) |'
   id: totrans-321
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| (let ([b (box 0)]) |'
 - en: '|   (+ (unbox (begin (set-box! b 1) |'
   id: totrans-322
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|   (+ (unbox (begin (set-box! b 1) |'
 - en: '|                    b)) |'
   id: totrans-323
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|                    b)) |'
 - en: '|      (unbox b))) |'
   id: totrans-324
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '|      (unbox b))) |'
 - en: This should evaluate to 2, but because the store being returned is one where
     b’s location is bound to the representation of 0, the result is 1.
   id: totrans-325
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这应该评估为2，但因为返回的存储是一个其中`b`的位置绑定到0的表示，所以结果是1。
 - en: If we combined both bugs above—<wbr>i.e., using st twice in the last line instead
     of s-a twice—<wbr>this expression would evaluate to 0 rather than 2.
   id: totrans-326
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果我们将上述两个错误结合起来——即，在最后一行中两次使用`st`而不是两次使用`s-a`——这个表达式将评估为0而不是2。
 - en: Exercise
   id: totrans-327
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-328
   prefs:
@@ -2030,6 +2111,7 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 通过解释器；将每个对更新后存储的引用替换为对更新前存储的引用；确保你的测试用例捕获所有引入的错误！
 - en: 'Observe that these uses of “old” stores enable us to perform a kind of time
     travel: because mutation introduces a notion of time, these enable us to go back
     in time to when the mutation had not yet occurred. This sounds both interesting
@@ -2038,6 +2120,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注意这些对“旧”存储的使用使我们能够执行一种时间旅行：因为突变引入了时间的概念，所以这使我们能够回到突变尚未发生的时间。这听起来既有趣又反常；它有用吗？
 - en: 'It does! Imagine that instead of directly mutating the store, we introduce
     the idea of a journal of intended updates to the store. The journal flows in a
     threaded manner just like the real store itself. Some instruction creates a new
@@ -2050,6 +2133,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 它确实做到了！想象一下，我们不是直接突变存储，而是引入了一个关于存储预期更新的日志的概念。日志以与真实存储本身完全相同的线程方式流动。某些指令创建一个新的日志；在那之后，所有查找首先检查日志，只有当日志找不到位置的绑定时才在实际存储中查找。还有两个新指令：一个是丢弃日志（即，回到过去），另一个是提交日志（即，所有编辑都应用于实际存储）。
 - en: This is the essence of software transactional memory. Each thread maintains
     its own journal. Thus, one thread does not see the edits made by the other before
     committing (because each thread sees only its own journal and the global store,
@@ -2063,6 +2147,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这就是软件事务内存的本质。每个线程维护自己的日志。因此，一个线程在提交之前不会看到其他线程所做的编辑（因为每个线程只看到自己的日志和全局存储，而不看其他线程的日志）。同时，每个线程都得到了自己一致的世界视图（它看到了自己所做的编辑，因为这些编辑记录在日志中）。如果事务成功结束，所有线程都会原子地看到更新后的全局存储。如果事务中止，则丢弃的日志会带走所有更改，线程的状态会恢复（除了其他线程提交的全局更改）。
 - en: Software transactional memory offers one of the most sensible approaches to
     tackling the difficulties of multi-threaded programming, if we insist on programming
     with shared mutable state. Because most computers have only one global store,
@@ -2075,12 +2160,14 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 软件事务内存提供了解决多线程编程困难的最明智方法之一，如果我们坚持使用共享可变状态进行编程。然而，由于大多数计算机只有一个全局存储器，因此维护日志可能会很昂贵，而且需要大量的工作来对其进行优化。作为一种替代方案，一些硬件架构已经开始通过提供直接支持事务内存来使创建、维护和提交日志像使用全局存储一样高效，消除了采用这一想法的一个重要障碍。
 - en: Exercise
   id: totrans-334
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-335
   prefs:
@@ -2094,11 +2181,13 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 增加语言的软件事务内存日志功能。
 - en: Exercise
   id: totrans-337
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-338
   prefs:
@@ -2114,6 +2203,8 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 另一种实现策略是将环境映射名称到装箱的值。我们在这里不这样做是因为：(a) 这将是作弊，(b) 不会告诉我们如何在没有装箱的语言中实现相同的功能，(c)
+    不一定适用于其他变异操作，以及 (d) 最重要的是，这并没有真正让我们了解这里发生了什么。
 - en: ''
   id: totrans-340
   prefs:
@@ -2129,11 +2220,13 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尽管如此，理解这一点仍然是有用的，至少因为当您实现自己的语言时，您可能会发现这是一个有用的策略。因此，修改实现以遵守这一策略。您是否仍然需要存储传递样式？为什么或为什么不？
 - en: 31.4Variables
   id: totrans-342
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 31.4变量
 - en: 'Now that we’ve got structure mutation worked out, let’s consider the other
     case: variable mutation. We have already discussed ([From Identifiers to Variables](State__Change__and_More_Equality.html#%28part._mutable-variables%29))
     our choice of terminology, and seen examplse of their use in Pyret. In particular,
@@ -2147,21 +2240,26 @@
   id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经解决了结构变异，让我们考虑另一种情况：变量变异。我们已经讨论过（[从标识符到变量](State__Change__and_More_Equality.html#%28part._mutable-variables%29)）我们术语选择，并在Pyret中看到了它们的使用示例。特别是，其他语言会重载变异语法，正如我们所见（[将含义与表示分离](#%28part._mutation-notation%29)），在Pyret中它们保持不同：!
+    变异对象的字段，而 := 变异变量。这迫使Pyret程序员面对我们在[将含义与表示分离](#%28part._mutation-notation%29)开头介绍的区别。当然，在我们的核心语言中，我们将通过使用不同的构造来避开这些语法问题，用于箱子和变量。
 - en: 31.4.1The Syntax of Variable Assignment
   id: totrans-344
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.4.1变量赋值的语法
 - en: 'The first thing to note about variable mutation is that, although it too has
     two sub-terms like box mutation (setboxC), its syntax is fundamentally different.
     To understand why, let’s return to our Java fragment:'
   id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于变量变异的第一件事是，尽管它也有两个子项，就像箱子变异（setboxC）一样，但其语法基本上是不同的。要理解为什么，让我们回到我们的Java片段：
 - en: '| x = 3; |'
   id: totrans-346
   prefs: []
   type: TYPE_TB
+  zh: '| x = 3; |'
 - en: 'In this setting, we cannot write an arbitrary expression in place of x: we
     must literally write the name of the identifier itself. That is because, if it
     were an expression position, then we could evaluate it, yielding a value: for
@@ -2170,10 +2268,12 @@
   id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我们不能在x的位置写入任意表达式：我们必须直接写入标识符本身的名称。这是因为，如果它是一个表达式位置，那么我们可以对其进行求值，得到一个值：例如，如果x先前绑定到1，这将等同于写入以下语句：
 - en: '| 1 = 3; |'
   id: totrans-348
   prefs: []
   type: TYPE_TB
+  zh: '| 1 = 3; |'
 - en: 'But this is, of course, nonsensical! We can’t assign a new value to 1, and
     indeed 1 is pretty much the definition of immutable. What we instead want is to
     find where x is in the store, and change the value held over there.Here’s another
@@ -2182,18 +2282,22 @@
   id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这显然是荒谬的！我们不能将新值赋给1，实际上1几乎就是不可变的定义。我们真正想要的是找到x在存储中的位置，并更改那里保存的值。另一种看待这个问题的方式是，假设在Java中，局部变量o已经绑定到某个String对象上：
 - en: '| o = new String("an initial string"); |'
   id: totrans-350
   prefs: []
   type: TYPE_TB
+  zh: '| o = new String("一个初始字符串"); |'
 - en: Say the program now executes
   id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设程序现在执行
 - en: '| o = new String("a new string"); |'
   id: totrans-352
   prefs: []
   type: TYPE_TB
+  zh: '| o = new String("一个新字符串"); |'
 - en: 'Is it trying to change the content of the original string ("an initial string")?
     Certainly not: the second assignment intends to leave that original string alone;
     it only wants to change the value that o is referring to, so that subsequent references
@@ -2201,15 +2305,18 @@
   id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 它是在尝试改变原始字符串的内容（"一个初始字符串"）吗？当然不是：第二个赋值意图保持原始字符串不变；它只想要改变o所引用的值，以便随后的引用计算出这个新字符串（"一个新字符串"）对象。
 - en: 31.4.2Interpreting Variables
   id: totrans-354
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.4.2解释变量
 - en: 'We’ll start by reflecting this in our syntax:'
   id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先在我们的语法中反映这一点：
 - en: '[PRE7]'
   id: totrans-356
   prefs: []
@@ -2224,6 +2331,7 @@
   id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我们已经放弃了盒子操作，但保留了顺序执行，因为它在突变时很方便。重要的是，我们现在添加了setC情况，它的第一个子项不是表达式，而是一个变量的文字名称。我们还将idC重命名为varC。因为我们摆脱了盒子，所以也可以摆脱特殊的盒子值。当你只有一种突变类型时，你不需要新的值种类。
 - en: '[PRE8]'
   id: totrans-358
   prefs: []
@@ -2238,24 +2346,30 @@
   id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所想象的那样，要支持变量，我们需要与之前所见的相同的存储传递风格（[解释盒子](#%28part._store-passing-style%29)）以及出于同样的原因。不同的是我们如何精确地使用它。因为顺序执行的方式与之前完全相同（请注意，它的动词不取决于盒子还是变量），这样我们就只剩下变量突变的情况需要处理了。
 - en: First, we might as well evaluate the value expression and obtain the updated
     store:<mut-var-interp/setC> ::=
   id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们可以评估值表达式并获得更新后的存储：<mut-var-interp/setC> ::=
 - en: '|   &#124; setC(v, b) => |'
   id: totrans-361
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; setC(v, b) => |'
 - en: '|     new-val = interp(b, nv, st) |'
   id: totrans-362
   prefs: []
   type: TYPE_TB
+  zh: '|     new-val = interp(b, nv, st) |'
 - en: '|     [<mut-var-interp/setC/core>](#%28elem._mut-var-interp%2Fset.C%2Fcore%29)
     |'
   id: totrans-363
   prefs: []
   type: TYPE_TB
+  zh: '|     [<mut-var-interp/setC/core>](#%28elem._mut-var-interp%2Fset.C%2Fcore%29)
+    |'
 - en: What now? Remember we just said that we don’t want to fully evaluate the variable,
     because that would just give the value it is bound to. Instead, we want to know
     which memory location it corresponds to, and update what is stored at that memory
@@ -2264,18 +2378,23 @@
   id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在怎么办？记得我们刚刚说过我们不想完全评估变量，因为那只会给出它绑定的值。相反，我们想知道它对应哪个内存位置，并更新该内存位置存储的内容；后半部分与我们突变盒子时所做的事情完全相同：<mut-var-interp/setC/core>
+    ::=
 - en: '|   var-loc = lookup(v, nv) |'
   id: totrans-365
   prefs: []
   type: TYPE_TB
+  zh: '|   var-loc = lookup(v, nv) |'
 - en: '|   ret(new-val.v, |'
   id: totrans-366
   prefs: []
   type: TYPE_TB
+  zh: '|   ret(new-val.v, |'
 - en: '|     xtnd-sto(cell(var-loc, new-val.v), new-val.st)) |'
   id: totrans-367
   prefs: []
   type: TYPE_TB
+  zh: '|     xtnd-sto(cell(var-loc, new-val.v), new-val.st)) |'
 - en: 'The very interesting new pattern we have here is this. When we added boxes,
     in the idC case ([<mut-str-interp/idC>](#%28elem._mut-str-interp%2Fid.C%29)),
     we looked up an identifier in the environment (just as above), and then immediately
@@ -2290,26 +2409,32 @@
   id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们这里有一个非常有趣的新模式。当我们添加了盒子时，在 idC 的情况下（[<mut-str-interp/idC>](#%28elem._mut-str-interp%2Fid.C%29)），我们在环境中查找标识符（就像上面一样），然后立即从存储中获取该位置处的值；组合产生了一个值，就像我们在添加存储之前一样。然而，现在，我们有一个新的模式：在环境中查找标识符，而不是随后从存储中获取它的值，即，我们只有一个变量评估的“一半”。调用
+    lookup 的结果传统上称为左值，表示“赋值的左边值”。这是一种说“内存地址”的花哨方式，并且与存储产生的实际值形成对比：注意它与类型 Value 中的任何内容都没有直接对应。
 - en: And we’re done! We did all the hard work when we implemented store-passing style
     (and also in that application allocated new locations for variables).
   id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们做完了！我们在实现存储传递样式时做了所有的艰苦工作（并且在那个应用程序中为变量分配新位置时也是如此）。
 - en: 31.4.3Reference Parameter Passing
   id: totrans-370
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.4.3 引用参数传递
 - en: 'Let’s return to the parenthetical statement above: that every application allocates
     a fresh location in the store for the parameter.'
   id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到上面的括号语句：每个应用程序为参数分配一个新的存储位置。
 - en: Do Now!
   id: totrans-372
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在做！
 - en: ''
   id: totrans-373
   prefs:
@@ -2321,6 +2446,7 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这为什么重要？考虑以下 Pyret 程序：
 - en: ''
   id: totrans-375
   prefs:
@@ -2346,12 +2472,14 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 运行之后，我们期望 y 的值是多少？
 - en: In the example above, y evaluates to 5, not 3. That is because the value of
     the formal parameter x is held at a different location than that of the actual
     parameter y, so the mutation affects the location of x, leaving y unscathed.
   id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的例子中，y 的评估结果为 5，而不是 3。这是因为形式参数 x 的值保存在与实际参数 y 不同的位置，因此突变影响了 x 的位置，而 y 并未受到影响。
 - en: 'Now suppose, instead, that application behaved as follows. When the actual
     parameter is a variable, and hence has a location in memory, instead of allocating
     a new location for the value, it simply passes along the existing one for the
@@ -2367,12 +2495,15 @@
   id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设，相反地，应用程序的行为如下。当实际参数是一个变量时，因此在内存中有一个位置时，它不是为值分配一个新的位置，而是简单地传递变量的现有位置。现在形式参数引用的是与实际参数相同的存储位置：即，它们是变量别名。因此，对形式参数的任何突变都会泄漏到调用上下文中；上面的程序将评估为
+    3 而不是 5。这称为引用参数传递策略。相反，我们的解释器实现了按值调用，这是像 Java 这样的语言所遵循的相同策略。这会引起混淆，因为当值本身是可变的时，调用者会观察到在被调用者中对值所做的更改。然而，这只是可变值的一个副作用，而不是调用策略的副作用。请避免这种混淆！
 - en: 'For some years, this power was considered a good idea. It was useful because
     programmers could write abstractions such as swap, which swaps the value of two
     variables in the caller. However, the disadvantages greatly outweigh the advantages:'
   id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 多年来，这种方法被认为是一个好主意。这是有用的，因为程序员可以编写抽象，比如 swap，它交换调用者的两个变量的值。然而，缺点远远超过了优点：
 - en: A careless programmer can alias a variable in the caller and modify it without
     realizing they have done so, and the caller may not even realize this has happened
     until some obscure condition triggers it.
@@ -2380,6 +2511,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个粗心的程序员可以在调用者中创建一个变量的别名并修改它，而不知道他们已经这样做了，调用者甚至可能不会意识到发生了这种情况，直到一些隐晦的条件触发它。
 - en: 'Some people thought this was necessary for efficiency: they assumed the alternative
     was to copy large data structures. However, call-by-value is compatible with passing
     just the address of the data structure. You only need make a copy if (a) the data
@@ -2390,12 +2522,14 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有些人认为这是为了效率而必要的：他们认为替代方案是复制大型数据结构。然而，传值调用与仅传递数据结构的地址是兼容的。只有在（a）数据结构是可变的，（b）您不希望调用方能够对其进行变异，以及（c）语言本身没有提供不可变性注释或其他机制时，您才需要复制。
 - en: 'It can force non-local and hence non-modular reasoning. For instance, suppose
     we have the procedure:'
   id: totrans-384
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它可以强制进行非本地和因此非模块化的推理。例如，假设我们有以下过程：
 - en: '[PRE10]'
   id: totrans-385
   prefs:
@@ -2411,6 +2545,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果语言允许按引用传递参数，那么程序员不能在本地—<wbr>即仅从上述代码—<wbr>确定椭圆中 x 的值，因为它取决于被调用方（作为参数传递）将是谁，以及它可能会做什么，这反过来可能取决于动态条件（包括月相）。
 - en: At the very least, then, if the language is going to permit by-reference parameters,
     it should let the caller determine whether to pass the reference—<wbr>i.e., let
     the callee share the memory address of the caller’s variable—<wbr>or not. However,
@@ -2421,6 +2556,7 @@
   id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 最起码，如果语言要允许按引用传递参数，它应该让调用方确定是否传递引用—<wbr>即让被调用方共享调用方变量的内存地址—<wbr>或不传递。然而，即使这个选项听起来并不那么吸引人，因为现在被调用方面临着对称的问题，不知道它的参数是否被别名。在传统的、顺序的程序中，这不是那么值得关注，但如果过程是可重入的，被调用方面临着完全相同的困境。
 - en: At some point, therefore, we should consider whether any of this fuss is worthwhile.
     Instead, callers who want the callee to perform a mutation could simply send a
     boxed value to the callee. The box signals that the caller accepts—<wbr>indeed,
@@ -2430,23 +2566,27 @@
   id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们应该考虑是否值得进行所有这些麻烦。相反，想要被调用方执行变异的调用方只需将一个封装值发送给被调用方。这个盒子表示调用方接受—<wbr>实际上，邀请—<wbr>被调用方执行变异，调用方在完成时可以提取值。这确实取消了编写简单交换程序的能力，但这是为了真正的软件工程问题所付出的小代价。
 - en: 31.5The Design of Stateful Language Operations
   id: totrans-389
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 31.5有状态语言操作的设计
 - en: 'Though most programming languages include one or both kinds of state we have
     studied, their admission should not be regarded as a trivial or foregone matter.
     On the one hand, state brings some vital benefits:'
   id: totrans-390
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管大多数编程语言包括我们研究过的一种或两种状态，但它们的允许不应该被视为一个微不足道的或既定的问题。一方面，状态带来了一些重要的好处：
 - en: 'State provides a form of modularity. As our very interpreter demonstrates,
     without explicit stateful operations, to achieve the same effect:'
   id: totrans-391
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态提供了一种模块化的形式。正如我们的解释器所展示的那样，如果没有显式的状态操作，要实现相同的效果：
 - en: We would need to add explicit parameters and return values that pass the equivalent
     of the store around.
   id: totrans-392
@@ -2454,6 +2594,7 @@
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要添加明确的参数和返回值，以传递等效于存储的内容。
 - en: These changes would have to be made to all procedures that may be involved in
     a communication path between producers and consumers of state.
   id: totrans-393
@@ -2461,6 +2602,7 @@
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些更改必须应用到可能涉及生产者和消费者之间通信路径的所有过程中。
 - en: Thus, a different way to think of state in a programming language is that it
     is an implicit parameter already passed to and returned from all procedures, without
     imposing that burden on the programmer. This enables procedures to communicate
@@ -2469,12 +2611,14 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 因此，思考编程语言中状态的另一种方式是，它是一个隐式参数，已经传递给所有过程并从中返回，而不会将这种负担加在程序员身上。这使得过程能够在“距离”上进行通信，而不需要所有中介都意识到通信。
 - en: State makes it possible to construct dynamic, cyclic data structures, or at
     least to do so in a relatively straightforward manner ([Graphs](graphs.html)).
   id: totrans-395
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态使得可以构建动态、循环的数据结构，或者至少以相对直接的方式进行构建（[图表](graphs.html)）。
 - en: State gives procedures memory, such as new-loc above. If a procedure could not
     remember things for itself, the callers would need to perform the remembering
     on its behalf, employing the moral equivalent of (at least local) store-passing.
@@ -2486,6 +2630,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态给予过程内存，例如上面的 new-loc。如果一个过程不能为自己记忆事物，调用者将需要代表其执行记忆，采用（至少是局部的）存储传递的道德等价物。这不仅笨拙，而且会为调用者干扰其内存提供潜在可能性，以用于其自身的邪恶目的（例如，调用者可能故意发送回旧存储，从而获取已授予其他一方的引用，通过这个引用可能发起正确性或安全性攻击）。
 - en: On the other hand, state imposes real costs on programmers as well as on programs
     that process programs (such as compilers). One is “aliasing”, which we discuss
     later [REF]. Another is “referential transparency”, which too I hope to return
@@ -2497,6 +2642,7 @@
   id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，状态对程序员和处理程序的程序（如编译器）都产生了实际成本。一个是“别名”，我们稍后会讨论[REF]。另一个是“引用透明性”，我也希望能够回到[REF]。最后，我们已经描述了状态如何提供一种模块化形式。然而，同样的描述也可以被视为中间人不知道且无法监视的后门通信。在某些（特别是安全和分布式系统）设置中，这种后门通信可能导致勾结，并因此极其危险和不可取。
 - en: Because there is no optimal answer, it is probably wise to include mutation
     operators but to carefully delinate them. In Standard ML, for instance, there
     is no variable mutation, because it is considered unnecessary. Instead, the language
@@ -2507,6 +2653,8 @@
   id: totrans-398
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为没有最佳答案，所以可能明智的做法是包含变异运算符，但要仔细界定它们。例如，在标准 ML 中，没有变量变异，因为认为这是不必要的。相反，语言具有盒子的等效物（称为
+    refs）。可以使用盒子轻松模拟变量，因此不会丢失表现力，尽管这会比仅使用变量产生更多的别名潜在问题（[REF aliasing]），如果不小心使用盒子的话。
 - en: 'In return, however, developers obtain expressive types: every data structure
     is considered immutable unless it contains a ref, and the presence of a ref is
     a warning to both developers and programs (such as compilers) that the underlying
@@ -2524,11 +2672,15 @@
   id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，开发者在此过程中获得了表现力强的类型：每个数据结构都被视为不可变，除非它包含一个 ref，并且 ref 的存在是对开发者和程序（如编译器）的警告，表明底层值可能会不断变化。同样的论点适用于
+    Pyret，在那里，缺少 ref 声明意味着字段是不可变的，缺少 var 声明意味着标识符是不可变的，即不是变量。因此，例如，假设 b 是一个盒子，并且 v
+    绑定到 b 的解箱。开发者应意识到，将所有解箱 b 的实例替换为对 v 的引用是不安全的，因为前者总是获取盒子中的当前值，而后者仅在计算 v 时保持值，并且现在可能不一致。字段可变的声明向开发者和编程工具（如编译器）提供了这些信息；特别是，缺少这样的声明允许缓存值，从而以计算时间换取空间。
 - en: 31.6Typing State
   id: totrans-400
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 31.6 类型化状态
 - en: 'Adding stateful operations to a type-checker is easy: the only safe thing to
     do is make sure the type of the new value is exactly the same as that of the old
     one. If that is true, the behavior of the program will be indistinguishable to
@@ -2537,11 +2689,13 @@
   id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 向类型检查器添加有状态操作很容易：唯一安全的做法是确保新值的类型与旧值完全相同。如果是这样，程序的行为在突变之前和之后对类型系统来说是不可区分的。也就是说，最安全的做法是遵循不变性（[替换原则](types.html#%28part._type-substitutability%29)）。
 - en: 31.6.1Mutation and Polymorphism
   id: totrans-402
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.6.1突变和多态性
 - en: 'Later, once we encounter subtyping ([Subtyping](objects.html#%28part._subtyping%29)),
     we will find it is no longer trivial to type mutation. Already, however, mutation
     is complex in the presence of polymorphism. Let us first give polymorphic types
@@ -2549,6 +2703,7 @@
   id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 后来，一旦我们遇到子类型（[子类型](objects.html#%28part._subtyping%29)），我们会发现在对突变进行类型化不再是微不足道的。但是，在多态性存在的情况下，突变已经很复杂了。让我们先给盒子赋予多态类型，其中Box是盒子的类型构造器：
 - en: '[PRE11]'
   id: totrans-404
   prefs: []
@@ -2558,11 +2713,13 @@
   id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: （假设突变操作set-box将盒子作为其结果返回）。
 - en: Exercise
   id: totrans-406
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
   id: totrans-407
   prefs:
@@ -2574,10 +2731,12 @@
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 实现上述三个函数。
 - en: 'Now let us consider a simple example that uses these:'
   id: totrans-409
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们考虑一个使用这些方法的简单示例：
 - en: '[PRE12]'
   id: totrans-410
   prefs: []
@@ -2594,6 +2753,8 @@
   id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: '最初，f的类型是Box((A -> A))，其中(A -> A)表示多态身份函数的类型。在进行推断时，该类型的副本肯定与Number -> Number统一，这是lam(x):
+    x + 5 end的类型。另一个副本用于应用位置；参数类型与true的类型统一，给整个表达式赋予Boolean类型。然而，当实际函数被应用时，它尝试将true加到5上，导致运行时错误。如果编译器假设类型系统是合理的，并且没有编译检查，这个程序甚至可能导致分段错误。'
 - en: There are many ways to try to understand this problem, which is beyond the scope
     of this study. The simplest way is that polymorphism and mutation do not work
     together well. The essence of polymorphism is to imagine a quantified type is
@@ -2607,11 +2768,13 @@
   id: totrans-412
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多方法可以尝试理解这个问题，这超出了本研究的范围。最简单的方法是多态性和突变不太搭配。多态的本质是想象一个量化类型在每次使用时被实例化；然而，突变的本质是在程序的一部分和另一部分之间悄悄传递值。因此，在两个不同位置统一的值只保证与let-bound标识符兼容，而不是彼此兼容。这通常不是问题，因为两者不直接通信，除非涉及突变。因此，在这种情况下的一个简单解决方案是防止对可变let-bound标识符进行多态泛化。
 - en: 31.6.2Typing the Initial Value
   id: totrans-413
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 31.6.2初始值的类型化
 - en: 'There is one last issue we should address where mutation is concerned: the
     typing of cycle creation, and in particular dealing with the problem of [Premature
     Evaluation](State__Change__and_More_Equality.html#%28part._premature-eval%29).
@@ -2620,12 +2783,14 @@
   id: totrans-414
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个问题与突变有关，我们应该解决：创建循环的类型化，特别是处理[过早评估](State__Change__and_More_Equality.html#%28part._premature-eval%29)的问题。我们已经讨论了处理初始值的几种方法；每种方法都会影响到类型化：
 - en: Using a fixed initial value of a standard type means the value subsequently
     mutated into place may not be type-compatible, thereby failing invariance.
   id: totrans-415
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用标准类型的固定初始值意味着随后突变到位的值可能不兼容类型，从而违反不变性。
 - en: Using a different initial value of the type that will eventually be put into
     the mutable has the problem that prematurely observing it is even more deadly,
     because it may not be distinguishable from the eventual value.
@@ -2633,6 +2798,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用最终将放入可变对象的类型的不同初始值存在一个问题，即过早观察它甚至更加致命，因为它可能无法与最终值区分开来。
 - en: Using a new value just for this case works provided there is one of each type.
     Otherwise, again, we violate invariance. But having one of each type is a problem
     in itself, because now the run-time system has to check for all of them.
@@ -2640,6 +2806,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用一个新值仅适用于这种情况，前提是每种类型都有一个。否则，我们再次违反了不变性。但是每种类型都有一个本身就是一个问题，因为现在运行时系统必须检查所有这些类型。
 - en: Syntactically restricting recursion to functions is the safest, because the
     initial value is never seen. As a result, there is no need to provide any meaningful
     type for it.
@@ -2647,6 +2814,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在语法上将递归限制为函数是最安全的，因为初始值永远不会被看到。因此，不需要为其提供任何有意义的类型。
 - en: In short, this is a place where we have to confront unsurmountable trade-offs.
     The first option sacrifices typability; the second option sacrifices program reliability
     (because the dummy values are of the right type, and may hence be inadvertently
@@ -2655,3 +2823,4 @@
   id: totrans-419
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，这是一个我们不得不面对不可逾越的权衡的地方。第一种选择牺牲了可类型化性；第二种选择牺牲了程序的可靠性（因为虚拟值是正确类型的，因此可能在不知情的情况下被无意中使用）；第三种选择牺牲了运行时的简单性；第四种选择牺牲了程序员的灵活性。
