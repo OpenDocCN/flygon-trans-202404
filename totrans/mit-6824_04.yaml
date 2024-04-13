@@ -1,1073 +1,1586 @@
 - en: '"Flat Datacenter Storage" Case Study'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '"扁平数据中心存储" 案例研究'
 - en: '6.824 2015 Lecture 4: "Flat Datacenter Storage" Case Study'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 4 讲：“扁平数据中心存储”案例研究
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲义内容与 6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)2015
+    年春季发布的讲义略有修改。'
 - en: Flat datacenter storage
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 扁平数据中心存储
 - en: '[Flat Datacenter Storage](papers/fds.pdf), *Nightingale, Elson, Fan, Hofmann,
     Howell, Suzue*, OSDI 2012'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[扁平数据中心存储](papers/fds.pdf)，*Nightingale, Elson, Fan, Hofmann, Howell, Suzue*，OSDI
+    2012'
 - en: Why are we looking at this paper?
+  id: totrans-5
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我们为什么要看这篇论文？
 - en: Lab 2 wants to be like this when it grows up
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 Lab 2 长大后想要变成这样
 - en: though details are all different
+  id: totrans-7
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管细节各不相同
 - en: fantastic performance -- world record cluster sort
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 出色的性能 -- 世界纪录集群排序
 - en: good systems paper -- details from apps all the way to network
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 良好的系统论文 -- 从应用程序到网络的细节
 - en: What is FDS?
+  id: totrans-10
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: FDS 是什么？
 - en: a cluster storage system
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个集群存储系统
 - en: stores giant blobs -- 128-bit ID, multi-megabyte content
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存储巨大的 blob -- 128 位 ID，多兆字节的内容
 - en: clients and servers connected by network with high bisection bandwidth
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端和服务器通过具有高叉带宽的网络连接
 - en: for big-data processing (like MapReduce)
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于大数据处理（如 MapReduce）
 - en: cluster of 1000s of computers processing data in parallel
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由数千台计算机组成的并行数据处理集群
 - en: High-level design -- a common pattern
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 高级设计 -- 一个常见的模式
 - en: lots of clients
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 很多客户端
 - en: lots of storage servers ("tractservers")
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 很多存储服务器（"tractservers"）
 - en: lots of bandwidth between any two servers
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任意两个服务器之间有很大的带宽
 - en: data is stored in blobs
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据存储在 blob 中
 - en: addressed by 128bit IDs
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过 128 位 ID 进行寻址
 - en: further split into tracts
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 进一步分割成 tracts
 - en: numbered from 0
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从 0 开始编号
 - en: 8MB sized
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 8MB 大小的
 - en: partition the data
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对数据进行分区
 - en: master ("metadata server") controls partitioning
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点（"元数据服务器"）控制分区
 - en: replica groups for reliability
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为可靠性设置副本组
 - en: tract table locator (TLT) stores a bunch entries
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区段表定位器（TLT）存储了一堆条目
 - en: in a `k`-replicated system, each entry has `k` tractservers
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在一个 `k` 副本系统中，每个条目都有 `k` 个 tractservers
 - en: how to find where a tract `t` for blob `b` is?
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何找到 blob `b` 的 tract `t` 的位置？
 - en: compute TLT entry as `(h(b) + t) mod len(tlt)`
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计算 TLT 条目为 `(h(b) + t) mod len(tlt)`
 - en: and you'll get a list of servers in that entry
+  id: totrans-32
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您将获得该条目中的服务器列表
 - en: blob metadata is *distributed* and NOT stored in the TLT
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: blob 元数据是 *分布式的*，而不是存储在 TLT 中
 - en: how to write a tract from a blob?
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何从一个 blob 中写入一段（tract）？
 - en: look it up as described above
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如上所述查找
 - en: send write to all servers in TLT entry
+  id: totrans-36
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将写入发送到 TLT 条目中的所有服务器
 - en: only acknowledge write to client if *all* servers replied
+  id: totrans-37
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有当 *所有* 服务器都回复时才向客户端确认写入
 - en: how to read a tract from a blob?
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何从一个 blob 中读取一段？
 - en: look it up as described above
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如上所述查找
 - en: send read to *a random* server in the TLT entry
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将读取发送到 TLT 条目中的 *随机* 服务器
 - en: Why is this high-level design useful?
+  id: totrans-41
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 为什么这种高层设计是有用的？
 - en: 1000s of disks of space
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 成千上万的磁盘空间
 - en: store giant blobs, or many big blobs
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存储巨大的 blob，或者许多大的 blob
 - en: 1000s of servers/disks/arms of parallel throughput
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 成千上万的服务器/磁盘/并行吞吐量
 - en: can expand over time -- reconfiguration
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以随时间扩展 -- 重新配置
 - en: large pool of storage servers for instant replacement after failure
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大型存储服务器池，用于在故障后进行即时替换
 - en: 'Motivating app: MapReduce-style sort'
+  id: totrans-47
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 动机应用：MapReduce 风格的排序
 - en: a mapper reads its split `1/M'th` of the input file (e.g., a tract)
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个 mapper 读取其拆分的 `1/M` 部分的输入文件（例如，一个 tract）
 - en: map emits a `<key, record>` for each record in split
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个记录拆分发射一个 `<key, record>`
 - en: map partitions keys among `R` intermediate files (`M*R` intermediate files in
     total)
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将映射分区键分配到 `R` 个中间文件中（总共 `M*R` 个中间文件）
 - en: a reducer reads 1 of `R` intermediate files produced by each mapper
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个 reducer 读取每个 mapper 生成的 `R` 个中间文件中的 1 个
 - en: reads `M` intermediate files (of `1/R` size)
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取 `M` 个中间文件（每个大小为 `1/R`）
 - en: sorts its input
+  id: totrans-53
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对其输入进行排序
 - en: produces `1/R'th` of the final sorted output file (`R` blobs)
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成最终排序输出文件的 `1/R` 部分（`R` 个 blob）
 - en: FDS sort
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FDS 排序
 - en: FDS sort does not store the intermediate files in FDS
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FDS 排序不会将中间文件存储在 FDS 中
 - en: a client is both a mapper and reducer
+  id: totrans-57
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端既是 mapper 也是 reducer
 - en: FDS sort is not locality-aware
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FDS 排序不具有局部感知能力
 - en: in mapreduce, master schedules workers on machine that are close to the data
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 MapReduce 中，主节点将工作节点调度到靠近数据的机器上
 - en: e.g., in same cluster later versions of FDS sort uses more fine-grained work
     assignment e.g., mapper doesn't get 1/N of the input file but something smaller
     deals better with stragglers
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，在同一集群的后续版本中，FDS 排序使用更细粒度的工作分配，例如，mapper 不再获得输入文件的 1/N，而是获得一些更小的值，更好地处理 stragglers。
 - en: The abstract's main claims are about performance.
+  id: totrans-61
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 摘要的主要论点是关于性能的。
 - en: They set the world-record for disk-to-disk sorting in 2012 for MinuteSort
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们在2012年创造了磁盘到磁盘排序的世界纪录，称为 MinuteSort
 - en: 1,033 disks and 256 computers (136 tract servers, 120 clients)
+  id: totrans-63
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1,033个磁盘和256台计算机（136个区块服务器，120个客户端）
 - en: 1,401 Gbyte in 59.4s
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 59.4秒内1,401 Gbyte
 - en: '**Q:** Does the abstract''s 2 GByte/sec per client seem impressive?'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 摘要中的每个客户端2 GByte/秒看起来很吸引人吗？'
 - en: how fast can you read a file from Athena AFS? (abt 10 MB/sec)
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从 Athena AFS 读取文件有多快？（约10 MB/秒）
 - en: how fast can you read a typical hard drive?
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你能以多快的速度读取典型硬盘？
 - en: how fast can typical networks move data?
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 典型网络能够多快地传输数据？
 - en: '**Q:** Abstract claims recover from lost disk (92 GB) in 6.2 seconds'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 摘要声称从丢失的磁盘（92 GB）恢复需要6.2秒，这是怎么做到的？'
 - en: that's 15 GByte / sec
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那是每秒15 GByte
 - en: impressive?
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 令人印象深刻吗？
 - en: how is that even possible? that's 30x the speed of a disk!
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那怎么可能？那是磁盘速度的30倍！
 - en: who might care about this metric?
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 谁可能关心这个度量？
 - en: What should we want to know from the paper?
+  id: totrans-74
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 从这篇论文中我们应该想要了解什么？
 - en: API?
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序编程接口？
 - en: layout?
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 布局？
 - en: finding data?
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查找数据？
 - en: add a server?
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 添加一个服务器？
 - en: replication?
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制？
 - en: failure handling?
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 失败处理？
 - en: failure model?
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 故障模型？
 - en: consistent reads/writes? (i.e. does a read see latest write?)
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一致性读/写？（即读取是否看到最新写入？）
 - en: 'Not in FDS: "The current protocol for replication depends upon the client to
     issue all writes to all replicas. This decision means that FDS provides weak consistency
     guarantees to clients. For example, if a client writes a tract to 1 of 3 replicas
     and then crashes, other clients reading different replicas of that tract will
     observe differing state."'
+  id: totrans-83
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FDS中没有：“复制的当前协议取决于客户端向所有副本发出所有写入。这个决定意味着FDS为客户端提供了弱一致性保证。例如，如果客户端将一个区块写入3个副本中的一个，然后崩溃，读取该区块不同副本的其他客户端将观察到不同的状态。”
 - en: '"Writes are not guaranteed to be committed in order of issue. Applications
     with ordering requirements are responsible for issuing operations after previous
     acknowledgments have been received, rather than concurrently. FDS guarantees atomicity:
     a write is either committed or failed completely"'
+  id: totrans-84
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “写入的顺序不能保证按发出顺序提交。具有排序要求的应用程序负责在收到先前确认后再发出操作，而不是同时发出。FDS保证原子性：写入要么完全提交，要么完全失败。”
 - en: config mgr failure handling?
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置管理器的故障处理？
 - en: good performance?
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 良好的性能吗？
 - en: useful for apps?
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对应用程序有用吗？
 - en: API
+  id: totrans-88
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 应用程序编程接口
 - en: Figure 1
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图1
 - en: 128-bit blob IDs
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 128位 blob ID
 - en: blobs have a length
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: blob 有一个长度
 - en: only whole-tract read and write -- 8 MB
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有整个区块的读取和写入 -- 8 MB
 - en: '**Q:** Why are 128-bit blob IDs a nice interface?'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么128位 blob ID 是一个好接口？'
 - en: Why not file names?
+  id: totrans-94
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么不使用文件名？
 - en: '**Q:** Why do 8 MB tracts make sense?'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么8 MB 区块有意义？'
 - en: (Figure 3...)
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （图3...）
 - en: '**Q:** What kinds of client applications is the API aimed at?'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** API面向哪些客户端应用程序？'
 - en: and not aimed at?
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不是针对哪个方向？
 - en: 'Layout: how do they spread data over the servers?'
+  id: totrans-99
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 布局：它们如何在服务器上分布数据？
 - en: Section 2.2
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第2.2节
 - en: break each blob into 8 MB tracts
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将每个 blob 分成8 MB 区块
 - en: TLT maintained by metadata server
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TLT由元数据服务器维护
 - en: has `n` entries
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有 `n` 个条目
 - en: for blob `b` and tract `t`, `i = (hash(b) + t) mod n`
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 blob `b` 和区块 `t`，`i = (hash(b) + t) mod n`
 - en: '`TLT[i]` contains list of tractservers w/ copy of the tract'
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`TLT[i]` 包含具有区块副本的区块服务器列表'
 - en: clients and servers all have copies of the latest TLT table
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端和服务器都有最新的TLT表副本
 - en: 'Example four-entry TLT with no replication:'
+  id: totrans-107
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 无复制的四个条目TLT示例：
 - en: '[PRE0]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Q:** hy have tracts at all? Why not store each blob on just one server?'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么要有区块？为什么不只在一个服务器上存储每个 blob？'
 - en: What kinds of apps will benefit from striping?
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 什么样的应用程序将从分段中受益？
 - en: What kinds of apps won't?
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 什么样的应用程序不会？
 - en: '**Q:** How fast will a client be able to read a single tract?'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 客户端能够以多快的速度读取单个区块？'
 - en: '**Q:** Where does the abstract''s single-client 2 GB number come from?'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 摘要中的单客户端2 GB数字是从哪里得来的？'
 - en: '**Q:** Why not the UNIX i-node approach?'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么不采用UNIX i-node方法？'
 - en: 'store an array per blob, indexed by tract #, yielding tractserver'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为每个区块存储一个数组，按区块号索引，得到区块服务器
 - en: so you could make per-tract placement decisions
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，您可以做出每个区块的放置决策
 - en: e.g. write new tract to most lightly loaded server
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，将新的区块写入最轻负载的服务器
 - en: '**Q:** Why not `hash(b + t)`?'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么不是 `hash(b + t)`？'
 - en: '**Q:** How many TLT entries should there be?'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 应该有多少个TLT条目？'
 - en: how about `n = number of tractservers`?
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`n = 区块服务器数量` 怎么样？'
 - en: why do they claim this works badly? Section 2.2
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么他们声称这样做效果不好？第2.2节
 - en: The system needs to choose server pairs (or triplets &c) to put in TLT entries
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 系统需要选择要放入TLT条目的服务器对（或三元组等）
 - en: For replication
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于复制
 - en: Section 3.3
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第3.3节
 - en: '**Q:** How about:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 关于：'
 - en: '[PRE1]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Why is this a bad idea?
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么这样做是一个坏主意？
 - en: How long will repair take?
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 修复需要多长时间？
 - en: What are the risks if two servers fail?
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果两个服务器故障会有什么风险？
 - en: '**Q:** why is the paper''s `n^2` scheme better?'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 为什么论文的 `n^2` 方案更好？'
 - en: 'Example:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '[PRE2]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: TLT with `n^2` entries, with every server pair occuring once
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 具有 `n^2` 条目的TLT，每对服务器出现一次
 - en: How long will repair take?
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 修复需要多长时间？
 - en: What are the risks if two servers fail?
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果两个服务器失败会有什么风险？
 - en: '**Q:** Why do they actually use a minimum replication level of 3?'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 他们为什么实际上使用最低复制级别为3？'
 - en: Same `n^2` table as before, third server is randomly chosen
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与之前相同的 `n^2` 表，第三个服务器是随机选择的
 - en: What effect on repair time?
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 修复时间会有什么影响？
 - en: What effect on two servers failing?
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两个服务器失败会有什��影响？
 - en: What if three disks fail?
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果三个磁盘失败会发生什么？
 - en: Adding a tractserver
+  id: totrans-141
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 添加磁道服务器
 - en: To increase the amount of disk space / parallel throughput
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了增加磁盘空间/并行吞吐量
 - en: Metadata server picks some random TLT entries
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 元数据服务器选择一些随机的TLT条目
 - en: Substitutes new server for an existing server in those TLT entries
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这些TLT条目中为现有服务器替换新服务器
 - en: Extending a tract's size
+  id: totrans-145
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 扩展磁道的大小
 - en: Newly created blobs have a length of 0 tracts
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新创建的blob具有0个磁道的长度
 - en: Applications must extend a blob before writing past the end of it.
+  id: totrans-147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序在写入其末尾之前必须扩展blob。
 - en: The extend operation is atomic, is safe to execute concurrently with other clients,
     and returns the new size of the blob as a result of the client’s call.
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 扩展操作是原子的，可以安全地与其他客户端并发执行，并返回客户端调用的结果中 blob 的新大小。
 - en: A separate API tells the client the blob's current size.
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单独的API告诉客户端blob的当前大小。
 - en: Extend operations for a blob are sent to the tractserver that owns that blob’s
     metadata tract.
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于一个 blob 的扩展操作被发送到拥有该 blob 元数据磁道的磁道服务器。
 - en: The tractserver serializes it, atomically updates the metadata, and returns
     the new size to each caller.
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁道服务器对其进行串行化，原子地更新元数据，并将新大小返回给每个调用者。
 - en: If all writers follow this pattern, the extend operation provides a range of
     tracts the caller may write without risk of conflict. Therefore, the extend API
     is functionally equivalent to the Google File System's "atomic append."
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果所有写入者都遵循这种模式，扩展操作将提供调用者可以写入而不冲突的一系列磁道。因此，扩展API在功能上等同于Google文件系统的“原子追加”。
 - en: Space is allocated lazily on tractservers, so tracts claimed but not used do
     not waste storage.
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁道服务器上懒惰地分配空间，因此声明但未使用的磁道不会浪费存储空间。
 - en: How do they maintain `n^2` plus one arrangement as servers leave join?
+  id: totrans-154
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 他们如何在服务器离开和加入时保持 `n^2` 加一的排列？
 - en: Unclear.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 不清楚。
 - en: '**Q:** How long will adding a tractserver take?'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 添加磁道服务器需要多长时间？'
 - en: '**Q:** What about client `write`''s while tracts are being transferred?'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 当磁道正在传输时客户端 `write` 会发生什么？'
 - en: receiving tractserver may have copies from client(s) and from old srvr
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接收磁道服务器可能具有来自客户端和旧服务器的副本
 - en: how does it know which is newest?
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它如何知道哪个是最新的？
 - en: '**Q:** What if a client reads/writes but has an old tract table?'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 如果客户端读取/写入但具有旧的磁道表会发生什么？'
 - en: tractservers tell him
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁道服务器告诉他
 - en: Replication
+  id: totrans-162
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 复制
 - en: A writing client sends a copy to each tractserver in the TLT.
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 写入客户端向TLT中的每个磁道服务器发送一份副本。
 - en: A reading client asks one tractserver.
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取客户端向一个磁道服务器询问。
 - en: '**Q:** Why don''t they send writes through a primary?'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 为什么他们不通过主要发送写入？'
 - en: puts a lot of work on a primary? has to lookup and know TLT
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 给主要带来很多工作？必须查找并了解TLT
 - en: goal is not to have just one backup for a primary, it's to replicate and strip
     data effectively across many disks
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标不是只为主要备份，而是有效地在许多磁盘上复制和分割数据
 - en: '**Q:** What problems are they likely to have because of lack of primary?'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 由于缺乏主要内容，他们可能会遇到什么问题？'
 - en: Why weren't these problems show-stoppers?
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么这些问题不是致命的？
 - en: What happens after a tractserver fails?
+  id: totrans-170
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 磁道服务器失败后会发生什么？
 - en: Metadata server stops getting heartbeat RPCs
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 元数据服务器停止接收心跳RPC。
 - en: Picks random replacement for each TLT entry failed server was in
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为每个TLT条目中失败服务器的随机替换选择
 - en: New TLT gets a new version number
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新的TLT获得新的版本号
 - en: Replacement servers fetch copies
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 替换服务器获取副本
 - en: 'Example of the tracts each server holds:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个服务器持有的磁道示例：
 - en: '[PRE3]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '**Q:** Why not just pick one replacement server?'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 为什么不只选择一个替代服务器？'
 - en: it will have to take in a lot of writes for the lost data `=>` bad perf.
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它将不得不接收大量写入以获取丢失数据 `=>` 性能不佳。
 - en: '**Q:** How long will it take to copy all the tracts?'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 复制所有磁道需要多长时间？'
 - en: '**Q:** If a tractserver''s net breaks and is then repaired, might srvr serve
     old data?'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 如果磁道服务器的网络中断然后修复，可能会提供旧数据吗？'
 - en: '**Q:** If a server crashes and reboots with disk intact, can contents be used?'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q:** 如果服务器崩溃并重新启动，磁盘完好无损，内容可以使用吗？'
 - en: e.g. if it only missed a few writes?
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，如果只错过了几次写入？
 - en: 3.2.1's "partial failure recovery"
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 3.2.1的“部分故障恢复”
 - en: but won't it have already been replaced?
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是它难道不已经被替换了吗？
 - en: how to know what writes it missed?
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何知道它错过了哪些写入？
 - en: '**Q:** When is it better to use 3.2.1''s partial failure recovery?'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 何时更好地使用 3.2.1 的部分故障恢复？'
 - en: What happens when the metadata server crashes?
+  id: totrans-187
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 元数据服务器崩溃时会发生什么？
 - en: '**Q:** While metadata server is down, can the system proceed?'
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 当元数据服务器宕机时，系统可以继续吗？'
 - en: yes, clients who have the TLT can go on
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的，拥有 TLT 的客户端可以继续
 - en: '**Q:** Is there a backup metadata server?'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 是否有备份元数据服务器？'
 - en: not in the paper, they said they might use Paxos for replication
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不在论文中，他们说他们可能使用 Paxos 进行复制
 - en: '**TODO:** not clear why replicating the metadata server would lead to consistency
     problems'
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**TODO：** 不清楚为什么复制元数据服务器会导致一致性问题'
 - en: '**Q:** How does rebooted metadata server get a copy of the TLT?'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 重启的元数据服务器如何获得 TLT 的副本？'
 - en: Eh, maybe it has it on disk?
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 嗯，也许它在磁盘上？
 - en: Maybe it just simply reconstructs it from all the heartbeats?
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 也许它只是简单地从所有的心跳中重建？
 - en: '**Q:** Does their scheme seem correct?'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 他们的方案看起来正确吗？'
 - en: how does the metadata server know it has heard from all tractservers?
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 元数据服务器如何知道它已经收到了所有的 tractservers 的信息？
 - en: it doesn't, it just adds servers as they send heartbeats
+  id: totrans-198
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它不会，它只会在它们发送心跳时添加服务器
 - en: how does it know all tractservers were up to date?
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它怎么知道所有的 tractservers 都是最新的？
 - en: '**TODO:** Up to date with what?'
+  id: totrans-200
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**TODO：** 与什么是最新的？'
 - en: Random issues
+  id: totrans-201
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 随机问题
 - en: '**Q:** Is the metadata server likely to be a bottleneck?'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 元数据服务器可能会成为一个瓶颈吗？'
 - en: hard to tell. what's the use case?
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 很难说。使用案例是什么？
 - en: if you have a client w/ that has memory to remember TLT then he only contacts
     metadata server once and then starts doing all of his reads/writes
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你有一个客户端记住了 TLT 那么他只联系元数据服务器一次，然后开始做他所有的读写
 - en: if you have a lot of clients joining the system, or coming back but forgetting
     the TLT (because of lack of storage maybe), then the metadata server would be
     in use heavily
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有很多客户端加入系统，或者回来但忘记了 TLT（可能是因为存储不足），那么元数据服务器将会被大量使用
 - en: however, this won't affect the bandwidth the clients get once they downloaded
     the TLT
+  id: totrans-206
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然而，一旦客户端下载了 TLT，这不会影响客户端获得的带宽
 - en: '**Q:** Why do they need the scrubber application mentioned in 2.3?'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 为什么他们需要在 2.3 中提到的清洗程序？'
 - en: why don't they delete the tracts when the blob is deleted?
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么他们在 blob 被删除时不删除 tracts？
 - en: faster to do GC, rather than scheduling & executing deletes?
+  id: totrans-209
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 执行 GC 比调度和执行删除更快吗？
 - en: can a blob be written after it is deleted?
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在删除后可以写入 blob 吗？
 - en: '**TODO:** not sure, seems like yes, because the metadata for that blob is in
     tract -1 and I don''t think `WriteTract` checks the metadata before every write,
     so you could maybe have races'
+  id: totrans-211
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**TODO：** 不确定，似乎是的，因为该 blob 的元数据位于 tract -1 中，我认为 `WriteTract` 不会在每次写入之前检查元数据，所以你可能会有竞争'
 - en: Performance
+  id: totrans-212
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 性能
 - en: '**Q:** How do we know we''re seeing "good" performance? What''s the best you
     can expect?'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 我们如何知道我们看到了“良好”的性能？你能期望的最好的是什么？'
 - en: best you can expect is to take each disks bandwidth and have the system's bandwidth
     be `# of disk * disk bandwidth`
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你能期望的最好的是利用每个磁盘的带宽，使系统的带宽为 `# of disk * disk bandwidth`
 - en: '**Q:** Limiting resource for 2 GBps single-client?'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 单客户端 2 GBps 的限制资源？'
 - en: assuming this is end of 5.2
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设这是 5.2 的结束
 - en: 30 tractservers means maximum of 30 * 130MB/s = 3.9GBps
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 30 个 tractservers 意味着最多 30 * 130MB/s = 3.9GBps
 - en: so limiting resource is network bandwidth
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以限制资源是网络带宽
 - en: '**Q:** Figure 4a: Why starts low? Why goes up? Why levels off? Why does it
     level off at that particular performance?'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 图 4a：为什么开始低？为什么上升？为什么水平稳定？为什么在特定性能水平上水平稳定？'
 - en: starts low because single client bandwidth is limited
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于单个客户端的带宽受限，所以开始较低
 - en: 'goes up b.c. as # of clients is increased each one adds more bandwidth to the
     system'
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 上升是因为随着客户端数量的增加，每个客户端都会向系统添加更多的带宽
 - en: levels off because at some point the client bandwidth > server's bandwidth
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 水平稳定是因为在某一点上客户端带宽 > 服务器的带宽
 - en: why levels off at 32 GBps for `x` clients w/ 516 disks?
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么在拥有 516 个磁盘的 `x` 客户端上水平稳定在 32 GBps？
 - en: Figure 3 suggests a 10,000 RPM disk can read 5MB chunks at around 130MB/s
+  id: totrans-224
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图 3 表明 10,000 转/分钟的硬盘可以以大约 130MB/s 的速度读取 5MB 的块
 - en: writes are similar
+  id: totrans-225
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 写入类似
 - en: not clear from logarithmic scale graph what `x` is
+  id: totrans-226
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从对数刻度图中不清楚 `x` 是什么
 - en: '`10 < x < 50` (maybe `25 < x < 50`?)'
+  id: totrans-227
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`10 < x < 50`（也许 `25 < x < 50`？）'
 - en: '`516 disks * 130MB/s = 67 GBps`, so seems like best case performance should''ve
     leveled off at more than 32 GBps?'
+  id: totrans-228
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`516 disks * 130MB/s = 67 GBps`，所以看起来最好的情况下性能应该在 32 GBps 以上平稳？'
 - en: in reality not all disks are 130MB/s maybe? (only the 10,000rpm SAS onese were
     that fast)
+  id: totrans-229
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实际上并非所有的磁盘都是 130MB/s 可能？（只有 10,000 转/分钟的 SAS 才那么快）
 - en: in reality multiple disks on a single node might make that number smaller maybe?
+  id: totrans-230
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实际上，单个节点上的多个磁盘可能会使这个数字变小，也许？
 - en: anyway, something like `x=40` clients would have `40 * 10Gbps = 40 * 1.25GBps
     = 50 Gbps` which is higher than the actual (claimed) bandwidth of the server of
     32 GBps
+  id: totrans-231
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 无论如何，大约像 `x=40` 个客户端会有 `40 * 10Gbps = 40 * 1.25GBps = 50 Gbps`，这比服务器实际（声称的）带宽
+    32 GBps 更高
 - en: '**Q:** Figure 4b shows random r/w as fast as sequential (Figure 4a). Is this
     what you''d expect?'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 图 4b 显示随机读写与顺序读写一样快（图 4a）。这是你期望的吗？'
 - en: Yes. Random R/W requests for different tracts go to different servers, just
     like sequential ones do `=`> no difference
+  id: totrans-233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的。不同磁道的随机读写请求会发送到不同的服务器，就像顺序请求一样 `=`> 没有区别
 - en: '**Q:** Why are writes slower than reads with replication in Figure 4c?'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 在图 4c 中，为什么带有复制的写入比读取慢？'
 - en: A write is sent to all tract servers? Not over until all of them reply.
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一次写入发送到所有磁道服务器？直到它们全部回复为止。
 - en: w/ higher number of clients writing `=>` more work done by each server
+  id: totrans-236
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 具有更多客户端写入的情况下 `=>` 每台服务器完成的工作更多
 - en: 'Paper says: "As expected, the write bandwidth is about onethird of the read
     bandwidth since clients must send three copies of each write"'
+  id: totrans-237
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 论文中提到："正如预期的那样，写入带宽约为读取带宽的三分之一，因为客户端必须发送每个写入的三个副本"
 - en: A read is sent to just one?
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一次读取只发送到一台？
 - en: '**Q:** Where does the 92 GB in 6.2 seconds come from?'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 6.2 秒内的 92 GB 是从哪里来的？'
 - en: Table 1, 4th column
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 表 1，第四列
 - en: that's 15 GB / second, both read and written
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那是每秒 15 GB，读和写都是
 - en: 1000 disks, triple replicated, 128 servers?
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1000 块磁盘，三重复制，128 台服务器？
 - en: what's the limiting resource? disk? cpu? net?
+  id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制资源是什么？磁盘？CPU？网络？
 - en: How big is each sort bucket?
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个排序桶有多大？
 - en: i.e. is the sort of each bucket in-memory?
+  id: totrans-245
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 也就是说，每个桶的排序都在内存中吗？
 - en: 1400 GB total
+  id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 总共 1400 GB
 - en: 128 compute servers
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 128 台计算服务器
 - en: between 12 and 96 GB of RAM each
+  id: totrans-248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台服务器的 RAM 在 12 到 96 GB 之间
 - en: hmm, say 50 on average, so total RAM may be 6400 GB
+  id: totrans-249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 嗯，平均说 50，所以总 RAM 可能是 6400 GB
 - en: thus sort of each bucket is in memory, does not write passes to FDS
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此每个桶的排序都在内存中，不会将写入传递给 FDS
 - en: thus total time is just four transfers of 1400 GB
+  id: totrans-251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此总时间只是 1400 GB 的四次传输
 - en: 'client limit: `128 * 2 GB/s = 256 GB / sec`'
+  id: totrans-252
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端限制：`128 * 2 GB/s = 256 GB / 秒`
 - en: 'disk limit: `1000 * 50 MB/s = 50 GB / sec`'
+  id: totrans-253
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁盘限制：`1000 * 50 MB/s = 50 GB / 秒`
 - en: thus bottleneck is likely to be disk throughput
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此瓶颈很可能是磁盘吞吐量
