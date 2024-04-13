@@ -1,40 +1,57 @@
 - en: Chapter 1\. Proposed Implementation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1章\. 提议的实现
 - en: The majority of model serving implementations today are based on representational
     state transfer (REST), which might not be appropriate for high-volume data processing
     or for use in streaming systems. Using REST requires streaming applications to
     go “outside” of their execution environment and make an over-the-network call
     for obtaining model serving results.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天大多数模型服务实现都基于表述状态转移（REST），这可能不适用于高容量数据处理或在流式系统中使用。使用REST需要流式应用程序“走出”它们的执行环境，并发出一个通过网络获取模型服务结果的调用。
 - en: The “native” implementation of new streaming engines—for example, [Flink TensorFlow](http://bit.ly/eron-wright-ffsf-2017)
     or [Flink JPPML](http://bit.ly/2wOgHUg)—do not have this problem but require that
     you restart the implementation to update the model because the model itself is
     part of the overall code implementation.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 新流式引擎的“本地”实现——例如，[Flink TensorFlow](http://bit.ly/eron-wright-ffsf-2017)或[Flink
+    JPPML](http://bit.ly/2wOgHUg)——不会出现这个问题，但需要您重新启动实现以更新模型，因为模型本身是整体代码实现的一部分。
 - en: Here we present an architecture for scoring models natively in a streaming system
     that allows you to update models without interruption of execution.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们提出了一个在流式系统中本地评分模型的架构，允许您在不中断执行的情况下更新模型。
 - en: Overall Architecture
+  id: totrans-4
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总体架构
 - en: '[Figure 1-1](#overall_architecture_of_model_serving) presents a high-level
     view of the proposed model serving architecture (similar to a [dynamically controlled
     stream](https://data-artisans.com/blog/bettercloud-dynamic-alerting-apache-flink)).'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图1-1](#overall_architecture_of_model_serving)展示了提议的模型服务架构的高层视图（类似于[动态控制流](https://data-artisans.com/blog/bettercloud-dynamic-alerting-apache-flink)）。'
 - en: '![smlt 0101](assets/smlt_0101.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0101](assets/smlt_0101.png)'
 - en: Figure 1-1\. Overall architecture of model serving
+  id: totrans-7
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图1-1\. 模型服务的总体架构
 - en: 'This architecture assumes two data streams: one containing data that needs
     to be scored, and one containing the model updates. The streaming engine contains
     the current model used for the actual scoring in memory. The results of scoring
@@ -46,66 +63,95 @@
     reference to the model data stored externally (pass by reference) in a database
     or a filesystem, like Hadoop Distributed File System (HDFS) or Amazon Web Services
     Simple Storage Service (S3).'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 该架构假定存在两个数据流：一个包含需要评分的数据，另一个包含模型更新。流式引擎在内存中包含用于实际评分的当前模型。评分结果可以被传递给客户，也可以被流式引擎内部用作新流——用于额外计算的输入。如果当前没有定义模型，则输入数据将被丢弃。当接收到新模型时，它将在内存中实例化，实例化完成后，评分将切换到新模型。模型流可以包含数据本身的二进制
+    blob，也可以包含对外部存储的模型数据的引用（通过引用传递），比如数据库或文件系统中的Hadoop分布式文件系统（HDFS）或亚马逊网络服务简单存储服务（S3）。
 - en: Such approaches effectively using model scoring as a new type of functional
     transformation, which any other stream functional transformations can use.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些方法有效地将模型评分用作一种新类型的功能转换，任何其他流功能转换都可以使用。
 - en: Although the aforementioned overall architecture is showing a single model,
     a single streaming engine could score multiple models simultaneously.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管上述总体架构显示了一个单一模型，但一个单一的流式引擎可以同时评分多个模型。
 - en: Model Learning Pipeline
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型学习流水线
 - en: For the longest period of time model building implementation was ad hoc—people
     would transform source data any way they saw fit, do some feature extraction,
     and then train their models based on these features. The problem with this approach
     is that when someone wants to serve this model, he must discover all of those
     intermediate transformations and reimplement them in the serving application.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最长的时间段内，模型构建实现是临时的——人们会以任何他们认为合适的方式转换源数据，进行一些特征提取，然后基于这些特征训练他们的模型。这种方法的问题在于，当有人想要提供这个模型时，他必须发现所有这些中间转换，并在服务应用程序中重新实现它们。
 - en: In an attempt to formalize this process, UC Berkeley AMPLab introduced the [machine
     learning pipeline](https://www.slideshare.net/jeykottalam/pipelines-ampcamp) ([Figure 1-2](#the_machine_learning_pipeline)),
     which is a graph defining the complete chain of data transformation steps.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了形式化这个过程，加州大学伯克利分校的AMPLab引入了[机器学习流水线](https://www.slideshare.net/jeykottalam/pipelines-ampcamp)（[图1-2](#the_machine_learning_pipeline)），它是定义完整数据转换步骤链的图形。
 - en: '![smlt 0102](assets/smlt_0102.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0102](assets/smlt_0102.png)'
 - en: Figure 1-2\. The machine learning pipeline
+  id: totrans-15
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图1-2. 机器学习流水线
 - en: 'The advantage of this approach is twofold:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的优点是双重的：
 - en: It captures the entire processing pipeline, including data preparation transformations,
     machine learning itself, and any required postprocessing of the machine learning
     results. This means that the pipeline defines the complete transformation from
     well-defined inputs to outputs, thus simplifying update of the model.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它捕获了整个处理流水线，包括数据准备转换、机器学习本身以及对机器学习结果的任何必需的后处理。这意味着流水线定义了从明确定义的输入到输出的完整转换，从而简化了模型的更新。
 - en: The definition of the complete pipeline allows for optimization of the processing.
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 完整流水线的定义允许对处理进行优化。
 - en: A given pipeline can encapsulate more than one model (see, for example, [PMML
     model composition](http://dmg.org/pmml/v4-1/MultipleModels.html)). In this case,
     we consider such models internal—nonvisible for scoring. From a scoring point
     of view, a single pipeline always represents a single unit, regardless of how
     many models it encapsulates.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个给定的流水线可以封装多个模型（例如，参见[PMML模型组合](http://dmg.org/pmml/v4-1/MultipleModels.html)）。在这种情况下，我们认为这些模型是内部的—不可见用于评分。从评分的角度来看，一个单独的流水线始终代表一个单元，无论它封装了多少模型。
 - en: This notion of machine learning pipelines has been adopted by many applications
     including [SparkML](http://spark.apache.org/docs/latest/ml-guide.html), TensorFlow,
     and [PMML](http://bit.ly/linuxfoundation-pmml).
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多应用程序都采用了这种机器学习流水线的概念，包括[SparkML](http://spark.apache.org/docs/latest/ml-guide.html)、TensorFlow和[PMML](http://bit.ly/linuxfoundation-pmml)。
 - en: From this point forward in this book, when I refer to model serving, I mean
     serving the complete pipeline.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 从本书开始，当我提到模型服务时，我指的是提供完整的流水线。

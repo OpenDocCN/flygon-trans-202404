@@ -1,63 +1,83 @@
 - en: Chapter 3\. Implementing Model Scoring
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三章 实现模型评分
 - en: As depicted in [Figure 1-1](ch01.html#overall_architecture_of_model_serving),
     the overall architecture of our implementation is reading two input streams, the
     models stream and the data stream, and then joining them for producing the results
     stream.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 如[图1-1](ch01.html#overall_architecture_of_model_serving)所示，我们实现的整体架构是读取两个输入流，模型流和数据流，然后将它们连接起来生成结果流。
 - en: 'There are two main options today for implementing such stream-based applications:
     stream-processing engines or stream-processing libraries:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 如今有两种主要选项用于实现这种基于流的应用程序：流处理引擎或流处理库：
 - en: '[Modern stream-processing engines](http://bit.ly/bigdata-stream-processing)
     (SPEs) take advantage of cluster architectures. They organize computations into
     a set of operators, which enables execution parallelism; different operators can
     run on different threads or different machines. An engine manages operator distribution
     among the cluster’s machines. Additionally, SPEs typically implement checkpointing,
     which allows seamless restart execution in case of failures.'
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[现代流处理引擎](http://bit.ly/bigdata-stream-processing)（SPEs）利用集群架构。它们将计算组织成一组运算符，这样可以实现执行并行性；不同的运算符可以在不同的线程或不同的机器上运行。引擎管理集群机器之间的运算符分发。此外，SPE通常实现了检查点，允许在发生故障时无缝重新启动执行。'
 - en: A stream-processing library (SPL), on the other hand, is a library, and often
     domain-specific language (DSL), of constructs simplifying building streaming applications.
     Such libraries typically do not support distribution and/or clustering; this is
     typically left as an exercise for developer.
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一方面，流处理库（SPL）是一个库，通常是领域特定语言（DSL），用于简化构建流式应用程序的构造。这些库通常不支持分布和/或集群；这通常留给开发人员自行解决。
 - en: Although these are very different, because both have the word “stream” in them,
     they are often used interchangeably. In reality, as outlined in [Jay Kreps’s blog](https://www.confluent.io/blog/introducing-kafka-streams-stream-processing-made-simple/),
     they are two very different approaches to building streaming applications, and
     choosing one of them is a trade-off between power and simplicity. A side-by-side
     [comparison](http://bit.ly/2yFAMRn) of Flink and Kafka Streams outlines the major
     differences between the two approaches, which lies in
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管它们非常不同，因为它们都有“stream”一词，它们经常可以互换使用。实际上，正如[Jay Kreps的博客](https://www.confluent.io/blog/introducing-kafka-streams-stream-processing-made-simple/)中概述的那样，它们是构建流式应用程序的两种非常不同的方法，选择其中一种是权衡功能和简单性之间的折衷。Flink和Kafka
+    Streams的[比较](http://bit.ly/2yFAMRn)概述了这两种方法之间的主要区别，其中包括
 - en: the way they are deployed and managed (which often is a function of who owns
     these applications from an organizational perspective) and how the parallel processing
     (including fault tolerance) is coordinated. These are core differences—they are
     ingrained in the architecture of these two approaches.
+  id: totrans-6
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 它们部署和管理的方式（通常是组织角度拥有这些应用程序的人的职能）以及并行处理（包括容错）的协调方式。这些是核心差异——它们根植于这两种方法的架构中。
 - en: Using an SPE is a good fit for applications that require features provided out
     of the box by such engines, including scalability and high throughput through
     parallelism across a cluster, event-time semantics, checkpointing, built-in support
     for monitoring and management, and mixing of stream and batch processing. The
     drawback of using engines is that you are constrained with the programming and
     deployment models they provide.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用SPE非常适合需要这些引擎提供的功能的应用程序，包括通过跨集群的并行性实现可伸缩性和高吞吐量，事件时间语义，检查点，内置支持监控和管理，以及混合流和批处理。使用引擎的缺点是您受到它们提供的编程和部署模型的限制。
 - en: In contrast, SPLs provide a programming model that allows developers to build
     the applications or microservices the way that fits their precise needs and deploy
     them as simple standalone Java applications. But in this case, developers need
     to roll out their own scalability, high availability, and monitoring solutions
     (Kafka Streams supports some of them by using Kafka).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，SPL提供了一种编程模型，允许开发人员根据其精确需求构建应用程序或微服务，并将它们部署为简单的独立Java应用程序。但在这种情况下，开发人员需要自行实现可伸缩性、高可用性和监控解决方案（Kafka
+    Streams通过使用Kafka支持其中一些）。
 - en: 'Today’s most popular [SPEs](http://bit.ly/codecentric-SPEs) includes: [Apache
     Spark](https://spark.apache.org/), [Apache Flink](https://flink.apache.org/),
     [Apache Beam](https://beam.apache.org/), whereas most popular stream libraries
@@ -65,22 +85,32 @@
     [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/index.html).
     In the following chapters, I show how you can use each of them to implement our
     architecture of model serving.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天最流行的[SPEs](http://bit.ly/codecentric-SPEs)包括：[Apache Spark](https://spark.apache.org/)、[Apache
+    Flink](https://flink.apache.org/)、[Apache Beam](https://beam.apache.org/)，而最流行的流库是[Apache
+    Kafka Streams](https://kafka.apache.org/documentation/streams/)和[Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/index.html)。在接下来的章节中，我将展示如何使用它们中的每一个来实现我们的模型服务架构。
 - en: 'There are several common artifacts in my implementations that are used regardless
     of the streaming engine/framework: model representation, model stream, data stream,
     model factory, and test harness, all of which are described in the following sections.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的实现中有几个常见的工件，无论使用哪种流引擎/框架都会用到：模型表示、模型流、数据流、模型工厂和测试工具，所有这些都在以下部分中描述。
 - en: Model Representation
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型表示
 - en: Before diving into specific implementation details, you must decide on the model’s
     representation. The question here is whether it is necessary to introduce special
     abstractions to simplify usage of the model in specific streaming libraries.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入具体实现细节之前，您必须决定模型的表示方式。这里的问题是是否有必要引入特殊的抽象来简化在特定流库中使用模型。
 - en: I decided to represent model serving as an “ordinary” function that can be used
     at any place of the stream processing pipeline. Additionally, representation of
     the model as a simple function allows for a functional composition of models,
@@ -90,133 +120,200 @@
     versus TensorFlow) and different representations (saved model versus ordinary
     graph) result in the same basic structure of the model scoring pipeline that can
     be generically described using the Scala trait shown in [Example 3-1](#model_representation-id1).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我决定将模型服务表示为一个可以在流处理管道的任何位置使用的“普通”函数。此外，将模型表示为一个简单函数允许对模型进行功能组合，这使得组合多个模型进行处理变得更简单。此外，比较示例[2-2](ch02.html#serving_the_model_created_from_the_execu)、[2-4](ch02.html#serving_a_model_based_on_the_saved_model)和[2-6](ch02.html#serving_pmml_model)表明，不同的模型类型（PMML与TensorFlow）和不同的表示形式（保存的模型与普通图）导致模型评分管道的基本结构相同，可以使用Scala
+    trait通用描述，如[示例3-1](#model_representation-id1)所示。
 - en: Example 3-1\. Model representation
+  id: totrans-14
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例3-1。模型表示
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The basic methods of this trait are as follows:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 该trait的基本方法如下：
 - en: '`score()` is the basic method for model implementation, converting input data
     into a result or score.'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`score()`是模型实现的基本方法，将输入数据转换为结果或分数。'
 - en: '`cleanup()` is a hook for a model implementer to release all of the resources
     associated with the model execution-model lifecycle support.'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`cleanup()`是一个模型实现者释放与模型执行-模型生命周期支持相关的所有资源的钩子。'
 - en: '`toBytes()` is a supporting method used for serialization of the model content
     (used for checkpointing).'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`toBytes()`是用于模型内容序列化的支持方法（用于检查点）。'
 - en: '`getType()` is a supporting method returning an index for the type of model
     used for finding the appropriate model factory class (see the section that follows).'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`getType()`是一个支持方法，返回用于查找适当的模型工厂类的模型类型索引（请参阅接下来的部分）。'
 - en: This trait can be implemented using JPMML or TensorFlow Java APIs and used at
     any place where model scoring is required.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个trait可以使用JPMML或TensorFlow Java API实现，并在需要模型评分的任何地方使用。
 - en: Model Stream
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型流
 - en: It is also necessary to define a format for representing models in the stream.
     I decided to use [Google protocol buffers](https://developers.google.com/protocol-buffers/)
     (“protobuf” for short) for model representation, as demonstrated in [Example 3-2](#protobuf_definition_for_the_model_update).
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 还需要定义一种表示模型在流中的格式。我决定使用[Google protocol buffers](https://developers.google.com/protocol-buffers/)（简称“protobuf”）来表示模型，如[示例3-2](#protobuf_definition_for_the_model_update)所示。
 - en: Example 3-2\. Protobuf definition for the model update
+  id: totrans-24
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例3-2。模型更新的Protobuf定义
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The model here (model content) can be represented either inline as a byte array
     or as a reference to a location where the model is stored. In addition to the
     model data our definition contains the following fields:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的模型（模型内容）可以表示为字节数组的内联或作为存储模型的位置的引用。除了模型数据外，我们的定义还包含以下字段：
 - en: '`name`'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`名称`'
 - en: The name of the model that can be used for monitoring or UI applications.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 可用于监视或 UI 应用程序的模型名称。
 - en: '`description`'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '`描述`'
 - en: A human-readable model description that you can use for UI applications.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个可供 UI 应用程序使用的人类可读的模型描述。
 - en: '`dataType`'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '`数据类型`'
 - en: Data type for which this model is applicable (our model stream can contain multiple
     different models, each used for specific data in the stream). See [Chapter 4](ch04.html#apache_flink_implementation)
     for more details of this field utilization.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 适用于此模型的数据类型（我们的模型流可以包含多个不同的模型，每个模型用于流中特定的数据）。有关此字段利用的更多详细信息，请参阅[第四章](ch04.html#apache_flink_implementation)。
 - en: '`modelType`'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`模型类型`'
 - en: For now, I define only three model types, PMML and two TensorFlow types, graph
     and saved models.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，我仅定义了三种模型类型，PMML 和两种 TensorFlow 类型，图和保存的模型。
 - en: Throughout implementation, [ScalaPB](https://scalapb.github.io/) is used for
     protobuf marshaling, generation, and processing.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实现过程中，使用[ScalaPB](https://scalapb.github.io/)进行 protobuf 编组、生成和处理。
 - en: Data Stream
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据流
 - en: Similar to the model stream, protobufs are used for the data feed definition
     and encoding. Obviously, a specific definition depends on the actual data stream
     that you are working with. For our [wine quality dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality),
     the protobuf looks like [Example 3-3](#protobuf_definition_for_the_data_feed).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 与模型流类似，protobuf 用于数据源定义和编码。显然，具体定义取决于您正在处理的实际数据流。对于我们的[葡萄酒质量数据集](https://archive.ics.uci.edu/ml/datasets/wine+quality)，protobuf
+    看起来像[示例 3-3](#protobuf_definition_for_the_data_feed)。
 - en: Example 3-3\. Protobuf definition for the data feed
+  id: totrans-38
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: '[示例 3-3](https://scalapb.github.io/)。数据源的 Protobuf 定义'
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Note that a `dataType` field is added to both the model and data definitions.
     This field is used to identify the record type (in the case of multiple data types
     and models) to match it to the corresponding models.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，`数据类型`字段被添加到模型和数据定义中。该字段用于标识记录类型（在多个数据类型和模型的情况下）以匹配相应的模型。
 - en: In this simple case, I am using only a single concrete data type, so [Example 3-3](#protobuf_definition_for_the_data_feed)
     shows direct data encoding. If it is necessary to support multiple data types,
     you can either use protobuf’s [`oneof`](http://bit.ly/googledev-proto3) construct,
     if all the records are coming through the same stream, or separate streams, managed
     using separate Kafka topics, can be introduced, one for each data type.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个简单的案例中，我只使用了一个具体的数据类型，因此[示例 3-3](#protobuf_definition_for_the_data_feed)显示了直接数据编码。如果需要支持多个数据类型，则可以使用
+    protobuf 的 [`oneof`](http://bit.ly/googledev-proto3) 构造，如果所有记录都通过同一流程，或者可以引入分别使用不同
+    Kafka 主题管理的分离流程，每个数据类型一个。
 - en: The proposed data type–based linkage between data and model feeds works well
     when a given record is scored with a single model. If this relationship is one-to-many,
     where each record needs to be scored by multiple models, a composite key (data
     type with model ID) can be generated for every received record.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 当给定记录使用单个模型进行评分时，基于提议的数据类型的数据和模型流之间的联系效果很好。如果此关系是一对多的，即每个记录都需要由多个模型评分，则可以为每个接收到的记录生成一个复合键（数据类型与模型
+    ID）。
 - en: Model Factory
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型工厂
 - en: As defined above, a model in the stream is delivered in the form of a protobuf
     message that can contain either a complete representation of the model or a reference
     to the model location. To generalize model creation from the protobuf message,
@@ -226,77 +323,113 @@
     the actual code for this class is shown later in the book). An additional use
     for this interface is to support serialization and deserialization for [checkpointing](https://en.wikipedia.org/wiki/Application_checkpointing).
     We can describe the model factory using the trait presented in [Example 3-4](#model_factory_representation).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，流中的模型以protobuf消息的形式传递，该消息可以包含模型的完整表示或对模型位置的引用。为了从protobuf消息中通用地创建模型，我引入了一个额外的特质`ModelFactory`，它支持根据模型描述符构建模型（模型更新的protobuf定义的内部表示，见[示例3-2](#protobuf_definition_for_the_model_update)；该类的实际代码稍后在本书中展示）。这个接口的另一个用途是支持[检查点](https://en.wikipedia.org/wiki/Application_checkpointing)的序列化和反序列化。我们可以使用[示例3-4](#model_factory_representation)中提出的特质描述模型工厂。
 - en: Example 3-4\. Model factory representation
+  id: totrans-45
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例3-4。模型工厂表示
 - en: '[PRE3]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Here are the basic methods of this trait:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个特质的基本方法如下：
 - en: '`create`'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '`create`'
 - en: A method creating a model based on the Model descriptor.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于模型描述符创建模型的方法。
 - en: '`restore`'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '`restore`'
 - en: A method to restore a model from a byte array emitted by the model’s `toByte`
     method. These two methods need to cooperate to ensure proper functionality of
     `ModelSerializer`/`ModelDeserializer`.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个从模型的`toByte`方法发出的字节数组中恢复模型的方法。这两种方法需要合作以确保`ModelSerializer`/`ModelDeserializer`的正确功能。
 - en: Test Harness
+  id: totrans-52
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试工具
 - en: 'I have also created a small test harness to be able to validate implementations.
     It comprises two simple Kafka clients: one for models, one for data. Both are
     based on a common `KafkaMessageSender` class ([complete code available here](http://bit.ly/kafka-ms))
     shown in [Example 3-5](#the_kafka_messagesender_class).'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还创建了一个小型测试工具，用于验证实现。它包括两个简单的Kafka客户端：一个用于模型，一个用于数据。两者都基于一个通用的`KafkaMessageSender`类（[完整代码在此处可用](http://bit.ly/kafka-ms)），如[示例3-5](#the_kafka_messagesender_class)所示。
 - en: Example 3-5\. The KafkaMessageSender class
+  id: totrans-54
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例3-5。KafkaMessageSender类
 - en: '[PRE4]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This class uses Kafka APIs to create a Kafka producer and send messages. The
     `DataProvider` class uses the `KafkaMessageSender` class to send data messages
     ([complete code available here](http://bit.ly/kafka-dataprovider)), as demonstrated
     in [Example 3-6](#data_provider_class).
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类使用Kafka API创建一个Kafka生产者并发送消息。`DataProvider`类使用`KafkaMessageSender`类发送数据消息（[完整代码在此处可用](http://bit.ly/kafka-dataprovider)，如[示例3-6](#data_provider_class)所示）。
 - en: Example 3-6\. DataProvider class
+  id: totrans-57
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例3-6。DataProvider类
 - en: '[PRE5]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The actual data is the same data as that used for training the [wine quality
     dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality), which is stored
     locally in the form of a CSV file. The file is read into memory and then the records
     are converted from text records to protobuf records, which are published to the
     Kafka topic using an infinite loop with a predefined pause between sends.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际数据与用于训练[葡萄酒质量数据集](https://archive.ics.uci.edu/ml/datasets/wine+quality)的数据相同，该数据以CSV文件的形式存储在本地。文件被读入内存，然后记录从文本记录转换为protobuf记录，这些记录通过一个预定义的发送间隔的无限循环发布到Kafka主题。
 - en: A similar [implementation](http://bit.ly/kafka-modelprovider) produces models
     for serving. For the set of models, I am using results of different training algorithms
     in both TensorFlow (exported as execution graph) and PMML formats, which are published
     to the Kafka topic using an infinite loop with a predefined pause between sends.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个类似的[实现](http://bit.ly/kafka-modelprovider)用于生成用于提供服务的模型。对于一组模型，我使用了在TensorFlow中使用不同训练算法的结果（导出为执行图）和PMML格式，这些结果通过一个预定义的发送间隔的无限循环发布到Kafka主题。
 - en: Now that we have outlined the necessary components, [Chapter 4](ch04.html#apache_flink_implementation)
     through [Chapter 8](ch08.html#akka_streams_implementation) demonstrate how you
     can implement this solution using specific technology.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经概述了必要的组件，[第4章](ch04.html#apache_flink_implementation)到[第8章](ch08.html#akka_streams_implementation)展示了如何使用特定技术实现这个解决方案。
