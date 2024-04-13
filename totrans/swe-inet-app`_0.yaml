@@ -7288,11 +7288,14 @@
   id: totrans-940
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们当前的 `content_raw` 表包含一些信息，这些信息取决于 `content_id` 和 `version_number` 的整个键，例如，正文和语言代码。但很多信息仅取决于键的
+    `content_id` 部分：作者、创建时间、发布时间、邮政编码。
 - en: 'When we need to store statements about two different kinds of things, it makes
     sense to create two different tables, i.e., to use Second Formal Form:'
   id: totrans-941
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们需要存储关于两种不同事物的声明时，创建两个不同的表是有意义的，也就是使用第二正式形式：
 - en: '[PRE62]'
   id: totrans-942
   prefs:
@@ -7304,6 +7307,7 @@
   id: totrans-943
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何查询版本表并找到最新版本？首次尝试可能类似于以下内容：
 - en: '[PRE63]'
   id: totrans-944
   prefs:
@@ -7319,6 +7323,8 @@
   id: totrans-945
   prefs: []
   type: TYPE_NORMAL
+  zh: 这能保证仅返回一行吗？不！在 `content_id, version_date` 上没有唯一约束。理论上，两个编辑者或作者可以在同一秒内提交项目的新版本。请记住，Oracle
+    中的日期数据类型只精确到秒。更有可能的是，进行修订的编辑可能会用鼠标两次单击编辑表单的提交按钮，或者可能会不耐烦地使用重新加载命令。这里有一个小小的改进：
 - en: '[PRE64]'
   id: totrans-946
   prefs:
@@ -7331,12 +7337,14 @@
   id: totrans-947
   prefs: []
   type: TYPE_NORMAL
+  zh: '`version_id` 列受到唯一约束，但我们依赖于我们应用程序代码的未声明的知识，即 `version_id` 将对于后续版本而言更大。'
 - en: Some RDBMS implementations have extended the SQL language so that you can ask
     for the first row returned by a query. A brief look at the Oracle manual would
     lead one to try
   id: totrans-948
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些 RDBMS 实现已经扩展了 SQL 语言，以便您可以请求查询返回的第一行。简要查看 Oracle 手册会导致尝试
 - en: '[PRE65]'
   id: totrans-949
   prefs:
@@ -7349,6 +7357,7 @@
   id: totrans-950
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是对手册的深入阅读会揭示在处理 ORDER BY 子句之前会设置 `rownum` 伪列。在一条查询中执行此操作的一种被接受的方法是嵌套查询：
 - en: '[PRE66]'
   id: totrans-951
   prefs:
@@ -7360,11 +7369,13 @@
   id: totrans-952
   prefs: []
   type: TYPE_NORMAL
+  zh: SQL 中另一种常见的编程风格可能会令人惊讶，它采取以下步骤：
 - en: open a cursor for the SQL statement
   id: totrans-953
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为 SQL 语句打开一个游标
 - en: '[PRE67]'
   id: totrans-954
   prefs:
@@ -7377,16 +7388,19 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从游标中获取一行（这将是具有`version_date` 中最大值的行）
 - en: close the cursor
   id: totrans-956
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 关闭游标
 - en: Third Normal Form
   id: totrans-957
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 第三范式
 - en: An efficiency-minded programmer might look at the preceding queries and observe
     that a content version is updated at most ten times per year, whereas the public
     pages may be querying for and delivering the latest version ten times per second.
@@ -7395,6 +7409,7 @@
   id: totrans-958
   prefs: []
   type: TYPE_NORMAL
+  zh: 一位注重效率的程序员可能会查看前述查询，并观察到内容版本每年最多更新十次，而公共页面可能每秒查询并提供最新版本十次。在插入/更新时计算并标记最新的已批准版本会更有意义吗？
 - en: '[PRE68]'
   id: totrans-959
   prefs:
@@ -7407,10 +7422,13 @@
   id: totrans-960
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的 `current_version_p` 列可以通过触发器来维护，该触发器在插入或更新后运行，并检查 `version_date` 和 `editorial_status`
+    列。
 - en: 'Querying for user pages can be simplified with the following view:'
   id: totrans-961
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下视图可以简化对用户页面的查询：
 - en: '[PRE69]'
   id: totrans-962
   prefs:
@@ -7423,6 +7441,7 @@
   id: totrans-963
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代商用 RDBMS 实现提供了一项功能，通过该功能，表中的行可以分布在不同的表空间中，每个表空间位于物理上不同的磁盘驱动器上。在 Oracle 中，这被称为*分区*：
 - en: '[PRE70]'
   id: totrans-964
   prefs:
@@ -7511,6 +7530,7 @@
   id: totrans-973
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统上，版本控制是由C开发人员使用的，每个C程序员都从自己的目录中工作。这是有道理的，因为在C世界中没有持久性。代码被编译。一个二进制运行，构建RAM中的数据结构。当程序终止时，它不会留下任何东西。整个软件“树”从版本控制存储库检出到开发计算机的文件系统中。当程序员满意时，更改的文件将被检入存储库。
 - en: A shallow objection to this development method in the world of database-backed
     Internet applications is that it becomes very tedious to make a small change.
     The programmer checks out the tree onto a development server. The programmer installs
@@ -7525,6 +7545,7 @@
   id: totrans-974
   prefs: []
   type: TYPE_NORMAL
+  zh: 在数据库支持的互联网应用程序世界中，对这种开发方法的一个肤浅反对意见是，进行小改动变得非常乏味。程序员将树检出到开发服务器上。程序员安装一个RDBMS，然后创建一个RDBMS用户和一个表空间。程序员将RDBMS从生产站点导出到转储文件中，将该转储文件通过网络传输到开发机器上，并将其导入到开发服务器上的RDBMS安装中。请记住，对于许多互联网应用程序，数据库可能接近一TB的大小，因此传输和导入转储文件可能需要几个小时或几天。最后，程序员找到一个空闲的IP地址或端口，并设置一个以开发树为根的HTTP服务器。准备编码！
 - en: A deeper objection to applying this development method to our world is that
     it is an obstacle to collaboration. In the Internet application business, developers
     always work with the publisher and users. Those collaborators need to know, at
@@ -7535,35 +7556,42 @@
   id: totrans-975
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这种开发方法应用于我们的世界的一个更深层次的反对意见是，它是协作的障碍。在互联网应用程序业务中，开发人员总是与出版商和用户一起工作。这些合作者需要随时知道在哪里找到软件的最新运行版本，以便他们可以提供批评和建议。如果一个服务中有十个软件开发人员，要求出版商和用户检查十个单独的开发站点是不合理的。
 - en: A Solution for Our Times
   id: totrans-976
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 我们时代的解决方案
 - en: three HTTP servers (they can be on one physical computer)
   id: totrans-977
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 三个HTTP服务器（它们可以在一台物理计算机上）
 - en: two or three RDBMS users/tablespaces (they can be in one RDBMS instance)
   id: totrans-978
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 两个或三个RDBMS用户/表空间（它们可以在一个RDBMS实例中）
 - en: one version control repository
   id: totrans-979
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个版本控制存储库
 - en: Let's go through these item by item.
   id: totrans-980
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们逐个项目来看看。
 - en: 'Item 1: Three HTTP Servers'
   id: totrans-981
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 项目1：三个HTTP服务器
 - en: Suppose that a publisher's overall objective is to serve an Internet application
     accessible at "foobar.com". This requires a production server, rooted in the file
     system at /web/foobar/ (**Server 1**). It is too risky to have programmers making
@@ -7574,6 +7602,7 @@
   id: totrans-982
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设一个出版商的总体目标是为"foobar.com"提供一个可访问的互联网应用程序。这需要一个生产服务器，在文件系统中以/web/foobar/为根目录（**服务器1**）。让程序员在实时生产站点上进行更改太冒险了。这需要一个开发服务器，在/web/foobar-dev/为根目录（**服务器2**）。也许这就够了。当每个人都对开发服务器的功能感到满意时，宣布代码冻结，进行一些测试，然后将开发代码复制到生产目录并重新启动。
 - en: What's wrong with the two-server plan? Nothing if the development and testing
     teams are the same, in which case there is no possibility of simultaneous development
     and testing. For a complex site, however, the publisher may wish to spend a week
@@ -7584,33 +7613,40 @@
   id: totrans-983
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个服务器计划有什么问题？如果开发和测试团队是同一个团队，那么没有可能同时进行开发和测试。然而，对于一个复杂的网站，发布者可能希望在发布修订版之前花一周时间进行测试。在测试人员在开发服务器上忙碌时，让作者和开发人员闲置是不可接受的。增加一个分级服务器，根目录为/web/foobar-staging/（**服务器
+    3**）允许开发继续进行，同时测试人员正在为新版本的公开发布做准备。
 - en: 'Here''s how the three servers are used:'
   id: totrans-984
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是三个服务器的使用方法：
 - en: developers work continuously in /web/foobar-dev/
   id: totrans-985
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 开发人员在/web/foobar-dev/上持续工作。
 - en: when the publisher is mostly happy with the development site, a named version
     or branch is created and installed at /web/foobar-staging/
   id: totrans-986
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当发布者对开发站点大多满意时，将创建一个命名版本或分支，并安装在/web/foobar-staging/上。
 - en: the testers bang away at the /web/foobar-staging/ server, checking fixes back
     into the version control repository but only into the staging branch
   id: totrans-987
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测试人员在/web/foobar-staging/服务器上忙碌，将修复内容检查回版本控制存储库，但只能检查回��级分支。
 - en: when the testers and publishers sign off on the staging server's performance,
     the site is released to /web/foobar/ (production)
   id: totrans-988
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当测试人员和发布者对分级服务器的性能表示满意时，网站将发布到/web/foobar/（生产）。
 - en: any fixes made to the staging branch of the code that have not already been
     fixed by the development team are merged back into the development branch in the
     version control repository
@@ -7618,11 +7654,13 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 任何在代码的分级分支中进行的修复，如果开发团队尚未修复，则将其合并回版本控制存储库中的开发分支。
 - en: 'Item 2: Two or Three RDBMS Users/Tablespaces'
   id: totrans-990
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 项目 2：两个或三个 RDBMS 用户/表空间
 - en: Suppose that the publisher has a working production site running version 1.0
     of the software. One could connect the development server rooted at /web/foobar-dev/
     to the production database. After all, the raison d'être of the RDBMS is concurrency
@@ -7636,11 +7674,16 @@
   id: totrans-991
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设发布者有一个运行软件版本 1.0 的工作生产站点。可以将根目录为/web/foobar-dev/的开发服务器连接到生产数据库。毕竟，关系数据库管理系统的存在理由是并发控制。它将很高兴处理来自生产
+    Web 服务器的八个同时连接以及来自开发服务器的两到三个连接。问题在于，开发人员中的某个人可能会粗心大意，编写一个发送 `drop table users`
+    而不是 `drop table users_experimental_extra_table` 到数据库的程序。或者，更不夸张地说，初级开发人员可能在 SQL
+    语句中遗漏 WHERE 子句，并无意中请求一个包含 10⁹ 行的结果集，从而减慢生产站点的速度。
 - en: 'So it would seem that this publisher will need at least one new database. Here
     are the steps:'
   id: totrans-992
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，这个发布者似乎至少需要一个新的数据库。以下是步骤：
 - en: create a new database user and tablespace; if this is on a separate physical
     computer from your production RDBMS server it will protect your production server's
     performance from inadvertent denial-of-service attacks by sloppy development SQL
@@ -7649,29 +7692,34 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个新的数据库用户和表空间；如果这是在与生产关系数据库服务器不同的物理计算机上，它将保护您的生产服务器免受粗心开发 SQL 语句导致的拒绝服务攻击对性能的影响。
 - en: export the production database into a file system file, which is a good periodic
     practice in any case as it will verify the integrity of the database
   id: totrans-994
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将生产数据库导出到文件系统文件，这在任何情况下都是一个好的周期性实践，因为它将验证数据库的完整性。
 - en: import the database export into the new development database
   id: totrans-995
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将数据库导出导入到新的开发数据库中。
 - en: every time that a developer alters a table, adds a table, or populates a new
     table, record the operation in a "patches.sql" file
   id: totrans-996
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每当开发人员更改表格、添加表格或填充新表格时，在 "patches.sql" 文件中记录操作。
 - en: when ready to move code from staging to production, hastily apply all the data
     model modifications from patches.sql to the production RDBMS
   id: totrans-997
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当准备将代码从分级转移到生产时，迅速将 patches.sql 中的所有数据模型修改应用到生产关系数据库管理系统中。
 - en: Should there be three databases, i.e., one for dev, one for staging, and one
     for production? Not necessarily. Unless one expects radical data model evolution
     it may be acceptable to use the same database for development and staging. Keep
@@ -7683,37 +7731,46 @@
   id: totrans-998
   prefs: []
   type: TYPE_NORMAL
+  zh: 是否应该有三个数据库，即一个用于开发，一个用于暂存，一个用于生产？不一定。除非预期数据模型会发生根本性变化，否则可以接受在开发和暂存中使用相同的数据库。请记住，在关系数据库表中添加列很少会破坏旧查询。这是
+    E.F. Codd 在 1970 年在《大型共享数据库的关系数据模型》中设定的目标之一（[http://www.acm.org/classics/nov95/toc.html](http://www.acm.org/classics/nov95/toc.html)），当然，关系模型的现代实现在这方面实现了
+    Codd 的期望。
 - en: 'Item 3: One Version Control Repository'
   id: totrans-999
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 项目 3：一个版本控制仓库
 - en: The function of the version control repository is to
   id: totrans-1000
   prefs: []
   type: TYPE_NORMAL
+  zh: 版本控制仓库的功能是
 - en: remember what all the previous checked-in versions of a file contained
   id: totrans-1001
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记住之前所有已检入文件版本的内容。
 - en: show the difference between what's in a checked-out tree and what's in the repository
   id: totrans-1002
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 显示已检出树中的内容与仓库中的内容之间的差异
 - en: help merge changes made simultaneously by multiple authors who might have been
     unaware of each other's work
   id: totrans-1003
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 帮助合并同时由多个作者进行的更改，这些作者可能不知道彼此的工作
 - en: group a snapshot of currently checked-in versions of files as "Release 2.1"
     or "JuneIssue"
   id: totrans-1004
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将当前已检入文件版本的快照分组为“Release 2.1”或“JuneIssue”
 - en: An example of a system that meets the preceding requirements is Concurrent Versions
     System (CVS), which is free and open-source. CVS uses a single file system directory
     as its repository or "CVS root". CVS can run over the Internet so that the repository
@@ -7723,74 +7780,90 @@
   id: totrans-1005
   prefs: []
   type: TYPE_NORMAL
+  zh: 满足上述要求的系统示例是 Concurrent Versions System (CVS)，它是免费且开源的。CVS 使用单个文件系统目录作为其仓库或“CVS
+    根目录”。CVS 可以通过互联网运行，因此仓库位于计算机 A 上，而开发、暂存和生产服务器位于计算机 B、C 和 D 上。或者，您可以在一个物理计算机上的单独文件系统目录中运行所有内容。
 - en: Good things about this solution
   id: totrans-1006
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 这个解决方案的优点
 - en: 'Let''s summarize the good things about the version control (for computer programs)
     solution proposed here:'
   id: totrans-1007
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们总结一下这里提出的版本控制（用于计算机程序）解决方案的优点：
 - en: if something is screwy with the production server, one can easily revert to
     a known and tested version of the software
   id: totrans-1008
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果生产服务器出现问题，可以轻松恢复到已知且经过测试的软件版本
 - en: programmers can protect and comment their changes by explicitly checking files
     in after significant changes
   id: totrans-1009
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序员可以在重大更改后明确检查文件，以保护和注释他们的更改。
 - en: teams of programmers and testers can work indepently
   id: totrans-1010
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序员和测试人员团队可以独立工作
 - en: 'Further reading: [Open Source Development With CVS](http://www.amazon.com/exec/obidos/ASIN/158880173X/pgreenspun-20)
     (Fogel and Bar 2001; Coriolis), a portion of which is available online at [http://cvsbook.red-bean.com/cvsbook.html](http://cvsbook.red-bean.com/cvsbook.html).'
   id: totrans-1011
   prefs: []
   type: TYPE_NORMAL
+  zh: 进一步阅读：[使用 CVS 进行开源开发](http://www.amazon.com/exec/obidos/ASIN/158880173X/pgreenspun-20)（Fogel
+    和 Bar 2001; Coriolis），其中部分内容可在线查阅：[http://cvsbook.red-bean.com/cvsbook.html](http://cvsbook.red-bean.com/cvsbook.html)。
 - en: 'Exercise 3: Version Control'
   id: totrans-1012
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3：版本控制
 - en: 'Write down your answers to the following questions:'
   id: totrans-1013
   prefs: []
   type: TYPE_NORMAL
+  zh: 将你的答案写下来回答以下问题：
 - en: What is your system for versioning content?
   id: totrans-1014
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你的内容版本控制系统是什么？
 - en: What is your system for versioning the software behind your application, including
     data model and page scripts?
   id: totrans-1015
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你的软件版本控制系统是什么，包括数据模型和页面脚本？
 - en: What kind of answer can your system produce to the question "Who is responsible
     for the content on this current user-visible page?"
   id: totrans-1016
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你的系统对于问题“谁对当前用户可见页面上的内容负责”能产生什么样的答案？
 - en: Note that generally most teams must write some additional SQL code to complete
     this exercise, augmenting the data model that they built in Exercise 1.
   id: totrans-1017
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，通常大多数团队必须编写一些额外的 SQL 代码来完成这个练习，以增强他们在练习 1 中构建的数据模型。
 - en: 'Exercise 4: Skeletal Implementation'
   id: totrans-1018
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 4：骨架实现
 - en: Build enough of the pages so that a group of users can cooperate to put a few
     pieces of content live on your server. Focus your efforts on the primary kinds
     of publisher-authored content that you expect to have in your online learning
@@ -7799,20 +7872,24 @@
   id: totrans-1019
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建足够的页面，以便一组用户可以合作将一些内容发布到您的服务器上。将努力集中在您在线学习社区中期望拥有的主要类型的由出版者撰写的内容上。对于大多数项目来说，这将是文章和导航页面到这些文章。
 - en: 'After you''ve got a few articles in, step back and ask the following questions:'
   id: totrans-1020
   prefs: []
   type: TYPE_NORMAL
+  zh: 在您有了几篇文章之后，退后一步，问以下问题：
 - en: Is this data model working?
   id: totrans-1021
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个数据模型有效吗？
 - en: Is it taking a reasonable number of clicks to get some content live?
   id: totrans-1022
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取某些内容上线需要合理的点击次数吗？
 - en: Do the people who need to approve new content have an easy way of figuring out
     what needs approval and what has been approved or rejected already? Must those
     editors come to the site every few hours and check or will they get email alerts
@@ -7821,6 +7898,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要批准新内容的人是否有一种简便的方法来确定需要批准什么，已经批准或拒绝了什么？那些编辑必须每隔几个小时来到网站并检查，还是当新内容需要审核时他们会收到电子邮件提醒？
 - en: A skeletal implementation should have stable and consistent URLs, i.e., the
     home page should be just the hostname of the server and filenames should be consistent.
     If you haven't had a chance to make abstract URLs work (see the "Basics" chapter),
@@ -7834,42 +7912,50 @@
   id: totrans-1024
   prefs: []
   type: TYPE_NORMAL
+  zh: 骨架实现应具有稳定和一致的URL，即首页应该只是服务器的主机名，文件名应该一致。如果您还没有机会使抽象URL起作用（请参阅“基础”章节），那么现在是时候这样做了。每个页面都应有一个描述性标题，以便浏览器的后退按钮和书签（“收藏夹”）完全功能。每个页面底部都应有一个“查看源代码”链接和一种联系页面功能和内容负责人的方法。应该有一种一致的导航系统（也见下文）。骨架实现的外观和感觉将是简单的，但不必丑陋或不一致。寻找Google的灵感，而不是您大学同学的个人主页。
 - en: Look and Feel
   id: totrans-1025
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 外观和感觉
 - en: 'At this point you have some content on your server. It is thus possible to
     begin experimenting with the look and feel of HTML pages. A good place to start
     is with the following issues:'
   id: totrans-1026
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，您的服务器上已经有了一些内容。因此，可以开始尝试HTML页面的外观和感觉。开始的好地方是以下问题：
 - en: space
   id: totrans-1027
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空间
 - en: time
   id: totrans-1028
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时间
 - en: words
   id: totrans-1029
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单词
 - en: color
   id: totrans-1030
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 颜色
 - en: Screen Space
   id: totrans-1031
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 屏幕空间
 - en: In the 1960s a computer user could tap into a 1/100th share of a computer with
     1 MB of memory and capable of executing 1 million instructions per second, viewing
     the results on a 19-inch monitor. In 2005, a computer user gets a full share of
@@ -7880,6 +7966,8 @@
   id: totrans-1032
   prefs: []
   type: TYPE_NORMAL
+  zh: 在20世纪60年代，计算机用户可以利用具有1 MB内存并且能够执行1百万条指令每秒的计算机的1/100份份额，在一个19英寸的监视器上查看结果。到2005年，计算机用户可以得到具有2000
+    MB内存（2 GB）并且能够执行40亿条指令每秒的计算机的全部份额。这大约是计算能力可用性的40万倍改善。我们现代计算机用户如何查看他或她的计算结果？在一个19英寸的监视器上。
 - en: Programmers of most applications no longer need concern themselves too much
     with processor and memory efficiency, which were obsessions in the 1960s. CPU
     and RAM are available in abundance. But screen real estate is as precious as ever.
@@ -7891,6 +7979,7 @@
   id: totrans-1033
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数应用程序的程序员不再需要过多地关注处理器和内存效率，这在20世纪60年代是痴迷的。CPU和RAM现在丰富充裕。但屏幕可用空间仍然宝贵。看看你的页面设计。最重要的信息是否可供查看而无需滚动？（在报纸业中，此术语为“上折”。）您是否充分利用了您拥有的屏幕空间？页面上是否有大片的空白空间？您是否可以使用HTML表格同时呈现两列或三列信息？
 - en: One particularly egregious waste of screen space is the use of icons. Typically,
     users can't understand what the icons mean so they need to be supplemented with
     plain language annotation. Generally the best policy is to *let the information
@@ -7900,11 +7989,13 @@
   id: totrans-1034
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别浪费屏幕空间的一种做法是使用图标。通常，用户无法理解图标的含义，因此需要用普通语言注释来补充。一般来说，最好的策略是*让信息成为界面*，例如显示一列文章类别（信息），其中点击一个类别是导航到显示该类别内的文章的页面的方式。
 - en: Time
   id: totrans-1035
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 时间
 - en: 'Most people prefer fast to slow. Most people prefer consistent service time
     to inconsistent service time. These two preferences contribute substantially to
     the popularity of McDonald''s restaurants worldwide. When people are done with
@@ -7913,6 +8004,7 @@
   id: totrans-1036
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数人喜欢快速而不是慢速。大多数人更喜欢一致的服务时间而不是不一致的服务时间。这两种偏好极大地促进了麦当劳餐厅在全球范围内的普及。当人们用完午餐后，他们会将这些偏好带到计算机应用程序中：快速胜过缓慢；响应时间应该在每次会话中保持一致。
 - en: 'Computer and network speeds will change over the years but human beings will
     evolve much more slowly. Thus we should start by considering limits derived from
     the humanity of our users. The experimental psychologists will tell us that short-term
@@ -7927,23 +8019,27 @@
   id: totrans-1037
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算机和网络速度将随着年代的变化而改变，但人类的进化速度要慢得多。因此，我们应该首先考虑到用户的人性所带来的限制。实验心理学家会告诉我们，短期记忆只能记住大约七件事情（"关于我们处理信息能力的一些限制"，乔治·A·米勒，《心理评论》1956，63：81-97；[http://www.well.com/user/smalin/miller.html](http://www.well.com/user/smalin/miller.html)），而且这种记忆只能持续约二十秒。因此，在任何需要用户从一页记住太多东西的计算机应用程序中，构建这种应用程序是不明智的。同样，构建任何页面间延迟超过二十秒的计算机应用程序也是不明智的。人们可能会忘记他们试图完成的任务！
 - en: 'IBM Corporation carried out some studies around 1970 and discovered the following
     required computer response times:'
   id: totrans-1038
   prefs: []
   type: TYPE_NORMAL
+  zh: IBM 公司在 1970 年左右进行了一些研究，并发现了以下所需的计算机响应时间：
 - en: 0.1 seconds for direct manipulation, e.g., moving objects around on a screen
     with a pointer
   id: totrans-1039
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直接操作需要 0.1 秒，例如，用指针在屏幕上移动对象
 - en: 1 second for maximum productivity in screen-click-screen systems such as they
     had on the IBM 3270 terminal back in 1970 and we have on the Web in 2005
   id: totrans-1040
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在屏幕点击屏幕系统中，例如 1970 年的 IBM 3270 终端上和 2005 年的网络中，为实现最大生产率需要 1 秒
 - en: less than 10 seconds to hold the full attention of a user; when response times
     extended beyond 10 seconds users would try to engage in another task, such as
     reading a magazine, while also using the computer application
@@ -7951,6 +8047,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 少于 10 秒钟可以保持用户的完全注意力；当响应时间延长到 10 秒以上时，用户会尝试从事另一项任务，例如阅读杂志，同时还在使用计算机应用程序
 - en: 'A reasonable goal to strive for in an Internet application is sub-second response
     time. This goal is based partly on IBM''s research, partly on the inability to
     achieve (in 2005) the 0.1-second mark at which direct manipulation becomes possible,
@@ -7962,6 +8059,8 @@
   id: totrans-1042
   prefs: []
   type: TYPE_NORMAL
+  zh: 在互联网应用程序中努力追求的一个合理目标是亚秒级的响应时间。这个目标部分基于 IBM 的研究，部分基于（2005 年）无法达到直接操作所需的 0.1 秒标记，以及部分基于最佳从业者所取得的成就。你的用户将会使用亚马逊、雅虎和
+    eBay。任何比这些网站慢的服务都会在用户心中引起警报：也许这个网站会彻底失败？也许我应该尝试找一个做同样工作但更快的竞争对手网站？
 - en: One factor that affects page-loading time is end-to-end bandwidth between your
     server and the user. You can't do much about this except measure and average.
     Some Web servers can be configured or reprogrammed to log the total time spent
@@ -7977,12 +8076,15 @@
   id: totrans-1043
   prefs: []
   type: TYPE_NORMAL
+  zh: 影响页面加载时间的一个因素是服务器和用户之间的端到端带宽。除了测量和平均值之外，你无法做太多事情。一些Web服务器可以配置或重新编程以记录为页面提供服务的总时间。例如，通过查看为大型照片提供服务所花费的时间，你可以推断出服务器和用户之间可用带宽的平均值。如果第十百分位用户的带宽为每秒50
+    K位，即使你的服务器在准备页面方面非常快，你也应该尽量确保你的页面，包括图形在内，不超过50 K位的大小，或者HTML设计得使页面可以逐步呈现。（一个完全由TABLE组成的页面是不好的；一个页面中任何图像都有WIDTH和HEIGHT标签是好的，因为文本将立即呈现，空白空间将逐渐填充，直到图像加载完成。）
 - en: You can verify your decisions about page layout and graphics heaviness by comparing
     your pages to those of the most successful Internet service operators such as
     eBay, Yahoo!, and Amazon.
   id: totrans-1044
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过将你的页面与eBay、Yahoo!和Amazon等最成功的互联网服务运营商的页面进行比较，来验证关于页面布局和图形重量的决定。
 - en: Remember that in the book and magazine world every page design loads at the
     same speed, which means that page design is primarily a question of aesthetics.
     In the Internet world page design and application speed are inextricably linked,
@@ -7990,22 +8092,26 @@
   id: totrans-1045
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住，在书籍和杂志世界中，每一页的设计加载速度都是相同的，这意味着页面设计主要是一个美学问题。在互联网世界中，页面设计和应用程序速度是密不可分的，这使得页面设计成为一个工程问题。
 - en: Words
   id: totrans-1046
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 单词
 - en: 'As a programmer, there are two kinds of text that you will be putting into
     the services that you build: instructions and error messages.'
   id: totrans-1047
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为程序员，你将在构建的服务中放入两种文本：说明和错误消息。
 - en: For instructions, you can choose active or passive voice and first, second,
     or third person. Instructions should be second person imperative. Leave out the
     pronouns, e.g., "Enter departure date" rather than "Enter your departure date".
   id: totrans-1048
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于说明，你可以选择使用主动语态或被动语态，第一人称、第二人称或第三人称。说明应该使用第二人称祈使句。省略代词，例如，"输入出发日期"而不是"输入你的出发日期"。
 - en: 'Oftentimes you can build a system such that error messages are unnecessary.
     The best user interfaces are those where the user can''t make a mistake. For example,
     suppose that an application needs to prompt for a date. One could do this with
@@ -8022,6 +8128,9 @@
   id: totrans-1049
   prefs: []
   type: TYPE_NORMAL
+  zh: 往往可以构建一个系统，使得错误消息是不必要的。最好的用户界面是那些用户不会犯错的界面。例如，假设一个应用程序需要提示输入日期。可以通过一个空白的文本输入框来实现，没有任何提示，期望用户输入
+    MM/DD/YYYY，例如，09/28/1963 代表1963年9月28日。如果用户的输入不符合这个模式或日期不存在，例如，02/30/2002，应用程序会返回一个页面解释要求。一个小的改进是在框旁边添加一个注释："MM/DD/YYYY"。如果应用程序日志显示错误页面的数量有所减少，但并未消除，也许将文本输入框默认设置为今天的日期，格式为
+    MM/DD/YYYY，会更好。然而，当你浏览你最喜欢的旅行网站时，你可能会发现他们选择了"以上都不是"。用户被要求从一个JavaScript日历小部件中选择日期，或者从HTML菜单中下拉月份和日期。
 - en: '**Figure 6.1:** Different ways of asking the user to specify a date. Generally
     it is best to ask in such a way that the user cannot possibly make a mistake and
     necessitate the serving of an error page reading "date not properly formatted",
@@ -8029,6 +8138,7 @@
   id: totrans-1050
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.1：** 要求用户指定日期的不同方式。通常最好以用户不可能犯错的方式询问，避免出现错误页面，显示“日期格式不正确”，“无效日期”或“过去日期”。'
 - en: Sadly, you won't be able to eliminate the need for all error messages. Thus
     you'll have to make a choice between terse or verbose and between lazy or energetic.
     A lazy system will respond "syntax error" to any user input that won't work. An
@@ -8037,6 +8147,7 @@
   id: totrans-1051
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗憾的是，你无法消除所有错误消息的需要。因此，你将不得不在简洁和冗长以及懒惰和积极之间做出选择。一个懒惰的系统会对任何无法运行的用户输入回应“语法错误”。一个积极的系统将尝试自动更正用户的输入，或者至少弄清楚可能出错的地方。
 - en: Studies have shown that it is worthwhile to develop sophisticated error-handling
     pages, e.g., ones that correct the user's input and serve a confirmation page.
     At the very least, it is worth running some regular expressions against the user's
@@ -8046,16 +8157,19 @@
   id: totrans-1052
   prefs: []
   type: TYPE_NORMAL
+  zh: 研究表明，开发复杂的错误处理页面是值得的，例如，纠正用户输入并提供确认页面。至少，值得对用户的有问题输入运行一些正则表达式，看看其缺陷是否符合一个常见模式，可以在错误页面上解释。最好避免拟人化——计算机不应该说“我不明白你输入的内容”。
 - en: Color
   id: totrans-1053
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 颜色
 - en: '| "The natural world is too green and badly lit." -- Francois Boucher, 18th
     century painter |'
   id: totrans-1054
   prefs: []
   type: TYPE_TB
+  zh: '| “自然界太绿了，光线太差。” -- 弗朗索瓦·布歇尔，18世纪画家 |'
 - en: 'Text is most readable when it is black against a white or off-white background.
     It is best to avoid using color as part of your interface with the exception of
     sticking with conventions such as "blue text = hyperlink; purple text = visited
@@ -8068,6 +8182,8 @@
   id: totrans-1055
   prefs: []
   type: TYPE_NORMAL
+  zh: 文本在黑色背景上对白色或浅白色背景最易读。最好避免在界面中使用颜色，除非遵循约定，比如“蓝色文本=超链接；紫色文本=已访问的超链接”。如果将你的创意限制在`<body
+    bgcolor=white text=black>`，浏览器将以熟悉的链接颜色善待你的用户。通过在界面中节制地使用颜色，你将有大部分的色谱可用于呈现信息：图表、图形、照片。例如，比较[www.britneyspears.com](http://www.britneyspears.com)和[http://britneyspears.ac/physics/basics/basics.htm](http://britneyspears.ac/physics/basics/basics.htm)，看看这些原则是如何运作的。
 - en: Be a bit careful with medium gray tones at the very top of Web pages. Many Web
     browsers use various shades of gray for the backgrounds of menu and button bars
     at the top of windows. If a Web page has a solid gray area at the top, a user
@@ -8077,6 +8193,7 @@
   id: totrans-1056
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网页顶部的中灰色调要小心一点。许多网络浏览器在窗口顶部的菜单和按钮栏的背景上使用各种灰色调。如果一个网页顶部有一个纯灰色区域，用户可能会难以区分浏览器软件的结束和页面内容的开始。请注意，雅虎和亚马逊的页面在顶部包含了一些额外的白色空间，以将页面内容与浏览器位置和菜单栏分开。
 - en: 'Whatever scheme you choose, keep it consistent site-wide. In 1876 MIT agreed
     on cardinal and gray for school colors. See how the agreement is holding up by
     visiting [www.mit.edu](http://www.mit.edu), click on "Administration" and then
@@ -8084,6 +8201,7 @@
   id: totrans-1057
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论你选择什么方案，在整个网站上保持一致。1876年，麻省理工学院同意将校色定为深红和灰色。通过访问[www.mit.edu](http://www.mit.edu)，点击“管理”，然后查看四个部门的子站点：信息服务、医学、艺术、残疾服务，看看这个协议是否仍然有效。
 - en: 'For an excellent discussion of the use of color, see Macintosh Human Interface
     Guidelines, available online at [http://developer.apple.com/documentation/mac/HIGuidelines/HIGuidelines-2.html](http://developer.apple.com/documentation/mac/HIGuidelines/HIGuidelines-2.html).
     Basically the messages are the following: (1) use color sparingly, (2) make sure
@@ -8092,32 +8210,38 @@
   id: totrans-1058
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解有关使用颜色的优秀讨论，请参阅Macintosh人机界面指南，可在线获取：[http://developer.apple.com/documentation/mac/HIGuidelines/HIGuidelines-2.html](http://developer.apple.com/documentation/mac/HIGuidelines/HIGuidelines-2.html)。基本上，信息如下：（1）节约使用颜色，（2）确保色盲人士能够充分利用应用程序，（3）避免红色，因为它与警报和危险有关。
 - en: Navigation
   id: totrans-1059
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 导航
 - en: 'As with page design, the best strategy for navigation is to copy the most successful
     and therefore familiar-to-your-users Internet applications. Best practice for
     a site home-page circa 2005 seems to boil down to the following elements:'
   id: totrans-1060
   prefs: []
   type: TYPE_NORMAL
+  zh: 与页面设计一样，导航的最佳策略是模仿最成功且因此熟悉于您的用户的互联网应用程序。2005年左右站点主页的最佳实践似乎可以归结为以下元素：
 - en: a navigation directory to the rest of the site
   id: totrans-1061
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通往站点其余部分的导航目录
 - en: news and events
   id: totrans-1062
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 新闻和事件
 - en: a single text input box for site-wide search
   id: totrans-1063
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个用于站点范围搜索的单个���本输入框
 - en: a quick form targeting the most frequently requested service on the site, e.g.,
     on an airline site, a quick fare/schedule finder with form inputs for cities and
     dates
@@ -8125,6 +8249,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个快速的表单，针对站点上最常请求的服务，例如，在航空公司网站上，一个快速的票价/时间表查找器，带有城市和日期的表单输入
 - en: In building the navigation directory, look at [www.yahoo.com](http://www.yahoo.com).
     Note that Yahoo! does not use icons for category navigation. To get to the photography
     category, underneath Arts & Humanities, you click on the word "Photography". *The
@@ -8137,25 +8262,32 @@
   id: totrans-1065
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建导航目录时，请查看[www.yahoo.com](http://www.yahoo.com)。请注意，雅虎！不使用图标进行类别导航。要进入摄影类别，在艺术与人文学科下方，您点击“摄影”一词。*信息即界面。*这一原则在爱德华·图夫特的经典著作[Visual
+    Explanations](http://www.amazon.com/exec/obidos/ASIN/0961392126/pgreenspun-20)（Graphics
+    Press，1997）中有所阐述。图夫特指出，如果您使用图标，还需要在下方提供文本解释。为什么不让文本单独成为界面呢？图夫特还主张广泛和扁平地呈现信息；用户不应该不得不通过八个每个只有少数选择的屏幕点击。
 - en: 'On interior pages, it is important to answer the following questions:'
   id: totrans-1066
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内部页面上，回答以下问题很重要：
 - en: Where am I?
   id: totrans-1067
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我在哪里？
 - en: Where have I been?
   id: totrans-1068
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我去过哪里？
 - en: Where can I go?
   id: totrans-1069
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我可以去哪里？
 - en: 'To answer "Where am I?" relative to other sites on the Internet, you can include
     a logo graphic or font-distinguished site name in the upper left corner of each
     page, hyperlinked to the site home-page. See the interior pages at amazon.com
@@ -8167,16 +8299,20 @@
   id: totrans-1070
   prefs: []
   type: TYPE_NORMAL
+  zh: 要回答“我在哪里？”相对于互联网上的其他站点，您可以在每个页面的左上角包含一个标志性的图形或字体区分的站点名称，超链接到站点主页。查看亚马逊网站的内部页面，了解这是如何运作的。要回答“我在哪里？”相对于同一站点上的其他页面，您可以包含一个带有当前页面突出显示的站点地图。在一个复杂的站点上，这种方法不太适用：最好使用雅虎风格的导航栏，也称为“分级路径”或“面包屑”。例如，[http://dir.yahoo.com/Arts/Visual_Arts/Photography/Panoramic/](http://dir.yahoo.com/Arts/Visual_Arts/Photography/Panoramic/)
+    包含以下导航栏：
 - en: Home > Arts > Visual Arts > Photography > Panoramic
   id: totrans-1071
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 主页 > 艺术 > 视觉艺术 > 摄影 > 全景
 - en: Note that this bar grows in size as O[log N] where N is the number of pages
     on the site. Showing a full site map or top tabs results in linear growth.
   id: totrans-1072
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，此导航栏的大小按O[log N]增长，其中N是站点上页面的数量。显示完整站点地图或顶部选项卡会导致线性增长。
 - en: To answer "Where have I been?", start by not instructing the browser to change
     the standard link colors. The user will thus be cued by the browser for any links
     that have already been visited. If you're careful with your programming and consistent
@@ -8187,6 +8323,7 @@
   id: totrans-1073
   prefs: []
   type: TYPE_NORMAL
+  zh: 要回答“我去过哪里？”的问题，首先不要指示浏览器更改标准链接颜色。用户将通过浏览器得知哪些链接已经访问过。如果您在编程时小心谨慎并且页面标题一致，用户将能够右键单击“返回”按钮，选择性地返回到服务的任何以前的位置。此外，请注意，雅虎风格的导航栏对于实际从主页点击下来的用户来说是有效的，可以回答“我去过哪里？”的问题。
 - en: To answer "Where can I go?" you need ... links! Let the browser default to standard
     colors so that users will perceive the links as links. It is generally a bad idea
     to use rollovers, select boxes, or graphics. These controls won't work the same
@@ -8198,11 +8335,13 @@
   id: totrans-1074
   prefs: []
   type: TYPE_NORMAL
+  zh: 要回答“我可以去哪里？”的问题，您需要...链接！让浏览器默认使用标准颜色，以便用户将链接视为链接。通常不建议使用鼠标悬停、选择框或图形。这些控件在不同网站之间的工作方式不同，因此用户可能不了解如何使用它们。这些控件没有访问链接变为不同颜色的属性；它们通常无法或不会利用浏览器的历史数据库。最后，这些控件无法有效地向用户显示他们可以去哪里，因为许多选择是隐藏的。
 - en: 'Exercise 5: Criticism'
   id: totrans-1075
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习5：批评
 - en: Take or get a tour of the other projects being built by your classmates in this
     course. For each project make sure that you familiarize yourself with the overall
     service objectives and the data model. Then register as a user and author an article.
@@ -8211,6 +8350,7 @@
   id: totrans-1076
   prefs: []
   type: TYPE_NORMAL
+  zh: 参观一下本课程中其他同学正在建设的项目。对于每个项目，请确保熟悉整体服务目标和数据模型。然后注册为用户并撰写一篇文章。（如果在这些步骤中遇到困难，请通过电话和电子邮件联系项目背后的团队成员，并要求他们在服务器上添加链接或提示。）
 - en: Working with your project team members, write a plain-text critique of each
     project that you review. Look for situations in which the client's requirements,
     as expressed in the planning exercise solutions, can't be fulfilled with the data
@@ -8220,55 +8360,65 @@
   id: totrans-1077
   prefs: []
   type: TYPE_NORMAL
+  zh: 与项目团队成员合作，为您审查的每个项目撰写一份纯文本评论。寻找客户在规划练习解决方案中表达的要求无法通过您看到的数据模型实现的情况。寻找提供建设性批评的机会。请记住，您的同学不需要提升自尊心；他们需要您的工程技能带来的好处。
 - en: 'Here are some suggested areas where it might be easy to find improvements:'
   id: totrans-1078
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些可能容易找到改进的建议领域：
 - en: page flows in user registration and content authoring—could the number of clicks
     to accomplish a task be reduced?
   id: totrans-1079
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户注册和内容撰写中的页面流程——能否减少完成任务所需的点击次数？
 - en: look, feel, and navigation referenced to the standards outlined above
   id: totrans-1080
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 外观、感觉和导航参考上述标准
 - en: version control and audit trail
   id: totrans-1081
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 版本控制和审计跟踪
 - en: where do/should attachments go, e.g., is there a place to store a JPEG photo
     attached to a comment on an article?
   id: totrans-1082
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 附件应该放在哪里，例如，是否有一个地方可以存储附加到文章评论的JPEG照片？
 - en: categorization and presentation hints—can the content be presented within a
     clear information architecture?
   id: totrans-1083
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分类和展示提示——内容是否可以在清晰的信息架构中呈现？
 - en: is there a place to store keywords, i.e., hand-authored collections of words
     associated with a content item (to aid full-text search)
   id: totrans-1084
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是否有一个存储关键字的地方，即与内容项相关联的手工编写的单词集合（以帮助全文搜索）
 - en: can the content repository store an arbitrary data type, e.g., a video, an audio
     clip, or a photograph?
   id: totrans-1085
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内容存储库是否可以存储任意数据类型，例如视频、音频剪辑或照片？
 - en: Sign the critique with the name of your project team and also the names of all
     team members.
   id: totrans-1086
   prefs: []
   type: TYPE_NORMAL
+  zh: 请用项目团队的名称以及所有团队成员的姓名签署评论。
 - en: Email your critique to the team members whose work you've just reviewed. Archive
     these in a file and make them available at http://yourservername/doc/critiques/cm-sent.txt.
     Watch your own inbox for critiques coming in from the rest of the class. Please
@@ -8276,11 +8426,15 @@
   id: totrans-1087
   prefs: []
   type: TYPE_NORMAL
+  zh: 将您对刚刚审阅过的团队成员的批评发送到他们的邮箱。将这些存档在一个文件中，并在 http://yourservername/doc/critiques/cm-sent.txt
+    上提供。留意您自己的收件箱，等待来自其他同学的批评。请将这些整理成一个文件，并在 http://yourservername/doc/critiques/cm-received.txt
+    上提供。
 - en: 'Information Architecture: Implicit or Explicit?'
   id: totrans-1088
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 信息架构：隐式还是显式？
 - en: 'Suppose that there are 1000 content items on a site. The manner of organizing,
     labeling, and presenting these 1000 items to a user is referred to as the *information
     architecture* of the site. For the sake of simplicity, let''s start by assuming
@@ -8291,22 +8445,27 @@
   id: totrans-1089
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设网站上有 1000 个内容项。组织、标记和向用户呈现这 1000 个项目的方式被称为网站的*信息架构*。为简单起见，让我们假设我们将在一个页面上呈现所有
+    1000 个项目。为了具体化，我们假设所有内容都与摄影相关。即使这种退化的一页用户体验也需要一些信息架构决策。以下是一些可能性：
 - en: sort from newest to oldest (good for experienced users)
   id: totrans-1090
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从最新到最旧排序（对于有经验的用户很好）
 - en: sort from highest quality to lowest quality (might be good for first-time users)
   id: totrans-1091
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从最高质量到最低质量排序（对于首次用户可能很好）
 - en: categorize by what's in front of the camera and present the items separated
     by subheadlines, e.g., "Portraits", "Architecture", "Wedding", "Family", "Animals"
   id: totrans-1092
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 按照摄像头前的内容分类，并通过副标题分开呈现项目，例如，“肖像”，“建筑”，“婚礼”，“家庭”，“动物”
 - en: categorize by type of camera used and present items separated by subheadlines
     such as "Digital point and shoot", "Digital SLR", "35mm point and shoot", "35mm
     SLR", "Medium Format", "Large Format"
@@ -8314,6 +8473,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 按照使用的相机类型分类，并通过副标题呈现项目，例如，“数码便携式”，“数码单反相机”，“35mm便携式”，“35mm单反相机”，“中画幅”，“大画幅”
 - en: Information architecture decisions have a strong effect on the percentage of
     users who say "I got my questioned answered." Most studies of corporate Web sites,
     all of which owe their tested form to hundreds of thousands of dollars in design
@@ -8325,6 +8485,8 @@
   id: totrans-1094
   prefs: []
   type: TYPE_NORMAL
+  zh: 信息架构决策对于用户表示“我得到了我的问题的答案”的百分比有很大影响。对于公司网站的大多数研究，所有这些都归功于数十万美元的设计工作，发现用户找到实际上可以从网站上的文件中找到答案的问题的机会不到
+    50%。我们重新设计了 photo.net 网站的信息架构，这个改变只涉及大约六个顶级页面，每天注册的新用户数量翻了一番。
 - en: One reason that the information architecture on a typical site is so ill-suited
     to the user is that the architecture is implicit in scripts and HTML pages. To
     test an alternative would involve expensive hand-manipulation of computer programs
@@ -8333,17 +8495,20 @@
   id: totrans-1095
   prefs: []
   type: TYPE_NORMAL
+  zh: 典型网站上的信息架构之所以不适合用户，其中一个原因是架构隐含在脚本和 HTML 页面中。要测试另一种方法将涉及昂贵的手动操作计算机程序和 HTML 标记。为个别用户或用户类提供自定义信息架构将是不可能的。
 - en: 'What if we represented information architecture explicitly in database tables?
     These tables would hold the following information:'
   id: totrans-1096
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们在数据库表中明确表示信息架构会怎样？这些表将包含以下信息：
 - en: 'information about information architectures: who made them, when, which ones
     are current and for whom'
   id: totrans-1097
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于信息架构的信息：谁制作了它们，何时制作的，哪些是当前的以及为谁制作的
 - en: whether items underneath a category or subcategory, within a given information
     architecture (IA), should be presented in-line on one page or merely summarized
     with links down to separate pages for each item
@@ -8351,6 +8516,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在给定信息架构（IA）中，类别或子类别下的项目是否应该在一页上内联呈现，还是仅用链接总结到每个项目的单独页面上。
 - en: 'where a content item fits in a given IA: what subcategory (category can be
     inferred from the subcategory), what presentation order ("sort key") compared
     to other items at the same level'
@@ -8358,11 +8524,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内容项在给定信息架构（IA）中的位置：属于哪个子类别（类别可以从子类别中推断出来），与同级别其他项目的呈现顺序（“排序键”）
 - en: how a content item or category should be described
   id: totrans-1100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何描述内容项或类别
 - en: With such a large part of the user experience driven from database tables, testing
     an alternative is as easy as inserting some rows into the database from the information
     architecture admin pages. If during a site's conceptualization people can't agree
@@ -8373,6 +8541,8 @@
   id: totrans-1101
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于用户体验的很大一部分来自数据库表，测试替代方案就像在信息架构管理页面中插入一些行那样容易。如果在网站的概念化过程中人们无法就内容的最佳分类达成一致意见，那么可以启动两种替代方案。一半用户看到IA
+    1，另一半看到IA 2。如果经历了IA 1的用户更有可能注册并返回，我们可以假设至少对于首次用户来说，IA 1更优越。
 - en: For the application that you build in this course, it is acceptable to take
     the expedient path of pounding out scripts with an implicit information architecture.
     However, we'd like you to be aware of the power for development and testing that
@@ -8380,11 +8550,13 @@
   id: totrans-1102
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于您在本课程中构建的应用程序，可以采取快速的路径，通过隐式信息架构来编写脚本。然而，我们希望您意识到，通过显式信息架构可以获得开发和测试的强大功能。
 - en: 'Exercise 6: The Lived-In Look'
   id: totrans-1103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习6：生动外观
 - en: 'A skeletal prototype has one big limitation: it is skeletal. Incorporating
     the feedback that you''ve gotten from other students (in Exercise 5) and from
     instructors, beef up your content management system while simultaneously pouring
@@ -8393,6 +8565,7 @@
   id: totrans-1104
   prefs: []
   type: TYPE_NORMAL
+  zh: 骨架原型有一个很大的局限性：它是骨架。在整合您从其他学生（在练习5中）和教师那里得到的反馈的同时，加强您的内容管理系统，同时注入足够的内容，使您的应用程序看起来“生动”。这将确保您的系统确实强大到可以处理用户的基本需求。
 - en: If your client has an existing site, use that as a source of content and minimum
     requirements. Also look at a couple of sites run by organizations with comparable
     missions and sizes. For example, if you're building something for an academic
@@ -8412,6 +8585,10 @@
   id: totrans-1105
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您的客户已经有现有网站，请将其用作内容和最低要求的信息来源。还可以查看几个由具有类似使命和规模的组织运营的网站。例如，如果您正在为一个学术团体构建某物，您可以查看哈佛大学分子与细胞生物学系的网站[http://www.mcb.harvard.edu/](http://www.mcb.harvard.edu/)。该网站展示了中等规模组织网站的基本要求。一个“概述”部分描述了该部门的目的和历史。一个“新闻”部分提供新闻稿。一个“教师”部分解释了谁在那里工作以及他们的专长是什么。还有为潜在本科生和研究生准备的部分，即该组织的潜在客户。如果您正在为一个小型非营利组织构建某物，请查看Sustainable
+    Harvest（[www.sustainableharvest.org](http://www.sustainableharvest.org/)）和Southern
+    Animal Rescue Association（[www.sarasanctuary.org](http://www.sarasanctuary.org/)）的网站。如果您为一家小型制造公司工作，请查看Cirrus
+    Design Corporation的网站[www.cirrusdesign.com](http://www.cirrusdesign.com)，这是明尼苏达州杜卢斯市一家生产小型飞机的公司。
 - en: What if you can't reach your client in time to complete the assignment? Or if
     you can't get content from your client? Use content from their existing site or
     a site operated by a similar organization. Make sure that at a minimum there is
@@ -8421,17 +8598,20 @@
   id: totrans-1106
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果无法及时联系到客户完成任务怎么办？或者如果无法从客户那里获取内容怎么办？使用他们现有网站或类似组织运营的网站的内容。确保至少对于来查看“关于”，“新闻”和“联系我们”部分的读者来说，有一个已有用户的外观。在课程的其余时间里，您将有机会用客户的内容替换占位符内容。
 - en: Note that before embarking on this you may want to read at least the "Separating
     the Designers and the Programmers" section on templates in [the "Software Modularity"
     chapter](software-modularity).
   id: totrans-1107
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在开始之前，您可能希望至少阅读[“软件模块化”章节](software-modularity)中关于模板的“分离设计师和程序员”部分。
 - en: 'Exercise 7: Client Signoff'
   id: totrans-1108
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 7：客户签字确认
 - en: Ask your client to register as a user and try out the "lived-in" site. Most
     people have a difficult time designing on a blank sheet of paper. You'll get new
     and different insights from your client by showing them a partially finished site
@@ -8439,37 +8619,44 @@
   id: totrans-1109
   prefs: []
   type: TYPE_NORMAL
+  zh: 要求客户注册为用户并尝试“已有用户”的网站。大多数人在一张空白纸上设计时会感到困难。通过向客户展示一个部分完成的网站，你将从客户那里得到新的不同见解，这与项目开始时的情况不同。
 - en: 'Record your client''s answers to the following questions:'
   id: totrans-1110
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录客户对以下问题的回答：
 - en: What changes would you like to see in the plan, now that you've tried out the
     prototype?
   id: totrans-1111
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在尝试原型后，您希望在计划中看到哪些变化？
 - en: What will be the fastest way to fill this site with real content?
   id: totrans-1112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 填充此网站以实际内容的最快方式是什么？
 - en: Are we collecting the right amount of information on initial user registration?
   id: totrans-1113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们在初始用户注册时是否收集了正确的信息？
 - en: Presenting Your Work
   id: totrans-1114
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 展示您的工作
 - en: If you're enrolled in a course using this textbook, you'll probably be asked
     at this point to give a four-minute presentation of your work on the content management
     system and skeletal implementation of the site.
   id: totrans-1115
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您正在使用本教材的课程，那么您可能会被要求在这一点上对内容管理系统和网站骨架实施的工作进行四分钟的演示。
 - en: Four minutes isn't very long so you'll need to rehearse and you'll want to make
     sure that all team members know what they're supposed to do. As a general rule,
     the person speaking should be addressing the audience, not typing at a computer.
@@ -8478,6 +8665,7 @@
   id: totrans-1116
   prefs: []
   type: TYPE_NORMAL
+  zh: 四分钟时间并不长，所以您需要排练，并确保所有团队成员知道他们应该做什么。一般规则是，发言者应该面向观众，而不是在电脑上打字。A团队成员发言；B团队成员操作。也许在演示的某个时候，他们会交换，但没有人会同时说话和操作电脑。
 - en: Open with an "elevator pitch", i.e., the kind of thirty-second explanation that
     you'd give to someone you met during an elevator ride. The pitch should explain
     what problem you're solving and why your system will be better than existing mechanisms
@@ -8485,6 +8673,7 @@
   id: totrans-1117
   prefs: []
   type: TYPE_NORMAL
+  zh: 以“电梯演讲”开始，即您在电梯里遇到某人时会给出的那种三十秒解释。演讲应该解释您正在解决的问题以及为什么您的系统将比现有机制更好。
 - en: Create one or more users ahead of time so that you don't have to show your user
     registration pages. Everyone who has used the Internet has registered at sites.
     They'll assume that you copied the best practices from amazon.com and other popular
@@ -8496,6 +8685,8 @@
   id: totrans-1118
   prefs: []
   type: TYPE_NORMAL
+  zh: 提前创建一个或多个用户，这样你就不必展示用户注册页面。每个使用过互联网的人都在网站上注册过。他们会认为你抄袭了亚马逊等热门网站的最佳实践。如果是这样，观众会感到无聊。如果不是，观众会对你的粗心大意感到震惊。无论如何，最好是以已注册用户的身份登录。事实上，有时你可以安排准备两个浏览器，例如
+    Mozilla 和 MSIE，其中一个以服务的新用户身份登录，另一个以站点管理员或其他你想展示的角色身份登录。
 - en: It is best not to refer to "users" during your talk. Instead talk about the
     roles by name. If, for example, you are building a service around flying, you
     could say "A student pilot logs in [your teammate logs in], finds an article on
@@ -8509,6 +8700,7 @@
   id: totrans-1119
   prefs: []
   type: TYPE_NORMAL
+  zh: 在演讲中最好不要提到“用户”。而是用名称谈论角色。例如，如果你正在围绕飞行构建服务，你可以说“一名学生飞行员登录[你的队友登录]，找到一篇关于旧金山飞行学校的文章[你的队友导航到这篇文章]，并在底部发表评论，说他喜欢他的特定教练。”然后也许交换位置，你的队友过来说“站点编辑[你切换到登录为站点管理员的浏览器]，点击新内容页面[你点击]，看到有一些新评论正在等待批准，阅读来自一名学生飞行员的评论，并批准它[你点击]。”你将浏览器返回到公共页面，现在评论可以在现场网站上看到了。
 - en: Close by parking the browser at a page that reveals as much of the site's overall
     structure as possible. Don't despair if you weren't able to show every feature
     of what you've built. Computer applications are all about the tasks that can be
@@ -8517,37 +8709,44 @@
   id: totrans-1120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在浏览器停留在尽可能展示网站整体结构的页面。如果你无法展示你所构建的每个功能，不要绝望。计算机应用程序关乎可以完成的任务。如果你让观众相信完成几个明确重要的任务将会很容易，你就会给他们带来信心。
 - en: Exercise 8 (For the Instructor)
   id: totrans-1121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习8（给教练）
 - en: 'Call up each team''s clients and ask how strongly they agree with the following
     statements:'
   id: totrans-1122
   prefs: []
   type: TYPE_NORMAL
+  zh: 给每个团队的客户打电话，询问他们对以下陈述的强烈同意程度：
 - en: I believe that my student team understands my problem.
   id: totrans-1123
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我相信我的学生团队了解我的问题。
 - en: I understand what my student team is planning to accomplish and by what dates,
     right through the end of the course.
   id: totrans-1124
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我了解我的学生团队计划在何时达到目标，一直到课程结束。
 - en: My student team has been well-prepared for our meetings.
   id: totrans-1125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我的学生团队已经为我们的会议做好了充分准备。
 - en: My student team is responsive.
   id: totrans-1126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我的学生团队很负责任。
 - en: I believe that the content management system my student team has built will
     be adequate to support the types of documents on my site and the workflow required
     for publishing those documents.
@@ -8555,44 +8754,52 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我相信我的学生团队建立的内容管理系统将足以支持我的网站上的文档类型和所需的发布流程。
 - en: I think it is easy for users to register at my site, to recover a lost password,
     and that users are being asked all the required personal information.
   id: totrans-1128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我认为用户在我的网站注册、找回丢失的密码以及被要求提供所有必要的个人信息都很容易。
 - en: I like the user administration pages that my student team has built.
   id: totrans-1129
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我喜欢我的学生团队建立的用户管理页面。
 - en: My student team has made it easy for me to check on their progress myself.
   id: totrans-1130
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我的学生团队让我自己检查他们的进展情况变得很容易。
 - en: My student team has kept me well informed of their progress.
   id: totrans-1131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我的学生团队让我充分了解他们的进展情况。
 - en: I am impressed by the clarity and thoroughness of the documentation prepared
     so far.
   id: totrans-1132
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我对到目前为止准备的文档的清晰度和彻底性感到印象深刻。
 - en: 'Score this exercise by adding scores from each question: 0 for "disagree" or
     wishy-washy agreement (clients won''t want to say bad things about young volunteers),
     1 for "agree", 2 for "strongly agree".'
   id: totrans-1133
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将每个问题的分数相加来评分：对于“不同意”或含糊的同意（客户不会想说关于年轻志愿者的坏话），得分为0；“同意”得1分，“强烈同意”得2分。
 - en: Time and Motion
   id: totrans-1134
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 时间与动作
 - en: The data modeling, workflow, and version control exercises are intended to be
     done by the entire team working together. They should take about three hours.
     Many projects will need to do little more than adapt data models and policies
@@ -8600,36 +8807,43 @@
   id: totrans-1135
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据建模、工作流和版本控制练习应该由整个团队一起完成。它们应该花费大约三个小时。许多项目只需要从本章中调整数据模型和策略，然后将它们放在自己服务器的/doc目录下。
 - en: The skeletal implementation may be challenging depending on how ambitious the
     goals of the content management system are, but perhaps 10 to 20 programmer-hours
     of work.
   id: totrans-1136
   prefs: []
   type: TYPE_NORMAL
+  zh: 骨架实施可能会具有挑战性，这取决于内容管理系统的目标有多雄心勃勃，但可能需要10到20个程序员小时的工作量。
 - en: Criticizing other teams' work should take about 15 minutes per project criticized
     or about two hours total in a class with 8 to 10 projects. This could be done
     as a group or divided and conquered.
   id: totrans-1137
   prefs: []
   type: TYPE_NORMAL
+  zh: 批评其他团队的工作应该每个被批评的项目大约需要15分钟，或者在一个有8到10个项目的班级中总共需要大约两个小时。这可以作为一个团队完成，也可以分工合作。
 - en: Achieving a lived-in look by pouring in real content shouldn't take more than
     two hours and ought to be divisible among team members.
   id: totrans-1138
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过注入真实内容实现真实外观不应超过两个小时，并且应该可以分配给团队成员。
 - en: Talking to the client will probably take about one hour.
   id: totrans-1139
   prefs: []
   type: TYPE_NORMAL
+  zh: 与客户交谈可能需要大约一小时。
 - en: Software Modularity
   id: totrans-1140
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 软件模块化
 - en: '* * *'
   id: totrans-1141
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: At this point in the course, you've built enough software that things may be
     starting to get unwieldy. What will life be like for those who maintain your code?
     Will they be able to figure out what modules you've written? Will they be able
@@ -8637,110 +8851,131 @@
   id: totrans-1142
   prefs: []
   type: TYPE_NORMAL
+  zh: 在课程的这一阶段，您已经构建了足够多的软件，事情可能开始变得难以控制。维护您的代码的人生会是怎样的？他们能找到您编写的模块吗？他们能找到您的文档吗？在整个站点上进行小的更改会简单吗？
 - en: This chapter is about ways to group all the code for a module, to record the
     existence of documentation for that module, to publish APIs to other parts of
     the system, and methods for storing configuration parameters.
   id: totrans-1143
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章讨论了将模块的所有代码分组的方法，记录该模块的文档存在，向系统的其他部分发布API以及存储配置参数的方法。
 - en: Grouping Code
   id: totrans-1144
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 代码分组
 - en: 'Each module in your system will contain the following kinds of software:'
   id: totrans-1145
   prefs: []
   type: TYPE_NORMAL
+  zh: 系统中的每个模块将包含以下类型的软件：
 - en: RDBMS table definitions
   id: totrans-1146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RDBMS表定义
 - en: stored procedures that run in the database (in Oracle these would be PL/SQL
     or Java programs)
   id: totrans-1147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在数据库中运行的存储过程（在Oracle中可能是PL/SQL或Java程序）
 - en: procedures that run inside your Web or application server program that are shared
     by more than one page (we'll call these *shared procedures*)
   id: totrans-1148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Web或应用程序服务器程序内运行的程序，这些程序被多个页面共享（我们将这些称为*共享程序*）
 - en: scripts that generate individual pages
   id: totrans-1149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成单独页面的脚本
 - en: (possibly) templates that work in conjunction with page scripts
   id: totrans-1150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （可能）与页面脚本配合使用的模板
 - en: documentation explaining the objectives of the module
   id: totrans-1151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解释模块目标的文档
 - en: 'Here are some examples of the modules that might be behind a large online community:'
   id: totrans-1152
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些可能支撑大型在线社区的模块的示例：
 - en: user registration
   id: totrans-1153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户注册
 - en: articles and comments
   id: totrans-1154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文章和评论
 - en: discussion forum (shares the same tables with articles, but has radically different
     workflow for moderation and different presentation scripts)
   id: totrans-1155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 讨论论坛（与文章共享相同的表格，但具有完全不同的审查工作流程和不同的展示脚本）
 - en: chat (separate tables from other content, optimized for extremely rapid queries,
     custom JavaScript client software)
   id: totrans-1156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 聊天（与其他内容分开的表格，针对极快查询进行优化，自定义JavaScript客户端软件）
 - en: adserver for selling, placing, and logging banner advertisements
   id: totrans-1157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于销售，放置和记录横幅广告的广告服务器
 - en: calendar (personal, group, and site-wide events)
   id: totrans-1158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 日历（个人，团体和全站事件）
 - en: classified ads and auctions
   id: totrans-1159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分类广告和拍卖
 - en: e-commerce (catalog of products, table of orders, presentation of product pages
     with reviews from community members, billing and accounting)
   id: totrans-1160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电子商务（产品目录，订单表，产品页面展示与社区成员评论，结算和会计）
 - en: email, server-based email (like Hotmail) for community members
   id: totrans-1161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为社区成员提供的基于服务器的电子邮件（类似于Hotmail）
 - en: survey (opinion polls and other types of surveys among the members)
   id: totrans-1162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调查（成员之间的意见调查和其他类型的调查）
 - en: weblog, private blogs for each community member who wants one, possibly sharing
     tables with articles, but different editing, approval workflow, and presentation
     interfaces plus RSS feeds, trackback, and the rest of the machine-to-machine interfaces
@@ -8749,11 +8984,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 博客，每个想要私人博客的社区成员，可能与文章共享表格，但具有不同的编辑，审批工作流程和展示界面，以及RSS订阅，引用追踪和博客世界中预期的其他机器对机器接口
 - en: (trouble) ticket tracker for bug and feature request tracking
   id: totrans-1164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （故障）故障和功能请求跟踪的工单跟踪器
 - en: Good software developers might disagree on the division into modules. For example,
     rather than create a separate classified ads module, a person might decide that
     classifieds and discussion are so similar that adding `price` and `bid` columns
@@ -8763,6 +9000,7 @@
   id: totrans-1165
   prefs: []
   type: TYPE_NORMAL
+  zh: 优秀的软件开发人员可能会对模块的划分有不同意见。例如，某人可能决定不创建一个单独的分类广告模块，而是认为分类广告和讨论非常相似，因此向现有内容表添加`price`和`bid`列比构建新表更有意义，并且向呈现讨论问题和答案的脚本添加大量IF语句比编写新脚本更有意义。
 - en: If the online community is used to support a group of university students and
     teachers, additional specialized modules would be added, e.g., for recording which
     courses are being taught by whom and when, which students are registered in which
@@ -8771,6 +9009,7 @@
   id: totrans-1166
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在线社区用于支持一群大学生和教师，将会添加额外的专业模块，例如，用于记录哪些课程由谁何时教授，哪些学生注册了哪些课程，每个班级关联了哪些讲义，哪些作业何时到期以及由哪些老师评分。
 - en: Recall that the software behind an Internet service is frequently updated as
     the community grows and new ideas are developed. Frequently updated software is
     going to have bugs, which means that the system will be frequently debugged, oftentimes
@@ -8783,6 +9022,7 @@
   id: totrans-1167
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下，互联网服务背后的软件经常会随着社区的增长和新想法的发展而进行更新。经常更新的软件会有bug，这意味着系统将经常被调试，通常是在凌晨2点，而且通常是由编写软件的程序员之外的程序员来进行调试。因此，发布并遵守使新程序员能够轻松找到相关源代码文件的约定是很重要的。也许只需要十五分钟就能找出问题并修复系统。但如果花费三个小时才能找到源代码文件，原本微不足道的bug就会变成一个半天的项目。
 - en: Let's walk through an example of how the software is arranged on the photo.net
     service. The server is configured to operate multiple Internet services. Each
     one is located at `/web/service-name/` which means that all the directories associated
@@ -8794,6 +9034,7 @@
   id: totrans-1168
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过一个例子来看一下软件在photo.net服务上是如何组织的。服务器配置为运行多个互联网服务。每个服务位于`/web/service-name/`，这意味着与photo.net相关的所有目录都在`/web/photonet/`下。该站点的页面根目录是`/web/photonet/www/`。Web服务器配置为在`/web/photonet/tcl/`中查找“库”过程（被多个页面共享），这个名称源自于photo.net是在[AOLserver](http://www.aolserver.com)上运行的事实，其默认扩展语言是Tcl。
 - en: RDBMS table, index, and stored procedure definitions for a module are stored
     in a single file in the `/doc/sql/` directory (directory names in this chapter
     are relative to the Web server page root unless specified as absolute). The name
@@ -8804,6 +9045,7 @@
   id: totrans-1169
   prefs: []
   type: TYPE_NORMAL
+  zh: 模块的RDBMS表、索引和存储过程定义存储在`/doc/sql/`目录中的单个文件中（本章中的目录名称是相对于Web服务器页面根目录的，除非另有说明）。该文件的名称是模块名称后跟一个`.sql`扩展名，例如，`chat.sql`用于聊天模块。所有模块的共享过程存储在单个库目录`/web/photonet/tcl/`中，每个文件命名为"模块名-defs.tcl"，例如，`chat-defs.tcl`。
 - en: 'Scripts that generate individual pages are parked at the following locations:
     `/module-name/` for the user pages; `/module-name/admin/` for the moderator pages,
     e.g., where a user with moderator privileges would go to delete a posting; `/admin/module-name/`
@@ -8812,6 +9054,7 @@
   id: totrans-1170
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成个别页面的脚本位于以下位置：用户页面为`/module-name/`；管理员页面为`/module-name/admin/`，例如，具有管理员权限的用户将前往删除帖子的页面；站点管理员页面为`/admin/module-name/`，例如，服务运营商将前往启用或禁用服务，委派管理权限给另一个用户等页面。
 - en: 'A high-level document explaining each module is stored in `/doc/module-name.html`
     and linked from the index page in `/doc/`. This document is intended as a starting
     point for programmers who are considering using the module or extending a feature
@@ -8819,12 +9062,14 @@
   id: totrans-1171
   prefs: []
   type: TYPE_NORMAL
+  zh: 存储有关每个模块的高级文档在`/doc/module-name.html`中，并从`/doc/`中的索引页面链接。该文档旨在成为考虑使用模块或扩展模块功能的程序员的起点。该文档具有以下结构：
 - en: Where to find all the software associated with this module (site-wide conventions
     are nice, but it doesn't hurt to be explicit).
   id: totrans-1172
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在哪里找到与此模块相关的所有软件（站点范例是不错的，但明确说明也无妨）。
 - en: 'Big picture information: Why was this module built? Why aren''t/weren''t existing
     alternatives adequate for solving the problem? What are the high-level good and
     bad features of this module? What choices were considered in developing the data
@@ -8833,25 +9078,30 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 大局观信息：为什么构建了这个模块？为什么现有的替代方案不足以解决问题？这个模块的高级好坏特性是什么？在开发数据模型时考虑了哪些选择？
 - en: 'Configuration information: What can be changed easily by editing parameters?'
   id: totrans-1174
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 配置信息：哪些参数可以通过编辑轻松更改？
 - en: Use and maintenance information.
   id: totrans-1175
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用和维护信息。
 - en: For an example of such a document, see [http://philip.greenspun.com/seia/examples-software-modularity/chat](/seia/examples-software-modularity/chat).
   id: totrans-1176
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关此类文档的示例，请参见[http://philip.greenspun.com/seia/examples-software-modularity/chat](/seia/examples-software-modularity/chat)。
 - en: Shared Procedures versus Stored Procedures
   id: totrans-1177
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 共享过程与存储过程
 - en: Even in the simplest Web development environments, there are generally at least
     two places where procedural abstractions, i.e., fragments of programs that are
     shared by multiple pages, can be developed. Modern relational database management
@@ -8864,6 +9114,8 @@
   id: totrans-1178
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使在最简单的Web开发环境中，通常至少有两个地方可以开发过程抽象，即多个页面共享的程序片段。现代关系数据库管理系统可以解释图灵完备的命令式编程语言，如C#、Java和PL/SQL。因此，原则上，任何计算机可以执行的计算都可以由在Microsoft
+    SQL Server、Oracle或PostgreSQL等RDBMS内运行的程序执行。换句话说，您不需要Web服务器或任何其他工具，而是可以在数据库管理系统内以*存储过程*的形式实现页面脚本和HTTP服务器。
 - en: As we'll see in the "Scaling Gracefully" chapter, there are some performance
     advantages to be had in splitting off the presentation layer of an application
     into a set of separate physical computers. Thus our page scripts will most definitely
@@ -8877,6 +9129,7 @@
   id: totrans-1179
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们将在“优雅扩展”章节中看到的那样，在将应用程序的表示层拆分为一组独立的物理计算机中，可以获得一些性能优势。因此，我们的页面脚本肯定会存放在关系数据库管理系统之外。这给了我们写入额外软件的机会，该软件将在Web服务器程序内或附近运行，通常使用用于页面脚本的相同计算机语言，以*共享过程*的形式。例如，在PHP脚本的情况下，共享过程可以是一个包含文件。在个别页面以Java或C#脚本编写的站点中，共享过程可能是一些被多个页面使用的类和方法。
 - en: How do you choose between using shared procedures and stored procedures? Start
     by thinking about the multiple applications that may connect to the same database.
     For example, there could be a public Web server, a nightly program that pulls
@@ -8885,6 +9138,8 @@
   id: totrans-1180
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何选择使用共享过程和存储过程？首先要考虑可能连接到同一数据库的多个应用程序。例如，可能有一个公共Web服务器，一个每晚提取所有新信息以供分析的程序，一个基于Microsoft
+    Excel或Access构建的管理员维护工具等。
 - en: If you think that a piece of code might be useful to those other systems that
     connect to the same data model, put it in the database as a stored procedure.
     If you are sure that a piece of code is only useful for the particular Web application
@@ -8892,11 +9147,13 @@
   id: totrans-1181
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你认为一段代码可能对连接到相同数据模型的其他系统有用，请将其放入数据库作为存储过程。如果你确定一段代码只对你正在构建的特定Web应用程序有用，请将其保留在Web服务器中作为共享过程。
 - en: Documentation
   id: totrans-1182
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 文档
 - en: '"As we enter the 21st century we find that rifle marksmanship has been largely
     lost in the military establishments of the world. The notion that technology can
     supplant incompetence is upon us in all sorts of endeavors, including that of
@@ -8905,12 +9162,14 @@
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “随着我们进入21世纪，我们发现步枪射击在世界各军事机构中已经大部分失传。技术可以取代无能的观念已经在各种努力中出现，包括射击。”
 - en: -- Jeff Cooper in [The Art of the Rifle](http://www.amazon.com/exec/obidos/ASIN/0873649311/pgreenspun-20)
     (1997; Paladin Press)
   id: totrans-1184
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: -- 杰夫·库珀在《步枪艺术》（1997年；圣殿出版社）中
 - en: 'Given a system with 1000 procedures and no documentation, the typical manager
     will lay down an edict to the programmers: you must write a "doc string" for every
     procedure saying what inputs it takes, what outputs it generates, and how it transforms
@@ -8921,6 +9180,7 @@
   id: totrans-1185
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个系统有1000个过程而没有文档，典型的经理会向程序员下达命令：你们必须为每个过程编写一个“文档字符串”，说明它接受什么输入，生成什么输出，以及如何将这些输入转换为输出。几乎自上世纪60年代以来的每个编程环境都支持这种思维方式。更高级的“文档字符串”系统甚至会解析源代码目录，提取文档字符串，并打印出一个包含1000个文档字符串的漂亮手册。
 - en: How useful are doc strings? Useful, but not sufficient. The programmer new to
     a system won't have any idea which of the 1000 procedures and corresponding doc
     strings are most important. The new programmer won't have any idea why these procedures
@@ -8933,11 +9193,13 @@
   id: totrans-1186
   prefs: []
   type: TYPE_NORMAL
+  zh: 文档字符串有多有用？有用，但不足够。对于一个新系统的程序员来说，他不会知道这1000个过程和相应的文档字符串中哪些是最重要的。新程序员不会知道这些过程是为什么构建的，它们解决了什么问题，以及整个系统是否已经被另一来源的更新软件所取代。当然，这1000个文档字符串不会说服任何程序员采用一款软件。更重要的是呈现清晰的英文散文，展示你在解决实际问题时的思维和设计工作的质量。这段散文不必超过几页，但需要精心打磨。
 - en: Separating the Designers and the Programmers
   id: totrans-1187
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分离设计师和程序员
 - en: Criticism and requests for changes will come in proportion to the number of
     people who understand that part of the system being criticized. Very few people
     are capable of data modeling or interaction design. Although these are the only
@@ -8958,6 +9220,9 @@
   id: totrans-1188
   prefs: []
   type: TYPE_NORMAL
+  zh: 批评和更改请求将与了解被批评系统部分的人数成比例地出现。很少有人能够进行数据建模或交互设计。尽管这些是唯一深刻影响用户体验或信息系统对操作者实用性的部分，但您很少需要在这个领域考虑建议。只有具有多年相关经验的人才可能建议向
+    SQL 表中添加列，或者可以用三个表替换五个表。更多人有能力编写 Web 脚本。因此，无论您选择的编程环境是什么或者在您采用它时应该是多么先进，您有时都会因编程环境的选择而受到嘲笑。然而，几乎地球上的每个人都明白紫红色与洋红色不同，Helvetica
+    与 Times Roman 也不同。因此，对于 Web 应用程序的更改建议中最多的将是与设计相关的。有人想在网站的每个页面上添加一个新的徽标。有人想在讨论论坛部分更改背景颜色。有人想在特定页面上的标题变大一点。有人想在这里和那里添加一些空白。
 - en: 'Suppose that you''ve built your Web application in the simplest and most direct
     manner. For each URL there is a corresponding script, which contains SQL statements,
     some procedural code in the scripting language (IF statements, basically), and
@@ -8968,6 +9233,9 @@
   id: totrans-1189
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设您已经以最简单直接的方式构建了您的 Web 应用程序。对于每个 URL，都有一个相应的脚本，其中包含 SQL 语句、脚本语言中的一些过程代码（基本上是
+    IF 语句）以及 HTML 的静态字符串，这些字符串将与从数据库返回的值组合在一起形成完成的页面。如果您分解 Visual Basic Active Server
+    Page 或 Java Server Page 或 Perl CGI 脚本中的内容，您总是会发现这三项内容：SQL、IF 语句、HTML。
 - en: Development of an application with this style of programming is easy. You can
     see all the relevant code for a page in one text editor buffer. Maintenance is
     also straightforward. If a user sends in a bug report saying "There is a spelling
@@ -8978,6 +9246,8 @@
   id: totrans-1190
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种编程风格开发应用程序很容易。您可以在一个文本编辑器缓冲区中看到页面的所有相关代码。维护也很简单。如果用户发送了一个关于“http://www.yourcommunity.org/foo/bar”存在拼写错误的错误报告，您只需查看文件系统中的一个文件（/foo/bar.asp或/foo/bar.jsp或/foo/bar.pl或其他文件），就可以保证找到用户问题的源头。这也适用于
+    SQL 和过程化编程错误。
 - en: What if people want site-wide changes to fonts, colors, headers and footers?
     This could be easy or hard depending on how you've crafted the system. Suppose
     that default colors are read from a configuration parameter system and headers,
@@ -8987,6 +9257,7 @@
   id: totrans-1191
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果人们想要对字体、颜色、页眉和页脚进行全站更改怎么办？这取决于您如何设计系统，这可能很容易或很困难。假设默认颜色是从配置参数系统中读取的，并且页脚、页眉和每个页面的导航辅助信息是通过页面脚本调用共享程序生成的。在这种愉快的情况下，进行全站更改可能只需要几分钟。
 - en: What if people want to change the wording of some annotation in the static HTML
     for a page? Or make a particular headline on one page larger? Or add a bit of
     white space in one place on one page? This will require a programmer because the
@@ -8996,11 +9267,13 @@
   id: totrans-1192
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果人们想要更改页面静态HTML中某些注释的措辞怎么办？或者使一个页面上的特定标题更大？或者在一个页面上的某个地方添加一点空白？这将需要一个程序员，因为与该页面相关的静态HTML字符串嵌入在一个包含SQL和过程语言代码的文件中。您不希望因为修复拼写错误或添加提示而导致服务的某个部分崩溃。
 - en: The Small Hammer
   id: totrans-1193
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 小锤子
 - en: The simplest way to separate the programmers from the designers is to create
     two files for each URL. File 1 contains SQL statements and some procedural code
     that fills local variables or a data structure with information from the RDBMS.
@@ -9010,6 +9283,7 @@
   id: totrans-1194
   prefs: []
   type: TYPE_NORMAL
+  zh: 将程序员与设计师区分开的最简单方法是为每个URL创建两个文件。文件1包含SQL语句和一些过程代码，用于将本地变量或数据结构填充为来自关系数据库管理系统（RDBMS）的信息。文件1中的最后一条语句是调用一个过程，该过程将获取文件2，一个看起来像标准HTML的模板文件，其中简单地引用了文件1中准备的数据。
 - en: Suppose that File 1 is named `index.pl` and is a Perl script. By convention,
     File 2 will be named `index.template`. In preparing a template, a designer needs
     to know (a) the names of the variables being set in index.pl, (b) that one references
@@ -9022,11 +9296,13 @@
   id: totrans-1195
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设文件1命名为`index.pl`，是一个Perl脚本。按照惯例，文件2将命名为`index.template`。在准备模板时，设计师需要知道（a）在index.pl中设置的变量的名称，（b）在模板中使用美元符号引用变量，例如，`$standard_navbar`，以及（c）要向用户发送实际的美元符号或at符号字符，应该用反斜杠进行转义。模板和在index.pl中建立的本地变量的合并可以通过一次调用Perl内置的`eval`过程来完成，该过程执行标准的Perl字符串插值，即用变量`foo`的值替换`$foo`。
 - en: The Medium Hammer
   id: totrans-1196
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 中型锤子
 - en: If the SQL/procedural script and the HTML template are in separate files in
     the same directory, there is always a risk that a careless designer will delete,
     rename, or modify a computer program. It may make more sense to establish a separate
@@ -9043,6 +9319,8 @@
   id: totrans-1197
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果SQL/过程脚本和HTML模板在同一目录中的不同文件中，那么一个粗心的设计师随时可能会删除、重命名或修改计算机程序。建立一个单独的目录并只在该平行树上给予设计师权限可能更有意义。例如，在photo.net上，您可能会将页面脚本放在`/web/photonet/www/`中，模板放在`/web/photonet/templates/`下。位于`/e-commerce/checkout.tcl`的脚本最后调用共享过程`return_template`。此过程首先调用Web服务器API以找出正在提供的URI。配置参数指定模板树的起点。`return_template`使用URL加上模板树根来在文件系统中查找要评估的模板。如果找到，模板（以AOLserver
+    ADP格式，与Microsoft ASP相同的语法）将在`return_template`的调用者上下文中评估，这意味着在脚本中设置的本地变量将对ADP文件可用。
 - en: The "medium hammer" approach keeps programmers and designers completely separated
     from a file system permissioning point of view. It also has the advantage that
     the shared procedure called at the end of every script can do some poking around.
@@ -9053,11 +9331,13 @@
   id: totrans-1198
   prefs: []
   type: TYPE_NORMAL
+  zh: “中等锤子”方法从文件系统权限的角度完全将程序员和设计师分开。它还有一个优点，即在每个脚本的末尾调用的共享过程可以进行一些探索。这是一个偏爱仅文本页面的用户吗？如果是，是否有文本模板可用？这是一个偏好于站点默认语言以外的语言的用户吗？如果是，是否有模板可用，其中注释是用户首选的语言？
 - en: The SQL Hammer
   id: totrans-1199
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: SQL锤子
 - en: If a system already has extensive RDBMS-backed facilities for versioning and
     permissioning, it may seem natural to store templates in a database table. These
     templates can then be edited from a browser, and changes to templates can be managed
@@ -9068,11 +9348,13 @@
   id: totrans-1200
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个系统已经具有广泛的基于RDBMS的版本控制和权限控制设施，将模板存储在数据库表中可能是合理的。然后，这些模板可以从浏览器中进行编辑，并且模板的更改可以作为站点整体发布工作流程的一部分进行管理。如果站点的信息架构在RDBMS表中明确表示（参见[内容管理章节](content-management)），那么将模板和模板片段与内容类型、类别和子类别一起存储在数据库中可能是合理的。
 - en: The Sledgehammer
   id: totrans-1201
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 重型锤子
 - en: 'Back in 1999, Karl Goldstein was the sole programmer building the entire information
     system for a commercial online community. The managers of the community changed
     their minds about fifteen times about how the site should look. Every page should
@@ -9082,18 +9364,21 @@
   id: totrans-1202
   prefs: []
   type: TYPE_NORMAL
+  zh: 1999年，卡尔·戈尔德斯坦（Karl Goldstein）是为一个商业在线社区构建整个信息系统的唯一程序员。社区的管理者大约变了十五次主意，关于网站应该是什么样子的。每个页面都应该有一个水平的导航栏。也许垂直的更好，实际上。但是把每个页面上的导航栏从左边移到右边。经过两三次这样的重大方向变更之后，戈尔德斯坦开发出了一个优雅而高效的系统：
 - en: every page script would have a corresponding template, e.g., `register.tcl`
     would look for `register.template`
   id: totrans-1203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个页面脚本都会有一个对应的模板，例如，`register.tcl`将寻找`register.template`。
 - en: nearly all templates would include a "master" tag indicating that the template
     was only designed to render a portion of the page
   id: totrans-1204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 几乎所有的模板都会包含一个“主”标记，指示该模板仅设计用于呈现页面的一部分。
 - en: the server would look for a `master.template` file in the same directory as
     the script; if found, the content rendered by the page script and its corresponding
     template would be substituted for the `<slave>` tag in the master template and
@@ -9102,6 +9387,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器将在与脚本相同的目录中查找`master.template`文件；如果找到，则页面脚本及其对应的模板呈现的内容将替换主模板中的`<slave>`标记，并将评估主模板的结果返回给用户。
 - en: when a master template was not found in the same directory as the script, the
     server would search at successively higher levels in the file system until a master
     template was found, then apply that one
@@ -9109,27 +9395,33 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当在与脚本相同的目录中找不到主模板时，服务器将在文件系统中的逐级较高级别上搜索，直到找到主模板，然后应用该模板。
 - en: 'Here''s an example of how what the user viewed would be divided by master and
     slave templates:'
   id: totrans-1207
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是用户查看的内容如何由主模板和从模板分割的示例：
 - en: '| Logo | Ad Banner |'
   id: totrans-1208
   prefs: []
   type: TYPE_TB
+  zh: '| 标志 | 广告横幅 |'
 - en: '| Navigation/Context Bar |'
   id: totrans-1209
   prefs: []
   type: TYPE_TB
+  zh: '| 导航/上下文栏 |'
 - en: '| Section Links | CONTENT AREA |'
   id: totrans-1210
   prefs: []
   type: TYPE_TB
+  zh: '| 分区链接 | 内容区域 |'
 - en: '| Footer |'
   id: totrans-1211
   prefs: []
   type: TYPE_TB
+  zh: '| 页脚 |'
 - en: Content in gray is derived from the master template. Note that doesn't mean
     that it is static or not page-specific. If a template is an ASP or JSP fragment
     it can execute arbitrarily complex computer programs to generate what appears
@@ -9137,6 +9429,7 @@
   id: totrans-1212
   prefs: []
   type: TYPE_NORMAL
+  zh: 灰色的内容源自主模板。请注意，这并不意味着它是静态的或不特定于页面。如果模板是ASP或JSP片段，它可以执行任意复杂的计算机程序来生成页面部分内的内容。水色的内容来自每个页面的模板。
 - en: This sounds inefficient due to the large number of file system probes. However,
     once a system is in production, it is easy for the Web server to cache, per-URL,
     the results of the file system investigation. In fact, the Web server could cache
@@ -9147,11 +9440,14 @@
   id: totrans-1213
   prefs: []
   type: TYPE_NORMAL
+  zh: 这听起来效率低下，因为需要大量的文件系统探测。然而，一旦系统投入生产，Web 服务器就可以很容易地缓存文件系统调查的结果，按照 URL。实际上，Web
+    服务器可以将所有模板缓存在其虚拟内存中，以实现最大速度。在开发过程中不这样做的原因是会使调试变得困难。每次更改模板时，您都必须重新启动 Web 服务器或清除缓存才能查看更改的结果。
 - en: Intermodule APIs
   id: totrans-1214
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 模块间 API
 - en: Recall from [the "User Registration and Management" chapter](user-registration-and-management)
     that we want people to be accountable for their actions within an online community.
     One way to enhance accountability is by offering a "user contributions" page that
@@ -9160,6 +9456,7 @@
   id: totrans-1215
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下[“用户注册和管理”章节](user-registration-and-management)中提到，我们希望人们对在线社区中的行为负责。增强责任感的一种方式是提供一个“用户贡献”页面，显示特定用户的所有贡献。在应用程序中出现一个人的名字时，它将是指向此用户贡献页面的超链接。
 - en: Given that all site content is stored in relational database tables, the most
     obvious way to start writing the user contributions page script is by looking
     at the SQL data models for each individual module. Then we can write a program
@@ -9167,6 +9464,7 @@
   id: totrans-1216
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于所有站点内容都存储在关系数据库表中，编写用户贡献页面脚本的最明显方法是查看每个独立模块的 SQL 数据模型。然后，我们可以编写一个程序，查询几十个表，找到特定用户的���有贡献。
 - en: A drawback to this approach is that we now have code that may break if we change
     a module's data model, yet this code is not within that module's subdirectory,
     and this code is probably being authored by a programmer other than the one maintaining
@@ -9174,6 +9472,7 @@
   id: totrans-1217
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的一个缺点是，现在我们有可能会在更改模块的数据模型时破坏代码，然而这些代码不在该模块的子目录中，并且这些代码可能是由维护各个模块的程序员之外的程序员编写的。
 - en: 'Let''s consider a different application: email alerts. Suppose that your community
     offers a discussion forum and a classified ad system, coded as separate modules.
     A user wishes to get a daily summary of activity in both areas. Each module could
@@ -9185,6 +9484,7 @@
   id: totrans-1218
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们考虑另一个应用程序：电子邮件提醒。假设您的社区提供了一个讨论论坛和一个分类广告系统，编码为独立模块。用户希望每天收到两个领域活动的汇总。每个模块可以提供完全独立的提醒机制。然而，这意味着用户每晚会收到两封电子邮件，而希望得到一封合并的电子邮件。然而，如果我们构建一个组合的电子邮件提醒系统，我们将面临与用户历史页面相同的问题：依赖于各个模块的数据模型的共享代码。
 - en: Finally, let's look at the site administrator's job. The site administrator
     is probably a busy volunteer. He or she does not want to waste twenty mouse clicks
     to see today's new content. The site administrator ought to be able to view recently
@@ -9193,16 +9493,19 @@
   id: totrans-1219
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，让我们看看站点管理员的工作。站点管理员可能是一个忙碌的志愿者。他或她不想浪费二十次鼠标点击来查看今天的新内容。站点管理员应该能够在单个页面上查看所有模块中最近贡献的内容。这是否意味着我们将再次有一个脚本，依赖于每个模块的每个表定义？
 - en: 'Here''s a hint at a solution. On the photo.net site each module defines a "new
     stuff" procedure, which takes the following arguments:'
   id: totrans-1220
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个解决方案的提示。在 photo.net 网站上，每个模块都定义了一个“新内容”过程，该过程接受以下参数：
 - en: '`since_when` — the date of the earliest content we''re interested in'
   id: totrans-1221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`since_when` — 我们感兴趣的最早内容的日期'
 - en: '`only_from_new_users_p` — a boolean indicating whether or not we want to limit
     the report to contributions from new users (useful for site administration because
     new users are the ones who don''t understand community standards and norms)'
@@ -9210,6 +9513,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`only_from_new_users_p` — 一个布尔值，指示我们是否要将报告限制在新用户的贡献中（对于站点管理很有用，因为新用户是不了解社区标准和规范的人）'
 - en: '`purpose` — "admin", "email_summary", or "user"; this controls delivery of
     unapproved content, inclusion of links to administration options such as approval/disapproval,
     and the format of the report'
@@ -9217,6 +9521,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`purpose` — “admin”，“email_summary”或“user”；这控制未批准内容的传递，包括指向管理选项（如批准/不批准）的链接以及报告的格式'
 - en: 'The output of such a procedure can be simple: HTML for a Web page or plain
     text for an email message. The output of such a procedure can be a data structure.
     The output of such a procedure could be an XML document, to be rendered with an
@@ -9229,64 +9534,76 @@
   id: totrans-1224
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种过程的输出可以很简单：用于Web页面的HTML或用于电子邮件消息的纯文本。这种过程的输出可以是数据结构。这种过程的输出可以是一个XML文档，用于与XSL样式表一起呈现。重要的是，对站点范围内“新内容”感兴趣的页面不需要熟悉各个模块的数据模型，只需要了解与每个模块对应的“新内容”过程的名称。在photo.net上，这个后者任务变得很容易：当Web服务器加载每个模块时，它将其“新内容”过程名称添加到站点范围列表中。想要显示站点范围内新内容的页面循环遍历此列表，依次调用每个命名过程。
 - en: Configuration Parameters
   id: totrans-1225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 配置参数
 - en: 'It is possible, although not very tasteful, to build a working Internet application
     with the following items hard-coded into each individual page:'
   id: totrans-1226
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能，尽管不太雅致，可以构建一个工作的互联网应用程序，其中以下项目硬编码到每个单独页面中：
 - en: RDBMS username and password
   id: totrans-1227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RDBMS用户名和密码
 - en: email addresses of site administrators who wish notifications on events such
     as new user registration or new content posting
   id: totrans-1228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 希望在事件（如新用户注册或新内容发布）时收到通知的站点管理员的电子邮件地址
 - en: the email address of a sysadmin to notify if the Web server can't connect to
     the RDBMS or in case of other errors
   id: totrans-1229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果Web服务器无法连接到RDBMS或出现其他错误时通知系统管理员的电子邮件地址
 - en: IP addresses of users we don't like
   id: totrans-1230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们不喜欢的用户的IP地址
 - en: legacy URLs and the new URLs to which requests for the old ones should be redirected
   id: totrans-1231
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 旧的URL和应该重定向到的新的URL
 - en: the name of the site
   id: totrans-1232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 站点的名称
 - en: the names of the editors and publishers
   id: totrans-1233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编辑和发布者的姓名
 - en: the maximum attachment size that the site is willing to accept (maybe you don't
     want a user uploading an 800 MB TIFF image as an attachment to a bboard posting)
   id: totrans-1234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 站点愿意接受的最大附件大小（也许您不希望用户将800 MB的TIFF图像作为附件上传到bboard帖子）
 - en: whether or not to serve a link offering the source code behind the page
   id: totrans-1235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是否提供一个链接，提供页面背后的源代码
 - en: The ancient term for this approach to building software is "putting magic numbers
     in the code." With magic numbers in the code, it is tough to grab a few scripts
     from one service and apply them to another application. With magic numbers in
@@ -9296,6 +9613,7 @@
   id: totrans-1236
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种构建软件的古老方法被称为“在代码中放置魔法数字”。有了代码中的魔法数字，很难从一个服务中抓取几个脚本并将其应用于另一个应用程序。有了代码中的魔法数字，很难知道在人员变动后需要检查和修改多少程序。有了代码中的魔法数字，很难知道站点范围内是否一致执行规则。
 - en: Where should you store parameters such as these? Except for the database username
     and password, an obvious answer would seem to be "in the database." There are
     a bunch of keys (the parameter names) and a bunch of values (the parameters).
@@ -9303,6 +9621,7 @@
   id: totrans-1237
   prefs: []
   type: TYPE_NORMAL
+  zh: 您应该将这些参数存储在哪里？除了数据库用户名和密码之外，一个明显的答案似乎是“在数据库中”。有一堆键（参数名称）和一堆值（参数）。这正是数据库管理系统理想的问题。
 - en: '[PRE71]'
   id: totrans-1238
   prefs:
@@ -9313,6 +9632,7 @@
   id: totrans-1239
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每个页面脚本的末尾，我们可以查询这些表：
 - en: '[PRE72]'
   id: totrans-1240
   prefs:
@@ -9324,12 +9644,14 @@
   id: totrans-1241
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果脚本返回带有“t”的行，则在页面底部包含“查看源代码”链接。如果没有，则没有链接。
 - en: 'Recording a redirect required the storage of two rows in the `config_param_values`
     table, one for the "from" and one for the "to" URL. When a request comes in, the
     Web server will want to query to figure out if a redirect exists:'
   id: totrans-1242
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录重定向需要在`config_param_values`表中存储两行，一行用于“从”URL，一行用于“到”URL。当收到请求时，Web服务器将查询以确定是否存在重定向：
 - en: '[PRE73]'
   id: totrans-1243
   prefs:
@@ -9344,6 +9666,8 @@
   id: totrans-1244
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中`:requested_url`是一个包含当前连接的 Web 客户端请求的 URL 的绑定变量。请注意，此查询仅告诉我们存在这样的重定向；它不会给出目标
+    URL，目标 URL 存储在`config_param_values`的另一行中。信不信由你，这里的传统做法是三路连接，包括`config_param_values`的自连接：
 - en: '[PRE74]'
   id: totrans-1245
   prefs:
@@ -9360,6 +9684,8 @@
   id: totrans-1246
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了 N 路连接之外，存储参数的这种方法有多少品味？表面上的答案是“非常有品味”。我们所有的信息都在 RDBMS 中，那里它应该在的地方。代码中没有魔法数字。参数可通过与站点上的所有其他页面相同形式的管理页面进行编辑：SQL
+    查询和 SQL 更新。然而，再花一点时间解决这个问题后，人们会问，“为什么我们每天要查询 RDBMS 一百万次，而这些信息每年只改变一次？”
 - en: Questions of taste aside, an extra five to ten RDBMS queries per request is
     a significant burden on the database server, which is the most difficult part
     of an Internet application to distribute across multiple physical computers (see
@@ -9368,11 +9694,13 @@
   id: totrans-1247
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了品味问题之外，每个请求额外的五到十个 RDBMS 查询对数据库服务器来说是一个重大负担，这是一个互联网应用程序中最难分布到多个物理计算机的部分（参见[“Scaling”章节](scaling)），因此是最昂贵的扩展容量的层。
 - en: A good rule of thumb is that Web scripts shouldn't be querying the RDBMS to
     figure out what to do; they should query the RDBMS only for content and user data.
   id: totrans-1248
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个好的经验法则是 Web 脚本不应该查询 RDBMS 来确定该做什么；他们应该仅查询内容和用户数据。
 - en: 'For reasonable performance, configuration parameters should be accessible to
     Web scripts from the Web server''s virtual memory. Implementing such a scheme
     with a threaded Web server is pretty straightforward because all the code is executing
@@ -9380,28 +9708,33 @@
   id: totrans-1249
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了合理的性能，配置参数应该从 Web 服务器的虚拟内存中对 Web 脚本可访问。使用多线程 Web 服务器来实现这样的方案非常简单，因为所有代码都在一个虚拟内存空间中执行：
 - en: look in the server API documentation to find a mechanism for saying "run this
     bit of code at server startup time"
   id: totrans-1250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查看服务器 API 文档，找到一个在服务器启动时运行代码的机制
 - en: build an in-memory hash table where the parameter keys are the hash table keys
   id: totrans-1251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 构建一个内存哈希表，其中参数键是哈希表的键
 - en: load the parameter values associated with a key into the hash table as a list
   id: totrans-1252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将与键关联的参数值加载到哈希表中作为列表
 - en: document an API to the hash table that takes a key as an input and returns a
     value or a list of values as an output
   id: totrans-1253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录一个 API，该 API 以键作为输入，并返回一个值或值列表作为输出的哈希表
 - en: A hash table is best because it offers O[1] access to the data, i.e., the time
     that it takes to answer the question "what is the value associated with the key
     'foobar'" does not grow as the number of keys grows. In some hobbyist computer
@@ -9409,6 +9742,7 @@
   id: totrans-1254
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希表是最好的，因为它提供 O[1] 的数据访问，即回答“与键 'foobar' 关联的值是什么”这个问题的时间不会随着键的数量增加而增加。在一些业余计算机语言中，内置的哈希表可能被称为“关联数组”。
 - en: If you expect to have a lot of configuration parameters, it might be best to
     add a "section" column to the `config_param_keys` table and query by section and
     key. Thus, for example, you can have a parameter called "bug_report_email" in
@@ -9417,21 +9751,25 @@
   id: totrans-1255
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你期望有很多配置参数，最好将一个“section”列添加到`config_param_keys`表中，并按部分和键查询。因此，例如，您可以在“discussion”和“user_registration”部分中都有一个名为“bug_report_email”的参数。然后，哈希表的键变成节名和键名的组合。
 - en: With Microsoft .NET
   id: totrans-1256
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用 Microsoft .NET
 - en: Configuration parameters are added to IIS/ASP.NET applications in the Web.config
     file for the application.
   id: totrans-1257
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置参数被添加到 IIS/ASP.NET 应用程序的 Web.config 文件中。
 - en: For example, if you place the following in `c:\Inetpub\wwwroot\Web.config` (assuming
     default IIS installation)
   id: totrans-1258
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果将以下内容放置在`c:\Inetpub\wwwroot\Web.config`中（假设默认IIS安装）
 - en: '[PRE75]'
   id: totrans-1259
   prefs:
@@ -9442,6 +9780,7 @@
   id: totrans-1260
   prefs: []
   type: TYPE_NORMAL
+  zh: 您将能够在VB .aspx页面中如下访问publisherEmail
 - en: '[PRE76]'
   id: totrans-1261
   prefs:
@@ -9455,10 +9794,12 @@
   id: totrans-1262
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，配置设置适用于目录及其所有子目录。同样，默认情况下，这些设置可以被子目录中的Web.config文件中的设置覆盖。可以使用<location>标签建立更复杂的作用域和覆盖行为规则。
 - en: 'More:'
   id: totrans-1263
   prefs: []
   type: TYPE_NORMAL
+  zh: 更多：
 - en: '"ASP.NET Configuration" from .NET Framework Developer''s Guide at [http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpguide/html/cpconaspnetconfiguration.asp](http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpguide/html/cpconaspnetconfiguration.asp)
     (note that the MSDN guys haven''t figured out how to do abstract URLs and they
     also haven''t converted to .aspx yet!)'
@@ -9466,21 +9807,25 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 来自.NET Framework开发人员指南的"ASP.NET配置"，网址为[http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpguide/html/cpconaspnetconfiguration.asp](http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpguide/html/cpconaspnetconfiguration.asp)（请注意，MSDN的人员尚未弄清楚如何使用抽象URL，并且他们还没有转换为.aspx！）
 - en: With Java Server Pages
   id: totrans-1265
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用Java Server Pages
 - en: The following is Jin S. Choi's recommendation for storing and accessing configuration
     parameters when using Java Server Pages.
   id: totrans-1266
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是崔进生的建议，用于在使用Java Server Pages时存储和访问配置参数。
 - en: 'Specify Parameter tags within the Context specification for your application
     in conf/server.xml. Example:'
   id: totrans-1267
   prefs: []
   type: TYPE_NORMAL
+  zh: 在conf/server.xml中为您的应用程序的Context规范指定参数标签。示例：
 - en: '[PRE77]'
   id: totrans-1268
   prefs:
@@ -9491,6 +9836,7 @@
   id: totrans-1269
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以在应用程序的WEB-INF/web.xml文件中指定参数：
 - en: '[PRE78]'
   id: totrans-1270
   prefs:
@@ -9503,10 +9849,12 @@
   id: totrans-1271
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第一个示例中，"override"属性指定您不希望此值被web.xml文件中的context-param标签覆盖。默认值为"true"（允许覆盖）。
 - en: 'To retrieve parameters from a servlet or JSP, you can call:'
   id: totrans-1272
   prefs: []
   type: TYPE_NORMAL
+  zh: 要从servlet或JSP中检索参数，可以调用：
 - en: '[PRE79]'
   id: totrans-1273
   prefs:
@@ -9517,21 +9865,25 @@
   id: totrans-1274
   prefs: []
   type: TYPE_NORMAL
+  zh: 更多：
 - en: 'documentation for Context: [http://jakarta.apache.org/tomcat/tomcat-4.0-doc/config/context.html](http://jakarta.apache.org/tomcat/tomcat-4.0-doc/config/context.html)'
   id: totrans-1275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Context的文档：[http://jakarta.apache.org/tomcat/tomcat-4.0-doc/config/context.html](http://jakarta.apache.org/tomcat/tomcat-4.0-doc/config/context.html)
 - en: 'javadoc for ServletContext: [http://jakarta.apache.org/tomcat/tomcat-4.0-doc/servletapi/javax/servlet/ServletContext.html](http://jakarta.apache.org/tomcat/tomcat-4.0-doc/servletapi/javax/servlet/ServletContext.html)'
   id: totrans-1276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ServletContext的javadoc：[http://jakarta.apache.org/tomcat/tomcat-4.0-doc/servletapi/javax/servlet/ServletContext.html](http://jakarta.apache.org/tomcat/tomcat-4.0-doc/servletapi/javax/servlet/ServletContext.html)
 - en: Exercise 1
   id: totrans-1277
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习1
 - en: Create a `/doc/` directory on your team server. Create an index page in this
     directory that links to a development standards document (`/doc/development-standards`
     would be a reasonable URL but you can use whatever you like so long as it is clearly
@@ -9539,16 +9891,19 @@
   id: totrans-1278
   prefs: []
   type: TYPE_NORMAL
+  zh: 在团队服务器上创建一个`/doc/`目录。在此目录中创建一个链接到开发标准文档的索引页面（`/doc/development-standards`可能是一个合理的URL，但只要清楚地从`/doc/`链接即可使用任何您喜欢的URL）。
 - en: 'In this development standards document, cover at least the following issues:'
   id: totrans-1279
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这份开发标准文档中，至少涵盖以下问题：
 - en: 'naming of URLs: abstract versus non-abstract (bleah), dashes versus underscores
     (hard for many users to read), spelled out or abbreviated'
   id: totrans-1280
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: URL命名：抽象与非抽象（糟糕），破折号与下划线（对许多用户来说难以阅读），拼写或缩写
 - en: naming of URLs used in forms and form processing—will these be at the same URL
     or will a user working through a sequence of forms proceed `/foo/bar, /foo/bar-1,
     /foo/bar-2`, etc.
@@ -9556,57 +9911,68 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在表单和表单处理中使用的URL命名-这些将在相同的URL上吗，还是用户通过一系列表单进行操作将继续`/foo/bar, /foo/bar-1, /foo/bar-2`等。
 - en: RDBMS used
   id: totrans-1282
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用的关系型数据库管理系统
 - en: computer languages used for Web scripts and procedural code within the RDBMS
   id: totrans-1283
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 用于Web脚本和关系型数据库管理系统中的过程代码的计算机语言
 - en: means of connecting to the RDBMS (libraries, bind variables, etc.)
   id: totrans-1284
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 连接到关系型数据库管理系统的方式（库，绑定变量等）
 - en: variable-naming conventions
   id: totrans-1285
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 变量命名约定
 - en: how to document a module
   id: totrans-1286
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何记录一个模块
 - en: how to document a shared procedure
   id: totrans-1287
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何记录一个共享过程
 - en: how to document a Web script (author, valid inputs)
   id: totrans-1288
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何记录Web脚本（作者，有效输入）
 - en: how Web form inputs are validated by scripts
   id: totrans-1289
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 脚本如何验证Web表单输入
 - en: templating strategy chosen (if any)
   id: totrans-1290
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 选择的模板策略（如果有）
 - en: how to add a configuration variable and how to name it so that at least all
     parameters associated with a particular module can be identified quickly
   id: totrans-1291
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何添加配置变量以及如何命名它，以便至少可以快速识别与特定模块相关的所有参数
 - en: Step back from your document before moving on to the next exercise. Ask yourself
     "If a new programmer joined this project tomorrow, and I asked her to build a
     surveys module, would she be able to be an effective consistent developer in my
@@ -9619,17 +9985,20 @@
   id: totrans-1292
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进行下一个练习之前，先退后一步看看您的文档。问自己：“如果明天有一位新程序员加入这个项目，并且我让她构建一个调查模块，她能在不与我交谈的情况下在我的环境中成为一个有效的一致的开发人员吗？”记住，调查模块将需要一个广泛的管理界面，用于创建调查、问题和可能的答案，以及用于查看结果的管理和用户界面，以及用于回答调查的用户界面。如果问题的答案是“哎呀，这位新程序员会不得不问我很多问题”，那就回去让您的开发标准文档更加明确，并添加一些更多的示例。
 - en: Exercise 2
   id: totrans-1293
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2
 - en: 'Document your team''s intermodule API within the `/doc/` directory, perhaps
     at `/doc/intermodule-API`, linked from the doc index page. Your strategy must
     be able to handle at least the following cases:'
   id: totrans-1294
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `/doc/` 目录中记录团队的模块间 API，可能在 `/doc/intermodule-API`，并链接到文档索引页面。您的策略必须能够处理至少以下情况：
 - en: production of a site administrator's page containing all content going back
     a selectable number of days, with administration links next to each item *without
     the page script having any dependence on any module's data model*
@@ -9637,22 +10006,26 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成一个包含可选择天数内所有内容的站点管理员页面，每个项目旁边都有管理链接，*而页面脚本不依赖于任何模块的数据模型*
 - en: production of a user-level page showing new content site-wide
   id: totrans-1296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成一个显示整个站点新内容的用户级页面
 - en: a centralized email alert system in which a user gets a nightly summary combining
     new content from multiple modules
   id: totrans-1297
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个集中的电子邮件警报系统，用户每晚都会收到一个汇总，其中包含来自多个模块的新内容
 - en: Protecting Users from Each Other's HTML
   id: totrans-1298
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 保护用户免受其他用户的 HTML 攻击
 - en: Fundamentally, the job of the server behind an online community is to take text
     from User A and display it to User B. Unfortunately, there is a security risk
     inherent in this activity. Suppose that User A is malicious and includes tags
@@ -9664,6 +10037,9 @@
   id: totrans-1299
   prefs: []
   type: TYPE_NORMAL
+  zh: 从在线社区背后的服务器的基本角度来看，其工作是从用户 A 处获取文本并将其显示给用户 B。不幸的是，这种活动中存在安全风险。假设用户 A 是恶意的，并在评论正文中包含诸如`<SCRIPT>`之类的标记？当用户
+    B 访问包含此评论的页面时，突然间 JavaScript 可能会在他的计算机上执行，从互联网各地下载令人反感的图像，播放音乐，弹出新窗口，并最终强制用户的浏览器访问用户
+    A 选择的页面。
 - en: The most obvious solution would seem to be disallowing all HTML tags. Any uploaded
     text is scanned for the characters < and > and, if those are present, the posting
     is rejected with an explanation. This wouldn't work out that well in a site for
@@ -9672,33 +10048,39 @@
   id: totrans-1300
   prefs: []
   type: TYPE_NORMAL
+  zh: 最明显的解决方案似乎是禁止所有 HTML 标记。上传的任何文本都会被扫描以查找字符 < 和 >，如果存在这些字符，则会被拒绝发布并附带解释。这在一个数学家网站上可能不会很好运作！也许他们需要在他们的帖子中使用大于和小于符号。
 - en: 'The beginning of a workable solution is a procedure, perhaps named something
     such as `quoteHTML` that takes a user-uploaded text string and performs the following
     conversions:'
   id: totrans-1301
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个可行解决方案的开端是一个过程，可能命名为`quoteHTML`，它接受用户上传的文本字符串并执行以下转换：
 - en: '`<` characters to `&lt;`.'
   id: totrans-1302
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将`<`字符转换为`&lt;`。
 - en: '`>` characters to `&gt;`.'
   id: totrans-1303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将`>`字符转换为`&gt;`。
 - en: '`&` characters to `&amp;`.'
   id: totrans-1304
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将`&`字符转换为`&amp;`。
 - en: If your page scripts call this procedure any time they are writing user-uploaded
     content out to a browser, no browser will ever interpret user-uploaded data as
     an HTML tag.
   id: totrans-1305
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您的页面脚本在向浏览器输出用户上传的内容时调用此过程，那么任何浏览器都不会将用户上传的数据解释为 HTML 标记。
 - en: That works great for fields such as `first_names`, `last_name`, `street_address`,
     subject summary lines, etc., where there is no value to having an HTML tag. For
     some longer documents obtained from users, however, it might be nice to enable
@@ -9716,22 +10098,26 @@
   id: totrans-1306
   prefs: []
   type: TYPE_NORMAL
+  zh: 这对于诸如`first_names`、`last_name`、`street_address`、主题摘要行等领域非常有效，这些领域不需要HTML标签。然而，对于从用户那里获得的一些较长文档，允许他们使用一组受限制的HTML标签（如B、I、EM、P、BR、UL、LI等）可能是有益的。如果您要将HTML存储在数据库中一次，并且每天提供数千次服务，最好在上传时检查合法标签。检查不允许的标签（如SCRIPT、DIV和FONT）的问题在于HTML在法律上和事实上不断扩展。除非您想要负责跟踪所有新HTML标签可能导致浏览器行为的方式，否则最好检查批准的标签。无论哪种方式，您都希望允许或不允许的标签列表保存在易于修改的配置文件中。此外，您可能希望对允许使用的标签（如B或I）进行一些验证。如果用户犯了一个错误，忘记关闭其中一个标签，可能会导致100条评论以不同寻常的字体样式呈现。
 - en: Exercise 3
   id: totrans-1307
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3
 - en: Document your team's approach to preventing one user from attacking other users
     with malicious HTML. Your documentation of this infrastructure should include
     procedure names and examples of how those procedures are to be used.
   id: totrans-1308
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录您的团队防止一个用户使用恶意HTML攻击其他用户的方法。您对这种基础设施的文档应包括过程名称和如何使用这些过程的示例。
 - en: Time and Motion
   id: totrans-1309
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 时间与动作
 - en: All of the exercises in this chapter are intended to be done by the team as
     a whole. A team that takes the assignment seriously should spend about 3 hours
     together agreeing to and documenting standards. They then might decide to rework
@@ -9741,15 +10127,18 @@
   id: totrans-1310
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中的所有练习都应由整个团队完成。认真对待任务的团队应该花大约3小时一起达成一致并记录标准。然后他们可能决定重新调整一些旧代码以符合这些标准，这可能需要另外5到10个程序员小时。第二步是可选的，尽管在课程结束时，我们希望所有项目在内部保持一致。
 - en: Discussion
   id: totrans-1311
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 讨论
 - en: '* * *'
   id: totrans-1312
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: A discussion forum is one of the most basic tools for computer-supported cooperation
     among human beings. User A can post a question. User B can post an answer. User
     C can view both question and answer and learn from the exchange. In a *threaded*
@@ -9761,43 +10150,51 @@
   id: totrans-1313
   prefs: []
   type: TYPE_NORMAL
+  zh: 讨论论坛是人类之间计算机支持合作的最基本工具之一。用户A可以发布问题。用户B可以发布答案。用户C可以查看问题和答案，并从交流中学习。在*线程化*论坛中，用户D可以选择回复用户A的问题或用户B的回答。在*问答格式*论坛中，用户D、E和F可以回复用户A的问题，回复将按照提交的顺序简单呈现。通过对呈现层进行微小调整，讨论论坛系统可以作为个人可评论的网络日志运行。
 - en: In this chapter you'll prototype a discussion forum, conduct a usability test,
     and then refine your system based on what you learned from observing the users.
   id: totrans-1314
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，您将原型化一个讨论论坛，进行可用性测试，然后根据观察用户的结果对系统进行改进。
 - en: Discussion Forum as Community?
   id: totrans-1315
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 讨论论坛作为社区？
 - en: 'A well-designed discussion forum can by itself fulfill all of the requirements
     for a sustainable online learning community. Recall that these elements are the
     following:'
   id: totrans-1316
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个设计良好的讨论论坛本身就可以满足可持续在线学习社区的所有要求。请记住，这些元素包括以下内容：
 - en: magnet content authored by experts
   id: totrans-1317
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 由专家撰写的磁铁内容
 - en: means of collaboration
   id: totrans-1318
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 合作手段
 - en: powerful facilities for browsing and searching both magnet content and contributed
     content
   id: totrans-1319
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 强大的浏览和搜索设施，既可以浏览和搜索磁铁内容，也可以浏览和搜索贡献内容
 - en: means of delegation of moderation
   id: totrans-1320
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 管理委员会的委派方式
 - en: means of identifying members who are imposing an undue burden on the community
     and ways of changing their behavior and/or excluding them from the community without
     them realizing it
@@ -9805,17 +10202,20 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 识别对社区施加不当负担的成员以及改变他们的行为和/或将其排除在社区之外的方式
 - en: means of software extension by community members themselves
   id: totrans-1322
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 软件扩展的一种方式是由社区成员自己完成
 - en: '| Aviation in itself is not inherently dangerous. But to an even greater degree
     than the sea, it is terribly unforgiving of any carelessness, incapacity or neglect.
     -- Captain A. G. Lamplugh, 1930s |'
   id: totrans-1323
   prefs: []
   type: TYPE_TB
+  zh: '| 航空本身并不是固有的危险。但与海洋相比，它对任何的粗心、无能或疏忽都极其不宽容。-- A. G. Lamplugh 飞行员，1930年代 |'
 - en: An early example of the forum-as-community is USENET, which was started in 1979
     and is also known to old people as "NetNews" and to young people as "Google Groups".
     Each newsgroup is a more or less self-contained community of people interested
@@ -9825,6 +10225,7 @@
   id: totrans-1324
   prefs: []
   type: TYPE_NORMAL
+  zh: 论坛作为社区的早期例子是 USENET，始于 1979 年，老一辈人称之为 "NetNews"，年轻人称之为 "Google Groups"。每个新闻组都是一个或多或少独立的人群，他们对特定主题感兴趣，通过分级讨论论坛进行合作。一个很好的例子是[`rec.aviation.soaring`](http://groups.google.com/groups?q=rec.aviation.soaring&hl=en)，人们在这里讨论在没有发动机的飞机中飞行。
 - en: In a USENET group the magnet content can be any longish posting from a recognized
     expert. Keep in mind that the number of people using a group such as `rec.aviation.soaring`
     is fairly small—most people get nervous in little planes and even more nervous
@@ -9837,11 +10238,16 @@
   id: totrans-1325
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 USENET 群组中，磁铁内容可以是来自公认专家的任何较长的帖子。请记住，像 `rec.aviation.soaring` 这样的群体使用者数量相当少
+    — 大多数人在小飞机上会感到紧张，甚至在没有发动机的小飞机上会更加紧张。Marc Smith 的 Netscan 服务（[netscan.research.microsoft.com](http://netscan.research.microsoft.com)）对
+    2004 年 10 月的活动进行的分析显示，该群组只有 174 位 "回头客"。因此，这些核心用户很容易通过姓名或电子邮件地址相互识别。在新闻组中典型的磁铁内容帖子是
+    FAQ 或经常问的问题总结，其中每个问题都有群体专家们商定的答案。
 - en: '| If the engine stops for any reason, you are due to tumble, and that''s all
     there is to it! — Clyde Cessna |'
   id: totrans-1326
   prefs: []
   type: TYPE_TB
+  zh: '| 如果发动机因任何原因停止，你就会坠落，就是这样！— Clyde Cessna |'
 - en: The means of collaboration in the USENET group is the ability for any member
     to start a new thread or reply to a message within an existing thread. In the
     early days of USENET, the means of browsing and searching were reasonably good
@@ -9851,6 +10257,8 @@
   id: totrans-1327
   prefs: []
   type: TYPE_NORMAL
+  zh: USENET 群组中的合作方式是任何成员都可以开始一个新主题或回复现有主题中的消息。在 USENET 的早期，浏览和搜索的方式对于最新消息来说还算不错，但对于从旧的交流中学习来说则很糟糕或根本不存在。从
+    1990 年代中期开始，诸如 DejaNews 这样的基于网络的搜索引擎提供了快速简便地访问旧消息的途径。
 - en: USENET has traditionally been weak on the fourth required element ("means of
     delegation of moderation"). Not enough people have volunteered to moderate, software
     to divide the effort of moderating a single forum among multiple moderators was
@@ -9863,6 +10271,9 @@
   id: totrans-1328
   prefs: []
   type: TYPE_NORMAL
+  zh: USENET 传统上在第四个必要元素（"管理委派手段"）上表现较弱。没有足够的人自愿担任管理者，软件无法将单个论坛的管理工作分配给多个管理者，新闻协议存在安全漏洞，即使在受管理的群组中也会传递商业垃圾邮件。要了解大约在
+    2001 年的技术现状，请阅读[http://www.landfield.com/usenet/moderators/handbook/](http://www.landfield.com/usenet/moderators/handbook/)。要了解垃圾邮件的历史讨论，请参阅
+    Brad Templeton 的“spam 一词的起源”[http://www.templetons.com/brad/spamterm.html](http://www.templetons.com/brad/spamterm.html)，这个网站包含许多关于互联网历史的其他有趣文章。
 - en: '| Flying is inherently dangerous. We like to gloss that over with clever rhetoric
     and comforting statistics, but these facts remain: gravity is constant and powerful,
     and speed kills. In combination, they are particularly destructive. — Dan Manningham
@@ -9870,6 +10281,8 @@
   id: totrans-1329
   prefs: []
   type: TYPE_TB
+  zh: '| 飞行本质上是危险的。我们喜欢用巧妙的修辞和令人安心的统计数据来掩盖这一点，但这些事实仍然存在：重力是恒定而强���的，速度致命。结合起来，它们尤为破坏性。—
+    丹·曼宁汉 |'
 - en: 'Where USENET has fallen tragically short is element 5: "Means of excluding
     burdensome people." Most USENET clients include "bozo filters" that enable an
     individual user to filter out messages from a persistently troublesome poster.
@@ -9879,6 +10292,7 @@
   id: totrans-1330
   prefs: []
   type: TYPE_NORMAL
+  zh: USENET 在第 5 个元素上表现出了严重不足："排除烦人人员的手段"。大多数 USENET 客户端包括“bozo 过滤器”，使个人用户可以过滤掉持续麻烦的发帖者的消息。但是没有一种集体方式可以排除那些始终发布无关主题、向群组发送垃圾邮件、虐待他人或以其他方式变得不受欢迎的人。
 - en: With regard to element 6, software extension by community members themselves,
     USENET has done remarkably well. USENET servers and clients tend to be monolithic
     C programs where small modifications can have catastrophic consequences. On the
@@ -9888,11 +10302,14 @@
   id: totrans-1331
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于第 6 个元素，即由社区成员自行扩展软件，USENET 做得非常出色。USENET 服务器和客户端往往是单片的 C 程序，小的修改可能会产生灾难性后果。另一方面，早期互联网的普通用户是熟练的软件开发人员。因此，即使不是每个
+    USENET 用户都是 USENET 工具的程序员，至少可以肯定每个 USENET 工具的程序员都是 USENET 的用户。
 - en: Beyond USENET
   id: totrans-1332
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 超越 USENET
 - en: If the online learning community that you build is only as good as USENET, congratulate
     yourself. The Google USENET archive contains 700 million messages from twenty
     years. Hundreds of thousands of people have gotten the answers to their questions,
@@ -9900,47 +10317,57 @@
   id: totrans-1333
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您构建的在线学习社区仅仅和 USENET 一样好，那就要恭喜自己了。Google USENET 存档包含了二十年间的 7 亿条消息。数十万人已经得到了他们问题的答案，如图
+    8.1 所示。[![](../Images/212b4ea1a1e65f6736805a4a7ff1c0e0.jpg)](http://groups-beta.google.com/group/rec.aviation.soaring/browse_thread/thread/666ed14e676ce92e)。
 - en: '**Figure 8.1:** A December 25, 2001 USENET exchange in the group `rec.aviation.soaring`
     regarding mounting a camera on the wing of a glider. Notice that the first answer
     comes less than two hours after the question was posted.'
   id: totrans-1334
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 8.1：**2001 年 12 月 USENET 在 `rec.aviation.soaring` 群组中关于在滑翔机机翼上安装摄像头的交流。请注意，第一个答案在问题发布不到两个小时后就出现了。'
 - en: 'When building our own database-backed discussion forum system, there are some
     simple improvements that we can add over the traditional USENET system:'
   id: totrans-1335
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建我们自己的基于数据库的讨论论坛系统时，我们可以在传统的 USENET 系统上添加一些简单的改进：
 - en: an optional "mail me when a response is posted" field
   id: totrans-1336
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个可选的“当有回复时给我发邮件”的字段
 - en: e-mail summaries or instant alerts
   id: totrans-1337
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电子邮件摘要或即时提醒
 - en: up-to-the-second full text indexing (assuming your RDBMS supports it)
   id: totrans-1338
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实时全文索引（假设您的关系型数据库管理系统支持）
 - en: secure transmission of data to and from the bboard via SSL
   id: totrans-1339
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过 SSL 安全传输数据到和从 bboard
 - en: collaborative moderation via admin pages to delete stale/ugly/whatever messages
   id: totrans-1340
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过管理员页面进行协作管理，删除陈旧/丑陋/任何内容的消息
 - en: older postings browsable by category
   id: totrans-1341
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以按类别浏览旧帖子
 - en: 'More dramatic improvements can be obtained with attention to element 5: "Means
     of excluding burdensome people." Your software can do the SQL query "show me users
     who''ve submitted questions that were deleted by a moderator as redundant" and
@@ -9954,6 +10381,8 @@
   id: totrans-1342
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过关注第 5 个元素可以获得更显著的改进："排除烦人的人的方法。" 您的软件可以执行 SQL 查询"显示由于冗余而被管理员删除的问题的提交者"，然后自动欢迎这些用户回到论坛，并在插页页上解释如何搜索和浏览已归档的主题。如果在线社区缺乏管理员时间，那么查询那些发布帖子导致管理员干预的用户将是很有意义的。如果发现
+    0.1% 的用户消耗了 50% 的管理员时间，也许最好是禁止这些少数用户，从而将社区的可用管理资源增加一倍。
 - en: As the semester proceeds, you'll discover another advantage of building your
     own discussion forum, which is that it becomes an integrated part of your service.
     All of a user's contributions in different areas, including the discussion forum,
@@ -9961,51 +10390,60 @@
   id: totrans-1343
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着学期的进行，您会发现建立自己的讨论论坛的另一个优势，即它成为您服务的一个集成部分。用户在不同领域的所有贡献，包括讨论论坛，都可以从一个数据库中查询，并在一个页面上查看。
 - en: Exercise 1
   id: totrans-1344
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 1
 - en: 'Visit five sites on the public Internet with discussion forums, one of which
     can be the Medium Format Digest forum at photo.net ([http://www.photo.net/bboard/q-and-a?topic_id=35](http://www.photo.net/bboard/q-and-a?topic_id=35)).
     For each site gather the following statistics:'
   id: totrans-1345
   prefs: []
   type: TYPE_NORMAL
+  zh: 访问五个公共互联网站点的讨论论坛，其中一个可以是 photo.net 上的 Medium Format Digest 论坛（[http://www.photo.net/bboard/q-and-a?topic_id=35](http://www.photo.net/bboard/q-and-a?topic_id=35)）。对于每个站点，收集以下统计信息：
 - en: given an already-registered user, the number of clicks required to post a message
   id: totrans-1346
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 给定一个已注册用户，发帖所需的点击次数
 - en: the number of clicks required to go from the top-level forum page to a single
     thread
   id: totrans-1347
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从顶层论坛页面到单个主题所需的点击次数
 - en: if there are 20 postings within a thread, the number of clicks required to view
     all the text within all of the postings
   id: totrans-1348
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果一个主题内有 20 条帖子，则查看所有帖子内所有文本所需的点击次数
 - en: the number of clicks required to view the subject lines of all archived postings
     in a particular category
   id: totrans-1349
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查看特定类别中所有已归档帖子的主题行所需的点击次数
 - en: List the user interface and customer service features that you think are the
     best from these five sites and give a brief explanation of why each feature is
     good.
   id: totrans-1350
   prefs: []
   type: TYPE_NORMAL
+  zh: 列出您认为这五个网站中最好的用户界面和客户服务功能，并简要解释每个功能为什么好。
 - en: One Forum or Many?
   id: totrans-1351
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一个论坛还是多个论坛？
 - en: '| I certainly had no feeling for harmony, and Schoenberg thought that that
     would make it impossible for me to write music. He said, ''You''ll come to a wall
     you won''t be able to get through.'' So I said, ''I''ll beat my head against that
@@ -10013,6 +10451,7 @@
   id: totrans-1352
   prefs: []
   type: TYPE_TB
+  zh: 我当然对和声没有感觉，而 Schoenberg 认为这会让我无法写音乐。他说，'你会遇到一个你无法逾越的障碍。' 所以我说，'我会用头撞墙。' —约翰·凯奇
 - en: 'How many forums should a site have? Let''s consider a site for music lovers.
     Would one forum be enough? Maybe not. Will the classical music lovers be interested
     in a discussion of [Pat Boone''s cover of AC-DC''s "It''s a Long Way to the Top
@@ -10032,12 +10471,17 @@
   id: totrans-1353
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个网站应该有多少个论坛？让我们考虑一个面向音乐爱好者的网站。一个论坛就足够了吗？也许不够。古典音乐爱好者会对[Pat Boone翻唱AC-DC的《It's
+    a Long Way to the Top (If You Wanna Rock 'N' Roll)》](http://www.amazon.com/exec/obidos/ASIN/B000005KOE/pgreenspun-20)感兴趣吗？所以把讨论分成至少两个论坛是个好主意：古典和流行。假设一个Pat
+    Boone的粉丝某天进入流行论坛，碰到了有关[Ice Cube的《Death Certificate》歌词](http://www.amazon.com/exec/obidos/ASIN/B000003B7W/pgreenspun-20)或者[Prodigy的《Fat
+    of the Land》MP3](http://www.amazon.com/exec/obidos/ASIN/B000002NFM/pgreenspun-20)的讨论？显然，我们需要把流行论坛分成基督教流行、Techno和Rap。我们也期待着很多披头士的粉丝。他们会倾向于哪个论坛呢？也许我们需要一个60年代摇滚论坛。在古典音乐方面，有很多热衷于大歌剧的爱好者，他们不想被关于古典音乐的真实乐器演奏的讨论分散注意力。讨论约翰·凯奇的《四分钟三十三秒》的精致现代音乐爱好者不想浪费时间讨论18和19世纪的化石。如果我们把注意力转向各种风格的爵士乐...
 - en: '| If something is boring after two minutes, try it for four. If still boring,
     then eight. Then sixteen. Then thirty-two. Eventually one discovers that it is
     not boring at all. —John Cage |'
   id: totrans-1354
   prefs: []
   type: TYPE_TB
+  zh: '| 如果两分钟后仍然感到无聊，那么试试四分钟。如果仍然无聊，那么八分钟。然后十六分钟。然后三十二分钟。最终你会发现它一点也不无聊。——约翰·凯奇 |'
 - en: It would be easy to justify the creation of 100 separate forums on our music
     site. And indeed USENET contains [more than 50 rec.music.* groups](http://groups.google.com/groups?hl=en&group=rec.music),
     including `rec.music.beatles.moderated`, for example. That turns out to be the
@@ -10048,16 +10492,20 @@
   id: totrans-1355
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的音乐网站上创建100个独立论坛是很容易的。事实上，USENET包含[50多个rec.music.*群组](http://groups.google.com/groups?hl=en&group=rec.music)，例如`rec.music.beatles.moderated`。这只是冰山一角，因为备选层次结构包含[700多个alt.music.*群组](http://groups.google.com/groups?hl=en&group=alt.music)，包括`alt.music.celine-dion`和`alt.music.j-s-bach`。如果USENET可以支持近1000个讨论论坛，那么一个受欢迎的综合性音乐网站至少应该有100个。
 - en: Maybe not.
   id: totrans-1356
   prefs: []
   type: TYPE_NORMAL
+  zh: 也许不够。
 - en: '| She had a voice like the New Jersey State Anthem played on an electric razor.
     — [Bright Lights, Big City](http://www.amazon.com/exec/obidos/ASIN/0394726413/pgreenspun-20)
     by Jay McInerney |'
   id: totrans-1357
   prefs: []
   type: TYPE_TB
+  zh: '| 她的声音就像新泽西州的国歌在电动剃须刀上演奏一样。——《灯火闪耀的城市》(Bright Lights, Big City) by Jay McInerney
+    |'
 - en: When discussion is fragmented, it is hard for a community to get off the ground.
     If there are 50 users and 100 forums, how will those users find each other? The
     average visit will result in a user concluding that the community isn't active.
@@ -10073,12 +10521,16 @@
   id: totrans-1358
   prefs: []
   type: TYPE_NORMAL
+  zh: 当讨论分散时，对于社区来说很难起步。如果有 50 个用户和 100 个论坛，这些用户将如何找到彼此？平均访问将导致用户得出结论：社区不活跃。这样的用户不太可能返回或将网站推荐给朋友。即使社区足够大以支持众多论坛，以分散的方式呈现讨论也会给兴趣广泛的用户带来额外的工作。假设一个音乐学者来到
+    USENET，想看看是否有关于巴赫的“舒勃勒赞美诗”及其对后来作曲家的影响的最新讨论。这就像访问[`alt.music.j-s-bach`](http://groups.google.com/groups?hl=en&group=alt.music.j-s-bach)那样简单。如果那位学者想要查看有关席琳·迪翁的“我的心将继续前进”的最新帖子，他或她将不得不单独扫描[`alt.music.celine-dion`](http://groups.google.com/groups?hl=en&group=alt.music.celine-dion)。
 - en: 'A good example of a thriving community with a single discussion forum is [slashdot.org](http://www.slashdot.org).
     It is very easy to find the topics being actively discussed on slashdot: look
     at the front page.'
   id: totrans-1359
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个拥有单一讨论论坛的蓬勃发展社区的一个很好的例子是[slashdot.org](http://www.slashdot.org)。很容易找到 slashdot
+    上正在活跃讨论的主题：查看首页。
 - en: 'It is possible to take the "one forum" and "many forum" approaches on the same
     site at the same time. For example, look at [http://www.photo.net/bboard/](http://www.photo.net/bboard/)
     (static copy at [http://philip.greenspun.com/seia/images-discussion/photonet-bboard-original.htm](images-discussion/photonet-bboard-original.htm)
@@ -10097,11 +10549,14 @@
   id: totrans-1360
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以同时在同一网站上采用“一个论坛”和“多个论坛”的方法。例如，请查看[http://www.photo.net/bboard/](http://www.photo.net/bboard/)（静态副本位于[http://philip.greenspun.com/seia/images-discussion/photonet-bboard-original.htm](images-discussion/photonet-bboard-original.htm)）。有单独的中画幅、自然摄影和照片评论论坛。用户要浏览这三个论坛的新帖子将需要七次鼠标点击：进入此页面、进入中画幅、返回、进入自然、返回、进入评论。然而，通过不同的
+    SQL 查询，来自所有这些完全相同论坛的帖子可以组合在一个页面上，就像[http://www.photo.net/bboard/unified/](http://www.photo.net/bboard/unified/)中那样（静态副本位于[http://philip.greenspun.com/seia/images-discussion/photonet-bboard-unified.htm](images-discussion/photonet-bboard-unified.htm)）。特定论坛主题的帖子可以通过特殊的发布者选择的颜色或图标来区分。假设用户发现照片评论论坛令人不堪重负和无趣。通过点击顶部的“自定义论坛”链接（静态副本位于[http://philip.greenspun.com/seia/images-discussion/unified-forum-personalization.htm](images-discussion/unified-forum-personalization.htm)）并取消选中不再感兴趣的论坛，可以将这些帖子从他或她的个性化统一视图中排除。
 - en: 'Exercise 2: Design the User Experience'
   id: totrans-1361
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 2：设计用户体验
 - en: Figure out whether your service should have one forum, one forum with categories,
     several forums, several forums each with categories, or something else. Document
     the page flow for your users (recall [the example page flow diagram from the "User
@@ -10109,36 +10564,43 @@
   id: totrans-1362
   prefs: []
   type: TYPE_NORMAL
+  zh: 弄清楚你的服务应该是一个论坛，一个带有分类的论坛，几个论坛，每个论坛都有分类，还是其他什么形式。记录用户的页面流程（回想一下[“用户注册”章节中的示例页面流程图](napkin-drawings-from-panda/13.4.gif)）。
 - en: 'Exercise 3: Document the Data Model'
   id: totrans-1363
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 3：文档化数据模型
 - en: Document how you intend to spread the discussion forum data among the content
     repository tables that you defined in [the "Content Management" chapter](content-management).
   id: totrans-1364
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录你打算如何在你在[“内容管理”章节](content-management)中定义的内容存储库表之间分发讨论论坛数据。
 - en: 'Exercise 4: Build the User Pages'
   id: totrans-1365
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 4：构建用户页面
 - en: Implement the user experience that you designed in Exercise 2.
   id: totrans-1366
   prefs: []
   type: TYPE_NORMAL
+  zh: 实施你在练习 2 中设计的用户体验。
 - en: 'Exercise 5: Build the Admin Pages'
   id: totrans-1367
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习 5：构建管理员页面
 - en: Design a set of admin pages. In this case it is usually better to start with
     a required list of tasks that must be accomplished. Then try to build a page flow
     that will let the administrator accomplish those tasks in as few clicks as possible.
   id: totrans-1368
   prefs: []
   type: TYPE_NORMAL
+  zh: 设计一组管理员页面。在这种情况下，通常最好从必须完成的任务的必需列表开始。然后尝试构建一个页面流程，让管理员能够尽可能少地点击来完成这些任务。
 - en: 'Recall from the "User Registration" chapter an important user interface principle
     to keep in mind: it is more natural for most computer users to pick the noun first
     and then the verb. For example, the forum moderator might first click on a message''s
@@ -10152,22 +10614,27 @@
   id: totrans-1369
   prefs: []
   type: TYPE_NORMAL
+  zh: 从“用户注册”章节回想一个重要的用户界面原则要记住：对于大多数计算机用户来说，首先选择名词，然后选择动词更为自然。例如，论坛主持人可能首先点击消息的主题行以选择它，然后在随后的页面上选择要对此消息执行的操作：删除、批准、评分、分类等。从技术上讲，可以构建一个系统，其中首先询问主持人“您想删除一些消息吗？”然后提示要删除的消息。然而，这不是苹果Macintosh的设计方式，因此任何使用过Macintosh用户界面或其衍生产品的人，尤其是Microsoft
+    Windows，都会习惯于名词-动词的顺序。
 - en: 'This is your community and these are your users. So in the long run only you
     can know what administrative actions are most needed. At a minimum, however, you
     should support the following:'
   id: totrans-1370
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是你的社区，这些是你的用户。因此，从长远来看，只有你才能知道什么样的管理行动是最需要的。但至少，你应该支持以下几点：
 - en: find the most active contributors
   id: totrans-1371
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 找出最活跃的贡献者
 - en: select a contributor to become a co-moderator (presumably from the above list)
   id: totrans-1372
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择一个贡献者成为共同主持人（可能来自上述列表）
 - en: approve or disapprove a posting or a thread (this might be handled by more general
     pages from your content management system, though remember that moderating a discussion
     forum ought to be a very streamlined process); note that these functions could
@@ -10177,11 +10644,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 批准或不批准发布或主题（这可能由您的内容管理系统的更通用页面处理，但请记住，管理讨论论坛应该是一个非常简化的流程）；注意，这些功能可以集成到用户页面中，但仅对具有管理员权限的已登录用户启用。
 - en: In-Class Presentations
   id: totrans-1374
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 课堂演示
 - en: At this point we recommend that teams present their functioning discussion forum
     implementations. So that the audience can evaluate the workability of the interface,
     the forums should be preloaded with questions and answers of realistic length,
@@ -10189,16 +10658,19 @@
   id: totrans-1375
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，我们建议团队展示他们的功能性讨论论坛实现。为了让观众能够评估界面的可操作性，论坛应预先加载具有真实长度的问题和答案，必要时可以从Google Groups复制材料。
 - en: 'A suggested outline for the presentation is the following:'
   id: totrans-1376
   prefs: []
   type: TYPE_NORMAL
+  zh: 建议的演示大纲如下：
 - en: explain the kinds of people who are expected to use the discussion subsystem,
     e.g., it might be only the site administrators (30 seconds)
   id: totrans-1377
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解释预期使用讨论子系统的人员类型，例如，可能只有网站管理员（30秒）
 - en: without logging in or logged in as a casual visitor, demonstrate the pages that
     show all the forums (if more than one), questions within a forum, and questions
     and answers within a single thread (1 minute)
@@ -10206,39 +10678,46 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在未登录或以普通访客身份登录的情况下，展示显示所有论坛（如果有多个）、论坛内的问题以及单个主题内的问题和答案的页面（1分钟）
 - en: demonstrate responding to an existing question/adding to an existing thread
     (30 seconds)
   id: totrans-1379
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 演示回答现有问题/添加到现有主题（30秒）
 - en: demonstrate asking a new question/starting a new thread (30 seconds)
   id: totrans-1380
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 演示提出新问题/开始新主题（30秒）
 - en: log in as a forum moderator or site administrator (15 seconds)
   id: totrans-1381
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以论坛管理员或站点管理员身份登录（15秒）
 - en: demonstrate disapproving or moderating down a posting (30 seconds)
   id: totrans-1382
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 演示不赞成或对帖子进行管理（30秒）
 - en: demonstrate viewing statistics on forum usage and participation level by user
     (1 minute)
   id: totrans-1383
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 演示查看论坛使用情况和用户参与水平的统计数据（1分钟）
 - en: show the source code for the page that shows a single thread (one question,
     many answers), with the SQL query (or queries) highlighted (1 minute)
   id: totrans-1384
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 展示显示单个主题（一个问题，多个答案）的页面的源代码，其中SQL查询（或查询）被突出显示（1分钟）
 - en: show the execution plan for that query or those queries, i.e., the output of
     whatever SQL performance-tracing tool is available in the RDBMS chosen for this
     project (1 minute)
@@ -10246,6 +10725,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 展示该查询或那些查询的执行计划，即在为该项目选择的RDBMS中可用的任何SQL性能跟踪工具的输出（1分钟）
 - en: The presentation should be accompanied by a handout that shows (a) the data
     model that supports discussion, (b) any SQL code invoked by the URL that displays
     one thread of discussion (pulled out of whatever imperative language scripts it
@@ -10253,11 +10733,13 @@
   id: totrans-1386
   prefs: []
   type: TYPE_NORMAL
+  zh: 演示应该附有手册，显示支持讨论的数据模型，由显示讨论主题的URL调用的任何SQL代码（从嵌入其中的任何命令式语言脚本中提取），以及查询跟踪的结果。
 - en: Usability
   id: totrans-1387
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 可用性
 - en: At this point your discussion forum should work. Users can register. Users can
     ask questions. Users can post answers. Is it usable? Well, consider that most
     computer programs were considered perfect at one time by their creator(s). It
@@ -10265,11 +10747,14 @@
   id: totrans-1388
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，您的讨论论坛应该可以正常运行。用户可以注册。用户可以提问。用户可以发布答案。可用吗？嗯，考虑到大多数计算机程序曾经被其创建者认为是完美的。只有在与真实用户的接触中，大多数问题才会显现出来。
 - en: '[![You could be a user yourself.  Men''s room interior.  Singapore](http://www.photo.net/photo/2000pcd1672/you-could-be-a-user-yourself-56.1.jpg)](http://www.photo.net/photo/2000pcd1672/you-could-be-a-user-yourself-56.tcl)
     [![It is an offense not to flush the toilet after use.  Men''s room interior.  Singapore](http://www.photo.net/photo/2000pcd1672/it-is-an-offense-not-to-flush-the-toilet-after-use-57.1.jpg)](http://www.photo.net/photo/2000pcd1672/it-is-an-offense-not-to-flush-the-toilet-after-use-57.tcl)'
   id: totrans-1389
   prefs: []
   type: TYPE_NORMAL
+  zh: '[![你也可以成为一个用户。男洗手间内部。新加坡](http://www.photo.net/photo/2000pcd1672/you-could-be-a-user-yourself-56.1.jpg)](http://www.photo.net/photo/2000pcd1672/you-could-be-a-user-yourself-56.tcl)
+    [![使用后不冲厕所是一种冒犯行为。男洗手间内部。新加坡](http://www.photo.net/photo/2000pcd1672/it-is-an-offense-not-to-flush-the-toilet-after-use-57.1.jpg)](http://www.photo.net/photo/2000pcd1672/it-is-an-offense-not-to-flush-the-toilet-after-use-57.tcl)'
 - en: 'These encounters between freshly minted Internet applications and first users
     have become increasingly startling for all parties. One reason is the large and
     growing *user experience gap*. In 1994 the average Web user was a researcher with
@@ -10282,6 +10767,8 @@
   id: totrans-1390
   prefs: []
   type: TYPE_NORMAL
+  zh: 新鲜出炉的互联网应用程序与首批用户之间的这些相遇对所有当事人来说变得越来越令人震惊。一个原因是巨大且不断增长的*用户体验差距*。1994年，平均网络用户是一位在桌子上放着Unix机器的研究人员。很可能用户知道如何编写至少简单的计算机程序。平均网页是纯HTML
+    2.0，没有脚本或其他活动组件。所有网页的工作方式都是一样的：你阅读黑色文字，点击蓝色文字，紫色文字提醒你已经访问过链接。一旦学会如何使用第一个网站，你就知道如何使用随后访问的所有网站。
 - en: The user experience gap has grown larger because the users are less sophisticated
     while the applications have grown more complex. In 2005 the average Web user is
     a first-time computer user and the Web browser may be the only application that
@@ -10294,16 +10781,20 @@
   id: totrans-1391
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户体验差距变得更大是因为用户越来越不精通，而应用程序变得更加复杂。2005年，普通网络用户是第一次使用计算机的用户，而网络浏览器可能是他们唯一知道如何使用的应用程序。尽管这些用户明显无法应对复杂的用户界面，但网站已经被装饰成了具有
+    JavaScript、ActiveX、Java、Flash 等功能，使得它们难以使用且彼此之间差异巨大，就像旧的 Unix 应用程序一样。无法或不愿处理定制用户界面的用户已经用鼠标投票了。他们在亚马逊购物。他们在谷歌搜索。他们从雅虎！和纽约时报获取信息。
 - en: '![](images-discussion/user-experience-gap.gif)'
   id: totrans-1392
   prefs: []
   type: TYPE_IMG
+  zh: '![](images-discussion/user-experience-gap.gif)'
 - en: '**Figure 8.2:** As the Internet gets older, applications become more complex
     and difficult to use while the *average* user becomes less and less experienced.
     Source: Mark Hurst, [www.goodexperience.com](http://www.goodexperience.com).'
   id: totrans-1393
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 8.2：** 随着互联网的发展，应用程序变得越来越复杂且难以使用，而*普通*用户变得越来越缺乏经验。来源：马克·赫斯特，[www.goodexperience.com](http://www.goodexperience.com)。'
 - en: Idiosyncratic ideas make sense for magazine and television advertisements. Different
     is good when it takes the user the same 30 seconds to absorb the message. But
     different is bad if it means the user needs extra time or extra clicks to get
@@ -10312,6 +10803,7 @@
   id: totrans-1394
   prefs: []
   type: TYPE_NORMAL
+  zh: 特立独行的想法对于杂志和电视广告是有意义的。当用户花费相同的30秒吸收信息时，不同是好的。但是，如果不同意味着用户需要额外的时间或额外的点击才能完成所需任务，那就不好了。一些研究表明，每多一次点击，用户放弃网站的可能性就有50%。
 - en: '| As an aid to deciding whether to spend your future as an engineer or go on
     to business school, note that Webvan CEO George Shaheen ran the company into the
     ground, then resigned shortly before the bankruptcy filing, collecting a $375,000-per-year
@@ -10319,6 +10811,8 @@
   id: totrans-1395
   prefs: []
   type: TYPE_TB
+  zh: '| 作为决定未来是成为工程师还是继续上商学院的辅助，需要注意的是 Webvan CEO 乔治·沙欣将公司搞垮，然后在破产申请前不久辞职，领取每年 $375,000
+    的终身退休金。 |'
 - en: In mid-2000, Webvan purchased HomeGrocer, a competing grocery delivery company,
     and converted the old HomeGrocer users to the new Webvan user interface. Orders
     fell by more than half. The HomeGrocer business went from breaking even to losing
@@ -10327,6 +10821,8 @@
   id: totrans-1396
   prefs: []
   type: TYPE_NORMAL
+  zh: 2000年中期，Webvan 收购了竞争对手 HomeGrocer，将旧的 HomeGrocer 用户转换为新的 Webvan 用户界面。订单量下降了一半以上。由于
+    Webvan 软件的可用性较差，HomeGrocer 业务从勉强盈亏转为大量亏损。最终，Webvan 破产了，带走了12亿美元的投资资金。
 - en: 'How is it possible that people follow what they imagine to be their own good
     taste instead of either copying the successful Internet services (e.g., Yahoo!,
     Amazon, Google) or listening to the users? And that people continue to believe
@@ -10345,61 +10841,73 @@
   id: totrans-1397
   prefs: []
   type: TYPE_NORMAL
+  zh: 人们如何可能追随他们认为是自己良好品味的东西，而不是模仿成功的互联网服务（例如，Yahoo！，Amazon，Google）或听取用户的意见？人们为什么会继续相信自己的想法的价值，即使红色墨水开始主导他们的财务报告？康奈尔大学的实验心理学家贾斯汀·克鲁格和大卫·邓宁也对此感到困惑，并在《无能和不自知：如何难以认识自己的无能导致自我评估过高》（《个性与社会心理学杂志》；第77卷，第6期，第1121-1134页；[http://www.phule.net/mirrors/unskilled-and-unaware.html](http://www.phule.net/mirrors/unskilled-and-unaware.html)）中写出了他们的发现。克鲁格和邓宁发现，技能排名在第12百分位数的人估计自己在第62百分位数。此外，这些无能的人在看到同龄人的表现范围时未能重新校准自己。作者得出结论：“在某一领域知识有限的人承受着双重负担：他们不仅得出错误的结论和犯下令人遗憾的错误，而且他们的无能使他们无法意识到这一点。”
 - en: '![](images-discussion/n-users-to-find-problems.gif)'
   id: totrans-1398
   prefs: []
   type: TYPE_IMG
+  zh: '![](images-discussion/n-users-to-find-problems.gif)'
 - en: '**Figure 8.3:** Source: "Why You Only Need to Test With 5 Users" by Jakob Nielsen;
     [http://www.useit.com/alertbox/20000319.html](http://www.useit.com/alertbox/20000319.html)'
   id: totrans-1399
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图8.3：** 来源：“为什么只需要与5名用户进行测试” by Jakob Nielsen；[http://www.useit.com/alertbox/20000319.html](http://www.useit.com/alertbox/20000319.html)'
 - en: 'Exercise 6: The Usability Test'
   id: totrans-1400
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 练习6：可用性测试
 - en: '| A scientist is someone who measures her results against Nature. An engineer
     is someone who measures her results against human needs. A computer scientist
     is someone who doesn''t measure his results. — us |'
   id: totrans-1401
   prefs: []
   type: TYPE_TB
+  zh: '| 科学家是那些将其结果与自然相比较的人。工程师是那些将其结果与人类需求相比较的人。计算机科学家是那些不衡量自己结果的人。 — 我们 |'
 - en: 'An ideal usability test involves the following elements:'
   id: totrans-1402
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想的可用性测试包括以下元素：
 - en: a test subject whose experience with computers and the Internet is comparable
     to what you expect for your average user
   id: totrans-1403
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个与您期望的普通用户相当的计算机和互联网经验的测试对象
 - en: a set of tasks that you want the subject to try to accomplish
   id: totrans-1404
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一组任务，您希望测试对象尝试完成
 - en: a quiet comfortable environment for the test subject
   id: totrans-1405
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为测试对象提供一个安静舒适的环境
 - en: no assistance from the product developers
   id: totrans-1406
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 无需产品开发人员的帮助
 - en: observation of the test subject through a one-way mirror
   id: totrans-1407
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过单向镜观察测试对象
 - en: videotaping of the test subject's experience for later study
   id: totrans-1408
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 录制测试对象的体验视频以供后续研究
 - en: Conduct a usability test of your discussion forum software, incorporating elements
     1-4 from the list above. You should find at least four testers from among your
     friends—*do not pick anyone who is taking this course* (classmates will have too
@@ -10411,11 +10919,13 @@
   id: totrans-1409
   prefs: []
   type: TYPE_NORMAL
+  zh: 对您的讨论论坛软件进行可用性测试，包括上述列表中的1-4元素。您应该从朋友中找到至少四名测试者—*不要选择任何正在上这门课程的人*（同学会有太多潜意识的期望）。连续运行您的可用性测试对象，一个接一个，您的整个团队观察并记录发生的情况。请测试对象大声表达他们的想法。测试对象完成任务需要多长时间？测试对象是否在任何步骤上遇到困难？测试对象是否在任何时候表明对适当的下一步骤感到困惑？
 - en: 'Use the following script of tasks (cut and paste these into a separate document
     and print it out, after filling in the bracketed sections), with no extra hints:'
   id: totrans-1410
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下任务脚本（将这些内容复制并粘贴到一个单独的文档中并打印出来，在填写括号部分后），不提供额外提示：
 - en: starting as an unregistered user at the site home page, find the area on the
     site where one would ask questions of other users (if you can't accomplish this
     task, or any other task on this page, within 3 minutes, give up and move on)
@@ -10423,6 +10933,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从站点主页开始作为未注册用户，找到站点上向其他用户提问的区域（如果你无法在3分钟内完成此任务，或者此页面上的任何其他任务，请放弃并继续进行）。
 - en: read through the existing questions and answers to determine whether or not
     *[some question that has been asked already]* has been asked and answered already;
     if not, post a question on that subject (registering if necessary)
@@ -10430,6 +10941,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通读现有的问题和回答，确定是否已经提出并回答了*[已经提出的某个问题]*；如果没有，就在该主题上发布一个问题（必要时注册）。
 - en: read through the existing questions and answers to determine whether or not
     *[some question that has been not been asked already]* has been asked and answered
     already; if not, post a question on that subject
@@ -10437,44 +10949,52 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通读现有的问题和回答，确定是否已经提出并回答了*[尚未提出的某个问题]*；如果没有，就在该主题上发布一个问题。
 - en: log out
   id: totrans-1414
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注销。
 - en: log in with the existing username/password of *[user/pass]* and try to find
     all the unanswered questions in the discussion forum
   id: totrans-1415
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用*[用户/密码]*的现有用户名/密码登录并尝试在讨论论坛中找到所有未答复的问题。
 - en: answer the question(s) that you yourself posted a few minutes earlier, pretending
     to be this other user
   id: totrans-1416
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 回答你自己几分钟前发布的问题，假装成这个其他用户。
 - en: log out
   id: totrans-1417
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注销。
 - en: log in with the existing username/password of *[admin username/password]* and
     find the administrator's pages
   id: totrans-1418
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用*[管理员用户名/密码]*的现有用户名/密码登录并找到管理员页面。
 - en: delete the discussion forum thread(s) that you created earlier
   id: totrans-1419
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 删除之前创建的讨论论坛线程。
 - en: log out
   id: totrans-1420
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注销。
 - en: In between test subjects, clean up any rows that they may have left in database
     tables. If your first subject has a disastrous experience, consider taking a few
     hours off to fix your software, add links and annotation, etc., before proceeding
@@ -10482,6 +11002,7 @@
   id: totrans-1421
   prefs: []
   type: TYPE_NORMAL
+  zh: 在测试主体之间，清理他们可能在数据库表中留下的任何行。如果你的第一个主体有灾难性的经历，请考虑休息几个小时来修复你的软件，在继续进行第二个主体之前添加链接和注释等。
 - en: Stand as far away from the subject as you possibly can while still being able
     to see the computer screen and hear the subject's comments. Force yourself to
     remain absolutely silent. If the subject is completely confused and clicking around
@@ -10490,6 +11011,7 @@
   id: totrans-1422
   prefs: []
   type: TYPE_NORMAL
+  zh: 离主题尽可能远的站立，同时仍能看到计算机屏幕并听到主题的评论。强迫自己保持绝对沉默。如果主题完全困惑并随机点击，请让主题继续直到他或她解决问题。记录每个主题完成每个任务所需的秒数。
 - en: Post a report on your team server at `/doc/testing/discussion-usability`. This
     report will contain a summary of what you learned from this test with average
     task times and average total time (we can use these to compare the efficiency
@@ -10499,11 +11021,13 @@
   id: totrans-1423
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你的团队服务器上的`/doc/testing/discussion-usability`上发布一份报告。这份报告将包含你从这次测试中学到的内容的摘要，包括平均任务时间和平均总时间（我们可以用这些来比较各个团队解决方案的效率）。报告应包含超链接到子页面，这些子页面包含个别用户会话的记录，每个测试主体说了什么，以及发生了什么。从你的主要文档索引页链接到你的报告。
 - en: Discussion for Education
   id: totrans-1424
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 教育讨论
 - en: Recall from the introduction that our goal in working through this text is to
     build an online *learning* community. An active discussion forum might be evidence
     of a tremendous amount of member-to-member education or it could merely be a place
@@ -10513,6 +11037,7 @@
   id: totrans-1425
   prefs: []
   type: TYPE_NORMAL
+  zh: 从介绍中回想一下，我们在阅读这篇文章时的目标是建立一个在线*学习*社区。一个活跃的讨论论坛可能是大量会员间的教育活动的证据，或者它只是一个吵闹的地方，让喋喋不休的人享受他们的名字出现在印刷品上。适度是对那些不对原问题进行响应或对想要学习的人没有帮助的帖子的第一道防线。
 - en: Building more structure into a discussion forum is an option worth considering,
     especially if your discussion forum is supporting an organized class. The Berkman
     Center at Harvard Law School (HLS) was a pioneer in this area. The teachers at
