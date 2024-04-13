@@ -1,33 +1,49 @@
 - en: 25Interpreting Conditionals
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 25解释条件语句
 - en: '|     [25.1 The Design Space of Conditionals](#%28part._design-space-cond%29)
     |'
+  id: totrans-1
   prefs: []
   type: TYPE_TB
+  zh: '|     [25.1 条件语句的设计空间](#%28part._design-space-cond%29) |'
 - en: '|     [25.2 The Game Plan for Conditionals](#%28part._.The_.Game_.Plan_for_.Conditionals%29)
     |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '|     [25.2 条件语句的执行计划](#%28part._.The_.Game_.Plan_for_.Conditionals%29) |'
 - en: '|       [25.2.1 The Interpreter’s Type](#%28part._.The_.Interpreter_s_.Type%29)
     |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '|       [25.2.1 解释器的类型](#%28part._.The_.Interpreter_s_.Type%29) |'
 - en: '|       [25.2.2 Updating Arithmetic](#%28part._.Updating_.Arithmetic%29) |'
+  id: totrans-4
   prefs: []
   type: TYPE_TB
+  zh: '|       [25.2.2 更新算术](#%28part._.Updating_.Arithmetic%29) |'
 - en: '|       [25.2.3 Defensive Programming](#%28part._.Defensive_.Programming%29)
     |'
+  id: totrans-5
   prefs: []
   type: TYPE_TB
+  zh: '|       [25.2.3 防御性编程](#%28part._.Defensive_.Programming%29) |'
 - en: '|       [25.2.4 Interpreting Conditionals](#%28part._.Interpreting_.Conditionals%29)
     |'
+  id: totrans-6
   prefs: []
   type: TYPE_TB
+  zh: '|       [25.2.4 解释条件语句](#%28part._.Interpreting_.Conditionals%29) |'
 - en: '|     [25.3 Growing the Conditional Language](#%28part._grow-conds%29) |'
+  id: totrans-7
   prefs: []
   type: TYPE_TB
+  zh: '|     [25.3 Growing the Conditional Language](#%28part._grow-conds%29) |'
 - en: 'Now that we have the first stirrings of a programming language, let’s grow
     it out a little. The heart of a programming language consists of control—<wbr>the
     ability to order executed instructions—<wbr>and data—<wbr>the representations
@@ -36,79 +52,113 @@
     this seems (and is) a very simple concept, it will force us to tackle several
     design issues in both the language and the interpreter’s pipeline, and is thus
     surprisingly illuminating.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们的编程语言初露端倪，让我们稍微扩展一下。编程语言的核心包括控制——对执行指令的顺序的能力——以及数据——程序使用和产生的信息的表示。因此，我们将通过一种简单而重要的形式——条件语句——向我们的语言添加控制和数据。虽然这似乎（而且确实）是一个非常简单的概念，但它将迫使我们在语言和解释器管道的设计中解决几个设计问题，因此这个概念出奇地启发人。
 - en: 25.1The Design Space of Conditionals
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 25.1条件语句的设计空间
 - en: 'Even the simplest conditional exposes us to many variations in language design.
     Consider one of the form:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使是最简单的条件语句也会让我们接触到语言设计的许多变化。考虑一个形式为的条件语句之一：
 - en: '| (if test-exp then-part else-part) |'
+  id: totrans-11
   prefs: []
   type: TYPE_TB
+  zh: '| (如果测试表达式 那么然后部分 否则否则部分) |'
 - en: 'The intent is that test-exp is evaluated first; if it results in a true value
     then (only) then-part is evaluated, else (only) else-part is evaluated. (We usually
     refer to these two parts as branches, since the program’s control must take one
     or the other.) However, even this simple construct results in at least three different,
     mostly independent design decisions:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的意图是首先评估测试表达式；如果它导致一个真值，那么（仅）评估“然后部分”，否则（仅）评估“否则部分”。（我们通常将这两部分称为分支，因为程序的控制必须采取其中之一。）然而，即使这个简单的构造也会导致至少三个不同的、大多是独立的设计决策：
 - en: What kind of values can the test-exp be? In some languages they must be Boolean
     values (two values, one representing truth and the other falsehood). In other
     languages this expression can evaluate to just about any value, with some set—<wbr>colloquially
     called truthy—<wbr>representing truth (i.e., they result in execution of the then-part)
     while the remaining ones are falsy, meaning they cause else-part to run.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测试表达式可以是什么样的值？在某些语言中，它们必须是布尔值（两个值，一个表示真，另一个表示假）。在其他语言中，此表达式可以评估为几乎任何值，其中一些集合——俗称为“真值”——表示为真（即，它们导致执行“然后部分”），而其余值为“假值”，意味着它们导致执行“否则部分”。
 - en: 'Initially, it may seem attractive to design a language with several truthy
     and falsy values: after all, this appears to give the programmer more convenience,
     permitting non-Boolean-valued functions and expressions to be used in conditionals.
     However, this can lead to bewildering inconsistencies across languages:'
+  id: totrans-14
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 起初，设计具有多个真值和假值的语言似乎很吸引人：毕竟，这似乎给了程序员更多的方便，允许在条件语句中使用非布尔值函数和表达式。然而，这可能会导致语言之间令人困惑的不一致性：
 - en: '| Value |  | JS |  | Perl |  | PHP |  | Python |  | Ruby |'
+  id: totrans-15
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 值 |  | JS |  | Perl |  | PHP |  | Python |  | Ruby |'
 - en: '| 0 |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 0 |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
 - en: '| "" |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| "" |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
 - en: '| NaN |  | falsy |  | truthy |  | truthy |  | truthy |  | truthy |'
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| NaN |  | falsy |  | truthy |  | truthy |  | truthy |  | truthy |'
 - en: '| nil/null/None/undef |  | falsy |  | falsy |  | falsy |  | falsy |  | falsy
     |'
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| nil/null/None/undef |  | falsy |  | falsy |  | falsy |  | falsy |  | falsy
+    |'
 - en: '| "0" |  | truthy |  | falsy |  | falsy |  | truthy |  | truthy |'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| "0" |  | truthy |  | falsy |  | falsy |  | truthy |  | truthy |'
 - en: '| -1 |  | truthy |  | truthy |  | truthy |  | truthy |  | truthy |'
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| -1 |  | truthy |  | truthy |  | truthy |  | truthy |  | truthy |'
 - en: '| [] |  | truthy |  | truthy |  | falsy |  | falsy |  | truthy |'
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| [] |  | truthy |  | truthy |  | falsy |  | falsy |  | truthy |'
 - en: '| empty map/object |  | truthy |  | falsy |  | falsy |  | falsy |  | truthy
     |'
+  id: totrans-23
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| empty map/object |  | truthy |  | falsy |  | falsy |  | falsy |  | truthy
+    |'
 - en: 'Of course, it need not be so complex. Scheme, for instance, has only one value
     that is falsy: false itself (written as #f). Every other value is truthy. For
     those who value allowing non-Boolean values in conditionals, this represents an
@@ -121,119 +171,168 @@
     “It’s a silly bug with a if in JavaScript that’s getting 0 and thinking it’s false.”
     Note that Ruby and Lua have relatively few falsy values; it may not be coincidental
     that their creators were deeply influenced by Scheme.'
+  id: totrans-24
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '当然，它不必如此复杂。例如，Scheme 只有一个虚假值：false 本身（写作 #f）。其他任何值都是真值。对于那些重视在条件语句中允许非布尔值的人来说，这代表了一个优雅的权衡：这意味着函数不必担心由计算产生的类型一致的值可能导致条件语句反转自身。（例如，如果一个函数返回字符串，它不必担心空字符串可能与每个其他字符串不同地对待。）在写这一章节时，我在
+    Pyret 中偶然发现了一个奇怪的错误：所有数值 s-表达式都解析为 s-num 值，除了 0，它解析为 s-sym。最终，Justin Pombrio 报告说：“这是一个愚蠢的错误，JavaScript
+    中的 if 得到 0 并认为它是 false。”注意，Ruby 和 Lua 的虚假值相对较少；它们的创造者受到了 Scheme 的深刻影响，可能这不是巧合。'
 - en: 'What kind of terms are the branches? Some languages make a distinction between
     statements and expressions; in such languages, designers need to decide which
     of these are permitted. In some languages, there are even two syntactic forms
     of conditional to reflect these two choices: e.g., in C, if uses statements (and
     does not return any value) while the “ternary operator” ((...?...:...)) permits
     expressions and returns a value.'
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 分支是什么类型的术语？某些语言区分语句和表达式；在这种语言中，设计者需要决定允许哪些。在某些语言中，甚至有两种条件语句的语法形式来反映这两种选择：例如，在
+    C 中，if 使用语句（并且不返回任何值），而“三元运算符”((...?...:...))允许表达式并返回一个值。
 - en: If the branches are expressions and hence allowed to evaluate to values, how
     do the values relate? Many (but not all) languages with static type systems expect
     the two branches to have the same type [REF]. Languages without static type systems
     usually place no restrictions.
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果分支是表达式，因此允许求值为值，那么这些值如何关联？许多（但不是所有）具有静态类型系统的语言期望两个分支具有相同的类型[REF]。没有静态类型系统的语言通常不会施加任何限制。
 - en: For now, we will assume that the conditional expression can only be a Boolean
     value; the branches are expressions (because that is all we have in our language
     anyway); and the two branches can return values of different types.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，我们假设条件表达式只能是布尔值；分支是表达式（因为这是我们语言中拥有的一切）；并且两个分支可以返回不同类型的值。
 - en: 25.2The Game Plan for Conditionals
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 条件表达式的战略
 - en: 'To add conditionals to the language, we have to cover a surprising amount of
     ground:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将条件添加到语言中，我们必须涵盖大量内容：
 - en: First, we need to define syntax. We’ll use
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，我们需要定义语法。我们将使用
 - en: '| true |'
+  id: totrans-31
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| true |'
 - en: '| false |'
+  id: totrans-32
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| false |'
 - en: '| (if test-exp then-exp else-exp) |'
+  id: totrans-33
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| (if test-exp then-exp else-exp) |'
 - en: to represent the two Boolean constants and the conditional expression.
+  id: totrans-34
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 来表示两个布尔常量和条件表达式。
 - en: 'We need to modify the representation of programs to handle these new constructs.
     Here’s our new expression language (with the name adjusted to signal its growth
     beyond pure arithmetic):'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要修改程序的表示方式以处理这些新构造。以下是我们的新表达语言（名称已调整以表示其超越纯算术的增长）：
 - en: '[PRE0]'
+  id: totrans-36
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We need to adjust the pre-desugaring language (ExprExt) as well to account for
     the new constructs.
+  id: totrans-37
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 我们还需要调整预解糖语言（ExprExt），以适应新的构造。
 - en: We need to modify the parser and desugarer.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要修改解析器和解糖器。
 - en: Exercise
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Modify parse and desugar to work with the extended language. Adjust the datatypes
     as needed. Be sure to write tests.
+  id: totrans-41
   prefs:
   - PREF_IND
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 修改解析器和解糖器以处理扩展语言。根据需要调整数据类型。务必编写测试。
 - en: Do Now!
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在做！
 - en: ''
+  id: totrans-43
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: There’s one more big change needed. Do you see what it is?
+  id: totrans-44
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 还有一个更大的改变是必要的。你看到是什么了吗？
 - en: 25.2.1The Interpreter’s Type
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释器的类型
 - en: 'If our terms are no longer purely arithmetic in nature, then we can no longer
     expect our interpreter to produce only numeric answers! For instance, what should
     be the result of evaluating the following program:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们的术语不再纯粹是算术性质的，那么我们就不能再期望我们的解释器只产生数字答案！例如，评估以下程序的结果应该是什么：
 - en: '[PRE1]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '(that is, the program corresponding to the source text true)?Beware: what I’ve
     presented you with is actually a test of your character!“A lesser man might have
     wavered that day in the hospital corridor, a weaker man might have compromised
@@ -242,146 +341,214 @@
     an opportunity, and he was not a person to waste it.”—<wbr>Joseph Heller You might
     be sorely tempted to decide that true should evaluate to 1 (and, for good measure,
     that false should evaluate to 0). What are the consequences of this?'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: （也就是，对应源文本true的程序）？注意：我给你呈现的实际上是对你品格的考验！“在医院走廊的那一天，一个不那么伟大的人可能会动摇，一个更弱的人可能会妥协，接受像Drum
+    Major、Minor Major、Sergeant Major或C. Sharp Major这样出色的替代品，但Major Major的父亲等了十四年才等到这样的机会，他不是一个浪费机会的人。”—<wbr>约瑟夫·海勒
+    你可能会非常想要决定true应该评估为1（并且，为了保险起见，false应该评估为0）。这样做会有什么后果？
 - en: It precludes being able to have a language with pure Booleans. This will have
     consequences when we get to types [REF].
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这将使得无法拥有纯布尔值的语言成为可能。当我们涉及类型时，这将产生后果[REF]。
 - en: 'It means you can perform arithmetic on truth values. This might not sound so
     surprising: after all, conjunction (and) and disjunction (or) can, after all,
     be thought in terms of arithmetic. But once you you say truth values are numbers,
     you can no longer detect if a programmer accidentally subtracts one truth value
     from another, divides them, and so on.'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这意味着您可以对真值进行算术运算。这听起来可能并不那么令人惊讶：毕竟，合取（and）和析取（or）可以被视为算术。但是一旦您说真值是数字，您就无法再检测程序员意外从另一个真值中减去一个真值、除以它们等等。
 - en: It isn’t even clear which numbers should represent which truth values. Historically,
     some languages have made zero represent truth; others have even chosen to use
     non-negative numbers for truth and negative numbers for falsity. None of these
     choices is more clearly “correct” than other ones, which suggests we’re really
     just guessing our way around here.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 甚至不清楚哪些数字应该代表哪些真值。从历史上看，一些语言使零代表真值；其他一些甚至选择使用非负数表示真值和负数表示虚假。这些选择中没有一个更明确“正确”于其他选择，这表明我们实际上只是在这里胡乱猜测。
 - en: Most of all, we can’t keep hacking our way out of this situation. How are we
     going to represent strings or lists? With [Gödel numbering](https://en.wikipedia.org/wiki/G%C3%B6del_numbering)?
     What happens when we get to functions, coroutines, continuations?
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最重要的是，我们不能继续通过黑客方式摆脱这种情况。我们将如何表示字符串或列表？使用[Gödel numbering](https://en.wikipedia.org/wiki/G%C3%B6del_numbering)吗？当我们涉及函数、协程、续延时会发生什么？
 - en: 'In short, avoid encoding! There’s no good reason to make numbers do double-duty:
     let Booleans be their own type. In any respectable implementation this will impose
     little to no additional cost to program execution, while greatly reducing programmer
     confusion.'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，避免编码！没有理由让数字承担双重任务：让布尔值成为它们自己的类型。在任何体面的实现中，这将几乎不会对程序执行造成额外成本，同时大大减少程序员的困惑。
 - en: The consequence of this decisionOf course, you’re welcome to experiment with
     different decisions. The beauty of writing little interpreters is you can change
     what you want and explore the consequences of those changes. is that we will need
     a way to represent all the possible outcomes from the interpreter.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个决定的后果当然，您可以尝试不同的决定。编写小解释器的美妙之处在于您可以更改您想要的内容并探索这些更改的后果。是我们需要一种方法来表示解释器的所有可能结果。
 - en: Do Now!
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在就行动！
 - en: ''
+  id: totrans-56
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Try to sketch a representation for yourself.
+  id: totrans-57
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尝试为自己勾勒一个表示。
 - en: 'Here’s a reasonable one:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个合理的表示：
 - en: '[PRE2]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'For now, this is naturally a quite shallow representation: it simply helps
     us tell numbers and Booleans apart. Later, we will add values that have much more
     interesting structure.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，这自然是一个相当肤浅的表示：它只是帮助我们区分数字和布尔值。稍后，我们将添加具有更有趣结构的值。
 - en: 25.2.2Updating Arithmetic
+  id: totrans-61
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 25.2.2更新算术
 - en: Finally, we’re ready to augment our interpreter. We can ignore the arithmetic
     lines, which should be unchanged (because we haven’t changed anything about how
     we will perform arithmetic), and focus on the new parts of the language.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们准备增强我们的解释器。我们可以忽略算术行，这些行不应该改变（因为我们没有改变我们执行算术的方式），并关注语言的新部分。
 - en: Do Now!
+  id: totrans-63
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在就做！
 - en: ''
+  id: totrans-64
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Right?
+  id: totrans-65
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 对吗？
 - en: Wrong. Because we’ve changed the type of value the interpreter produces, we
     have to update the rules for arithmetic, too, to reflect that. We can do this
     quickly, but we’ll do it in a few steps to illustrate a point.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 不对。因为我们已经改变了解释器产生的值的类型，所以我们必须更新算术规则，以反映这一点。我们可以很快地做到这一点，但我们会分几步来说明一个观点。
 - en: First, we’ll handle the easy case:<ext-arith-cond-interp> ::=
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们来处理简单的情况：<ext-arith-cond-interp> ::=
 - en: '|   fun interp(e :: ExprC) -> Value: |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '|   fun interp(e :: ExprC) -> Value: |'
 - en: '|     cases (ExprC) e: |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '|     情况（ExprC）e： |'
 - en: '|       &#124; numC(n) => numV(n) |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '|       &#124; numC(n) => numV(n) |'
 - en: '|       [<ext-arith-cond-arith-cases>](#%28elem._ext-arith-cond-arith-cases%29)
     |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '|       [<ext-arith-cond-arith-cases>](#%28elem._ext-arith-cond-arith-cases%29)
+    |'
 - en: '|       [<ext-arith-cond-bool-cases>](#%28elem._ext-arith-cond-bool-cases%29)
     |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '|       [<ext-arith-cond-bool-cases>](#%28elem._ext-arith-cond-bool-cases%29)
+    |'
 - en: '|     end |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '|     end |'
 - en: '|   end |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '|   end |'
 - en: 'Now let’s consider addition and multiplication. We could do it directly:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们考虑加法和乘法。我们可以直接做：
 - en: '[PRE3]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'but this will get repetitive: calling interp on each branch, dereferencing
     the numeric field, and wrapping the answer in numV. It would be better to abstract
     over this so we don’t have to repeat code.'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这将会变得重复：对每个分支调用interp，解引用数字字段，并将答案包装在numV中。最好将此抽象化，以便我们不必重复代码。
 - en: 25.2.3Defensive Programming
+  id: totrans-78
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 25.2.3防御性编程
 - en: 'Actually, there is a more serious problem lurking in the above code. It’s in
     this expression:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，上述代码中隐藏着一个更严重的问题。在这个表达式中：
 - en: '[PRE4]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '(and in the other, similar one). First, it blindly refers to the n field irrespective
     of whether the resulting value actually represents a number; if some other variant
     also had a field of this name, this would silently succeed! (We saw this problem
@@ -390,26 +557,39 @@
     is clearly getting more complicated than we would like to do in-line. Instead,
     we’ll define a helper function that takes the operation to perform and does everything
     else:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: （以及另一个类似的）。首先，它盲目地引用n字段，不管结果值是否真正表示一个数字；如果其他变体也有一个这个名称的字段，这将默默成功！（我们之前见过这个问题：（部分"危险字段访问"）。）因此，我们真的应该确保递归调用interp确实返回一个数字；现在逻辑显然比我们想要的要复杂得多，以致于我们不想在线上执行。相反，我们将定义一个帮助函数，它接受要执行的操作并执行其他所有操作：
 - en: '[PRE5]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: With this, we can now show the revised definitions of the arithmetic operations:<ext-arith-cond-arith-cases>
     ::=
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们现在可以展示算术操作的修订定义：<ext-arith-cond-arith-cases> ::=
 - en: '|   &#124; plusC(l, r) => arith-binop(lam(x, y): x + y end, l, r) |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; plusC(l, r) => arith-binop(lam(x, y): x + y end, l, r) |'
 - en: '|   &#124; multC(l, r) => arith-binop(lam(x, y): x * y end, l, r) |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; multC(l, r) => arith-binop(lam(x, y): x * y end, l, r) |'
 - en: Do Now!
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在就做！
 - en: ''
+  id: totrans-87
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -417,22 +597,28 @@
     that no other variant would have a field named n. Then, is there any difference
     between the version that checks is-numV for each of the values and the version
     that does not?
+  id: totrans-88
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在我们继续之前，让我们再考虑一个问题。假设我们可以确定没有其他变体会有一个名为n的字段。那么，检查每个值的is-numV和不检查的版本之间有什么区别吗？
 - en: 'Seemingly, the answer is no: if there is no n field, the version that accesses
     n will halt with an error signaled by Pyret, just as arith-binop would have stopped
     it. However, there is an important philosophical difference between the two versions:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 表面上看，答案是否定的：如果没有n字段，访问n的版本将以Pyret发出的错误停止，就像arith-binop一样。然而，这两个版本之间存在重要的哲学差异：
 - en: The version that performs a check in arith-binop is providing the error at the
     level of the language being implemented. It does not depend on Pyret to perform
     any checks; furthermore, it can give an error in terms of the interpreted language,
     using terminology that makes sense to the programmer in that language.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在arith-binop中执行检查的版本提供了在实现的语言层面上的错误。它不依赖于Pyret执行任何检查；此外，它可以根据解释的语言给出一个错误，使用对该语言中的程序员有意义的术语。
 - en: 'In contrast, the version that delegates the check to Pyret is allowing a meta-error
     to percolate through. This requires being very certain of how Pyret works, whether
     it will perform the check at the right time and in the right place, and then halt
@@ -440,32 +626,46 @@
     might make no sense to the programmer: Pyret might say “Field n not found”, but
     to a person using a language with only arithmetic and conditionals, the very term
     “field” might mean nothing.'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相比之下，将检查委托给Pyret的版本允许元错误传播。这要求非常确定Pyret的工作方式，它是否会在正确的时间和地点执行检查，然后以适当的方式停止程序执行。此外，它产生的错误消息可能对程序员毫无意义：Pyret可能会说“未找到字段n”，但对于只有算术和条件语句的语言的使用者来说，“字段”这个术语可能毫无意义。
 - en: Thus, in a production system, we should be sure to catch errors in our implementation,
     not hope that the implementing language will do the right thing. In this study,
     however, we will sometimes be loose about this, to keep the code simpler and more
     readable.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在生产系统中，我们应该确保捕捉我们实现中的错误，而不是希望实现语言会做正确的事情。然而，在这项研究中，我们有时会对此放松，以使代码更简单、更易读。
 - en: 25.2.4Interpreting Conditionals
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 25.2.4解释条件
 - en: 'Finally, we are ready to handle the actual point of this exercise: conditionals.
     The two constants are easy:<ext-arith-cond-bool-cases> ::='
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们准备处理这个练习的实际要点：条件。这两个常量很容易：<ext-arith-cond-bool-cases> ::=
 - en: '|   &#124; trueC => boolV(true) |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; trueC => boolV(true) |'
 - en: '|   &#124; falseC => boolV(false) |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; falseC => boolV(false) |'
 - en: '|   [<ext-arith-cond-bool-if>](#%28elem._ext-arith-cond-bool-if%29) |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '|   [<ext-arith-cond-bool-if>](#%28elem._ext-arith-cond-bool-if%29) |'
 - en: 'The conditional expression is not actually hard; it just forces us to think.Thinking,
     after all, rather being the point of this entire study. This is where we encode
     truthy/falsy distinctions; indeed, one could arguably have three possibilities:
@@ -476,128 +676,190 @@
     values, and there are only two kinds of these (not least because we’ve chosen
     to represent them using Pyret’s Booleans), this becomes quite simple:<ext-arith-cond-bool-if>
     ::='
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 条件表达式实际上并不难；它只是迫使我们思考。思考，毕竟，是整个研究的重点。这是我们编码真值/假值区别的地方；事实上，可以说有三种可能性：真值、假值和其他值！（在这里的第三种可能性等同于有一个返回除了真值和假值之外的任何东西的相等运算符。虽然非常不寻常，但既不是不可能也不是不存在：事实上，Pyret就是这样做的[REF]！）然而，因为我们决定只处理布尔值，并且这些只有两种（至少因为我们选择用Pyret的布尔值来表示它们），这变得非常简单：<ext-arith-cond-bool-if>
+    ::=
 - en: '|   &#124; ifC(cnd, thn, els) => |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '|   &#124; ifC(cnd, thn, els) => |'
 - en: '|     ic = interp(cnd) |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '|     ic = interp(cnd) |'
 - en: '|     if is-boolV(ic): |'
+  id: totrans-101
   prefs: []
   type: TYPE_TB
+  zh: '|     if is-boolV(ic): |'
 - en: '|       if ic.b: |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '|       if ic.b: |'
 - en: '|         interp(thn) |'
+  id: totrans-103
   prefs: []
   type: TYPE_TB
+  zh: '|         interp(thn) |'
 - en: '|       else: |'
+  id: totrans-104
   prefs: []
   type: TYPE_TB
+  zh: '|       else: |'
 - en: '|         interp(els) |'
+  id: totrans-105
   prefs: []
   type: TYPE_TB
+  zh: '|         interp(els) |'
 - en: '|       end |'
+  id: totrans-106
   prefs: []
   type: TYPE_TB
+  zh: '|       end |'
 - en: '|     else: |'
+  id: totrans-107
   prefs: []
   type: TYPE_TB
+  zh: '|     else: |'
 - en: '|       raise(''not a boolean'') |'
+  id: totrans-108
   prefs: []
   type: TYPE_TB
+  zh: '|       raise(''not a boolean'') |'
 - en: '|     end |'
+  id: totrans-109
   prefs: []
   type: TYPE_TB
+  zh: '|     end |'
 - en: And that’s it. Now we have a complete, working interpreter for conditionals.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样。现在我们有了一个完整、可工作的条件解释器。
 - en: 25.3Growing the Conditional Language
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 25.3扩展条件语言
 - en: 'To create a truly useful language of conditionals, however, we need at least
     two more things:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，要创建一个真正有用的条件语言，我们至少需要两样东西：
 - en: A way to compute Boolean values, not just write them as constants. For instance,
     we should add operations on numbers (such as numeric comparison). This is relatively
     easy, especially given that we already have arith-binop parameterized over the
     operation to perform and returning a Value (rather than a number). The bigger
     nuisance is pushing this through parsing and desugaring. It would instead be better
     to create generic unary and binary operations and look them up in a table.
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一种计算布尔值的方法，而不仅仅是将它们写成常量。例如，我们应该对数字进行操作（如数值比较）。这相对容易，尤其是考虑到我们已经有了参数化执行操作并返回值（而不是数字）的arith-binop。更大的麻烦是将其通过解析和去糖化。最好创建通用的一元和二元操作，并在表中查找。
 - en: It would also be useful to have a way to combine conditionals (negation, disjunction,
     conjunction).
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 还有一种方法可以结合条件（否定、析取、合取）。
 - en: Exercise
+  id: totrans-115
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
+  id: totrans-116
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Generalize the parser and desugarer to look up a table of unary and binary operations
     and represent them uniformly, instead of having a different variant for each one.
+  id: totrans-117
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 将解析器和展开器泛化，以查找一张一元和二元运算的表，并统一地表示它们，而不是为每个运算创建不同的变种。
 - en: 'Negation is straightforward: it’s just a unary function. However, in a programming
     language, disjunction (or) and conjunction (and) should not be thought of as functions.
     For instance, in Scheme, it is common to write:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 否定是直接的：它只是一个一元函数。然而，在编程语言中，析取（或）和合取（与）不应被视为函数。例如，在Scheme中，常见的写法是：
 - en: '| (and (not (= x 0)) (/ 1 x)) |'
+  id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| (and (not (= x 0)) (/ 1 x)) |'
 - en: 'If both (not (= x 0)) and (/ 1 x) were treated as arguments and evaluated right
     away, then the very situation we’re trying to protect against—<wbr>division by
     zero—<wbr>would occur right away.Of course, this is not a problem in a lazy language
     [REF]. Therefore, it is better to think of these are desugaring into cascading
     conditionals: for instance, one possible desugaring for the above expression might
     be'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果(not (= x 0))和(/ 1 x)都被视为参数并立即计算，那么我们试图防止的情况——<wbr>除以零——将立即发生。当然，在惰性语言中这不是问题[REF]。因此，最好将它们视为展开为级联条件：例如，上述表达式的一种可能的展开可能是
 - en: '| (if (not (= x 0)) |'
+  id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| (if (not (= x 0)) |'
 - en: '|     false |'
+  id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '|     false |'
 - en: '|     (/ 1 0)) |'
+  id: totrans-123
   prefs: []
   type: TYPE_TB
+  zh: '|     (/ 1 0)) |'
 - en: Exercise
+  id: totrans-124
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
+  id: totrans-125
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Implement negation, conjunction, and disjunction.
+  id: totrans-126
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 实现否定、合取和析取。
 - en: Exercise
+  id: totrans-127
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 练习
 - en: ''
+  id: totrans-128
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Define a multi-armed conditional expression that desugars into nested ifs.
+  id: totrans-129
   prefs:
   - PREF_BQ
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 定义一个多臂条件表达式，将其展开为嵌套的if语句。
