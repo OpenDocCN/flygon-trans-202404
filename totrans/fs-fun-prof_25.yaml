@@ -1,1667 +1,2453 @@
 - en: The "Handling State" Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: “处理状态”系列
 - en: In this series of posts, I'll look at how you can thread state through a series
     of pure functions in a convenient way.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这系列文章中，我将探讨如何通过一系列纯函数方便地传递状态。
 - en: To start with, I'll tell the story of Dr Frankenfunctor and the Monadster, and
     how the Doctor needed a way to create "recipes" that were activated when lightning
     struck.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我将讲述弗兰肯函数医生和单子怪物的故事，以及医生需要创建“配方”的方式，这些配方在闪电击中时被激活。
 - en: The Doctor then devised ways to work with these recipes using functions such
     as `map`, `bind` and `apply`.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 医生然后设计了使用`map`、`bind`和`apply`等函数处理这些配方的方法。
 - en: In the final post, we'll see how we can use a computation expression to make
     the coding cleaner, and how these techniques can be generalized into the so-called
     "state monad".
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最后一篇文章中，我们将看到如何使用计算表达式使编码更清晰，并将这些技术推广到所谓的“状态单子”。
 - en: '*Warning! These posts contains gruesome topics, strained analogies, discussion
     of monads*'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '*警告！这些文章包含可怕的主题、牵强的类比、单子的讨论*'
 - en: '[Dr Frankenfunctor and the Monadster](monadster.html). Or, how a 19th century
     scientist nearly invented the state monad.'
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[弗兰肯函数医生与单子怪物](monadster.html)。或者说，一个19世纪科学家差点发明了状态单子。'
 - en: '[Completing the body of the Monadster](monadster-2.html). Dr Frankenfunctor
     and the Monadster, part 2.'
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[完成单子怪物的身体](monadster-2.html)。弗兰肯函数医生与单子怪物，第二部分。'
 - en: '[Refactoring the Monadster](monadster-3.html). Dr Frankenfunctor and the Monadster,
     part 3.'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[重构单子怪物](monadster-3.html)。弗兰肯函数医生与单子怪物，第三部分。'
 - en: Dr Frankenfunctor and the Monadster
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 弗兰肯函数医生与单子怪物
 - en: Dr Frankenfunctor and the Monadster
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 《弗兰肯函数医生与单子怪物》
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于此主题的幻灯片和视频](http://fsharpforfunandprofit.com/monadster/)*'
 - en: '*Warning! This post contains gruesome topics, strained analogies, discussion
     of monads*'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '*警告！这篇文章包含可怕的主题、牵强的类比、单子的讨论*'
 - en: For generations, we have been captivated by the tragic story of Dr Frankenfunctor.
     The fascination with vital forces, the early experiments with electricity and
     galvanism, and finally the breakthough culminating in the bringing to life of
     a collection of dead body parts -- the Monadster.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 几代人以来，我们都被弗兰肯函数医生的悲剧故事所吸引。对于生命力的迷恋，对电和电伏的早期实验，最终以给一堆死尸部件带来生命的突破告终 -- 单子怪物。
 - en: But then, as we all know, the creature escaped and the free Monadster rampaged
     through computer science conferences, bringing fear to the hearts of even the
     most seasoned programmers.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是后来，众所周知，这个生物逃脱了，自由的单子怪物在计算机科学会议上肆虐，甚至让最有经验的程序员心生恐惧。
 - en: '![The horror, The horror](monadster_horror.jpg)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![恐怖，恐怖](monadster_horror.jpg)'
 - en: '*CAPTION: The terrible events at the 1990 ACM Conference on LISP and Functional
     Programming.*'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '*标题：1990年LISP和函数式编程ACM会议上的可怕事件。*'
 - en: I will not repeat the details here; the story is still too terrible to recall.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不会在这里重复细节；这个故事仍然太可怕了，不值得回忆。
 - en: But in all the millions of words devoted to this tragedy, one topic has never
     been satisfactorily addressed.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，在这场悲剧中数百万字的讨论中，从未有人令人满意地解决过一个问题。
 - en: '*How was the creature assembled and brought to life?*'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这个生物是如何被组装并带到生命中的？*'
 - en: We know that Dr Frankenfunctor built the creature from dead body parts, and
     then animated them in a single instant, using a bolt of lightning to create the
     vital force.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们知道，弗兰肯函数医生用死尸部件建造了这个生物，然后在一瞬间给它们注入了生命力，使用一道闪电创造出生命的力量。
 - en: But the various body parts had to be assembled into a whole, and the vital force
     had to be transmitted through the assembly in the appropriate manner, and all
     this done in a split second, in the moment that the lightning struck.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是各种身体部件必须被组装成一个整体，生命力必须以适当的方式通过装配传递，并且所有这些都必须在一瞬间完成，即闪电击中的那一刻。
 - en: I have devoted many years of research into this matter, and recently, at great
     expense, I have managed to obtain Dr Frankenfunctor's personal laboratory notebooks.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我花了多年的时间研究这个问题，并且最近，我花费巨大代价，设法获取了弗兰肯函数医生的个人实验室笔记。
 - en: So at last, I can present Dr Frankenfunctor's technique to the world. Use it
     as you will. I do not make any judgements as to its morality, after all, it is
     not for mere developers to question the real-world effects of what we build.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以最后，我可以向世界展示弗兰肯函数医生的技术。您可以随意使用它。我不会对其道德性做出任何判断，毕竟，仅仅是开发人员无法质疑我们所建造的东西的现实影响。
 - en: Background
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景
 - en: To start with, you need to understand the fundamental process involved.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，您需要了解涉及的基本过程。
 - en: First, you must know that no whole body was available to Dr Frankenfunctor.
     Instead, the creature was created from an assemblage of body parts -- arms, legs,
     brain, heart -- whose provenances were murky and best left unspoken.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，你必须知道，弗兰肯函子博士手头没有整个身体可用。相反，这个生物是由各种身体部位 -- 手臂、腿、大脑、心脏 -- 组合而成的，它们的来源是模糊的，最好不谈。
 - en: 'Dr Frankenfunctor started with a dead body part, and infused it with some amount
     of vital force. The result was two things: a now live body part, and the remaining,
     diminished, vital force, because of course some of the vital force was transferred
     to the live part.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 弗兰肯函子博士从一个死体部位开始，并注入了一定量的重要力量。结果是两件事：现在是活的身体部位，以及剩余的、减少的重要力量，因为当然一些重要力量被转移到了活部位。
 - en: 'Here is a diagram demonstrating the principle:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是演示原理的图表：
 - en: '![The principle](monadster1.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![原则](monadster1.png)'
 - en: But this creates only *one* body part. How can we create more than one? This
     is the challenge that faced Dr Frankenfunctor.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这只创建了*一个*身体部位。我们如何创建多个？这是弗兰肯函子博士面临的挑战。
 - en: The first problem is that we only have a limited quantity of the vital force.
     This means that when we need to animate a second body part, we have available
     only the remaining vital force from a previous step.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个问题是我们只有有限的重要力量。这意味着当我们需要激活第二个身体部位时，我们只能利用前一步骤剩余的重要力量。
 - en: How can we connect the two steps together so that the vital force from the first
     step is fed into the input of the second step?
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何将两个步骤连接起来，使第一个步骤的重要力量被传递到第二个步骤的输入中？
 - en: '![Connecting steps together](monadster_connect.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![连接步骤](monadster_connect.png)'
 - en: Even if we have chained the steps correctly, we need to take the various live
     body parts and combine them somehow. But we only have access to *live* body parts
     during the moment of creation. How can we combine them in that split second?
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们已经正确地链接了步骤，我们也需要以某种方式将各个活体部位结合起来。但我们只能在创建时访问*活体*部位。我们怎么在那一刹那间将它们结合起来呢？
 - en: '![Combining the outputs of each step](monadster_combine.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![组合每个步骤的输出](monadster_combine.png)'
 - en: It was Dr Frankenfunctor's genius that led to an elegant approach that solved
     both of these problems, the approach that I will present to you now.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 正是弗兰肯函子博士的天才导致了一个优雅的方法，解决了这两个问题，我现在将向您介绍这个方法。
 - en: The common context
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 共同的上下文
 - en: Before discussing the particulars of assembling the body parts, we should spend
     a moment on common functionality that is required for the rest of the procedure.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在讨论组装身体部位的细节之前，我们应该花点时间讨论一下对于程序的其余部分所需的共同功能。
 - en: First, we need a label type. Dr Frankenfunctor was very disciplined in labeling
     the source of every part used.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要一个标签类型。弗兰肯函子博士在标记每个使用部件的来源方面非常有纪律性。
 - en: '[PRE0]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The vital force we will model with a simple record type:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用一个简单的记录类型来建模重要力量：
 - en: '[PRE1]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Since we will be using vital force frequently, we will create a function that
     extracts one unit and returns a tuple of the unit and remaining force.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们将经常使用重要力量，我们将创建一个函数，该函数提取一个单位并返回一个单位和剩余力量的元组。
 - en: '[PRE2]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The Left Leg
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 左腿
 - en: With the common code out of the way, we can return to the substance.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 公共代码已经解决，我们可以回到主题。
 - en: Dr Frankenfunctor's notebooks record that the lower extremities were created
     first. There was a left leg lying around in the laboratory, and that was the starting
     point.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 弗兰肯函子博士的笔记记录下了下肢是如何首先创建的。实验室里有一条左腿躺在那里，那就是起点。
 - en: '[PRE3]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: From this leg, a live leg could be created with the same label and one unit
     of vital force.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这条腿上，可以用相同的标签创建一个活腿，并且有一个单位的重要力量。
 - en: '[PRE4]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The type signature for the creation function would thus look like this:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，创建函数的类型签名看起来像这样：
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'And the actual implementation like this:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际实现如下：
 - en: '[PRE6]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: As you can see, this implementation matched the earlier diagram precisely.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，此实现与之前的图表完全匹配。
 - en: '![Version 1](monadster1.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![版本 1](monadster1.png)'
 - en: At this point Dr Frankenfunctor had two important insights.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，弗兰肯函子博士有了两个重要的见解。
 - en: The first insight was that, thanks to [currying](currying.html), the function
     could be converted from a function taking a tuple to a two parameter function,
     with each parameter passed in turn.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个洞察力是，由于[柯里化](currying.html)，该函数可以从接受元组的函数转换为接受两个参数的函数，每个参数依次传入。
 - en: '![Version 2](monadster2.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![版本 2](monadster2.png)'
 - en: 'And the code now looked like this:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在代码看起来像这样：
 - en: '[PRE7]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The second insight was that this *same* code can be interpreted as a function
     that in turn returns a "becomeAlive" function.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个洞察力是这个*相同*代码可以解释为一个反过来返回“becomeAlive”函数的函数。
 - en: That is, we have the dead part on hand, but we won't have any vital force until
     the final moment, so why not process the dead part right now and return a function
     that can be used when the vital force becomes available.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，我们手头有死部位，但在最后一刻之前我们不会有任何生命力，所以为什么不现在处理死部位并返回一个可以在生命力可用时使用的函数。
 - en: In other words, we pass in a dead part, and we get back a function that creates
     a live part when given some vital force.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们传入一个死部位，当给出一些生命力时，我们会得到一个创建活体部位的函数。
 - en: '![Version 3](monadster3.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![版本 3](monadster3.png)'
 - en: These "become alive" functions can then be treated as "steps in a recipe", assuming
     we can find some way of combining them.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些“变活”的函数可以被视为“食谱中的步骤”，假设我们能找到某种方法将它们组合起来。
 - en: 'The code looks like this now:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码现在看起来是这样的：
 - en: '[PRE8]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: It may not be obvious, but this is *exactly the same code* as the previous version,
     just written slightly differently.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可能不明显，但这与上一个版本的代码*完全相同*，只是写法稍有不同。
 - en: This curried function (with two parameters) can be interpreted as a normal two
     parameter function, or it can be interpreted as a *one parameter* function that
     returns *another* one parameter function.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个柯里化函数（带有两个参数）可以被解释为一个普通的两个参数函数，或者它可以被解释为*一个参数*函数，返回*另一个*一个参数函数。
 - en: 'If this is not clear, consider the much simpler example of a two parameter
     `add` function:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这不清楚，考虑一个更简单的例子，一个有两个参数的`add`函数：
 - en: '[PRE9]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Because F# curries functions by default, that implementation is exactly the
     same as this one:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为 F# 默认情况下柯里化函数，那个实现与这个完全相同：
 - en: '[PRE10]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Which, if we define an intermediate function, is also exactly the same as this
     one:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们定义一个中间函数，那么也完全相同如下：
 - en: '[PRE11]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Creating the Monadster type
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 创建 Monadster 类型
 - en: Looking ahead, we can see that we can use a similar approach for all the functions
     that create live body parts.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 展望未来，我们可以看到我们可以对所有创建活体部位的函数使用类似的方法。
 - en: 'All those functions will return a function that has a signature like: `VitalForce
     -> LiveBodyPart * VitalForce`.'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些函数都将返回一个具有如下签名的函数：`VitalForce -> LiveBodyPart * VitalForce`。
 - en: To make our life easy, let's give that function signature a name, `M`, which
     stands for "Monadster part generator", and give it a generic type parameter `'LiveBodyPart`
     so that we can use it with many different body parts.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了简化我们的生活，让我们给那个函数签名起个名字，`M`，代表“Monadster 部件生成器”，并给它一个泛型类型参数`'LiveBodyPart`，这样我们就可以将其用于许多不同的身体部位。
 - en: '[PRE12]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: We can now explicitly annotate the return type of the `makeLiveLeftLeg` function
     with `:M<LiveLeftLeg>`.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以显式注释 `makeLiveLeftLeg` 函数的返回类型为 `:M<LiveLeftLeg>`。
 - en: '[PRE13]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The rest of the function is unchanged because the `becomeAlive` return value
     is already compatible with `M<LiveLeftLeg>`.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数的其余部分保持不变，因为`becomeAlive`的返回值已经与`M<LiveLeftLeg>`兼容。
 - en: 'But I don''t like having to explicitly annotate all the time. How about we
     wrap the function in a single case union -- call it "M" -- to give it its own
     distinct type? Like this:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我不喜欢总是要显式注释。我们怎么样把函数包装在一个单 case 联合中 -- 叫它 "M" -- 给它一个独特的类型？像这样：
 - en: '[PRE14]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: That way, we can [distinguish between a "Monadster part generator" and an ordinary
     function returning a tuple](https://stackoverflow.com/questions/2595673/state-monad-why-not-a-tuple).
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，我们就可以[区分“Monadster 部件生成器”和返回元组的普通函数](https://stackoverflow.com/questions/2595673/state-monad-why-not-a-tuple)。
 - en: 'To use this new definition, we need to tweak the code to wrap the intermediate
     function in the single case union `M` when we return it, like this:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用这个新定义，我们需要调整代码，在返回时将中间函数包装在单个 case 联合 `M` 中，就像这样：
 - en: '[PRE15]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'For this last version, the type signature will be correctly inferred without
     having to specify it explicitly: a function that takes a dead left leg and returns
     an "M" of a live leg:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个最后版本，类型签名将被正确推断，而不需要明确指定它：一个接受死左腿并返回“M”活腿的函数：
 - en: '[PRE16]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Note that I've renamed the function `makeLiveLeftLegM` to make it clear that
     it returns a `M` of `LiveLeftLeg`.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我已经将函数 `makeLiveLeftLegM` 重命名为使其清楚返回 `M` 的 `LiveLeftLeg`。
 - en: The meaning of M
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: M 的含义
 - en: So what does this "M" type mean exactly? How can we make sense of it?
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么这个 "M" 类型到底意味着什么呢？我们怎么理解它？
 - en: One helpful way is to think of a `M<T>` as a *recipe* for creating a `T`. You
     give me some vital force and I'll give you back a `T`.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个有用的方法是把 `M<T>` 视为*创建 `T` 的食谱*。你给我一些生命力，我会给你一个 `T`。
 - en: But how can an `M<T>` create a `T` out of nothing?
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是`M<T>`如何可以从无中创造出`T`呢？
 - en: 'That''s where functions like `makeLiveLeftLegM` are critically important. They
     take a parameter and "bake" it into the result. As a result, you will see lots
     of "M-making" functions with similar signatures, all looking something like this:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是像`makeLiveLeftLegM`这样的函数至关重要的地方。它们接受一个参数并将其“烘烤”到结果中。因此，您会看到许多具有类似签名的“M制造”函数，全部看起来像这样：
 - en: '![](monadster5.png)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![](monadster5.png)'
 - en: 'Or in code terms:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者用代码表示：
 - en: '[PRE17]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: The challenge now will be how to combine these in an elegant way.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在的挑战将是如何以一种优雅的方式将这些结合在一起。
 - en: Testing the left leg
+  id: totrans-102
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试左腿
 - en: Ok, let's test what we've got so far.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们测试一下到目前为止我们得到了什么。
 - en: We'll start by creating a dead leg and use `makeLiveLeftLegM` on it to get an
     `M<LiveLeftLeg>`.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从创建一条死腿开始，然后在其上使用`makeLiveLeftLegM`来获得一个`M<LiveLeftLeg>`。
 - en: '[PRE18]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: What is `leftLegM`? It's a recipe for creating a live left leg, given some vital
     force.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么是`leftLegM`？这是一个关于如何根据一些生命力创建活的左腿的配方。
 - en: What's useful is that we can create this recipe *up front*, *before* the lightning
     strikes.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 有用的是，我们可以*提前*创建这个配方，在闪电击中*之前*。
 - en: 'Now let''s pretend that the storm has arrived, the lightning has struck, and
     10 units of vital force are now available:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们假装暴风雨已经到来，闪电已经击中，现在有10单位的生命力：
 - en: '[PRE19]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Now, inside the `leftLegM` is a function which we can apply to the vital force.
     But first we need to get the function out of the wrapper using pattern matching.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，在`leftLegM`内部有一个函数，我们可以将其应用于生命力。但首先，我们需要使用模式匹配将函数从包装器中取出。
 - en: '[PRE20]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'And then we can run the inner function to get the live left leg and the remaining
     vital force:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们可以运行内部函数，得到活的左腿和剩余的生命力：
 - en: '[PRE21]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'The results look like this:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果如下所示：
 - en: '[PRE22]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: You can see that a `LiveLeftLeg` was created successfully and that the remaining
     vital force is reduced to 9 units now.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到成功创建了一个`LiveLeftLeg`，剩余的生命力现在减少到9单位。
 - en: This pattern matching is awkward, so let's create a helper function that both
     unwraps the inner function and calls it, all in one go.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种模式匹配很笨拙，所以让我们创建一个帮助函数，一次性解开内部函数并调用它。
 - en: 'We''ll call it `runM` and it looks like this:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将其称为`runM`，看起来像这样：
 - en: '[PRE23]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'So the test code above would now be simplified to this:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以上面的测试代码现在将简化为这样：
 - en: '[PRE24]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: So now, finally, we have a function that can create a live left leg.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，最后，我们有一个可以创建活的左腿的函数了。
 - en: It took a while to get it working, but we've also built some useful tools and
     concepts that we can use moving forwards.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 花了一些时间让它起作用，但我们也建立了一些有用的工具和概念，我们可以在以后使用。
 - en: The Right Leg
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 右腿
 - en: Now that we know what we are doing, we should be able to use the same techniques
     for the other body parts now.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道自己在做什么了，应该能够现在为其他身体部位使用相同的技术了。
 - en: How about a right leg then?
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么右腿呢？
 - en: Unfortunately, according to the notebook, Dr Frankenfunctor could not find a
     right leg in the laboratory. The problem was solved with a hack... but we'll come
     to that later.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，根据笔记本的说法，弗兰肯函子博士在实验室找不到右腿。问题是通过一个小技巧解决的……但我们以后再说。
 - en: The Left Arm
+  id: totrans-128
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 左臂
 - en: Next, the arms were created, starting with the left arm.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，创建了手臂，从左手臂开始。
 - en: But there was a problem. The laboratory only had a *broken* left arm lying around.
     The arm had to be healed before it could be used in the final body.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是出现了一个问题。实验室只有一只*受损*的左臂摆在那里。必须先修复这只手臂，然后才能用于最终的身体。
 - en: Now Dr Frankenfunctor, being a doctor, *did* know how to heal a broken arm,
     but only a live one. Trying to heal a dead broken arm would be impossible.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，作为一名医生，弗兰肯函子博士*确实*知道如何治疗受伤的手臂，但只有活的手臂。试图治疗一只死去的受伤手臂是不可能的。
 - en: 'In code terms, we have this:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 用代码表示，我们有这样的内容：
 - en: '[PRE25]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'The challenge was therefore this: how can we make a live left arm out the material
     we have on hand?'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，挑战是这样的：我们如何从手头的材料中制作一个活的左臂？
 - en: First, we have to rule out creating a `LiveLeftArm` from a `DeadLeftUnbrokenArm`,
     as there isn't any such thing. Nor can we convert a `DeadLeftBrokenArm` into a
     healthy `LiveLeftArm` directly.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们必须排除从`DeadLeftUnbrokenArm`创建`LiveLeftArm`，因为没有这样的东西。我们也不能直接将`DeadLeftBrokenArm`转换为健康的`LiveLeftArm`。
 - en: '![Map dead to dead](monadster_map1.png)'
+  id: totrans-136
   prefs: []
   type: TYPE_IMG
+  zh: '![将死亡映射为死亡](monadster_map1.png)'
 - en: But what we *can* do is turn the `DeadLeftBrokenArm` into a *live* broken arm
     and then heal the live broken arm, yes?
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们*可以*将`DeadLeftBrokenArm`转换为*活*的受伤手臂，然后治疗活的受伤手臂，对吗？
 - en: '![Can''t create live broken arm directly](monadster_map2.png)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![不能直接创建活的受伤手臂](monadster_map2.png)'
 - en: No, I'm afraid that won't work. We can't create live parts directly, we can
     only create live parts in the context of the `M` recipe.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 不，恐怕那样不行。我们不能直接创建活体部分，我们只能在`M`配方的上下文中创建活体部分。
 - en: What we need to do then is create a special version of `healBrokenArm` (call
     it `healBrokenArmM`) that converts a `M<LiveBrokenArm>` to a `M<LiveArm>`.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们需要做的就是创建一个特殊版本的`healBrokenArm`（称之为`healBrokenArmM`），将`M<LiveBrokenArm>`转换为`M<LiveArm>`。
 - en: '![Can''t create live broken arm directly](monadster_map3.png)'
+  id: totrans-141
   prefs: []
   type: TYPE_IMG
+  zh: '![无法直接创建生活中断手](monadster_map3.png)'
 - en: But how do we create such a function? And how can we reuse `healBrokenArm` as
     part of it?
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们如何创建这样的函数呢？我们如何将`healBrokenArm`作为其一部分重复使用？
 - en: Let's start with the most straightforward implementation.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从最直接的实现开始。
 - en: First, since the function will return an `M` something, it will have the same
     form as the `makeLiveLeftLegM` function that we saw earlier. We'll need to create
     an inner function that has a vitalForce parameter, and then return it wrapped
     in an `M`.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，由于函数将返回`M`的某种形式，它的形式与我们之前看到的`makeLiveLeftLegM`函数相同。我们需要创建一个具有vitalForce参数的内部函数，然后将其包装在`M`中返回。
 - en: But unlike the function that we saw earlier, this one has an `M` as parameter
     too (an `M<LiveBrokenArm>`). How can we extract the data we need from this input?
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 但与我们之前看到的函数不同，这个函数也有一个`M`作为参数（`M<LiveBrokenArm>`）。我们如何从这个输入中提取我们需要的数据呢？
 - en: Simple, just run it with some vitalForce. And where are we going to get the
     vitalForce from? From the parameter to the inner function!
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单，只需运行它以获得一些生命力。我们从哪里获得生命力呢？从内部函数的参数中获取！
 - en: 'So our finished version will look like this:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们完成的版本将如下所示：
 - en: '[PRE26]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'If we evaluate this code, we get the signature:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们评估此代码，我们会得到签名：
 - en: '[PRE27]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: which is exactly what we want!
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是我们想要的！
 - en: But not so fast -- we can do better.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 但不要这么快——我们可以做得更好。
 - en: We've hard-coded the `healBrokenArm` transformation in there. What happens if
     we want to do some other transformation, and for some other body part? Can we
     make this function a bit more generic?
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在其中硬编码了`healBrokenArm`转换。如果我们想要进行其他转换，并且针对其他身体部位呢？我们能使这个函数更通用一些吗？
 - en: 'Yes, it''s easy. All we need to is pass in a function ("f" say) that transforms
     the body part, like this:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，这很容易。我们只需要传入一个函数（比如“f”），它转换身体部位，就像这样：
 - en: '[PRE28]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: What's amazing about this is that by parameterizing that one transformation
     with the `f` parameter, the *whole* function becomes generic!
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于这个令人惊奇的地方是，通过使用`f`参数对那一个转换进行参数化，*整个*函数都变成了通用的！
 - en: We haven't made any other changes, but the signature for `makeGenericTransform`
     no longer refers to arms. It works with anything!
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们没有进行其他更改，但是`makeGenericTransform`的签名不再涉及手臂。它适用于任何东西！
 - en: '[PRE29]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Introducing mapM
+  id: totrans-159
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 引入mapM
 - en: Since it is so generic now, the names are confusing. Let's rename it. I'll call
     it `mapM`. It works with *any* body part and *any* transformation.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于现在它变得如此通用，名称变得混乱。让我们重新命名它。我将其称为`mapM`。它适用于*任何*身体部位和*任何*转换。
 - en: Here's the implementation, with the internal names fixed up too.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是实现方式，同时修复了内部名称。
 - en: '[PRE30]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'In particular, it works with the `healBrokenArm` function, so to create a version
     of "heal" that has been lifted to work with `M`s we can just write this:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别是，它适用于`healBrokenArm`函数，因此要创建一个已被提升以与`M`一起工作的“治愈”版本，我们只需写下这个：
 - en: '[PRE31]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '![mapM with heal](monadster_map4.png)'
+  id: totrans-165
   prefs: []
   type: TYPE_IMG
+  zh: '![mapM with heal](monadster_map4.png)'
 - en: The importance of mapM
+  id: totrans-166
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: mapM的重要性
 - en: One way of thinking about `mapM` is that it is a "function converter". Given
     any "normal" function, it converts it to a function where the input and output
     are `M`s.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种思考`mapM`的方式是它是一个“函数转换器”。给定任何“正常”的函数，它将其转换为一个输入和输出都是`M`的函数。
 - en: '![mapM](monadster_mapm.png)'
+  id: totrans-168
   prefs: []
   type: TYPE_IMG
+  zh: '![mapM](monadster_mapm.png)'
 - en: Functions similar to `mapM` crop up in many situations. For example, `Option.map`
     transforms a "normal" function into a function whose inputs and outputs are options.
     Similarly, `List.map` transforms a "normal" function into a function whose inputs
     and outputs are lists. And there are many other examples.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于`mapM`的函数在许多情况下都会出现。例如，`Option.map`将“正常”函数转换为其输入和输出都是选项的函数。类似地，`List.map`将“正常”函数转换为其输入和输出都是列表的函数。还有许多其他例子。
 - en: '[PRE32]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: What might be new to you is that the "wrapper" type `M` contains a *function*,
     not a simple data structure like Option or List. That might make your head hurt!
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 对你可能是新的是，“包装器”类型`M`包含一个*函数*，而不是像Option或List那样的简单数据结构。这可能会让你感到头痛！
 - en: In addition, the diagram above implies that `M` could wrap *any* normal type
     and `mapM` could map *any* normal function.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，上面的图表暗示`M`可以包装*任何*正常类型，而`mapM`可以映射*任何*正常函数。
 - en: Let's try it and see!
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们试一试！
 - en: '[PRE33]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: So, yes, it works!
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，是的，它有效！
 - en: Testing the left arm
+  id: totrans-176
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试左臂
 - en: Again, let's test what we've got so far.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，让我们测试一下到目前为止我们得到了什么。
 - en: We'll start by creating a dead broken arm and use `makeLiveLeftBrokenArm` on
     it to get an `M<BrokenLeftArm>`.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先创建一个受损的断臂，然后在其上使用 `makeLiveLeftBrokenArm` 来获取一个 `M<BrokenLeftArm>`。
 - en: '[PRE34]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Now we can use `mapM` and `healBrokenArm` to convert the `M<BrokenLeftArm>`
     into a `M<LeftArm>`:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以使用 `mapM` 和 `healBrokenArm` 将 `M<BrokenLeftArm>` 转换为 `M<LeftArm>`：
 - en: '[PRE35]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: What we have now in `leftArmM` is a recipe for creating a unbroken and live
     left arm. All we need to do is add some vital force.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们在 `leftArmM` 中有了一个创建完整且活体的左手臂的配方。我们所需要做的就是添加一些生命力。
 - en: As before, we can do all these things up front, before the lightning strikes.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 与以往一样，我们可以在闪电袭来之前完成所有这些事情。
 - en: Now when the storm arrives, and the lightning has struck, and vital force is
     available, we can run `leftArmM` with the vital force...
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在当暴风雨来临，闪电击中，且有生命力可用时，我们可以运行带有生命力的 `leftArmM`……
 - en: '[PRE36]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '...and we get this result:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: ……我们得到了这个结果：
 - en: '[PRE37]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: A live left arm, just as we wanted.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个活体左手臂，就像我们想要的一样。
 - en: The Right Arm
+  id: totrans-189
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 右臂
 - en: On to the right arm next.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是右臂。
 - en: Again, there was a problem. Dr Frankenfunctor's notebooks record that there
     was no whole arm available. However there *was* a lower arm and an upper arm...
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次出现问题。弗兰肯函子博士的笔记记录表明没有整只手臂可用。然而 *却* 有下臂和上臂……
 - en: '[PRE38]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: '...which could be turned into corresponding live ones:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: ……这些数据可以转换为相应的活体部分：
 - en: '[PRE39]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: Dr Frankenfunctor decided to do surgery to join the two arm sections into a
     whole arm.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 弗兰肯函子决定做手术将两个手臂部分连接成一个完整的手臂。
 - en: '[PRE40]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: As with the broken arm, the surgery could only be done with *live* parts. Doing
     that with dead parts would be yucky and gross.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 与断臂一样，手术只能使用 *活体* 部分完成。用死亡部分做这件事会很恶心和恶心。
 - en: But also, as with the broken arm, we don't have access to the live parts directly,
     only within the context of an `M` wrapper.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，与断臂一样，我们无法直接访问活体部位，只能在 `M` 包装器的上下文中访问。
 - en: In other words we need to convert our `armSurgery` function that works with
     normal live parts, and convert it into a `armSurgeryM` function that works with
     `M`s.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们需要将我们的 `armSurgery` 函数转换为一个能够处理 `M` 的 `armSurgeryM` 函数，这个函数适用于正常的活体部分。
 - en: '![armsurgeryM](monadster_armsurgeryM.png)'
+  id: totrans-200
   prefs: []
   type: TYPE_IMG
+  zh: '![armsurgeryM](monadster_armsurgeryM.png)'
 - en: 'We can use the same approach as we did before:'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以像以前一样使用相同的方法：
 - en: create a inner function that takes a vitalForce parameter
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个带有 vitalForce 参数的内部函数。
 - en: run the incoming parameters with the vitalForce to extract the data
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用生命力运行传入的参数以提取数据
 - en: from the inner function return the new data after surgery
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从内部函数返回手术后的新数据。
 - en: wrap the inner function in an "M" and return it
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将内部函数包装在一个“M”中并返回它。
 - en: 'Here''s the code:'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE41]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: One big difference from the broken arm example is that we have *two* parameters,
     of course. When we run the second parameter (to get the `liveUpperArm`), we must
     be sure to pass in the *remaining vital force* after the first step, not the original
     one.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 与断臂示例相比的一个重要区别是，我们当然有 *两个* 参数。当我们运行第二个参数（以获得 `liveUpperArm`）时，我们必须确保传入第一步后的
+    *剩余生命力*，而不是原始的生命力。
 - en: And then, when we return from the inner function, we must be sure to return
     `remainingVitalForce2` (the remainder after the second step) not any other one.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，当我们从内部函数返回时，我们必须确保返回 `remainingVitalForce2`（第二步之后的剩余部分），而不是其他任何部分。
 - en: 'If we compile this code, we get:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们编译这段代码，我们得到：
 - en: '[PRE42]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: which is just the signature we are looking for.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是我们正在寻找的签名。
 - en: Introducing map2M
+  id: totrans-213
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍 map2M
 - en: But as before, why not make this more generic? We don't need to hard-code `armSurgery`
     -- we can pass it as a parameter.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，与以前一样，为什么不将其更通用化呢？我们不需要硬编码 `armSurgery` -- 我们可以将其作为参数传递。
 - en: We'll call the more generic function `map2M` -- just like `mapM` but with two
     parameters.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将更通用的函数称为 `map2M` -- 就像 `mapM` 一样，但有两个参数。
 - en: 'Here''s the implementation:'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是实现：
 - en: '[PRE43]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'And it has the signature:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 它具有的签名是：
 - en: '[PRE44]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Just as with `mapM` we can interpret this function as a "function converter"
     that converts a "normal" two parameter function into a function in the world of
     `M`.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在 `mapM` 中所做的那样，我们可以将此函数解释为一个“函数转换器”，将“正常”的双参数函数转换为 `M` 世界中的函数。
 - en: '![map2M](monadster_map2m.png)'
+  id: totrans-221
   prefs: []
   type: TYPE_IMG
+  zh: '![map2M](monadster_map2m.png)'
 - en: Testing the right arm
+  id: totrans-222
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试右臂
 - en: Again, let's test what we've got so far.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，让我们测试一下到目前为止我们得到了什么。
 - en: As always, we need some functions to convert the dead parts into live parts.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 像以往一样，我们需要一些函数将死亡部分转换为活体部分。
 - en: '[PRE45]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '*By the way, are you noticing that there is a lot of duplication in these functions?
     Me too! We will attempt to fix that later.*'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
 - en: 'Next, we''ll create the parts:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE46]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'And then create the function to make a whole arm:'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE47]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: As always, we can do all these things up front, before the lightning strikes,
     building a recipe (or *computation* if you like) that will do everything we need
     when the time comes.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
 - en: When the vital force is available, we can run `rightArmM` with the vital force...
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE48]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: '...and we get this result:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE49]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: A live right arm, composed of two subcomponents, just as required.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
 - en: Also note that the remaining vital force has gone down to *eight*. We have correctly
     used up two units of vital force.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this post, we saw how to create a `M` type that wrapped a "become alive"
     function that in turn could only be activated when lightning struck.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
 - en: We also saw how various M-values could be processed and combined using `mapM`
     (for the broken arm) and `map2M` (for the arm in two parts).
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
 - en: '*The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
 - en: Next time
+  id: totrans-242
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: This exciting tale has more shocks in store for you! Stay tuned for [the next
     installment](monadster-2.html), when I reveal how the head and body were created.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
 - en: Completing the body of the Monadster
+  id: totrans-244
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Completing the body of the Monadster
+  id: totrans-245
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
 - en: '*Warning! This post contains gruesome topics, strained analogies, discussion
     of monads*'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
 - en: Welcome to the gripping tale of Dr Frankenfunctor and the Monadster!
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
 - en: We saw [in the previous installment](monadster.html) how Dr Frankenfunctor created
     life out of dead body parts using "Monadster part generators" (or "M"s for short),
     that would, on being supplied with some vital force, return a live body part.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
 - en: We also saw how the leg and arms of the creature were created, and how these
     M-values could be processed and combined using `mapM` (for the broken arm) and
     `map2M` (for the arm in two parts).
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
 - en: In this second installment, we'll look at the other techniques Dr Frankenfunctor
     used to create the head, the heart, and the complete body.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
 - en: The Head
+  id: totrans-252
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: First, the head.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
 - en: Just like the right arm, the head is composed of two parts, a brain and a skull.
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
 - en: 'Dr Frankenfunctor started by defining the dead brain and skull:'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE50]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Unlike the two-part right arm, only the brain needs to become alive. The skull
     can be used as is and does not need to be transformed before being used in a live
     head.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE51]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: The live brain is combined with the skull to make a live head using a `headSurgery`
     function, analogous to the `armSurgery` we had earlier.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE52]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Now we are ready to create a live head -- but how should we do it?
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
 - en: It would be great if we could reuse `map2M`, but there's a catch -- for `map2M`
     to work, it needs a skull wrapped in a `M`.
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
 - en: '![head](monadster_head1.png)'
+  id: totrans-263
   prefs: []
   type: TYPE_IMG
 - en: But the skull doesn't need to become alive or use vital force, so we will need
     to create a special function that converts a `Skull` to a `M<Skull>`.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是头骨不需要变得活着或使用活力，所以我们需要创建一个特殊的函数，将 `Skull` 转换为 `M<Skull>`。
 - en: 'We can use the same approach as we did before:'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以像之前一样使用相同的方法：
 - en: create a inner function that takes a vitalForce parameter
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个接受 vitalForce 参数的内部函数
 - en: in this case, we leave the vitalForce untouched
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这种情况下，我们保持 vitalForce 不变
 - en: from the inner function return the original skull and the untouched vitalForce
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从内部函数返回原始头骨和未触及的 vitalForce
 - en: wrap the inner function in an "M" and return it
+  id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将内部函数包装在 "M" 中并返回它
 - en: 'Here''s the code:'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是代码：
 - en: '[PRE53]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: But the signature of `wrapSkullInM` is quite interesting.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是 `wrapSkullInM` 的签名非常有趣。
 - en: '[PRE54]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: No mention of skulls anywhere!
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何地方都没有提到头骨！
 - en: Introducing returnM
+  id: totrans-275
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍 returnM
 - en: We've created a completely generic function that will turn anything into an
     `M`. So let's rename it. I'm going to call it `returnM`, but in other contexts
     it might be called `pure` or `unit`.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经创建了一个完全通用的函数，可以将任何东西转换为 `M`。所以让我们重新命名它。我将它称为 `returnM`，但在其他上下文中可能会称为 `pure`
+    或 `unit`。
 - en: '[PRE55]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: Testing the head
+  id: totrans-278
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试头部
 - en: Let's put this into action.
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们付诸行动。
 - en: First, we need to define how to create a live brain.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要定义如何创建活脑。
 - en: '[PRE56]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: 'Next we obtain a dead brain and skull:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来我们获取一颗死脑和头骨：
 - en: '[PRE57]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: '*By the way, how this particular dead brain was obtained is an [interesting
     story](https://en.wikipedia.org/wiki/Young_Frankenstein) that I don''t have time
     to go into right now.*'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: '*顺便说一句，这个特定的死脑是如何获得的是一个[有趣的故事](https://en.wikipedia.org/wiki/Young_Frankenstein)，但我现在没有时间详细说明。*'
 - en: '![abnormal brain](monadster_brain.jpg)'
+  id: totrans-285
   prefs: []
   type: TYPE_IMG
+  zh: '![异常脑](monadster_brain.jpg)'
 - en: 'Next we build the "M" versions from the dead parts:'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们从死部件中构建 "M" 版本：
 - en: '[PRE58]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'And combine the parts using `map2M`:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 并使用 `map2M` 组合部分：
 - en: '[PRE59]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: Once again, we can do all these things up front, before the lightning strikes.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们可以在闪电袭击之前完成所有这些事情。
 - en: When the vital force is available, we can run `headM` with the vital force...
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 当活力可用时，我们可以用活力运行 `headM`...
 - en: '[PRE60]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '...and we get this result:'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: '...然后我们得到了这个结果：'
 - en: '[PRE61]'
+  id: totrans-294
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: A live head, composed of two subcomponents, just as required.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个活头部，由两个子组件组成，正如所需的那样。
 - en: Also note that the remaining vital force is just nine, as the skull did not
     use up any units.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要注意，剩下的活力只有九，因为头骨没有使用任何单位。
 - en: The Beating Heart
+  id: totrans-297
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 跳动的心脏
 - en: There is one more component we need, and that is a heart.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一个组件我们需要，那就是一个心脏。
 - en: 'First, we have a dead heart and a live heart defined in the usual way:'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们以通常的方式定义了一个死心脏和一个活心脏：
 - en: '[PRE62]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'But the creature needs more than a live heart -- it needs a *beating heart*.
     A beating heart is constructed from a live heart and some more vital force, like
     this:'
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是生物不仅需要一个活心脏 -- 它还需要一个*跳动的心脏*。一个跳动的心脏是由一个活心脏和一些额外的活力构成的，就像这样：
 - en: '[PRE63]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'The code that creates a live heart is very similar to the previous examples:'
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建活心脏的代码与先前的示例非常相似：
 - en: '[PRE64]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: The code that creates a beating heart is also very similar. It takes a live
     heart as a parameter, uses up another unit of vital force, and returns the beating
     heart and the remaining vital force.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建跳动的心脏的代码也非常相似。它以一个活心脏作为参数，使用另一个单位的活力，并返回跳动的心脏和剩余的活力。
 - en: '[PRE65]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: If we look at the signatures for these functions, we see that they are very
     similar; both of the form `Something -> M<SomethingElse>`.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们查看这些函数的签名，我们会发现它们非常相似；都是形式为 `Something -> M<SomethingElse>`。
 - en: '[PRE66]'
+  id: totrans-308
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: Chaining together M-returning functions
+  id: totrans-309
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 连接起来返回 M 的函数
 - en: We start with a dead heart, and we need to get a beating heat
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从一个死心脏开始，我们需要得到一个跳动的心脏
 - en: '![heart1](monadster_heart1.png)'
+  id: totrans-311
   prefs: []
   type: TYPE_IMG
+  zh: '![heart1](monadster_heart1.png)'
 - en: But we don't have the tools to do this directly.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我们没有直接做这件事的工具。
 - en: We have a function that turns a `DeadHeart` into a `M<LiveHeart>`, and we have
     a function that turns a `LiveHeart` into a `M<BeatingHeart>`.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有一个将 `DeadHeart` 转换为 `M<LiveHeart>` 的函数，还有一个将 `LiveHeart` 转换为 `M<BeatingHeart>`
+    的函数。
 - en: But the output of the first is not compatible with the input of the second,
     so we can't glue them together.
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 但第一个的输出与第二个的输入不兼容，所以我们无法将它们粘合在一起。
 - en: '![heart2](monadster_heart2.png)'
+  id: totrans-315
   prefs: []
   type: TYPE_IMG
+  zh: '![heart2](monadster_heart2.png)'
 - en: What we want then, is a function that, given a `M<LiveHeart>` as input, can
     convert it to a `M<BeatingHeart>`.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们想要一个函数，给定一个 `M<LiveHeart>` 作为输入，可以将其转换为 `M<BeatingHeart>`。
 - en: And furthermore, we want to build it from the `makeBeatingHeart` function we
     already have.
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 而且，我们还想要从我们已经拥有的 `makeBeatingHeart` 函数构建它。
 - en: '![heart2](monadster_heart3.png)'
+  id: totrans-318
   prefs: []
   type: TYPE_IMG
+  zh: '![heart2](monadster_heart3.png)'
 - en: 'Here''s a first attempt, using the same pattern we''ve used many times before:'
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE67]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: But what goes in the middle? How can we get a beating heart from a `beatingHeartM`?
     The answer is to run it with some vital force (which we happen to have on hand,
     because we are in the middle of the `becomeAlive` function).
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
 - en: What vital force though? It should be the remaining vital force after getting
     the `liveHeart`.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
 - en: 'So the final version looks like this:'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE68]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: Notice that we return `remainingVitalForce2` at the end, the remainder after
     both steps are run.
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
 - en: 'If we look at the signature for this function, it is:'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE69]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: which is just what we wanted!
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
 - en: Introducing bindM
+  id: totrans-329
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Once again, we can make this function generic by passing in a function parameter
     rather than hardcoding `makeBeatingHeart`.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
 - en: 'I''ll call it `bindM`. Here''s the code:'
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE70]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'and the signature is:'
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE71]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: In other words, given any function `Something -> M<SomethingElse>`, I can convert
     it to a function `M<Something> -> M<SomethingElse>` that has an `M` as input and
     output.
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
 - en: By the way, functions with a signature like `Something -> M<SomethingElse>`
     are often called *monadic* functions.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
 - en: 'Anyway, once you understand what is going on in `bindM`, a slightly shorter
     version can be implemented like this:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE72]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: So finally, we have a way of creating a function, that given a `DeadHeart`,
     creates a `M<BeatingHeart>`.
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
 - en: '![heart3](monadster_heart4.png)'
+  id: totrans-340
   prefs: []
   type: TYPE_IMG
 - en: 'Here''s the code:'
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE73]'
+  id: totrans-342
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'There are a lot of intermediate values in there, and it can be made simpler
     by using piping, like this:'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE74]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: The importance of bind
+  id: totrans-345
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: One way of thinking about `bindM` is that it is another "function converter",
     just like `mapM`. That is, given any "M-returning" function, it converts it to
     a function where the input and output are both `M`s.
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
 - en: '![bindM](monadster_bindm.png)'
+  id: totrans-347
   prefs: []
   type: TYPE_IMG
 - en: Just like `map`, `bind` appears in many other contexts.
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
 - en: For example, `Option.bind` transforms a option-generating function (`'a -> 'b
     option`) into a function whose inputs and outputs are options. Similarly, `List.bind`
     transforms a list-generating function (`'a -> 'b list`) into a function whose
     inputs and outputs are lists.
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
 - en: And I discuss yet another version of bind at length in my talk on [functional
     error handling](http://fsharpforfunandprofit.com/rop/).
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
 - en: The reason that bind is so important is that "M-returning" functions crop up
     a lot, and they cannot be chained together easily because the output of one step
     does not match the input of the the next step.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
 - en: By using `bindM`, we can convert each step into a function where the input and
     output are both `M`s, and then they *can* be chained together.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
 - en: '![bindM](monadster_bindm2.png)'
+  id: totrans-353
   prefs: []
   type: TYPE_IMG
 - en: Testing the beating heart
+  id: totrans-354
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: As always, we construct the recipe ahead of time, in this case, to make a `BeatingHeart`.
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE75]'
+  id: totrans-356
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: When the vital force is available, we can run `beatingHeartM` with the vital
     force...
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE76]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: '...and we get this result:'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE77]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Note that the remaining vital force is eight units, as we used up two units
     doing two steps.
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
 - en: The Whole Body
+  id: totrans-362
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Finally, we have all the parts we need to assemble a complete body.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here is Dr Frankenfunctor''s definition of a live body:'
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE78]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: You can see that it uses all the subcomponents that we have already developed.
+  id: totrans-366
   prefs: []
   type: TYPE_NORMAL
 - en: Two left feet
+  id: totrans-367
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Because there was no right leg available, Dr Frankenfunctor decided to take
     a short cut and use *two* left legs in the body, hoping that no one would notice.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
 - en: 'The result of this was that the creature had two left feet, [which is not always
     a handicap](https://www.youtube.com/watch?v=DC_PACr5cT8&t=55), and indeed, the
     creature not only overcame this disadvantage but became a creditable dancer, as
     can be seen in this rare footage:'
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
 - en: '[https://www.youtube.com/embed/w1FLZPFI3jc](https://www.youtube.com/embed/w1FLZPFI3jc)'
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
 - en: Assembling the subcomponents
+  id: totrans-371
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The `LiveBody` type has six fields. How can we construct it from the various
     `M<BodyPart>`s that we have?
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
 - en: One way would be to repeat the technique that we used with `mapM` and `map2M`.
     We could create a `map3M` and `map4M` and so on.
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
 - en: 'For example, `map3M` could be defined like this:'
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE79]'
+  id: totrans-375
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: But that gets tedious quite quickly. Is there a better way?
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
 - en: Why, yes there is!
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
 - en: To understand it, remember that record types like `LiveBody` have to be built
     all-or-nothing, but *functions* can be assembled step by step, thanks to the magic
     of currying and partial application.
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
 - en: 'So if we have a six parameter function that creates a `LiveBody`, like this:'
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE80]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: 'we can actually think of it as a *one* parameter function that returns a five
     parameter function, like this:'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE81]'
+  id: totrans-382
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: 'and then when we apply the function to the first parameter ("leftLeg") we get
     back that five parameter function:'
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE82]'
+  id: totrans-384
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: 'where the five parameter function has the signature:'
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE83]'
+  id: totrans-386
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: 'This five parameter function can in turn be thought of as a one parameter function
     that returns a four parameter function:'
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE84]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: 'Again, we can apply a first parameter ("rightLeg") and get back that four parameter
     function:'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE85]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: 'where the four parameter function has the signature:'
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE86]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: And so on and so on, until eventually we get a function with one parameter.
     The function will have the signature `BeatingHeart -> LiveBody`.
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
 - en: When we apply the final parameter ("beatingHeart") then we get back our completed
     `LiveBody`.
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
 - en: We can use this trick for M-things as well!
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
 - en: We start with the six parameter function wrapped in an M, and an M <liveleftleg
     class="hljs-class">parameter.</liveleftleg>
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
 - en: Let's assume there is some way to "apply" the M-function to the M-parameter.
     We should get back a five parameter function wrapped in an `M`.
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE87]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: And then doing that again, we can apply the next M-parameter
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE88]'
+  id: totrans-400
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: and so on, applying the parameters one by one until we get the final result.
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
 - en: Introducing applyM
+  id: totrans-402
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: This `applyM` function will have two parameters then, a function wrapped in
     an M, and a parameter wrapped in an M. The output will be the result of the function
     wrapped in an M.
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the implementation:'
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE89]'
+  id: totrans-405
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: As you can see it is quite similar to `map2M`, except that the "f" comes from
     unwrapping the first parameter itself.
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
 - en: Let's try it out!
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
 - en: 'First we need our six parameter function:'
+  id: totrans-408
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE90]'
+  id: totrans-409
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: 'And we''re going to need to clone the left leg to use it for the right leg:'
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE91]'
+  id: totrans-411
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: Next, we need to wrap this `createBody` function in an `M`. How can we do that?
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
 - en: With the `returnM` function we defined earlier for skull, of course!
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
 - en: 'So putting it together, we have this code:'
+  id: totrans-414
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE92]'
+  id: totrans-415
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: It works! The result is a `M<LiveBody>` just as we want.
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
 - en: But that code sure is ugly! What can we do to make it look nicer?
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
 - en: One trick is to turn `applyM` into an infix operation, just like normal function
     application. The operator used for this is commonly written `<*>`.
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE93]'
+  id: totrans-419
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'With this in place, we can rewite the above code as:'
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE94]'
+  id: totrans-421
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: which is much nicer!
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
 - en: Another trick is to notice that the `returnM` followed by `applyM` is the same
     as `mapM`. So if we create an infix operator for `mapM` too...
+  id: totrans-423
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE95]'
+  id: totrans-424
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: '...we can get rid of the `returnM` as well and write the code like this:'
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE96]'
+  id: totrans-426
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: What's nice about this is that it reads almost as if you were just calling the
     original function (once you get used to the symbols!)
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
 - en: Testing the whole body
+  id: totrans-428
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: As always, we want to construct the recipe ahead of time. In this case, we have
     already created the `bodyM` that will give us a complete `LiveBody` when the vital
     force arrives.
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: Now all we have to do is wait for lightning to strike and charge the machinery
     that generates the vital force!
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: '![Electricity in the lab](monadster-lab-electricity.gif)'
+  id: totrans-431
   prefs: []
   type: TYPE_IMG
 - en: '[[Source: Misfit Robot Daydream](http://misfitdaydream.blogspot.co.uk/2012/10/frankenstein-1931.html)]'
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: Here it comes -- the vital force is available! Quickly we run `bodyM` in the
     usual way...
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE97]'
+  id: totrans-434
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: '...and we get this result:'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE98]'
+  id: totrans-436
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: It's alive! We have successfully reproduced Dr Frankenfunctor's work!
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
 - en: Note that the body contains all the correct subcomponents, and that the remaining
     vital force has been correctly reduced to two units, as we used up eight units
     creating the body.
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-439
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'In this post, we extended our repertoire of manipulation techniques to include:'
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
 - en: '`returnM` for the skull'
+  id: totrans-441
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`bindM` for the beating heart'
+  id: totrans-442
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`applyM` to assemble the whole body'
+  id: totrans-443
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
 - en: Next time
+  id: totrans-445
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In [the final installment](monadster-3.html), we'll refactor the code and review
     all the techniques used.
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: Refactoring the Monadster
+  id: totrans-447
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Refactoring the Monadster
+  id: totrans-448
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
 - en: '*Warning! This post contains gruesome topics, strained analogies, discussion
     of monads*'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: Welcome to the third installment in the gripping tale of Dr Frankenfunctor and
     the Monadster!
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
 - en: We saw [in the first installment](monadster.html) how Dr Frankenfunctor created
     life out of dead body parts using "Monadster part generators" (or "M"s for short),
     that would, on being supplied with some vital force, return a live body part.
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
 - en: We also saw how the leg and arms of the creature were created, and how these
     M-values could be processed and combined using `mapM` and `map2M`.
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
 - en: In [the second installment](monadster-2.html) we learned how the head, heart
     and body were built using other powerful techniques such as `returnM`, `bindM`
     and `applyM`.
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: In this last installment, we'll review all the techniques used, refactor the
     code, and compare Dr Frankenfunctor's techniques to the modern-day state monad.
+  id: totrans-455
   prefs: []
   type: TYPE_NORMAL
 - en: 'Links for the complete series:'
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
 - en: '[Part 1 - Dr Frankenfunctor and the Monadster](monadster.html)'
+  id: totrans-457
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Part 2 - Completing the body](monadster-2.html)'
+  id: totrans-458
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Part 3 - Review and refactoring](monadster-3.html) (*this post*)'
+  id: totrans-459
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Review of the the techniques used
+  id: totrans-460
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Before we refactor, let's review all the techniques we have used.
+  id: totrans-461
   prefs: []
   type: TYPE_NORMAL
 - en: The M <bodypart class="calibre44">type</bodypart>
+  id: totrans-462
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1670,15 +2456,20 @@
     We did this by creating a type `M` that wrapped a "become alive" function for
     each part. We could then think of `M<BodyPart>` as a *recipe* or *instructions*
     for creating a `BodyPart` when the time came.
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
 - en: 'The definition of `M` was:'
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE99]'
+  id: totrans-465
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: mapM
+  id: totrans-466
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1687,62 +2478,84 @@
     into a unbroken arm recipe (`M<LeftArm>`). The solution was to implement a function
     `mapM` that took a normal function `'a -> 'b` and turned it into a `M<'a> -> M<'b>`
     function.
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
 - en: 'The signature of `mapM` was:'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE100]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: map2M
+  id: totrans-470
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: We also wanted to combine two M-recipes to make a new one. In that particular
     case, it was combining an upper arm (`M<UpperRightArm>`) and lower arm (`M<LowerRightArm>`)
     into a whole arm (`M<RightArm>`). The solution was `map2M`.
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
 - en: 'The signature of `map2M` was:'
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE101]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: returnM
+  id: totrans-474
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Another challenge was to lift a normal value into the world of M-recipes directly,
     without using any vital force. In that particular case, it was turning a `Skull`
     into an `M<Skull>` so it could be used with `map2M` to make a whole head.
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
 - en: 'The signature of `returnM` was:'
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE102]'
+  id: totrans-477
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: Monadic functions
+  id: totrans-478
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'We created many functions that had a similar shape. They all take something
     as input and return a M-recipe as output. In other words, they have this signature:'
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE103]'
+  id: totrans-480
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: 'Here are some examples of actual monadic functions that we used:'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE104]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: bindM
+  id: totrans-483
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1753,15 +2566,20 @@
     M<BeatingHeart>`). The solution was `bindM`, which transforms monadic functions
     of the form `'a -> M<'b>` into functions in the M-world (`M<'a> -> M<'b>`) which
     could then be composed together.
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
 - en: 'The signature of `bindM` was:'
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE105]'
+  id: totrans-486
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: applyM
+  id: totrans-487
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1770,605 +2588,811 @@
     `map6M`, etc), we implemented a generic `applyM` function that could apply an
     M-function to an M-parameter. From that, we could work with a function of any
     size, step by step, using partial application to apply one M-parameter at a time.
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: 'The signature of `applyM` was:'
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE106]'
+  id: totrans-490
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: Defining the others functions in terms of bind and return
+  id: totrans-491
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Note that of all these functions, only `bindM` needed access to the vital force.
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, as we'll see below, the functions `mapM`, `map2M`, and `applyM` can
     actually be defined in terms of `bindM` and `returnM`!
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
 - en: Refactoring to a computation expression
+  id: totrans-494
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'A lot of the functions we have created have a very similar shape, resulting
     in a lot of duplication. Here''s one example:'
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE107]'
+  id: totrans-496
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: In particular, there is a lot of explicit handling of the vital force.
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
 - en: In most functional languages, there is a way to hide this so that the code looks
     much cleaner.
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
 - en: In Haskell, developers use "do-notation", in Scala people use "for-yield" (the
     "for comprehension"). And in F#, people use computation expressions.
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
 - en: To create a computation expression in F#, you just need two things to start
     with, a "bind" and a "return", both of which we have.
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
 - en: 'Next, you define a class with specially named methods `Bind` and `Return`:'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE108]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: 'And finally, you create an instance of this class:'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE109]'
+  id: totrans-504
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: When this is done, we have access to the special syntax `monster {...}`, just
     like `async{...}`, `seq{...}`, etc.
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
 - en: The `let! x = xM` syntax requires that the right side is an M-type, say `M<X>`.
+  id: totrans-506
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`let!` unwraps the `M<X>` into an `X` and binds it to the left side -- "x"
     in this case.'
+  id: totrans-507
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: The `return y` syntax requires that return value is a "normal" type, `Y` say.
+  id: totrans-508
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`return` wraps it into a `M<Y>` (using `returnM`) and returns it as the overall
     value of the `monster` expression.'
+  id: totrans-509
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'So some example code would look like this:'
+  id: totrans-510
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE110]'
+  id: totrans-511
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: '*If you want more on computation expressions, I have an [in-depth series of
     posts about them](computation-expressions.html).*'
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
 - en: Redefining mapM and friends
+  id: totrans-513
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: With `monster` expressions available, let's rewrite `mapM` and the other functions.
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
 - en: '**mapM**'
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
 - en: '`mapM` takes a function and a wrapped M-value and returns the function applied
     to the inner value.'
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here is an implementation using `monster`:'
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE111]'
+  id: totrans-518
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: 'If we compile this implementation, we get the same signature as the previous
     implementation:'
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE112]'
+  id: totrans-520
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: '**map2M**'
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
 - en: '`map2M` takes a function and two wrapped M-values and returns the function
     applied to both the values.'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
 - en: 'It''s also easy to write using `monster` expressions:'
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE113]'
+  id: totrans-524
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: 'If we compile this implementation, we again get the same signature as the previous
     implementation:'
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE114]'
+  id: totrans-526
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: '**applyM**'
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
 - en: '`applyM` takes a wrapped function and a wrapped value and returns the function
     applied to the value.'
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
 - en: 'Again, it''s trivial to write using `monster` expressions:'
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE115]'
+  id: totrans-530
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: And the signature is as expected
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE116]'
+  id: totrans-532
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: Manipulating the vital force from within a monster context
+  id: totrans-533
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: We'd like to use the monster expression to rewrite all our other functions too,
     but there is a stumbling block.
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
 - en: 'Many of our functions have a body that looks like this:'
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE117]'
+  id: totrans-536
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: In other words, we're *getting* some of the vital force and then *putting* a
     new vital force to be used for the next step.
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
 - en: We are familiar with "getters" and "setters" in object-oriented programming,
     so let's see if we can write similar ones that will work in the `monster` context.
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
 - en: Introducing getM
+  id: totrans-539
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Let's start with the getter. How should we implement it?
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
 - en: 'Well, the vital force is only available in the context of becoming alive, so
     the function must follow the familiar template:'
+  id: totrans-541
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE118]'
+  id: totrans-542
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: Note that getting the `vitalForce` doesn't use any up, so the original amount
     can be returned untouched.
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
 - en: But what should happen in the middle? And what should be returned as the first
     element of the tuple?
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
 - en: 'The answer is simple: just return the vital force itself!'
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE119]'
+  id: totrans-546
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: '`getM` is a `M<VitalForce>` value, which means that we can unwrap it inside
     a monster expression like this:'
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE120]'
+  id: totrans-548
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: Introducing putM
+  id: totrans-549
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: For the putter, the implementation is a function with a parameter for the new
     vital force.
+  id: totrans-550
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE121]'
+  id: totrans-551
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: Again, what should we do in the middle?
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
 - en: The most important thing is that the `newVitalForce` becomes the value that
     is passed on to the next step. We must throw away the original vital force!
+  id: totrans-553
   prefs: []
   type: TYPE_NORMAL
 - en: Which in turn means that `newVitalForce` *must* be used as the second part of
     the tuple that is returned.
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
 - en: And what should be in the first part of the tuple that is returned? There is
     no sensible value to return, so we'll just use `unit`.
+  id: totrans-555
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the final implementation:'
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE122]'
+  id: totrans-557
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: With `getM` and `putM` in place, we can now create a function that
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
 - en: gets the current vital force from the context
+  id: totrans-559
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: extracts one unit from that
+  id: totrans-560
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: replaces the current vital force with the remaining vital force
+  id: totrans-561
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: returns the one unit of vital force to the caller
+  id: totrans-562
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'And here''s the code:'
+  id: totrans-563
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE123]'
+  id: totrans-564
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: Using the monster expression to rewrite all the other functions
+  id: totrans-565
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: With `useUpOneUnitM`, we can start to rewrite all the other functions.
+  id: totrans-566
   prefs: []
   type: TYPE_NORMAL
 - en: For example, the original function `makeLiveLeftLegM` looked like this, with
     lots of explicit handling of the vital force.
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE124]'
+  id: totrans-568
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: The new version, using a monster expression, has implicit handling of the vital
     force, and consequently looks much cleaner.
+  id: totrans-569
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE125]'
+  id: totrans-570
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: 'Similarly, we can rewrite all the arm surgery code like this:'
+  id: totrans-571
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE126]'
+  id: totrans-572
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: And so on. This new code is much cleaner.
+  id: totrans-573
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, we can make it cleaner yet by eliminating the intermediate values such
     as `armSurgery` and `armSurgeryM` and putting everything in the one monster expression.
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE127]'
+  id: totrans-575
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: We can use this approach for the head as well. We don't need `headSurgery` or
     `returnM` any more.
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE128]'
+  id: totrans-577
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: 'Finally, we can use a `monster` expression to create the whole body too:'
+  id: totrans-578
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE129]'
+  id: totrans-579
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: 'NOTE: The complete code using `monster` expressions is [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster2-fsx).'
+  id: totrans-580
   prefs: []
   type: TYPE_NORMAL
 - en: Monster expressions vs applyM
+  id: totrans-581
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: We previously used an alternative way to create the body, using `applyM`.
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
 - en: 'For reference, here''s that way using `applyM`:'
+  id: totrans-583
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE130]'
+  id: totrans-584
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: So what's the difference?
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
 - en: Aesthetically there is a bit of difference, but you could legitimately prefer
     either.
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
 - en: However, there is a much more important difference between the `applyM` approach
     and the `monster` expression approach.
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
 - en: The `applyM` approach allows the parameters to be run *independently* or *in
     parallel*, while the `monster` expression approach requires that the parameters
     are run *in sequence*, with the output of one being fed into the input of the
     next.
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
 - en: That's not relevant for this scenario, but can be important for other situations
     such as validation or async. For example, in a validation context, you may want
     to collect all the validation errors at once, rather than only returning the first
     one that fails.
+  id: totrans-589
   prefs: []
   type: TYPE_NORMAL
 - en: Relationship to the state monad
+  id: totrans-590
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Dr Frankenfunctor was a pioneer in her time, blazing a new trail, but she did
     not generalize her discoveries to other domains.
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
 - en: 'Nowadays, this pattern of threading some information through a series of functions
     is very common, and we give it a standard name: "State Monad".'
+  id: totrans-592
   prefs: []
   type: TYPE_NORMAL
 - en: Now to be a true monad, there are various properties that must be satisfied
     (the so-called monad laws), but I am not going to discuss them here, as this post
     is not intended to be a monad tutorial.
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
 - en: Instead, I'll just focus on how the state monad might be defined and used in
     practice.
+  id: totrans-594
   prefs: []
   type: TYPE_NORMAL
 - en: First off, to be truly reusable, we need to replace the `VitalForce` type with
     other types. So our function-wrapping type (call it `S`) must have *two* type
     parameters, one for the type of the state, and one for the type of the value.
+  id: totrans-595
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE131]'
+  id: totrans-596
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: 'With this defined, we can create the usual suspects: `runS`, `returnS` and
     `bindS`.'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE132]'
+  id: totrans-598
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: Personlly, I'm glad that we got to understood how these worked in the `M` context
     before making them completely generic. I don't know about you, but signatures
     like these
+  id: totrans-599
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE133]'
+  id: totrans-600
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: would be really hard to understand on their own, without any preparation.
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
 - en: Anyway, with those basics in place we can create a `state` expression.
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE134]'
+  id: totrans-603
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: '`getS` and `putS` are defined in a similar way as `getM` and `putM` for `monster`.'
+  id: totrans-604
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE135]'
+  id: totrans-605
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: Property based testing of the state expression
+  id: totrans-606
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Before moving on, how do we know that our `state` implementation is correct?
     What does it even *mean* to be correct?
+  id: totrans-607
   prefs: []
   type: TYPE_NORMAL
 - en: Well, rather than writing lots of example based tests, this is a great candidate
     for a [property-based testing](http://fsharpforfunandprofit.com/pbt/) approach.
+  id: totrans-608
   prefs: []
   type: TYPE_NORMAL
 - en: 'The properties we might expect to be satisfied include:'
+  id: totrans-609
   prefs: []
   type: TYPE_NORMAL
 - en: '[**The monad laws**](https://stackoverflow.com/questions/18569656/explanation-of-monad-laws-in-f).'
+  id: totrans-610
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Only the last put counts**. That is, putting X then putting Y should be the
     same as just putting Y.'
+  id: totrans-611
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Get should return the last put**. That is, putting X then doing a get should
     return the same X.'
+  id: totrans-612
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: and so on.
+  id: totrans-613
   prefs: []
   type: TYPE_NORMAL
 - en: I won't go into this any more right now. I suggest watching [the talk](http://fsharpforfunandprofit.com/pbt/)
     for a more in-depth discussion.
+  id: totrans-614
   prefs: []
   type: TYPE_NORMAL
 - en: Using the state expression instead of the monster expression
+  id: totrans-615
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'We can now use `state` expressions exactly as we did `monster` expressions.
     Here''s an example:'
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE136]'
+  id: totrans-617
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: 'Another example is how to build a `BeatingHeart`:'
+  id: totrans-618
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE137]'
+  id: totrans-619
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: As you can see, the `state` expression automatically picked up that `VitalForce`
     was being used as the state -- we didn't need to specify it explicitly.
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
 - en: So, if you have a `state` expression type available to you, you don't need to
     create your own expressions like `monster` at all!
+  id: totrans-621
   prefs: []
   type: TYPE_NORMAL
 - en: For a more detailed and complex example of the state monad in F#, check out
     the [FSharpx library](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs#L409).
+  id: totrans-622
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: The complete code using `state` expressions is [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster3-fsx).*'
+  id: totrans-623
   prefs: []
   type: TYPE_NORMAL
 - en: Other examples of using a state expression
+  id: totrans-624
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: The state computation expression, once defined, can be used for all sorts of
     things. For example, we can use `state` to model a stack.
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s start by defining a `Stack` type and associated functions:'
+  id: totrans-626
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE138]'
+  id: totrans-627
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: Note that none of that code knows about or uses the `state` computation expression.
+  id: totrans-628
   prefs: []
   type: TYPE_NORMAL
 - en: 'To make it work with `state`, we need to define a customized getter and putter
     for use in a `state` context:'
+  id: totrans-629
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE139]'
+  id: totrans-630
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: With these in place we can start coding our domain!
+  id: totrans-631
   prefs: []
   type: TYPE_NORMAL
 - en: Stack-based Hello World
+  id: totrans-632
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Here's a simple one. We push "world", then "hello", then pop the stack and combine
     the results.
+  id: totrans-633
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE140]'
+  id: totrans-634
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: Stack-based calculator
+  id: totrans-635
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Here''s a simple stack-based calculator:'
+  id: totrans-636
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE141]'
+  id: totrans-637
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: 'And now we can combine these basic states to build more complex ones:'
+  id: totrans-638
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE142]'
+  id: totrans-639
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: Remember that, just as with the vital force, all we have now is a *recipe* for
     building a stack. We still need to *run* it to execute the recipe and get the
     result.
+  id: totrans-640
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s add a helper to run all the operations and return the top of the stack:'
+  id: totrans-641
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE143]'
+  id: totrans-642
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: 'Now we can evaluate the operations, like this:'
+  id: totrans-643
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE144]'
+  id: totrans-644
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: OK, OK, some monad stuff
+  id: totrans-645
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: People always want to know about monads, even though I do not want these posts
     to degenerate into [yet another monad tutorial](why-i-wont-be-writing-a-monad-tutorial.html).
+  id: totrans-646
   prefs: []
   type: TYPE_NORMAL
 - en: So here's how they fit in with what we have worked with in these posts.
+  id: totrans-647
   prefs: []
   type: TYPE_NORMAL
 - en: A **functor** (in a programming sense, anyway) is a data structure (such as
     Option, or List, or State) which has a `map` function associated with it. And
     the `map` function has some properties that it must satisfy (the ["functor laws"](https://en.wikibooks.org/wiki/Haskell/The_Functor_class#The_functor_laws)).
+  id: totrans-648
   prefs: []
   type: TYPE_NORMAL
 - en: 'A **applicative functor** (in a programming sense) is a data structure (such
     as Option, or List, or State) which has two functions associated with it: `apply`
     and `pure` (which is the same as `return`). And these functions have some properties
     that they must satisfy (the ["applicative functor laws"](https://en.wikibooks.org/wiki/Haskell/Applicative_functors#Applicative_functor_laws)).'
+  id: totrans-649
   prefs: []
   type: TYPE_NORMAL
 - en: 'Finally, a **monad** (in a programming sense) is a data structure (such as
     Option, or List, or State) which has two functions associated with it: `bind`
     (often written as `>>=`) and `return`. And again, these functions have some properties
     that they must satisfy (the ["monad laws"](https://en.wikibooks.org/wiki/Haskell/Understanding_monads#Monad_Laws)).'
+  id: totrans-650
   prefs: []
   type: TYPE_NORMAL
 - en: Of these three, the monad is most "powerful" in a sense, because the `bind`
     function allows you to chain M-producing functions together, and as we have seen,
     `map` and `apply` can be written in terms of `bind` and `return`.
+  id: totrans-651
   prefs: []
   type: TYPE_NORMAL
 - en: So you can see that both our original `M` type and the more generic `State`
     type, in conjunction with their supporting functions, are monads, (assuming that
     our `bind` and `return` implementations satisfy the monad laws).
+  id: totrans-652
   prefs: []
   type: TYPE_NORMAL
 - en: For a visual version of these definitions, there is a great post called [Functors,
     Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html).
+  id: totrans-653
   prefs: []
   type: TYPE_NORMAL
 - en: Further reading
+  id: totrans-654
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -2376,57 +3400,71 @@
     are Haskell oriented, but I hope that those explanations will make more sense
     after reading this series of posts, so I'm only going to mention a few follow
     up links.
+  id: totrans-655
   prefs: []
   type: TYPE_NORMAL
 - en: '[State monad in pictures](http://adit.io/posts/2013-06-10-three-useful-monads.html#the-state-monad)'
+  id: totrans-656
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '["A few monads more", from "Learn You A Haskell"](http://learnyouahaskell.com/for-a-few-monads-more)'
+  id: totrans-657
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Much Ado About Monads](http://codebetter.com/matthewpodwysocki/2009/12/31/much-ado-about-monads-state-edition/).
     Discussion about state monad in F#.'
+  id: totrans-658
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: And for another important use of "bind", you might find my talk on [functional
     error handling](http://fsharpforfunandprofit.com/rop/) useful.
+  id: totrans-659
   prefs: []
   type: TYPE_NORMAL
 - en: If you want to see F# implementations of other monads, look no further than
     [the FSharpx project](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs).
+  id: totrans-660
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-661
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Dr Frankenfunctor was a groundbreaking experimentalist, and I'm glad that I
     have been able to share insights on her way of working.
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
 - en: We've seen how she discovered a primitive monad-like type, `M<BodyPart>`, and
     how `mapM`, `map2M`, `returnM`, `bindM` and `applyM` were all developed to solve
     specific problems.
+  id: totrans-663
   prefs: []
   type: TYPE_NORMAL
 - en: We've also seen how the need to solve the same problems led to the modern-day
     state monad and computation expression.
+  id: totrans-664
   prefs: []
   type: TYPE_NORMAL
 - en: Anyway, I hope that this series of posts has been enlightening. My not-so-secret
     wish is that monads and their associated combinators will no longer be so shocking
     to you now...
+  id: totrans-665
   prefs: []
   type: TYPE_NORMAL
 - en: '![shocking](monadster_shocking300.gif)'
+  id: totrans-666
   prefs: []
   type: TYPE_IMG
 - en: '...and that you can use them wisely in your own projects. Good luck!'
+  id: totrans-667
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  id: totrans-668
   prefs: []
   type: TYPE_NORMAL
