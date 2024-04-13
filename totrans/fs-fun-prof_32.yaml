@@ -1,2212 +1,3171 @@
 - en: 'Calculator Walkthrough: Part 1'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演示：第1部分
 - en: 'Calculator Walkthrough: Part 1'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演示：第1部分
 - en: One comment I hear often is a complaint about the gap between theory and practice
     in F# and functional programming in general. In other words, you know the theory,
     but how do you actually design and implement an application using FP principles?
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 我经常听到的一种评论是对F#和函数式编程中理论与实践之间的差距的抱怨。换句话说，你知道理论，但你如何实际上使用FP原则设计和实现应用程序？
 - en: So I thought it might be useful to show you how I personally would go about
     designing and implementing some little applications from beginning to end.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以我认为展示一下我个人如何从头到尾设计和实现一些小应用程序可能会有用。
 - en: These will be sort of annotated "live coding" sessions. I'll take a problem
     and start coding it, taking you through my thought process at each stage. I will
     make mistakes too, so you'll see how I deal with that, and do backtracking and
     refactoring.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些将是一种带注释的“实时编码”会话。我会拿一个问题开始编码，带你经历每个阶段的思考过程。我也会犯错误，所以你会看到我如何处理，进行回溯和重构。
 - en: Please be aware that I'm not claiming that this is production ready code. The
     code I'm going to show you is more like a exploratory sketch, and as a result
     I will do certain bad things (like not testing!) which I would not do for more
     critical code.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我并不是在声称这是生产就绪的代码。我将要展示给你的代码更像是一个探索性的草图，因此我会做一些不好的事情（比如不测试！），这是我在更关键的代码中不会做的。
 - en: 'For this first post in the series, I''ll be developing a simple pocket calculator
     app, like this:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个系列的第一篇文章中，我将开发一个简单的口袋计算器应用程序，就像这样：
 - en: '![Calculator image](calculator_1.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![计算器图片](calculator_1.png)'
 - en: My development approach
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我的开发方法
 - en: My approach to software development is eclectic and pragmatic -- I like to mix
     different techniques and alternate between top-down and bottom-up approaches.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我对软件开发的方法是折衷和实用主义的 -- 我喜欢混合不同的技术，并在自顶向下和自底向上方法之间交替。
 - en: Typically I start with the requirements -- I'm a fan of [requirements-driven
     design](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)! Ideally,
     I would aim to become an expert in the domain as well.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常我从需求开始 -- 我是[需求驱动设计](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)的粉丝！理想情况下，我也会努力成为该领域的专家。
 - en: Next, I work on modelling the domain, using [domain-driven design](http://fsharpforfunandprofit.com/ddd/)
     with a focus on domain events (["event storming"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)),
     not just static data ("aggregates" in DDD terminology).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我开始对领域进行建模，使用[领域驱动设计](http://fsharpforfunandprofit.com/ddd/)，重点放在领域事件（["事件风暴"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)）上，而不仅仅是静态数据（DDD术语中的“聚合”）。
 - en: As part of the modelling process, I sketch a design using [type-first development](http://tomasp.net/blog/type-first-development.aspx/)
     to [create types](designing-with-types.html) that represent both the domain data
     types ("nouns") and the domain activities ("verbs").
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在建模过程中，我使用[type-first development](http://tomasp.net/blog/type-first-development.aspx/)来勾勒设计，以创建代表领域数据类型（“名词”）和领域活动（“动词”）的类型。
 - en: After doing a first draft of the domain model, I typically switch to a "bottom
     up" approach and code a small prototype that exercises the model that I have defined
     so far.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对领域模型进行初步草稿后，我通常会转向“自下而上”的方法，并编写一个小型原型，以测试到目前为止定义的模型。
 - en: Doing some real coding at this point acts as a reality check. It ensures that
     the domain model actually makes sense and is not too abstract. And of course,
     it often drives more questions about the requirements and domain model, so I go
     back to step 1, do some refining and refactoring, and rinse and repeat until I
     am happy.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上进行一些真正的编码作为现实检验。这确保领域模型实际上是有意义的，而不是太抽象。当然，这通常会引发更多关于需求和领域模型的问题，所以我回到第一步，进行一些精炼和重构，反复进行直到满意。
 - en: (Now if I was working with a team on a large project, at this point we could
     also start [building a real system incrementally](http://www.growing-object-oriented-software.com/)
     and start on the user interface (e.g. with paper prototypes). Both of these activities
     will typically generate yet more questions and changes in requirements too, so
     the whole process is cyclical at all levels.)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: (现在如果我在一个大型项目上与团队合作，那么我们也可以开始[逐步构建一个真实系统](http://www.growing-object-oriented-software.com/)并开始用户界面（例如使用纸质原型）。这两项活动通常也会产生更多的问题和需求变更，因此整个过程在各个层面上都是循环的。)
 - en: So this would be my approach in a perfect world. In practice, of course, the
     world is not perfect. There is bad management to contend with, a lack of requirements,
     silly deadlines and more, all of which mean that I rarely get to use an ideal
     process.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这将是我在完美世界中的方法。实际上，当然，世界不是完美的。有糟糕的管理、缺乏需求、愚蠢的截止日期等等，这意味着我很少能够使用理想的流程。
 - en: But in this example, I'm the boss, so if I don't like the result, I've only
     myself to blame!
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在这个例子中，我是老板，所以如果我不喜欢结果，那我只能怪我自己！
 - en: Getting started
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 开始
 - en: So, let's get started. What should we do first?
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，让我们开始吧。我们应该先做什么呢？
 - en: Normally I would start with requirements. But do I *really* need to spend a
     lot of time writing up requirements for a calculator?
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常我会从需求开始。但是我*真的*需要花很多时间来编写计算器的需求吗？
 - en: I'm going to be lazy and say no. Instead I'm just to dive in -- I'm confident
     that I know how a calculator works. (*As you'll see later, I was wrong! Trying
     to write up the requirements would have been a good exercise, as there are some
     interesting edge cases.*)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我会懒一点，说不需要。相反，我只是直接开始了——我相信我知道计算器是如何工作的。（*正如你后来会看到的，我错了！尝试编写需求会是一个很好的练习，因为有一些有趣的边界情况。*）
 - en: So let's start with the type-first design instead.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们先从类型优先的设计开始。
 - en: In my designs, every use-case is a function, with one input and one output.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的设计中，每个用例都是一个函数，有一个输入和一个输出。
 - en: 'For this example then, we need to model the public interface to the Calculator
     as a function. Here''s the signature:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在这个例子中，我们需要将计算器的公共接口建模为一个函数。这是签名：
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'That was easy! The first question then is: are there any other use-cases that
     we need to model? I think for now, no. We''ll just start with a single case that
     handles all the inputs.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 那很容易！那么第一个问题是：我们是否需要建模其他用例？我认为暂时不需要。我们将从处理所有输入的单个用例开始。
 - en: Defining the input and output to the function
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义函数的输入和输出
 - en: But now we have created two new types, `CalculatorInput` and `CalculatorOutput`,
     that are undefined (and if you type this into a F# script file, you'll have red
     squigglies to remind you). We'd better define those now.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们创建了两个未定义的类型，`CalculatorInput` 和 `CalculatorOutput`，它们是未定义的（如果你将这些内容输入到一个
+    F# 脚本文件中，你会看到红色的波浪线来提醒你）。我们最好现在就定义它们。
 - en: Before moving on, I should make it very clear that the input and output types
     for this function are going to be pure and clean. When designing our domain we
     never want to be dealing with the messy world of strings, primitive datatypes,
     validation, and so on.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在继续之前，我应该非常清楚地指出，这个函数的输入和输出类型将是纯净的。在设计我们的领域时，我们永远不希望涉及到混乱的字符串、原始数据类型、验证等等。
 - en: Instead there will typically be a validation/transformation function that converts
     from the messy untrusted world into our lovely, pristine domain on the way in,
     and another similar function that does the reverse on the way out.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，通常会有一个验证/转换函数，用于在输入时将混乱的不受信任的世界转换为我们可爱的、纯净的领域，以及另一个类似的函数，用于在输出时执行相反的操作。
 - en: '![Domain input and output](domain_input_output.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![领域输入和输出](domain_input_output.png)'
 - en: Ok, let's work on the `CalculatorInput` first. What would the structure of the
     input look like?
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们首先处理`CalculatorInput`。输入的结构应该是什么样的？
 - en: First, obviously, there will be some keystrokes, or some other way of communicating
     the intent of the user. But also, since the calculator is stateless, we need to
     pass in some state as well. This state would contain, for example, the digits
     typed in so far.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，显然，会有一些按键，或者其他一些方式来传达用户的意图。但是，由于计算器是无状态的，我们还需要传入一些状态。这个状态会包含到目前为止键入的数字，等等。
 - en: As to the output, the function will have to emit a new, updated state, of course.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于输出，该函数当然需要发出一个新的、更新过的状态。
 - en: But do we need anything else, such as a structure containing formatted output
     for display? I don't think we do. We want to isolate ourselves from the display
     logic, so we'll just let the UI turn the state into something that can be displayed.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们需要其他东西吗，比如一个包含格式化输出以供显示的结构？我觉得我们不需要。我们想要将自己与显示逻辑隔离开来，所以我们只需让用户界面将状态转换为可显示的内容即可。
 - en: What about errors? In [other posts](http://fsharpforfunandprofit.com/rop/),
     I have spent a lot of time talking about error handling. Is it needed in this
     case?
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误呢？在[其他帖子](http://fsharpforfunandprofit.com/rop/)中，我花了很多时间讨论错误处理。在这种情况下需要吗？
 - en: In this case, I think not. In a cheap pocket calculator, any errors are shown
     right in the display, so we'll stick with that approach for now.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我认为不需要。在廉价的口袋计算器中，任何错误都会直接显示在显示器上，所以我们现在将坚持这种方法。
 - en: 'So here''s the new version of the function:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这是函数的新版本：
 - en: '[PRE1]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '`CalculatorInput` now means the keystrokes or whatever, and `CalculatorState`
     is the state.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CalculatorInput`现在表示按键或其他内容，而`CalculatorState`是状态。'
 - en: Notice that I have defined this function using a [tuple](tuples.html) (`CalculatorInput
     * CalculatorState`) as input, rather than as two separate parameters (which would
     look like `CalculatorInput -> CalculatorState -> CalculatorState`). I did this
     because both parameters are always needed and a tuple makes this clear -- I don't
     want to be partially applying the input, for example.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我使用[tuple](tuples.html)（`CalculatorInput * CalculatorState`）来定义此函数的输入，而不是作为两个单独的参数（看起来像`CalculatorInput
+    -> CalculatorState -> CalculatorState`）。我这样做是因为两个参数总是需要的，而元组可以清楚地表明这一点--我不想部分应用输入，例如。
 - en: In fact I do this for all functions when doing type-first design. Every function
     has one input and one output. This doesn't mean that there might not be potential
     for doing partial application later, just that, at the design stage, I only want
     one parameter.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，当进行类型优先设计时，我对所有函数都这样做。每个函数都有一个输入和一个输出。这并不意味着以后不能进行部分应用，只是在设计阶段，我只想要一个参数。
 - en: Also note that things that are not part of the pure domain (such as configuration
     and connection strings) will *never* be shown at this stage, although, at implementation
     time, they will of course be added to the functions that implement the design.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要注意，不属于纯领域的事物（例如配置和连接字符串）在这个阶段*永远*不会显示出来，尽管在实现时，它们当然会被添加到实现设计的函数中。
 - en: Defining the CalculatorState type
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义CalculatorState类型
 - en: Now let's look at the `CalculatorState`. All I can think of that we need right
     now is something to hold the information to display.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们看看`CalculatorState`。我现在所能想到的是我们需要的只是用于保存要显示信息的东西。
 - en: '[PRE2]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: I've defined a type `CalculatorDisplay`, firstly as documentation to make it
     clear what the field value is used for, and secondly, so I can postpone deciding
     what the display actually is!
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 我定义了一个类型`CalculatorDisplay`，首先作为文档，以明确说明字段值的用途，其次，这样我可以推迟决定显示实际是什么！
 - en: So what should the type of the display be? A float? A string? A list of characters?
     A record with multiple fields?
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么显示的类型应该是什么？一个浮点数？一个字符串？一个字符列表？一个具有多个字段的记录？
 - en: Well, I'm going to go for `string`, because, as I said above, we might need
     to display errors.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，我会选择`string`，因为，正如我上面所说的，我们可能需要显示错误。
 - en: '[PRE3]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Notice that I am using `and` to connect the type definitions together. Why?
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我使用`and`将类型定义连接在一起。为什么呢？
 - en: 'Well, F# compiles from top to bottom, so you must define a type before it is
     used. The following code will not compile:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，F#是从上到下编译的，所以你必须在使用之前定义一个类型。以下代码将无法编译：
 - en: '[PRE4]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: I could fix this by changing the order of the declarations, but since I am in
     "sketch" mode, and I don't want to reorder things all the time, I will just append
     new declarations to the bottom and use `and` to connect them.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我可以通过改变声明的顺序来解决这个问题，但由于我处于“草图”模式，并且不想一直重新排序事物，我将只是将新的声明附加到底部，并使用`and`将它们连接起来。
 - en: In the final production code though, when the design has stabilized, I *would*
     reorder these types to avoid using `and`. The reason is that `and` can [hide cycles
     between types](cyclic-dependencies.html) and prevent refactoring.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，在最终的生产代码中，当设计稳定下来时，我*会*重新排序这些类型，以避免使用`and`。原因是`and`可能会[隐藏类型之间的循环依赖](cyclic-dependencies.html)，并阻止重构。
 - en: Defining the CalculatorInput type
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义CalculatorInput类型
 - en: For the `CalculatorInput` type, I'll just list all the buttons on the calculator!
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于`CalculatorInput`类型，我将列出计算器上的所有按钮！
 - en: '[PRE5]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Some people might say: why not use a `char` as the input? But as I explained
     above, in my domain I only want to deal with ideal data. By using a limited set
     of choices like this, I never have to deal with unexpected input.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些人可能会说：为什么不使用`char`作为输入？但正如我上面解释的那样，在我的领域中，我只想处理理想的数据。通过使用这样一组有限的选择，我永远不必处理意外的输入。
 - en: Also, a side benefit of using abstract types rather than chars is that `DecimalSeparator`
     is not assumed to be ".". The actual separator should be obtained by first getting
     the current culture (`System.Globalization.CultureInfo.CurrentCulture`) and then
     using `CurrentCulture.NumberFormat.CurrencyDecimalSeparator` to get the separator.
     By hiding this implementation detail from the design, changing the actual separator
     used will have minimal effect on the code.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用抽象类型而不是字符的一个副作用是，`DecimalSeparator` 不被假定为 "."。实际的分隔符应该通过首先获取当前区域设置 (`System.Globalization.CultureInfo.CurrentCulture`)，然后使用
+    `CurrentCulture.NumberFormat.CurrencyDecimalSeparator` 来获取分隔符。通过将这个实现细节隐藏在设计之中，改变实际使用的分隔符对代码的影响将会很小。
 - en: 'Refining the design: handling digits'
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优化设计：处理数字
 - en: So that's a first pass at the design done. Now let's dig deeper and define some
     of the internal processes.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样就完成了设计的初步尝试。现在让我们深入挖掘一些内部过程。
 - en: Let's start with how the digits are handled.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从处理数字开始。
 - en: 'When a digit key is pressed, we want to append the digit to the current display.
     Let''s define a function type that represents that:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 当按下数字键时，我们希望将数字追加到当前显示。让我们定义一个表示这种情况的函数类型：
 - en: '[PRE6]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The `CalculatorDisplay` type is the one we defined earlier, but what is this
     new `CalculatorDigit` type?
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CalculatorDisplay` 类型是我们之前定义的，但是这个新的 `CalculatorDigit` 类型是什么呢？'
 - en: Well obviously we need some type to represent all the possible digits that can
     be used as input. Other inputs, such as `Add` and `Clear`, would not be valid
     for this function.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 很显然，我们需要一种类型来表示可以用作输入的所有可能数字。其他输入，比如 `Add` 和 `Clear`，对于这个函数来说是无效的。
 - en: '[PRE7]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: So the next question is, how do we get a value of this type? Do we need a function
     that maps a `CalculatorInput` to a `CalculatorDigit` type, like this?
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以下一个问题是，我们如何获得这种类型的值？我们需要一个将 `CalculatorInput` 映射到 `CalculatorDigit` 类型的函数吗，就像这样？
 - en: '[PRE8]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: In many situations, this might be necessary, but in this case it seems like
     overkill. And also, how would this function deal with non-digits such as `Add`
     and `Clear`?
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，这可能是必要的，但在这种情况下，这似乎有点杀鸡用牛刀。而且，这个函数如何处理非数字，比如 `Add` 和 `Clear`？
 - en: 'So let''s just redefine the `CalculatorInput` type to use the new type directly:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们直接重新定义 `CalculatorInput` 类型，直接使用新类型：
 - en: '[PRE9]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: While we're at it, let's classify the other buttons as well.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个过程中，让我们也对其他按钮进行分类。
 - en: I would classify `Add | Subtract | Multiply | Divide` as math operations, and
     as for `Equals | Clear`, I'll just call them "actions" for lack of better word.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我会将 `Add | Subtract | Multiply | Divide` 归类为数学运算，至于 `Equals | Clear`，我只是称它们为
+    "操作"，没有更好的词了。
 - en: 'Here''s the complete refactored design with new types `CalculatorDigit`, `CalculatorMathOp`
     and `CalculatorAction`:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是完整的重构设计，使用了新的类型 `CalculatorDigit`、`CalculatorMathOp` 和 `CalculatorAction`：
 - en: '[PRE10]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: This is not the only approach. I could have easily left `Equals` and `Clear`
     as separate choices.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是唯一的方法。我本可以将 `Equals` 和 `Clear` 作为单独的选择留下。
 - en: Now let's revisit `UpdateDisplayFromDigit` again. Do we need any other parameters?
     For example, do we need any other part of the state?
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们再次审视 `UpdateDisplayFromDigit`。我们需要其他参数吗？例如，我们需要状态的其他部分吗？
 - en: No, I can't think of anything else. When defining these functions, I want to
     be as minimal as possible. Why pass in the whole calculator state if you only
     need the display?
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 不，我想不出其他的了。在定义这些函数时，我想尽可能地简化。如果你只需要显示器，为什么要传入整个计算器状态呢？
 - en: Also, would `UpdateDisplayFromDigit` ever return an error? For example, surely
     we can't add digits indefinitely -- what happens when we are not allowed to? And
     is there some other combination of inputs that might cause an error? For example,
     inputting nothing but decimal separators! What happens then?
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，`UpdateDisplayFromDigit` 会返回错误吗？例如，我们显然不能无限添加数字 - 当我们不允许时会发生什么？还有其他组合的输入可能会导致错误吗？例如，什么时候只输入小数分隔符！那时会发生什么？
 - en: For this little project, I will assume that neither of these will create an
     explicit error, but instead, bad input will be rejected silently. In other words,
     after 10 digits, say, other digits will be ignored. And after the first decimal
     separator, subsequent ones will be ignored as well.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个小项目，我假设这两者都不会产生显式错误，而是会悄悄地拒绝错误输入。换句话说，超过10个数字后，其他数字将被忽略。而在第一个小数分隔符之后，后续的分隔符也将被忽略。
 - en: Alas, I cannot encode these requirements in the design. But that fact that `UpdateDisplayFromDigit`
     does not return any explicit error type *does* at least tell me that errors will
     be handled silently.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 可惜，我无法将这些要求编码到设计中。但是`UpdateDisplayFromDigit`不返回任何明确的错误类型至少告诉我错误将会被悄悄处理。
 - en: 'Refining the design: the math operations'
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优化设计：数学运算
 - en: Now let's move on to the math operations.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们转向数学运算。
 - en: These are all binary operations, taking two numbers and spitting out a new result.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些都是二进制操作，接受两个数字并输出一个新的结果。
 - en: 'A function type to represent this would look like this:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 代表这个的函数类型看起来像这样：
 - en: '[PRE11]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: If there were unary operations as well, such as `1/x`, we would need a different
     type for those, but we don't, so we can keep things simple.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果还有一元运算，比如`1/x`，我们将需要一个不同的类型，但我们没有，所以我们可以保持简单。
 - en: 'Next decision: what numeric type should we use? Should we make it generic?'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个决定：我们应该使用什么数值类型？我们应该使它通用吗？
 - en: 'Again, let''s just keep it simple and use `float`. But we''ll keep the `Number`
     alias around to decouple the representation a bit. Here''s the updated code:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，让我们保持简单，使用`float`。但我们会保留`Number`别名，以解耦表示。这是更新后的代码：
 - en: '[PRE12]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Now let's ponder `DoMathOperation`, just as we did for `UpdateDisplayFromDigit`
     above.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们考虑`DoMathOperation`，就像我们上面对`UpdateDisplayFromDigit`所做的一样。
 - en: 'Question 1: Is this the minimal set of parameters? For example, do we need
     any other part of the state?'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题1：这是最小的参数集吗？例如，我们需要状态的其他部分吗？
 - en: 'Answer: No, I can''t think of anything else.'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案：不，我想不出其他什么。
 - en: 'Question 2: Can `DoMathOperation` ever return an error?'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题2：`DoMathOperation`会返回错误吗？
 - en: 'Answer: Yes! What about dividing by zero?'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案：是的！那么除以零呢？
 - en: 'So how should we handle errors? Let''s create a new type that represents a
     result of a math operation, and make that the output of `DoMathOperation`:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们应该如何处理错误呢？让我们创建一个表示数学运算结果的新类型，并将其作为`DoMathOperation`的输出：
 - en: The new type, `MathOperationResult` will have two choices (discriminated union)
     between `Success` and `Failure`.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 新类型`MathOperationResult`将在`Success`和`Failure`之间有两个选择（鉴别联合）。
 - en: '[PRE13]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: We could have also used the built-in generic `Choice` type, or even a full ["railway
     oriented programming"](http://fsharpforfunandprofit.com/rop/) approach, but since
     this is a sketch of the design, I want the design to stand alone, without a lot
     of dependencies, so I'll just define the specific type right here.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以使用内置的通用`Choice`类型，甚至是完整的["铁路导向编程"](http://fsharpforfunandprofit.com/rop/)方法，但由于这只是设计的草图，我希望设计能够独立存在，不依赖于很多其他东西，所以我会在这里定义具体的类型。
 - en: Any other errors? NaNs or underflows or overflows? I'm not sure. We have the
     `MathOperationError` type, and it would be easy to extend it as needed.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他任何错误？NaN或下溢或上溢？我不确定。我们有`MathOperationError`类型，根据需要扩展它很容易。
 - en: Where do numbers come from?
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数字从哪里来？
 - en: We've defined `DoMathOperation` to use `Number` values as input. But where does
     a `Number` come from?
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经定义了`DoMathOperation`来使用`Number`值作为输入。但是`Number`从哪里来？
 - en: Well they come from the sequence of digits that have been entered -- converting
     the digits into a float.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，它们来自已输入的数字序列——将数字转换为浮点数。
 - en: One approach would be to store a `Number` in the state along with the string
     display, and update it as each digit comes in.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方法是将`Number`与字符串显示一起存储在状态中，并在每个数字输入时更新它。
 - en: 'I''m going to take a simpler approach, and just get the number from the display
     directly. In other words, we need a function that looks like this:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 我打算采取一种更简单的方法，直接从显示中获取数字。换句话说，我们需要一个看起来像这样的函数：
 - en: '[PRE14]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Thinking about it though, the function could fail, because the display string
     could be "error" or something. So let's return an option instead.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然思考了一下，这个函数可能会失败，因为显示字符串可能是“error”或其他什么。所以让我们返回一个选项。
 - en: '[PRE15]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Similarly, when we *do* have a successful result, we will want to display it,
     so we need a function that works in the other direction:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样地，当我们*有*成功的结果时，我们会想要显示它，因此我们需要一个在另一个方向上工作的函数：
 - en: '[PRE16]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: This function can never error (I hope), so we don't need the `option`.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数永远不会出错（我希望如此），所以我们不需要`option`。
 - en: 'Refining the design: handling a math operation input'
+  id: totrans-114
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优化设计：处理数学运算输入
 - en: We're not done with math operations yet, though!
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们还没有完成数学运算！
 - en: What is the visible effect when the input is `Add`? None!
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 当输入为`Add`时的可见效果是什么？没有！
 - en: The `Add` event needs another number to be entered later, so the `Add` event
     is somehow kept pending, waiting for the next number.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Add`事件需要稍后输入另一个数字，因此`Add`事件以某种方式保持挂起状态，等待下一个数字。'
 - en: If you think about, we not only have to keep the `Add` event pending, but also
     the previous number, ready to be added to the latest number that is input.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你考虑一下，我们不仅要保留`Add`事件待处理，还要保留前一个数字，准备加到最新输入的数字上。
 - en: Where will we keep track of this? In the `CalculatorState` of course!
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在`CalculatorState`中跟踪这个吗？当然！
 - en: 'Here''s our first attempt to add the new fields:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们第一次尝试添加新字段：
 - en: '[PRE17]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'But sometimes there isn''t a pending operation, so we have to make it optional:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 但有时候没有待处理的操作，所以我们必须将其变为可选项：
 - en: '[PRE18]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: But this is wrong too! Can we have a `pendingOp` without a `pendingNumber`,
     or vice versa? No. They live and die together.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这也是错误的！我们可以有一个`pendingOp`而没有`pendingNumber`吗，反之亦然？不行。它们生死相依。
 - en: 'This implies that the state should contain a pair, and the whole pair is optional,
     like this:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着状态应该包含一对，整个对是可选的，就像这样：
 - en: '[PRE19]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: But now we are still missing a piece. If the operation is added to the state
     as pending, when does the operation actually get *run* and the result displayed?
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们还缺少一部分。如果操作被添加到状态中作为待处理，那么操作实际上何时运行并显示结果？
 - en: 'Answer: when the `Equals` button is pushed, or indeed any another math op button.
     We''ll deal with that later.'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案：当按下`Equals`按钮时，或者实际上按下任何其他数学操作按钮。我们稍后再处理这个问题。
 - en: 'Refining the design: handling the Clear button'
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优化设计：处理清除按钮
 - en: We've got one more button to handle, the `Clear` button. What does it do?
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还有一个按钮要处理，`Clear`按钮。它做什么？
 - en: Well, it obviously just resets the state so that the display is empty and any
     pending operations are removed.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，显然它只是重置状态，使得显示为空，任何待处理的操作都被移除。
 - en: 'I''m going to call this function `InitState` rather than "clear", and here
     is its signature:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将称这个函数为`InitState`而不是“clear”，这是它的签名：
 - en: '[PRE20]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Defining the services
+  id: totrans-134
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义服务
 - en: At this point, we have everything we need to switch to bottom up development.
     I'm eager to try building a trial implementation of the `Calculate` function,
     to see if the design is usable, and if we've missed anything.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，我们已经拥有了切换到自底向上开发所需的一切。我迫不及待地想尝试构建`Calculate`函数的试验实现，看看这个设计是否可用，以及我们是否遗漏了什么。
 - en: But how can I create a trial implementation without implementing the whole thing?
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我如何在不实现整个功能的情况下创建一个试验实现？
 - en: This is where all these types come in handy. We can define a set of "services"
     that the `calculate` function will use, but without actually implementing them!
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些类型都派上了用场。我们可以定义一组`calculate`函数将使用的“服务”，但不实际实现它们！
 - en: 'Here''s what I mean:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的意思是：
 - en: '[PRE21]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: We've created a set of services that can be injected into an implementation
     of the `Calculate` function. With these in place, we can code the `Calculate`
     function immediately and deal with the implementation of the services later.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建了一组服务，可以注入到`Calculate`函数的实现中。有了这些，我们可以立即编写`Calculate`函数，并稍后处理服务的实现。
 - en: At this point, you might be thinking that this seems like overkill for a tiny
     project.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，你可能会认为这对一个微小项目来说似乎有点过度。
 - en: It's true -- we don't want this to turn into [FizzBuzz Enterprise Edition](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)!
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是真的 - 我们不希望这变成[FizzBuzz Enterprise Edition](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)！
 - en: But I'm demonstrating a principle here. By separating the "services" from the
     core code, you can start prototyping immediately. The goal is not to make a production
     ready codebase, but to find any issues in the design. We are still in the requirements
     discovery phase.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我在这里展示了一个原则。通过将“服务”与核心代码分离，你可以立即开始原型设计。目标不是制作一个生产就绪的代码库，而是找出设计中的任何问题。我们仍然处于需求发现阶段。
 - en: This approach should not be unfamiliar to you -- it is directly equivalent to
     the OO principle of creating a bunch of interfaces for services and then injecting
     them into the core domain.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法对你来说应该不陌生 - 它直接相当于创建一堆服务接口的OO原则，然后将它们注入核心领域。
 - en: Review
+  id: totrans-145
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回顾
 - en: 'So let''s review -- with the addition of the services, our initial design is
     complete. Here is all the code so far:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们回顾一下 - 随着服务的添加，我们的初始设计已经完成。到目前为止所有的代码如下：
 - en: '[PRE22]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Summary
+  id: totrans-148
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: I think that this is quite nice. We haven't written any "real" code yet, but
     with a bit of thought, we have already built quite a detailed design.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为这很不错。我们还没有写任何“真正”的代码，但经过一番思考，��们已经构建了一个相当详细的设计。
 - en: In the [next post](calculator-implementation), I'll put this design to the test
     by attempting to create an implementation.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[下一篇文章](calculator-implementation)中，我将尝试创建一个实现来测试这个设计。
 - en: '*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)
     on GitHub.*'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文的代码可以在GitHub的这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)中找到。*'
 - en: 'Calculator Walkthrough: Part 2'
+  id: totrans-152
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演练：第2部分
 - en: 'Calculator Walkthrough: Part 2'
+  id: totrans-153
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演练：第2部分
 - en: 'In this post, I''ll continue developing a simple pocket calculator app, like
     this:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将继续开发一个简单的口袋计算器应用，就像这样：
 - en: '![Calculator image](calculator_1.png)'
+  id: totrans-155
   prefs: []
   type: TYPE_IMG
+  zh: '![计算器图片](calculator_1.png)'
 - en: In the [previous post](calculator-design.html), we completed a first draft of
     the design, using only types (no UML diagrams!).
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一篇文章](calculator-design.html)中，我们完成了设计的初稿，仅使用类型（没有UML图表！）。
 - en: Now it's time to create a trial implementation that uses the design.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是时候创建一个使用设计的试验实现了。
 - en: Doing some real coding at this point acts as a reality check. It ensures that
     the domain model actually makes sense and is not too abstract. And of course,
     it often drives more questions about the requirements and domain model.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时进行一些真正的编码就像是一个现实检验。它确保领域模型确实是有意义的，而不是太过抽象。当然，它经常会引发更多关于需求和领域模型的问题。
 - en: First implementation
+  id: totrans-159
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第一次实现
 - en: So let's try implementing the main calculator function, and see how we do.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们尝试实现主计算器函数，看看我们的表现如何。
 - en: First, we can immediately create a skeleton that matches each kind of input
     and processes it accordingly.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们可以立即创建一个与每种输入匹配并相应处理的骨架。
 - en: '[PRE23]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: You can see that this skeleton has a case for each type of input to handle it
     appropriately. Note that in all cases, a new state is returned.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到这个骨架有一个用于处理每种输入的情况。请注意，在所有情况下，都会返回一个新状态。
 - en: This style of writing a function might look strange though. Let's look at it
     a bit more closely.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种编写函数的风格可能看起来有点奇怪。让我们仔细看看。
 - en: First, we can see that `createCalculate` is the not the calculator function
     itself, but a function that *returns* another function. The returned function
     is a value of type `Calculate` -- that's what the `:Calculate` at the end means.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们可以看到`createCalculate`不是计算器函数本身，而是一个*返回*另一个函数的函数。返回的函数是一个`Calculate`类型的值--这就是末尾的`:Calculate`的含义。
 - en: 'Here''s just the top part:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里只是顶部的部分：
 - en: '[PRE24]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Since it is returning a function, I chose to write it using a lambda. That's
     what the `fun (input,state) ->` is for.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于它返回一个函数，我选择使用lambda来编写它。这就是`fun (input,state) ->`的用途。
 - en: But I could have also written it using an inner function, like this
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我也可以使用内部函数来编写，就像这样
 - en: '[PRE25]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Both approaches are basically the same* -- take your pick!
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种方法基本上是一样的*--随你选择！
 - en: '[* Although there might be some performance differences.]'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*虽然可能会有一些性能差异。]'
 - en: Dependency injection of services
+  id: totrans-173
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 服务的依赖注入
 - en: But `createCalculate` doesn't just return a function, it also has a `services`
     parameter. This parameter is used for doing the "dependency injection" of the
     services.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 但`createCalculate`不仅仅返回一个函数，它还有一个`services`参数。这个参数用于对服务进行“依赖注入”。
 - en: That is, the services are only used in `createCalculate` itself, and are not
     visible in the function of type `Calculate` that is returned.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，服务仅在`createCalculate`本身中使用，并且不会在返回的`Calculate`类型的函数中可见。
 - en: 'The "main" or "bootstrapper" code that assembles all the components for the
     application would look something like this:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 为应用程序组装所有组件的“主”或“引导程序”代码将如下所示：
 - en: '[PRE26]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'Implementation: handling digits'
+  id: totrans-178
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现：处理数字
 - en: Now let's start implementing the various parts of the calculation function.
     We'll start with the digits handling logic.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们开始实现计算函数的各个部分。我们将从处理数字的逻辑开始。
 - en: 'To keep the main function clean, let''s pass the reponsibility for all the
     work to a helper function `updateDisplayFromDigit`, like this:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了保持主函数的整洁，让我们将所有工作的责任传递给一个辅助函数`updateDisplayFromDigit`，就像这样：
 - en: '[PRE27]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Note that I'm creating a `newState` value from the result of `updateDisplayFromDigit`
     and then returning it as a separate step.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我从`updateDisplayFromDigit`的结果创建了一个`newState`值，然后将其作为一个单独的步骤返回。
 - en: 'I could have done the same thing in one step, without an explicit `newState`
     value, as shown below:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 我也可以一步完成相同的事情，而不需要显式的`newState`值，如下所示：
 - en: '[PRE28]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Neither approach is automatically best. I would pick one or the other depending
     on the context.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 两种方法都不是自动最佳的。我会根据上下文选择其中一种。
 - en: For simple cases, I would avoid the extra line as being unnecessary, but sometimes
     having an explicit return value is more readable. The name of the value tells
     you an indication of the return type, and it gives you something to watch in the
     debugger, if you need to.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于简单的情况，我会避免额外的行，因为这是不必要的，但有时明确的返回值更可读。值的名称告诉您返回类型的指示，并且如果需要，它提供了一个在调试器中观察的对象。
 - en: Alright, let's implement `updateDisplayFromDigit` now. It's pretty straightforward.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，现在让我们实现`updateDisplayFromDigit`。这很简单。
 - en: first use the `updateDisplayFromDigit` in the services to actually update the
     display
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先使用服务中的`updateDisplayFromDigit`来实际更新显示
 - en: then create a new state from the new display and return it.
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后从新的显示器创建一个新状态并返回它。
 - en: '[PRE29]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'Implementation: handling Clear and Equals'
+  id: totrans-191
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现：处理清除和相等
 - en: Before we move onto the implementation of the math operations, lets look at
     handling `Clear` and `Equals`, as they are simpler.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们进入数学运算的实现之前，让我们先看看如何处理`Clear`和`Equals`，因为它们更简单。
 - en: For `Clear`, just init the state, using the provided `initState` service.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于`Clear`，只需使用提供的`initState`服务初始化状态。
 - en: For `Equals`, we check if there is a pending math op. If there is, run it and
     update the display, otherwise do nothing. We'll put that logic in a helper function
     called `updateDisplayFromPendingOp`.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于`Equals`，我们检查是否有待处理的数学操作。如果有，则运行它并更新显示，否则不执行任何操作。我们将把这个逻辑放在一个名为`updateDisplayFromPendingOp`的辅助函数中。
 - en: 'So here''s what `createCalculate` looks like now:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在`createCalculate`看起来是这样的：
 - en: '[PRE30]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'Now to `updateDisplayFromPendingOp`. I spent a few minutes thinking about,
     and I''ve come up with the following algorithm for updating the display:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在来看看`updateDisplayFromPendingOp`。我花了几分钟时间考虑，我想出了以下更新显示的算法：
 - en: First, check if there is any pending op. If not, then do nothing.
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，检查是否有任何待处理操作。如果没有，则不执行任何操作。
 - en: Next, try to get the current number from the display. If you can't, then do
     nothing.
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，尝试从显示器中获取当前数字。如果无法获取，则不执行任何操作。
 - en: Next, run the op with the pending number and the current number from the display.
     If you get an error, then do nothing.
+  id: totrans-200
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，使用来自显示器的待处理数字和当前数字运行操作。如果出现错误，则不执行任何操作。
 - en: Finally, update the display with the result and return a new state.
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，使用结果更新显示，并返回一个新的状态。
 - en: The new state also has the pending op set to `None`, as it has been processed.
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新状态还将待处理操作设置为`None`，因为它已被处理。
 - en: 'And here''s what that logic looks like in imperative style code:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是命令式风格代码中的逻辑：
 - en: '[PRE31]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Ewww! Don't try that at home!
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 噢呀！不要在家里尝试那个！
 - en: That code does follow the algorithm exactly, but is really ugly and also error
     prone (using `.Value` on an option is a code smell).
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 那段代码确实严格遵循了算法，但非常丑陋，而且容易出错（在选项上使用`.Value`是一种代码异味）。
 - en: On the plus side, we did make extensive use of our "services", which has isolated
     us from the actual implementation details.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的一面是，我们确实广泛使用了我们的“服务”，这使我们远离了实际的实现细节。
 - en: So, how can we rewrite it to be more functional?
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我们如何重写它以使其更具功能性呢？
 - en: Bumping into bind
+  id: totrans-209
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 撞上绑定
 - en: The trick is to recognize that the pattern "if something exists, then act on
     that value" is exactly the `bind` pattern discussed [here](computation-expressions-continuations.html)
     and [here](http://fsharpforfunandprofit.com/rop/).
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 诀窍在于认识到模式“如果某事存在，则对该值进行操作”恰好是讨论的`bind`模式，具体讨论请参见[此处](computation-expressions-continuations.html)和[此处](http://fsharpforfunandprofit.com/rop/)。
 - en: In order to use the bind pattern effectively, it's a good idea to break the
     code into many small chunks.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了有效地使用绑定模式，最好将代码分解成许多小块。
 - en: First, the code `if state.pendingOp.IsSome then do something` can be replaced
     by `Option.bind`.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，代码`if state.pendingOp.IsSome then do something`可以被`Option.bind`替换。
 - en: '[PRE32]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: But remember that the function has to return a state. If the overall result
     of the bind is `None`, then we have *not* created a new state, and we must return
     the original state that was passed in.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 但请记住，函数必须返回一个状态。如果绑定的总体结果为`None`，则我们*未*创建新状态，并且必须返回传入的原始状态。
 - en: This can be done with the built-in `defaultArg` function which, when applied
     to an option, returns the option's value if present, or the second parameter if
     `None`.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以通过内置的`defaultArg`函数来实现，该函数在应用于选项时，如果存在选项的值，则返回该选项的值，否则返回第二个参数。
 - en: '[PRE33]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'You can also tidy this up a bit as well by piping the result directly into
     `defaultArg`, like this:'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以通过将结果直接管道到`defaultArg`来稍微整理一下，就像这样：
 - en: '[PRE34]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: I admit that the reverse pipe for `state` looks strange -- it's definitely an
     acquired taste!
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 我承认，反向管道对于`state`看起来很奇怪--这绝对是一种习得的口味！
 - en: 'Onwards! Now what about the parameter to `bind`? When this is called, we know
     that pendingOp is present, so we can write a lambda with those parameters, like
     this:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续！那么`bind`的参数呢？当调用此函数时，我们知道pendingOp是存在的，因此我们可以编写一个带有这���参数的lambda，就像这样：
 - en: '[PRE35]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'Alternatively, we could create a local helper function instead, and connect
     it to the bind, like this:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，我们可以创建一个本地辅助函数，并将其连接到绑定，就像这样：
 - en: '[PRE36]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'I myself generally prefer the second approach when the logic is complicated,
     as it allows a chain of binds to be simple. That is, I try to make my code look
     like:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 当逻辑复杂时，我个人更倾向于第二种方法，因为它使绑定链变得简单。也就是说，我试图让我的代码看起来像：
 - en: '[PRE37]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Note that in this approach, each helper function has a non-option for input
     but always must output an *option*.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在这种方法中，每个辅助函数都有一个非选项的输入，但必须始终输出一个*选项*。
 - en: Using bind in practice
+  id: totrans-227
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在实践中使用bind
 - en: Once we have the pending op, the next step is to get the current number from
     the display so we can do the addition (or whatever).
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们有了待处理的操作，下一步就是从显示器中获取当前数字，以便进行加法（或其他操作）。
 - en: Rather than having a lot of logic, I'm going keep the helper function (`getCurrentNumber`)
     simple.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其有很多逻辑，我更倾向于保持辅助函数（`getCurrentNumber`）简单。
 - en: The input is the pair (op,pendingNumber)
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输入是一对（op，pendingNumber）
 - en: The output is the triple (op,pendingNumber,currentNumber) if currentNumber is
     `Some`, otherwise `None`.
+  id: totrans-231
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输出是三元组（op，pendingNumber，currentNumber），如果currentNumber是`Some`，否则为`None`。
 - en: In other words, the signature of `getCurrentNumber` will be `pair -> triple
     option`, so we can be sure that is usable with the `Option.bind` function.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，`getCurrentNumber`的签名将是`pair -> triple option`，因此我们可以确保它与`Option.bind`函数一起使用。
 - en: How to convert the pair into the triple? This can be done just by using `Option.map`
     to convert the currentNumber option to a triple option. If the currentNumber is
     `Some`, then the output of the map is `Some triple`. On the other hand, if the
     currentNumber is `None`, then the output of the map is `None` also.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何将一对转换为三元组？这可以通过使用`Option.map`来将currentNumber选项转换为三元组选项来完成。如果currentNumber是`Some`，那么映射的输出就是`Some
+    triple`。另一方面，如果currentNumber是`None`，那么映射的输出也是`None`。
 - en: '[PRE38]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'We can rewrite `getCurrentNumber` to be a bit more idiomatic by using pipes:'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过使用管道来使`getCurrentNumber`更符合惯例：
 - en: '[PRE39]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: Now that we have a triple with valid values, we have everything we need to write
     a helper function for the math operation.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了一个具有有效值的三元组，我们有了编写数学运算的辅助函数所需的一切。
 - en: It takes a triple as input (the output of `getCurrentNumber`)
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它以三元组作为输入（`getCurrentNumber`的输出）
 - en: It does the math operation
+  id: totrans-239
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它执行数学运算
 - en: It then pattern matches the Success/Failure result and outputs the new state
     if applicable.
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后对成功/失败的结果进行模式匹配，并在适用的情况下输出新状态。
 - en: '[PRE40]'
+  id: totrans-241
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: Note that, unlike the earlier version with nested ifs, this version returns
     `Some` on success and `None` on failure.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，与早期版本中嵌套的if不同，此版本在成功时返回`Some`，失败时返回`None`。
 - en: Displaying errors
+  id: totrans-243
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 显示错误
 - en: Writing the code for the `Failure` case made me realize something. If there
     is a failure, we are not displaying it *at all*, just leaving the display alone.
     Shouldn't we show an error or something?
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 编写`Failure`情况的代码让我意识到了一些事情。如果出现失败，我们根本没有显示它，只是让显示器保持不变。我们不应该显示错误或其他内容吗？
 - en: Hey, we just found a requirement that got overlooked! This is why I like to
     create an implementation of the design as soon as possible. Writing real code
     that deals with all the cases will invariably trigger a few "what happens in this
     case?" moments.
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 嘿，我们刚发现一个被忽视的需求！这就是为什么我喜欢尽快创建设计实现的原因。编写处理所有情况的真实代码将不可避免地引发一些“在这种情况下会发生什么？”的瞬间。
 - en: So how are we going to implement this new requirement?
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们将如何实现这个新需求呢？
 - en: In order to do this, we'll need a new "service" that accepts a `MathOperationError`
     and generates a `CalculatorDisplay`.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了做到这一点，我们需要一个接受`MathOperationError`并生成`CalculatorDisplay`的新“服务”。
 - en: '[PRE41]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'and we''ll need to add it to the `CalculatorServices` structure too:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要将其添加到`CalculatorServices`结构中：
 - en: '[PRE42]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '`doMathOp` can now be altered to use the new service. Both `Success` and `Failure`
     cases now result in a new display, which in turn is wrapped in a new state.'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '`doMathOp`现在可以修改以使用新服务。`Success`和`Failure`情况现在都会导致新的显示器，然后包装在新状态中。'
 - en: '[PRE43]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: I'm going to leave the `Some` in the result, so we can stay with `Option.bind`
     in the result pipeline*.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将在结果中保留`Some`，这样我们就可以继续使用结果管道中的`Option.bind`。
 - en: '[* An alternative would be to not return `Some`, and then use `Option.map`
     in the result pipeline]'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*另一种方法是不返回`Some`，然后在结果管道中使用`Option.map`]。'
 - en: Putting it all together, we have the final version of `updateDisplayFromPendingOp`.
     Note that I've also added a `ifNone` helper that makes defaultArg better for piping.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 将所有内容放在一起，我们有了`updateDisplayFromPendingOp`的最终版本。请注意，我还添加了一个`ifNone`辅助函数，使defaultArg更适合管道。
 - en: '[PRE44]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: Using a "maybe" computation expression instead of bind
+  id: totrans-257
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用“maybe”计算表达式而不是绑定
 - en: So far, we've being using "bind" directly. That has helped by removing the cascading
     `if/else`.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们一直直接使用“bind”。这帮助了我们消除了级联的`if/else`。
 - en: But F# allows you to hide the complexity in a different way, by creating [computation
     expressions](computation-expressions-intro.html).
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 但F#允许您以不同的方式隐藏复杂性，方法是创建[计算表达式](computation-expressions-intro.html)。
 - en: Since we are dealing with Options, we can create a "maybe" computation expression
     that allows clean handling of options. (If we were dealing with other types, we
     would need to create a different computation expression for each type).
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们正在处理选项，因此我们可以创建一个“maybe”计算表达式，以便干净地处理选项。（如果我们正在处理其他类型，则需要为每种类型创建不同的计算表达式）。
 - en: Here's the definition -- only four lines!
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是定义--只有四行！
 - en: '[PRE45]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'With this computation expression available, we can use `maybe` instead of bind,
     and our code would look something like this:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个计算表达式，我们可以使用`maybe`代替bind，我们的代码会是这样的：
 - en: '[PRE46]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: In our case, then we can write yet another version of `updateDisplayFromPendingOp`
     -- our fourth!
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的情况下，我们可以编写另一个版本的`updateDisplayFromPendingOp`——我们的第四个版本！
 - en: '[PRE47]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: Note that in *this* implementation, I don't need the `getCurrentNumber` helper
     any more, as I can just call `services.getDisplayNumber` directly.
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在*这个*实现中，我不再需要`getCurrentNumber`辅助函数了，因为我可以直接调用`services.getDisplayNumber`。
 - en: So, which of these variants do I prefer?
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我更喜欢这些变体中的哪一个？
 - en: It depends.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 这取决于情况。
 - en: If there is a very strong "pipeline" feel, as in [the ROP](http://fsharpforfunandprofit.com/rop/)
     approach, then I prefer using an explicit `bind`.
+  id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有一种非常强烈的“流水线”感觉，就像[RIP](http://fsharpforfunandprofit.com/rop/)方法中一样，那么我更喜欢使用显式的`bind`。
 - en: On the other hand, if I am pulling options from many different places, and I
     want to combine them in various ways, the `maybe` computation expression makes
     it easier.
+  id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一方面，如果我从许多不同的地方获取选项，并且希望以各种方式组合它们，那么`maybe`计算表达式会更容易。
 - en: So, in this case, I'll go for the last implementation, using `maybe`.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，在这种情况下，我会选择最后一种实现，使用`maybe`。
 - en: 'Implementation: handling math operations'
+  id: totrans-273
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现：处理数学运算
 - en: Now we are ready to do the implementation of the math operation case.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们准备好实现数学运算情况了。
 - en: First, if there is a pending operation, the result will be shown on the display,
     just as for the `Equals` case. But *in addition*, we need to push the new pending
     operation onto the state as well.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，如果有待处理的操作，结果将显示在显示器上，就像`Equals`情况一样。但*另外*，我们还需要将新的待处理操作推送到状态中。
 - en: 'For the math operation case, then, there will be *two* state transformations,
     and `createCalculate` will look like this:'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于数学运算情况，那么，将会有*两个*状态转换，并且`createCalculate`看起来会像这样：
 - en: '[PRE48]'
+  id: totrans-277
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: We've already defined `updateDisplayFromPendingOp` above. So we just need `addPendingMathOp`
     as a helper function to push the operation onto the state.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经在上面定义了`updateDisplayFromPendingOp`。所以我们只需要`addPendingMathOp`作为一个辅助函数，将操作推送到状态中。
 - en: 'The algorithm for `addPendingMathOp` is:'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addPendingMathOp`的算法是：'
 - en: Try to get the current number from the display. If you can't, then do nothing.
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尝试从显示器获取当前数字。如果无法获取，则不执行任何操作。
 - en: Update the state with the op and current number.
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用操作符和当前数字更新状态。
 - en: 'Here''s the ugly version:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是丑陋的版本：
 - en: '[PRE49]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: Again, we can make this more functional using exactly the same techniques we
     used for `updateDisplayFromPendingOp`.
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们可以使用完全相同的技术来使其更加功能化，就像我们对`updateDisplayFromPendingOp`所做的那样。
 - en: 'So here''s the more idiomatic version using `Option.map` and a `newStateWithPending`
     helper function:'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这是使用`Option.map`和一个`newStateWithPending`辅助函数的更符合习惯的版本：
 - en: '[PRE50]'
+  id: totrans-286
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: 'And here''s one using `maybe`:'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个使用`maybe`的例子：
 - en: '[PRE51]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: As before, I'd probably go for the last implementation using `maybe`. But the
     `Option.map` one is fine too.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 与以前一样，我可能会选择使用`maybe`的最后一种实现。但`Option.map`也可以。
 - en: 'Implementation: review'
+  id: totrans-290
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现：回顾
 - en: 'Now we''re done with the implementation part. Let''s review the code:'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经完成了实现部分。让我们来回顾一下代码：
 - en: '[PRE52]'
+  id: totrans-292
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Not bad -- the whole implementation is less than 60 lines of code.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 不错——整个实现不到60行代码。
 - en: Summary
+  id: totrans-294
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: We have proved that our design is reasonable by making an implementation --
     plus we found a missed requirement.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过进行实现证明了我们的设计是合理的——而且我们找到了一个遗漏的需求。
 - en: In the [next post](calculator-complete-v1.html), we'll implement the services
     and the user interface to create a complete application.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
 - en: '*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_implementation-fsx)
     on GitHub.*'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
 - en: 'Calculator Walkthrough: Part 3'
+  id: totrans-298
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'Calculator Walkthrough: Part 3'
+  id: totrans-299
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: In this post, I'll continue developing a simple pocket calculator app.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
 - en: In the [first post](calculator-design.html), we completed a first draft of the
     design, using only types (no UML diagrams!). and in the [previous post](calculator-implementation.html),
     we created an initial implementation that exercised the design and revealed a
     missing requirement.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
 - en: Now it's time to build the remaining components and assemble them into a complete
     application
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
 - en: Creating the services
+  id: totrans-303
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: We have a implementation. But the implementation depends on some services, and
     we haven't created the services yet.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
 - en: In practice though, this bit is very easy and straightforward. The types defined
     in the domain enforce constraints such there is really only one way of writing
     the code.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
 - en: I'm going to show all the code at once (below), and I'll add some comments afterwards.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE53]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: 'Some comments:'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
 - en: I have created a configuration record that stores properties that are used to
     parameterize the services, such as the decimal separator.
+  id: totrans-309
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The configuration record is passed into the `createServices` function, which
     in turn passes the configuration on those services that need it.
+  id: totrans-310
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: All the functions use the same approach of returning one of the types defined
     in the design, such as `UpdateDisplayFromDigit` or `DoMathOperation`.
+  id: totrans-311
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There are only a few tricky edge cases, such as trapping exceptions in division,
     or preventing more than one decimal separator being appended.
+  id: totrans-312
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Creating the user interface
+  id: totrans-313
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: For the user interface, I'm going to use WinForms rather than WPF or a web-based
     approach. It's simple and should work on Mono/Xamarin as well as Windows. And
     it should be easy to port to other UI frameworks as well.
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
 - en: As is typical with UI development I spent more time on this than on any other
     part of the process! I'm going to spare you all the painful iterations and just
     go directly to the final version.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
 - en: 'I won''t show all the code, as it is about 200 lines (and you can see it in
     the [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)),
     but here are some highlights:'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE54]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: The `CalculatorForm` is a subclass of `Form`, as usual.
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
 - en: There are two parameters for its constructor. One is `initState`, the function
     that creates an empty state, and `calculate`, the function that transforms the
     state based on the input. In other words, I'm using standard constructor based
     dependency injection here.
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
 - en: There are two mutable fields (shock horror!).
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
 - en: One is the state itself. Obviously, it will be modified after each button is
     pressed.
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
 - en: The second is a function called `setDisplayedText`. What's that all about?
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
 - en: Well, after the state has changed, we need to refresh the control (a Label)
     that displays the text.
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，在状态改变后，我们需要刷新显示文本的控件（一个标签）。
 - en: 'The standard way to do it is to make the label control a field in the form,
     like this:'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做的标准方式是将标签控件作为表单中的一个字段，就像这样：
 - en: '[PRE55]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'and then set it to an actual control value when the form has been initialized:'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后在表单初始化后将其设置为实际的控制值：
 - en: '[PRE56]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: But this has the problem that you might accidentally try to access the label
     control before it is initialized, causing a NRE. Also, I'd prefer to focus on
     the desired behavior, rather than having a "global" field that can be accessed
     by anyone anywhere.
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这样做的问题是，你可能会在初始化标签控件之前意外地尝试访问该标签控件，导致NRE。此外，我更希望专注于期望的行为，而不是拥有一个可以被任何人任何地方访问的“全局”字段。
 - en: By using a function, we (a) encapsulate the access to the real control and (b)
     avoid any possibility of a null reference.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用一个函数，我们(a) 封装了对真实控件的访问，(b) 避免了任何可能的空引用。
 - en: 'The mutable function starts off with a safe default implementation (`fun text
     -> ()`), and is then changed to a *new* implementation when the label control
     is created:'
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 可变函数从一个安全的默认实现开始(`fun text -> ()`)，然后在创建标签控件时更改为一个*新*实现：
 - en: '[PRE57]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: Creating the buttons
+  id: totrans-332
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建按钮
 - en: The buttons are laid out in a grid, and so I create a helper function `getPos(row,col)`
     that gets the physical position from a logical (row,col) on the grid.
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 按钮以网格形式布置，因此我创建了一个辅助函数`getPos(row,col)`，从网格上的逻辑位置(row,col)获取物理位置。
 - en: 'Here''s an example of creating the buttons:'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是创建按钮的示例：
 - en: '[PRE58]'
+  id: totrans-335
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'And since all the digit buttons have the same behavior, as do all the math
     op buttons, I just created some helpers that set the event handler in a generic
     way:'
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于所有数字按钮具有相同的行为，所有数学运算按钮也是如此，我只是创建了一些帮助程序以一种通用的方式设置事件处理程序：
 - en: '[PRE59]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'I also added some keyboard support:'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还添加了一些键盘支持：
 - en: '[PRE60]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: Button clicks and keyboard presses are eventually routed into the key function
     `handleInput`, which does the calculation.
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 按钮点击和键盘按键最终被路由到关键函数`handleInput`，该函数进行计算。
 - en: '[PRE61]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: As you can see, the implementation of `handleInput` is trivial. It calls the
     calculation function that was injected, sets the mutable state to the result,
     and then updates the display.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，`handleInput`的实现是微不足道的。它调用了被注入的计算函数，将可变状态设置为结果，然后更新显示。
 - en: So there you have it -- a complete calculator!
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以你看到了 -- 一个完整的计算器！
 - en: Let's try it now -- get the code from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)
     and try running it as a F# script.
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们试一下 -- 从这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)获取代码，并尝试将其作为F#脚本运行。
 - en: Disaster strikes!
+  id: totrans-345
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 灾难来临！
 - en: Let's start with a simple test. Try entering `1` `Add` `2` `Equals`. What would
     you expect?
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一个简单的测试开始。尝试输入`1` `Add` `2` `Equals`。你会期待什么？
 - en: I don't know about you, but what I *wouldn't* expect is that the calculator
     display shows `12`!
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不知道你怎么看，但我*不会*期望计算器显示`12`！
 - en: What's going on? Some quick experimenting shows that I have forgotten something
     really important -- when an `Add` or `Equals` operation happens, any subsequent
     digits should *not* be added to the current buffer, but instead start a new one.
     Oh no! We've got a showstopper bug!
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生了什么？一些快速的实验表明，我忘记了一些非常重要的事情 -- 当发生`Add`或`Equals`操作时，任何后续的数字都*不应该*被添加到当前缓冲区，而是应该开始一个新的缓冲区。哦不！我们遇到了一个无法继续的bug！
 - en: Remind me again, what idiot said "if it compiles, it probably works".*
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 再提醒我一次，是哪个白痴说过"如果编译通过，它可能就能工作"。
 - en: '[* Actually, that idiot would be me (among many others).]'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: '[* 实际上，那个白痴会是我（还有很多其他人）。]'
 - en: So what went wrong then?
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么出了什么问题呢？
 - en: Well the code did compile, but it didn't work as expected, not because the code
     was buggy, but because *my design was flawed*.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，代码确实编译了，但它并没有按预期工作，不是因为代码有bug，而是因为*我的设计有缺陷*。
 - en: In other words, the use of the types from the type-first design process means
     that I *do* have high confidence that the code I wrote is a correct implementation
     of the design. But if the requirements and design are wrong, all the correct code
     in the world can't fix that.
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，从类型优先设计过程中使用的类型的使用意味着我*确实*有高度的信心，我编写的代码是设计的正确实现。但如果需求和设计是错误的，那么世界上所有正确的代码也无法解决这个问题。
 - en: We'll revisit the requirements in the next post, but meanwhile, is there a patch
     we can make that will fix the problem?
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一篇文章中重新审视需求，但同时，有没有一个补丁可以修复问题？
 - en: Fixing the bug
+  id: totrans-355
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 修复错误
 - en: Let's think of the circumstances when we start a new set of digits, vs. when
     we just append to the existing ones. As we noted above, a math operation or `Equals`
     will force the reset.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
 - en: So why not set a flag when those operations happen? If the flag is set, then
     start a new display buffer, and after that, unset the flag so that characters
     are appended as before.
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
 - en: What changes do we need to make to the code?
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
 - en: First, we need to store the flag somewhere. We'll store it in the `CalculatorState`
     of course!
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE62]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: (*This might seem like a good solution for now, but using flags like this is
     really a design smell. In the next post, I'll use a [different approach](designing-with-types-representing-states.html#replace-flags)
     which doesn't involve flags)*
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
 - en: Fixing the implementation
+  id: totrans-362
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: With this change made, compiling the `CalculatorImplementation` code now breaks
     everywhere a new state is created.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
 - en: Actually, that's what I like about using F# -- something like adding a new field
     to a record is a breaking change, rather than something that can be overlooked
     by mistake.
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
 - en: 'We''ll make the following tweaks to the code:'
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
 - en: For `updateDisplayFromDigit`, we return a new state with `allowAppend` set to
     true.
+  id: totrans-366
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For `updateDisplayFromPendingOp` and `addPendingMathOp`, we return a new state
     with `allowAppend` set to false.
+  id: totrans-367
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Fixing the services
+  id: totrans-368
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Most of the services are fine. The only service that is broken now is `initState`,
     which just needs to be tweaked to have `allowAppend` be true when starting.
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE63]'
+  id: totrans-370
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: Fixing the user interface
+  id: totrans-371
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: The `CalculatorForm` class continues to work with no changes.
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
 - en: But this change does raise the question of how much the `CalculatorForm` should
     know about the internals of the `CalculatorDisplay` type.
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
 - en: Should `CalculatorDisplay` be transparent, in which case the form might break
     every time we change the internals?
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
 - en: Or should `CalculatorDisplay` be an opaque type, in which case we will need
     to add another "service" that extracts the buffer from the `CalculatorDisplay`
     type so that the form can display it?
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
 - en: For now, I'm happy to tweak the form if there are changes. But in a bigger or
     more long-term project, when we are trying to reduce dependencies, then yes, I
     would make the domain types opaque as much as possible to reduce the fragility
     of the design.
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
 - en: Testing the patched version
+  id: totrans-377
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Let's try out the patched version now (*you can get the code for the patched
     version from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)*).
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
 - en: Does it work now?
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
 - en: Yes. Entering `1` `Add` `2` `Equals` results in `3`, as expected.
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
 - en: So that fixes the major bug. Phew.
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
 - en: But if you keep playing around with this implementation, you will encounter
     other ~~bugs~~ undocumented features too.
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
 - en: 'For example:'
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
 - en: '`1.0 / 0.0` displays `Infinity`. What happened to our divide by zero error?'
+  id: totrans-384
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You get strange behaviors if you enter operations in unusual orders. For example,
     entering `2 + + -` shows `8` on the display!
+  id: totrans-385
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So obviously, this code is not yet fit for purpose.
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
 - en: What about Test-Driven Development?
+  id: totrans-387
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 那么测试驱动开发呢？
 - en: 'At this point, you might be saying to yourself: "if only he had used TDD this
     wouldn''t have happened".'
+  id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，你可能��对自己说：“如果他当初使用了TDD，这种情况就不会发生了”。
 - en: It's true -- I wrote all this code, and yet I didn't even bother to write a
     test that checked whether you could add two numbers properly!
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是真的 — 我写了所有这些代码，但我甚至都没费心编写一个检查你是否能正确相加两个数字的测试！
 - en: If I had started out by writing tests, and letting that drive the design, then
     surely I wouldn't have run into this problem.
+  id: totrans-390
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一开始就编写测试，并让测试驱动设计，那么我肯定不会遇到这个问题。
 - en: Well in this particular example, yes, I would probably would have caught the
     problem immediately. In a TDD approach, checking that `1 + 2 = 3` would have been
     one of the first tests I wrote! But on the other hand, for obvious flaws like
     this, any interactive testing will reveal the issue too.
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个特定的例子中，是的，我可能会立即发现问题。在TDD方法中，检查`1 + 2 = 3`可能是我编写的第一个测试之一！但另一方面，对于明显的缺陷，任何交互式测试也会揭示问题。
 - en: 'To my mind, the advantages of test-driven development are that:'
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我看来，测试驱动开发的优势在于：
 - en: it drives the *design* of the code, not just the implementation.
+  id: totrans-393
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它推动了代码的*设计*，而不仅仅是实现。
 - en: it provides guarantees that code stays correct during refactoring.
+  id: totrans-394
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它提供了在重构过程中代码保持正确的保证。
 - en: So the real question is, would test-driven development help us find missing
     requirements or subtle edge cases? Not necessarily. Test-driven development will
     only be effective if we can think of every possible case that could happen in
     the first place. In that sense, TDD would not make up for a lack of imagination!
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以真正的问题是，测试驱动开发是否能帮助我们找到缺失的需求或微妙的边缘情况？不一定。只有当我们能够想到每种可能发生的情况时，测试驱动开发才会有效。从这个意义上说，TDD不能弥补缺乏想象力！
 - en: And if do have good requirements, then hopefully we can design the types to
     [make illegal states unrepresentable](designing-with-types-making-illegal-states-unrepresentable.html)
     and then we won't need the tests to provide correctness guarantees.
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有良好的需求，那么希望我们可以设计类型来[使非法状态无法表示](designing-with-types-making-illegal-states-unrepresentable.html)，那么我们就不需要测试来提供正确性保证。
 - en: Now I'm not saying that I am against automated testing. In fact, I do use it
     all the time to verify certain requirements, and especially for integration and
     testing in the large.
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我并不是说我反对自动化测试。事实上，我一直在使用它来验证某些需求，尤其是用于大规模集成和测试。
 - en: 'So, for example, here is how I might test this code:'
+  id: totrans-398
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，举个例子，这是我可能测试这段代码的方式：
 - en: '[PRE64]'
+  id: totrans-399
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: And of course, this would be easily adapted to using [NUnit or similar](low-risk-ways-to-use-fsharp-at-work-3.html).
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这很容易适应使用[NUnit或类似工具](low-risk-ways-to-use-fsharp-at-work-3.html)。
 - en: How can I develop a better design?
+  id: totrans-401
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何才能开发出更好的设计？
 - en: I messed up! As I said earlier, the *implementation itself* was not the problem.
     I think the type-first design process worked. The real problem was that I was
     too hasty and just dived into the design without really understanding the requirements.
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: 我搞砸了！正如我之前所说，*实现本身*并不是问题。我认为先考虑类型的设计过程是有效的。真正的问题是我太匆忙，只是一头扎进设计中，而没有真正理解需求。
 - en: How can I prevent this from happening again next time?
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 我怎样才能防止下次再发生这种情况？
 - en: One obvious solution would be to switch to a proper TDD approach. But I'm going
     to be a bit stubborn, and see if I can stay with a type-first design!
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个明显的解决方案是转向正确的TDD方法。但我会有点固执，看看我是否可以坚持使用先考虑类型的设计！
 - en: '[In the next post](calculator-complete-v2.html), I will stop being so ad-hoc
     and over-confident, and instead use a process that is more thorough and much more
     likely to prevent these kinds of errors at the design stage.'
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
+  zh: '[在下一篇文章中](calculator-complete-v2.html)，我将停止如此临时和过于自信，而是使用一个更彻底、更有可能在设计阶段防止这类错误的过程。'
 - en: '*The code for this post is available on GitHub in [this gist (unpatched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)
     and [this gist (patched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx).*'
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文的代码可在GitHub上的[this gist（未修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)和[this
+    gist（已修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)中找到。*'
 - en: 'Calculator Walkthrough: Part 4'
+  id: totrans-407
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演示：第4部分
 - en: 'Calculator Walkthrough: Part 4'
+  id: totrans-408
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算器演示：第4部分
 - en: In this series of posts, I've been developing a simple pocket calculator app.
+  id: totrans-409
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一系列文章中，我一直在开发一个简单的口袋计算器应用程序。
 - en: In the [first post](calculator-design.html), we completed a first draft of the
     design, using type-first development. and in the [second post](calculator-implementation.html),
     we created an initial implemeentation.
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[第一篇文章](calculator-design.html)中，我们完成了设计的初稿，使用了类型优先的开发方式。而在[第二篇文章](calculator-implementation.html)中，我们创建了一个初始的实现。
 - en: In the [previous post](calculator-complete-v1.html), we created the rest of
     the code, including the user interface, and attempted to use it.
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一篇文章](calculator-complete-v1.html)中，我们创建了其余的代码，包括用户界面，并尝试使用它。
 - en: But the final result was unusable! The problem wasn't that the code was buggy,
     it was that I didn't spend enough time thinking about the requirements before
     I started coding!
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
+  zh: 但最终结果是无法使用的！问题不在于代码有bug，而是我在开始编码之前没有花足够的时间考虑需求！
 - en: 'Oh well. As Fred Brooks famously said: "plan to throw one away; you will, anyhow"
     (although that is a [bit simplistic](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)).'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 哦，好吧。正如**弗雷德·布鲁克斯**著名地说过：“计划扔掉一个；无论如何你都会这样做”（尽管这有点简单化）（[链接](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)）。
 - en: The good news is that I have learned from the previous bad implementation, and
     have a plan to make the design better.
+  id: totrans-414
   prefs: []
   type: TYPE_NORMAL
+  zh: 好消息是，我从之前糟糕的实现中学到了东西，并且有一个计划来改进设计。
 - en: Reviewing the bad design
+  id: totrans-415
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回顾糟糕的设计
 - en: 'Looking at the design and implementation (see [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)),
     a few things stand out:'
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看设计和实现（参见[此代码片段](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)），有几点显眼：
 - en: First, the event handling types such as `UpdateDisplayFromDigit` did not take
     into account the *context*, the current state of the calculator. The `allowAppend`
     flag we added as a patch was one way to take the context into account, but it
     smells awful bad.
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，事件处理类型，如`UpdateDisplayFromDigit`没有考虑*上下文*，即计算器的当前状态。我们添加的`allowAppend`标志是考虑上下文的一种方式，但它闻起来很糟糕。
 - en: 'Second there was a bit of special case code for certain inputs (`Zero` and
     `DecimalSeparator`), as you can see from this code snippet:'
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，对于某些输入（`Zero`和`DecimalSeparator`）有一些特殊情况的代码，如你可以从这段代码片段中看到的：
 - en: '[PRE65]'
+  id: totrans-419
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: This makes me think that these inputs should be treated as different *in the
     design itself* and not hidden in the implementation -- after all we want the design
     to also act as documentation as much as possible.
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
+  zh: 这让我想到这些输入应该在*设计本身*中被视为不同的，并且不应该隐藏在实现中 -- 毕竟我们希望设计尽可能地充当文档。
 - en: Using a finite state machine as a design tool
+  id: totrans-421
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用有限状态机作为设计工具
 - en: So if the ad-hoc, make-it-up-as-you-go-along approach failed, what should I
     do instead?
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，如果临时的、边做边想的方法失败了，我应该做什么？
 - en: Well, I am a big proponent of using [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine)
     ("FSMs" -- not be confused with the [True FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster))
     where appropriate. It is amazing how often a program can be modelled as a state
     machine.
+  id: totrans-423
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，我非常支持在适当的情况下使用[有限状态机](https://en.wikipedia.org/wiki/Finite-state_machine)（"FSMs"
+    -- 不要与[真正的FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster)混淆）。令人惊讶的是，一个程序可以被建模为一个状态机的频率有多高。
 - en: What are the benefits of using state machines? I'm going to repeat what I said
     in [another post](designing-with-types-representing-states.html).
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用状态机有什么好处？我将重复我在[另一篇文章](designing-with-types-representing-states.html)中说过的话。
 - en: '**Each state can have different allowable behavior.** In other words, a state
     machine forces you to think about context, and what options are available in that
     context.'
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
+  zh: '**每个状态都可以有不同的可允许行为。** 换句话说，状态机迫使你考虑上下文，以及在该上下文中有哪些选项可用。'
 - en: In this case, I forgot that the context changed after an `Add` was processed,
     and thus the rules for accumulating digits changed too.
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我忘记了在处理`Add`后上下文发生了变化，因此积累数字的规则也发生了变化。
 - en: '**All the states are explicitly documented.** It is all too easy to have important
     states that are implicit but never documented.'
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: '**所有状态都有明确的文档记录。** 很容易出现重要状态是隐式的但从未被记录的情况。'
 - en: For example, I have created special code to deal with zero and decimal separators.
     Currently it is buried away in the implementation, but it should be part of the
     design.
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我已经创建了特殊的代码来处理零和小数点分隔符。目前它被埋藏在实现中，但它应该是设计的一部分。
 - en: '**It is a design tool that forces you to think about every possibility that
     could occur.** A common cause of errors is that certain edge cases are not handled,
     but a state machine forces *all* cases to be thought about.'
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: In this case, in addition to the most obvious bug, there are still some edge
     cases that are not dealt with properly, such as immediately following a math operation
     with *another* math operation. What should happen then?
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: How to implement simple finite state machines in F#
+  id: totrans-431
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: You are probably familiar with complex FSMs, such as those used in language
     parsers and regular expressions. Those kinds of state machines are generated from
     rule sets or grammars, and are quite complicated.
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: The kinds of state machines that I'm talking about are much, much simpler. Just
     a few cases at the most, with a small number of transitions, so we don't need
     to use complex generators.
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s an example of what I am talking about: ![State machine](state_machine_1.png)'
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
 - en: So what is the best way to implement these simple state machines in F#?
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: Now, designing and implementing FSMs is a complex topic in in own right, with
     its own terminology ([NFAs and DFAs](https://en.wikipedia.org/wiki/Powerset_construction),
     [Moore vs. Mealy](https://stackoverflow.com/questions/11067994/difference-between-mealy-and-moore),
     etc), and [whole businesses](http://www.stateworks.com/) built around it.
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: In F#, there are a number of possible approaches, such as table driven, or mutually
     recursive functions, or agents, or OO-style subclasses, etc.
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
 - en: But my preferred approach (for an ad-hoc manual implementation) makes extensive
     use of union types and pattern matching.
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: 'First, create a union type that represents all the states. For example, if
     there are three states called "A", "B" and "C", the type would look like this:'
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE66]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: In many cases, each state will need to store some data that is relevant to that
     state. So we will need to create types to hold that data as well.
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE67]'
+  id: totrans-442
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: Next, all possible events that can happen are defined in another union type.
     If events have data associated with them, add that as well.
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE68]'
+  id: totrans-444
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: Finally, we can create a "transition" function that, given a current state and
     input event, returns a new state.
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE69]'
+  id: totrans-446
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: What I like about this approach in a language with pattern matching, like F#,
     is that **if we forget to handle a particular combination of state and event,
     we get a compiler warning**. How awesome is that?
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
 - en: It's true that, for systems with many states and input events, it may be unreasonable
     to expect every possible combination to be explicitly handled. But in my experience,
     many nasty bugs are caused by processing an event when you shouldn't, exactly
     as we saw with the original design accumulating digits when it shouldn't have.
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
 - en: Forcing yourself to consider every possible combination is thus a helpful design
     practice.
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, even with a small number of states and events, the number of possible
     combinations gets large very quickly. To make it more manageable in practice,
     I typically create a series of helper functions, one for each state, like this:'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE70]'
+  id: totrans-451
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'So let''s try this approach and attempt to implement the state diagram above:'
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE71]'
+  id: totrans-453
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'If we try to compile this, we immediately get some warnings:'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: (near bStateHandler) `Incomplete pattern matches on this expression. For example,
     the value 'ZEvent' may indicate a case not covered by the pattern(s).`
+  id: totrans-455
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: (near cStateHandler) `Incomplete pattern matches on this expression. For example,
     the value 'YEvent (_)' may indicate a case not covered by the pattern(s).`
+  id: totrans-456
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: This is really helpful. It means we have missed some edge cases and we should
     change our code to handle these events.
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
 - en: By the way, please do *not* fix the code with a wildcard match (underscore)!
     That defeats the purpose. If you want to ignore an event, do it explicitly.
+  id: totrans-458
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the fixed up code, which compiles without warnings:'
+  id: totrans-459
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE72]'
+  id: totrans-460
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: '*You can see the code for this example in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-statemachine-fsx).*'
+  id: totrans-461
   prefs: []
   type: TYPE_NORMAL
 - en: Designing the state machine for the calculator
+  id: totrans-462
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Let''s sketch out a state machine for the calculator now. Here''s a first attempt:'
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
 - en: '![Calculator state machine v1](calculator_states_1.png)'
+  id: totrans-464
   prefs: []
   type: TYPE_IMG
 - en: Each state is a box, and the events that trigger transitions (such as a digit
     or math operation or `Equals`) are in red.
+  id: totrans-465
   prefs: []
   type: TYPE_NORMAL
 - en: If we follow through a sequence of events for something like `1` `Add` `2` `Equals`,
     you can see that we'll end up at the "Show result" state at the bottom.
+  id: totrans-466
   prefs: []
   type: TYPE_NORMAL
 - en: But remember that we wanted to raise the handling of zero and decimal separators
     up to the design level?
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
 - en: So let's create special events for those inputs, and a new state "accumulate
     with decimal" that ignores subsequent decimal separators.
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s version 2:'
+  id: totrans-469
   prefs: []
   type: TYPE_NORMAL
 - en: '![Calculator state machine v1](calculator_states_2.png)'
+  id: totrans-470
   prefs: []
   type: TYPE_IMG
 - en: Finalizing the state machine
+  id: totrans-471
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '"Good artists copy. Great artists steal." -- Pablo Picasso ([but not really](http://quoteinvestigator.com/2013/03/06/artists-steal/))'
+  id: totrans-472
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: At this point, I'm thinking that surely I can't be only person to have thought
     of using a state machine to model a calculator? Perhaps I can do some research
     and ~~steal~~ borrow someone else's design?
+  id: totrans-473
   prefs: []
   type: TYPE_NORMAL
 - en: Sure enough, googling for "calculator state machine" brings up all sorts of
     results, including [this one](http://cnx.org/contents/9bac155d-509e-46a6-b48b-30731ed08ce6@2/Finite_State_Machines_and_the_)
     which has a detailed spec and state transition diagram.
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
 - en: 'Looking at that diagram, and doing some more thinking, leads to the following
     insights:'
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
 - en: The "clear" state and zero state are the same. Sometimes there is a pending
     op, sometimes not.
+  id: totrans-476
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A math operation and `Equals` are very similar in that they update the display
     with any pending calculation. The only difference is whether a pending op is added
     to the state or not.
+  id: totrans-477
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The error message case definitely needs to be a distinct state. It ignores all
     input other than `Clear`.
+  id: totrans-478
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'With these insights in mind then, here''s version 3 of our state transition
     diagram:'
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
 - en: '![Calculator state machine v1](calculator_states_3.png)'
+  id: totrans-480
   prefs: []
   type: TYPE_IMG
 - en: I'm only showing the key transitions -- it would be too overwhelming to show
     all of them. But it does give us enough information to get started on the detailed
     requirements.
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
 - en: 'As we can see, there are five states:'
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
 - en: ZeroState
+  id: totrans-483
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: AccumulatorState
+  id: totrans-484
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: AccumulatorDecimalState
+  id: totrans-485
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: ComputedState
+  id: totrans-486
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: ErrorState
+  id: totrans-487
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'And there are six possible inputs:'
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: Zero
+  id: totrans-489
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: NonZeroDigit
+  id: totrans-490
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: DecimalSeparator
+  id: totrans-491
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: MathOp
+  id: totrans-492
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Equals
+  id: totrans-493
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Clear
+  id: totrans-494
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Let's document each state, and what data it needs to store, if any.
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
 - en: '| State | Data associated with state | Special behavior? |'
+  id: totrans-496
   prefs: []
   type: TYPE_TB
 - en: '| ZeroState | (optional) pending op | Ignores all Zero input |'
+  id: totrans-497
   prefs: []
   type: TYPE_TB
 - en: '| AccumulatorState | buffer and (optional) pending op | Accumulates digits
     in buffer |'
+  id: totrans-498
   prefs: []
   type: TYPE_TB
 - en: '| AccumulatorDecimalState | buffer and (optional) pending op | Accumulates
     digits in buffer, but ignores decimal separators |'
+  id: totrans-499
   prefs: []
   type: TYPE_TB
 - en: '| ComputedState | Calculated number and (optional) pending op |  |'
+  id: totrans-500
   prefs: []
   type: TYPE_TB
 - en: '| ErrorState | Error message | Ignores all input other than Clear |'
+  id: totrans-501
   prefs: []
   type: TYPE_TB
 - en: Documenting each state and event combination
+  id: totrans-502
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Next we should think about what happens for each state and event combination.
     As with the sample code above, we'll group them so that we only have to deal with
     the events for one state at a time.
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s start with the `ZeroState` state. Here are the transitions for each
     type of input:'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
 - en: '| Input | Action | New State |'
+  id: totrans-505
   prefs: []
   type: TYPE_TB
 - en: '| Zero | (ignore) | ZeroState |'
+  id: totrans-506
   prefs: []
   type: TYPE_TB
 - en: '| NonZeroDigit | Start a new accumulator with the digit. | AccumulatorState
     |'
+  id: totrans-507
   prefs: []
   type: TYPE_TB
 - en: '| DecimalSeparator | Start a new accumulator with "0." | AccumulatorDecimalState
     |'
+  id: totrans-508
   prefs: []
   type: TYPE_TB
 - en: '| MathOp | Go to Computed or ErrorState state. If there is a pending op, update
     the display based on the result of the calculation (or error).'
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
 - en: Also, if calculation was successful, push a new pending op, built from the event,
     using a current number of "0". | ComputedState |
+  id: totrans-510
   prefs: []
   type: TYPE_NORMAL
 - en: '| Equals | As with MathOp, but without any pending op | ComputedState |'
+  id: totrans-511
   prefs: []
   type: TYPE_TB
 - en: '| Clear | (ignore) | ZeroState |'
+  id: totrans-512
   prefs: []
   type: TYPE_TB
 - en: 'We can repeat the process with the `AccumulatorState` state. Here are the transitions
     for each type of input:'
+  id: totrans-513
   prefs: []
   type: TYPE_NORMAL
 - en: '| Input | Action | New State |'
+  id: totrans-514
   prefs: []
   type: TYPE_TB
 - en: '| Zero | Append "0" to the buffer. | AccumulatorState |'
+  id: totrans-515
   prefs: []
   type: TYPE_TB
 - en: '| NonZeroDigit | Append the digit to the buffer. | AccumulatorState |'
+  id: totrans-516
   prefs: []
   type: TYPE_TB
 - en: '| DecimalSeparator | Append the separator to the buffer, and transition to
     new state. | AccumulatorDecimalState |'
+  id: totrans-517
   prefs: []
   type: TYPE_TB
 - en: '| MathOp | Go to Computed or ErrorState state. If there is a pending op, update
     the display based on the result of the calculation (or error).'
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
 - en: Also, if calculation was successful, push a new pending op, built from the event,
     using a current number based on whatever is in the accumulator. | ComputedState
     |
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
 - en: '| Equals | As with MathOp, but without any pending op | ComputedState |'
+  id: totrans-520
   prefs: []
   type: TYPE_TB
 - en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  id: totrans-521
   prefs: []
   type: TYPE_TB
 - en: The event handling for `AccumulatorDecimalState` state is the same, except that
     `DecimalSeparator` is ignored.
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
 - en: 'What about the `ComputedState` state. Here are the transitions for each type
     of input:'
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: '| Input | Action | New State |'
+  id: totrans-524
   prefs: []
   type: TYPE_TB
 - en: '| Zero | Go to ZeroState state, but preserve any pending op | ZeroState |'
+  id: totrans-525
   prefs: []
   type: TYPE_TB
 - en: '| NonZeroDigit | Start a new accumulator, preserving any pending op | AccumulatorState
     |'
+  id: totrans-526
   prefs: []
   type: TYPE_TB
 - en: '| DecimalSeparator | Start a new decimal accumulator, preserving any pending
     op | AccumulatorDecimalState |'
+  id: totrans-527
   prefs: []
   type: TYPE_TB
 - en: '| MathOp | Stay in Computed state. Replace any pending op with a new one built
     from the input event | ComputedState |'
+  id: totrans-528
   prefs: []
   type: TYPE_TB
 - en: '| Equals | Stay in Computed state. Clear any pending op | ComputedState |'
+  id: totrans-529
   prefs: []
   type: TYPE_TB
 - en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  id: totrans-530
   prefs: []
   type: TYPE_TB
 - en: 'Finally, the `ErrorState` state is very easy. :'
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
 - en: '| Input | Action | New State |'
+  id: totrans-532
   prefs: []
   type: TYPE_TB
 - en: '| Zero, NonZeroDigit, DecimalSeparator MathOp, Equals | (ignore) | ErrorState
     |'
+  id: totrans-533
   prefs: []
   type: TYPE_TB
 - en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  id: totrans-534
   prefs: []
   type: TYPE_TB
 - en: Converting the states into F# code
+  id: totrans-535
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Now that we've done all this work, the conversion into types is straightforward.
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here are the main types:'
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE73]'
+  id: totrans-538
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: If we compare these types to the first design (below), we have now made it clear
     that there is something special about `Zero` and `DecimalSeparator`, as they have
     been promoted to first class citizens of the input type.
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE74]'
+  id: totrans-540
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: Also, in the old design, we had a single state type (below) that stored data
     for all contexts, while in the new design, the state is *explicitly different*
     for each context. The types `ZeroStateData`, `AccumulatorStateData`, `ComputedStateData`,
     and `ErrorStateData` make this obvious.
+  id: totrans-541
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE75]'
+  id: totrans-542
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: 'Now that we have the basics of the new design, we need to define the other
     types referenced by it:'
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE76]'
+  id: totrans-544
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'And finally, we can define the services:'
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE77]'
+  id: totrans-546
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: Note that because the state is much more complicated, I've added helper function
     `getDisplayFromState` that extracts the display text from the state. This helper
     function will be used the UI or other clients (such as tests) that need to get
     the text to display.
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
 - en: I've also added a `getPendingOpFromState`, so that we can show the pending state
     in the UI as well.
+  id: totrans-548
   prefs: []
   type: TYPE_NORMAL
 - en: Creating a state-based implementation
+  id: totrans-549
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Now we can create a state-based implementation, using the pattern described
     earlier.
+  id: totrans-550
   prefs: []
   type: TYPE_NORMAL
 - en: '*(The complete code is available in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).)*'
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s start with the main function that does the state transitions:'
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE78]'
+  id: totrans-553
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: As you can see, it passes the responsibility to a number of handlers, one for
     each state, which will be discussed below.
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
 - en: But before we do that, I thought it might be instructive to compare the new
     state-machine based design with the (buggy!) one I did previously.
+  id: totrans-555
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here is the code from the previous one:'
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE79]'
+  id: totrans-557
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: 'If we compare the two implementations, we can see that there has been a shift
     of emphasis from events to state. You can see this by comparing how main pattern
     matching is done in the two implementations:'
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
 - en: In the original version, the focus was on the input, and the state was secondary.
+  id: totrans-559
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: In the new version, the focus is on the state, and the input is secondary.
+  id: totrans-560
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The focus on *input* over *state*, ignoring the context, is why the old version
     was such a bad design.
+  id: totrans-561
   prefs: []
   type: TYPE_NORMAL
 - en: To repeat what I said above, many nasty bugs are caused by processing an event
     when you shouldn't (as we saw with the original design). I feel much more confident
     in the new design because of the explicit emphasis on state and context from the
     very beginning.
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, I'm not alone in noticing these kinds of issues. Many people think
@@ -2214,140 +3173,181 @@
     is flawed and recommend a more "state driven approach" (e.g. [here](http://www.barrgroup.com/Embedded-Systems/How-To/State-Machines-Event-Driven-Systems)
     and [here](http://seabites.wordpress.com/2011/12/08/your-ui-is-a-statechart/)),
     just as I have done here.
+  id: totrans-563
   prefs: []
   type: TYPE_NORMAL
 - en: Creating the handlers
+  id: totrans-564
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'We have already documented the requirements for each state transition, so writing
     the code is straightforward. We''ll start with the code for the `ZeroState` handler:'
+  id: totrans-565
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE80]'
+  id: totrans-566
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: Again, the *real* work is done in helper functions such as `accumulateNonZeroDigit`
     and `getComputationState`. We'll look at those in a minute.
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here is the code for the `AccumulatorState` handler:'
+  id: totrans-568
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE81]'
+  id: totrans-569
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: 'Here is the code for the `ComputedState` handler:'
+  id: totrans-570
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE82]'
+  id: totrans-571
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: The helper functions
+  id: totrans-572
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Finally, let''s look at the helper functions:'
+  id: totrans-573
   prefs: []
   type: TYPE_NORMAL
 - en: The accumulator helpers are trivial -- they just call the appropriate service
     and wrap the result in an `AccumulatorData` record.
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE83]'
+  id: totrans-575
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: The `getComputationState` helper is much more complex -- the most complex function
     in the entire code base, I should think.
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
 - en: 'It''s very similar to the `updateDisplayFromPendingOp` that we implemented
     before, but there are a couple of changes:'
+  id: totrans-577
   prefs: []
   type: TYPE_NORMAL
 - en: The `services.getNumberFromAccumulator` code can never fail, because of the
     state-based approach. That makes life simpler!
+  id: totrans-578
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The `match result with Success/Failure` code now returns *two* possible states:
     `ComputedState` or `ErrorState`.'
+  id: totrans-579
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: If there is no pending op, we *still* need to return a valid `ComputedState`,
     which is what `computeStateWithNoPendingOp` does.
+  id: totrans-580
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[PRE84]'
+  id: totrans-581
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: Finally, we have a new piece of code that wasn't in the previous implementation
     at all!
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
 - en: What do you do when you get two math ops in a row? We just replace the old pending
     op (if any) with the new one (if any).
+  id: totrans-583
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE85]'
+  id: totrans-584
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: Completing the calculator
+  id: totrans-585
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: To complete the application, we just need to implement the services and the
     UI, in the same way as we did before.
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
 - en: As it happens, we can reuse almost all of the previous code. The only thing
     that has really changed is the way that the input events are structured, which
     affects how the button handlers are created.
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
 - en: You can get the code for the state machine version of the calculator [here](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
 - en: If you try it out the new code, I think that you will find that it works first
     time, and feels much more robust. Another win for state-machine driven design!
+  id: totrans-589
   prefs: []
   type: TYPE_NORMAL
 - en: Exercises
+  id: totrans-590
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'If you liked this design, and want to work on something similar, here are some
     exercises that you could do:'
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
 - en: First, you could add some other operations. What would you have to change to
     implement unary ops such as `1/x` and `sqrt`?
+  id: totrans-592
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Some calculators have a back button. What would you have to do to implement
     this? Luckily all the data structures are immutable, so it should be easy!
+  id: totrans-593
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Most calculators have a one-slot memory with store and recall. What would you
     have to change to implement this?
+  id: totrans-594
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The logic that says that there are only 10 chars allowed on the display is still
     hidden from the design. How would you make this visible?
+  id: totrans-595
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-596
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'I hope you found this little experiment useful. I certainly learned something,
     namely: don''t shortcut requirements gathering, and consider using a state based
     approach from the beginning -- it might save you time in the long run!'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
