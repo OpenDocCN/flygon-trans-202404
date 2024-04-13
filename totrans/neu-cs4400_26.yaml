@@ -1,64 +1,98 @@
 - en: The FLANG LanguageTuesday, January 31st
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: FLANG语言星期二，1月31日
 - en: Now for the implementation — we call this new language FLANG.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在进行实现 — 我们称这种新语言为FLANG。
 - en: 'First, the BNF:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，BNF：
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'And the matching type definition:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 匹配的类型定义：
 - en: '[PRE1]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The parser for this grammar is, as usual, straightforward:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个语法的解析器通常很简单：
 - en: '[PRE2]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'We also need to patch up the substitution function to deal with these things.
     The scoping rule for the new function form is, unsurprisingly, similar to the
     rule of `with`, except that there is no extra expression now, and the scoping
     rule for `call` is the same as for the arithmetic operators:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要修补替换函数以处理这些情况。新函数形式的作用域规则与`with`的规则类似，只是现在没有额外的表达式，而`call`的作用域规则与算术运算符的规则相同：
 - en: '[PRE3]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'And the matching code:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 匹配的代码：
 - en: '[PRE4]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '* * *'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Now, before we start working on an evaluator, we need to decide on what exactly
     do we use to represent values of this language. Before we had functions, we had
     only number values and we used Racket numbers to represent them. Now we have two
     kinds of values — numbers and functions. It seems easy enough to continue using
     Racket numbers to represent numbers, but what about functions? What should be
     the result of evaluating
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，在我们开始编写评估器之前，我们需要决定用什么来表示这种语言的值。在我们有函数之前，我们只有数字值，并且我们使用Racket数字来表示它们。现在我们有两种类型的值
+    — 数字和函数。继续使用Racket数字来表示数字似乎很容易，但是函数呢？评估
 - en: '[PRE5]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '? Well, this is the new toy we have: it should be a function value, which is
     something that can be used just like numbers, but instead of arithmetic operations,
     we can `call` these things. What we need is a way to avoid evaluating the body
     expression of the function — *delay* it — and instead use some value that will
     contain this delayed expression in a way that can be used later.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，这是我们拥有的新玩具：它应该是一个函数值，这是一种可以像数字一样使用的东西，但是不同于算术运算，我们可以通过`call`这些东西。我们需要一种方法来避免评估函数的主体表达式
+    — *延迟*它 — 并且使用一些值来包含这个延迟的表达式，以便稍后可以使用。
 - en: 'To accommodate this, we will change our implementation strategy a little: we
     will use our syntax objects for numbers (`(Num n)` instead of just `n`), which
     will be a little inconvenient when we do the arithmetic operations, but it will
@@ -67,130 +101,204 @@
     need: the body expression that needs to be evaluated later when the function is
     called, and it also has the identifier name that should be replaced with the actual
     input to the function call. This means that evaluating:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了适应这一点，我们将稍微改变我们的实现策略：我们将使用我们的语法对象来表示数字（`(Num n)`而不仅仅是`n`），这在进行算术运算时可能有点不方便，但通过使函数的评估方式类似于返回它们自己的语法对象，将简化生活。语法对象具有我们需要的内容：需要在函数调用时稍后评估的主体表达式，它还具有应该用实际输入替换的标识符名称。这意味着评估：
 - en: '[PRE6]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: now yields
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在产生
 - en: '[PRE7]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: and a number `(Num 5)` evaluates to `(Num 5)`.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个数字`(Num 5)`评估为`(Num 5)`。
 - en: In a similar way, `(Fun 'x (Num 2))` evaluates to `(Fun 'x (Num 2))`.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，`(Fun 'x (Num 2))`评估为`(Fun 'x (Num 2))`。
 - en: Why would this work? Well, because `call` will be very similar to `with` — the
     only difference is that its arguments are ordered a little differently, being
     retrieved from the function that is applied and the argument.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么这会起作用？因为`call`将与`with`非常相似 — 唯一的区别是其参数的顺序有点不同，从应用的函数和参数中检索。
 - en: 'The formal evaluation rules are therefore treating functions like numbers,
     and use the syntax object to represent both values:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，正式的评估规则将函数视为数字，并使用语法对象来表示这两种值：
 - en: '[PRE8]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Note that the last rule could be written using a translation to a `with` expression:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，最后一个规则可以使用`with`表达式的转换来编写：
 - en: '[PRE9]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'And alternatively, we could specify `with` using `call` and `fun`:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，我们可以使用`call`和`fun`来指定`with`：
 - en: '[PRE10]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'There is a small problem in these rules which is intuitively seen by the fact
     that the evaluation rule for a `call` is expected to be very similar to the one
     for arithmetic operations. We now have two kinds of values, so we need to check
     the arithmetic operation’s arguments too:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些规则中存在一个小问题，直观地看，`call`的评估规则应该与算术运算的规则非常相似。现在我们有两种类型的值，因此我们也需要检查算术运算的参数：
 - en: '[PRE11]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'The corresponding code is:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 相应的代码是：
 - en: '[PRE12]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Note that the `Call` case is doing the same thing we do in the `With` case.
     In fact, we could have just *generated* a `With` expression and evaluate that
     instead:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，`Call` 案例正在执行与 `With` 案例中相同的操作。实际上，我们本可以*生成*一个 `With` 表达式并评估它：
 - en: '[PRE13]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The `arith-op` function is in charge of checking that the input values are numbers
     (represented as FLANG numbers), translating them to plain numbers, performing
     the Racket operation, then re-wrapping the result in a `Num`. Note how its type
     indicates that it is a higher-order function.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '`arith-op` 函数负责检查输入值是否为数字（以 FLANG 数字表示），将它们转换为普通数字，执行 Racket 操作，然后将结果重新包装为
+    `Num`。请注意，它的类型表明它是一个高阶函数。'
 - en: '[PRE14]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: It uses the following function to convert FLANG numbers to Racket numbers. (Note
     that `else` is almost always a bad idea since it can prevent the compiler from
     showing you places to edit code — but this case is an exception since we never
     want to deal with anything other than `Num`s.) The reason that this function is
     relatively trivial is that we chose the easy way and represented numbers using
     Racket numbers, but we could have used strings or anything else.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 它使用以下函数将 FLANG 数字转换为 Racket 数字。（请注意，`else` 几乎总是一个坏主意，因为它可能会阻止编译器显示要编辑代码的位置 ——
+    但这种情况是个例外，因为我们永远不希望处理除了 `Num` 以外的任何东西。）这个函数相对简单的原因是，我们选择了简单的方式，并使用 Racket 数字表示数字，但我们也可以使用字符串或其他任何东西。
 - en: '[PRE15]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'We can also make things a little easier to use if we make `run` convert the
     result to a number:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们让 `run` 将结果转换为数字，我们也可以使使用变得更加简单：
 - en: '[PRE16]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Adding few simple tests we get:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加一些简单的测试我们得到：
 - en: '[PRE17]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '* * *'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: There is still a problem with this version. First a question — if `call` is
     similar to arithmetic operations (and to `with` in what it actually does), then
     how come the code is different enough that it doesn’t even need an auxiliary function?
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个版本仍然存在问题。首先是一个问题 —— 如果 `call` 类似于算术操作（并且与 `with` 在实际执行上也类似），那么为什么代码差异如此之大，以至于甚至不需要辅助函数呢？
 - en: 'Second question: what *should* happen if we evaluate these code snippets:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个问题：如果我们评估这些代码片段，应该会发生什么？
 - en: '[PRE18]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Third question, what *will* happen if we do the above?
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三个问题，如果我们执行上述操作，会发生什么？
 - en: 'What we’re missing is an evaluation of the function expression, in case it’s
     not a literal `fun` form. The following fixes this:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们缺少的是对函数表达式的评估，以防它不是一个字面上的 `fun` 形式。以下修复此问题：
 - en: '[PRE19]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'The complete code is:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的代码是：
 - en: '[PRE20]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
