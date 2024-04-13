@@ -1,73 +1,109 @@
 - en: 'Implementing Lexical Scope: Closures and EnvironmentsTuesday, February 7th'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现词法作用域：闭包和环境
 - en: So how do we fix this?
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们如何解决这个问题呢？
 - en: 'Lets go back to the root of the problem: the new evaluator does not behave
     in the same way as the substituting evaluator. In the old evaluator, it was easy
     to see how functions can behave as objects that remember values. For example,
     when we do this:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到问题的根源：新的求值器的行为与替换求值器不同。在旧的求值器中，很容易看出函数如何作为记住值的对象。例如，当我们这样做时：
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'the result was a function value, which actually was the syntax object for this:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是一个函数值，实际上是这个的语法对象：
 - en: '[PRE1]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now if we call this function from someplace else like:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在如果我们从其他地方调用这个函数，比如：
 - en: '[PRE2]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'it is clear what the result will be: f is bound to a function that adds 1 to
     its input, so in the above the later binding for `x` has no effect at all.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显结果会是什么：f绑定到一个将1添加到其输入的函数，所以在上述情况下，对`x`的后期绑定根本没有任何效果。
 - en: But with the caching evaluator, the value of
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是对于缓存求值器，值
 - en: '[PRE3]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'is simply:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单地是：
 - en: '[PRE4]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: and there is no place where we save the 1 — *that’s* the root of our problem.
     (That’s also what makes people suspect that using `lambda` in Racket and any other
     functional language involves some inefficient code-recompiling magic.) In fact,
     we can verify that by inspecting the returned value, and see that it does contain
     a free identifier.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且没有地方保存1 — *这就是*我们问题的根源。（这也是人们怀疑在 Racket 和任何其他函数式语言中使用 `lambda` 涉及一些低效的代码重新编译魔法的原因。）事实上，我们可以通过检查返回值来验证这一点，并且看到它确实包含一个自由标识符。
 - en: 'Clearly, we need to create an object that contains the body and the argument
     list, like the function syntax object — but we don’t do any substitution, so in
     addition to the body an argument name(s) we need to remember that we still need
     to substitute `x` by `1` . This means that the pieces of information we need to
     know are:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，我们需要创建一个包含主体和参数列表的对象，就像函数语法对象一样——但我们不做任何替换，所以除了主体和参数名，我们还需要记住我们仍然需要用`1`替换`x`。这意味着我们需要知道的信息是：
 - en: '[PRE5]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: and that last bit has the missing `1`. The resulting object is called a `closure`
     because it closes the function body over the substitutions that are still pending
     (its environment).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后那一点是缺少的`1`。生成的对象称为`闭包`，因为它将函数体封闭在仍然挂起的替换上（它的环境）。
 - en: So, the first change is in the value of functions which now need all these pieces,
     unlike the `Fun` case for the syntax object.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，第一个改变是函数的值，它现在需要所有这些部分，不像语法对象的`Fun`情况。
 - en: 'A second place that needs changing is the when functions are called. When we’re
     done evaluating the `call` arguments (the function value and the argument value)
     but before we apply the function we have two *values* — there is no more use for
@@ -77,96 +113,149 @@
     arguments and actual values given. But the body itself is the same one we had
     before — which is the previous body with its suspended substitutions that we *still*
     did not do.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要更改的第二个地方是函数调用时。当我们完成评估`call`参数（函数值和参数值）但在应用函数之前，我们有两个*值* —— 这时候当前替换缓存已经没有用处了：我们已经完成了对当前表达式所有必要的替换处理
+    —— 我们现在继续评估函数体，用形式参数和给定的实际值进行新的替换。但是函数体本身是我们以前的相同的函数体 —— 它具有挂起的替换，我们*仍然*没有做。
 - en: 'Rewrite the evaluation rules — all are the same except for evaluating a `fun`
     form and a `call` form:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 重写评估规则——所有规则都是相同的，只有评估`fun`形式和`call`形式不同：
 - en: '[PRE6]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'As a side note, these substitution caches are a little more than “just a cache”
     now — they actually hold an *environment* of substitutions in which expression
     should be evaluated. So we will switch to the common *environment* name now.:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便提一下，这些替换缓存现在不仅仅是“只是一个缓存” —— 它们实际上保存了一个*环境*，在这个环境中应该对表达式进行评估。所以我们现在会切换到常见的*环境*名称：
 - en: '[PRE7]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'In case you find this easier to follow, the “flat algorithm” for evaluating
     a `call` is:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你觉得这个更容易理解，评估`call`的“平面算法”如下：
 - en: '[PRE8]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Note how the scoping rules that are implied by this definition match the scoping
     rules that were implied by the substitution-based rules. (It should be possible
     to prove that they are the same.)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意这个定义隐含的作用域规则与替换为基础的规则所暗示的作用域规则是匹配的。（应该可以证明它们是相同的。）
 - en: The changes to the code are almost trivial, except that we need a way to represent
     `<{fun {x} Ef}, env>` pairs.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码的更改几乎是微不足道的，除了我们需要一种方式来表示`<{fun {x} Ef}, env>`对。
 - en: '* * *'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: The implication of this change is that we now cannot use the same type for function
     syntax and function values since function values have more than just syntax. There
     is a simple solution to this — we never do any substitutions now, so we don’t
     need to translate values into expressions — we can come up with a new type for
     values, separate from the type of abstract syntax trees.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种改变的含义是，我们现在不能再使用相同的类型来表示函数语法和函数值，因为函数值不仅仅是语法。对此有一个简单的解决方案 — 我们现在不再进行任何替换，因此不需要将值转换为表达式
+    — 我们可以为值提出一个新类型，与抽象语法树的类型分开。
 - en: 'When we do this, we will also fix our hack of using FLANG as the type of values:
     this was merely a convenience since the AST type had cases for all kinds of values
     that we needed. (In fact, you should have noticed that Racket does this too: numbers,
     strings, booleans, etc are all used by both programs and syntax representation
     (s-expressions) — but note that function values are *not* used in syntax.) We
     will now implement a separate `VAL` type for runtime values.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们这样做时，我们还将修复使用FLANG作为值类型的问题：这仅仅是一种便利，因为AST类型包含了我们需要的所有值的情况。 （实际上，你应该已经注意到
+    Racket 也这样做了：数字、字符串、布尔值等都被程序和语法表示（s-表达式）使用 — 但请注意函数值*不*在语法中使用。）我们现在将为运行时值实现一个单独的`VAL`类型。
 - en: 'First, we need now a type for such environments — we can use `Listof` for this:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们现在需要一个这样的环境类型 — 我们可以使用`Listof`来表示：
 - en: '[PRE9]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'but we can just as well define a new type for environment values:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我们同样可以为环境值定义一个新类型：
 - en: '[PRE10]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Reimplementing `lookup` is now simple:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 重新实现`lookup`现在很简单：
 - en: '[PRE11]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: … we don’t need `extend` because we get `Extend` from the type definition, and
     we also get `(EmptyEnv)` instead of `empty-subst`.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: … 我们不需要`extend`，因为我们从类型定义中得到了`Extend`，我们也得到了`(EmptyEnv)`而不是`empty-subst`。
 - en: 'We now use this with the new type for values — two variants of these:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们使用这个新的值类型 — 有两个变体：
 - en: '[PRE12]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'And now the new implementation of `eval` which uses the new type and implements
     lexical scope:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是使用新类型并实现词法作用域的`eval`的新实现：
 - en: '[PRE13]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: We also need to update `arith-op` to use `VAL` objects. The full code follows
     — it now passes all tests, including the example that we used to find the problem.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要更新`arith-op`以使用`VAL`对象。完整的代码如下 — 现在通过了所有测试，包括我们用来发现问题的示例。
 - en: '[PRE14]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
