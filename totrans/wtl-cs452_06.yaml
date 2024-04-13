@@ -1,740 +1,1098 @@
 - en: Lecture 6 - Context Switch
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第6讲 - 上下文切换
 - en: Pubilc Service Annoucements
+  id: totrans-1
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 公共服务公告
 - en: Due date for assignment 1
+  id: totrans-2
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作业1的截止日期
 - en: Partners
+  id: totrans-3
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 合作伙伴
 - en: '* * *'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Kernel Structure
+  id: totrans-5
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 内核结构
 - en: The kernel is just a function like any other, but which runs forever.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 内核只是一个像其他任何函数一样的函数，但是永远运行。
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Where is the OS?
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 操作系统在哪里？
 - en: requests come from running user tasks
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请求来自正在运行的用户任务
 - en: in essence system calls
+  id: totrans-10
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本质上是系统调用
 - en: one type of request creates a task
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种请求类型创建一个任务
 - en: There needs to be a first task that gets everything going
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要有一个第一个任务来启动一切
 - en: '* * *'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: All the interesting stuff inside done by the kernel is hidden inside `getNextRequest`.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 内核中所有有趣的东西都隐藏在`getNextRequest`中。
 - en: '[PRE1]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: What's inside `activate( active )`?
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '`activate( active )`里面有什么？'
 - en: transfer of control to the active task
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 控制权转移给活动任务
 - en: execution to completion of the active task
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 执行到活动任务的完成
 - en: '`to completion'' means until the active task sends a request to the kernel'
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`直到完成''意味着直到活动任务向内核发送请求'
 - en: transfer of control back to the kernel
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 控制权转移回内核
 - en: getting the request
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取请求
 - en: The hard part to get right is `transfer of control'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确的难点是`控制权的转移'
 - en: which we call a context switch
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们称之为上下文切换
 - en: Programming a context switch requires you to know the processor architecture
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编程上下文切换需要你了解处理器架构
 - en: '* * *'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: ARM 920T
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ARM 920T
 - en: Features
+  id: totrans-27
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 特点
 - en: 16 32-bit registers
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 16个32位寄存器
 - en: Processor modes. In the table below `special' means that the mode has ia separate
     copy of the registers.
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 处理器模式。在下表中，`special'表示该模式具有寄存器的单独副本。
 - en: '| M[4:0] | Mode | Registers accessible |'
+  id: totrans-30
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| M[4:0] | 模式 | 可访问的寄存器 |'
 - en: '| 10000 | User | `r0-r15 cpsr` |'
+  id: totrans-31
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 10000 | 用户 | `r0-r15 cpsr` |'
 - en: '| 10001 | FIQ (Fast interrupt processing) | `r0-r7, r15` `r8_fiq-r14_fiq``cpsr`,
     spsr_fiq |'
+  id: totrans-32
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 10001 | FIQ（快速中断处理） | `r0-r7, r15` `r8_fiq-r14_fiq``cpsr`, spsr_fiq |'
 - en: '| 10010 | IRQ (Interrupt processing) | `r0-r12, r15` `r13_`irq`,r14_`irq`cpsr`,
     `spsr_`irq |'
+  id: totrans-33
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 10010 | IRQ（中断处理） | `r0-r12, r15` `r13_`irq`,r14_`irq`cpsr`, `spsr_`irq |'
 - en: '| 10011 | Supervisor | `r0-r12, r15` `r13_`svc`,r14_`svc`cpsr`, `sprs_`svc
     |'
+  id: totrans-34
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 10011 | 监督者 | `r0-r12, r15` `r13_`svc`,r14_`svc`cpsr`, `sprs_`svc |'
 - en: '| 10111 | Abort | `r0-r12, r15` `r13_`abt`,r14_`abt`cpsr`, `spsr`_abt |'
+  id: totrans-35
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 10111 | 中止 | `r0-r12, r15` `r13_`abt`,r14_`abt`cpsr`, `spsr`_abt |'
 - en: '| 11011 | Undefined | `r0-r12, r15` `r13_`und`,r14_`und`cpsr`, `spsr_`und |'
+  id: totrans-36
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 11011 | 未定义 | `r0-r12, r15` `r13_`und`,r14_`und`cpsr`, `spsr_`und |'
 - en: '| 11111 | System | `r0-r15``cpsr` |'
+  id: totrans-37
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 11111 | 系统 | `r0-r15``cpsr` |'
 - en: Program status register, **PSR**, which you will find in two places CPSR and
     SPSR
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 程序状态寄存器，**PSR**，你会在两个地方找到它，CPSR和SPSR
 - en: '| Bit | Mnemonic | Meaning |'
+  id: totrans-39
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 位 | 助记符 | 含义 |'
 - en: '| 31 | N | Negative |'
+  id: totrans-40
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 31 | N | 负数 |'
 - en: '| 30 | Z | Zero |'
+  id: totrans-41
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 30 | Z | 零 |'
 - en: '| 29 | C | Carry |'
+  id: totrans-42
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 29 | C | 进位 |'
 - en: '| 28 | V | Overflow |'
+  id: totrans-43
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 28 | V | 溢出 |'
 - en: '| 8-27 | DNM | Does not matter in v4 |'
+  id: totrans-44
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 8-27 | DNM | 在v4中无关紧要 |'
 - en: '| 7 | I | Interrupts disabled |'
+  id: totrans-45
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 7 | I | 禁用中断 |'
 - en: '| 6 | F | Fast interrupts disabled |'
+  id: totrans-46
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 6 | F | 禁用快速中断 |'
 - en: '| 5 | T | Thumb execution |'
+  id: totrans-47
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 5 | T | Thumb执行 |'
 - en: '| 4 | M4 | Five processor mode bits |'
+  id: totrans-48
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 4 | M4 | 五个处理器模式位 |'
 - en: '| 3 | M3 |  |'
+  id: totrans-49
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 3 | M3 |  |'
 - en: '| 2 | M2 |  |'
+  id: totrans-50
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 2 | M2 |  |'
 - en: '| 1 | M1 |  |'
+  id: totrans-51
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 1 | M1 |  |'
 - en: '| 0 | M0 |  |'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 0 | M0 |  |'
 - en: Exceptions
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 异常
 - en: '| ExceptionType | ModesCalled from | Mode atCompletion | InstructionAddress
     |'
+  id: totrans-54
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 异常类型 | 调用模式 | 完成时模式 | 指令地址 |'
 - en: '| Reset | hardware | supervisor | `0x00` |'
+  id: totrans-55
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 复位 | 硬件 | 监督者 | `0x00` |'
 - en: '| Undefined instruction | any | undefined | `0x04` |'
+  id: totrans-56
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 未定义指令 | 任何 | 未定义 | `0x04` |'
 - en: '| Software interrupt | any | supervisor | `0x08` |'
+  id: totrans-57
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 软件中断 | 任何 | 监督者 | `0x08` |'
 - en: '| Prefetch abort | any | abort | `0x0c` |'
+  id: totrans-58
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 预取中止 | 任何 | 中止 | `0x0c` |'
 - en: '| Data abort | any | abort | `0x10` |'
+  id: totrans-59
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 数据中止 | 任何 | 中止 | `0x10` |'
 - en: '| Ordinary interrupt | any | IRQ | `0x18` |'
+  id: totrans-60
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 普通中断 | 任何 | IRQ | `0x18` |'
 - en: '| Fast interrupt | any | FIQ | `0x1c` |'
+  id: totrans-61
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 快速中断 | 任何 | FIQ | `0x1c` |'
 - en: You are concerned right now with Reset and Software Interrupt.
+  id: totrans-62
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你现在关心的是复位和软件中断。
 - en: The first instruction executed by the CPU after reset is the one at location
     `0x00000000`. Usually it is
+  id: totrans-63
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CPU在复位后执行的第一条指令是位于`0x00000000`位置的指令。通常情况下
 - en: '[PRE2]'
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: which you will normally find in addresses `0x00` to `0x1c`. Just executing an
     instruction, rather than having an address that is specially processed saves transistors,
     which is good.
+  id: totrans-65
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 通常你会在地址`0x00`到`0x1c`找到它。执行一条指令，而不是有一个经过特殊处理的地址，可以节省晶体管，这是好事。
 - en: The indirect jump allows the CPU to jump anywhere in the address space.
+  id: totrans-66
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 间接跳转允许CPU在地址空间中的任何地方跳转。
 - en: RedBoot puts entry points of RedBoot into addresses `0x20` to `0x3c.`
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: RedBoot将RedBoot的入口点放在地址`0x20`到`0x3c`。
 - en: Note endianness of RedBoot output when examining these locations.
+  id: totrans-68
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注意在检查这些位置时RedBoot输出的字节顺序。
 - en: Three data types
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 三种数据类型
 - en: 'word: 32 bits, word-aligned'
+  id: totrans-70
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字：32位，字对齐
 - en: 'half-word: 16 bits, half-word-aligned'
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 半字：16位，半字对齐
 - en: 'byte: 8 bits'
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字节：8 位
 - en: Context Switch
+  id: totrans-73
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 上下文切换
 - en: Function Call (gcc calling conventions)
+  id: totrans-74
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 函数调用（gcc 调用约定）
 - en: '[PRE3]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Note the role of the index pointer (ip), link register (lr) and stack pointer
     (sp).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意索引指针（ip）、链接寄存器（lr）和堆栈指针（sp）的作用。
 - en: The final instruction could be
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终指令可能是
 - en: '[PRE4]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The sequence
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个序列
 - en: '[PRE5]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: is a `NOP`.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 是一个 `NOP`。
 - en: Software Interrupt
+  id: totrans-82
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 软件中断
 - en: The software interrupt instruction ( SWI{cond} <immed_24> ). What happens when
     it is executed?
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 软件中断指令（SWI{cond} <immed_24>）。执行时会发生什么？
 - en: r14_svc <- address of the following instruction. This is where the kernel will
     return to.
+  id: totrans-84
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: r14_svc <- 以下指令的地址。这是内核将返回的地方。
 - en: SPSR_svc <- CPSR. This saves the mode, condition codes, etc.
+  id: totrans-85
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: SPSR_svc <- CPSR。这保存了模式、条件码等。
 - en: CPSR[0:4] <- 0b10011\. Supervisor mode.
+  id: totrans-86
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CPSR[0:4] <- 0b10011\. 管理员模式。
 - en: CPSR[5] <- 0\. ARM (not Thumb) state.
+  id: totrans-87
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CPSR[5] <- 0\. ARM（非 Thumb）状态。
 - en: CPSR[7] <- 1\. Normal interrupts disabled.
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CPSR[7] <- 1\. 正常中断被禁用。
 - en: PC <- 0x08
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: PC <- 0x08
 - en: The CPU ignores the 24-bit immediate value, which can be used by the programmer
     as an argument identifying the system call, for example.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: CPU 忽略了 24 位的立即值，程序员可以将其用作标识系统调用的参数，例如。
 - en: '[PRE6]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The sequence
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个序列
 - en: '[PRE7]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: is a `NOP`.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 是一个 `NOP`。
 - en: This NOP depends on a bunch of things being correctly set up, especially the
     low memory.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 NOP 取决于一堆正确设置的东西，特别是低内存。
 - en: For Later in the course
+  id: totrans-96
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 课程后期
 - en: Responding to SWI treats the scratch registers in a special way.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 响应 SWI 会以特殊方式处理临时寄存器。
 - en: The calling code does not expect them to be preserved.
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调用代码不希望它们被保留。
 - en: They are likely to contain arguments on entry, and the return value on exit.
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们可能在进入时包含参数，并在退出时包含返回值。
 - en: In the third part of the kernel you will implement hardware interrupts.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内核的第三部分中，你将实现硬件中断。
 - en: You will go to IRQ mode, not SVC mode
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你将进入 IRQ 模式，而不是 SVC 模式
 - en: You have to restore the scratch registers exactly as you restore all the other
     registers.
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你必须像恢复所有其他寄存器一样精确地恢复临时寄存器。
 - en: It seems desirable to have as much code as possible common to hardware and software
     interrupts.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽可能使硬件和软件中断的代码尽可能相同似乎是可取的。
 - en: 'Questions:'
+  id: totrans-104
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 问题：
 - en: What is above `kernel entry`?
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`kernel entry` 上面是什么？'
 - en: If you put swi in a wrapper or stub what happens before and after it?
+  id: totrans-106
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果将 swi 放在包装器或存根中会发生什么？
 - en: If the request had arguments, how would you get them into the kernel?
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果请求有参数，你将如何将它们传递到内核中？
 - en: Hint. How does `gcc` pass arguments into a function?
+  id: totrans-108
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 提示。`gcc` 如何将参数传递给函数？
 - en: It might be important that there are two link registers. Which two link registers?
     Why?
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 两个链接寄存器可能很重要。哪两个链接寄存器？为什么？
 - en: In practice it is important only for hardware interrupts. Why?
+  id: totrans-110
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在实践中，这仅对硬件中断很重要。为什么？
 - en: 'Suggestions:'
+  id: totrans-111
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 建议：
 - en: Try this first on paper drawing the stack, registers, etc after each instruction
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先在纸上尝试，绘制每条指令后的堆栈、寄存器等
 - en: Try coding in baby steps, which is usually a good idea in assembly language.
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 尝试逐步编码，这在汇编语言���通常是一个好主意。
 - en: Try reading [this](../../pdf/context.pdf).
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试阅读 [这个](../../pdf/context.pdf)。
 - en: '* * *'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: After the Software Interrupt
+  id: totrans-116
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 软件中断后
 - en: In the kernel
+  id: totrans-117
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 在内核中
 - en: The order matters
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺序很重要
 - en: '[PRE8]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: State on entry
+  id: totrans-120
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 进入时的状态
 - en: supervisor mode
+  id: totrans-121
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 管理员模式
 - en: interrupts off
+  id: totrans-122
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 中断关闭
 - en: spsr_svc = cpsr_usr
+  id: totrans-123
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: spsr_svc = cpsr_usr
 - en: arguments in r0-r3
+  id: totrans-124
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 参数在 r0-r3 中
 - en: caller context in registers r4-r12
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调用者上下文在寄存器 r4-r12 中
 - en: caller local variables indexed off fp
+  id: totrans-126
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调用者的局部变量是相对于 fp 索引的
 - en: kernel stack pointer (sp_svc) in r13
+  id: totrans-127
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内核堆栈指针（sp_svc）在 r13 中
 - en: address of instruction following swi in r14, i.e., lr_svc = return address =
     pc_usr
+  id: totrans-128
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: swi 后面的指令地址在 r14 中，即 lr_svc = 返回地址 = pc_usr
 - en: kernel entry in r15
+  id: totrans-129
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内核入口在 r15 中
 - en: Change to system state
+  id: totrans-130
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 切换到系统状态
 - en: Save the user state
+  id: totrans-131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 保存用户状态
 - en: on its stack
+  id: totrans-132
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在它的堆栈上
 - en: This might include scratch registers (arguments), which you may or may not need
     later.
+  id: totrans-133
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这可能包括临时寄存器（参数），你以后可能需要也可能不需要。
 - en: Put `sp_usr` in a scratch register, say r2
+  id: totrans-134
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将 `sp_usr` 放入一个临时寄存器，比如 r2
 - en: Return to supervisor mode
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回到管理员模式
 - en: Get the request into a scratch register
+  id: totrans-136
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将请求放入一个临时寄存器
 - en: '[PRE9]'
+  id: totrans-137
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Retrieve the kernel state, which should not include the scratch registers
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 恢复内核状态，不应包括临时寄存器
 - en: You now have the kernel frame pointer
+  id: totrans-139
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在你有了内核帧指针
 - en: You can use it to put stuff in kernel memory
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以用它将东西放入内核内存
 - en: Put what you need to in the active task's TD
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将你需要的东西放入活动任务的 TD 中
 - en: '`active` is indexed off the kernel''s frame pointer'
+  id: totrans-142
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`active` 是相对于内核帧指针的索引'
 - en: '`active` is a pointer to the TD of the requester'
+  id: totrans-143
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`active` 是请求者的 TD 的指针'
 - en: Some where above you must have picked up the arguments
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在某处你必须已经获取了参数
 - en: must be done after 5\. Why?
+  id: totrans-145
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须在第 5 步之后完成。为什么？
 - en: must be done before 9\. Why?
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须在9点之前完成。为什么呢？
 - en: Return from `getNextRequest( active )` and get to work
+  id: totrans-147
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从`getNextRequest( active )`返回并开始工作
 - en: Don't forget to store the return value when you're finished handling the request
     and before scheduling.
+  id: totrans-148
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在处理完请求并进行调度之前，不要忘记存储返回值。
 - en: There is more than one way to do almost everything in this list, and I have
     chosen this way of describing what is to be done because it's simplest to describe,
     not because it's necessarily best!.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个列表中几乎所有事情都有多种方法去完成，我选择描述这个要做的事情的方式是因为这种描述最简单，而不是因为它一定是最好的！
 - en: '* * *'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Before the Software Interrupt
+  id: totrans-151
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在软件中断之前
 - en: After a while it's time to leave the kernel
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 过了一会儿就该离开内核了
 - en: Schedule the next task to run
+  id: totrans-153
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 安排下一个要运行的任务
 - en: i.e. get the value of `active`
+  id: totrans-154
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即获取`active`的值
 - en: Call `GetNextRequest( active )`
+  id: totrans-155
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 调用`GetNextRequest( active )`
 - en: Inside GetNextRequest
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在GetNextRequest内部
 - en: From TD, or the user stack
+  id: totrans-157
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 来自TD，或者用户栈
 - en: get sp_usr
+  id: totrans-158
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取sp_usr
 - en: set spsr_svc = cpsr_usr
+  id: totrans-159
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置spsr_svc = cpsr_usr
 - en: You should understand how this takes us back to user mode.
+  id: totrans-160
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你应该理解这如何使我们回到用户模式。
 - en: set lr_svc = pc for return to user mode
+  id: totrans-161
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置lr_svc = pc以返回到用户模式
 - en: Save kernel state on kernel stack
+  id: totrans-162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在内核栈上保存内核状态
 - en: Combined with 6, above this should be a NOP
+  id: totrans-163
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与上面的第6条相结合，这应该是一个NOP
 - en: Set return value by overwriting r0 on user stack
+  id: totrans-164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过在用户栈上重写r0来设置返回值
 - en: Switch to system mode
+  id: totrans-165
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 切换到系统模式
 - en: Load registers from user stack
+  id: totrans-166
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从用户栈加载寄存器
 - en: Combined wi 3 above this should be a NOP
+  id: totrans-167
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与上面的第3条结合，这应该是一个NOP
 - en: Return to supervisor mode
+  id: totrans-168
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回到监管模式
 - en: Let it go
+  id: totrans-169
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 放手吧
 - en: '[PRE10]'
+  id: totrans-170
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: The instruction after this one is normally the kernel entry.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 正常情况下，这条指令后面的是内核入口。
 - en: '* * *'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'Return to:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回到：
 - en: '[Bill Cowan''s lecture notes for CS452 in s12](index.html)'
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考温2012年春季CS452课堂笔记](index.html)'
 - en: '[Bill Cowan''s Spring 2012 CS452 page](../index.html)'
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考温2012年春季CS452页面](../index.html)'
 - en: '[Bill Cowan''s CS452 page](../../index.html)'
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考温的CS452页面](../../index.html)'
 - en: '[Bill Cowan''s teaching page](../../../index.html)'
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考温的教学页面](../../../index.html)'
 - en: '[Bill Cowan''s home page](../../../../index.html)'
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考温的个人主页](../../../../index.html)'
