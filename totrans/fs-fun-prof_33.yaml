@@ -1,1554 +1,2257 @@
 - en: Enterprise Tic-Tac-Toe
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 企业级井字棋
 - en: Enterprise Tic-Tac-Toe
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 企业级井字棋
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/ettt/)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于这个主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/ettt/)*'
 - en: '*This post is one of series in I which I hope to close the gap between theory
     and practice in functional programming. I pick a small project and show you my
     thought processes as I go about designing and implementing it from beginning to
     end.*'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这篇文章是我希望在其中缩小函数式编程理论与实践之间差距的系列文章之一。我选择一个小项目，并展示我在设计和实现过程中的思考过程。*'
 - en: For the next project in this series of posts, I'm going to do a walkthrough
     of a Tic-Tac-Toe (aka Noughts and Crosses) implementation, written in a functional
     style.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一系列文章的下一个项目中，我将演示一个以函数式风格编写的井字棋（又称井字游戏）实现的步骤。
 - en: '![tic-tac-toe](tic-tac-toe.png)'
+  id: totrans-5
   prefs: []
   type: TYPE_IMG
+  zh: '![井字棋](tic-tac-toe.png)'
 - en: Now, to be clear, I'm not a games developer in any shape or form, so I won't
     be focused on performance or UX at all, just on the design process -- taking some
     requirements that we all know (I hope) and translating them to functional code.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，明确一下，我不是任何形式的游戏开发者，所以我不会关注性能或用户体验，只关注设计过程 -- 将一些我们都知道的需求（希望如此）转化为功能代码。
 - en: In fact, to be very clear, I'll deliberately be going a bit overboard on the
     design just to demonstrate what you can do. There will be no objects. Everything
     will be immutable, Everything will be [typed](designing-with-types.html). There
     will be [capability based security](capability-based-security.html), and more.
     Performance will *definitely* be taking a back seat. Luckily, Tic-Tac-Toe does
     not need to support a high frame rate!
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，为了非常清楚，我将故意在设计上有些过度，只是为了演示你可以做什么。不会有对象。一切都将是不可变的，一切都将是[类型化](designing-with-types.html)。将会有[基于能力的安全性](capability-based-security.html)，等等。性能肯定会被放在次要位置。幸运的是，井字棋不需要支持高帧率！
 - en: In fact, I'm going to call this version "Enterprise Tic-Tac-Toe"!
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，我将把这个版本称为“企业级井字棋”！
 - en: 'Why? Well let''s look at what you need for "Enterprise":'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么？好吧，让我们看看你为“企业”需要什么：
 - en: We need **separation of concerns** so that specialist teams can work on different
     parts of the code at the same time.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要**关注点分离**，以便专业团队可以同时处理代码的不同部分。
 - en: We need **a documented API** so that the different teams can work effectively
     in parallel.
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要**一个文档化的 API**，以便不同团队可以有效并行工作。
 - en: We need a **security model** to prevent unauthorized actions from occurring.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要一个**安全模型**来防止未经授权的操作发生。
 - en: We need **well-documented code** so that the architect can ensure that the implementation
     matches the UML diagrams.
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要**良好文档化的代码**，以便架构师可以确保实现与 UML 图表匹配。
 - en: We need **auditing and logging** to ensure that the system is SOX compliant.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要**审计和日志记录**，以确保系统��合 SOX 标准。
 - en: We need **scalability** to ensure that the system is ready for the challenges
     of rapid customer acquisition.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要**可扩展性**，以确保系统准备好迎接快速客户获取的挑战。
 - en: 'Actually, those are the *stated* reasons, but we all know that this is not
     the whole story. The *real* reasons for an "enterprise design" become apparent
     when you talk to the people involved:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，这些是*表面上*的原因，但我们都知道这并不是全部故事。进行“企业设计”的*真正*原因在与相关人员交谈时变得明显：
 - en: '*Development Manager:* "We need separation of concerns because the front-end
     team and back-end team hate each other and refuse to work in the same room."'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*开发经理:* "我们需要关注点分离，因为前端团队和后端团队彼此厌恶，拒绝在同一个房间工作。"'
 - en: '*Front-end team:* "We need a documented API so that those dummies building
     the back-end won''t keep breaking our code on every commit."'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*前端团队:* "我们需要一个文档化的 API，这样那些搞后端的笨蛋就不会在每次提交时破坏我们的代码了。"'
 - en: '*Back-end team:* "We need a security model because those idiots building the
     front-end will always find a way to do something stupid unless we constrain them."'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*后端团队:* "我们需要一个安全模型，因为那些建造前端的白痴总是会找到一种愚蠢的方式来做一些事情，除非我们限制他们。"'
 - en: '*Maintenance team:* "We need well-documented code because we''re fed up of
     having to reverse engineer the hacked-up spaghetti being thrown at us."'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*维护团队:* "我们需要良好文档化的代码，因为我们厌倦了不得不反向工程被抛向我们的混乱代码。"'
 - en: '*Testers and Operations:* "We need auditing and logging so that we can see
     what the effing system is doing inside."'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*测试人员和运维人员:* "我们需要审计和日志记录，这样我们就可以看到系统内部在做什么。"'
 - en: '*Everyone:* "We don''t really need scalability at all, but the CTO wants to
     us to be buzzword compliant."'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*所有人:* "实际上，我们根本不需要可扩展性，但首席技术官希望我们符合时髦的术语。"'
 - en: It's true that there are already some wonderful "enterprise" projects out there,
     such as [Easy Plus in PHP](https://github.com/Herzult/SimplePHPEasyPlus) and [Fizz
     Buzz Enterprise Edition in Java](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition),
     but I hope that my own small contribution to this genre will be considered worthy.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确，已经有一些出色的“企业级”项目，比如[PHP中的Easy Plus](https://github.com/Herzult/SimplePHPEasyPlus)和[Java中的Fizz
+    Buzz企业版](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)，但我希望我的小小贡献也能被认为是有价值的。
 - en: Seriously, I hope that the code won't be quite as ~~bad~~ amusing as those other
     enterprise projects. In fact, I hope to demonstrate that you can have "enterprise"
     ready functional code which is still readable!
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 说真的，我希望代码不会像其他企业项目那样~~糟糕~~有趣。事实上，我希望证明你可以拥有仍然可读的“企业级”就绪功能代码！
 - en: Designing the domain
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设计领域
 - en: '"Write the game such that someone unfamiliar with it could learn the rules
     by looking at the source code" -- [Raganwald](http://raganwald.com/)'
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “编写游戏，以便陌生人可以通过查看源代码来学习规则”-- [Raganwald](http://raganwald.com/)
 - en: 'As always, let''s use a type-first design. If you recall, this approach means
     that:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 一如既往，让我们先设计类型。如果你记得，这种方法意味着：
 - en: We start with types only -- no implementation code.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们只从类型开始--没有实现代码。
 - en: Every use-case or scenario corresponds to a function type, with one input and
     one output (which means I'll use tuples when multiple parameters are needed).
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个用例或场景都对应一个函数类型，一个输入和一个输出（这意味着当需要多个参数时，我会使用元组）。
 - en: We work mostly top-down and outside-in, but occasionally bottom up as well.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们主要从上到下和从外到内工作，但也偶尔从底部向上。
 - en: We ignore the UI for now. And there will be no events or observables in the
     design of the core domain. It will be purely functional.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们暂时忽略UI。核心领域的设计不会涉及任何事件或可观察对象。它将是纯粹的功能性的。
 - en: In fact, an alternative title for this post might be **growing functional software,
     guided by types.**
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，本文的另一个标题可能是**根据类型指导增长的功能软件**。
 - en: As I have said before, I like to drive the design by working from the events
     that can happen, rather than the objects involved. I'm old school, so I call them
     use-cases, but I also like the [event-storming approach](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我之前所说的，我喜欢通过从可能发生的事件工作来驱动设计，而不是涉及的对象。我是老派的，所以我称它们为用例，但我也喜欢[事件风暴方法](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)。
 - en: 'Either way, for the Tic-Tac-Toe "domain", we have three different "event-driven
     use-cases" (in this case, just various mouse clicks!) to think about:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论如何，对于井字游戏“领域”，我们有三种不同的“事件驱动用例”（在本例中，仅是各种鼠标点击！）要考虑：
 - en: Initialize a game
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 初始化游戏
 - en: Player X moves
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 玩家X移动
 - en: Player O moves
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 玩家O移动
 - en: 'Let''s start with the first: initialization. This is equivalent to a `new`-style
     constructor in an OO program.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从第一个开始：初始化。这相当于OO程序中的`new`样式构造函数。
 - en: 'For Tic-Tac-Toe, there are no configuration parameters needed, so the input
     would be "null" (aka `unit`) and the output would be a game ready to play, like
     this:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于井字游戏，不需要任何配置参数，因此输入将是"null"（又名`unit`），输出将是一个准备好玩的游戏，就像这样：
 - en: '[PRE0]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Now, what is this `Game`? Since everything is immutable, the other scenarios
     are going to have to take an existing game as input, and return a slightly changed
     version of the game. So `Game` is not quite appropriate. How about `GameState`
     instead? A "player X moves" function will thus look something like this:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，这个`Game`是什么？由于一切都是不可变的，其他场景将不得不以一个现有游戏作为输入，并返回游戏的略有变化版本。所以`Game`不太合适。`GameState`怎么样？
+    "玩家X移动"函数会看起来像这样：
 - en: '[PRE1]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: You'll see that I added `SomeOtherStuff` to the input parameters because there's
     *always* some other stuff! We'll worry about what the "other stuff" is later.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会看到我在输入参数中添加了`SomeOtherStuff`，因为总有*其他东西*！我们稍后再担心“其他东西”是什么。
 - en: Ok, What should we do next? Should we look more deeply into the internals of
     `GameState`?
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，接下来我们该做什么？我们应该更深入地了解`GameState`的内部吗？
 - en: No. Let's stay high-level and do more "outside-in" style design. I like this
     approach in general because it allows me to focus on what's important and not
     get side-tracked by implementation details.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 不。让我们保持高层次，更多地采用“外部-内部”风格的设计。总的来说，我喜欢这种方法，因为它让我专注于重要的事情，不会被实现细节分心。
 - en: Designing the move functions
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设计移动函数
 - en: 'I said originally that we should have a function for each scenario. Which means
     we would have functions like this:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 我原先说应该为每个场景都有一个函数。这意味着我们会有这样的函数：
 - en: '[PRE2]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: For each player's move, we start with the current game state, plus some other
     input created by the player, and end up with a *new* game state.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个玩家的移动，我们从当前游戏状态开始，加上由玩家创建的一些其他输入，最终得到一个*新*的游戏状态。
 - en: The problem is that both functions look exactly the same and could be easily
     substituted for each other. To be honest, I don't trust the user interface to
     always call the right one -- or at least, it could be a potential issue.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题是这两个函数看起来完全一样，可以很容易地互换。老实说，我不相信用户界面总是会调用正确的函数——或者至少，这可能是一个潜在的问题。
 - en: One approach is to have only *one* function, rather than *two*. That way there's
     nothing to go wrong.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方法是只有*一个*函数，而不是*两个*。这样就不会出错了。
 - en: 'But now we need to handle the two different input cases. How to do that? Easy!
     A discriminated union type:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们需要处理两种不同的输入情况。怎么办？简单！一个鉴别联合类型：
 - en: '[PRE3]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'And now, to process a move, we just pass the user action along with the state,
     like this:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，要处理一个移动，我们只需将用户操作与状态一起传递，就像这样：
 - en: '[PRE4]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: So now there is only *one* function for the UI to call rather than two, and
     less to get wrong.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以现在只有*一个*函数供用户界面调用，而不是两个，减少出错的可能性。
 - en: 'This approach is great where there is one user, because it documents all the
     things that they can do. For example, in other games, you might have a type like
     this:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法在只有一个用户的情况下非常棒，因为它记录了他们可以做的所有事情。例如，在其他游戏中，你可能有这样一个类型：
 - en: '[PRE5]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: However in this situation, this way doesn't feel quite right. Since there are
     *two* players, what I want to do is give each player their own distinct function
     to call and not allow them to use the other player's function. This not only stops
     the user interface component from messing up, but also gives me my capability-based
     security!
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在这种情况下，这种方式感觉不太对。因为有*两个*玩家，我想做的是给每个玩家一个独特的函数来调用，并且不允许他们使用另一个玩家的函数。这不仅可以防止用户界面组件出错，还可以给我提供基于功能的安全性！
 - en: 'But now we are back to the original problem: how can we tell the two functions
     apart?'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们又回到了最初的问题：我们如何区分这两个函数呢？
 - en: 'What I''ll do is to use types to distinguish them. We''ll make the `SomeOtherStuff`
     be *owned* by each player, like this:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我要做的是使用类型来区分它们。我们将使`SomeOtherStuff`分别由每个玩家拥有，就像这样：
 - en: '[PRE6]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This way the two functions are distinct, and also PlayerO cannot call PlayerX's
     function without having some of PlayerX's `Stuff` as well. If this sound's complicated,
     stay tuned -- it's easier than it looks!
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样两个函数就是不同的，而且PlayerO也不能调用PlayerX的函数，除非拥有一些PlayerX的`Stuff`。如果听起来复杂，敬请关注——比看起来容易！
 - en: What is SomeOtherStuff?
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SomeOtherStuff是什么？
 - en: What is this mysterious `SomeOtherStuff`? In other words, what information do
     we need to make a move?
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个神秘的`SomeOtherStuff`是什么意思呢？换句话说，我们需要什么信息来下一步棋呢？
 - en: For most domains, there might quite a lot of stuff that needs to be passed in,
     and the stuff might vary based on the context and the state of the system.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于大多数领域，可能需要传递相当多的东西，并且这些东西可能根据上下文和系统的状态而变化。
 - en: But for Tic-Tac-Toe, it's easy, it's just the location on the grid where the
     player makes their mark. "Top Left", "Bottom Center", and so on.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 但对于井字棋来说，很容易，就是玩家在网格上标记的位置。“左上角”，“底部中心”，等等。
 - en: How should we define this position using a type?
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们应该如何使用类型定义这个位置呢？
 - en: 'The most obvious approach would be to use a 2-dimensional grid indexed by integers:
     `(1,1) (1,2) (1,3)`, etc. But I have to admit that I''m too lazy to write unit
     tests that deal with bounds-checking, nor can I ever remember which integer in
     the pair is the row and which the column. I want to write code that I don''t have
     to test!'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 最明显的方法是使用由整数索引的二维网格：`(1,1) (1,2) (1,3)`，等等。但我不得不承认我太懒了，不想写涉及边界检查的单元测试，也永远记不住这对整数中哪个是行，哪个是列。我想写不用测试的代码！
 - en: 'Instead, let''s define a type explicitly listing each position of horizontally
     and vertically:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，让我们明确定义一个类型，列出水平和垂直的每个位置：
 - en: '[PRE7]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'And then the position of a square in the grid (which I''m going to call a "cell")
     is just a pair of these:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后网格中一个方格（我将其称为“单元格”）的位置就是这些的一对：
 - en: '[PRE8]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'If we go back to the "move function" definitions, we now have:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们回到“移动函数”的定义，现在有：
 - en: '[PRE9]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'which means: "to play a move, the input is a game state and a selected cell
     position, and the output is an updated game state".'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 意味着：“要进行一步棋，输入是游戏状态和选择的单元格位置，输出是更新后的游戏状态。”
 - en: Both player X and player O can play the *same* cell position, so, as we said
     earlier, we need to make them distinct.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 玩家X和玩家O都可以在*相同的*单元格位置下棋，因此，正如我们之前所说的，我们需要使它们不同。
 - en: 'I''m going to do that by wrapping them in a [single case union](designing-with-types-single-case-dus.html):'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE10]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'And with that, our move functions now have different types and can''t be mixed
     up:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: What is the GameState?
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Now let's focus on the game state. What information do we need to represent
     the game completely between moves?
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
 - en: 'I think it is obvious that the only thing we need is a list of the cells, so
     we can define a game state like this:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE12]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: But now, what do we need to define a `Cell`?
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
 - en: 'First, the cell''s position. Second, whether the cell has an "X" or an "O"
     on it. We can therefore define a cell like this:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE13]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Designing the output
+  id: totrans-89
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: What about the output? What does the UI need to know in order to update itself?
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: One approach is just to pass the entire game state to the UI and let the UI
     redisplay the whole thing from scratch. Or perhaps, to be more efficient, the
     UI could cache the previous state and do a diff to decide what needs to be updated.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: 'In more complicated applications, with thousands of cells, we can be more efficient
     and make the UI''s life easier by explicitly returning the cells that changed
     with each move, like this:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE14]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Since Tic-Tac-Toe is a tiny game, I'm going to keep it simple and just return
     the game state and *not* anything like `ChangedCells` as well.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: But as I said at the beginning, I want the UI to be as dumb as possible! The
     UI should not have to "think" -- it should be given everything it needs to know
     by the backend, and to just follow instructions.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: 'As it stands, the cells can be fetched directly from the `GameState`, but I''d
     rather that the UI did *not* know how `GameState` is defined. So let''s give the
     UI a function (`GetCells`, say) that can extract the cells from the `GameState`:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE15]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Another approach would be for `GetCells` to return all the cells pre-organized
     into a 2D grid -- that would make life even easier for the UI.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: But now the game engine is assuming the UI is using a indexed grid. Just as
     the UI shouldn't know about the internals of the backend, the backend shouldn't
     make assumptions about how the UI works.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: It's fair enough to allow the UI to share the same definition of `Cell` as the
     backend, so we can just give the UI a list of `Cell`s and let it display them
     in its own way.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: Ok, the UI should have everything it needs to display the game now.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: Review of the first version of the design
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Great! Let''s look at what we''ve got so far:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Note that in order to make this code compile while hiding the implementation
     of `GameState`, I've used a generic exception class (`exn`) as a placeholder for
     the actual implementation of `GameState`. I could also have used `unit` or `string`
     instead, but `exn` is not likely to get mixed up with anything else, and will
     prevent it being accidentally overlooked later!
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: A note on tuples
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Just a reminder that in this design phase, I'm going to combine all the input
     parameters into a single tuple rather than treat them as separate parameters.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: 'This means that I''ll write:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'rather than the more standard:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: I'm doing this just to make the input and output obvious. When it comes to the
     implementation, it's more than likely that we'll switch to the standard way, so
     that we can take advantage of the techniques in our functional toolbox such as
     partial application.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 我这样做只是为了使输入和输出明显。当涉及到实现时，很可能我们会切换到标准方式，这样我们就可��利用我们的函数工具箱中的技术，比如部分应用。
 - en: Doing a design walkthrough
+  id: totrans-114
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进行设计演练
 - en: At this point, with a rough design in place, I like to do a walkthrough as if
     it were being used for real. In a larger design, I might develop a small throwaway
     prototype, but in this case, the design is small enough that I can do it in my
     head.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，有了一个初步的设计，我喜欢像真实使用一样进行一次演练。在更大的设计中，我可能会开发一个小的临时原型，但在这种情况下，设计足够小，我可以在脑海中完成。
 - en: 'So, let''s pretend that we are the UI and we are given the design above. We
     start by calling the initialization function to get a new game:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，让我们假装我们是UI，我们得到了上面的设计。我们首先调用初始化函数以获得一个新游戏：
 - en: '[PRE20]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Ok, so now we have a `GameState` and we are ready to display the initial grid.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，现在我们有一个`GameState`，我们准备显示初始网格。
 - en: At this point, the UI would create, say, a grid of empty buttons, associate
     a cell to each button, and then draw the cell in the "empty" state.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，UI会创建一个空按钮网格，将每个按钮与一个单元格关联起来，然后以“空”状态绘制单元格。
 - en: This is fine, because the UI doesn't have to think. We are explicitly giving
     the UI a list of all cells, and also making the initial cell state `Empty`, so
     the UI doesn't have to know which is the default state -- it just displays what
     it is given.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是可以的，因为UI不必考虑。我们明确地向UI提供了所有单元格的列表，并且将初始单元格状态设置为`Empty`，因此UI不必知道哪个是默认状态--它只显示它所给出的内容。
 - en: One thing though. Since there is no input needed to set up the game, *and* the
     game state is immutable, we will have exactly the same initial state for every
     game.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一件事。由于设置游戏不需要任何输入，*而且*游戏状态是不可变的，因此每场游戏的初始状态都将完全相同。
 - en: Therefore we don't need a function to create the initial game state, just a
     "constant" that gets reused for each game.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们不需要一个函数来创建初始游戏状态，只需要一个每场游戏都会重复使用的“常量”。
 - en: '[PRE21]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: When does the game stop?
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 游戏何时结束？
 - en: Next in our walkthrough, let's play a move.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的演练中，接下来让我们进行一次移动。
 - en: A player, "X" or "O", clicks on a cell
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 玩家，“X”或“O”，点击一个单元格
 - en: We combine the player and `CellPosition` into the appropriate type, such as
     a `PlayerXPos`
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们将玩家和`CellPosition`组合成适当的类型，比如`PlayerXPos`
 - en: We then pass that and the `GameState` into the appropriate `Move` function
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后我们将其和`GameState`传递到适当的`Move`函数中
 - en: '[PRE22]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: The output is a new `GameState`. The UI then calls `GetCells` to get the new
     cells. We loop through this list, update the display, and now we're ready to try
     again.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出是一个新的`GameState`。然后UI调用`GetCells`来获取新的单元格。我们遍历这个列表，更新显示，现在我们准备再试一次。
 - en: Excellent!
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！
 - en: Umm... except for the bit about knowing when to stop.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯... 除了关于知道何时停止的部分。
 - en: As designed, This game will go on forever. We need to include something in the
     output of the move to let us know whether the game is over!
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 如设计的那样，这个游戏将永远进行下去。我们需要在移动的输出中包含一些内容，以便让我们知道游戏是否结束！
 - en: So let's create a `GameStatus` type to keep track of that.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们创建一个`GameStatus`类型来跟踪它。
 - en: '[PRE23]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'And we need to add it to the output of the move as well, so now we have:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要将其添加到移动的输出中，所以现在我们有：
 - en: '[PRE24]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: So now we can keep playing moves repeatedly while `GameStatus` is `InProcess`
     and then stop.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以在`GameStatus`为`InProcess`时重复进行移动，然后停止。
 - en: The pseudocode for the UI would look like
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: UI的伪代码将如下所示
 - en: '[PRE25]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: I think we've got everything we need to play a game now, so let's move on to
     error handling.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为我们现在已经拥有了玩游戏所需的一切，所以让我们继续进行错误处理。
 - en: What kind of errors can happen?
+  id: totrans-142
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 会发生什么样的错误？
 - en: 'Before we starting thinking about the internals of the game, let''s think about
     what kinds of errors the UI team could make when using this design:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始考虑游戏的内部之前，让我们想想UI团队在使用这个设计时可能会犯什么样的错误：
 - en: '**Could the UI create an invalid `GameState` and corrupt the game?**'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '**UI是否可以创建无效的`GameState`并损坏游戏？**'
 - en: No, because we are going to keep the internals of the game state hidden from
     the UI.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 不，因为我们将保持游戏状态的内部对UI隐藏。
 - en: '**Could the UI pass in an invalid `CellPosition`?**'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '**UI是否可以传入无效的`CellPosition`？**'
 - en: No, because the horizontal and vertical components of `CellPosition` are restricted
     and therefore it cannot be created in an invalid state. No validation is needed.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 不，因为`CellPosition`的水平和垂直分量是受限制的，因此它不可能以无效状态创建。不需要验证。
 - en: '**Could the UI pass in a *valid* `CellPosition` but at the *wrong* time?**'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '**UI 是否能在*错误*的时候传入一个*有效*的 `CellPosition`？**'
 - en: Ah, now you're talking! Yes -- that is totally possible. In the design we have
     so far, there is nothing stopping a player playing the same square twice!
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 啊，现在你说对了！是的——这是完全可能的。在我们目前的设计中，没有任何东西阻止玩家在同一个方格上玩两次！
 - en: '**Could the UI allow player X to play twice in a row?**'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '**UI 是否允许玩家 X 连续两次进行动作？**'
 - en: Again, yes. Nothing in our design prevents this.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 再一次，是的。我们的设计中没有任何东西阻止这种情况发生。
 - en: '**What about when the game has ended but the dumb UI forgets to check the `GameStatus`
     and doesn''t notice. Should the game logic still accept moves?**'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '**当游戏结束但愚蠢的 UI 忘记检查 `GameStatus` 并且没有注意到时怎么办。游戏逻辑是否仍然接受动作？**'
 - en: Of course not, but yet again our design fails to do this.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然不是，但我们的设计又一次失败了。
 - en: 'The big question is: can we fix these three issues *in our design* without
     having to rely on special validation code in the implementation? That is, can
     we encode these rules into *types*.'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 最重要的问题是：我们是否可以*在我们的设计中*解决这三个问题，而不必依赖于实现中的特殊验证代码？也就是说，我们是否可以将这些规则编码到*类型*中。
 - en: At this point you might be thinking "why bother with all these types?"
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，你可能会想“为什么要费心去处理所有这些类型？”
 - en: The advantage of using types over validation code is that the types are part
     of the design, which means that business rules like these are self-documenting.
     On the other hand, validation code tends to be scattered around and buried in
     obscure classes, so it is hard to get a big picture of all the constraints.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用类型而不是验证代码的优势在于类型是设计的一部分，这意味着像这样的业务规则是自说明的。另一方面，验证代码往往分散在各处并隐藏在晦涩的类中，因此很难获得所有约束的整体图像。
 - en: In general then, I prefer to use types rather than code if I can.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，如果可以的话，我更喜欢使用类型而不是代码。
 - en: Enforcing the rules through types
+  id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过类型来强制执行规则
 - en: So, can we encode these rules using types? The answer is yes!
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们能否使用类型来编码这些规则呢？答案是肯定的！
 - en: To stop someone playing the same square twice we can change the game engine
     so that it outputs a list of valid moves. And then we can require that *only*
     items in this list are allowed to be played in the next turn.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了阻止某人重复在同一个方格上玩，我们可以改变游戏引擎，使其输出一个有效动作列表。然后我们可以要求*只有*此列表中的项目被允许在下一轮中播放。
 - en: 'If we do this, our move type will look like this:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们这样做，我们的移动类型将会像这样：
 - en: '[PRE26]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: And we can extend this approach to stop player X playing twice in a row too.
     Simply make the `ValidPositionsForNextMove` be a list of `PlayerOPos` rather than
     generic positions. Player X will not be able to play them!
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以扩展这种方法以阻止玩家 X 连续两次玩。只需使 `ValidPositionsForNextMove` 成为 `PlayerOPos` 列表而不是通用位置列表。玩家
+    X 将无法播放它们！
 - en: '[PRE27]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: This approach also means that when the game is over, there are *no valid moves*
     available. So the UI cannot just loop forever, it will be forced to stop and deal
     with the situation.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法还意味着当游戏结束时，就没有*有效的动作*可用了。所以 UI 不能无限循环，它将被迫停止并处理这种情况。
 - en: So now we have encoded all three rules into the type system -- no manual validation
     needed.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以现在我们已经将所有三条规则编码到类型系统中了——不需要手动验证。
 - en: Some refactoring
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一些重构
 - en: Let's do some refactoring now.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们进行一些重构。
 - en: First we have a couple of choice types with a case for Player X and another
     similar case for Player O.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们有了一对选择类型，其中一种情况适用于玩家 X，另一种情况类似于玩家 O。
 - en: '[PRE28]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'Let''s extract the players into their own type, and then we can parameterize
     the cases to make them look nicer:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将玩家提取到他们自己的类型中，然后我们可以将情况参数化以使其看起来更漂亮：
 - en: '[PRE29]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'The second thing we can do is to note that we only need the valid moves in
     the `InProcess` case, not the `Won` or `Tie` cases, so let''s merge `GameStatus`
     and `ValidMovesForPlayer` into a single type called `MoveResult`, say:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以做的第二件事是注意到我们只需要在 `InProcess` 情况下的有效动作，而不是在 `Won` 或 `Tie` 情况下，所以让我们将 `GameStatus`
+    和 `ValidMovesForPlayer` 合并成一个称为 `MoveResult` 的单一类型，比如：
 - en: '[PRE30]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: We've replaced the `InProcess` case with two new cases `PlayerXToMove` and `PlayerOToMove`,
     which I think is actually clearer.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用两个新情况 `PlayerXToMove` 和 `PlayerOToMove` 替换了 `InProcess` 情况，我认为这实际上更清晰。
 - en: 'The move functions now look like:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在移动函数看起来是这样的：
 - en: '[PRE31]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: I could have had the new `GameState` returned as part of `MoveResult` as well,
     but I left it "outside" to make it clear that is not to be used by the UI.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 我也可以将新的 `GameState` 作为 `MoveResult` 的一部分返回，但我将其留在“外面”，以明确指出 UI 不应使用它。
 - en: Also, leaving it outside will give us the option of writing helper code that
     will thread a game state through a series of calls for us. This is a more advanced
     technique, so I'm not going to discuss it in this post.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，将其留在外面还会给我们留下一个选项，即编写辅助代码，可以为我们在一系列调用中传递游戏状态。这是一种更高级的技术，所以我不打算在这篇文章中讨论它。
 - en: Finally, the `InitialGameState` should also take advantage of the `MoveResult`
     to return the available moves for the first player. Since it has both a game state
     and a initial set of moves, let's just call it `NewGame` instead.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`InitialGameState` 还应该利用 `MoveResult` 返回第一个玩家的可用移动。由于它既有一个游戏状态又有一组初始移动，我们就称其为
+    `NewGame` 吧。
 - en: '[PRE32]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: If the initial `MoveResult` is the `PlayerXToMove` case, then we have also constrained
     the UI so that only player X can move first. Again, this allows the UI to be ignorant
     of the rules.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果初始 `MoveResult` 是 `PlayerXToMove` 情况，那么我们也约束了 UI，只能玩家 X 先移动。同样，这允许 UI 忽略规则。
 - en: Second recap
+  id: totrans-183
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第二次总结
 - en: So now here's the tweaked design we've got after doing the walkthrough.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在在完成了演示之后，这就是我们调整后的设计。
 - en: '[PRE33]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'We''re not quite done with the outside-in design yet. One question is yet to
     be resolved: how can we hide the implementation of `GameState` from the UI?'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还没有完成外部设计。还有一个问题有待解决：我们如何隐藏 `GameState` 的实现呢？
 - en: Decoupling shared and private types
+  id: totrans-187
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解耦共享和私有类型
 - en: 'In any design, we want to decouple the "interface" from the "implementation".
     In this case, we have:'
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 在任何设计中，我们都希望将 "接口" 与 "实现" 解耦。在这种情况下，我们有：
 - en: A set of shared data structures and functions that are used by both the UI and
     the game engine. (`CellState`, `MoveResult`, `PlayerXPos`, etc.)
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组被 UI 和游戏引擎都使用的共享数据结构和函数。(`CellState`, `MoveResult`, `PlayerXPos`等)
 - en: A set of private data structures and functions that should only be accessed
     by the game logic. (just `GameState` so far)
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组只能由游戏逻辑访问的私有数据结构和函数。(目前只有 `GameState`)
 - en: It's obviously a good idea to keep these types separate. How should we do this?
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然将这些类型分开是个好主意。我们应该如何做呢？
 - en: 'In F#, the easiest way is to put them into separate modules, like this:'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 F# 中，最简单的方法是将它们放入单独的模块中，就像这样：
 - en: '[PRE34]'
+  id: totrans-193
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: But if we want to keep the internals of the game logic private, what do we do
     with `GameState`? It's used by public functions such as `PlayerXMoves`, but we
     want to keep its structure secret. How can we do that?
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是如果我们想保持游戏逻辑的内部私有，那么 `GameState` 该怎么办？它被公共函数如 `PlayerXMoves` 使用，但我们想保持其结构的机密性。我们该怎么做呢？
 - en: Option 1 - put the public and private types in the same module
+  id: totrans-195
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选项 1 - 将公共和私有类型放在同一个模块中
 - en: The first choice might be to put the public and private types in the same module,
     and have this module be the "core" domain module that all other modules depend
     on.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一选择可能是将公共和私有类型放在同一个模块中，并使此模块成为所有其他模块都依赖的 "核心" 领域模块。
 - en: 'Here''s some code that demonstrates what this approach would look like:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些代码，演示了这种方法会是什么样子：
 - en: '[PRE35]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: All the types are in one module.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有的类型都在一个模块中。
 - en: Many of the types, such as `CellState`, will be public by default. That's fine.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多类型，如 `CellState`，默认是公开的。这没问题。
 - en: But you can see that some of the types, such as `InternalType`, have been marked
     private. That means that they cannot be used outside the module at all.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 但你可以看到一些类型，如 `InternalType`，已经标记为私有。这意味着它们根本不能在模块外部使用。
 - en: Finally, `GameState` is not private, but its constructor is, which means that
     it *can* be used outside the module, but because its constructor is private, new
     ones can't be created, which sounds like what we need.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`GameState` 不是私有的，但它的构造函数是私有的，这意味着它可以在模块外部使用，但因为其构造函数是私有的，所以不能创建新的，听起来就像是我们需要的。
 - en: 'We might have appeared to solve the issue, but this approach often causes problems
     of its own. For starters, trying to keep the `public` and `private` qualifiers
     straight can cause annoying compiler errors, such as this one:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可能已经解决了问题，但这种方法经常会带来自己的问题。首先，试图保持 `public` 和 `private` 限定符的清晰可能会导致令人讨厌的编译器错误，比如这个：
 - en: '[PRE36]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: And even if this weren't a problem, putting the "interface" and the "implementation"
     in the same file will generally end up creating extra complexity as the implementation
     gets larger.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使这不是问题，将 "接口" 和 "实现" 放在同一个文件中通常会导致随着实现变得更大而创建额外的复杂性。
 - en: Option 2 - representing `GameState` with an abstract base class
+  id: totrans-206
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选项 2 - 用抽象基类表示 `GameState`
 - en: The object-oriented way of approaching this would be to represent `GameState`
     as an abstract base class or interface, and then have a particular implementation
     inherit from the abstract class.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 面向对象的方法是将`GameState`表示为一个抽象基类或接口，然后具体实现从抽象类继承。
 - en: This allows all the shared types to reference the abstract class or interface
     safely, while any particular implementation is hidden.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使得所有共享类型可以安全地引用抽象类或接口，而任何特定实现都是隐藏的。
 - en: 'Here''s how you might do this in F#:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是你可能在F#中这样做的方式：
 - en: '[PRE37]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: But alas, there are problems with this approach too.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 但遗憾的是，这种方法也存在问题。
 - en: First, it's not very functional, is it? F# does support classes and interfaces
     for those situations when we need them, but we should really be able to find a
     more idiomatic functional solution than this!
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，这不是很实用，对吧？F#确实支持类和接口，用于那些需要它们的情况，但我们真的应该能够找到比这更符合函数式的解决方案！
 - en: Second, it's potentially not safe. The actual implementation would have to downcast
     `GameState` into the type it expects in order to get at the internal data. But
     if I had *two* implementations that inherited `GameState`, what's to stop me passing
     a game state from implementation B into a function that is expecting a game state
     from implementation A? Nothing! Chaos would ensue!
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，这可能是不安全的。实际实现将不得不将`GameState`向下转换为它期望的类型，以便访问内部数据。但如果我有*两个*继承`GameState`的实现，那么有什么能阻止我将来自实现B的游戏状态传递给期望来自实现A的游戏状态的函数？什么都不能！混乱将会发生！
 - en: Note that in a pure OO model this situation could not happen because the `GameState`
     itself would have stateful methods instead of the pure functional API that we
     have here.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在纯面向对象模型中，这种情况是不可能发生的，因为`GameState`本身将具有有状态的方法，而不是我们这里所拥有的纯函数式API。
 - en: Option 3 - parameterize the implementation
+  id: totrans-215
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选项3 - 参数化实现
 - en: 'Let''s think about the requirements again: "The `GameState` is public but we
     don''t know what the implementation will be."'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次考虑需求：“`GameState`是公开的，但我们不知道实现将会是什么。”
 - en: When you rephrase it like this, the functional way of modeling this becomes
     clear, which is to use *generic parameters* (aka "parametric polymorphism").
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你这样重新表述时，函数式建模方式变得清晰，即使用*泛型参数*（又称“参数多态性”）。
 - en: In other words, we make `GameState` a *generic type* which represents a particular
     implementation.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们将`GameState`作为*泛型类型*，代表特定的实现。
 - en: This means that the UI can work with the `GameState` type, but because the actual
     implementation type used is not known, the UI cannot accidentally "look inside"
     and extract any information, *even if the implementation type is public*.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着UI可以使用`GameState`类型，但由于实际使用的实现类型是未知的，UI不能意外地“查看内部”并提取任何信息，*即使实现类型是公开的*。
 - en: This last point is important, so I'm going to say it again with another example.
     If I give you a object of type `List<T>` in C#, you can work with the list in
     many ways, but you cannot know what the `T` is, and so you can never accidentally
     write code that assumes that `T` is an `int` or a `string` or a `bool`. And this
     "hidden-ness" has got nothing to do with whether `T` is a public type or not.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后一点很重要，所以我要再举一个例子。如果我给你一个C#中的`List<T>`类型的对象，你可以以多种方式使用列表，但你无法知道`T`是什么，因此你永远不会意外地编写假设`T`是`int`、`string`或`bool`的代码。而这种“隐藏性”与`T`是否是公共类型无关。
 - en: If we do take this approach then we can allow the internals of the game state
     to be completely public, safe in the knowledge that the UI cannot use that information
     even if it wanted to!
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们采取这种方法，那么我们可以允许游戏状态的内部完全公开，确信UI即使想要也无法使用那些信息！
 - en: So here's some code demonstrating this approach.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，这里有一些演示这种方法的代码。
 - en: First the shared types, with `GameState<'T>` being the parameterized version.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先是共享类型，其中`GameState<'T>`是参数化版本。
 - en: '[PRE38]'
+  id: totrans-224
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: The types that don't use the game state are unchanged, but you can see that
     `PlayerXMoves<'T>` has been parameterized with the game state.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 不使用游戏状态的类型保持不变，但你可以看到`PlayerXMoves<'T>`已经使用游戏状态进行了参数化。
 - en: Adding generics like this can often cause cascading changes to many types, forcing
     them all to be parameterized. Dealing with all these generics is one reason why
     type inference is so helpful in practice!
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 像这样添加泛型通常会导致许多类型的级联更改，迫使它们全部被参数化。处理所有这些泛型正是类型推断在实践中如此有用的原因之一！
 - en: Now for the types internal to the game logic. They can all be public now, because
     the UI won't be able to know about them.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是游戏逻辑内部类型。它们现在都可以是公共的，因为UI不会知道它们。
 - en: '[PRE39]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'Finally, here''s what the implementation of a `playerXMoves` function might
     look like:'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，这是`playerXMoves`函数的实现可能看起来像：
 - en: '[PRE40]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: This function references a particular implementation, but can be passed into
     the UI code because it conforms to the `PlayerXMoves<'T>` type.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 此函数引用特定实现，但可以传递到UI代码中，因为它符合`PlayerXMoves<'T>`类型。
 - en: Furthermore, by using generic parameters, we naturally enforce that the same
     implementation, say "GameStateA", is used throughout.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，通过使用泛型参数，我们自然地强制使用相同的实现，比如“GameStateA”，在整个过程中使用。
 - en: In other words, the game state created by `InitGame<GameStateA>` can *only*
     be passed to a `PlayerXMoves<GameStateA>` function which is parameterized on the
     *same* implementation type.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，由`InitGame<GameStateA>`创建的游戏状态只能传递给`PlayerXMoves<GameStateA>`函数，该函数是基于*相同*实现类型进行参数化的。
 - en: Glueing it all together with "dependency injection"
+  id: totrans-234
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用“依赖注入”将所有内容粘合在一起
 - en: Finally, let's talk about how everything can be glued together.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，让我们谈谈如何将所有内容粘合在一起。
 - en: The UI code will be designed to work with a *generic* implementation of `GameState`,
     and thus generic versions of the `newGame` and `move` functions.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: UI代码将被设计为与`GameState`的*通用*实现一起工作，因此`newGame`和`move`函数的通用版本。
 - en: But of course, at some point we need to get access to the `newGame` and `move`
     functions for a *specific* implementation. What's the best way to glue all this
     together?
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 但当然，最终我们需要访问*特定*实现的`newGame`和`move`函数。如何将所有这些粘合在一起是最好的方法？
 - en: The answer is the functional equivalent of dependency injection. We will have
     an "application" or "program" component as a top-level layer that will construct
     an implementation and pass it to the UI.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案是依赖注入的功能等效。我们将有一个作为顶层层的“应用程序”或“程序”组件，它将构建一个实现并将其传递给UI。
 - en: 'Here''s an example of what such code would look like:'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是这样的代码的一个示例：
 - en: The `GameImplementation` module exports specific implementations of `newGame`
     and the `move` functions.
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`GameImplementation`模块导出`newGame`和`move`函数的特定实现。'
 - en: The `UserInterface` module exports a `TicTacToeForm` class that accepts these
     implementations in its constructor.
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`UserInterface`模块导出一个接受这些实现的`TicTacToeForm`类的构造函数。'
 - en: The `Application` module glues everything together. It creates a `TicTacToeForm`
     and passes it the implementations exported from the `GameImplementation` module.
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Application`模块将所有内容粘合在一起。它创建一个`TicTacToeForm`并将其传递给从`GameImplementation`模块导出的实现。'
 - en: 'Here''s some code to demonstrate this approach:'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些代码来演示这种方法：
 - en: '[PRE41]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'A few notes on this code:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于这段代码的一些注释：
 - en: First, I'm using WinForms rather than WPF because it has Mono support and because
     it works without NuGet dependencies. If you want to use something better, check
     out [ETO.Forms](http://picoe.ca/2012/09/11/introducing-eto-forms-a-cross-platform-ui-for-net/).
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我使用WinForms而不是WPF，因为它支持Mono并且不需要NuGet依赖项。如果您想使用更好的东西，请查看[ETO.Forms](http://picoe.ca/2012/09/11/introducing-eto-forms-a-cross-platform-ui-for-net/)。
 - en: Next, you can see that I've explicitly added the type parameters to `TicTacToeForm<'T>`
     like this.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，您可以看到我已经明确向`TicTacToeForm<'T>`添加了类型参数，就像这样。
 - en: '[PRE42]'
+  id: totrans-248
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'I could have eliminated the type parameter for the form by doing something
     like this instead:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这样做，我可以通过以下方式消除表单的类型参数：
 - en: '[PRE43]'
+  id: totrans-250
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'or even:'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者甚至：
 - en: '[PRE44]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: 'and let the compiler infer the types, but this often causes a "less generic"
     warning like this:'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 并让编译器推断类型，但这经常会导致像这样的“不够通用”的警告：
 - en: '[PRE45]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: By explicitly writing `TicTacToeForm<'T>`, this can be avoided, although it
     is ugly for sure.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过明确编写`TicTacToeForm<'T>`，可以避免这种情况，尽管这肯定很丑陋。
 - en: Some more refactoring
+  id: totrans-256
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进行一些重构
 - en: 'We''ve got four different functions to export. That''s getting a bit much so
     let''s create a record to store them in:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有四个不同的函数要导出。这有点多了，所以让我们创建一个记录来存储它们：
 - en: '[PRE46]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: This acts both as a container to pass around functions, *and* as nice documentation
     of what functions are available in the API.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 这既作为传递函数的容器，*也*作为API中可用函数的良好文档。
 - en: 'The implementation now has to create an "api" object:'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在实现必须创建一个“api”对象：
 - en: '[PRE47]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'But the UI code simplifies as a result:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 但UI代码因此变得简化：
 - en: '[PRE48]'
+  id: totrans-263
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: Prototyping a minimal implementation
+  id: totrans-264
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 原型化一个最小实现
 - en: It seems like we're getting close to a final version. But let's do one more
     walkthrough to exercise the "dependency injection" design, this time writing some
     minimal code to test the interactions.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来我们已经接近最终版本了。 但是让我们再次进行一次"依赖注入"设计的遍历，这一次编写一些最小的代码来测试交互。
 - en: For example, here is some minimal code to implement the `newGame` and `playerXMoves`
     functions.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这里是实现`newGame`和`playerXMoves`函数的一些最小代码。
 - en: The `newGame` is just an game with no cells and no available moves
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`newGame`只是一个没有单元格和可用移动的游戏'
 - en: The minimal implementation of `move` is easy -- just return game over!
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`move`的最小实现很简单--只返回游戏结束！'
 - en: '[PRE49]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: Now let's create a minimal implementation of the UI. We won't draw anything
     or respond to clicks, just mock up some functions so that we can test the logic.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们创建一个最小的UI实现。 我们不会绘制任何内容或响应点击，只是模拟一些函数，以便我们可以测试逻辑。
 - en: 'Here''s my first attempt:'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我的第一个尝试：
 - en: '[PRE50]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: As you can see, I'm planning to use the standard Form event handling approach
     -- each cell will have a "clicked" event handler associated with it. How the control
     or pixel location is converted to a `CellPosition` is something I'm not going
     to worry about right now, so I've just hard-coded some dummy data.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，我计划使用标准的表单事件处理方法--每个单元格都将有一个与之关联的"点击"事件处理程序。 如何将控件或像素位置转换为`CellPosition`是我现在不会担心的事情，所以我只是硬编码了一些虚拟数据。
 - en: I'm *not* going to be pure here and have a recursive loop. Instead, I'll keep
     the current `gameState` as a mutable which gets updated after each move.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在这里*不*会保持纯洁并拥有一个递归循环。 相反，我将保留当前的`gameState`作为一个可变的，它在每次移动后都会更新。
 - en: But now we have got a tricky situation... What is the `gameState` when the game
     hasn't started yet? What should we initialize it to? Similarly, when the game
     is over, what should it be set to?
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是现在我们遇到了一个棘手的情况... 当游戏还没有开始时，`gameState`是什么？我们应该将其初始化为什么？同样，在游戏结束时，它应该被设置为什么？
 - en: '[PRE51]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: One choice might be to use a `GameState option` but that seems like a hack,
     and it makes me think that we are failing to think of something.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个选择可能是使用`GameState option`，但这似乎像是一个破绽，并且让我觉得我们正在想不出来。
 - en: Similarly, we have a field to hold the result of the last move (`lastMoveResult`)
     so we can keep track of whose turn it is, or whether the game is over.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，我们有一个字段来保存上次移动的结果(`lastMoveResult`)，以便我们可以跟踪是谁的回合，或者游戏是否结束了。
 - en: But again, what should it be set to when the game hasn't started?
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 但再次，当游戏还没有开始时，它应该被设置为什么？
 - en: Let's take a step back and look at all the states the user interface can be
     in -- not the state of the *game* itself, but the state of the *user interface*.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们退一步，看看用户界面可能处于的所有状态--不是*游戏*本身的状态，而是*用户界面*的状态。
 - en: We start off in an "idle" state, with no game being played.
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们从"空闲"状态开始，没有游戏正在进行。
 - en: Then the user starts the game, and we are "playing".
+  id: totrans-282
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后用户开始游戏，我们处于"播放"状态。
 - en: While each move is played, we stay in the "playing" state.
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每次移动时，我们都保持在"播放"状态。
 - en: When the game is over, we show the win or lose message.
+  id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当游戏结束时，我们显示赢得或输掉的消息。
 - en: We wait for the user to acknowledge the end-of-game message, then go back to
     idle again.
+  id: totrans-285
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们等待用户确认游戏结束消息，然后再次回到空闲状态。
 - en: Again, this is for the UI only, it has nothing to do with the internal game
     state.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次强调，这仅适用于UI，与内部游戏状态无关。
 - en: So -- our solution to all problems! -- let's create a type to represent these
     states.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以--我们所有问题的解决方案！--让我们创建一个类型来表示这些状态。
 - en: '[PRE52]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: But do we really need the `Won` and `Lost` states? Why don't we just go straight
     back to `Idle` when the game is over?
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们真的需要`Won`和`Lost`状态吗？游戏结束时为什么不直接回到`Idle`状态？
 - en: 'So now the type looks like this:'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在类型看起来像这样：
 - en: '[PRE53]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: The nice thing about using a type like this is that we can easily store the
     data that we need for each state.
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这样的类型的好处是我们可以轻松存储每个状态所需的数据。
 - en: What data do we need to store in the `Idle` state? Nothing that I can think
     of.
+  id: totrans-293
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在`Idle`状态下我们需要存储什么数据？我想不到任何东西。
 - en: What data do we need to store in the `Playing` state? Well, this would be a
     perfect place to keep track of the `gameState` and `lastMoveResult` that we were
     having problems with earlier. They're only needed when the game is being played,
     but not otherwise.
+  id: totrans-294
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们在`Playing`状态中需要存储什么数据？好吧，这将是一个完美的地方来跟踪我们之前遇到问题的`gameState`和`lastMoveResult`。
+    它们只在游戏进行时需要，但其他情况则不需要。
 - en: So our final version looks like this. We've had to add the `<'GameState>` to
     `UiState` because we don't know what the actual game state is.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE54]'
+  id: totrans-296
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: With this type now available, we no longer need to store the game state directly
     as a field in the class. Instead we store a mutable `UiState`, which is initialized
     to `Idle`.
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE55]'
+  id: totrans-298
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'When we start the game, we change the UI state to be `Playing`:'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE56]'
+  id: totrans-300
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: And when we handle a click, we only do something if the uiState is in `Playing`
     mode, and then we have no trouble getting the `gameState` and `lastMoveResult`
     that we need, because it is stored as part of the data for that case.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE57]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: 'If you look at the last line of the `PlayerXToMove` case, you can see the global
     `uiState` field being updated with the new game state:'
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE58]'
+  id: totrans-304
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: So where have we got to with this bit of prototyping?
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
 - en: It's pretty ugly, but it has served its purpose.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
 - en: The goal was to quickly implement the UI to see if the design held up in use,
     and I think we can say that it did, because the design of the domain types and
     api has remained unchanged.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
 - en: We also understand the UI requirements a bit better, which is a bonus. I think
     we can stop now!
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
 - en: 'The complete game, part 1: The design'
+  id: totrans-309
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: To finish off, I'll show the code for the complete game, including implementation
     and user interface.
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
 - en: If you don't want to read this code, you can skip to the [questions and summary](#questions)
     below.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
 - en: '*All the code shown is available on GitHub in [this gist](https://gist.github.com/swlaschin/3418b549bd222396da82).*'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
 - en: 'We''ll start with our final domain design:'
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE59]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'The complete game, part 2: The game logic implementation'
+  id: totrans-315
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Next, here's a complete implementation of the design which I will not discuss
     in detail. I hope that the comments are self-explanatory.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE60]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: 'The complete game, part 3: A console based user interface'
+  id: totrans-318
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: And to complete the implementation, here's the code for a console based user
     interface.
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
 - en: Obviously this part of the implementation is not pure! I'm writing to and reading
     from the console, duh. If you want to be extra good, it would be easy enough to
     convert this to a pure implementation using `IO` or similar.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
 - en: Personally, I like to focus on the core domain logic being pure and I generally
     don't bother about the UI too much, but that's just me.
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE61]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: 'And finally, the application code that connects all the components together
     and launches the UI:'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE62]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: Example game
+  id: totrans-325
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Here''s what the output of this game looks like:'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE63]'
+  id: totrans-327
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: Logging
+  id: totrans-328
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Oops! We promised we would add logging to make it enterprise-ready!
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
 - en: That's easy -- all we have to do is replace the api functions with equivalent
     functions that log the data we're interested in
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE64]'
+  id: totrans-331
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: Obviously, in a real system you'd replace it with a proper logging tool such
     as `log4net` and generate better output, but I think this demonstrates the idea.
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now to use this, all we have to do is change the top level application to transform
     the original api to a logged version of the api:'
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE65]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: And that's it. Logging done!
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
 - en: Oh, and remember that I originally had the initial state created as a function
     rather than as a constant?
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE66]'
+  id: totrans-337
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: I changed to a constant early on in the design. But I'm regretting that now,
     because it means that I can't hook into the "init game" event and log it. If I
     do want to log the start of each game, I should really change it back to a function
     again.
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
 - en: Questions
+  id: totrans-339
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '**Question: You went to the trouble of hiding the internal structure of `GameState`,
     yet the `PlayerXPos` and `PlayerOPos` types are public. Why?**'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
 - en: I forgot! And then laziness kept me from updating the code, since this is really
     just an exercise in design.
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
 - en: It's true that in the current design, a malicious user interface could construct
     a `PlayerXPos` and then play X when it is not player X's turn, or to play a position
     that has already been played.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
 - en: You could prevent this by hiding the implementation of `PlayerXPos` in the same
     way as we did for game state, using a type parameter. And of course you'd have
     to tweak all the related classes too.
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s a snippet of what that would look like:'
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE67]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: We'd also need a way for the UI to see if the `CellPosition` a user selected
     was valid. That is, given a `MoveResult` and the desired `CellPosition`, if the
     position *is* valid, return `Some` move, otherwise return `None`.
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE68]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'It''s getting kind of ugly now, though. That''s one problem with type-first
     design: the type parameters can get complicated!'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
 - en: So it's a trade-off. How much do you use types to prevent accidental bugs without
     overwhelming the design?
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
 - en: In this case, I do think the `GameState` should be secret, as it is likely to
     change in the future and we want to ensure that the UI is not accidentally coupled
     to implementation details.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
 - en: For the move types though, (a) I don't see the implementation changing and (b)
     the consequence of a malicious UI action is not very high, so overall I don't
     mind having the implementation be public.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
 - en: '*UPDATE 2015-02-16: In the [next post](enterprise-tic-tac-toe-2.html) I solve
     this problem in a more elegant way, and get rid of `GameState` as well!*'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
 - en: '**Question: Why are you using that strange syntax for defining the `initGame`
     and `move` functions?**'
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
 - en: 'You mean, why I am defining the functions like this:'
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE69]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: 'rather than in the "normal" way like this:'
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE70]'
+  id: totrans-357
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'I''m doing this when I want to treat functions as values. Just as we might
     say "*x* is a value of type *int*" like this `x :int = ...`, I''m saying that
     "*playerXMoves* is a value of type *PlayerXMoves*" like this: `playerXMoves :
     PlayerXMoves = ...`. It''s just that in this case, the value is a function rather
     than a simple value.'
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
 - en: 'Doing it this way follows from the type-first approach: create a type, then
     implement things that conform to that type.'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
 - en: Would I recommend doing this for normal code? Probably not!
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
 - en: I'm only doing this as part of an exploratory design process. Once the design
     stabilizes, I would tend to switch back to the normal way of doing things.
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
 - en: '**Question: This seems like a lot of work. Isn''t this just [BDUF](https://en.wikipedia.org/wiki/Big_Design_Up_Front)
     under another guise?**'
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：这看起来像是很多工作。这只是另一种形式的[BDUF](https://en.wikipedia.org/wiki/Big_Design_Up_Front)吗？**'
 - en: This might seem like quite a long winded way of doing design, but in practice,
     it would probably not take very long. Certainly no longer than mocking up an exploratory
     prototype in another language.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可能看起来是一个设计过程，但实际上，这可能不会花费很长时间。肯定不会比在另一种语言中设计一个探索性原型要长。
 - en: We've gone through a number of quick iterations, using types to document the
     design, and using the REPL as a "executable spec checker" to make sure that it
     all works together properly.
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们经历了许多快速迭代，使用类型来记录设计，并使用REPL作为“可执行规范检查器”，以确保一切正常运作。
 - en: 'And at the end of all this, we now have a decent design with some nice properties:'
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终，我们现在有了一个体面的设计，具有一些不错的特性：
 - en: There is a "API" that separates the UI from the core logic, so that work on
     each part can proceed in parallel if needed.
+  id: totrans-366
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有一个“API”将UI与核心逻辑分开，以便在需要时可以并行进行每个部分的工作。
 - en: The types act as documentation and will constrain the implementation in a way
     that UML diagrams could never do!
+  id: totrans-367
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类型充当文档，并将限制实现的方式，这是UML图表无法做到的！
 - en: The design is encoded in types, so that ~~any~~ the inevitable changes that
     occur during development can be made with confidence.
+  id: totrans-368
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设计以类型编码，因此在开发过程中发生的不可避免的更改可以放心进行。
 - en: I think this whole process is actually pretty agile, once you get used to working
     this way.
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为一旦你习惯了这种工作方式，整个过程实际上是非常敏捷的。
 - en: '**Question: Come on, would you *really* write Tic-Tac-Toe this way?**'
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：拜托，你会*真的*用这种方式写井字棋吗？**'
 - en: It depends. If it was just me, maybe not. :-)
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 这取决于情况。如果只有我一个人，也许不会。:-)
 - en: But if it was a more complex system with different teams for the front-end and
     back-end, then I would certainly use a design-first approach like this. In cases
     like that, things like data-hiding and abstract interfaces are critical, and I
     think this approach delivers that.
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 但如果是一个更复杂的系统，前端和后端有不同的团队，那么我肯定会采用这种以设计为先的方法。在这种情况下，像数据隐藏和抽象接口这样的东西至关重要，我认为这种方法能够实现这一点。
 - en: '**Question: Why is the design so specific? It seems like none of it will be
     reusable at all. Why not?**'
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：为什么设计如此具体？看起来似乎没有任何部分是可重用的。为什么？**'
 - en: 'Yes, this code is full of very specific types: `Cell`, `GameState`, etc. And
     it''s true that none of it will be reusable.'
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，这段代码充满了非常具体的类型：`Cell`，`GameState`等。而且确实没有任何可重用的部分。
 - en: There is always a tension between a very domain-specific and non-reusable design,
     like this one, and an [abstract and reusable library](https://msdn.microsoft.com/en-us/library/ee353738.aspx)
     of things like lists and trees.
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 总是存在着非常领域特定且不可重用的设计（如此设计）与[抽象和可重用的库](https://msdn.microsoft.com/en-us/library/ee353738.aspx)（如列表和树）之间的紧张关系。
 - en: Ideally, you would start with low-level, reusable components and then compose
     them into larger more-specific ones (e.g. a DSL), from which you can build a application.
     (Tomas has a good post on [exactly this](http://tomasp.net/blog/2015/library-layers/index.html)).
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，你会从低级别、可重用的组件开始，然后将它们组合成更大更具体的组件（例如DSL），从中构建应用程序（Tomas在[这里](http://tomasp.net/blog/2015/library-layers/index.html)有一篇很好的文章）。
 - en: The reasons why I did not do that here is that, first, I always like to start
     with very *concrete* designs. You can't even know what a good abstraction looks
     like until you have built something a few times.
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
+  zh: 我没有在这里这样做的原因是，首先，我总是喜欢从非常*具体*的设计开始。在构建几次之后，你甚至不知道一个好的抽象看起来是什么样子。
 - en: We have separated the UI from the core logic, but going any further than that
     does not make sense to me right now. If I was going to build lots of other kinds
     of games that were similar to Tic-Tac-Toe, then some useful abstractions might
     become apparent.
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将UI与核心逻辑分开，但在目前看来，进一步进行下去对我来说没有意义。如果我要构建许多其他类似于井字棋的游戏，那么一些有用的��象可能会变得明显。
 - en: Second, designs with concrete types are easier for non-experts to understand.
     I'd like to think that I could show these domain types to a non-programmer (e.g.
     a domain expert) and have them understand and comment sensibly on them. If they
     were more abstract, that would not be possible.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，具有具体类型的设计更容易让非专家理解。我希望我可以向非程序员（例如领域专家）展示这些领域类型，并让他们理解并做出明智的评论。如果它们更抽象，那将是不可能的。
 - en: Exercises
+  id: totrans-380
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 练习
 - en: 'If you want a challenge, here are some exercises for you:'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想挑战自己，这里有一些练习供你参考：
 - en: The `playerXMoves` and `playerOMoves` functions have very similar code. How
     would you refactor them to reduce that?
+  id: totrans-382
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Do a security audit and think of all the ways that a malicious user or UI could
     corrupt the game using the current design. Then fix them!
+  id: totrans-383
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-384
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this post, we've seen how to design a system using mostly types, with the
     occasional code fragments to help us clarify issues.
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
 - en: It was definitely an exercise in design overkill but I hope that there are some
     ideas in there that might be applicable to real non-toy projects.
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
 - en: At the start, I claimed that this design would be "enterprise" ready. Is it?
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
 - en: We *do* have separation of concerns via the functions that are exported to the
     UI.
+  id: totrans-388
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We *do* have a well documented API. There are no magic numbers, the names of
     the types are self-documenting, and the list of functions exported is in one place.
+  id: totrans-389
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1556,113 +2259,140 @@
     As it stands, it would be hard to accidentally mess up. And if we go the extra
     distance by parameterizing the move types as well, then it becomes really quite
     hard for the game to be corrupted.
+  id: totrans-390
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We *do* have well-documented code, I think. Even though this is "enterprise",
     the code is quite explicit in what it does. There are no wasted abstractions --
     no `AbstractSingletonProxyFactoryBean` to make fun of.
+  id: totrans-391
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We *did* add auditing and logging easily, and in an elegant way after the fact,
     without interfering with the core design.
+  id: totrans-392
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We get *scalability* for free because there is no global session data. All we
     have to do is persist the game state in the browser (Or we could use MongoDb and
     be web scale).
+  id: totrans-393
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: This is not a perfect design -- I can think of a number of ways to improve it
     -- but overall I'm quite happy with it, considering it was a straight brain-to-code
     dump.
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
 - en: What do you think? Let me know in the comments.
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
 - en: '**UPDATE 2015-02-16: I ended up being unhappy with this design after all. In
     the [next post](enterprise-tic-tac-toe-2.html) I tell you why, and present a better
     design.**'
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: The code for this post is available on GitHub in [this gist](https://gist.github.com/swlaschin/3418b549bd222396da82).*'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
 - en: Enterprise Tic-Tac-Toe, part 2
+  id: totrans-398
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Enterprise Tic-Tac-Toe, part 2
+  id: totrans-399
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/ettt/)*'
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
 - en: '*This post is one of series in I which I hope to close the gap between theory
     and practice in functional programming. I pick a small project and show you my
     thought processes as I go about designing and implementing it from beginning to
     end.*'
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
 - en: In the [previous post](enterprise-tic-tac-toe.html), I did a design for a Tic-Tac-Toe
     (aka Noughts and Crosses) game.
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
 - en: It wasn't bad for a direct-to-code brain dump, but there were a couple of things
     that I wasn't happy with.
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
 - en: Unfortunately, the more I thought about it, the more those little niggles became
     full-fledged annoyances, and I got unhappier and unhappier.
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
 - en: In this post, I'll explain why I was so unhappy, and how I arrived at a design
     that I am much more satisfied with.
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
 - en: The old design
+  id: totrans-406
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'To recap the previous post briefly, here is the old design:'
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
 - en: There is a hidden `GameState` known only to the implementation.
+  id: totrans-408
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There are some functions that allow the players to move (`PlayerXMoves` and
     `PlayerOMoves`).
+  id: totrans-409
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The UI (or other client) passes the game state into each move, and gets a updated
     game state back.
+  id: totrans-410
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Each move also returns a `MoveResult` which contains the game status (in process,
     won, tied), and if the game is still in process, whose turn it is, and what the
     available moves are.
+  id: totrans-411
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE71]'
+  id: totrans-413
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: What's wrong with the old design?
+  id: totrans-414
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: So what's wrong with this design? Why was I so unhappy?
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
 - en: First, I was unhappy about the use of the `PlayerXPos` and `PlayerOPos` types.
@@ -1671,138 +2401,179 @@
     these types, I could prevent player X from playing twice, say. That is, after
     player X has moved, the valid moves for the next run would be wrapped in a `PlayerOPos`
     type so that only player O could use them.
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
 - en: The problem was that the `PlayerXPos` and `PlayerOPos` types are public, so
     that a malicious user could have forged one and played twice anyway!
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
 - en: Yes, these types could have been made private by parameterizing them like the
     game state, but the design would have become very ugly very quickly.
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
 - en: Second, even if the moves *were* made unforgeable, there's that game state floating
     about.
+  id: totrans-419
   prefs: []
   type: TYPE_NORMAL
 - en: It's true that the game state internals are private, but a malicious user could
     have still caused problems by reusing a game state. For example, they could attempt
     to play one of the valid moves with a game state from a previous turn, or vice
     versa.
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
 - en: In this particular case, it would not be dangerous, but in general it might
     be a problem.
+  id: totrans-421
   prefs: []
   type: TYPE_NORMAL
 - en: So, as you can see, this design was becoming a bit smelly to me, which was why
     I was becoming unhappy.
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
 - en: What's up with this malicious user?
+  id: totrans-423
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Why I am assuming that the user of the API will be so malicious -- forging fake
     moves and all that?
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
 - en: The reason is that I use this as a design guideline. If a malicious user can
     do something I don't want, then the design is probably not good enough.
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
 - en: In my series on [capability based security](capability-based-security.html)
     I point out that by designing for the [Principle Of Least Authority](https://en.wikipedia.org/wiki/Principle_of_least_privilege)
     ("POLA"), you end up with a good design as a side-effect.
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
 - en: That is, if you design the most minimal interface that the caller needs, then
     you will both avoid accidental complexity (good design) and increase security
     (POLA).
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
 - en: 'I had a little tip in that post: **design for malicious callers and you will
     probably end up with more modular code**.'
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
 - en: I think I will follow my own advice and see where I end up!
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: Designing for POLA
+  id: totrans-430
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: So, let's design for POLA -- let's give the user the minimal "capability" to
     do something and no more.
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
 - en: In this case, I want to give the user the capability to mark a specific position
     with an "X" or "O".
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s what I had before:'
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE72]'
+  id: totrans-434
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: The user is passing in the location (`PlayerXPos`) that they want to play.
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: But let's now take away the user's ability to choose the position. Why don't
     I give the user a function, a `MoveCapability` say, that has the position baked
     in?
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE73]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: In fact, why not bake the game state into the function too? That way a malicious
     user can't pass the wrong game state to me.
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: This means that there is no "input" at all now -- everything is baked in!
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE74]'
+  id: totrans-440
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: But now we have to give the user a whole set of capabilities, one for each possible
     move they can make. Where do these capabilities come from?
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
 - en: Answer, the `MoveResult` of course! We'll change the `MoveResult` to return
     a list of capabilities rather than a list of positions.
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE75]'
+  id: totrans-443
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: Excellent! I'm much happier with this approach.
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
 - en: And now that the `MoveCapability` contains the game state baked in, we don't
     need the game state to be in the output either!
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: 'So our move function has simplified dramatically and now looks like this:'
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE76]'
+  id: totrans-447
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: Look ma! No `'GameState` parameter! It's gone!
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
 - en: A quick walkthrough from the UI's point of view
+  id: totrans-449
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: So now let's pretend we are the UI, and let's attempt to use the new design.
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: First, assume that we have a list of available capabilities from the previous
     move.
+  id: totrans-451
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1810,259 +2581,339 @@
     can't just create any old cell position and play it, which is good. But how will
     the user know which capability corresponds to which square? The capabilities are
     completely opaque. We can't tell from the outside what they do!
+  id: totrans-452
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Then, given that the user has picked a capability somehow, we run it (with no
     parameters).
+  id: totrans-453
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Next we update the display to show the result of the move. But again, how are
     we going to know what to display? There is no game state to extract the cells
     from any longer.
+  id: totrans-454
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s some pseudo-code for the UI game loop:'
+  id: totrans-455
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE77]'
+  id: totrans-456
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: 'Let''s deal with the first issue: how does the user know which capability is
     associated with which square?'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
 - en: The answer is just to create a new structure that "labels" the capability. In
     this case, with the cell position.
+  id: totrans-458
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE78]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: 'And now we must change the `MoveResult` to return a list of these labelled
     capabilities, rather than the unlabelled ones:'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE79]'
+  id: totrans-461
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: Note that the cell position is for the user's information only -- the actual
     position is still baked into the capability and cannot be forged.
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now for the second issue: how does the UI know what to display as a result
     of the move? Let''s just return that information to it directly in a new structure:'
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE80]'
+  id: totrans-464
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: 'And once again, the `MoveResult` must be changed, this time to return the `DisplayInfo`
     for each case:'
+  id: totrans-465
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE81]'
+  id: totrans-466
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: Dealing with circular dependencies
+  id: totrans-467
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Here''s our final design:'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE82]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: But oops! This won't compile!
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
 - en: '`MoveCapability` depends on `MoveResult` which depends on `NextMoveInfo` which
     in turn depends on `MoveCapability` again. But the F# compiler does not allow
     forward references in general.'
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
 - en: Circular dependencies like this are generally frowned upon (I even have a post
     called ["cyclic dependencies are evil"](cyclic-dependencies.html)!) and there
     are [normally work-arounds which you can use](removing-cyclic-dependencies.html)
     to remove them.
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: In this case though, I will link them together using the `and` keyword, which
     replaces the `type` keyword and is useful for just these kinds of cases.
+  id: totrans-473
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE83]'
+  id: totrans-474
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: Revisiting the API
+  id: totrans-475
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: What does the API look like now?
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
 - en: 'Originally, we had an API with slots for the three use-cases and also a helper
     function `getCells`:'
+  id: totrans-477
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE84]'
+  id: totrans-478
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: But now, we don't need the `playerXMoves` or `playerOMoves`, because they are
     returned to us in the `MoveResult` of a previous move.
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
 - en: And `getCells` is no longer needed either, because we are returning the `DisplayInfo`
     directly now.
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
 - en: 'So after all these changes, the new API just has a single slot in it and looks
     like this:'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE85]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: I've changed `NewGame` from a constant to a parameterless function, which is
     in fact, just a `MoveCapability` in disguise.
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
 - en: The new design in full
+  id: totrans-484
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Here''s the new design in full:'
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE86]'
+  id: totrans-486
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: 'I''m much happier with this design than with the previous one:'
+  id: totrans-487
   prefs: []
   type: TYPE_NORMAL
 - en: There is no game state for the UI to worry about.
+  id: totrans-488
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There are no type parameters to make it look ugly.
+  id: totrans-489
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The api is even more encapsulated -- a malicious UI can do very little now.
+  id: totrans-490
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: It's shorter -- always a good sign!
+  id: totrans-491
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The complete application
+  id: totrans-492
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: I have updated the implementation and console application to use this new design.
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
 - en: The complete application is available on GitHub in [this gist](https://gist.github.com/swlaschin/7a5233a91912e66ac1e4)
     if you want to play with it.
+  id: totrans-494
   prefs: []
   type: TYPE_NORMAL
 - en: Surprisingly, the implementation also has become slightly simpler, because all
     the state is now hidden and there is no need to deal with types like `PlayerXPos`
     any more.
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
 - en: Logging revisited
+  id: totrans-496
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In the previous post, I demonstrated how logging could be injected into the
     API.
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
 - en: But in this design, the capabilities are opaque and have no parameters, so how
     are we supposed to log that a particular player chose a particular location?
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
 - en: Well, we can't log the capabilities, but we *can* log their context, which we
     have via the `NextMoveInfo`. Let's see how this works in practice.
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
 - en: First, given a `MoveCapability`, we want to transform it into another `MoveCapability`
     that also logs the player and cell position used.
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the code for that:'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE87]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: 'This code works as follows:'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: Create a new capability `newCap` function that is parameterless and returns
     a `MoveResult` just like the original one.
+  id: totrans-504
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: When it is called, log the player and cell position. These are not available
     from the `MoveCapability` that was passed in, so we have to pass them in explicitly.
+  id: totrans-505
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Next, call the original capability and get the result.
+  id: totrans-506
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The result itself contains the capabilities for the next move, so we need to
     recursively transform each capability in the `MoveResult` and return a new `MoveResult`.
     This is done by the `transformMR` function that is passed in.
+  id: totrans-507
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Now that we can transform a `MoveCapability`, we can go up a level and transform
     a `NextMoveInfo`.
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE88]'
+  id: totrans-509
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: 'This code works as follows:'
+  id: totrans-510
   prefs: []
   type: TYPE_NORMAL
 - en: Given a `NextMoveInfo`, replace its capability with a transformed one. The output
     of `transformNextMove` is a new `NextMoveInfo`.
+  id: totrans-511
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The cellPos comes from the original move.
+  id: totrans-512
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The player and `transformMR` function are not available from the move, so must
     be passed in explicitly again.
+  id: totrans-513
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Finally, we need to implement the function that will transform a `MoveResult`:'
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE89]'
+  id: totrans-515
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: 'This code works as follows:'
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
 - en: Given a `MoveResult`, handle each case. The output is a new `MoveResult`.
+  id: totrans-517
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For the `GameWon` and `GameTied` cases, log the result and return the original
     moveResult.
+  id: totrans-518
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2070,88 +2921,109 @@
     them, passing in the required player (`PlayerX`) and `transformMR` function. Note
     that the `transformMR` function is a reference to this very function! This means
     that `transformMoveResult` must be marked with `rec` to allow this self-reference.
+  id: totrans-519
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For the `PlayerOToMove` case, do the same as the `PlayerXToMove` case, except
     change the player to `PlayerO`.
+  id: totrans-520
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Finally, we can inject logging into the API as a whole by transforming the
     `MoveResult` returned by `newGame`:'
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE90]'
+  id: totrans-522
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: So there you go. Logging is a bit trickier than before, but still possible.
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: A warning on recursion
+  id: totrans-524
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this code, I've been passing around functions that call each other recursively.
     When you do this, you have to be careful that you don't unwittingly cause a stack
     overflow.
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
 - en: In a game like this, when the number of nested calls is guaranteed to be small,
     then there is no issue. But if you are doing tens of thousands of nested calls,
     then you should worry about potential problems.
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
 - en: In some cases, the F# compiler will do tail-call optimization, but I suggest
     that you stress test your code to be sure!
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
 - en: Data-centric vs capability-centric designs
+  id: totrans-528
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: There is an interesting difference between the original design and the new design.
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
 - en: The original design was *data-centric*. Yes, we gave each player a function
     to use, but it was the *same* function used over and over, with different data
     passed in each time.
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
 - en: The new design is *function-centric* (or as I prefer, *capability-centric*).
     There is very little data now. Instead, the result of each function call is *another*
     set of functions than can be used for the next step, and so on, ad infinitum.
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, it reminds me somewhat of a [continuation-based](computation-expressions-continuations.html)
     approach, except that rather than passing in a continuation, the function itself
     returns a list of continuations, and then you pick one to use.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
 - en: Capabilities and RESTful designs -- a match made in heaven
+  id: totrans-533
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: If for some crazy reason you wanted to turn this design into a web service,
     how would you go about doing that?
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
 - en: In a *data-centric* design, we have a function to call (an endpoint URI in the
     web API) and then we pass data to it (as JSON or XML). The result of the call
     is more data that we use to update the display (e.g. the DOM).
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
 - en: But in a *capability-centric* design, where's the data? And how do we pass functions
     around? It seems like this approach would not work for web services at all.
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
 - en: It might surprise you to know that there *is* a way to do this, and what's more
     it is exactly the same approach used by a RESTful design using [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS).
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
 - en: What happens is that each capability is mapped to a URI by the server, and then
     visiting that URI is the same as exercising that capability (e.g. calling the
     function).
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
 - en: For example, in a web-based application based on this Tic-Tac-Toe design, the
@@ -2160,22 +3032,27 @@
     eight new URIs, one for each remaining unplayed square. The URI for the just-played
     square would not be in this list, which means that it could not be clicked on
     again.
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
 - en: And of course when you click on one of the eight unplayed squares, the server
     would now return seven new URIs, and so on.
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
 - en: This model is exactly what REST is supposed to be; you decide what to do next
     based on the contents of the returned page rather than hard-code the endpoints
     into your app.
+  id: totrans-541
   prefs: []
   type: TYPE_NORMAL
 - en: One possible downside of this approach is that it is does not appear to be stateless.
+  id: totrans-542
   prefs: []
   type: TYPE_NORMAL
 - en: In the data-centric version, all the data needed for a move was passed in each
     time, which means that scaling the backend services would be trivial.
+  id: totrans-543
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2183,34 +3060,42 @@
     If the complete game state can be encoded into the URI, then this approach will
     allow stateless servers as well, but otherwise, some sort of state-storage will
     be needed.
+  id: totrans-544
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Some web frameworks have made this function-centred approach a key part of their
     design, most notably [Seaside](https://en.wikipedia.org/wiki/Seaside_%28software%29).
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
 - en: The excellent [WebSharper framework for F#](http://websharper.com) also uses
     [something similar](http://websharper.com/blog-entry/3965), I think (I don't know
     WebSharper as well as I want to, alas, so correct me if I'm wrong).
+  id: totrans-546
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-547
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this post, I tore up my original design and replaced it with an even more
     function-centric one, which I like better.
+  id: totrans-548
   prefs: []
   type: TYPE_NORMAL
 - en: 'But of course it still has all those qualities we love: separation of concerns,
     an API, a watertight security model, self-documenting code, and logging.'
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
 - en: I'm going to stop with Tic-Tac-Toe now -- I think I've wrung it dry! I hope
     you found these two walkthoughs interesting; I learned a lot myself.
+  id: totrans-550
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: The code for this post is available on GitHub in [this gist](https://gist.github.com/swlaschin/7a5233a91912e66ac1e4).*'
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
