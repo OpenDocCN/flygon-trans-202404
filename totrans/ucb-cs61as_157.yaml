@@ -1,116 +1,174 @@
 - en: Parallelism
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 并行性
 - en: Getting Started
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 入门
 - en: 'To work with the ideas in this section, you''ll need our concurrency library.
     From a lab machine (or over SSH), type the following into your Scheme interpreter:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用本节中的想法，您需要我们的并发库。从实验室计算机（或通过SSH）中，将以下内容键入您的Scheme解释器：
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: An Overview
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概述
 - en: 'Many things we take for granted in ordinary programming become problematic
     when there is any kind of parallelism involved. These situations include:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 在涉及任何形式的并行性时，我们通常认为的许多事情在普通编程中变得棘手。这些情况包括：
 - en: multiple processors (hardware) sharing data
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 多处理器（硬件）共享数据
 - en: software multithreading (simulated parallelism)
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 软件多线程（模拟并行性）
 - en: operating system input/output device handlers
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作系统输入/输出设备处理程序
 - en: This is covered in greater detail in CS 162 (operating systems).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在CS 162（操作系统）中有更详细的介绍。
 - en: Why Parallelism Is Hard
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么并行性很困难
 - en: To see in simple terms what the problem is, think about the Scheme expression
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 要简单地看出问题所在，想想Scheme表达式
 - en: '[PRE1]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'As you''ll learn in more detail in 61C, Scheme translates this into a sequence
     of instructions to your computer. The details depend on the particular computer
     model, but it''ll be something like this:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您将在61C中更详细地了解的那样，Scheme将这转换为一系列指令发送到您的计算机。细节取决于特定的计算机模型，但会类似于这样：
 - en: '[PRE2]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: You don't have to understand the details of the code here (you'll learn about
     it in 61C), but you should have an idea of what's going on.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 您不必理解这里代码的细节（您将在61C中学习），但您应该知道正在发生什么。
 - en: (A *register* is a place where computers put values so that it can operate on
     them. So a computer usually can't immediately add 1 to x - it has to first put
     the value of x in a register, and only then can it add 1 to it.)
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: （*寄存器*是计算机放置值的地方，以便它可以对其进行操作。因此，计算机通常不能立即将1添加到x - 它必须首先将x的值放入寄存器，然后才能将1添加到其中。）
 - en: Ordinarily we would expect this sequence of instructions to have the desired
     effect. If the value of x was 100 before these instructions, it should be 101
     after them.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常我们期望这些指令序列会产生期望的效果。如果这些指令之前x的值为100，那么之后应该是101。
 - en: 'But imagine that this sequence of three instructions can be interrupted by
     other events that come in the middle. To be specific, let''s suppose that someone
     else is also trying to add 1 to x''s value. Now we might have this sequence:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 但想象一下，这三条指令序列可能会被中间发生的其他事件打断。具体来说，假设还有其他人也试图将1添加到x的值。现在我们可能会有这样的序列：
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The ultimate value of x will be 101, instead of the correct 102.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: x的最终值将是101，而不是正确的102。
 - en: The general idea we need to solve this problem is the critical section, which
     means a sequence of instructions that mustn't be interrupted. The three instructions
     starting with the load and ending with the store are a critical section.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要解决这个问题的一般思路是关键部分，这意味着一系列不得中断的指令。从加载开始到存储结束的三条指令是一个关键部分。
 - en: Actually, we don't have to say that these instructions can't be interrupted;
     the only condition we must enforce is that they can't be interrupted by another
     process that uses the variable x. It's okay if another process wants to add 1
     to y meanwhile. So we'd like to be able to say something like
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，我们不必说这些指令不能被打断；我们必须强制执行的唯一条件是它们不能被使用变量x的另一个进程打断。如果另一个进程同时想要将1添加到y，那没问题。因此，我们希望能够说出类似于
 - en: '[PRE4]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Levels of Abstraction
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 抽象级别
 - en: 'Computers don''t really have instructions quite like `reserve` and `release`,
     but we''ll see that they do provide similar mechanisms. A typical programming
     environment includes concurrency control mechanisms at three levels of abstraction:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算机实际上并没有像`reserve`和`release`这样的指令，但我们会看到它们提供了类似的机制。典型的编程环境包括三个抽象级别的并发控制机制：
 - en: '[PRE5]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The serializer and the mutex are, in SICP, abstract data types. There is a constructor
     `make-serializer` that's implemented using a mutex, and a constructor `make-mutex`
     that's implemented using `test-and-set!`, which is a (simulated, in our case)
     hardware instruction.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在SICP中，串行器和互斥体是抽象数据类型。有一个使用互斥体实现的构造函数`make-serializer`，以及一个使用`test-and-set!`实现的构造函数`make-mutex`，后者是一个（在我们的情况下是模拟的）硬件指令。
 - en: We'll go over serializers and mutexes in the coming sections.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在接下来的章节中讨论串行器和互斥体。
