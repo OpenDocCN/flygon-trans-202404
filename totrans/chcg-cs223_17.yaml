@@ -1,260 +1,397 @@
 - en: Laziness
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 惰性
 - en: 'Most mainstream functional languages employ an *eager* (a.k.a. *strict*) evaluation
     strategy, where an expression is evaluated entirely even if its resulting value
     is not needed or only parts of it are needed. As we will see, there are sometimes
     advantages in *lazily* evaluating certain expressions. There are two important
     aspects of lazy evaluation:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数主流的函数式语言采用*急切*（又名*严格*）的评估策略，其中一个表达式即使其结果值不需要或仅需要部分结果时也会被完全评估。正如我们将看到的，有时候惰性评估某些表达式会有优势。惰性评估有两个重要方面：
 - en: '*suspending* (a.k.a *delaying*) a computation until its result is actually
     needed (a.k.a *demanded* or *forced*); and'
+  id: totrans-2
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*暂停*（又名*延迟*）计算，直到实际需要其结果为止（又名*要求*或*强制*）；以及'
 - en: '*memoizing* (a.k.a *caching*) the result of a suspended computation in case
     its value is demanded again.'
+  id: totrans-3
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*备忘*（又名*缓存*）暂停计算的结果，以防再次需要其值。'
 - en: Many eager languages, including Elm, offer additional language constructs for
     selectively introducing laziness. We will work through two example encodings —
     natural numbers and streams — that motivate and illustrate lazy evaluation.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多急切的语言，包括 Elm，在选择性引入惰性方面提供了额外的语言构造。我们将通过两个示例编码——自然数和流——来阐明和说明惰性评估的动机。
 - en: Natural Numbers
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自然数
 - en: We will work through a few encodings of natural numbers and define some simple
     operations on them.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将逐步介绍几种自然数的编码，并在其中定义一些简单的操作。
 - en: First Version — [`Nat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/Nat.elm)
+  id: totrans-7
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一版 — [`Nat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/Nat.elm)
 - en: We start by inductively defining `Nat`ural numbers to be either `Z`ero or the
     `S`uccessor of some other `Nat`ural number.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先归纳地定义 `Nat`ural 数字，它要么是`Z`ero，要么是某个其他 `Nat`ural 数字的`S`uccessor。
 - en: '[PRE0]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Next, let's define functions `toInt` and `fromInt` to convert `Nat`ural numbers
     to and from `Int`egers.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们定义函数 `toInt` 和 `fromInt` 来将 `Nat`ural 数字转换为和从 `Int`egers 转换为。
 - en: '[PRE1]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: If we take `fromInt` for a spin, we see that it busts the stack rather quickly.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们试用 `fromInt`，我们会发现它很快就会使堆栈溢出。
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Ah, right, we should define functions tail-recursively and use the [`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)
     library so that they run in constant stack space.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 啊，对了，我们应该尾递归地定义函数，并使用[`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)库，以便它们在恒定的堆栈空间中运行。
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: That should do the trick...
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 那应该能解决问题...
 - en: '[PRE4]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Or not. Okay, it's time for a little more investigative journalism. We could
     fire up Elm Reactor to start debugging. Or we can be lazy (pun intended) and continue
     to poke around at the REPL.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者不。好吧，是时候进行更多的调查新闻了。我们可以启动 Elm Reactor 来开始调试。或者我们可以懒惰一点（双关语），继续在 REPL 中四处探索。
 - en: '[PRE5]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: That's interesting. The call to `fromInt` was not the problem. So the act of
     printing the resulting `Nat` causes the stack overflow? Let's write our own (trampolined)
     printing function to test this hypothesis.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这很有趣。调用 `fromInt` 并不是问题所在。所以打印结果的动作导致堆栈溢出？让我们编写我们自己的（跳板式）打印函数来测试这个假设。
 - en: '[PRE6]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Sure enough, that does the trick... until we run out of heap space, that is.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 的确，这很有效... 直到我们用尽堆栈空间为止。
 - en: '[PRE7]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Okay, now that we have sorted out our call stack and heap space concerns, let's
     return to the task of programming with `Nat`s. We can add two `Nat`s together
     by peeling `S`uccessor labels off of `y` one at a time and wrapping them around
     `x`.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经解决了调用栈和堆空间的问题，让我们回到使用 `Nat` 进行编程的任务上。我们可以通过逐一剥离 `y` 的 `S`uccessor 标签并将其包装在
+    `x` 周围来将两个 `Nat` 相加。
 - en: '[PRE8]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This `plus` function encodes the usual notion of addition for our `Nat` type.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 `plus` 函数编码了我们 `Nat` 类型的加法的通常概念。
 - en: '[PRE9]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: We can define `eq`uality for `Nat`s by peeling off one data constructor at a
     time.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过一次剥离一个数据构造器来为`Nat`定义`eq`uality。
 - en: '[PRE10]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: This seems to work just fine...
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这似乎运行得很顺利...
 - en: '[PRE11]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '... but it is really slow for some comparisons that seem like they should be
     easy to decide quickly.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '... 但对于一些看起来应该很容易决定的比较来说，速度真的很慢。'
 - en: '[PRE12]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The problem is that, under eager evaluation, both `Nat`ural numbers are evaluated
     completely before calling `eqNat`, which then very quickly decides the last two
     disequalities.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于，在急切评估下，两个 `Nat`ural 数字在调用 `eqNat` 之前都会被完全评估，然后非常快速地决定最后两个不等式。
 - en: Delaying Evaluation with Thunks — [`ThunkNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/ThunkNat.elm)
+  id: totrans-35
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用 Thunks 延迟评估 — [`ThunkNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/ThunkNat.elm)
 - en: A common approach to delaying the evaluation of an expression `e` of type `a`
     in an eager language is to define a function `\() -> e`, called a *thunk*, that
     waits for a dummy argument before evaluating the expression.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在急切语言中延迟评估表达式`e`的常见方法是定义一个函数`\() -> e`，称为*thunk*，它在评估表达式之前等待一个虚拟参数。
 - en: We will port the implementations above in order to delay computing the representations
     of natural numbers. In our new representation of `Nat`s, a `S`uccessor value stores
     the delayed computation of the `Nat` that it succeeds. The `force` function is
     used to evaluate a suspended computation.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了延迟计算自然数的表示，我们将移植上述实现。在我们对`Nat`的新表示中，一个`S`uccessor值存储了它所继承的`Nat`的延迟计算。`force`函数用于评估一个被挂起的计算。
 - en: '[PRE13]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Note that implementing a function like the following is *not* a good idea, because
     a call to `delay` will force its argument to be evaluated!
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，实现以下函数*不*是一个好主意，因为对`delay`的调用将强制评估其参数！
 - en: '[PRE14]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: To implement `fromInt`, we no longer need to `trampoline` because there are
     no direct recursive calls; instead, the latter case immediately returns a `S`uccessor
     value (which may some time later lead to a call to `fromInt`).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 要实现`fromInt`，我们不再需要`trampoline`，因为没有直接递归调用；相反，后一种情况立即返回一个`S`uccessor值（可能在以后某个时候导致对`fromInt`的调用）。
 - en: '[PRE15]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Notice that our new representation of non-`Z`ero numbers is quite different
     from before:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意我们对非`Z`ero数的新表示方法与以前有很大不同：
 - en: '[PRE16]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Unlike `fromInt`, `toInt` *does* need to make recursive calls immediately, because
     the resulting type (`Int`) does not have the notion of delayed computation built
     in to its representation. Therefore, we will want to employ the `trampoline` strategy.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 与`fromInt`不同，`toInt`确实需要立即进行递归调用，因为结果类型（`Int`）的表示中没有延迟计算的概念。因此，我们希望采用`trampoline`策略。
 - en: '[PRE17]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'As before, `fromInt` and `toInt` are inverses:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 和以前一样，`fromInt`和`toInt`是反函数：
 - en: '[PRE18]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Notice how `toInt` uses `force` to evaluate all of the nested suspensions that
     are stored within a `Nat`. A function like this is called *monolithic*, whereas
     a function like `fromInt` is called *incremental* because it does not trigger
     the evaluation of all nested suspensions.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意`toInt`如何使用`force`来评估存储在`Nat`中的所有嵌套挂起。像这样的函数被称为*单块*，而像`fromInt`这样的函数被称为*增量*，因为它不会触发所有嵌套悬挂的评估。
 - en: '[PRE19]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Another example of a monolithic function is `strNat`.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个单一功能的例子是`strNat`。
 - en: '[PRE20]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: However, this function is no longer needed for its original purpose above, because
     printing the representation of a `S`uccessor value is now very quick.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，由于打印`S`uccessor值的表示现在非常快速，因此此函数不再需要用于上述其原始目的。
 - en: '[PRE21]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: We can now return to our motivation for delaying the evaluation of `Nat`s.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以回到延迟评估`Nat`的动机。
 - en: '[PRE22]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: When `x` and `y` represent the same number, `eqNat` evaluates all of the nested
     suspensions in both `x` and `y`. Otherwise, it evaluates only enough of their
     delayed representations in order to demonstrate a difference in corresponding
     data constructors. As a result, all of the following comparisons run quickly,
     unlike with our original [`Nat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/Nat.elm)
     implementation.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 当`x`和`y`表示相同的数字时，`eqNat`评估`x`和`y`中所有嵌套的挂起。否则，它只评估足够的延迟表示，以演示对应数据构造函数的差异。因此，所有以下比较都运行得很快，不像我们最初的[`Nat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/Nat.elm)实现。
 - en: '[PRE23]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We finish porting the original module with the following incremental implementation
     of `plus`.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用以下增量实现`plus`完成了原始模块的移植。
 - en: '[PRE24]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: As a result, the following comparison evaluates quickly.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，以下比较很快地进行了评估。
 - en: '[PRE25]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '**Aside:** What happens if we ask Elm to compare `Nat`s using built-in equality?'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**旁注：**如果我们让 Elm 使用内置的相等性来比较`Nat`会发生什么？'
 - en: '[PRE26]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Elm throws a run-time error when trying to compare two different function values.
     Fair enough. Notice that "physical equality" between function values is supported,
     however.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: Elm 在尝试比较两个不同的函数值时会抛出运行时错误。公平地说。但请注意，函数值之间的“物理相等性”是支持的。
 - en: '[PRE27]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Memoizing Thunks — [`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm)
+  id: totrans-67
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Thunks的记忆化 — [`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm)
 - en: Defining suspensions and incremental functions can be really valuable techniques,
     but there's no free lunch. The representation of a thunk is a *closure*, which
     is a function to evaluate along with bindings for all free variables referred
@@ -262,8 +399,10 @@
     number of these closures building up. So one should restrict the use of thunks
     to situations where the benefits of being able to define incremental function
     outweights the overheads associated with delayed computations.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义悬浮和增量函数可能是非常有价值的技术，但没有免费的午餐。一个延迟值的表示是一个*闭包*，它是一个用于评估的函数，以及所有由函数引用的自由变量的绑定。因此，随意延迟计算可能会导致大量这些闭包的积累。因此，应该将对延迟计算的使用限制在能够定义增量函数的情况下，这样做的好处就会超过延迟计算所带来的开销。
 - en: 'Another concern is that the same delayed computation may be demanded more than
     once. If the computation takes significant resources to evaluate, then redoing
     the work every time is undesirable. In a pure language with only strict evaluation,
@@ -273,216 +412,341 @@
     is cached in case it is forced again in the future. The term *lazy evaluation*
     is often used to describe support for delayed computations with the guarantee
     of evaluating any such computation at most once.'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个问题是同样的延迟计算可能会被要求超过一次。如果计算需要大量资源来评估，那么每次重做工作都是不可取的。在一个只有严格求值的纯语言中，没有其他选择：每次强制执行一个延迟计算，它都必须被重新评估。因此，许多严格的语言提供了专门用于操作延迟计算的构造，保证延迟计算的结果在将来再次强制执行时被缓存。术语*惰性求值*通常用于描述对延迟计算的支持，保证最多只评估一次这样的计算。
 - en: In Elm, the [`Lazy`](http://package.elm-lang.org/packages/maxsnew/lazy/1.0.0/Lazy)
     library provides support for lazy evaluation. (`Lazy` is a community library,
     so an [`elm-package.json`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/elm-package.json)
     file is required to declare this dependency.) The `lazy` function turns a `Thunk
     a` into a `Lazy a` value, which `force` evaluates, reusing the result of any previous
     call to `force`.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Elm 中，[`Lazy`](http://package.elm-lang.org/packages/maxsnew/lazy/1.0.0/Lazy)
+    库提供了对惰性求值的支持。（`Lazy` 是一个社区库，所以需要一个[`elm-package.json`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/elm-package.json)文件来声明这个依赖关系。）`lazy`
+    函数将 `Thunk a` 转换为 `Lazy a` 值，`force` 评估这个值，重用之前对 `force` 的任何调用的结果。
 - en: '[PRE28]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: The [native JavaScript implementation](https://github.com/maxsnew/lazy/blob/1.0.0/src/Native/Lazy.js)
     of `lazy` uses a mutable variable (called `isForce`) to track whether the particular
     thunk has been evaluated and a mutable variable (called `value`) to store this
     result.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '[`lazy`](https://github.com/maxsnew/lazy/blob/1.0.0/src/Native/Lazy.js) 的本机
+    JavaScript 实现使用一个可变变量（称为 `isForce`）来跟踪特定的延迟是否已经被评估，并使用一个可变变量（称为 `value`）来存储这个结果。'
 - en: It is simple to port [`ThunkNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/ThunkNat.elm)
     to use the `Lazy` library in order to obtain the benefits of memoization. First,
     we redefine the type of `Nat` as follows.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 要获得记忆化的好处，将 [`ThunkNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/ThunkNat.elm)
+    改用 `Lazy` 库是很简单的。首先，我们重新定义 `Nat` 类型如下。
 - en: '[PRE29]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Then, we sprinkle a call to `lazy` in front of every thunked value. The resulting
     implementation can be found in [`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm).
     (Use `diff` or `vimdiff` to see how similar the two files are.)
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们在每个延迟值的前面添加一个 `lazy` 的调用。结果的实现可以在[`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm)中找到。（使用
+    `diff` 或 `vimdiff` 来查看这两个文件的相似之处。）
 - en: Using this implementation, we now expect that `force`-ing an expensive suspension
     for the second time should be practically instantaneous. As we discussed above,
     the worst case for `eqNat` is when both its arguments are equal. So let's use
     a call to `eqNat` as an example of a slow computation.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个实现，我们现在期望第二次强制执行昂贵的悬浮应该几乎是瞬间的。正如我们之前讨论的，`eqNat` 的最坏情况是当它的两个参数相等时。所以让我们以对
+    `eqNat` 的调用作为一个慢计算的例子。
 - en: '[PRE30]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: The last operation above is quite slow. So, we should be able to delay its evaluation,
     `force` and memoize its result, and reevaluate it a second time nearly instantaneously.
     But the second `force` is just as slow as the first!
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的最后一个操作非常缓慢。因此，我们应该能够延迟其评估，`force` 并记录其结果，并且在第二次重新评估时几乎立即重新评估。但第二个 `force`
+    与第一个一样慢！
 - en: '[PRE31]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Good thing we still have our investigative journalist hats on.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸好我们还带着调查记者的帽子。
 - en: '[PRE32]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: These two expressions require about the same amount of time to evaluate, which
     suggests that caching is kicking in for the latter case. So it appears that the
     native memo tables do not persist across REPL operations.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个表达式需要大约相同的时间来评估，这表明对于后一种情况，缓存正在起作用。因此，看来原生的记忆表在 REPL 操作之间不会持久存在。
 - en: '**Optional Exercise** — Write an Elm program that measures the time it takes
     to evaluate the previous two expressions (for example, using `Time.fps`).'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '**可选练习** — 编写一个 Elm 程序来测量评估上述两个表达式所需的时间（例如，使用 `Time.fps`）。'
 - en: Streams
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 流
 - en: A common data structure that incorporates laziness is a *stream* (a.k.a. *lazy
     list*). Having worked through laziness in Elm in detail using the previous examples,
     our discussion of streams here will be brief, mainly focusing on picking the right
     representation.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个常见的包含惰性的数据结构是*流*（又称*惰性列表*）。通过之前的例子详细了解了 Elm 中的惰性后，我们在这里讨论流的内容将会很简要，主要集中在选择正确的表示方式上。
 - en: First Attempt — [`NotSoLazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/NotSoLazyList.elm)
+  id: totrans-86
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第一次尝试 — [`NotSoLazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/NotSoLazyList.elm)
 - en: One possibility for representing `LazyList`s is the following type.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示 `LazyList` 的一种可能性是以下类型。
 - en: '[PRE33]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'This datatype describes lists that are not very lazy, however. We can define
     a function `range : Int -> Int -> LazyList Int` and demonstrate how a `LazyList`
     of *n* elements immediately builds *n* `Cons` cells.'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '然而，这种数据类型描述的列表并不是非常惰性。我们可以定义一个函数 `range: Int -> Int -> LazyList Int`，并演示一个具有
+    *n* 个元素的 `LazyList` 立即构建 *n* 个 `Cons` 单元格。'
 - en: '[PRE34]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: Second Attempt — [`PrettyLazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/PrettyLazyList.elm)
+  id: totrans-91
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 第二次尝试 — [`PrettyLazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/PrettyLazyList.elm)
 - en: Another option is the following.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个选择是以下内容。
 - en: '[PRE35]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: This is pretty good, but notice that a non-`Nil` list must have its first value
     evaluated. Consider what the representation of a `range` of `Int`s looks like.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这很好，但请注意，非 `Nil` 列表必须评估其第一个值。考虑一下 `Int` 的 `range` 的表示是什么样子。
 - en: '[PRE36]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Final Attempt — [`LazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyList.elm)
+  id: totrans-96
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 最终尝试 — [`LazyList.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyList.elm)
 - en: What we really want is for all elements in the list, including the first, to
     be delayed until needed. We can achieve this as follows.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们真正想要的是列表中的所有元素，包括第一个元素，都要延迟到需要时才进行评估。我们可以按如下方式实现这一点。
 - en: '[PRE37]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'Something to consider: why didn''t we use a similar strategy in defining the
     the lazy `Nat`s before?'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 要考虑的一些事情：为什么我们在之前定义惰性 `Nat` 时没有使用类似的策略？
 - en: The `range` function is incremental. Notice the *trivial* suspension `lazy (\_
     -> Nil)`.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '`range` 函数是增量的。注意 *微不足道的* 悬挂 `lazy (\_ -> Nil)`。'
 - en: '[PRE38]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: We can also describe infinite streams.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以描述无限流。
 - en: '[PRE39]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: The `take` function is incremental.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: '`take` 函数是增量的。'
 - en: '[PRE40]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: 'A lazier version of `take`:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '`take` 的更懒惰版本：'
 - en: '[PRE41]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'Incremental function in action:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 增量函数的作用：
 - en: '[PRE42]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'Converting a stream to a `List` is monolithic:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 将流转换为 `List` 是单体的：
 - en: '[PRE43]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: The `drop` function is also monolithic, but does not necessarily force every
     suspension in the stream.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drop` 函数也是单体的，但不一定会强制执行流中的每个悬挂。'
 - en: '[PRE44]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: 'For example:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: '[PRE45]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: Combining two streams using `append` is incremental.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `append` 组合两个流是增量的。
 - en: '[PRE46]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Reversing a stream is monolithic. Notice that `lazy (\_ -> Cons x acc)` is another
     example of a trivial thunk. The values `x` and `acc` have already been evaluated,
     so building the `Cons` value does not force any additional computations.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 反转流是单体的。注意 `lazy (\_ -> Cons x acc)` 是另一个微不足道的悬挂的示例。值 `x` 和 `acc` 已经被评估过了，因此构建
+    `Cons` 值不会强制执行任何额外的计算。
 - en: '[PRE47]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: Our final monolithic example function checks for equality.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的最终单体示例函数检查相等性。
 - en: '[PRE48]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: As with equality on `Nat`s, our implementation of equality for `LazyList`s can
     decide disequalities more quickly than for regular `List`s.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 `Nat` 的相等性一样，我们对 `LazyList` 的相等性的实现可以更快地决定不等式，而不是对常规的 `List`。
 - en: '[PRE49]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: Reading
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阅读
 - en: Required
+  id: totrans-125
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 必需的
 - en: Okasaki, Chapter 4
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Okasaki，第4章
