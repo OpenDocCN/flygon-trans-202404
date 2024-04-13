@@ -1,981 +1,1465 @@
 - en: Consistency
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一致性
 - en: '6.824 2015 Lecture 10: Consistency'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015年第10讲：一致性
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲座笔记已经从2015年春季6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)上发布的笔记略有修改。'
 - en: '**Today:** consistency'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**今天：**一致性'
 - en: Lazy release consistency
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 懒惰释放一致性
 - en: Using lazy consistency to get performance
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用懒惰一致性来提高性能
 - en: Consistency = meaning of concurrent reads and writes
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一致性=并发读写的含义
 - en: Less obvious than it may seem!
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比看起来不那么明显！
 - en: Choice trades off between performance and programmer-friendliness
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择在性能和程序员友好性之间进行权衡
 - en: Huge factor in many designs
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多设计中的重要因素
 - en: '[Today''s paper](papers/keleher-treadmarks.pdf): a case study'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[今天的论文](papers/keleher-treadmarks.pdf)：案例研究'
 - en: Many systems have storage/memory w/ concurrent readers and writers
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多系统具有具有并发读写器的存储器/内存
 - en: Multiprocessors, databases, AFS, labs
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 多处理器，数据库，AFS，实验室
 - en: 'You often want to improve in ways that risk changing behavior:'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您经常希望以可能改变行为的方式进行改进：
 - en: add caching
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 添加缓存
 - en: split over multiple servers
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分割在多个服务器上
 - en: replicate for fault tolerance
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制以实现容错
 - en: How do we know if an optimization is correct?
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们如何知道一个优化是否正确？
 - en: We need a way to think about correct execution of distributed programs
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们需要一种思考分布式程序正确执行的方法
 - en: Most of these ideas from multiprocessors and databases 20/30 years ago
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大多数这些想法来自20/30年前的多处理器和数据库
 - en: How can we write correct distributed programs w/ shared storage?
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何编写正确的共享存储分布式程序？
 - en: Memory system promises to behave according to certain rules
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内存系统承诺按照某些规则行事
 - en: We write programs assuming those rules
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们编写程序假设这些规则
 - en: Rules are a "consistency model"
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 规则是“一致性模型”
 - en: Contract between memory system and programmer
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内存系统与程序员之间的契约
 - en: What makes a good consistency model?
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么构成了一个良好的一致性模型？
 - en: There are no "right" or "wrong" models
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有“正确”或“错误”的模型
 - en: A model may make it harder or easier to program
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个模型可能会使编程变得更加困难或更容易
 - en: i.e. lead to more or less intuitive results
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即导致更直观或更模糊的结果
 - en: A model may be harder or easier to implement efficiently
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个模型可能更难或更容易实现高效
 - en: Also application dependent
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同样也取决于应用程序
 - en: e.g. Web pages vs memory
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如 网页 vs 内存
 - en: 'Some consistency models:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些一致性模型：
 - en: 'Spanner: external consistency (behaves like a single machine)'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Spanner：外部一致性（表现得像一台机器）
 - en: 'Database world: strict serializability, serializability, snap-shot isolation,
     read-committed'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据库世界：严格的串行化，串行化，快照隔离，读取提交
 - en: 'Distributed file systems: open-to-close consistency'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分布式文件系统：打开到关闭一致性
 - en: 'Computer architects: TSO (total store ordering), release consistency, etc.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计算机架构师：TSO（总存储器排序），释放一致性等等。
 - en: 'Concurrency theory: sequential consistency, linearizability'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并发理论：顺序一致性，线性一致性
 - en: Similar ideas, but sometimes slightly different meaning
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相似的想法，但有时意义略有不同
 - en: DSM is a good place to start to study consistency
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: DSM是研究一致性的良好起点
 - en: 'Simple interface: read and write of memory locations'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 简单的接口：读取和写入内存位置
 - en: Consistency well developed in architecture community
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一致性在架构社区中得到了很好的发展
 - en: 'Example:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: '[PRE0]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Performance of DSM is limited by memory consistency
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: DSM的性能受到内存一致性的限制
 - en: With sequential consistency, M0's write must be visible to M1 before M0 can
     execute read
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用顺序一致性，M0的写操作必须在M0执行读操作之前对M1可见
 - en: Otherwise both M0 and M1 can read 0 and print "yes"
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则M0和M1都可以读取0并打印“是”
 - en: (Second "forbidden" example)
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （第二个“禁止”示例）
 - en: Thus operations will take a while in a distributed system
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，在分布式系统中操作将需要一段时间
 - en: And they have to be done one by one
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们必须逐个完成
 - en: Treadmarks high level goals?
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: Treadmarks的高级目标？
 - en: Better DSM performance
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更好的DSM性能
 - en: Run existing parallel code (multithreaded)
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行现有的并行代码（多线程）
 - en: this code already has locks
+  id: totrans-53
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这段代码已经有锁了
 - en: TreadMarks will run each thread/process on a separate machine and let it access
     the DSM.
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TreadMarks将在单独的机器上运行每个线程/进程，并允许其访问DSM。
 - en: TreadMarks takes advantage that the code already uses locking
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TreadMarks利用代码已经使用锁定的优势
 - en: What specific problems with previous DSM are they trying to fix?
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们试图修复以前DSM存在的具体问题是什么？
 - en: '**false sharing:** two machines r/w different vars on same page'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**错误共享：**两台机器在同一页上读/写不同的变量'
 - en: m1 writes x, m2 writes y
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: m1写x，m2写y
 - en: m1 writes x, m2 just reads y
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: m1写x，m2只读y
 - en: '**Q:** what does IVY do in this situation?'
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**问：**在这种情况下IVY做什么？'
 - en: '**A:** Ivy will bounce the page between x and y back and forth'
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**答：**Ivy将页面在x和y之间来回弹跳'
 - en: '**Write amplification:** a 1-byte write turns into a whole-page transfer'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**写入放大：** 1字节写入变成整页传输。'
 - en: '**First Goal:** eliminate write amplification'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**第一个目标：**消除写放大。'
 - en: don't send whole page, just written bytes
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不发送整个页面，只发送已写入的字节
 - en: 'Big idea: write diffs (to fix write amplification)'
+  id: totrans-65
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 大想法：写入差异（以解决写入放大问题）。
 - en: 'Example:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子：
 - en: '[PRE1]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'on M1 write fault:'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在M1写入错误时：
 - en: tell other hosts to invalidate but *keep hidden copy*
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉其他主机使其失效，但*保留隐藏副本*
 - en: M1 makes hidden copy as well
+  id: totrans-70
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1也制作了隐藏副本
 - en: M1 marks the page as R/W
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1将页面标记为读/写。
 - en: 'on M2 read fault:'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在M2读取错误时：
 - en: M2 asks M1 for recent modifications
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2请求M1的最近修改
 - en: M1 "diffs" current page against hidden copy
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1将当前页面与隐藏副本进行比较“差异”
 - en: M1 send diffs to M2
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1将差异发送给M2
 - en: M2 applies diffs to its hidden copy
+  id: totrans-76
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2将差异应用于其隐藏的副本。
 - en: M2 marks the page as read-only
+  id: totrans-77
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2将页面标记为只读
 - en: M1 marks the page as read-only
+  id: totrans-78
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1将页面标记为只读。
 - en: '**Q:** Do write diffs provide sequential consistency?'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 写入差异是否提供顺序一致性？'
 - en: At most one writeable copy, so writes are ordered
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最多一个可写副本，因此写入是有序的
 - en: No writing while any copy is readable, so no stale reads
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在任何副本可读时不写入，因此没有旧的读取
 - en: Readable copies are up to date, so no stale reads
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可读副本是最新的，因此没有旧的读取
 - en: Still sequentially consistent
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仍然是顺序一致的。
 - en: '**Q:** Do write diffs help with false sharing?'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 写入差异是否有助于解决虚假共享问题？'
 - en: '**A:** No, they help with write amplification'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '**A：** 不，它们有助于减少写入放大。'
 - en: 'Next goal: allow multiple readers+writers to cope with false sharing'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个目标：允许多个读取者+写入者应对虚假共享
 - en: our solution needs to allow two machines to write the same page
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们的解决方案需要允许两台机器写入同一页。
 - en: '`=>` don''t invalidate others when a machine writes'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 当一台机器写入时不要使其他机器失效'
 - en: '`=>` don''t demote writers to r/o when another machine reads'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 不要将写入者降级为只读，当另一台机器读取时。'
 - en: '`=>` multiple *different* copies of a page!'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 页面的多个*不同*副本！'
 - en: which should a reader look at?
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读者应该查看哪个？
 - en: 'diffs help: can merge writes to same page'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 差异有所帮助：可以合并对同一页的写入
 - en: but when to send the diffs?
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是什么时候发送差异？
 - en: no invalidations -> no page faults -> what triggers sending diffs
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有失效->没有页面故障->什么触发发送差异
 - en: '...so we come to *release consistency*'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '...所以我们来到*发布一致性*'
 - en: 'Big idea: (eager) release consistency (RC)'
+  id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 大想法：（渴望的）发布一致性（RC）
 - en: '*Again:* what should trigger sending diffs?'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*再次：*什么会触发发送差异？'
 - en: Seems like we should be sending the diffs when someone reads the data that was
     changed. How can we tell someone's reading the data if we won't get a read fault
     because we did not invalidate other people's pages when it was written by one
     person?
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 看起来我们应该在某人读取更改的数据时发送差异。如果我们不会因为没有使其他人的页面失效而获得读取错误，那么我们怎么知道有人正在读取数据？
 - en: no-one should read data w/o holding a lock!
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有人应该在没有持有锁的情况下读取数据！
 - en: so let's assume a lock server
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以让我们假设一个锁服务器
 - en: send out write diffs on release (unlock)
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在释放（解锁）时发送写入差异
 - en: to *all* machines with a copy of the written page(s)
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于所有具有写入页面副本的机器
 - en: 'Example:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子：
 - en: '[PRE2]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '**Q:** Why detect all writes since the last `unlock()` and not the last `lock()`?'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 为什么检测自上次`解锁（）`以来的所有写入而不是自上次`锁定（）`以来的所有写入？'
 - en: '**A:** See causal consistency discussion below.'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**A：** 请参阅下面的因果一致性讨论。'
 - en: Example 1 (RC and false sharing)
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例1（RC和虚假共享）
 - en: '[PRE3]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: What does RC do?
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: RC做什么？
 - en: M0 and M1 both get cached writeable copy of the page
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M0和M1都获取缓存的可写副本页面
 - en: when they release, each computes diffs against original page
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当它们释放时，每个都会计算相对于原始页面的差异。
 - en: '`M1`''s `a1` causes it to wait until `M0`''s `r1` release'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`M1`的`a1`导致它等待直到`M0`的`r1`释放。'
 - en: so M1 will see M0's writes
+  id: totrans-113
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以M1将会看到M0的写入。
 - en: '**Q:** What is the performance benefit of RC?'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** RC的性能优势是什么？'
 - en: What does IVY do with Example 1?
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IVY对示例1做了什么？
 - en: if `x` and `y` are on the same page, page is bounced back between `M0` and `M1`
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果`x`和`y`在同一页上，页面在`M0`和`M1`之间反弹
 - en: multiple machines can have copies of a page, even when 1 or more writes
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使有1个或更多个写入，多台机器也可以拥有页面的副本
 - en: '`=>` no bouncing of pages due to false sharing'
+  id: totrans-118
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 由于虚假共享而导致页面的反弹'
 - en: '`=>` read copies can co-exist with writers'
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 读取副本可以与写入者共存'
 - en: '**Q:** Is RC sequentially consistent? No!'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** RC是否顺序一致？不是！'
 - en: in SC, a read sees the latest write
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在SC中，读取看到最新的写入
 - en: M1 won't see M0's writes until M0 releases a lock
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在M1释放锁之前，M1将不会看到M0的写入
 - en: i.e. M1 can see a stale copy of x, which wasn't allowed under seq const
+  id: totrans-123
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即M1可能会看到一个旧的x的副本，在顺序一致性下是不允许的。
 - en: so machines can temporarily disagree on memory contents
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此机器可以暂时在内存内容上存在分歧
 - en: 'if you always lock:'
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您总是锁定：
 - en: locks force order `->` no stale reads `->` like sequential consistency
+  id: totrans-126
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 锁强制顺序`->`没有旧的读取`->`像顺序一致性一样
 - en: '**Q:** What if you don''t lock?'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 如果您不锁定会发生什么？'
 - en: Reads can return stale data
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取可能返回过时的数据
 - en: Concurrent writes to same var -> trouble
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对同一变量的并发写入→麻烦
 - en: '**Q:** Does RC make sense without write diffs?'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 如果没有写差异，RC是否有意义？'
 - en: 'Probably not: diffs needed to reconcile concurrent writes to same page'
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能不会：需要差异来协调对同一页的并发写入
 - en: 'Big idea: lazy release consistency (LRC)'
+  id: totrans-132
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 大想法：惰性释放一致性（LRC）
 - en: one problem is that when we `unlock()` we update everybody, but not everyone
     might need the changed data
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个问题是当我们`unlock()`时，我们更新了所有人，但并不是每个人都可能需要更改的数据。
 - en: only send write diffs to next acquirer of released lock
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只向已释放的锁的下一个获取者发送写差异
 - en: (i.e. when someone calls `lock()` and they need updates to the data)
+  id: totrans-135
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （即当有人调用`lock()`并且他们需要数据的更新时）
 - en: 'lazier than RC in two ways:'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比RC更懒惰的两个方面：
 - en: release does nothing, so maybe defer work to future release
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 释放什么都不做，所以也许将工作推迟到将来的释放。
 - en: sends write diffs just to acquirer, not everyone
+  id: totrans-138
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只将写差异发送给获取者，而不是每个人。
 - en: Example 2 (lazyness)
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例2（懒惰）
 - en: '[PRE4]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: What does LRC do?
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: LRC是做什么的？
 - en: M2 asks the lock manager who the previous holder of lock 1 was
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2询问锁管理器谁是锁1的上一个持有者
 - en: it was M1
+  id: totrans-143
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它是M1
 - en: M2 only asks previous holder of lock 1 for write diffs
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2仅向持有锁1的上一个请求者请求写差异。
 - en: M2 does not see M1's modification to `y`, even though on same page
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使在同一页上，M2也看不到M1对`y`的修改。
 - en: because it did not acquire lock 2 using `a2`
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为它没有使用`a2`获得锁2。
 - en: What does RC do?
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: RC做什么？
 - en: RC would have broadcast all changes on `x` and `y` to everyone
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RC会向所有人广播对`x`和`y`的所有更改
 - en: What does IVY do?
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY是做什么的？
 - en: IVY would invalidate pages and ensure only the writer has a write-only copy
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IVY将使页面失效，并确保只有写入者拥有只写副本。
 - en: on reads, the written page is turned to read only and the data is fetched by
     the readers
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在读取时，写入页变为只读，并由读取者获取数据
 - en: '**Q:** What''s the performance win from LRC?'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** LRC带来了什么性能提升？'
 - en: if you don't acquire lock on object, you don't see updates to it
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你没有获取对象的锁，你就看不到对它的更新。
 - en: '`=>` if you use just some vars on a page, you don''t see writes to others'
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>`如果你只使用页面上的一些变量，你就看不到对其他变量的写入'
 - en: '`=>` less network traffic'
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>`网络流量减少'
 - en: '**Q:** Does LRC provide the same consistency model as RC?'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** LRC是否提供与RC相同的一致性模型？'
 - en: '**No!** LRC hides some writes that RC reveals'
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**不！** LRC隐藏了一些RC显示的写入'
 - en: 'Note: if you use locks correctly, then you should not notice the differences
     between (E)RC and LRC'
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：如果你正确使用锁，那么你不应该注意到（E）RC和LRC之间的差异。
 - en: in above example, RC reveals `y=1` to M2, LRC does not reveal
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在上面的示例中，RC向M2透露了`y=1`，而LRC没有透露
 - en: because RC broadcasts changes on a lock release
+  id: totrans-160
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为RC在释放锁时广播更改。
 - en: 'so `"M2: print x, y"` might print fresh data for RC, stale for LRC'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以“M2：print x, y”对于RC来说可能打印出新鲜的数据，对于LRC来说可能是旧的数据。
 - en: depends on whether print is before/after M1's release
+  id: totrans-162
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 取决于print是在M1释放之前还是之后。
 - en: '**Q:** Is LRC a win over IVY if each variable on a separate page?'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 如果每个变量在单独的页面上，LRC是否胜过IVY？'
 - en: IVY doesn't move data until the program tries to read it
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直到程序试图读取数据时，IVY才会移动数据
 - en: So Ivy is pretty lazy already
+  id: totrans-165
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以Ivy已经相当懒了
 - en: 'Robert: TreadMarks is only worth it pages are big'
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 罗伯特：只有页面很大时，TreadMarks才值得
 - en: Or a win over IVY plus write diffs?
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 还是优于IVY加上写差异？
 - en: Do we think all threaded/locking code will work with LRC?
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们认为所有的线程/锁定代码都能与LRC一起工作吗？
 - en: Do all programs lock every shared variable they read?
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有程序都会锁定它们读取的每个共享变量吗？
 - en: Paper doesn't quite say, but strongly implies "no"!
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 论文并没有完全说明，但强烈暗示“不行”！
 - en: Example 3 (causal anomaly)
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例3（因果异常）
 - en: '[PRE5]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: What's the potential problem here?
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里可能存在的问题是什么？
 - en: Counter-intuitive that M2 might see y=1 but x=0
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M2可能看到y=1但x=0的情况是反直觉的
 - en: because M2 didn't acquire lock 1, it could not get the changes to `x`
+  id: totrans-175
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为M2没有获取锁1，它无法获得对`x`的更改。
 - en: 'A violation of "causal consistency":'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: “因果一致性”的违反：
 - en: If write W1 contributed to write W2, everyone sees W1 before W2
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果写入W1导致写入W2，每个人在看到W2之前都会看到W1
 - en: 'Example 4 (there''s an argument that this is *natural cod*):'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例4（有人认为这是*自然代码*的论点）：
 - en: '[PRE6]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: In example 4, it's not clear if M2 will learn from M1 the writes that M0 also
     did and contributed to `y=&x`.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 在示例4中，M2是否会从M1那里了解到M0也做出了对`y=&x`的贡献的写入，这一点并不清楚。
 - en: for instance, if `x` was 1 before it was changed by M0, will M2 see this when
     it prints `*z`
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，如果`x`在被M0更改之前是1，那么当它打印`*z`时，M2会看到这一点吗？
 - en: 'TreadMarks provides **causal consistency**:'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: TreadMarks提供**因果一致性**：
 - en: when you acquire a lock,
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当你获取一个锁时，
 - en: you see all writes by previous holder
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你看到上一个持有者的所有写入
 - en: and all writes previous holder saw
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以及上一个持有者看到的所有写入
 - en: How to track what writes contributed to a write?
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何跟踪哪些写入贡献了写入？
 - en: Number each machine's releases -- "interval" numbers
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编号每台机器的发布 - “间隔”编号
 - en: Each machine tracks highest write it has seen from each other machine
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台机器跟踪它从其他每台机器看到的最高写入
 - en: 'highest write = the interval # of the last write that machine is aware of'
+  id: totrans-189
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最高写入 = 该机器知晓的最后一次写入的间隔号
 - en: a "Vector Timestamp"
+  id: totrans-190
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “向量时间戳”
 - en: Tag each release with current VT
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用当前 VT 标记每个释放
 - en: On acquire, tell previous holder your VT
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在获取时，告诉前一个持有者你的 VT
 - en: difference indicates which writes need to be sent
+  id: totrans-193
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 差异指示需要发送哪些写入
 - en: (annotate previous example)
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （注释前面的例子）
 - en: when can you throw diffs away?
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 什么时候可以丢弃差异？
 - en: seems like you need to globally know what everyone knows about
+  id: totrans-196
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 似乎你需要全局知道每个人对什么了解
 - en: see "Garbage Collection" section from paper
+  id: totrans-197
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请参阅论文中的“垃圾收集”部分
 - en: 'VTs order writes to same variable by different machines:'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: VT 通过不同机器对同一变量的写入进行排序：
 - en: '[PRE7]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: How does M2 know what to do?
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: M2 如何知道该做什么？
 - en: Could the VTs for two values of the same variable not be ordered?
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 相同变量的两个值的 VT 是否不能被排序？
 - en: '[PRE8]'
+  id: totrans-202
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Summary of programmer rules / system guarantees
+  id: totrans-203
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 程序员规则/系统保证的摘要
 - en: Each shared variable protected by some lock
+  id: totrans-204
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个共享变量都受到某个锁的保护
 - en: Lock before writing a shared variable to order writes to same var., otherwise
     "latest value" not well defined
+  id: totrans-205
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在写入共享变量之前锁定以对同一变量的写入进行排序，否则“最新值”定义不清晰
 - en: Lock before reading a shared variable to get the latest version
+  id: totrans-206
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在读取共享变量之前锁定以获取最新版本
 - en: If no lock for read, guaranteed to see values that contributed to the variables
     you did lock
+  id: totrans-207
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果读取没有锁定，保证看到为你锁定的变量做出贡献的值
 - en: Example of when LRC might work too hard.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: LRC 可能过度劳累的示例。
 - en: '[PRE9]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: TreadMarks will send `z` to M1, because it comes before `x=1` in VT order.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: TreadMarks 将 `z` 发送到 M1，因为它在 VT 顺序中出现在 `x=1` 之前。
 - en: Assuming x and z are on the same page.
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设 x 和 z 在同一页上。
 - en: Even if on different pages, M1 must invalidate z's page.
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使在不同页面上，M1 也必须使 z 的页面无效。
 - en: But M1 doesn't use z.
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但 M1 不使用 z。
 - en: How could a system understand that z isn't needed?
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 系统如何理解 z 不需要？
 - en: Require locking of all data you read
+  id: totrans-215
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要求锁定你读取的所有数据
 - en: '`=>` Relax the causal part of the LRC model'
+  id: totrans-216
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 放宽 LRC 模型的因果部分'
 - en: '**Q:** Could TreadMarks work without using VM page protection?'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** TreadMarks 能否在不使用 VM 页面保护的情况下工作？'
 - en: it uses VM to
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它使用 VM 来
 - en: detect writes to avoid making hidden copies (for diffs) if not needed
+  id: totrans-219
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 检测写入以避免制作隐藏副本（用于差异）如果不需要的话
 - en: detect reads to pages => know whether to fetch a diff
+  id: totrans-220
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 检测对页面的读取 => 知道是否获取差异
 - en: neither is really crucial
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两者都不是真正关键的
 - en: so TM doesn't depend on VM as much as IVY does
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此 TM 不像 IVY 那样依赖 VM
 - en: IVY used VM faults to decide what data has to be moved, and when
+  id: totrans-223
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IVY 使用 VM 故障来决定何时移动数据
 - en: TM uses acquire()/release() and diffs for that purpose
+  id: totrans-224
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TM 使用 acquire()/release() 和差异来实现这一目的
 - en: Performance?
+  id: totrans-225
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 性能如何？
 - en: Figure 3 shows mostly good scaling
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3 显示大部分良好的扩展性
 - en: is that the same as "good"?
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这与“好”一样吗？
 - en: though apparently Water does lots of locking / sharing
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管 Water 明显进行了大量的锁定/共享
 - en: How close are they to best possible performance?
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们距离最佳性能有多接近？
 - en: maybe Figure 5 implies there is only about 20% fat to be cut
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或许图 5 暗示只有约 20% 的脂肪需要减少
 - en: Does LRC beat previous DSM schemes?
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: LRC 是否胜过先前的 DSM 方案？
 - en: they only compare against their own straw-man eager realease consistency (ERC)
+  id: totrans-232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们只与自己的稻草人急切释放一致性（ERC）进行比较
 - en: not against best known prior work
+  id: totrans-233
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不反对已知最佳的先前工作
 - en: Figure 9 suggests not much win, even for Water
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图 9 表明即使对于 Water 来说也没有太大的优势
 - en: Has DSM been successful?
+  id: totrans-235
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: DSM 取得成功了吗？
 - en: clusters of cooperating machines are hugely successful
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 协作机器集群取得了巨大成功
 - en: DSM not so much
+  id: totrans-237
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: DSM 并不那么重要
 - en: main justification is transparency for existing threaded code
+  id: totrans-238
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主要理由是对现有线程化代码的透明性
 - en: that's not interesting for new apps
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于新应用程序来说这并不有趣
 - en: and transparency makes it hard to get high performance
+  id: totrans-240
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 透明性使高性能难以实现
 - en: MapReduce or message-passing or shared storage more common than DSM
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MapReduce 或消息传递或共享存储比 DSM 更常见
