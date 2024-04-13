@@ -1,13 +1,17 @@
 - en: Chapter 8\. Akka Streams Implementation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第8章\. Akka Streams 实现
 - en: Akka Streams, part of the Akka project, is a library focused on in-process back-pressured
     reactive streaming. It is similar to Kafka Streams, but it is not strictly bound
     to Kafka; it provides a broad ecosystem of connectors to various technologies
     (datastores, message queues, file stores, streaming services, etc).
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: Akka Streams 是 Akka 项目的一部分，是一个专注于进程内反压力响应式流的库。它类似于Kafka Streams，但不严格绑定于Kafka；它提供了一个广泛的连接器生态系统，连接到各种技术（数据存储、消息队列、文件存储、流媒体服务等）。
 - en: This connectors ecosystem is collectively referred to as the [Alpakka ecosystem](http://developer.lightbend.com/docs/alpakka/current/)
     and builds on the [Reactive Streams](http://www.reactive-streams.org/) standard
     (which Akka Streams has been coleading since its inception). And with Reactive
@@ -15,154 +19,227 @@
     Updates)](http://openjdk.java.net/jeps/266) process, even more connectors and
     exponential growth in this connectors ecosystem are bound to happen, with major
     players like Amazon already having [adopted it in the new AWS 2.0 SDK](http://amzn.to/2yERvnP).
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个连接器生态系统通常被称为[Alpakka生态系统](http://developer.lightbend.com/docs/alpakka/current/)，它建立在[Reactive
+    Streams](http://www.reactive-streams.org/)标准之上（自从其创建以来，Akka Streams 一直是协同领导者）。随着Reactive
+    Streams已经在Java 9中成为一部分，通过[JEP-266（更多并发更新）](http://openjdk.java.net/jeps/266)进程，更多的连接器和这个连接器生态系统的指数级增长将会发生，像亚马逊这样的主要参与者已经[在新的AWS
+    2.0 SDK中采用了它](http://amzn.to/2yERvnP)。
 - en: In Akka Streams computations are written in graph-resembling domain-specific
     lanauge (DSL), which aims to make translating graph drawings to and from code
     simpler.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Akka Streams 中，计算是用类似图形的领域特定语言（DSL）编写的，旨在使图形绘制与代码之间的转换更简单。
 - en: 'Graphs in Akka Streams are built from the following base elements:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: Akka Streams 中的图形是从以下基本元素构建的：
 - en: Source is a partial graph with exactly one output.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Source 是一个具有恰好一个输出的部分图形。
 - en: Sink is a partial graph with exactly one input.
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Sink 是一个具有恰好一个输入的部分图形。
 - en: Stage is an implementation of a transformation from input(s) to output(s).
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Stage 是从输入到输出的转换的实现。
 - en: Flow is a partial graph (stage) with exactly one input and exactly one output.
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Flow 是一个具有恰好一个输入和恰好一个输出的部分图形（阶段）。
 - en: Fan-in is a partial graph (stage) that takes multiple streams as an input and
     provides a single output combining the elements from all of the inputs in user-defined
     ways.
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Fan-in 是一个部分图形（阶段），它将多个流作为输入，并以用户定义的方式组合所有输入的元素提供单个输出。
 - en: Fan-out is a partial graph (stage) that takes one input and produces multiple
     outputs. They might route the elements between different outputs, or emit elements
     on multiple outputs at the same time.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Fan-out 是一个部分图形（阶段），它接受一个输入并生成多个输出。它们可能在不同输出之间路由元素，或同时在多个输出上发出元素。
 - en: Custom stage is a partial graph can take an arbitrary number of inputs, apply
     custom logic, and produce an arbitrary number of outputs.
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自定义阶段是一个部分图形，可以接受任意数量的输入，应用自定义逻辑，并产生任意数量的输出。
 - en: Out of the box, Akka Streams provides [quite a few](http://bit.ly/2yhbOGA) built-in
     stages that you can use for building custom applications.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: Akka Streams 默认提供了[相当多](http://bit.ly/2yhbOGA)的内置阶段，你可以用来构建自定义应用程序。
 - en: Overall Architecture
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总体架构
 - en: For model serving implementation, I decided to use a custom stage, which is
     a fully type-safe way to encapsulate required functionality. Our stage will provide
     functionality somewhat similar to a Flink low-level join ([Figure 4-1](ch04.html#using_flinkas_low-evel_join)).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于模型服务的实现，我决定使用自定义阶段，这是一种完全类型安全的封装所需功能的方式。我们的阶段将提供类似于Flink低级联接的功能（[图 4-1](ch04.html#using_flinkas_low-evel_join)）。 '
 - en: With such a component in place, the overall implementation is going to look
     that shown in [Figure 8-1](#akka_streams_implementation_approach).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这样一个组件，整体实现将会看起来像[图 8-1](#akka_streams_implementation_approach)中所示。
 - en: '![smlt 0801](assets/smlt_0801.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0801](assets/smlt_0801.png)'
 - en: Figure 8-1\. Akka Streams implementation approach
+  id: totrans-17
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 8-1\. Akka Streams 实现方法
 - en: Implementing Model Serving Using Akka Streams
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Akka Streams 实现模型服务
 - en: Implementing a custom `GraphStage` is an advanced topic in Akka, so you might
     want to check the [documentation](http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html).
     Implementation begins by defining the stage’s shape, as shown in [Example 8-1](#defining_a_stageas_shape)
     ([complete code available here](http://bit.ly/2zeLEm9)).
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现自定义`GraphStage`是Akka中的一个高级主题，因此您可能希望查看[文档](http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html)。实现从定义阶段的形状开始，如[示例
+    8-1](#defining_a_stageas_shape)所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 - en: Example 8-1\. Defining a stage’s shape
+  id: totrans-20
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 8-1\. 定义阶段的形状
 - en: '[PRE0]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[Example 8-1](#defining_a_stageas_shape) defines a shape with two inputs, data
     records and model records, and one output, the scoring results. Shape also defines
     the types associated with the inputs and output (Akka Streams is strongly typed).'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '[示例 8-1](#defining_a_stageas_shape)定义了一个具有两个输入（数据记录和模型记录）和一个输出（评分结果）的形状。形状还定义了与输入和输出相关联的类型（Akka
+    Streams是强类型的）。'
 - en: With this in place, the stage implementation is presented in [Example 8-2](#stage_implementation)
     ([complete code available here](http://bit.ly/2zeLEm9)).
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个实现，阶段的实现在[示例 8-2](#stage_implementation)中呈现（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 - en: Example 8-2\. Stage implementation
+  id: totrans-24
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 8-2\. 阶段实现
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The bulk of the implementation is the `createLogic` method, which defines the
     main processing logic of the stage. This is done by defining handlers for inputs
     and outputs.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现的主要部分是`createLogic`方法，它定义了阶段的主要处理逻辑。这是通过为输入和输出定义处理程序来完成的。
 - en: The handler for model input creates a new model and stores it in a local variable
     for further usage. Because the handler supports [backpressure](https://en.wikipedia.org/wiki/Back_pressure),
     it controls the rate of records coming from the source (it ensures that processing
     of the current message is complete) before it tries to read the next record. This
     is achieved by explicitly polling for a new record at the end of the handler execution.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型输入的处理程序创建一个新模型，并将其存储在本地变量中以供进一步使用。因为处理程序支持[背压](https://en.wikipedia.org/wiki/Back_pressure)，它控制来自源的记录速率（确保当前消息的处理完成）然后再尝试读取下一个记录。这是通过在处理程序执行结束时显式轮询新记录来实现的。
 - en: The handler for the data input checks whether there is a new model and, if so,
     it updates the model that it is serving. Then, it checks whether it has a model
     and, if so, it scores the data. Similar to the model handler, after the record
     processing is complete, the handler polls for the next record.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据输入的处理程序检查是否有新模型，如果有，则更新正在提供的模型。然后，它检查是否有模型，如果有，则对数据进行评分。与模型处理程序类似，在记录处理完成后，处理程序轮询下一个记录。
 - en: Finally, the output handler does nothing.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，输出处理程序什么也不做。
 - en: The other important method in this class is `preStart`, which initiates polling
     for data and model records.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类中的另一个重要方法是`preStart`，它启动对数据和模型记录的轮询。
 - en: With the stage implementation in place, the implementation of the server looks
     like [Example 8-3](#akka_model_server_implementation) ([complete code available
     here](http://bit.ly/2zfyrtf)).
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了阶段的实现，服务器的实现看起来像[示例 8-3](#akka_model_server_implementation)（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
 - en: Example 8-3\. Akka model server implementation
+  id: totrans-32
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 8-3\. Akka模型服务器实现
 - en: '[PRE2]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Here, `ActorSystem` and `Materializer` are created, which is necessary for running
     any Akka Stream application. After that both data and model streams are created,
     each reading from a corresponding Kafka topic and transforming data from binary
     format to the internal representation. Finally, both streams are connected to
     our stage and the resulting graph is started.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里创建了`ActorSystem`和`Materializer`，这对于运行任何Akka Stream应用程序都是必要的。之后，分别创建了数据流和模型流，每个流都从相应的Kafka主题中读取数据，并将数据从二进制格式转换为内部表示。最后，将这两个流连接到我们的阶段，并启动生成的图。
 - en: Scaling Akka Streams Implementation
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 扩展Akka Streams实现
 - en: Similar to Kafka Streams, the Akka Streams implementation runs within a single
     Java Virtual Machine (JVM). Scaling this solution might require running multiple
     instances of our implementation on multiple machines (similar to Kafka Streams
@@ -171,12 +248,17 @@
     records, Kafka will realize that they belong to the [same application](http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html)
     and send different partitions to different instances, thus implementing partition-based
     load balancing.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 与Kafka Streams类似，Akka Streams实现在单个Java虚拟机（JVM）内运行。扩展此解决方案可能需要在多台机器上运行我们的实现的多个实例（类似于Kafka
+    Streams应用程序扩展[见[图7-2](ch07.html#scaling_kafka_streams_implementation)]）。因为实现正在使用特定的消费者组来读取数据记录，Kafka将意识到它们属于[同一应用程序](http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html)，并将不同的分区发送到不同的实例，从而实现基于分区的负载平衡。
 - en: Saving Execution State
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 保存执行状态
 - en: An additional deficiency of our simple implementation is the fact that our implementation
     of the stage is not persistent, which means that a crash could lose state. Akka
     Streams by itself does not provide a persistency model. [Akka Persistence](http://doc.akka.io/docs/akka/current/scala/persistence.html),
@@ -186,31 +268,47 @@
     actors](http://doc.akka.io/docs/akka/current/scala/persistence.html), Akka’s standard
     way of persisting state in the system, thus solving persistence problems for such
     applications.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们简单实现的另一个不足之处是我们的阶段实现不是持久的，这意味着崩溃可能会丢失状态。 Akka Streams本身不提供持久性模型。[Akka Persistence](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka的一个单独模块，提供了一个基于[event
+    source](https://github.com/eligosource/eventsourced)的库来实现持久性。 Akka Streams支持[使用阶段actor](http://charithe.github.io/dynamic-akka-streams-using-stage-actors.html)，其中一个阶段可以封装一个自定义actor。这允许使用[persistent
+    actors](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka在系统中持久化状态的标准方式，从而解决了这类应用程序的持久性问题。
 - en: 'In Chapters [4](ch04.html#apache_flink_implementation) through [8](#akka_streams_implementation),
     you have seen how you can implement model serving by using different streaming
     engines and frameworks, but as with any streaming application it is necessary
     to provide a well-defined monitoring solution. An example of information that
     you might want to see for a model serving application includes:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第[4](ch04.html#apache_flink_implementation)章到第[8](#akka_streams_implementation)章中，您已经看到了如何通过使用不同的流引擎和框架来实现模型服务，但与任何流应用程序一样，提供一个明确定义的监控解决方案是必要的。您可能希望在模型服务应用程序中看到的信息示例包括：
 - en: Which model is currently used?
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目前使用哪个模型？
 - en: When was it installed?
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装时间是什么时候？
 - en: How many times have models been served?
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 模型已经被服务多少次？
 - en: What are the average and minimum/maximum model serving times?
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均和最小/最大模型服务时间是多少？
 - en: We look at such solutions in [Chapter 9](ch09.html#monitoring).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在[第9章](ch09.html#monitoring)中看到了这样的解决方案。

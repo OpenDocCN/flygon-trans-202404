@@ -1,166 +1,246 @@
 - en: Chapter 9\. Monitoring
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第9章 监控
 - en: 'General approaches for obtaining execution information include the following:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取执行信息的一般方法包括以下内容：
 - en: Logging
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 日志记录
 - en: Writing this information (periodically) to an external storage (for example
     databases)
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将这些信息（定期）写入外部存储（例如数据库）
 - en: 'Although both of these approaches work and are often used, they typically suffer
     from the following:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这两种方法都能够工作并且经常被使用，但它们通常遭受以下问题：
 - en: They introduce additional latency to the execution—they are typically implemented
     using synchronous calls within the execution itself.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们会增加执行的额外延迟 —— 它们通常是在执行过程中使用同步调用来实现的。
 - en: They require additional software components—database, log aggregators, and so
     on—which translates to additional maintenance
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们需要额外的软件组件 —— 数据库、日志聚合器等，这意味着需要额外的维护。
 - en: Both [Flink](http://bit.ly/2zgfsif) and [Kafka Streams](http://docs.confluent.io/current/streams/developer-guide.html#id8)
     recently introduced queryable state ([Figure 9-1](#queryable_state)), which is
     a different approach to such monitoring.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近，[Flink](http://bit.ly/2zgfsif)和[Kafka Streams](http://docs.confluent.io/current/streams/developer-guide.html#id8)都引入了可查询状态（[图9-1](#queryable_state)），这是一种与此类监控不同的方法。
 - en: The [Kafka Streams documentation](http://docs.confluent.io/current/streams/developer-guide.html#id8)
     defines queryable state (interactive queries) as an approach, which, according
     to the documentation
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Kafka Streams文档](http://docs.confluent.io/current/streams/developer-guide.html#id8)将可查询状态（交互式查询）定义为一种方法，根据文档描述'
 - en: lets you get more from streaming than just the processing of data. This feature
     allows you to treat the stream processing layer as a lightweight embedded database
     and, more concretely, to directly query the latest state of your stream processing
     application, without needing to materialize that state to external databases or
     external storage first.
+  id: totrans-9
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 让你从流中获取更多，不仅仅是数据的处理。这个特性允许你将流处理层视为轻量级的嵌入式数据库，并且更具体地，直接查询流处理应用程序的最新状态，而无需首先将该状态材料化到外部数据库或外部存储中。
 - en: '![smlt 0901](assets/smlt_0901.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0901](assets/smlt_0901.png)'
 - en: Figure 9-1\. Queryable state
+  id: totrans-11
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图9-1\. 可查询状态
 - en: Flink
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Flink
 - en: Flink recently introduced a managed keyed-state interface that provides access
     to a state that is scoped to the key of the current execution. This means that
     this type of state can be used only on a Flink `KeyedStream`, and is applicable
     only to Flink’s key-based joins implementation.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink最近引入了一种管理的键控状态接口，该接口提供对当前执行的键范围内状态的访问。这意味着这种类型的状态只能在Flink `KeyedStream`上使用，并且仅适用于Flink的基于键的连接实现。
 - en: 'The current Flink implementation includes the following [state options](http://bit.ly/2yh8sUw):'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前的Flink实现包括以下[状态选项](http://bit.ly/2yh8sUw)：
 - en: '`ValueState<T>`'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ValueState<T>`'
 - en: This keeps a value that can be updated and retrieved. You can set the value
     using `update(T)` and retrieve it using `T value()`.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会保持一个可以更新和检索的值。你可以使用`update(T)`设置值，并使用`T value()`检索它。
 - en: '`ListState<T>`'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ListState<T>`'
 - en: This keeps a list of elements. `ListState` supports appending elements and retrieving
     an `Iterable` over all currently stored elements. You add elements using `add(T)`,
     and retrieve an `Iterable` by using `Iterable<T> get()`.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会保持一个元素列表。`ListState`支持追加元素并检索所有当前存储元素的`Iterable`。你可以使用`add(T)`添加元素，并使用`Iterable<T>
+    get()`检索`Iterable`。
 - en: '`ReducingState<T>`'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ReducingState<T>`'
 - en: This keeps a single value representing an aggregation of all values added to
     the state. Similar to `ListState`, you can add an element using `add(T)`, but
     the elements are reduced to an aggregate using a specified `ReduceFunction`.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会保持一个代表添加到状态中的所有值的聚合的单个值。与`ListState`类似，你可以使用`add(T)`添加一个元素，但是这些元素会使用指定的`ReduceFunction`进行聚合。
 - en: '`FoldingState<T, ACC>`'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FoldingState<T, ACC>`'
 - en: This keeps a single value that represents the aggregation of all values added
     to the state. Unlike `ReducingState`, the type of the aggregate can be different
     from the type of elements that are added to the state. Similar to `ReducingState`,
     you add elements by using `add(T)` and you fold them into an aggregate using a
     specified `FoldFunction`.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会保持一个表示添加到状态中的所有值的聚合的单个值。与`ReducingState`不同，聚合的类型可以与添加到状态的元素的类型不同。与`ReducingState`类似，你可以使用`add(T)`添加元素，并使用指定的`FoldFunction`将它们折叠成一个聚合。
 - en: Flink also provides the `QueryableStateClient` class that you can use for queries
     against the [KvState](http://vishnuviswanath.com/flink_queryable_state1.html)
     instances that serve the state internally. You need to configure it with a valid
     Flink `JobManager` address, port, and job ID.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink 还提供了 `QueryableStateClient` 类，您可以用于针对内部提供状态的 [KvState](http://vishnuviswanath.com/flink_queryable_state1.html)
+    实例进行查询。您需要使用有效的 Flink `JobManager` 地址、端口和作业 ID 进行配置。
 - en: To incorporate queryable statistics in our implementation, you must modify the
     `DataProcessor` class ([Example 4-1](ch04.html#the_dataprocessor_class)) by adding
     in `ValueState<T>`. The updated version of this class looks like [Example 9-1](#the_modeltoservestats_class)
     ([complete code available here](http://bit.ly/DataProcessorKeyed)).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在我们的实现中合并可查询统计信息，必须通过向 `DataProcessor` 类（[示例 4-1](ch04.html#the_dataprocessor_class)）添加
+    `ValueState<T>` 来修改。此类的更新版本如[示例 9-1](#the_modeltoservestats_class)所示（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)）。
 - en: Example 9-1\. The ModelToServeStats class
+  id: totrans-25
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-1\. ModelToServeStats 类
 - en: '[PRE0]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This addition tracks the current model name, the time it was introduced, number
     of usages, overall execution time, and minimum/maximum execution time.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 此添加跟踪当前模型名称，引入时间，使用次数，总执行时间以及最小/最大执行时间。
 - en: You can access this information by using a queryable state client that you can
     implement as shown in [Example 9-2](#flink_queryable_state_client) ([complete
     code available here](http://bit.ly/2zg0J77)).
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过使用可查询状态客户端来访问此信息，如[示例 9-2](#flink_queryable_state_client)所示（[完整代码在此处可用](http://bit.ly/2zg0J77)）。
 - en: Example 9-2\. Flink queryable state client
+  id: totrans-29
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-2\. Flink 可查询状态客户端
 - en: '[PRE1]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This simple implementation polls the running Flink server every `timeInterval`
     and prints results. `jobId` here is a current `jobId` executed by a Flink server.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的实现每隔 `timeInterval` 轮询运行中的 Flink 服务器并打印结果。这里的 `jobId` 是由 Flink 服务器执行的当前
+    `jobId`。
 - en: Kafka Streams
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Kafka Streams
 - en: 'When dealing with Kafka Streams, you must consider two things: what is happening
     in a single Java Virtual Machine (JVM), and how several JVMs representing a single
     Kafka Streams application work together. As a result, [Kafka queryable APIs](http://docs.confluent.io/current/streams/developer-guide.html#id8)
     comprise two parts:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理 Kafka Streams 时，必须考虑两件事情：在单个 Java 虚拟机（JVM）中发生了什么，以及几个代表单个 Kafka Streams 应用程序的
+    JVM 如何协同工作。因此，[Kafka 可查询 API](http://docs.confluent.io/current/streams/developer-guide.html#id8)包括两个部分：
 - en: '[Querying local state stores (for an application instance)](http://bit.ly/2gddeMb)'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '[查询本地状态存储（对于应用程序实例）](http://bit.ly/2gddeMb)'
 - en: This provides access to the state that is managed locally by an instance of
     your application (partial state). In this case, an application instance can directly
     query its own local state stores. You can thus use the corresponding (local) data
     in other parts of your application code that are not related to calling the Kafka
     Streams API.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 这提供了对由应用程序实例（部分状态）本地管理的状态的访问。在这种情况下，应用程序实例可以直接查询自己的本地状态存储。因此，您可以在应用程序代码的其他部分中使用相应的（本地）数据，这些部分与调用
+    Kafka Streams API 无关。
 - en: '[Querying remote state stores (for the entire application)](http://bit.ly/2yhezYj)'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '[查询远程状态存储（对于整个应用程序）](http://bit.ly/2yhezYj)'
 - en: To query the full state of an application, it is necessary to bring together
     local fragments of the state from every instance. This means that in addition
     to being able to query local state stores, it is also necessary to be able to
@@ -168,84 +248,125 @@
     blocks enable intra-application communications (between instances of the same
     app) as well as inter-application communication (from other applications) for
     interactive queries.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查询应用程序的完整状态，需要从每个实例的本地片段汇总状态。这意味着除了能够查询本地状态存储之外，还需要能够发现应用程序的所有运行实例。总体而言，这些构建块使得在应用程序内部进行通信（同一应用程序的实例之间）以及进行交互式查询的应用程序之间的通信成为可能。
 - en: Implementation begins with defining the state representation, `ModelServingInfo`,
     which can be queried to get information about the current state of processing,
     as demonstrated in [Example 9-3](#the_modelservinginfo_class) ([complete code
     available here](http://bit.ly/2kGYGWu)).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现始于定义状态表示，`ModelServingInfo`，可以查询以获取有关处理当前状态的信息，如[示例 9-3](#the_modelservinginfo_class)（[完整代码在此处可用](http://bit.ly/2kGYGWu)）所示。
 - en: Example 9-3\. The ModelServingInfo class
+  id: totrans-39
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-3\. ModelServingInfo 类
 - en: '[PRE2]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Now, you must add this information to the state store shown in [Example 7-2](ch07.html#model_state_store_class).
     [Example 9-4](#updated_statestore_class) shows you how ([complete code available
     here](http://bit.ly/2gbUCvJ)).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您必须将此信息添加到[示例 7-2](ch07.html#model_state_store_class)中显示的状态存储中。 [示例 9-4](#updated_statestore_class)向您展示了如何做到这一点（[完整代码在此处可用](http://bit.ly/2gbUCvJ))。
 - en: Example 9-4\. Updated StoreState class
+  id: totrans-42
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-4\. 更新的StoreState类
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This adds two instances of the `ModelServingInfo` class (similar to the `Model`
     class). Adding those will in turn require a change in `ModelSerde` ([Example 7-4](ch07.html#state_serializer_solidus_deserializer))
     to implement serialization/deserialization support for the `ModelServingInfo`
     class ([complete code available here](http://bit.ly/2zgeXVy)). [Example 9-5](#modelservinginfo_serialization_solidus)
     presents the code to do this.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将添加两个`ModelServingInfo`类的实例（类似于`Model`类）。 添加这些实例将需要对`ModelSerde`进行更改（[示例 7-4](ch07.html#state_serializer_solidus_deserializer)）以实现对`ModelServingInfo`类的序列化/反序列化支持（[完整代码在此处可用](http://bit.ly/2zgeXVy)）。
+    [示例 9-5](#modelservinginfo_serialization_solidus)展示了如何实现这一点。
 - en: Example 9-5\. ModelServingInfo serialization/deserialization
+  id: totrans-45
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-5\. ModelServingInfo序列化/反序列化
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Finally, you also must change the `ModelStateStore` class ([Example 7-2](ch07.html#model_state_store_class)).
     First, the Streams queryable state allows only read access to the store data,
     which requires introduction of an interface supporting only read access that can
     be used for query ([Example 9-6](#queryable_state_store_interface)):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，您还必须更改`ModelStateStore`类（[示例 7-2](ch07.html#model_state_store_class)）。 首先，Streams可查询状态仅允许对存储数据进行读取访问，这需要引入一个仅支持读取访问的接口，该接口可用于查询（[示例
+    9-6](#queryable_state_store_interface)）：
 - en: Example 9-6\. Queryable state store interface
+  id: totrans-48
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-6\. 可查询状态存储接口
 - en: '[PRE5]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: With this in place, you can extend the `DataProcessorWithStore` class ([Example 7-7](ch07.html#model_processor))
     to collect your execution information, as shown in [Example 9-7](#updated_data_processor_class)
     ([complete code available here](http://bit.ly/2kH9HqR)).
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个信息，您可以扩展`DataProcessorWithStore`类（[示例 7-7](ch07.html#model_processor)）以收集您的执行信息，如[示例
+    9-7](#updated_data_processor_class)所示（[完整代码在此处可用](http://bit.ly/2kH9HqR))。
 - en: Example 9-7\. Updated data processor class
+  id: totrans-51
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-7\. 更新的数据处理器类
 - en: '[PRE6]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: To make the full state of the application (all instances) queryable, it is necessary
     to provide discoverability of the additional instances. [Example 9-8](#simple_metadata_service)
     presents a simple implementation of such a service ([complete code available here](http://bit.ly/2wNZfzs)).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使应用程序的完整状态（所有实例）可查询，需要提供额外实例的可发现性。 [示例 9-8](#simple_metadata_service)展示了这种服务的简单实现（[完整代码在此处可用](http://bit.ly/2wNZfzs))。
 - en: Example 9-8\. Simple metadata service
+  id: totrans-54
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-8\. 简单的元数据服务
 - en: '[PRE7]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: To actually be able to serve this information, you implement a simple REST service
     exposing information from the metadata service using an HTTP server implementation
     as well as a framework for building a REST service. In this example, I used Jetty
@@ -253,153 +374,227 @@
     in the Java ecosystem. [Example 9-9](#simple_rest_service_implementation) shows
     a simple REST service implementation that uses metadata service and model serving
     information ([complete code available here](http://bit.ly/2i2QAXj)).
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实际提供这些信息，您需要实现一个简单的REST服务，使用HTTP服务器实现从元数据服务暴露信息以及用于构建REST服务的框架。 在此示例中，我使用了Java生态系统中流行的Jetty和JAX-RS（具有相应的JAX-RS注解），这是流行的选择。
+    [示例 9-9](#simple_rest_service_implementation)展示了一个使用元数据服务和模型服务信息的简单REST服务实现（[完整代码在此处可用](http://bit.ly/2i2QAXj))。
 - en: Example 9-9\. Simple REST service implementation
+  id: totrans-57
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-9\. 简单的REST服务实现
 - en: '[PRE8]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'This implementation provides several REST methods:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 此实现提供了几种REST方法：
 - en: Get the list of application instances (remember, for scalability it is possible
     to run multiple instances of a Kafka Streams application, where each is responsible
     for a subset of partitions of the topics). It returns back the list of instances
     with a list of state stores available in each instance.
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取应用程序实例列表（请记住，为了可伸缩性，可以运行多个Kafka Streams应用程序实例，其中每个实例负责一部分主题的分区）。 它返回每个实例中可用的状态存储列表。
 - en: Get a list of application instances containing a store with a given name.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取包含具有给定名称的存储的应用程序实例列表。
 - en: Get `Model` serving information from a store with a given name.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从具有给定名称的存储中获取`Model`服务信息。
 - en: 'This code requires implementation of two additional classes: a class used as
     a data container for returning information about stores on a given host, and a
     model store type used for locating a store in the Kafka Streams instance. [Example 9-10](#host_store_information)
     shows what the data container class looks like ([complete code available here](http://bit.ly/2xzllVI)).'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 此代码需要实现两个额外的类：一个用作返回有关给定主机上存储的信息的数据容器的类，以及用于在Kafka Streams实例中定位存储的模型存储类型。[示例 9-10](#host_store_information)展示了数据容器类的外观（[完整代码在此处可用](http://bit.ly/2xzllVI)）。
 - en: Example 9-10\. Host store information
+  id: totrans-64
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-10\. 主机存储信息
 - en: '[PRE9]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'The model store type looks like [Example 9-11](#host_store_information-id1)
     ([complete code available here](http://bit.ly/2xyoyK8)):'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型存储类型看起来像[示例 9-11](#host_store_information-id1)（[完整代码在此处可用](http://bit.ly/2xyoyK8)）：
 - en: Example 9-11\. Host store information
+  id: totrans-67
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-11\. 主机存储信息
 - en: '[PRE10]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Finally, to bring this all together, you need to update the overall implementation
     of model serving with Kafka Streams covered in [Example 7-6](ch07.html#implementation_of_model_serving),
     as shown in [Example 9-12](#updated_model_serving_with_kafka_streams) ([complete
     code available here](http://bit.ly/2xzyYEs)).
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，为了将所有内容整合在一起，您需要更新使用Kafka Streams进行模型服务的整体实现，如[示例 7-6](ch07.html#implementation_of_model_serving)中所示，如[示例 9-12](#updated_model_serving_with_kafka_streams)（[完整代码在此处可用](http://bit.ly/2xzyYEs)）。
 - en: Example 9-12\. Updated model serving with Kafka Streams
+  id: totrans-70
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-12\. 使用Kafka Streams更新模型服务
 - en: '[PRE11]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: After this is done, you can obtain the state store content by querying the store
     by name.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，您可以通过按名称查询存储来获取状态存储内容。
 - en: Akka Streams
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Akka Streams
 - en: Akka Streams does not support queryable state (or any state), but by introducing
     a small change to our custom stage implementation ([Example 8-2](ch08.html#stage_implementation)),
     it is possible to expose the state from the stage.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: Akka Streams不支持可查询状态（或任何状态），但通过对我们的自定义阶段实现进行小改动（[示例 8-2](ch08.html#stage_implementation)），可以从阶段中公开状态。
 - en: To do this, you first must create an interface for querying the state from the
     stage, as shown in [Example 9-13](#state_query_interface) (compare to Kafka Streams
     queryable state store interface, [Example 9-6](#queryable_state_store_interface)).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 要做到这一点，首先必须创建一个用于从阶段查询状态的接口，如[示例 9-13](#state_query_interface)中所示（与Kafka Streams可查询状态存储接口[示例 9-6](#queryable_state_store_interface)进行比较）。
 - en: Example 9-13\. State query interface
+  id: totrans-76
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-13\. 状态查询接口
 - en: '[PRE12]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: With this in place, you can write stage implementation to support this interface
     and collect statistics, as demonstrated in [Example 9-14](#updated_model_stage)
     ([complete code available here](http://bit.ly/2zeLEm9)).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，您可以编写阶段实现以支持此接口并收集统计信息，如[示例 9-14](#updated_model_stage)中所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 - en: Example 9-14\. Updated ModelStage
+  id: totrans-79
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-14\. 更新的ModelStage
 - en: '[PRE13]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: In this implementation, the `dataRecordIn` handler is extended to collect execution
     statistics. Additionally, implementation of the State query interface ([Example 9-13](#state_query_interface))
     is provided so that the stage can be queried for the current model state.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此实现中，`dataRecordIn`处理程序被扩展以收集执行统计信息。此外，提供了状态查询接口的实现（[示例 9-13](#state_query_interface)），以便可以查询当前模型状态的阶段。
 - en: For REST interface implementation, I used [Akka HTTP](http://doc.akka.io/docs/akka-http/current/scala/http/).
     The resource used for statistics access can be implemented as shown in [Example 9-15](#implementing_rest_resource)
     ([complete code available here](http://bit.ly/2xzNwJi)).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于REST接口的实现，我使用了[Akka HTTP](http://doc.akka.io/docs/akka-http/current/scala/http/)。用于访问统计信息的资源可以按照[示例 9-15](#implementing_rest_resource)中所示进行实现（[完整代码在此处可用](http://bit.ly/2xzNwJi)）。
 - en: Example 9-15\. Implementing REST resource
+  id: totrans-83
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-15\. 实现REST资源
 - en: '[PRE14]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: To bring it all together, you must modify the Akka model server ([Example 8-3](ch08.html#akka_model_server_implementation)),
     as demonstrated in [Example 9-16](#updated_akka_model_server_implementation) ([complete
     code available here](http://bit.ly/2zfyrtf)).
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将所有内容整合在一起，您必须修改Akka模型服务器（[示例 8-3](ch08.html#akka_model_server_implementation)）中所示的方式，如[示例 9-16](#updated_akka_model_server_implementation)（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
 - en: Example 9-16\. Updated Akka model server implementation
+  id: totrans-86
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 9-16\. 更新的Akka模型服务器实现
 - en: '[PRE15]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'There are several changes here:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有几处更改：
 - en: Instead of using `dropMaterializedValue`, we are going to use `keepModelMaterializedValue`.
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们将使用`keepModelMaterializedValue`而不是`dropMaterializedValue`。
 - en: A new method `startRest` is implemented, which starts an internal REST service
     based on the resource ([Example 9-16](#updated_akka_model_server_implementation))
     and the implementation of the interface ([Example 9-14](#updated_model_stage)).
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实现了一个新方法 `startRest`，它基于资源（[示例 9-16](#updated_akka_model_server_implementation)）和接口的实现（[示例
+    9-14](#updated_model_stage)）启动了一个内部 REST 服务。
 - en: Materialized state is used for accessing statistics data.
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 材料化状态用于访问统计数据。
 - en: Although this solution provides access to local (instance-based) model serving
     statistics, it does not provide any support for getting application-based information
     (compare to the queryable Kafka Streams store). Fortunately Kafka itself keeps
@@ -410,23 +605,34 @@
     to discover all applications instances and connect to all of them to get the required
     information. This is not a completely reliable method, but you can use it in the
     majority of cases to get complete application statistics.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管此解决方案提供了对本地（基于实例）模型服务统计信息的访问，但它并不支持获取基于应用程序的信息（与可查询的 Kafka Streams 存储相比）。幸运的是，Kafka
+    本身会跟踪具有相同组 ID 的实例，并提供（文档不太完善的）[AdminClient](http://bit.ly/2wOIuEk) API（[使用示例](http://bit.ly/2yb2Lrf)），您可以使用这些
+    API 获取消费者组的主机列表。假设所有实例在不同主机上执行且具有相同端口，则可以使用此信息发现所有应用程序实例并连接到它们以获取所需信息。这不是一个完全可靠的方法，但在大多数情况下可以用来获取完整的应用程序统计信息。
 - en: Spark and Beam
+  id: totrans-93
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Spark 和 Beam
 - en: Neither Spark nor Beam currently support queryable state, and I have not seen
     any definitive plans and proposals to add this support in the future. So, if you
     use either of these tools, you can implement monitoring by using either logging
     or an external database, for example, [Cassandra](http://cassandra.apache.org/).
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前 Spark 和 Beam 都不支持可查询状态，我也没有看到任何明确的计划和提议在未来添加此支持。因此，如果您使用这些工具之一，可以通过使用日志记录或外部数据库（例如[Cassandra](http://cassandra.apache.org/)）来实现监控。
 - en: 'In the case of Spark, there is an additional option: use the [Spark Job Server](https://github.com/spark-jobserver/spark-jobserver),
     which provides a REST API for Spark jobs and contexts. The Spark Job Server supports
     using Spark as a [query engine](http://bit.ly/2wOEkMy) (similar to queryable state).'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 Spark，还有另一个选择：使用[Spark Job Server](https://github.com/spark-jobserver/spark-jobserver)，它为
+    Spark 作业和上下文提供了一个 REST API。Spark Job Server 支持将 Spark 用作[查询引擎](http://bit.ly/2wOEkMy)（类似于可查询状态）。
 - en: Architecturally [Spark Job Server](http://bit.ly/2wOEkMy) consists of a REST
     job server providing APIs to consumers and managing application jars, execution
     context, and job execution on the Spark runtime. Sharing [contexts](https://github.com/spark-jobserver/spark-jobserver/blob/master/doc/contexts.md)
@@ -435,12 +641,19 @@
     can be extended to add a model execution state to the RDD state. This will enable
     creation of a simple application that queries this state data using Spark Job
     Server.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 从架构上看，[Spark Job Server](http://bit.ly/2wOEkMy) 包括一个 REST 作业服务器，为消费者提供 API，并管理应用程序
+    jar 包、执行上下文以及在 Spark 运行时的作业执行。共享[上下文](https://github.com/spark-jobserver/spark-jobserver/blob/master/doc/contexts.md)允许多个作业访问相同的对象（在我们的情况下是弹性分布式数据集
+    [RDD] 状态）。因此，在这种情况下，我们的 Spark 实现（[示例 6-1](ch06.html#model_serving_with_spark)）可以扩展以将模型执行状态添加到
+    RDD 状态中。这将使得可以创建一个简单的应用程序，使用 Spark Job Server 查询此状态数据。
 - en: Conclusion
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: You should now have a thorough understanding of the complexities of serving
     models produced by machine learning in streaming applications. You learned how
     to export trained models in both TensorFlow and PMML formats and serve these models
@@ -451,16 +664,22 @@
     calculations, your scalability requirements, and your organization’s existing
     expertise. I encourage you to check out the materials referenced throughout the
     text for additional information to help you implement your solution.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您应该对在流式应用程序中为机器学习生成的模型提供服务的复杂性有了全面的了解。您学会了如何以TensorFlow和PMML格式导出训练好的模型，并使用几种流行的流处理引擎和框架提供这些模型的服务。您还可以考虑几种解决方案。在决定具体技术实现时，您应考虑您正在提供的模型数量、每个模型要评分的数据量和计算复杂性、您的可扩展性要求以及您组织的现有专业知识。我鼓励您查看文本中引用的材料，以获取更多信息，帮助您实施解决方案。
 - en: About the Authors
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 关于作者
 - en: '**Boris Lublinsky** is a Principal Architect at Lightbend. He has over 25 years
     of experience in enterprise, technical architecture, and software engineering.
     He is coauthor of *Applied SOA: Service-Oriented Architecture and Design Strategie*s
     (Wiley) and *Professional Hadoop Solutions* (Wiley). He is also an author of numerous
     articles on architecture, programming, big data, SOA, and BPM.'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '**鲍里斯·卢布林斯基**是Lightbend的首席架构师。他在企业、技术架构和软件工程方面拥有超过25年的经验。他是《应用SOA：面向服务的架构和设计策略》（Wiley）和《专业Hadoop解决方案》（Wiley）的合著者。他还是关于架构、编程、大数据、SOA和BPM的大量文章的作者。'
