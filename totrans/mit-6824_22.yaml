@@ -1,534 +1,769 @@
 - en: Peer to peer system
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 对等系统
 - en: '6.824 2015 Lecture 22: Peer to peer system'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 22 讲：对等系统
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲义与 2015 年春季 6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)上发布的略有不同。'
 - en: P2P systems
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: P2P 系统
 - en: 'Today: look at peer-to-peer (P2P) systems like Bittorrent and Chord'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 今天：看看像 BitTorrent 和 Chord 这样的对等系统
 - en: 'classic implementation of file sharing services: users talk to a centralized
     server to download file'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件共享服务的经典实现：用户与集中服务器交流以下载文件
 - en: it should be possible for users to talk to each other to get files
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户应该可以相互交流以获取文件
 - en: 'the peer-to-peer dream: no centralized components, just built out of people''s
     computers'
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对等梦想：没有集中的组件，只是由人们的计算机构建
 - en: Why P2P?
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么使用 P2P？
 - en: '**(+)** spreads the work of serving the files over a huge # of PCs'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(+)**在大量PC上分散提供文件的工作'
 - en: '**(+)** might be easier to deploy than a centralized system'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(+)**可能比集中式系统更容易部署'
 - en: no one has to buy a centralized server with a lot of bandwidth and storage
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有人必须购买带宽和存储量大的集中服务器
 - en: '**(+)** if you play your card rights, the # of resources should scale naturally
     with the # of users => less chance of overload'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(+)**如果你打好牌，资源数量应该随用户数量自然增长=> 减少过载的机会'
 - en: '**(+)** no centralized server => less chance to fail (harder to attack with
     DoS)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(+)**没有集中的服务器=>失败的可能性较小（更难以通过 DoS 攻击）'
 - en: '`=>` so many advantages! Why does anyone build non-P2P systems?'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>`这么多优点！为什么还会有人构建非 P2P 系统？'
 - en: '**(-)** it takes a sophisticated design to lookup a file in a system of a million
     users `<=>` finding stuff is hard (can''t just ask a DB)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(-)**在百万用户的系统中查找文件需要复杂的设计`<=>`查找东西很难（不能只是问一个数据库）'
 - en: '**(-)** user computers are not as reliable as servers in a datacenter. users
     take their computers offline, etc.'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(-)**用户计算机不像数据中心中的服务器那样可靠。用户会关闭他们的计算机等等。'
 - en: '**(-)** some P2P systems are open (BitTorrent) but some are closed, where only
     say Amazon''s computer are participating in this scheme (sort of like Dynamo).'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**(-)**一些 P2P 系统是开放的（BitTorrent），但有些是封闭的，比如只有亚马逊的计算机参与其中（有点像 Dynamo）。'
 - en: '`=>` in open systems, there will be malicious users `=>` easy to attack'
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>`在开放系统中，会有恶意用户`=>`易受攻击'
 - en: The result is that P2P software has certain niches that you find it in
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是 P2P 软件在某些特定领域有一定的市场
 - en: systems where there's a lot of data, like online video services
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有很多数据的系统，比如在线视频服务
 - en: chat systems
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 聊天系统
 - en: in settings where having a central server is not *natural* like Bitcoin
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在不自然使用中心服务器的设置中，比如比特币
 - en: it would be nice for DNS to be decentralized for instance
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: DNS 分散化将是一个好主意
 - en: '*seems* like the dominant use has been to serve illegal files'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*似乎*主要用途是提供非法文件'
 - en: BitTorrent
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: BitTorrent
 - en: Pre-DHT BitTorrent
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 预 DHT BitTorrent
 - en: 'Diagram:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 示意图：
 - en: '[PRE0]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: client goes to a webserver and downloads a .torrent file
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端访问网页服务器并下载一个 .torrent 文件
 - en: torrent file stores the hash of the data and the address of a tracker
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 种子文件存储了数据的哈希和追踪器的地址
 - en: the tracker keeps a record of all the clients who have downloaded this file
     and maybe still have it and maybe would be willing to serve it to other clients
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 追踪器记录所有已下载该文件并且可能仍然拥有它并且可能愿意为其他客户端提供它的所有客户端
 - en: client contacts tracker, asks about other clients
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端联系追踪器，询问其他客户端
 - en: the huge gain here is that the file is transfered between the clients directly,
     and the webserver and tracker aren't incurring too much cost
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里的巨大收益在于文件直接在客户端之间传输，网页服务器和追踪器没有太多成本
 - en: DHT-based BitTorrent (Trackerless torrents)
+  id: totrans-34
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基于 DHT 的 BitTorrent（无追踪器的种子）
 - en: tracker is a single point of failure
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 追踪器是单点故障
 - en: can fix this by replicating them or having extra trackers
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以通过复制它们或使用额外的追踪器来解决这个问题
 - en: the users who download the file also form a giant distributed key value store
     (a DHT)
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 下载文件的用户也形成了一个巨大的分布式键值存储（DHT）
 - en: clients still have to talk to the original web server to get the `infohash`
     of the file it wants to download
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端仍然必须与原始网页服务器交流以获取它想要下载的`infohash`文件
 - en: it uses it as a key to do a lookup in the DHT
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它使用它作为在 DHT 中查找的键
 - en: the values are IP addresses of other clients who have the files
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 值是拥有文件的其他客户端的 IP 地址
 - en: this really replaces the tracker
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这真的替代了追踪器
 - en: how to find an entry node in the DHT? Maybe the client has some well known nodes
     hardcoded
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何在 DHT 中找到入口节点？也许客户端有一些硬编码的众所周知的节点
 - en: '*maybe* the DHT is more reliable and less vulnerable to legal (subpoena) and
     technical attacks'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*也许* DHT 更可靠，更不容易受到法律（传票）和技术攻击的影响'
 - en: 'BitTorrent is fantastically popular: tens of millions of users `=>` giant DHT,
     however, most torrents are backed by real trackers'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: BitTorrent 非常受欢迎：数以千万计的用户 `=>` 巨大的 DHT，然而，大多数种子都由真实的追踪器支持
 - en: How did DHTs start?
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: DHT 是如何开始的？
 - en: a bunch of research 15 years ago on how to build DHTs
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 15 年前就有了一堆关于如何构建 DHT 的研究
 - en: point was to harness the millions of computers on the Internet to provide something
     that was close to a database
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关键是利用互联网上数百万台计算机提供接近数据库的东西
 - en: 'the interface is very simple: `Put(k, v), Get(k)`'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接口非常简单：`Put(k, v), Get(k)`
 - en: hope is that puts are reflected in gets (after a while)
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 希望 puts 在一段时间后反映在 gets 中
 - en: in practice it is hard to build consistent systems
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实际上构建一致性系统是很困难的
 - en: little guarantees about availability of data and consistency
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对数据的可用性和一致性没有多少保证
 - en: system does not guarantee to keep your data when you do a `Put()`
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 系统不能保证在执行 `Put()` 时保留您的数据
 - en: still difficult to build, even with these weak guarantees
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使有了这些弱保证，构建起来仍然很困难
 - en: DHT designs
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: DHT 设计
 - en: Flood everyone with Get's when you want to get a key
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当您想要获取一个键时，向所有人发送 Get 的洪水
 - en: '`=>` system can''t handle too much load'
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 系统无法处理过多负载'
 - en: Suppose everyone agreed to the whole list of nodes in the DHT.
+  id: totrans-57
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 假设每个人都同意 DHT 中的节点完整列表。
 - en: Then you can have some hashing convention that hashes a key to an exact node
     and lookups are efficient.
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后你可以有一些散列约定，将一个键散列到一个确切的节点，并且查找是有效的。
 - en: Critical that all agree otherwise A sends put to X and B sends get to Y for
     the same key `k`
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非常重要的是，所有人都同意，否则 A 发送 put 给 X，B 发送 get 给 Y，用于相同的键 `k`
 - en: The real problem is that it's hard to keep tables up to date and accurate.
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 真正的问题在于很难保持表格的更新和准确性。
 - en: 'What we want:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们想要的是：
 - en: We're looking for a system where each node only has to know about a few other
     nodes.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们正在寻找一个系统，其中每个节点只需知道其他几个节点。
 - en: We don't want the node to send too many messages to do a lookup
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们不希望节点发送太多消息来执行查找
 - en: the rough approach that all DHT take is to define a global data structure that
     is layered across nodes
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有 DHT 采取的大致方法是定义一个跨越节点的全局数据结构
 - en: 'Bad idea: organize all nodes as a binary tree, data is stored in leaf nodes
     such that lower keys are in the left most nodes'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不好的想法：将所有节点组织成二叉树，数据存储在叶节点中，较低的键位于最左边的节点
 - en: all traffic goes through root (bad) => if root goes down, partition
+  id: totrans-66
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有流量都通过根节点（不好） => 如果根节点宕机，则分区
 - en: how can we replace nodes that go down?
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何替换掉宕机的节点？
 - en: Chord
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Chord
 - en: numbers in a circular ID space (like integers modulo p) from 0 to 2^160 - 1
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 0 到 2^160 - 1 的循环 ID 空间中的数字（如模 p 的整数）
 - en: each node picks a random ID in this space as its node ID
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点在此空间中选择一个随机 ID 作为其节点 ID
 - en: the keys have identifiers in this space, and we want the identifiers to have
     a uniform distribution, because we use it to map the key to a node identifier
     `=>` use a hash on the actual keys to get their identifier
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个空间的键具有标识符，并且我们希望标识符具有均匀分布，因为我们用它来将键映射到节点标识符 `=>` 对实际键使用哈希函数来获取它们的标识符
 - en: 'the node responsible for a key is the first *closest* node to that key in a
     clockwise direction: known as its **successor**'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 负责键的节点是在顺时针方向上第一个*最接近*该键的节点：称为其**后继**
 - en: closeness `= |node ID - key ID|`
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 近似距离 `= |节点 ID - 键 ID|`
 - en: 'Slow but correct scheme:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 慢但正确的方案：
 - en: through some sort of hocus-pocus, every node just has to know about its own
     successor (say, node 2's successor is node 18, etc)
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过某种巫术，每个节点只需知道自己的后继（比如说，节点 2 的后继是节点 18，等等）
 - en: we can always do a lookup starting at every node simply by following these successor
     pointers
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们始终可以通过跟随这些后继指针从每个节点开始进行查找
 - en: this is called *routing*
+  id: totrans-77
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这被称为*路由*
 - en: all about forwarding a lookup message to a node further one the ring
+  id: totrans-78
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有关于将查找消息转发到环上更远节点的事情
 - en: this is slow, with millions of nodes could be sending millions of messages for
     a single lookup
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这很慢，如果有数百万个节点，可能会为单个查找发送数百万条消息
 - en: 'need time logarithmic in the total # of nodes in the DHT `=>` each hop has
     to be able to compute the distance between it and any target key'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要时间对 DHT 中节点总数的对数 `=>` 每一跳都必须能够计算它与任何目标键之间的距离
 - en: in Chord, every node has a *finger table* of 160 entries
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Chord 中，每个节点都有一个包含 160 个条目的*指针表*
 - en: 'the finger table of node `n` has entry `i`:'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点 `n` 的指针表具有条目 `i`：
 - en: '`f[i] = successor(n + 2^i)`'
+  id: totrans-83
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`f[i] = successor(n + 2^i)`'
 - en: '`=>` the 159th entry will point to some node `n + 2^159` roughly halfway across
     the ID space'
+  id: totrans-84
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 第 159 个条目将指向某个节点 `n + 2^159` 大致位于 ID 空间的中间位置'
 - en: each hop is on the order of 50 milliseconds, if the hops are halfway around
     the world
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每一跳大约是 50 毫秒，如果跳跃是环球的话
 - en: '`=>` around 1 second to go through 20 nodes `=>` some applications might not
     take this well (BitTorrent is okay, because it only stores IPs in the DHT)'
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 大约 1 秒钟可以通过 20 个节点 `=>` 一些应用可能无法很好地处理这一点（BitTorrent 可以，因为它只在 DHT 中存储 IP
+    地址）'
 - en: when nodes join, they get a copy of the entry node's fingerprint
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当节点加入时，它们会得到入口节点的指纹的副本
 - en: not accurate for the new node, but good enough
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于新节点来说不是很准确，但足够好
 - en: '`=>` have to correct the table `=>` for the `i`th entry do a lookup for `n+2^i`
     and set `f[i]` to the address of the node that replied'
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 必须纠正表 `=>` 对于第 `i` 个条目，查找 `n+2^i` 并将 `f[i]` 设置为回复的节点的地址'
 - en: every lookup is likely to encounter a dead node and timeouts take a long time
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每次查找都可能遇到一个死节点，超时需要很长时间
 - en: the churn in BitTorrent is quite high
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: BitTorrent 中的流动性相当高
 - en: 10 million people participate this hour, the next hour there will be other 10
     million people `=>` hard to keep finger table updated
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1000 万人参与这个小时，下一个小时将有另外 1000 万人 `=>` 难以保持 Finger 表的更新
 - en: '`log n` lookup time is not that great'
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`log n` 的查找时间并不那么好'
 - en: finger tables are only used to speed up lookups
+  id: totrans-94
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Finger 表仅用于加速查找
 - en: each node must correctly know its successor for Chord to be correct
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点必须正确地知道它的后继节点才能使 Chord 正确
 - en: so that Gets by one node see the Puts by another node
+  id: totrans-96
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这样，一个节点的获取会看到另一个节点的放置
 - en: when a node first joins, it does a lookup on its own identifier to find its
     successor
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当一个节点首次加入时，它会对自己的标识符进行查找以找到它的后继节点
 - en: '`--> 10 -- [new node 15] --> 20 -->`'
+  id: totrans-98
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--> 10 -- [新节点 15] --> 20 -->`'
 - en: 15 sets its successor pointer to 20
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 15 将其后继指针设置为 20
 - en: so far no one is doing lookups
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 到目前为止没有人在进行查找
 - en: 15 isn't really part of the system until 10 knows about it
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直到 10 知道它，15 才真正成为系统的一部分
 - en: every node periodically asks its successor who they think their predecessor
     is
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点定期询问其后继节点他们认为谁是他们的前驱节点
 - en: '`10: hey 20, who''s your predecessor?`'
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`10: 嘿 20，你的前驱是谁？`'
 - en: '`20: my predecessor is 15`'
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`20: 我的前驱是 15`'
 - en: '`10: oh, thought it was me, so let me set 15 as my successor then`'
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`10: 哦，以为是我，所以让我把 15 设置为我的后继节点`'
 - en: '`15: oh, hi 10, thanks for adding me as your sucessor, let me add you as my
     predecessor`'
+  id: totrans-106
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`15: 哦，嗨 10，谢谢你把我添加为你的后继节点，让我把你添加为我的前驱节点`'
 - en: this is called stabilization
+  id: totrans-107
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这被称为稳定化
 - en: 'Example:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子：
 - en: '[PRE1]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: when a node gets a closer predecessor, it transfers keys that would be closer
     to its predecessor there
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当一个节点获得一个更接近的前驱节点时，它会将更接近前驱节点的键转移到那里
 - en: If nodes fail, can we do lookups correctly?
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果节点失败了，我们能正确进行查找吗？
 - en: suppose an intermediate node fails in the lookup procedure, then the initiating
     node can simply pick another
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设在查找过程中一个中间节点失败了，那么发起节点可以简单地选择另一个
 - en: towards the end of the lookup process, finger tables are not used anymore. instead
     successor pointers are followed `=>` if a node fails then the lookup cannot proceed
     `=>` nodes must remember successors of their successors to be able to proceed
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在查找过程的末尾，不再使用 Finger 表。而是跟随后继指针 `=>` 如果一个节点失败，那么查找无法继续 `=>` 节点必须记住它们的后继节点的后继节点才能继续
 - en: the probability of a partition occurring is low on the Internet
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在互联网上发生分区的概率很低
 - en: 6.824 2015 original notes
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.824 2015 年的原始笔记
 - en: '[PRE2]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'

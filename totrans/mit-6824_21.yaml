@@ -1,293 +1,438 @@
 - en: Optimistic concurrency control, Thor
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 乐观并发控制，Thor
 - en: '6.824 2015 Lecture 21: Optimistic concurrency control, Thor'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 21 讲：乐观并发控制，Thor
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：** 这些讲座笔记略有修改，来自 2015 年春季 6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    上发布的内容。'
 - en: Optimistic concurrency control
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 乐观并发控制
 - en: want to build stable storage systems with high-speed, large-scale, and good
     semantics
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想要构建具有高速、大规模和良好语义的稳定存储系统
 - en: struggle to get them all
+  id: totrans-5
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 努力使它们全部实现
 - en: Thor is another tool that might help us build such a system
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Thor 是另一个可能帮助我们构建这样一个系统的工具
 - en: 'Diagram:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图表：
 - en: '[PRE0]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: If you step back a little, this looks a lot like the Facebook/memcache paper
     where data is sharded and caches are used on the client side.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你退后一步看，这看起来很像 Facebook/memcache 论文，其中数据被分片，客户端端使用缓存。
 - en: want to be able to support concurrent transactions
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想要支持并发事务
 - en: 'caching makes transactions tricky: could be reading stale data from cache'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缓存使事务变得棘手：可能从缓存中读取过时数据
 - en: locking can solve all of our problems
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 锁定可以解决我们所有的问题
 - en: but application would have to chat to server every time it wants an item `=>`
     defeats the purpose of a cache
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是应用程序每次想要一个项目时都必须与服务器交谈 `=>` 这违背了缓存的目的
 - en: 'Thor uses optimistic concurrency control: the application goes ahead, doing
     its reads and writes on whatever data happens to be available in the cache. When
     the transaction wants to commit, it has to talk to some validation service, who
     will look at the order in which writes and reads happened.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: Thor 使用乐观并发控制：应用程序继续前进，在缓存中读取和写入任何可用的数据。当事务想要提交时，必须与某个验证服务交谈，该服务将查看写入和读取发生的顺序。
 - en: optimistic in the sense that transactions are executing, ignoring other tx's
     and hoping it didn't conflict with anything, later checking if it did
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 乐观是指事务正在执行，忽略其他事务，并希望它不会与任何事务冲突，稍后检查是否有冲突
 - en: Validation scheme 1
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 验证方案 1
 - en: assuming a single valdiation server
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设有一个单独的验证服务器
 - en: the read set and the write set that clients send for validation are actual values
     that the transactions read/wrote
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端发送用于验证的读取集和写入集是事务实际读取/写入的值
 - en: the scheme takes the descriptions of the transactions, try all possible orders
     and see if any order results in a sequentially-consistent order
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 该方案接受事务的描述，尝试所有可能的顺序，并查看是否有任何顺序导致顺序一致。
 - en: validator doesn't know what the transaction did internally
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 验证器不知道事务在内部做了什么
 - en: 'Example 1:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子 1：
 - en: '[PRE1]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'For instance T3, T1 not possible:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如 T3，T1 不可能：
 - en: 'But `T4 (Rx0 Wy1), T1 (Rx0 Wx1), T3 (Ry1 Rx1), T2(Rz0 Wz9)` is possible: the
     order is consistent with the values read by the transactions.'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是 `T4 (Rx0 Wy1), T1 (Rx0 Wx1), T3 (Ry1 Rx1), T2(Rz0 Wz9)` 是可能的：顺序与事务读取的值一致。
 - en: 'Note: if transactions came from different machines (which obviously don''t
     share caches/communicate), then the question arises of how T3 read the value 1
     for x, when the DB was initialized to 0? The answer is "this is just a made up
     example: imagine they did actually share a cache. the point is to see that the
     validator orders the transactions so that they are consistent"'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：如果事务来自不同的机器（显然不共享缓存/通信），那么问题就是，T3 如何读取 x 的值为 1，当数据库初始化为 0 时？答案是“这只是一个虚构的例子：想象他们实际上确实共享了一个缓存。重点是看到验证器对事务进行排序，使它们一致”
 - en: Note that T2 only read/wrote `z =>` did not conflict with any of `T1, T3, T4`
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意，T2 只读/写了 `z =>` 与任何 `T1, T3, T4` 都没有冲突。
 - en: in situations like these, OCC performs very well
+  id: totrans-27
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这样的情况下，OCC 的性能非常好
 - en: This scheme is great because it allows us to execute transactions without locking.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方案很棒，因为它允许我们在不锁定的情况下执行事务。
 - en: 'Example 2:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子 2：
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This 3 transactions cannot be serialized:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这 3 个事务无法串行化：
 - en: T1 --- before --> T3 (t3 read x1, t1 wrote x1)
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: T1 --- 在 --> T3 之前（t3 读取 x1，t1 写入 x1）
 - en: T3 --- before --> T2 (t3 read y0, t2 wrote y1)
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: T3 --- 在 --> T2 之前（t3 读取 y0，t2 写入 y1）
 - en: T2 --- before --> T1 (t2 read x0, t1 wrote x1)
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: T2 --- 在 --> T1 之前（t2 读取 x0，t1 写入 x1）
 - en: cycle! `=>` cannot serialize
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 循环！`=>` 无法串行化
 - en: Another thing to ask of any OCC scheme is whether it can cleverly handle *read-only
     transactions* (some schemes can).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何 OCC 方案都需要问的另一件事是它是否能巧妙处理*只读事务*（一些方案可以）。
 - en: Thor and the schemes talked about today do have to validate read only tx's
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Thor 和今天讨论的方案确实需要验证只读事务
 - en: 'Example 3:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子 3：
 - en: '[PRE3]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: If we version records, and make sure that read-only tx's only read the same
     version of records => we can place it anywhere in the sequence of serialized transactions
     after that version => can be serialized
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们为记录版本化，并确保只有只读 tx's 读取记录的相同版本 => 我们可以将其放置在该版本之后的序列化事务的任何位置 => 可以被序列化。
 - en: Why not use read-write locks?
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么不使用读-写锁？
 - en: simple transactions like `x=x+1` first acquire a read lock and then need to
     upgrade it to a write lock
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 像 `x=x+1` 这样的简单事务首先获取读锁，然后需要将其升级为写锁。
 - en: if you have two such transactions `=>` deadlock because none will release its
     read lock until it upgrades to the write lock
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您有两个这样的交易`=>`死锁，因为没有一个会释放其读锁，直到将其升级为写锁。
 - en: Distributed validation
+  id: totrans-44
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 分布式验证
 - en: If we have data sharded on more than one server, then server 1 (A-M) can just
     validate part of the transaction that affects records A-M and server 2 can look
     at the part that affects records N-Z. Then the clients can make sure using two-phase
     commit (2PC) that the two servers both okayed the transaction.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们的数据分片存储在多个服务器上，那么服务器 1（A-M）可以只验证影响记录 A-M 的交易部分，而服务器 2 可以查看影响记录 N-Z 的部分。然后客户端可以使用两阶段提交（2PC）确保两个服务器都批准了交易。
 - en: 'A naive implementation like this will not work though:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是像这样的天真实现不会起作用：
 - en: 'Example 2 (from before):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例 2（来自之前的）：
 - en: '[PRE4]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: But, the result is incorrect because the validators are saying "yes" to different
     orders.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，结果是不正确的，因为验证器对不同的顺序说“是”。
 - en: To solve this, see validation scheme 2
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 要解决此问题，请参阅验证方案 2。
 - en: Validation scheme 2
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 验证方案 2
 - en: Use timestamps to build a working distributed validation scheme
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用时间戳构建一个可行的分布式验证方案
 - en: Every time a client would like to commit a transaction, the server choses a
     timestamp for this transaction based on its local clock (*loosely* synchronized
     to the real time).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当客户端希望提交事务时，服务器根据其本地时钟（*松散*与真实时间同步）为此事务选择时间戳。
 - en: Validation simply checks that the order implied by the timestamps is consistent
     with the reads and writes that the transactions performed.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 验证仅检查时间戳暗示的顺序是否与事务执行的读取和写入一致。
 - en: Example 2 (again)
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例 2（再次）
 - en: '[PRE5]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Loosely synchronized clocks `=>` Have to be prepared to deal with T2 running
     before T3 even though timestamp says it runs later.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 松散同步的时钟 `=>` 必须准备好处理 T2 在时间戳显示其稍后运行时甚至在 T3 之前运行的情况。
 - en: The only thing that the timestamps give the servers is the ability to agree
     on an order for the transactions amongst themselves so that they don't say yes
     to different orders.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 时间戳给服务器唯一的能力就是能够就交易的顺序达成一致，以便它们不会对不同的顺序说“是”。
 - en: '`=>` forced to use the timestamp order (cannot search for better order, even
     though it might be possible)'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 强制使用时间戳顺序（即使可能存在更好的顺序也不能搜索）。'
 - en: but the distributed algorithm for validation is very straightforward
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是验证的分布式算法非常简单明了。
 - en: 'Example:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '[PRE6]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This could have committed in the previous scheme (there is a valid order T1,
     T2) but this current scheme restricts the order to be `T2, T1` due to the timestamps.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在先前的方案中，这可能已经提交了（存在有效顺序 T1，T2），但是当前方案由于时间戳的原因将顺序限制为`T2, T1`。
 - en: this is just a performance problem of course
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当然，这只是一个性能问题。
 - en: 'Trouble: The read sets and write sets look at values, to check for conflicting
     transactions. That gives the validator some power (ability to commit more tx''s)
     but is impractical when the values are big.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 麻烦在于，读取集和写入集查看值，以检查是否存在冲突的事务。这给验证器一些权力（能够提交更多的事务），但当值很大时却是不切实际的。
 - en: '`=>` use a version number instead of values'
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 使用版本号而不是值。'
 - en: 'Example:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '[PRE7]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: So now version numbers need to be stored next to every record. Thor doesn't
     want to do this. Instead Thor shoots down transactions that read stale records
     by sending invalidate messages when those records are written. Clients who cached
     those records can then discard them.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在需要在每个记录旁边存储版本号。Thor 不想这样做。相反，Thor 会击落读取过时记录的事务，方法是在写入这些记录时发送使其失效的消息。已缓存这些记录的客户端随后可以丢弃它们。
 - en: 6.824 notes
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 笔记
 - en: '[PRE8]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
