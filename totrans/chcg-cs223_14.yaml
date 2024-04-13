@@ -1,107 +1,155 @@
 - en: Tail Recursion
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 尾递归
 - en: Last time, we ran into issues when trying to generate lists of random numbers.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 上次，我们在尝试生成随机数列表时遇到了问题。
 - en: '[PRE0]'
+  id: totrans-2
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '`10000` isn''t very large, and yet we still ran out of "call stack" space.'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '`10000`并不算很大，但我们仍然耗尽了"调用栈"空间。'
 - en: The following demonstrates that the size of the list of numbers itself isn't
     the problem...
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下示例表明，数字列表本身的大小并不是问题所在...
 - en: '[PRE1]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Okay, well eventually it is. But not for small numbers like `10000`. It is reasonable
     that at some point (between the last two sample interactions) that the list of
     numbers may require more memory (also known as "heap" space, though unrelated
     to the heap data structures we have studied) than we can, or are allowed to, use.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，最终会的。但对于像`10000`这样的小数字来说不是。在某个时刻（在最后两个示例交互之间）可能需要更多内存（也称为"堆"空间，尽管与我们学习的堆数据结构无关），而我们可能无法或不被允许使用。
 - en: But the call stack error is something very different than this heap error. The
     call stack is used to track, well, the stack of currently executing functions.
     The call stack grows and shrinks as the program executes. The relative size memory
     dedicated to the call stack is, in general, much less than that dedicated to the
     heap. This makes sense because the code for a computation is typically far smaller
     than the data it operates on.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 但调用栈错误与堆错误非常不同。调用栈用于跟踪当前正在执行的函数堆栈。随着程序的执行，调用栈会增长和缩小。一般来说，相对于堆所分配的内存，调用栈所占用的内存要小得多。这是有道理的，因为计算的代码通常比其操作的数据要小得多。
 - en: So a call stack error means that we have too many "outstanding" function calls,
     which are waiting for their callee functions to return before continuing. Recursively
     defined functions, naturally, pile up a lot of "stack frames," so running out
     of stack space is a serious concern, especially in functional languages that encourage
     (or force, in the case of purely functional languages) programmers to use recursion
     heavily.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，调用栈错误意味着我们有太多"未完成"的函数调用，它们正在等待它们的被调函数返回才能继续。自然地，递归定义的函数会堆积大量"栈帧"，因此在功能语言中特别是在鼓励（或强制，在纯函数语言的情况下）程序员大量使用递归的情况下，耗尽栈空间是一个严重问题。
 - en: Let's take a closer look at some examples, defined in [`TailRecursion.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/TailRecursion.elm)
     for reference.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们更仔细地看一些示例，定义在[`TailRecursion.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/TailRecursion.elm)中供参考。
 - en: Recursion on Numbers
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数字上的递归
 - en: Consider a simple recursive function that `sum`s the first `n` positive integers.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个简单的递归函数，对前`n`个正整数求和。
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Again, we run into this pesky call stack space error even for pretty small inputs.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，即使是相当小的输入，我们仍然遇到了这个讨厌的调用栈空间错误。
 - en: '[PRE3]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The way that languages (especially functional ones) deal with this issue is
     to make the following pact: if the programmer writes a recursive function that
     is *tail recursive*, then the language compiler promises to evaluate the function
     in constant stack space (rather than linear in the number of recursive calls).'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 语言（尤其是函数式语言）处理这个问题的方式是达成以下协议：如果程序员编写的递归函数是*尾递归*，那么语言编译器承诺在恒定的栈空间中评估函数（而不是根据递归调用的数量线性增长）。
 - en: 'Programmer''s Obligation: Defining Tail Recursive Functions'
+  id: totrans-16
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 程序员的义务：定义尾递归函数
 - en: A function `f` is tail recursive if all recursve calls to `f` (if any) appear
     in tail position, meaning the last thing that the current function invocation
     does is simply to return the result of the recursive invocation.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果所有对`f`的递归调用（如果有的话）都出现在尾位置，那么函数`f`是尾递归的。
 - en: Many recursive functions, but not all, can be re-written to be tail recursive
     by defining a helper function to take an extra argument that will store the "accumulated"
     or "running" result, to be updated in each recursive call. The value of this extra
     argument is then returned as the final result when no more recursive calls are
     required.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多递归函数，但并非全部，可以通过定义一个辅助函数来将其重写为尾递归，该辅助函数将接受一个额外的参数，用于存储"累积"或"运行"结果，在每次递归调用中更新。当不再需要递归调用时，此额外参数的值将作为最终结果返回。
 - en: For example, consider the following tail recursive helper function to sum the
     first `n` positive numbers.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑以下尾递归辅助函数来求前`n`个正数的和。
 - en: '[PRE4]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The last thing to do is implement a function that kicks off the recursion by
     supplying the initial value of the accumulating result.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后要做的是实现一个函数，通过提供累积结果的初始值来启动递归。
 - en: '[PRE5]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Compiler''s Obligation: Translating Tail Recursion to Loops'
+  id: totrans-23
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: Languages that enter into such pacts do so because a tail recursive function
     can be translated into a loop in a target language with imperative features.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: For example, assuming a target language that contains support for mutable variables
@@ -109,210 +157,285 @@
     operator), updating mutable variables (denoted by the `:=` operator), and loops,
     the `sum_tr_` function above might be translated to something that resembles the
     following.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Notice that the mutable variables `i` and `res` are initialized with the (immutable)
     values `n` and `acc`, respectively, and the `while` loop iteratively updates these
     variables as long as the current value of `i` is non-negative. Executing a loop
     does not add any frames to the call stack, so the translated version does not
     suffer the possibility of running out of stack space to keep track of outstanding
     recursive calls.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: Tail call elimination is crucial to most functional programming languages. Elm
     does not provide this optimization, however. In fact, our tail recursive function
     seems to run out of stack space even earlier than our original version!
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Elm does not enter into the tail call elimination pact with the user, in part
     because the target language, JavaScript, does not support it. However, Elm does
     provide a couple of very reasonable workarounds.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: Trampolines
+  id: totrans-31
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The [`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)
     library provides an API that allows programmers to explicitly "request" tail call
     optimization for a function. To do so, rather than writing a function like
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE8]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: from above, the programmer would write a very similar function
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE9]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: where the return value of the intended function is wrapped inside the `Trampoline`
     datatype. Values of this type are constructed either by the `Done` constructor,
     which signals the end of a recursive computation, or `Continue`, which contains
     a function of type `() -> Trampoline a` that specifies how to compute the next
     step in the recursive computation.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
 - en: Concretely, the changes required to rewrite `sum_tr_` to `sum_tramp_` are simply
     to wrap the return expressions in each of the branches.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE10]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: The `Trampoline` library provides the function
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'to run the wrapped recursive function in constant space. Thus:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE12]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: We can now observe how `sum_tramp` scales much better than our unwrapped tail
     recursive version `sum_tr`.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE13]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: As you may have guessed, the implementation of `trampoline` in [`Trampoline.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Trampoline.elm)
     uses a native JavaScript function, defined in [`Trampoline.js`](https://github.com/elm-lang/core/blob/1.1.0/src/Native/Trampoline.js),
     that uses a loop to evaluate the computation. Cool!
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: Note that the last call to `sum_tramp` above is still very slow — due to the
     relative expense of creating so many thunks in JavaScript — but at least it finishes
     successfully.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
 - en: 'One last thing to note about our definition of `sum_tramp_` is that it is tempting
     to rewrite the thunk as a call to `always`, as follows:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE14]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Going one step further results in the following tidy definition, which is even
     closer to the "ideal" definition `sum_tr_`.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE15]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Unfortunately, our eagerness to simplify the definition is not a good idea.
     Why not?
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
 - en: Recursion on Lists
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: The following is a canonical definition for defining folding from the left in
     many functional programming languages.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Because `foldl` is tail recursive, languages that perform tail call elimination
     would rewrite it to something that resembles the following.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: But, again, Elm and JavaScript do not provide us with automatic tail call elimination.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: It is simple to define a version using `Trampoline`.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Ah, that's much better.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE20]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: So, does the library version [`List.foldl`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/List)
     use `Trampoline`?
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE21]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: It turns out that it doesn't. Instead, it is defined (in [`List.elm`](https://github.com/elm-lang/core/blob/1.0.0/src/List.elm))
     to use a native JavaScript function (defined in [`List.js`](https://github.com/elm-lang/core/blob/1.0.0/src/Native/List.js))
     that, not surprisingly, uses a loop! This is morally the same as the `Trampoline`
     approach except that it's special-cased to work with the `List` type.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: Folding from the Right
+  id: totrans-66
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The following canonical definition of the `foldr` function is not tail recursive.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE22]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '**Optional Exercise** — Write a version of `foldr` such that any recursion
     within runs in constant stack space, either by making use of `List.foldl` or `foldl_tramp`.'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
 - en: Back to Random Lists
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Okay, now back to our problematic `randomInts` function. Why does that blow
     the stack?
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
 - en: 'Taking a look at [`Random.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Random.elm)
     reveals the problem: `list` is implemented in terms of a tail recursive function
     called `listHelp` but does not use either `Trampoline` or `List.foldl`.'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: '**Optional Exercise** — Write a version of'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE23]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: such that recursive calls within the definition run in constant stack space.
     Note that because the [`Random`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Random)
     module does not expose the `Generator` data constructor, you will have to implement
     your version within the module. So, start by grabbing the [`Random.elm` source](https://github.com/elm-lang/core/blob/1.1.0/src/Random.elm)
     and then defining your function within it.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: Assuming that you have called your version of the module `RandomList`, define
     the following test driver.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE24]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: You should then be able to demonstrate the improvement as follows.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE25]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
