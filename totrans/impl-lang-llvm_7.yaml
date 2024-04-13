@@ -263,11 +263,13 @@
   id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了变异变量，我们必须改变我们现有的变量以使用“alloca 诀窍”。一旦我们有了这个，我们将添加我们的新运算符，然后扩展 Kaleidoscope 以支持新的变量定义。
 - en: 7.5 Adjusting Existing Variables for Mutation
   id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.5 调整现有变量以进行变异
 - en: 'The symbol table in Kaleidoscope is managed at code generation time by the
     `NamedValues` map. This map currently keeps track of the LLVM `Value*` that holds
     the double value for the named variable. In order to support mutation, we need
@@ -278,6 +280,9 @@
   id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: Kaleidoscope 中的符号表在代码生成时由 `NamedValues` 映射管理。该映射当前跟踪 LLVM `Value*`，该值保存了命名变量的
+    double 值。为了支持变异，我们需要稍微更改这个，使得 NamedValues 保存变量的内存位置。注意，这个改变是一种重构：它改变了代码的结构，但并不会（本身）改变编译器的行为。所有这些更改都被隔离在
+    Kaleidoscope 代码生成器中。
 - en: 'At this point in Kaleidoscope’s development, it only supports variables for
     two things: incoming arguments to functions and the induction variable of `for`
     loops. For consistency, we’ll allow mutation of these variables in addition to
@@ -285,12 +290,15 @@
   id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Kaleidoscope 的开发中的这一点上，它只支持变量用于两个事物：函数的传入参数和 `for` 循环的归纳变量。为了一致性，我们将允许这些变量以及其他用户定义的变量进行变异。这意味着这些都需要内存位置。
 - en: 'To start our transformation of Kaleidoscope, we’ll change the NamedValues map
     so that it maps to `AllocaInst*` instead of `Value*`. Once we do this, the C++
     compiler will tell us what parts of the code we need to update:'
   id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始转换我们的 Kaleidoscope，我们将更改 NamedValues 映射，使其映射到 `AllocaInst*` 而不是 `Value*`。一旦我们这样做了，C++
+    编译器将告诉我们需要更新的代码部分：
 - en: '[PRE6]'
   id: totrans-35
   prefs: []
@@ -301,6 +309,7 @@
   id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，由于我们需要创建这些 alloca，我们将使用一个帮助函数来确保这些 alloca 在函数的入口块中创建：
 - en: '[PRE7]'
   id: totrans-37
   prefs: []
@@ -313,12 +322,15 @@
   id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段看起来有趣的代码创建了一个 IRBuilder 对象，该对象指向入口块的第一条指令（.begin()）。然后它创建一个具有预期名称的 alloca
+    并返回它。由于 Kaleidoscope 中的所有值都是 double，因此不需要传入类型来使用。
 - en: 'With this in place, the first functionality change we want to make is to variable
     references. In our new scheme, variables live on the stack, so code generating
     a reference to them actually needs to produce a load from the stack slot:'
   id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们想要做的第一个功能更改是变量引用。在我们的新方案中，变量存储在堆栈上，因此生成对它们的引用的代码实际上需要从堆栈槽加载：
 - en: '[PRE8]'
   id: totrans-40
   prefs: []
@@ -330,6 +342,7 @@
   id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您所看到的，这非常简单。现在我们需要更新定义变量的东西以设置 alloca。我们将从 ForExprAST::Codegen 开始（请参阅完整的代码列表以获取未删减的代码）：
 - en: '[PRE9]'
   id: totrans-42
   prefs: []
@@ -341,11 +354,13 @@
   id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码与允许可变变量之前的代码几乎相同。最大的区别是我们不再需要构造 PHI 节点，而是根据需要使用 load/store 访问变量。
 - en: 'To support mutable argument variables, we need to also make allocas for them.
     The code for this is also pretty simple:'
   id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了支持可变参数变量，我们还需要为它们创建 allocas。这部分代码也相当简单：
 - en: '[PRE10]'
   id: totrans-45
   prefs: []
@@ -358,11 +373,14 @@
   id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个参数，我们都会创建一个 alloca，将函数的输入值存储到 alloca 中，并将 alloca 注册为参数的内存位置。此方法由 FunctionAST::Codegen
+    在为函数设置入口块后立即调用。
 - en: 'The final missing piece is adding the mem2reg pass, which allows us to get
     good codegen once again:'
   id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后缺失的部分是添加 mem2reg 传递，这样我们就可以再次获得良好的代码生成：
 - en: '[PRE11]'
   id: totrans-48
   prefs: []
