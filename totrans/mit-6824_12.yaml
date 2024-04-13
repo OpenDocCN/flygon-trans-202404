@@ -1,1570 +1,2324 @@
 - en: Eventual Consistency
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最终一致性
 - en: '6.824 2015 Lecture 12: Eventual Consistency'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015年第12讲：最终一致性
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲义与2015年春季6.824课程网站上发布的讲义略有修改。'
 - en: Exam
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 考试
 - en: Bring papers and lecture notes for exam
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为考试带上论文和讲义
 - en: 'Bayou: Eventual consistency'
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Bayou：最终一致性
 - en: a set of copies of the data, where applications can use any copy of the data
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组数据的副本，应用程序可以使用数据的任何副本
 - en: local read/write
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本地读/写
 - en: even if the network breaks, I can still use the local copy
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使网络中断，我仍然可以使用本地副本
 - en: '*disconnected operation*'
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*断开操作*'
 - en: ad-hoc synchronization
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 临时同步
 - en: laptop, phone, tablet can synchronize amongst each other instead of relying
     on Internet connection
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 笔记本电脑、手机、平板电脑可以在彼此之间同步，而不是依赖于互联网连接
 - en: can work with database servers that have different data and synchronize with
     each other
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以与具有不同数据的数据库服务器一起工作，并相互同步
 - en: similar to Ficus, but Bayou has more sophisticated conflict resolution
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类似于Ficus，但Bayou具有更复杂的冲突解决方法
 - en: Conflicts
+  id: totrans-14
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 冲突
 - en: what to do about the inevitable conflicts that happen when you allow people
     to write to their local copies and synchronize them later
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何处理允许人们写入本地副本并稍后同步它们时发生的不可避免的冲突
 - en: Meeting room scheduler
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 会议室调度器
 - en: 'Traditional approach (central server):'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统方法（中央服务器）：
 - en: '[PRE0]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Not a good approach because it requires everyone to have connectivity to the
     server.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是一个好方法，因为它要求每个人都与服务器连接。
 - en: Would be nice if you have PDA send appointment to laptop, which can then send
     it to the server.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您能让PDA发送约会给笔记本电脑，然后再发送给服务器，那就太好了。
 - en: '[PRE1]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Update functions
+  id: totrans-22
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更新函数
 - en: '**Main idea:** Update functions. Instead of the application saying "write this
     DB record", the application hands a function that behaves differently based on
     what''s in the DB.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**主要思想：**更新函数。 应用程序不再说“写入此数据库记录”，而是将函数交给根据数据库内容而表现不同的应用程序。'
 - en: 'Example:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: if free at 10am
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果10点有空
 - en: reserve @10am
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保留 @10am
 - en: else if free at 9am
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则如果9点有空
 - en: reserve @9am
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保留 @9am
 - en: else
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则
 - en: reserve
+  id: totrans-30
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保留
 - en: Bayou takes this function from the PDA and gives it to the laptop.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: Bayou将此功能从PDA获取并交给笔记本电脑。
 - en: 'Suppose A and B want the same times:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设A和B希望在同一时间：
 - en: 'A wants: either staff meeting at 10 or 11'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A希望：10点或11点的员工会议
 - en: 'B wants: hiring meeting at 10 or 11'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B希望：10点或11点的招聘会议
 - en: 'If you simply apply these functions to node A''s and B''s databases, that''s
     not enough:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您仅将这些函数应用于节点A和B的数据库，这是不够的：
 - en: 'X syncs with A: X gets 10am staff meeting'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X与A同步：X得到10点的员工会议
 - en: 'X syncs with B: X gets 11am hiring meeting'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X与B同步：X得到11点的招聘会议
 - en: 'Y syncs with B: Y gets 10am hiring meeting'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Y与B同步：Y得到10点的招聘会议
 - en: 'Y syncs with A: Y gets 11am staff meeting'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Y与A同步：Y得到11点的员工会议
 - en: '**Bad:** now X and Y have differing views'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**糟糕：**现在X和Y有不同的观点'
 - en: '`=>` have to execute `A`''s and `B`''s update functions in the same order'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '`=>`必须以相同的顺序执行`A`和`B`的更新函数'
 - en: Numbering updates
+  id: totrans-42
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编号更新
 - en: '**Next idea:** number update functions, so that you can view them as being
     a log'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**下一个想法：**编号更新函数，以便您可以将它们视为日志'
 - en: Classic way to order things is to stamp them with numbers and sorting
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对事物排序的经典方法是用数字和排序标记它们
 - en: initially let the Bayou update ID be `<time T, nodeId>`
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最初让Bayou更新ID为`<时间T，节点ID>`
 - en: possible for time `T` to be the same for two update IDs, but then the node IDs
     will differ (presumably)
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能对于时间`T`来说，两个更新ID相同，但节点ID将不同（据推测）
 - en: 'ordering rules:'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 排序规则：
 - en: '`a < b` if `a.T < b.T` or `a.T == b.T and a.ID < b.ID`'
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果`a.T < b.T`或`a.T == b.T and a.ID < b.ID`，则`a < b`
 - en: 'If we take the previous example:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们以前的例子为例：
 - en: '[PRE2]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: When Y syncs with B and then with A, it'll see A's update occurred earlier
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当Y与B同步然后与A同步时，它将看到A的更新发生得更早
 - en: so it undoes B's update, applies A's and then B's again
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以它撤销B的更新，应用A的更新，然后再次应用B的更新
 - en: We need to be able to roll back and re-execute the log.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要能够回滚并重新执行日志。
 - en: Are the updates consistent with causality?
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新是否符合因果关系？
 - en: PDA A adds a meeting
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PDA A添加了一个会议
 - en: A synchronizes with B
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A与B同步
 - en: B deletes A's meeting
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B删除了A的会议
 - en: If some 3rd node sees these updates, it would be necessary to have the meeting
     creation timestamp be smaller than the deletion timestamp.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果第三个节点看到这些更新，有必要让会议创建时间戳小于删除时间戳。
 - en: Lamport logical clock
+  id: totrans-59
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Lamport逻辑时钟
 - en: Each node maintains `T_max`, the highest timestamp this node has ever seen from
     itself or from another node.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个节点维护`T_max`，这个节点从自身或其他节点看到的最高时间戳。
 - en: When a node creates an event and adds it to the log, it picks timestamp `T =
     max (T_max + 1, wall clock time)`
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 当节点创建事件并将其添加到日志中时，它选择时间戳`T = max（T_max + 1，壁钟时间）`
 - en: new timestamps are always higher than timestamps the node has ever seen
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新时间戳始终比节点曾经看到的时间戳要高
 - en: Tentative entries, commit scheme
+  id: totrans-63
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 临时条目，提交方案
 - en: It's annoying that entries in the calendar are always displayed as tentative
     because another (earlier) update could come in and replace it.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 令人讨厌的是，日历中的条目总是显示为临时的，因为可能会有另一个（更早的）更新进来并替换它。
 - en: maybe because the new update sender was disconnected for a long time
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 也许是因为新的更新发送者长时间断开连接了
 - en: We're looking for a way to all agree that anything above a certain point in
     the log will never change (it's frozen, no one can modify stuff there)
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正在寻找一种方式，让大家都同意日志中某一点以上的任何内容都永远不会改变（它被冻结，没有人可以修改那里的东西）
 - en: '**Bad idea:** One possibility is to have all the replicas exchange summary
     w/ each other about what they''ve seen:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '**不好的想法：**一种可能性是让所有复制品互相交换关于它们所见内容的摘要：'
 - en: X has seen all A's updates through 20, B's through 17, and C's through 72
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X已经看到了A的更新到20，B的更新到17，C的更新到72
 - en: these are timestamps (logical clocks)
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些是时间戳（逻辑时钟）
 - en: we know that X will never create a timestamp less than 72
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们知道X永远不会创建小于72的时间戳
 - en: similarly, node Y also has a min timestamp that he will generate next
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同样，节点Y也有他将生成的最小时间戳
 - en: say 30
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 说30
 - en: we can take the minimum over all these minimums `min(30, 72) = 30` and commit
     all operations up to that point
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以对所有这些最小值取最小值`min（30，72）= 30`并提交到该点的所有操作
 - en: problem is it requires every node to be up and connected to all other nodes
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题是它需要每个节点都处于启动状态并连接到所有其他节点
 - en: Commit scheme for Bayou
+  id: totrans-75
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Bayou的提交方案
 - en: 'They have one magic node, a primary. Every update that passes through the primary,
     the primary stamps it with a *commit sequence number* (CSN), the actual ordering
     number becomes: `<csn, T, node ID>`'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们有一个神奇的节点，一个主节点。每个通过主节点的更新，主节点都会用*提交序列号*（CSN）给它盖上时间戳，实际排序号变为：`<csn，T，节点ID>`
 - en: primary does not wait for earlier updates (with smaller `T`) to arrive first,
     it just timestamps things as they come
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点不会等待较早的更新（带有较小的`T`）到达，它只是按照它们到来的顺序给事物打上时间戳。
 - en: commit preserves causal order
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提交保留因果顺序
 - en: commit does not preserve wall clock order
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提交不保留壁钟顺序
 - en: 'If you don''t have a CSN: `<-, T, nodeID>`, all commited operations are considered
     to occur before uncommitted ones.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您没有CSN：`<-, T，nodeID>`，则所有提交的操作都被认为在未提交的操作之前发生。
 - en: '**TODO:** not clear what this example was supposed to show'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '**TODO：**不清楚这个例子应该展示什么'
 - en: A's meeting created
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A的会议已创建
 - en: B's meeting created
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B的会议已创建
 - en: B synchronizes with C
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B与C同步
 - en: B synchronizes with A
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B与A同步
 - en: C synchronizes with primary
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: C与主节点同步
 - en: primary applies CSN to A's op, but not B's
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点将CSN应用于A的操作，但不是B的
 - en: B synchronizes with primary
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B与主节点同步
 - en: Vector timestamps
+  id: totrans-89
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 向量时间戳
 - en: Synchronization
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 同步
 - en: A has
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A有
 - en: '`<-, 10, X>`'
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 10，X>`'
 - en: '`<-, 20, Y>`'
+  id: totrans-93
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 20，Y>`'
 - en: '`<-, 30, X>`'
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 30，X>`'
 - en: '`<-, 40, X>`'
+  id: totrans-95
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 40，X>`'
 - en: B has
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B有
 - en: '`<-, 10, X>`'
+  id: totrans-97
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 10，X>`'
 - en: '`<-, 20, Y>`'
+  id: totrans-98
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 20，Y>`'
 - en: '`<-, 30, X>`'
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-, 30，X>`'
 - en: A syncs with B
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A与B同步
 - en: sends a version vector to B describe which updates it has from every node
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 发送版本向量给B，描述它从每个节点收到的更新。
 - en: 'A: `[X 40, Y 20]`'
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A：`[X 40，Y 20]`
 - en: (remember that the timestamps are always increased by senders)
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （记住时间戳始终由发送者增加）
 - en: 'B: `[X 30, Y 20]`'
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B：`[X 30，Y 20]`
 - en: If B compares A's VT with his, he notices that he needs updates by X between
     timestamp 30 and 40
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果B将A的VT与他的比较，他会注意到他需要在时间戳30到40之间由X更新的内容
 - en: A new node joins
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一个新节点加入
 - en: Now some VTs will have an entry for some new node Z. For instance, in the previous
     example
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在一些VT将有一些新节点Z的条目。例如，在前面的示例中
 - en: A can send [X 40, Y 20, Z 60] to B
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A可以发送[X 40，Y 20，Z 60]给B
 - en: We also need a way to remove nodes.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要一种删除节点的方法。
 - en: But B won't know if `Z` is newly added or newly deleted?
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是B不知道`Z`是新增加的还是新删除的？
 - en: Z joins the system
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z加入系统
 - en: Z talks to X
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z与X交谈
 - en: X generates Z's unique node ID
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X生成Z的唯一节点ID
 - en: Z's ID = `<Tz, X's node ID>`, where Tz is the time Z talked to X
+  id: totrans-114
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z的ID =`<Tz，X的节点ID>`，其中Tz是Z与X通话的时间
 - en: X sends an update timestamped with `<-, Tz, X>` that says "new server z"
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X发送一个时间戳为`<-, Tz，X>`的更新，说“新服务器z”
 - en: Everybody will see this first before seeing Z's updates
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个人都会在看到Z的更新之前看到这个
 - en: Z's updates have timestamps higher than Tz
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z的更新的时间戳高于Tz
 - en: note that IDs are unbounded in size
+  id: totrans-118
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请注意，ID的大小不受限制
 - en: 'Forgetting nodes:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 忘记节点：
 - en: Z's ID = `<20, X>`
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z的ID =`<20，X>`
 - en: A syncs -> B
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A同步-> B
 - en: A has log entry from Z `<-, 25, <20, X>>`
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A有来自Z的日志条目`<-, 25，<20，X>>`
 - en: B has no VT entry for Z
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B没有Z的VT条目
 - en: Now B needs to figure out from A's updates if Z was added or removed
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在 `B` 需要从 `A` 的更新中弄清楚 `Z` 是否被添加或移除
 - en: 'Case 1: If B''s VT entry for `X` is less than the timestamp in `Z`''s ID, then
     that means that `B` hasn''t even seen the creation for `Z`, let alone any updates
     from `Z` => `B` should create the entry for `Z` because `Z` is new to `B`'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Case 1: 如果 `B` 对于 `X` 的 VT 条目比 `Z` 的 ID 中的时间戳要小，则意味着 `B` 甚至还没有看到 `Z` 的创建，更不用说来自
+    `Z` 的任何更新了 => `B` 应该为 `Z` 创建条目，因为对于 `B` 来说，`Z` 是新的'
 - en: 'Case 2: If B''s VT entry for `X` is higher than the timestamp in `Z`''s ID,
     (ie. B has seen updates from `X` after it created `Z`), then B must''ve seen `Z`''s
     creation `=>` B must have seen a deletion notice'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Case 2: 如果 `B` 对于 `X` 的 VT 条目高于 `Z` 的 ID 中的时间戳（即 `B` 在创建 `Z` 后看到了来自 `X` 的更新），那么
+    `B` 必须已经看到了 `Z` 的创建 `=>` `B` 必须已经看到了删除通知'
 - en: '**Q:** If Z''s entry is missing from `B` then `Z` (probably?) says `<-, T,
     Z> bye, T > Tz`'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 如果 `B` 中缺少 `Z` 的条目，则 `Z` （可能？）会说 `<-, T, Z> 再见, T > Tz`'
 - en: '* * *'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 6.824 notes
+  id: totrans-129
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 记录
 - en: '[Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage
     System](papers/bayou-conflicts.pdf) Terry, Theimer, Petersen, Demers, Spreitzer,
     Hauser, SOSP 95'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Bayou 中的管理更新冲突，一个弱连接的复制存储系统](papers/bayou-conflicts.pdf) Terry, Theimer, Petersen,
+    Demers, Spreitzer, Hauser, SOSP 95'
 - en: Some material from [Flexible Update Propagation for Weakly Consistent Replication](http://people.cs.umass.edu/~arun/cs677/notes/Bayou.pdf),
     SOSP 97
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些来自 [灵活的弱一致性复制中的更新传播](http://people.cs.umass.edu/~arun/cs677/notes/Bayou.pdf)，SOSP
+    97 的材料
 - en: Why this paper?
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么选择这篇论文？
 - en: Eventual consistency is pretty common
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最终一致性是非常普遍的
 - en: git, iPhone sync, Dropbox, Amazon Dynamo
+  id: totrans-134
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: git、iPhone 同步、Dropbox、亚马逊 Dynamo
 - en: Why do people like eventual consistency?
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么人们喜欢最终一致性？
 - en: fast read/write of local copy (no primary, no paxos)
+  id: totrans-136
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本地副本的快速读写（没有主副本，没有 Paxos）
 - en: disconnected operation
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 断开操作
 - en: What goes wrong?
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有什么问题？
 - en: doesn't look like "single copy" (no primary, no paxos)
+  id: totrans-139
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 看起来不像 "单一副本"（没有主副本，没有 Paxos）
 - en: conflicting writes to different copies
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 写入不同副本的冲突写入
 - en: how to reconcile them when discovered?
+  id: totrans-141
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 发现时如何调和它们？
 - en: Bayou has the most sophisticated reconciliation story
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Bayou 有最复杂的调和故事
 - en: 'Paper context:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文背景：
 - en: Early 1990s (like Ficus)
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 早期的 1990 年代（像 Ficus 一样）
 - en: Dawn of PDAs, laptops, tablets
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PDA、笔记本电脑、平板电脑的黎明
 - en: H/W clunky but clear potential
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 硬件笨重但有明显的潜力
 - en: Commercial devices did not have wireless
+  id: totrans-147
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 商业设备没有无线功能
 - en: Devices might be off or not have network access
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设备可能关闭或没有网络访问
 - en: This problem has not gone away!
+  id: totrans-149
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个问题还没有消失！
 - en: iPhone sync, Dropbox sync, Dynamo
+  id: totrans-150
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: iPhone 同步、Dropbox 同步、Dynamo
 - en: Let's build a conference room scheduler
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们建立一个会议室调度程序
 - en: Only one meeting allowed at a time (one room).
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一次只允许一个会议（一个房间）。
 - en: Each entry has a time and a description.
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个条目都有一个时间和描述。
 - en: We want everyone to end up seeing the same set of entries.
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望每个人最终看到相同的条目集。
 - en: 'Traditional approach: one server'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统方法：一个服务器
 - en: Server executes one client request at a time
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器一次执行一个客户端请求
 - en: Checks for conflicting time, says yes or no
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 检查冲突时间，回答是或否
 - en: Updates DB
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更新数据库
 - en: Proceeds to next request
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 继续下一个请求
 - en: Server implicitly chooses order for concurrent requests
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器隐式地为并发请求选择顺序
 - en: Why aren't we satisfied with central server?
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么我们不满足于中央服务器？
 - en: I want to use scheduler on disconnected iPhone &c
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我想在断开连接的 iPhone 上使用日程安排器等
 - en: So need DB replica in each node.
+  id: totrans-163
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此每个节点都需要数据库副本。
 - en: Modify on any node, as well as read.
+  id: totrans-164
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在任何节点上修改，以及读取。
 - en: Periodic connectivity to net.
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定期连接到网络。
 - en: Periodic direct contact with other calendar users (e.g. bluetooth).
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定期直接与其他日历用户联系（例如蓝牙）。
 - en: 'Straw man 1: merge DBs'
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 草人 1：合并数据库
 - en: Similar to iPhone calendar sync, or file sync.
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类似于 iPhone 日历同步，或文件同步。
 - en: May need to compare every DB entry -- lots of time and net b/w.
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能需要比较每个数据库条目 -- 大量的时间和网络带宽。
 - en: Still need a story for conflicting entries, i.e. two meetings at same time.
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仍然需要处理冲突条目的故事，即同时发生两个会议。
 - en: User may not be available to decide at time of DB merge.
+  id: totrans-171
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户可能在数据库合并时不可用于做出决定。
 - en: So need automatic reconciliation.
+  id: totrans-172
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此需要自动调和。
 - en: 'Idea for conflicts: update functions'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 冲突的想法：更新函数
 - en: Application supplies a function, not a new value.
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序提供一个函数，而不是一个新值。
 - en: Read current state of DB, decide best change.
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取数据库的当前状态，确定最佳变更。
 - en: E.g. "Meet at 9 if room is free at 9, else 10, else 11."
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如 "如果 9 点有空房间，则在 9 点见面，否则在 10 点，否则在 11 点。"
 - en: Rather than just "Meet at 9"
+  id: totrans-177
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 而不只是 "9 点见面"
 - en: Function can make reconciliation decision for absent user.
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数可以为缺席用户做出调和决策。
 - en: Sync exchanges functions, not DB content.
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同步交换函数，而不是数据库内容。
 - en: '**Problem:** can''t just apply update functions to DB replica'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：** 不能只将更新函数应用于数据库副本'
 - en: 'A''s fn: staff meeting at 10:00 or 11:00'
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 的函数：10:00 或 11:00 开员工会议
 - en: 'B''s fn: hiring meeting at 10:00 or 11:00'
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的功能：在 10:00 或 11:00 举行面试。
 - en: X syncs w/ A, then B
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X 同步与 A，然后 B
 - en: Y syncs w/ B, then A
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Y 同步与 B，然后 A
 - en: Will X put A's meeting at 10:00, and Y put A's at 11:00?
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X 会将 A 的会议安排在 10:00，而 Y 则将 A 的安排在 11:00？
 - en: '**Goal:** eventual consistency'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '**目标：** 最终一致性'
 - en: OK for X and Y to disagree initially
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X 和 Y 最初的不一致是可以接受的
 - en: But after enough syncing, all nodes' DBs should be identical
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是经过足够的同步，所有节点的数据库应该是相同的
 - en: '**Idea:** ordered update log'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '**思路：** 有序的更新日志'
 - en: Ordered log of updates at each node.
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点的有序更新日志。
 - en: Syncing == ensure both nodes have same updates in log.
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同步 == 确保两个节点在日志中具有相同的更新。
 - en: DB is result of applying update functions in order.
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据库是按顺序应用更新函数的结果。
 - en: Same log `=>` same order `=>` same DB content.
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相同的日志 `=>` 相同的顺序 `=>` 相同的数据库内容。
 - en: How can nodes agree on update order?
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 节点如何在更新顺序上达成一致？
 - en: 'Update ID: `<time T, node ID>`'
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更新 ID：`<时间 T，节点 ID>`
 - en: T is creating node's wall-clock time.
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: T 是创建节点的挂钟时间。
 - en: 'Ordering updates a and b:'
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 排序更新 a 和 b：
 - en: '`a < b` if `a.T < b.T` or (`a.T = b.T` and `a.ID < b.ID`)'
+  id: totrans-198
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 `a.T < b.T` 或者（`a.T = b.T` 且 `a.ID < b.ID`），则 `a < b`
 - en: 'Example:'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子：
 - en: '[PRE3]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: What DB content before sync?
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 同步之前的数据库内容是什么？
 - en: 'A: staff at 10:00'
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A：10:00 的员工
 - en: 'B: hiring at 10:00'
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B：10:00 的招聘
 - en: This is what A/B user will see before syncing.
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是 A/B 用户在同步之前将看到的内容。
 - en: Now A and B sync with each other
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在 A 和 B 互相同步
 - en: Each sorts new entries into its log, order by time-stamp
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点将新条目排序到其日志中，按时间戳排序
 - en: Both now know the full set of updates
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在两者都知道了完整的更新集
 - en: A can just run B's update function
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 可以直接运行 B 的更新函数
 - en: But B has *already* run B's operation, too soon!
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是 B 已经 *先前* 运行了 B 的操作，太早了！
 - en: Roll back and replay
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 回滚和重播
 - en: B needs to to "roll back" DB, re-run both ops in the right order
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 需要“回滚”数据库，按正确的顺序重新运行两个操作。
 - en: 'Big point: the log holds the truth; the DB is just an optimization'
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重要观点：日志才是真相；数据库只是一种优化。
 - en: We will optimize roll-back in a bit
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们稍后将优化回滚
 - en: Displayed meeting room calendar entries are "tentative"
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 显示的会议室日历条目是“暂定”的
 - en: B's user saw hiring at 10, then it changed to hiring at 11
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的用户看到了 10 点的招聘，然后它变成了 11 点
 - en: Will update order be consistent with wall-clock time?
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新顺序是否与挂钟时间一致？
 - en: Maybe A went first (in wall-clock time) with `<10,A>`
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '也许 A 先行（按挂钟时间）用 `<10,A>` '
 - en: Node clocks unlikely to be perfectly synchronized
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点时钟不太可能完全同步
 - en: So B could then generate <9,b>
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，B 可以生成 `<9,b>`
 - en: B's meeting gets priority, even though A asked first
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的会议优先级更高，即使 A 先发出请求
 - en: Not "externally consistent"
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不是“外部一致的”
 - en: Will update order be consistent with causality?
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新顺序是否与因果一致性一致？
 - en: What if A adds a meeting,
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 A 添加了一个会议，
 - en: then B sees A's meeting,
+  id: totrans-224
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后 B 看到了 A 的会议，
 - en: then B deletes A's meeting.
+  id: totrans-225
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后 B 删除了 A 的会议。
 - en: Perhaps
+  id: totrans-226
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或许
 - en: '`<10,A> add`'
+  id: totrans-227
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<10,A>` 添加'
 - en: '`<9,B> delete` -- B''s clock is slow'
+  id: totrans-228
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<9,B>` 删除 —— B 的时钟慢了'
 - en: Now delete will be ordered before add!
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在删除将在添加之前排序！
 - en: Lamport logical clocks for causal consistency
+  id: totrans-230
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Lamport 逻辑时钟用于因果一致性
 - en: Want to timestamp events s.t.
+  id: totrans-231
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想要给事件时间戳，例如：
 - en: if node observes E1, then generates E2, then `TS(E2) > TS(E1)`
+  id: totrans-232
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果节点观察到 E1，然后生成 E2，那么 `TS(E2) > TS(E1)`
 - en: So all nodes will order E1, then E2
+  id: totrans-233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，所有节点都将按顺序排序 E1，然后 E2
 - en: '`Tmax` = highest time-stamp seen from any node (including self)'
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Tmax` = 从任何节点（包括自己）看到的最高时间戳'
 - en: '`T = max(Tmax + 1, wall-clock time)` -- to generate a timestamp'
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`T = max(Tmax + 1, 挂钟时间)` —— 生成时间戳'
 - en: 'Note properties:'
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意属性：
 - en: E1 then E2 on same node `=> TS(E1) < TS(E2)`
+  id: totrans-237
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在同一节点上 E1 然后 E2 `=> TS(E1) < TS(E2)`
 - en: BUT
+  id: totrans-238
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是
 - en: '`TS(E1) < TS(E2)` does not imply E1 came before E2'
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`TS(E1) < TS(E2)` 不意味着 E1 在 E2 之前发生'
 - en: Logical clock solves add/delete causality example
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 逻辑时钟解决了添加/删除因果关系的示例。
 - en: When B sees `<10,A>`,
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 B 看到 `<10,A>` 时，
 - en: B will set its Tmax to 10, so
+  id: totrans-242
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 将其 Tmax 设置为 10，所以
 - en: B will generate `<11,B>` for its delete
+  id: totrans-243
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 将为其删除生成 `<11,B>`
 - en: Irritating that there could always be a long-delayed update with lower TS
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 令人恼火的是始终可能存在时间较长的具有较低时间戳的更新
 - en: That can cause the results of my update to change
+  id: totrans-245
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这可能导致我的更新结果发生变化
 - en: User can never be sure if meeting time is final!
+  id: totrans-246
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户永远无法确定会议时间是否最终确定！
 - en: Would be nice if updates were eventually "stable"
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果更新最终“稳定”，那就好了
 - en: '`=>` no changes in update order up to that point'
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 在那一点之前的更新顺序没有变化'
 - en: '`=>` results can never again change -- you know for sure when your meeting
     is'
+  id: totrans-249
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 结果永远不会再次更改 —— 你确切地知道何时开会。'
 - en: '`=>` don''t have to roll back, re-run committed updates'
+  id: totrans-250
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 不必回滚，重新运行已提交的更新'
 - en: '**Bad idea:** a fully decentralized "commit" scheme'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '**糟糕的想法：** 完全分散的“提交”方案'
 - en: 'Proposal: `<10,A>` is stable if all nodes have seen all updates w/ `TS <= 10`'
+  id: totrans-252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 建议：如果所有节点都看到了所有时间戳小于等于 10 的更新，则 `<10,A>` 是稳定的。
 - en: Have sync always send in log order -- "prefix property"
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让同步始终按日志顺序发送 —— “前缀属性”
 - en: If you have seen updates w/ `TS > 10` from *every* node
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你已经看到了来自*每个*节点的 `TS > 10` 的更新
 - en: Then you'll never again see one `< <10,A>`
+  id: totrans-255
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那么你将永远不会再���到一个 `< <10,A>`
 - en: So `<10,A>` is stable
+  id: totrans-256
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以 `<10,A>` 是稳定的。
 - en: Why doesn't Bayou do this?
+  id: totrans-257
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么 Bayou 不这样做？
 - en: Not all nodes are connected to each other
+  id: totrans-258
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并非所有节点都互相连接。
 - en: How does Bayou commit updates, so that they are stable?
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: Bayou 如何提交更新，使其稳定？
 - en: One node designated "primary replica".
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个节点被指定为“主复制品”。
 - en: It marks each update it receives with a permanent CSN.
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它用永久 CSN 标记收到的每个更新。
 - en: Commit Sequence Number.
+  id: totrans-262
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提交顺序号。
 - en: That update is committed.
+  id: totrans-263
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那个更新已经提交。
 - en: So a complete time stamp is `<CSN, local-time, node-id>`
+  id: totrans-264
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此一个完整的时间戳是 `<CSN, 本地时间, 节点 ID>`
 - en: Uncommitted updates (are considered to) come after all committed updates w/
     this new timestamping scheme
+  id: totrans-265
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 未提交的更新（被认为）在所有已提交的更新之后使用这个新的时间戳方案
 - en: CSN notifications are synced between nodes.
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: CSN 通知在节点之间同步。
 - en: The CSNs define a total order for committed updates.
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: CSN 为已提交的更新定义了一个总顺序。
 - en: All nodes will eventually agree on it.
+  id: totrans-268
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有节点最终都会同意它。
 - en: Will commit order match tentative order?
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 提交顺序会匹配临时顺序吗？
 - en: Often.
+  id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 经常。
 - en: Syncs send in log order (prefix property)
+  id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同步按日志顺序发送（前缀属性）
 - en: Including updates learned from other nodes.
+  id: totrans-272
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包括从其他节点学到的更新。
 - en: So if A's update log says
+  id: totrans-273
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以如果 A 的更新日志说
 - en: '`<-,10,X>`'
+  id: totrans-274
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-,10,X>`'
 - en: '`<-,20,A>`'
+  id: totrans-275
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<-,20,A>`'
 - en: A will send both to primary, in that order
+  id: totrans-276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 将按照那个顺序将两者发送给主复制品
 - en: Primary will assign CSNs in that order
+  id: totrans-277
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主复制品将按照那个顺序分配 CSN
 - en: Commit order will, in this case, match tentative order
+  id: totrans-278
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这种情况下，提交顺序将匹配临时顺序
 - en: Will commit order always match tentative order?
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 提交顺序是否总是匹配临时顺序？
 - en: 'No: primary may see newer updates before older ones.'
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不：主复制品可能在看到较旧的更新之前看到更新。
 - en: 'A has just: `<-,10,A> W1`'
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 刚刚有：`<-,10,A> W1`
 - en: 'B has just: `<-,20,B> W2`'
+  id: totrans-282
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 刚刚有：`<-,20,B> W2`
 - en: 'If `C` sees both, C''s order: `W1 W2`'
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 `C` 看到了 `W1 W2` 的更新
 - en: B syncs with primary, gets `CSN=5`.
+  id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 与主复制品同步，得到 `CSN=5`。
 - en: Later A syncs w/ primary, gets `CSN=6`.
+  id: totrans-285
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 稍后 A 与主复制品同步，得到 `CSN=6`。
 - en: When C syncs w/ primary, its order will change to `W2 W1`
+  id: totrans-286
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 C 与主复制品同步时，它的顺序将变为 `W2 W1`
 - en: '`<5,20,B> W1`'
+  id: totrans-287
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<5,20,B> W1`'
 - en: '`<6,10,A> W2`'
+  id: totrans-288
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`<6,10,A> W2`'
 - en: 'So: committing may change order.'
+  id: totrans-289
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此：提交可能会改变顺序。
 - en: Committing allows app to tell users which calendar entries are stable.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 提交允许应用程序告诉用户哪些日历条目是稳定的。
 - en: A stable meeting room time is final.
+  id: totrans-291
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 稳定的会议室时间是最终的。
 - en: Nodes can discard committed updates.
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 节点可以丢弃已提交的更新。
 - en: Instead, keep a copy of the DB as of the highest known CSN
+  id: totrans-293
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相反，保留一个截至最高已知 CSN 的数据库副本
 - en: Roll back to that DB when replaying tentative update log
+  id: totrans-294
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在重放临时更新日志时回滚到该数据库
 - en: Never need to roll back farther
+  id: totrans-295
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 永远不需要再回滚更远
 - en: Prefix property guarantees seen `CSN=x => seen CSN<x`
+  id: totrans-296
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前缀属性保证看到 `CSN=x => 看到 CSN<x`
 - en: No changes to update order among committed updates
+  id: totrans-297
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在已提交的更新中不会有更新顺序的更改
 - en: How do I sync if I've discarded part of my log?
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我丢弃了日志的一部分，我该如何同步？
 - en: Suppose I've discarded all updates with CSNs.
+  id: totrans-299
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设我已经丢弃了所有带有 CSN 的更新。
 - en: I keep a copy of the stable DB reflecting just discarded entries.
+  id: totrans-300
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我保留一个反映刚刚丢弃条目的稳定数据库副本。
 - en: 'When I propagate to node `X`:'
+  id: totrans-301
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我传播给节点 `X` 时：
 - en: If node X's highest CSN is less than mine,
+  id: totrans-302
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果节点 X 的最高 CSN 小于我的，
 - en: I can send him my stable DB reflecting just committed updates.
+  id: totrans-303
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我可以发送给他我的稳定数据库，反映刚刚提交的更新。
 - en: Node X can use my DB as starting point.
+  id: totrans-304
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点 X 可以使用我的数据库作为起点。
 - en: And X can discard all CSN log entries.
+  id: totrans-305
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并且 X 可以丢弃所有 CSN 日志条目。
 - en: Then play his tentative updates into that DB.
+  id: totrans-306
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后将他的临时更新播放到该数据库中。
 - en: If node X's highest CSN is greater than mine,
+  id: totrans-307
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果节点 X 的最高 CSN 大于我的，
 - en: X doesn't need my DB.
+  id: totrans-308
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X 不需要我的数据库。
 - en: In practice, Bayou nodes keep the last few committed updates.
+  id: totrans-309
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在实践中，Bayou 节点保留最近的几个已提交的更新。
 - en: To reduce chance of having to send whole DB during sync.
+  id: totrans-310
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了减少在同步期间必须发送整个数据库的机会。
 - en: How to sync?
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何同步？
 - en: A sending to B
+  id: totrans-312
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 发送给 B
 - en: Need a quick way for B to tell A what to send
+  id: totrans-313
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要一种快速的方式让 B 告诉 A 发送什么
 - en: 'Committed updates easy: B sends its CSN to A'
+  id: totrans-314
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 已提交的更新很容易：B 将其 CSN 发送给 A
 - en: What about tentative updates?
+  id: totrans-315
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那么临时更新呢？
 - en: 'A has: `<-,10,X>` `<-,20,Y>` `<-,30,X>` `<-,40,X>`'
+  id: totrans-316
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 有：`<-,10,X>` `<-,20,Y>` `<-,30,X>` `<-,40,X>`
 - en: 'B has: `<-,10,X>` `<-,20,Y>` `<-,30,X>`'
+  id: totrans-317
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 有：`<-,10,X>` `<-,20,Y>` `<-,30,X>`
 - en: At start of sync, B tells A "X 30, Y 20"
+  id: totrans-318
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在同步开始时，B 告诉 A “X 30, Y 20”
 - en: Sync prefix property means B has all X updates before 30, all Y before 20
+  id: totrans-319
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同步前缀属性意味着 B 在 30 之前拥有所有 X 的更新，在 20 之前拥有所有 Y 的更新。
 - en: A sends all X's updates after `<-,30,X>`, all Y's updates after `<-,20,X>`,
     &c
+  id: totrans-320
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 在 `<-,30,X>` 之后发送所有 X 的更新，`<-,20,X>` 之后发送所有 Y 的更新，等等
 - en: This is a version vector -- it summarize log content
+  id: totrans-321
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是一个版本向量 -- 它总结了日志内容
 - en: It's the "F" vector in Figure 4
+  id: totrans-322
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是图 4 中的“F”向量
 - en: 'A''s F: `[X:40,Y:20]`'
+  id: totrans-323
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 的 F：`[X:40,Y:20]`
 - en: 'B''s F: `[X:30,Y:20]`'
+  id: totrans-324
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的 F：`[X:30,Y:20]`
 - en: How could we cope with a new server Z joining the system?
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何应对新服务器 Z 加入系统？
 - en: Could it just start generating writes, e.g. `<-,1,Z>` ?
+  id: totrans-326
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它可以开始生成写操作，例如 `<-,1,Z>` 吗？
 - en: And other nodes just start including Z in VVs?
+  id: totrans-327
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其他节点是否只是开始在 VVs 中包含 Z？
 - en: If A syncs to B, A has `<-,10,Z>`, but B has no Z in VV
+  id: totrans-328
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 A 同步到 B，A 有 `<-,10,Z>`，但 B 的 VV 中没有 Z
 - en: A should pretend B's VV was `[Z:0,...]`
+  id: totrans-329
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 应该假装 B 的 VV 是 `[Z:0,...]`
 - en: What happens when Z retires (leaves the system)?
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 Z 退休（离开系统）时会发生什么？
 - en: We want to stop including Z in VVs!
+  id: totrans-331
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望停止在 VVs 中包含 Z！
 - en: How to announce that Z is gone?
+  id: totrans-332
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何宣布 Z 已经离开？
 - en: Z sends update `<-,?,Z> "retiring"`
+  id: totrans-333
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z 发送更新 `<-,?,Z> "退休"`
 - en: If you see a retirement update, omit Z from VV
+  id: totrans-334
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您看到一个退休更新，请在 VV 中省略 Z
 - en: How to deal with a VV that's missing Z?
+  id: totrans-335
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何处理缺少 Z 的 VV？
 - en: 'If A has log entries from Z, but B''s VV has no Z entry:'
+  id: totrans-336
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 A 有来自 Z 的日志条目，但 B 的 VV 没有 Z 条目：
 - en: e.g. A has `<-,25,Z>`, B's VV is just `[A:20, B:21]`
+  id: totrans-337
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如 A 有 `<-,25,Z>`，B 的 VV 只是 `[A:20, B:21]`
 - en: Maybe Z has retired, B knows, A does not
+  id: totrans-338
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或许 Z 已经退休，B 知道，A 不知道
 - en: Maybe Z is new, A knows, B does not
+  id: totrans-339
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或许 Z 是新的，A 知道，B 不知道
 - en: 'Need a way to disambiguate: Z missing from VV b/c new, or b/c retired?'
+  id: totrans-340
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要一种方式来区分：VV 中缺少 Z 是因为新的还是因为退休？
 - en: Bayou's retirement plan
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: Bayou 的退休计划
 - en: Z joins by contacting some server `X`
+  id: totrans-342
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z 通过联系某个服务器 `X` 加入
 - en: Z's ID is generated by X as `<Tz,X>`
+  id: totrans-343
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Z 的 ID 由 X 生成为 `<Tz,X>`
 - en: Tz is X's logical clock as of when Z joined
+  id: totrans-344
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Tz 是 X 加入时的逻辑时钟
 - en: 'Note: unbounded ID size'
+  id: totrans-345
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：无限制的 ID 大小
 - en: X issues `<-,Tz,X> "new server Z"`
+  id: totrans-346
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X 发出 `<-,Tz,X> "新服务器 Z"`
 - en: How does `ID=<Tz,X>` scheme help disambiguate new vs forgotten?
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ID=<Tz,X>` 方案如何帮助区分新的与被遗忘的？'
 - en: Suppose Z's ID is `<20,X>`
+  id: totrans-348
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设 Z 的 ID 是 `<20,X>`
 - en: A syncs to B
+  id: totrans-349
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 同步到 B
 - en: A has log entry from `Z <-,25,<20,X>>`
+  id: totrans-350
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A 有来自 `Z <-,25,<20,X>>` 的日志条目
 - en: B's VV has no Z entry
+  id: totrans-351
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的 VV 中没有 Z 条目
 - en: 'One case:'
+  id: totrans-352
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种情况：
 - en: 'B''s VV: `[X:10, ...]`'
+  id: totrans-353
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的 VV：`[X:10, ...]`
 - en: '`10 < 20` implies B hasn''t yet seen X''s "new server Z" update'
+  id: totrans-354
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`10 < 20` 意味着 B 尚未看到 X 的 "新服务器 Z" 更新'
 - en: 'The other case:'
+  id: totrans-355
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一种情况：
 - en: 'B''s VV: `[X:30, ...]`'
+  id: totrans-356
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: B 的 VV：`[X:30, ...]`
 - en: '`20 < 30` implies B once knew about Z, but then saw a retirement update'
+  id: totrans-357
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`20 < 30` 意味着 B 曾经知道 Z，但后来看到了一个退休更新'
 - en: Let's step back.
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们退一步。
 - en: Is eventual consistency a useful idea?
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终一致性是一个有用的概念吗？
 - en: 'Yes: people want fast writes to local copies'
+  id: totrans-360
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的：人们希望将快速写入本地副本
 - en: iPhone sync, Dropbox, Dynamo, Riak, Cassandra, &c
+  id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: iPhone 同步，Dropbox，Dynamo，Riak，Cassandra，等等
 - en: Are update conflicts a real problem?
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新冲突是一个真正的问题吗？
 - en: Yes -- all systems have some more or less awkward solution
+  id: totrans-363
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的 - 所有系统都有或多或少笨拙的解决方案
 - en: Is Bayou's complexity warranted?
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: Bayou 的复杂性是否合理？
 - en: I.e. log of update functions, version vectors, tentative operations
+  id: totrans-365
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即更新函数的日志、版本向量、暂定操作
 - en: Only critical if you want peer-to-peer sync
+  id: totrans-366
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有在您需要点对点同步时才是关键的
 - en: I.e. both disconnected operation AND ad-hoc connectivity
+  id: totrans-367
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即断开连接的操作和临时连接性
 - en: Only tolerable if humans are main consumers of data
+  id: totrans-368
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有在人类是数据的主要使用者时才能容忍
 - en: Otherwise you can sync through a central server (iPhone, Dropbox)
+  id: totrans-369
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，您可以通过中央服务器进行同步（iPhone，Dropbox）
 - en: Or read locally but send updates through a master (PNUTS, Spanner)
+  id: totrans-370
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 还是在本地读取但通过主服务器发送更新（PNUTS、Spanner）？
 - en: But there's are good ideas for us to learn from Bayou
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 但有一些 Bayou 可以学习的好主意
 - en: Update functions for automatic application-driven conflict resolution
+  id: totrans-372
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于自动应用驱动冲突解决的更新函数
 - en: Ordered update log is the real truth, not the DB
+  id: totrans-373
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有序更新日志是真相，而不是数据库
 - en: Logical clock for causal consistency
+  id: totrans-374
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因果一致性的逻辑时钟

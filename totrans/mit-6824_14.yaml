@@ -1,311 +1,417 @@
 - en: Spark
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '6.824 2015 Lecture 14: Spark'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: Introduction
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'MapReduce benefits:'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Scales
+  id: totrans-5
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Fault tolerance
+  id: totrans-6
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Strategy dealing with stragglers
+  id: totrans-7
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: If a map task is low, MapReduce starts another task on a different machine
+  id: totrans-8
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Tasks don't communicate, so easy to have them run twice in parallel
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'MapReduce limitations:'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: very rigid form of computation
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: one map phase, one level of communication between maps and reduce, and the reduce
     phase
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: what if you wanted to build an inverted index **and** then sort it by the most
     popular keyword `=>` you would need two MapReduce jobs
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: so, cannot properly deal with multi-stage, iterative nor interactive jobs
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Users needed more complicated computations `=>` Spark
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
 - en: There were previous solutions that tackled different types of computations individually.
     Spark's aim was to provide one solution for a general enough model of computation.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
 - en: Spark
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Hard to do DSM while maintaining scalability and fault tolerance properties.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
 - en: '**RDDs: Resilient Distributed Datasets**'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
 - en: a Scala object essentially
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: immutable
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: partitioned across machines
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Example (build an RDD of all the lines in a text file that start with "ERROR"):'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'RDDs are created by:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
 - en: by referring to data in external storage
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: by *transforming* other RDDs
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: like the `Filter` call above
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Actions** kick off a computation on the RDD, like the `count()` call in the
     example.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
 - en: The `persist()` call tells Spark to hold the RDD in memory, for fast access.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: No work is done until the `count()` action is seen and executed (lazy evaluation)
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
 - en: you can save work by combining all the filters applied before the action
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: faster to read AND filter than to read the file entirely and then do another
     filter pass
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Fault tolerance
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Lineage graphs: dependencies between RDDs'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Machines:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: If you lose an RDD's partition like p4 (because M2 failed), you can rebuild
     it by tracing through the dependency graph and decide (based on what's already
     computed) where to start and what to recompute.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: How do you know on what machines to recompute? In this example, `b3` and `b4`
     would be replicated on other machines (maybe on `M1` and `M3`), so that's where
     you would restart the computation.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
 - en: Comparison
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Spark computation expressivity
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Spark is pretty general: a lot of existing parallel computation paradigms,
     like MapReduce, can be implemented easily on top of it'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
 - en: The reason coarse-grained writes are good enough is because a lot of parallel
     algorithms simply apply the same op over all data.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: Partitioning
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Can have a custom partitioning function that says "this RDD has 10 partitions,
     1st one is all elements starting with `a`, etc.."
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: If you use your data set multiple times, grouping it properly so that the data
     you need sits on the same machine is important.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
 - en: PageRank example
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Example:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Algorithm:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
 - en: Start every page with rank 1
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Everyone splits their rank across their neighbours
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: website 1 will give 0.5 to node 3 and node 4 and receive 0.5 from node 2
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 网站 1 将给节点 3 和节点 4 各 0.5，并从节点 2 收到 0.5
 - en: Iterate how many times? Until it converges apparently.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 迭代多少次？显然直到收敛。
 - en: 'Data:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据：
 - en: '[PRE5]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Example of bad allocation, because we''ll transfer a lot of data:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 不良分配的示例，因为我们将传输大量数据：
 - en: '[PRE6]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Example with partitioning:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 带有分区的示例：
 - en: '[PRE7]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Does PageRank need communication at all then? Yes, the `contribs` RDD does a
     `reduceByKey`
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么 PageRank 需要通信吗？是的，`contribs` RDD 执行 `reduceByKey`
 - en: 'TODO: Not sure what it does'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 待办事项：不确定它的作用是什么
 - en: Internal representation
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 内部表示
 - en: 'RDD methods:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: RDD 方法：
 - en: '`partitions` -- returns a list of partitions'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`partitions` -- 返回一个分区列表'
 - en: '`preferredLocations(p)` -- returns the preferred locations of a partition'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`preferredLocations(p)` -- 返回分区的首选位置'
 - en: tells you about machines where computation would be faster
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉您计算速度更快的机器
 - en: '`dependencies`'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`dependencies`'
 - en: how you depend on other RDDs
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您如何依赖其他 RDD
 - en: '`iterator(p, parentIters)`'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`iterator(p, parentIters)`'
 - en: ask an RDD to compute one of its partitions
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要求 RDD 计算其一个分区
 - en: '`partitioner`'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`partitioner`'
 - en: allows you to specify a partitioning function
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许您指定一个分区函数
 - en: 6.824 notes
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 笔记
 - en: '[PRE8]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
