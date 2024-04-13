@@ -1,212 +1,305 @@
 - en: 'Reading 20: Thread Safety'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 阅读20：线程安全
 - en: Software in 6.005
+  id: totrans-1
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 6.005中的软件
 - en: '| Safe from bugs | Easy to understand | Ready for change |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '| 免受错误困扰 | 易于理解 | 为变化做好准备 |'
 - en: '| Correct today and correct in the unknown future. | Communicating clearly
     with future programmers, including future you. | Designed to accommodate change
     without rewriting. |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '| 今天正确且未来未知时也正确。 | 与未来的程序员清晰沟通，包括未来的自己。 | 设计以适应变化而无需重写。 |'
 - en: Objectives
+  id: totrans-4
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 目标
 - en: 'Recall race conditions: multiple threads sharing the same mutable variable
     without coordinating what they’re doing. This is unsafe, because the correctness
     of the program may depend on accidents of timing of their low-level operations.'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下竞争条件：多个线程共享相同的可变变量而不协调它们的操作。这是不安全的，因为程序的正确性可能取决于它们低级操作的时间巧合。
 - en: 'There are basically four ways to make variable access safe in shared-memory
     concurrency:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在共享内存并发中使变量访问安全的基本上有四种方法：
 - en: '**Confinement.** Don’t share the variable between threads. This idea is called
     confinement, and we’ll explore it today.'
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**封闭。** 不要在线程之间共享变量。这个概念被称为封闭，我们今天将探讨它。'
 - en: '**Immutability.** Make the shared data immutable. We’ve talked a lot about
     immutability already, but there are some additional constraints for concurrent
     programming that we’ll talk about in this reading.'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**不可变性。** 使共享数据不可变。我们已经讨论了很多关于不可变性的内容，但在本篇阅读中，我们将讨论一些与并发编程相关的额外约束。'
 - en: '**Threadsafe data type.** Encapsulate the shared data in an existing threadsafe
     data type that does the coordination for you. We’ll talk about that today.'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**线程安全数据类型。** 将共享数据封装在现有的线程安全数据类型中，该类型会为你进行协调。我们今天将讨论这个。'
 - en: '**Synchronization.** Use synchronization to keep the threads from accessing
     the variable at the same time. Synchronization is what you need to build your
     own threadsafe data type.'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**同步。** 使用同步来防止线程同时访问变量。同步是构建自己的线程安全数据类型所需的内容。'
 - en: We’ll talk about the first three ways in this reading, along with how to make
     an argument that your code is threadsafe using those three ideas. We’ll talk about
     the fourth approach, synchronization, in a later reading.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本篇阅读中讨论前三种方法，以及如何通过这三种方法来证明你的代码是线程安全的。我们将在后续的阅读中讨论第四种方法，即同步。
 - en: 'The material in this reading is inspired by an excellent book: Brian Goetz
     et al., *[Java Concurrency in Practice](http://jcip.net/)*, Addison-Wesley, 2006.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本篇阅读的内容受到一本优秀书籍的启发：Brian Goetz等人的《[Java并发实践](http://jcip.net/)》，Addison-Wesley，2006年。
 - en: What Threadsafe Means
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 什么是线程安全
 - en: A data type or static method is *threadsafe* if it behaves correctly when used
     from multiple threads, regardless of how those threads are executed, and without
     demanding additional coordination from the calling code.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个数据类型或静态方法在多个线程中使用时行为正确，无论这些线程如何执行，并且不需要调用代码进行额外的协调，那么它就是*线程安全*的。
 - en: “behaves correctly” means satisfying its specification and preserving its rep
     invariant;
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “正确运行”意味着满足其规范并保持其表示不变性；
 - en: “regardless of how threads are executed” means threads might be on multiple
     processors or timesliced on the same processor;
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “无论线程如何执行”意味着线程可能在多个处理器上执行，或在同一处理器上进行时间切片；
 - en: “without additional coordination” means that the data type can’t put preconditions
     on its caller related to timing, like “you can’t call `get()` while `set()` is
     in progress.”
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “不需要额外的协调”意味着数据类型不能对其调用者的时间相关性提出前提条件，比如“在`set()`正在进行时不能调用`get()`”。
 - en: Remember [`Iterator`](http://docs.oracle.com/javase/8/docs/api/?java/util/Iterator.html)?
     It’s not threadsafe. `Iterator`’s specification says that you can’t modify a collection
     at the same time as you’re iterating over it. That’s a timing-related precondition
     put on the caller, and `Iterator` makes no guarantee to behave correctly if you
     violate it.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 还记得[`Iterator`](http://docs.oracle.com/javase/8/docs/api/?java/util/Iterator.html)吗？它不是线程安全的。`Iterator`的规范指出，你不能在迭代集合的同时修改它。这是对调用者的时间相关前提条件，如果违反该条件，`Iterator`不保证能正确运行。
 - en: 'Strategy 1: Confinement'
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 策略1：封闭
 - en: 'Our first way of achieving thread safety is *confinement*. Thread confinement
     is a simple idea: you avoid races on mutable data by keeping that data confined
     to a single thread. Don’t give any other threads the ability to read or write
     the data directly.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现线程安全的第一种方式是*封闭*。线程封闭是一个简单的概念：通过将数据限制在单个线程中，避免对可变数据的竞争。不要让其他线程直接读取或写入数据。
 - en: Since shared mutable data is the root cause of a race condition, confinement
     solves it by *not sharing* the mutable data.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于共享的可变数据是竞争条件的根本原因，限定通过*不共享*可变数据来解决它。
 - en: Local variables are always thread confined. A local variable is stored in the
     stack, and each thread has its own stack. There may be multiple invocations of
     a method running at a time (in different threads or even at different levels of
     a single thread’s stack, if the method is recursive), but each of those invocations
     has its own private copy of the variable, so the variable itself is confined.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 本地变量始终是线程限定的。本地变量存储在栈中，每个线程都有自己的栈。可能会有多个方法调用同时运行（在不同的线程或甚至在单个线程的堆栈的不同级别，如果方法是递归的），但每个调用都有自己的变量的私有副本，因此变量本身是限定的。
 - en: But be careful – the variable is thread confined, but if it’s an object reference,
     you also need to check the object it points to. If the object is mutable, then
     we want to check that the object is confined as well – there can’t be references
     to it that are reachable from any other thread.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 但要小心 - 变量是线程限定的，但如果它是一个对象引用，则还需要检查它指向的对象。如果对象是可变的，那么我们希望检查对象也是限定的 - 不能有其他线程可以从中访问的引用。
 - en: 'Confinement is what makes the accesses to `n`, `i`, and `result` safe in code
     like this:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 限定是使得像这样的代码中对 `n`、`i` 和 `result` 的访问是安全的：
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This code starts the thread for `computeFact(99)` with an [anonymous](https://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html)
     `Runnable`, [a common idiom discussed in the previous reading](../19-concurrency/anonymous-runnable/).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 此代码使用 [匿名](https://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html)
+    `Runnable` 为 `computeFact(99)` 启动线程，这是之前阅读中讨论的一种常见习语。
 - en: 'Let’s look at snapshot diagrams for this code. Hover or tap on each step to
     update the diagram:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看此代码的快照图。悬停或点击每个步骤以更新图表：
 - en: '|'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: When we start the program, we start with one thread running `main`.
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当我们启动程序时，我们从一个运行 `main` 的线程开始。
 - en: '`main` creates a second thread using the anonymous `Runnable` idiom, and starts
     that thread.'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`main` 使用匿名 `Runnable` 习语创建第二个线程，并启动该线程。'
 - en: At this point, we have two concurrent threads of execution. Their interleaving
     is unknown! But one *possibility* for the next thing that happens is that thread
     1 enters `computeFact`.
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 此时，我们有两个并发的执行线程。它们的交错是未知的！但是下一步可能发生的一种*可能性*是线程 1 进入 `computeFact`。
 - en: Then, the next thing that *might* happen is that thread 2 also enters `computeFact`.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，*可能*会发生的下一件事是线程 2 也进入 `computeFact`。
 - en: 'At this point, we see how **confinement** helps with thread safety: each execution
     of `computeFact` has its own `n`, `i`, and `result` variables. None of the objects
     they point to are mutable; if they were mutable, we would need to check that the
     objects are not aliased from other threads.'
+  id: totrans-33
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 此时，我们看到**限定**如何帮助确保线程安全：每次执行 `computeFact` 都有自己的 `n`、`i` 和 `result` 变量。它们指向的对象都不可变；如果它们是可变的，我们需要检查对象不是从其他线程别名引用的。
 - en: The `computeFact` computations proceed independently, updating their respective
     variables.
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`computeFact` 计算独立进行，更新它们各自的变量。'
 - en: '| ![](http://web.mit.edu/6.005/www/fa16/classes/20-thread-safetyfigures/confinement-0.png)
     |'
+  id: totrans-35
   prefs: []
   type: TYPE_TB
+  zh: '| ![](http://web.mit.edu/6.005/www/fa16/classes/20-thread-safetyfigures/confinement-0.png)
+    |'
 - en: Avoid Global Variables
+  id: totrans-36
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 避免全局变量。
 - en: Unlike local variables, static variables are not automatically thread confined.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 与局部变量不同，静态变量不会自动线程限定。
 - en: If you have static variables in your program, then you have to make an argument
     that only one thread will ever use them, and you have to document that fact clearly.
     Better, you should eliminate the static variables entirely.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果程序中有静态变量，则必须说明只有一个线程会使用它们，并且必须清楚地记录这一事实。更好的做法是完全消除静态变量。
 - en: 'Here’s an example:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个例子：
 - en: '[PRE1]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This class has a race in the `getInstance()` method – two threads could call
     it at the same time and end up creating two copies of the `PinballSimulator` object,
     which we don’t want.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 此类在 `getInstance()` 方法中存在竞争 - 两个线程可能同时调用它并最终创建两个 `PinballSimulator` 对象的副本，这是我们不想要的。
 - en: To fix this race using the thread confinement approach, you would specify that
     only a certain thread (maybe the “pinball simulation thread”) is allowed to call
     `PinballSimulator.getInstance()`. The risk here is that Java won’t help you guarantee
     this.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用线程限定方法修复此竞争，您将指定只允许某个线程（也许是“弹球模拟线程”）调用 `PinballSimulator.getInstance()`。风险在于
+    Java 不会帮助您保证这一点。
 - en: 'In general, static variables are very risky for concurrency. They might be
     hiding behind an innocuous function that seems to have no side-effects or mutations.
     Consider this example:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，静态变量对并发性非常危险。它们可能隐藏在一个看似没有副作用或突变的无害函数后面。考虑以下示例：
 - en: '[PRE2]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This function stores the answers from previous calls in case they’re requested
     again. This technique is called [memoization](http://en.wikipedia.org/wiki/Memoization),
     and it’s a sensible optimization for slow functions like exact primality testing.
@@ -219,96 +312,150 @@
     If you’re lucky, the corruption may cause an exception deep in the hash map, like
     a `Null­Pointer­Exception` or `Index­OutOfBounds­Exception`. But it also may just
     quietly give wrong answers, as we saw in the [bank account example](../19-concurrency/#shared_memory_example).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 此函数将先前调用的答案存储起来，以防再次请求。这种技术称为[记忆化](http://en.wikipedia.org/wiki/Memoization)，对于像精确素性测试这样的慢函数来说，这是一个明智的优化。但现在`isPrime`方法不适合从多个线程调用，而且其客户端可能甚至没有意识到。原因是静态变量`cache`引用的`HashMap`被所有对`isPrime()`的调用共享，而`HashMap`不是线程安全的。如果多个线程同时对映射进行突变，通过调用`cache.put()`，那么映射可能会变得损坏，就像[上次阅读中的银行账户变得损坏](../19-concurrency/#shared_memory_example)一样。如果幸运的话，损坏可能会导致哈希映射中的异常，比如`Null­Pointer­Exception`或`Index­OutOfBounds­Exception`。但它也可能悄悄地给出错误的答案，就像我们在[银行账户示例](../19-concurrency/#shared_memory_example)中看到的那样。
 - en: reading exercises
+  id: totrans-46
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Factorial
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 阶乘
 - en: 'In the [factorial example above](#strategy_1_confinement), `main` looks like:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述[限制策略1](#strategy_1_confinement)中，`main`看起来像：
 - en: '[PRE3]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Which of the following are possible interleavings?
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下哪些是可能的交错执行？
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失答案)(缺失答案)(缺失答案)(缺失答案)
 - en: (missing explanation)
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失解释)
 - en: PinballSimulator
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 弹球模拟器
 - en: 'Here’s part of the [pinball simulator example above](#avoid_global_variables):'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是上面[避免全局变量](#avoid_global_variables)的弹球模拟器示例的一部分：
 - en: '[PRE4]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The code has a race condition that invalidates the invariant that only one simulator
     object is created.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 该代码存在竞争条件，违反了只创建一个模拟器对象的不变性。
 - en: Suppose two threads are running `getInstance()`. One thread is about to execute
     one of the numbered lines above; the other thread is about to execute the other.
     For each pair of possible line numbers, is it possible the invariant will be violated?
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设两个线程正在运行`getInstance()`。一个线程即将执行上述编号的其中一行；另一个线程即将执行另一行。对于每对可能的行号，是否可能违反不变性？
 - en: (missing answer)(missing answer)
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失答案)(缺失答案)
 - en: (missing explanation)
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失解释)
 - en: (missing answer)(missing answer)
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失答案)(缺失答案)
 - en: (missing explanation)
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失解释)
 - en: (missing answer)(missing answer)
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失答案)(缺失答案)
 - en: (missing explanation)
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失解释)
 - en: Confinement
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 限制
 - en: In the following code, which variables are confined to a single thread?
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下代码中，哪些变量限制在单个线程中？
 - en: '[PRE5]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失答案)(缺失答案)(缺失答案)(缺失答案)(缺失答案)
 - en: (missing explanation)
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: (缺失解释)
 - en: 'Strategy 2: Immutability'
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '策略 2: 不可变性'
 - en: Our second way of achieving thread safety is by using immutable references and
     data types. Immutability tackles the shared-mutable-data cause of a race condition
     and solves it simply by making the shared data *not mutable*.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现线程安全的第二种方法是使用不可变引用和数据类型。不可变性解决了竞争条件的共享可变数据原因，并通过使共享数据*不可变*来简单解决它。
 - en: Final variables are immutable references, so a variable declared final is safe
     to access from multiple threads. You can only read the variable, not write it.
     Be careful, because this safety applies only to the variable itself, and we still
     have to argue that the object the variable points to is immutable.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终变量是不可变引用，因此声明为最终的变量可以安全地从多个线程访问。您只能读取变量，而不能写入。请注意，这种安全性仅适用于变量本身，我们仍然必须证明变量指向的对象是不可变的。
 - en: Immutable objects are usually also threadsafe. We say “usually” here because
     our current definition of immutability is too loose for concurrent programming.
     We’ve said that a type is immutable if an object of the type always represents
@@ -318,93 +465,137 @@
     when we looked at [an immutable list that cached its length in a mutable field](../16-recursive-data-types/recursive/#tuning_the_rep)
     the first time the length was requested by a client. Caching is a typical kind
     of beneficent mutation.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可变对象通常也是线程安全的。我们在这里说“通常”，是因为我们目前对不可变性的定义对于并发编程来说太宽松了。我们说一个类型是不可变的，如果该类型的对象在其整个生命周期中始终表示相同的抽象值。但实际上，这允许类型对其
+    rep 进行突变，只要这些突变对客户端不可见。当我们查看[在第一次客户端请求长度时将长度缓存在可变字段中的不可变列表](../16-recursive-data-types/recursive/#tuning_the_rep)时，我们就看到了这个概念的一个示例，称为善意或有益的突变。缓存是一种典型的善意突变。
 - en: For concurrency, though, this kind of hidden mutation is not safe. An immutable
     data type that uses beneficent mutation will have to make itself threadsafe using
     locks (the same technique required of mutable data types), which we’ll talk about
     in a future reading.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，对于并发来说，这种隐藏的突变是不安全的。使用有益突变的不可变数据类型将不得不使用锁来使自己线程安全（与需要对可变数据类型进行的相同技术），我们将在以后的阅读中讨论这一点。
 - en: Stronger definition of immutability
+  id: totrans-74
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更严格的不可变性定义
 - en: 'So in order to be confident that an immutable data type is threadsafe without
     locks, we need a stronger definition of immutability:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了确保不使用锁就可以信任不可变数据类型的线程安全性，我们需要更严格的不可变性定义：
 - en: no mutator methods
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有改变器方法
 - en: all fields are private and final
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有字段都是私有和最终的
 - en: no [representation exposure](../12-abstraction-functions-rep-invariants/#invariants)
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有[表示暴露](../12-abstraction-functions-rep-invariants/#invariants)
 - en: no mutation whatsoever of mutable objects in the rep – not even [beneficent
     mutation](../16-recursive-data-types/recursive/#tuning_the_rep)
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 rep 中对可变对象不进行任何变异 – 甚至不进行[有益的变异](../16-recursive-data-types/recursive/#tuning_the_rep)
 - en: If you follow these rules, then you can be confident that your immutable type
     will also be threadsafe.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您遵循这些规则，那么您可以确信您的不可变类型也将是线程安全的。
 - en: 'In the Java Tutorials, read:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Java 教程中阅读：
 - en: '[A Strategy for Defining Immutable Objects](http://docs.oracle.com/javase/tutorial/essential/concurrency/imstrat.html)
     (1 page)'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[定义不可变对象的策略](http://docs.oracle.com/javase/tutorial/essential/concurrency/imstrat.html)（1页）'
 - en: reading exercises
+  id: totrans-83
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Immutability
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可变性
 - en: Suppose you’re reviewing an abstract data type which is specified to be immutable,
     to decide whether its implementation actually is immutable and threadsafe.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设您正在审查一个指定为不可变的抽象数据类型，以确定其实现是否真的是不可变且线程安全的。
 - en: Which of the following elements would you have to look at?
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 您需要查看以下哪些元素？
 - en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
     answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: 'Strategy 3: Using Threadsafe Data Types'
+  id: totrans-89
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 策略 3：使用线程安全数据类型
 - en: Our third major strategy for achieving thread safety is to store shared mutable
     data in existing threadsafe data types.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现线程安全的第三个主要策略是将共享的可变数据存储在现有的线程安全数据类型中。
 - en: 'When a data type in the Java library is threadsafe, its documentation will
     explicitly state that fact. For example, here’s what [StringBuffer](http://docs.oracle.com/javase/8/docs/api/?java/lang/StringBuffer.html)
     says:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 Java 库中的数据类型是线程安全时，其文档将明确声明这一事实。例如，这是[StringBuffer](http://docs.oracle.com/javase/8/docs/api/?java/lang/StringBuffer.html)的说明：
 - en: '[StringBuffer is] A thread-safe, mutable sequence of characters. A string buffer
     is like a String, but can be modified. At any point in time it contains some particular
     sequence of characters, but the length and content of the sequence can be changed
     through certain method calls.'
+  id: totrans-92
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[StringBuffer]是一个线程安全的、可变的字符序列。字符串缓冲区类似于字符串，但可以被修改。在任何时刻，它都包含某个特定的字符序列，但是通过某些方法调用，可以改变序列的长度和内容。'
 - en: ''
+  id: totrans-93
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -412,107 +603,149 @@
     where necessary so that all the operations on any particular instance behave as
     if they occur in some serial order that is consistent with the order of the method
     calls made by each of the individual threads involved.
+  id: totrans-94
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 字符串缓冲区可以安全地供多个线程使用。这些方法在必要时是同步的，以使任何特定实例上的所有操作的行为都像发生在一些序列顺序中，这些序列顺序与每个涉及的单个线程所做的方法调用的顺序一致。
 - en: 'This is in contrast to [StringBuilder](http://docs.oracle.com/javase/8/docs/api/?java/lang/StringBuilder.html):'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与[StringBuilder](http://docs.oracle.com/javase/8/docs/api/?java/lang/StringBuilder.html)形成对比：
 - en: '[StringBuilder is] A mutable sequence of characters. This class provides an
     API compatible with StringBuffer, but with no guarantee of synchronization. This
     class is designed for use as a drop-in replacement for StringBuffer in places
     where the string buffer was being used by a single thread (as is generally the
     case). Where possible, it is recommended that this class be used in preference
     to StringBuffer as it will be faster under most implementations.'
+  id: totrans-96
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[StringBuilder是]一个可变的字符序列。该类提供了与StringBuffer兼容的API，但不保证同步。该类被设计为在字符串缓冲区被单个线程使用时（通常情况下）作为字符串缓冲区的替代品。如果可能的话，建议在大多数实现下使用这个类来代替StringBuffer，因为它会更快。'
 - en: 'It’s become common in the Java API to find two mutable data types that do the
     same thing, one threadsafe and the other not. The reason is what this quote indicates:
     threadsafe data types usually incur a performance penalty compared to an unsafe
     type.'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Java API中，找到两种执行相同操作的可变数据类型，一种是线程安全的，另一种不是，已经变得很常见。这句话表明的原因是：与不安全类型相比，线程安全的数据类型通常会带来性能损失。
 - en: It’s deeply unfortunate that `StringBuffer` and `StringBuilder` are named so
     similarly, without any indication in the name that thread safety is the crucial
     difference between them. It’s also unfortunate that they don’t share a common
     interface, so you can’t simply swap in one implementation for the other for the
     times when you need thread safety. The Java collection interfaces do much better
     in this respect, as we’ll see next.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常不幸的是，`StringBuffer`和`StringBuilder`的命名如此相似，没有任何指示名称中线程安全性是它们之间关键差异的。同样不幸的是，它们没有共享一个公共接口，所以当你需要线程安全性的时候，不能简单地将一个实现替换为另一个实现。在这方面，Java集合接口做得更好，我们将在接下来看到的。
 - en: Threadsafe Collections
+  id: totrans-99
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 线程安全的集合
 - en: The collection interfaces in Java – `List`, `Set`, `Map` – have basic implementations
     that are not threadsafe. The implementations of these that you’ve been used to
     using, namely `ArrayList`, `HashMap`, and `HashSet`, cannot be used safely from
     more than one thread.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: Java中的集合接口——`List`、`Set`、`Map`——具有基本的非线程安全实现。你之前习惯使用的`ArrayList`、`HashMap`和`HashSet`的实现不能安全地在多个线程中使用。
 - en: Fortunately, just like the Collections API provides wrapper methods that make
     collections immutable, it provides another set of wrapper methods to make collections
     threadsafe, while still mutable.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，就像集合API提供了使集合不可变的包装方法一样，它还提供了另一组包装方法，使集合具有线程安全性，同时仍然可变。
 - en: These wrappers effectively make each method of the collection atomic with respect
     to the other methods. An **atomic action** effectively happens all at once – it
     doesn’t interleave its internal operations with those of other actions, and none
     of the effects of the action are visible to other threads until the entire action
     is complete, so it never looks partially done.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些包装器有效地使集合的每个方法在其他方法方面都是原子的。**原子操作**实际上是一次性完成的——它不会将其内部操作与其他操作的操作交错，并且在整个操作完成之前，其他线程不会看到操作的任何效果，因此它永远不会看起来是部分完成的。
 - en: 'Now we see a way to fix the `isPrime()` method we had [earlier in the reading](#avoid_global_variables):'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们看到了修复我们之前在[阅读中](#避免全局变量)遇到的`isPrime()`方法的方法：
 - en: '[PRE6]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: A few points here.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有几个要点。
 - en: '**Don’t circumvent the wrapper.** Make sure to throw away references to the
     underlying non-threadsafe collection, and access it only through the synchronized
     wrapper. That happens automatically in the line of code above, since the new `HashMap`
     is passed only to `synchronizedMap()` and never stored anywhere else. (We saw
     this same warning with the unmodifiable wrappers: the underlying collection is
     still mutable, and code with a reference to it can circumvent immutability.)'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**不要绕过包装器。** 确保丢弃对底层非线程安全集合的引用，并且只通过同步包装器访问它。在上面的代码行中，这是自动发生的，因为新的`HashMap`只传递给`synchronizedMap()`，并且没有存储在其他地方。（我们在不可修改的包装器中看到了相同的警告：底层集合仍然是可变的，具有对其的引用的代码可能绕过不可变性。）'
 - en: '**Iterators are still not threadsafe.** Even though method calls on the collection
     itself (`get()`, `put()`, `add()`, etc.) are now threadsafe, iterators created
     from the collection are still not threadsafe. So you can’t use `iterator()`, or
     the for loop syntax:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '**迭代器仍然不是线程安全的。** 即使集合本身的方法调用（`get()`、`put()`、`add()`等）现在是线程安全的，但从集合创建的迭代器仍然不是线程安全的。因此，你不能使用`iterator()`或者for循环语法：'
 - en: '[PRE7]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The solution to this iteration problem will be to acquire the collection’s lock
     when you need to iterate over it, which we’ll talk about in a future reading.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个迭代问题的方法是在需要迭代时获取集合的锁，这将在未来的阅读中讨论。
 - en: 'Finally, **atomic operations aren’t enough to prevent races:** the way that
     you use the synchronized collection can still have a race condition. Consider
     this code, which checks whether a list has at least one element and then gets
     that element:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，**原子操作并不足以防止竞争：** 你使用同步集合的方式仍然可能存在竞争条件。考虑这段代码，它检查列表是否至少有一个元素，然后获取该元素：
 - en: '[PRE8]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Even if you make `lst` into a synchronized list, this code still may have a
     race condition, because another thread may remove the element between the `isEmpty()`
     call and the `get()` call.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使你将`lst`变成同步列表，这段代码仍然可能存在竞争条件，因为另一个线程可能在`isEmpty()`调用和`get()`调用之间删除元素。
 - en: 'Even the `isPrime()` method still has potential races:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使`isPrime()`方法仍然存在潜在的竞争：
 - en: '[PRE9]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'The synchronized map ensures that `containsKey()`, `get()`, and `put()` are
     now atomic, so using them from multiple threads won’t damage the rep invariant
     of the map. But those three operations can now interleave in arbitrary ways with
@@ -520,83 +753,123 @@
     if the cache maps an integer *x* to a value *f*, then *x* is prime if and only
     if *f* is true. If the cache ever fails this invariant, then we might return the
     wrong result.'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 同步映射确保`containsKey()`、`get()`和`put()`现在是原子的，因此从多个线程使用它们不会破坏映射的不变量。但是这三个操作现在可以以任意方式相互交错，这可能会破坏`isPrime`从缓存中需要的不变量：如果缓存将整数*x*映射到值*f*，那么*x*是素数当且仅当*f*为真。如果缓存违反了这个不变量，那么我们可能会返回错误的结果。
 - en: So we have to argue that the races between `containsKey()`, `get()`, and `put()`
     don’t threaten this invariant.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们必须论证`containsKey()`、`get()`和`put()`之间的竞争不会威胁这个不变量。
 - en: The race between `containsKey()` and `get()` is not harmful because we never
     remove items from the cache – once it contains a result for x, it will continue
     to do so.
+  id: totrans-117
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`containsKey()`和`get()`之间的竞争并不会有害，因为我们从不从缓存中删除项目 - 一旦它包含x的结果，它将继续保留。'
 - en: There’s a race between `containsKey()` and `put()`. As a result, it may end
     up that two threads will both test the primeness of the same x at the same time,
     and both will race to call `put()` with the answer. But both of them should call
     `put()` with the same answer, so it doesn’t matter which one wins the race – the
     result will be the same.
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`containsKey()`和`put()`之间存在竞争。因此，可能会出现两个线程同时测试相同x的素数性质，并且都竞相用答案调用`put()`。但是它们两个应该用相同的答案调用`put()`，所以无论哪个赢得比赛，结果都是一样的。'
 - en: The need to make these kinds of careful arguments about safety – even when you’re
     using threadsafe data types – is the main reason that concurrency is hard.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使你使用线程安全的数据类型，也需要对安全性做出这种谨慎的论证，这是并发变得困难的主要原因。
 - en: 'In the Java Tutorials, read:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Java教程中阅读：
 - en: '[Wrapper Collections](http://docs.oracle.com/javase/tutorial/collections/implementations/wrapper.html)
     (1 page)'
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[包装器集合](http://docs.oracle.com/javase/tutorial/collections/implementations/wrapper.html)（1页）'
 - en: '[Concurrent Collections](http://docs.oracle.com/javase/tutorial/essential/concurrency/collections.html)
     (1 page)'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[并发集合](http://docs.oracle.com/javase/tutorial/essential/concurrency/collections.html)（1页）'
 - en: reading exercises
+  id: totrans-123
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Threadsafe data types
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程安全的数据类型
 - en: 'Consider this class’s rep:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑这个类的表示：
 - en: '[PRE10]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: How to Make a Safety Argument
+  id: totrans-133
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何进行安全性论证
 - en: We’ve seen that concurrency is hard to test and debug. So if you want to convince
     yourself and others that your concurrent program is correct, the best approach
     is to make an explicit argument that it’s free from races, and write it down.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到并发很难测试和调试。因此，如果你想说服自己和他人你的并发程序是正确的，最好的方法是明确地论证它没有竞争，并把它写下来。
 - en: 'A safety argument needs to catalog all the threads that exist in your module
     or program, and the data that that they use, and argue which of the four techniques
     you are using to protect against races for each data object or variable: confinement,
@@ -604,18 +877,25 @@
     two, you also need to argue that all accesses to the data are appropriately atomic
     – that is, that the invariants you depend on are not threatened by interleaving.
     We gave one of those arguments for `isPrime` above.'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全性论证需要记录模块或程序中存在的所有线程以及它们使用的数据，并论证你正在使用哪种技术来保护每个数据对象或变量免受竞争的影响：封闭、不可变性、线程安全数据类型或同步。当你使用最后两种技术时，你还需要论证所有对数据的访问都是适当原子的
+    - 也就是说，你所依赖的不变量不会受到交错的威胁。我们在上面为`isPrime`给出了一个这样的论证。
 - en: Thread Safety Arguments for Data Types
+  id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 数据类型的线程安全性论证
 - en: 'Let’s see some examples of how to make thread safety arguments for a data type.
     Remember our four approaches to thread safety: confinement, immutability, threadsafe
     data types, and synchronization. Since we haven’t talked about synchronization
     in this reading, we’ll just focus on the first three approaches.'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一些如何为数据类型进行线程安全性论证的示例。记住我们的四种线程安全性方法：封闭、不可变性、线程安全数据类型和同步。由于在本文中我们还没有讨论同步，所以我们将专注于前三种方法。
 - en: Confinement is not usually an option when we’re making an argument just about
     a data type, because you have to know what threads exist in the system and what
     objects they’ve been given access to. If the data type creates its own set of
@@ -626,54 +906,80 @@
     talking about the system as a whole and arguing why we don’t need thread safety
     for some of our modules or data types, because they won’t be shared across threads
     by design.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们只是针对一个数据类型进行论证时，封闭通常不是一个选项，因为你必须知道系统中存在哪些线程以及它们已经访问了哪些对象。如果数据类型创建了自己的一组线程，那么你可以谈论关于这些线程的封闭性。否则，线程是从外部进入的，携带客户端调用，数据类型可能无法保证哪些线程引用了什么。因此，在这种情况下，封闭性不是一个有用的论证。通常我们在更高的层次上使用封闭性，讨论整个系统，并论证为什么我们不需要一些模块或数据类型的线程安全性，因为它们不会被设计为跨线程共享。
 - en: 'Immutability is often a useful argument:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可变性通常是一个有用的论证：
 - en: '[PRE11]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Here’s another rep for MyString that requires a little more care in the argument:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是另一个需要更加小心论证的MyString rep：
 - en: '[PRE12]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Note that since this `MyString` rep was designed for sharing the array between
     multiple `MyString` objects, we have to ensure that the sharing doesn’t threaten
     its thread safety. As long as it doesn’t threaten the `MyString`’s immutability,
     however, we can be confident that it won’t threaten the thread safety.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，由于这个`MyString` rep是为了在多个`MyString`对象之间共享数组而设计的，我们必须确保共享不会威胁其线程安全性。然而，只要不威胁`MyString`的不可变性，我们可以确信它不会威胁线程安全性。
 - en: We also have to avoid rep exposure. Rep exposure is bad for any data type, since
     it threatens the data type’s rep invariant. It’s also fatal to thread safety.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还必须避免rep暴露。对于任何数据类型来说，rep暴露都是不好的，因为它威胁到数据类型的rep不变性。对于线程安全性来说，这也是致命的。
 - en: Bad Safety Arguments
+  id: totrans-145
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 不良的安全性论证
 - en: 'Here are some *incorrect* arguments for thread safety:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些*不正确*的线程安全性论证：
 - en: '[PRE13]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Why doesn’t this argument work? String is indeed immutable and threadsafe; but
     the rep pointing to that string, specifically the `text` variable, is not immutable.
     `text` is not a final variable, and in fact it *can’t* be final in this data type,
     because we need the data type to support insertion and deletion operations. So
     reads and writes of the `text` variable itself are not threadsafe. This argument
     is false.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么这个论点不起作用？字符串确实是不可变的且线程安全的；但是指向该字符串的表示，特别是`text`变量，不是不可变的。`text`不是一个final变量，实际上在这种数据类型中它*不能*是final的，因为我们需要数据类型支持插入和删除操作。因此，对`text`变量本身的读取和写入不是线程安全的。这个论点是错误的。
 - en: 'Here’s another broken argument:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是另一个有问题的论点：
 - en: '[PRE14]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'This is a graph data type, which stores its nodes in a set and its edges in
     a map. (Quick quiz: is `Graph` a mutable or immutable data type? What do the final
     keywords have to do with its mutability?) Graph relies on other threadsafe data
@@ -682,11 +988,15 @@
     race conditions, but not all, because the graph’s rep invariant includes a relationship
     *between* the node set and the edge map. All nodes that appear in the edge map
     also have to appear in the node set. So there may be code like this:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个图数据类型，它将其节点存储在集合中，将其边存储在映射中。（快速测验：`Graph`是可变还是不可变数据类型？final关键字与其可变性有什么关系？）图依赖于其他线程安全的数据类型来帮助它实现其表示——特别是我们上面提到的线程安全的集合和映射包装器。这可以防止一些竞争条件，但不是全部，因为图的表示不变量包括节点集合和边映射之间的关系。因此，可能会有这样的代码：
 - en: '[PRE15]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: This code has a race condition in it. There is a crucial moment when the rep
     invariant is violated, right after the `edges` map is mutated, but just before
     the `nodes` set is mutated. Another operation on the graph might interleave at
@@ -697,118 +1007,184 @@
     is not safe from race conditions. Just using immutable and threadsafe-mutable
     data types is not sufficient when the rep invariant depends on relationships *between*
     objects in the rep.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码存在竞争条件。在`edges`映射被改变之后但`nodes`集合被改变之前的关键时刻，表示不变量被违反了。在那一刻，图上的另一个操作可能交错进行，发现表示不变量被破坏，并返回错误的结果。尽管线程安全的集合和映射数据类型保证它们自己的`add()`和`put()`方法是原子的且不干扰的，但它们不能将这种保证扩展到两个数据结构之间的*交互*。因此，`Graph`的表示不变量不安全免受竞争条件的影响。当表示不变量依赖于*对象之间*的关系时，仅仅使用不可变和线程安全的可变数据类型是不够的。
 - en: We’ll have to fix this with synchronization, and we’ll see how in a future reading.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将不得不通过同步来解决这个问题，我们将在以后的阅读中看到如何解决。
 - en: reading exercises
+  id: totrans-155
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Safety arguments
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全论证
 - en: 'Consider the following ADT with a **bad** safety argument that appeared above:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑以下具有上面出现的**错误**安全论证的ADT：
 - en: '[PRE16]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Which of these methods are counterexamples to the buggy safety argument, because
     they have a race condition?
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些方法中哪些是错误安全论证的反例，因为它们存在竞争条件？
 - en: 'In particular, you should mark method `A` as a counterexample if it’s possible
     that, if one thread is running method `A` at the same time as another thread is
     running some other method, some interleaving would violate `A`’s postcondition:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别是，如果方法`A`在一个线程正在运行方法`A`的同时，另一个线程正在运行其他方法，某些交错可能会违反`A`的后置条件，那么您应该将方法`A`标记为反例：
 - en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Serializability
+  id: totrans-163
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 可序列化性
 - en: Look again at the code for the exercise above. We might also be concerned that
     `clear` and `insert` could interleave such that a client sees `clear` violate
     its postcondition.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次查看上面练习的代码。我们也可能担心`clear`和`insert`可能会交错，以至于客户端看到`clear`违反了其后置条件。
 - en: '| A | B |'
+  id: totrans-165
   prefs: []
   type: TYPE_TB
+  zh: '| A | B |'
 - en: '| --- | --- |'
+  id: totrans-166
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| call `sb.clear()` |  |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '| 调用`sb.clear()` |  |'
 - en: '|  | call `sb.insert(0, "a")` |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '|  | 调用`sb.insert(0, "a")` |'
 - en: '| — in `clear`: `text = ""` |  |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| — 在`clear`中：`text = ""` |  |'
 - en: '|  | — in `insert`: `text = "" + "a" + "z"` |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '|  | — 在`insert`中：`text = "" + "a" + "z"` |'
 - en: '| — `clear` returns |  |'
+  id: totrans-171
   prefs: []
   type: TYPE_TB
+  zh: '| — `clear`返回 |  |'
 - en: '|  | — `insert` returns |'
+  id: totrans-172
   prefs: []
   type: TYPE_TB
+  zh: '|  | — `insert`返回 |'
 - en: '| `assert sb.toString()` `            .equals("")` |  |'
+  id: totrans-173
   prefs: []
   type: TYPE_TB
+  zh: '| `assert sb.toString()` `            .equals("")` |  |'
 - en: Suppose two threads are sharing `MyStringBuffer sb` representing `"z"`. They
     run `clear` and `insert` concurrently as shown on the right.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设两个线程共享表示`"z"`的`MyStringBuffer sb`。它们同时运行`clear`和`insert`，如右侧所示。
 - en: Thread A’s assertion will fail, but not because `clear` violated its postcondition.
     Indeed, when all the code in `clear` has finished running, the postcondition is
     satisfied.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程A的断言将失败，但并非因为`clear`违反了其后置条件。事实上，当`clear`中的所有代码都运行完毕时，后置条件得到满足。
 - en: 'The real problem is that thread A has not anticipated possible interleaving
     between `clear()` and the `assert`. With any threadsafe mutable type where atomic
     mutators are called concurrently, *some* mutation has to “win” by being the last
     one applied. The result that thread A observed is identical to the execution below,
     where the mutators don’t interleave at all:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 真正的问题在于线程A没有预料到`clear()`和`assert`之间可能的交错。在任何线程安全的可变类型中，当原子变异器同时被调用时，*某些*变异必须通过成为最后一个应用的方式“获胜”。线程A观察到的结果与下面的执行相同，其中变异器根本不交错：
 - en: '| A | B |'
+  id: totrans-177
   prefs: []
   type: TYPE_TB
+  zh: '| A | B |'
 - en: '| --- | --- |'
+  id: totrans-178
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| call `sb.clear()` |  |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| 调用`sb.clear()` |  |'
 - en: '| — in `clear`: `text = ""` |  |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| — 在`clear`中：`text = ""` |  |'
 - en: '| — `clear` returns |  |'
+  id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| — `clear`返回 |  |'
 - en: '|  | call `sb.insert(0, "a")` |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '|  | 调用`sb.insert(0, "a")` |'
 - en: '|  | — in `insert`: `text = "" + "a" + ""` |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '|  | — 在`insert`中：`text = "" + "a" + ""` |'
 - en: '|  | — `insert` returns |'
+  id: totrans-184
   prefs: []
   type: TYPE_TB
+  zh: '|  | — `insert`返回 |'
 - en: '| `assert sb.toString()` `            .equals("")` |  |'
+  id: totrans-185
   prefs: []
   type: TYPE_TB
+  zh: '| `assert sb.toString()` `            .equals("")` |  |'
 - en: 'What we demand from a threadsafe data type is that when clients call its atomic
     operations concurrently, the results are consistent with *some* sequential ordering
     of the calls. In this case, clearing and inserting, that means either `clear`-followed-by-`insert`,
@@ -816,105 +1192,163 @@
     for any set of operations executed concurrently, the result (the values and state
     observable by clients) must be a result given by *some* sequential ordering of
     those operations.'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从线程安全数据类型中要求的是，当客户端同时调用其原子操作时，结果与这些调用的*某些*顺序一致。在这种情况下，清除和插入，这意味着要么是`clear`-后-`insert`，要么是`insert`-后-`clear`。这个属性被称为[**可串行化**](https://en.wikipedia.org/wiki/Serializability)：对于任何同时执行的操作集，结果（客户端可观察到的值和状态）必须是由这些操作的*某些*顺序给出的结果。
 - en: reading exercises
+  id: totrans-187
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Serializability
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 可串行化
 - en: Suppose two threads are sharing a `MyStringBuffer` representing `"z"`.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设两个线程共享一个表示`"z"`的`MyStringBuffer`。
 - en: For each pair of concurrent calls and their result, does that outcome violate
     serializability (and therefore demonstrate that `MyStringBuffer` is not threadsafe)?
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每一对并发调用及其结果，该结果是否违反了可串行化（因此表明`MyStringBuffer`不是线程安全的）？
 - en: '`clear()` and `insert(0, "a")` → `insert` throws an `IndexOutOfBoundsException`'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: '`clear()`和`insert(0, "a")` → `insert`抛出`IndexOutOfBoundsException`'
 - en: (missing answer)(missing answer)
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: '`clear()` and `insert(1, "a")` → `insert` throws an `IndexOutOfBoundsException`'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: '`clear()`和`insert(1, "a")` → `insert`抛出`IndexOutOfBoundsException`'
 - en: (missing answer)(missing answer)
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: '`first()` and `insert(0, "a")` → `first` returns `"a"`'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: '`first()`和`insert(0, "a")` → `first`返回`"a"`'
 - en: (missing answer)(missing answer)
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: '`first()` and `clear()` → `first` returns `"z"`'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: '`first()`和`clear()` → `first`返回`"z"`'
 - en: (missing answer)(missing answer)
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: '`first()` and `clear()` → `first` throws an `IndexOutOfBoundsException`'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: '`first()`和`clear()` → `first`抛出`IndexOutOfBoundsException`'
 - en: (missing answer)(missing answer)
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Summary
+  id: totrans-206
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: 'This reading talked about three major ways to achieve safety from race conditions
     on shared mutable data:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论了三种主要方法来避免共享可变数据的竞争条件：
 - en: 'Confinement: not sharing the data.'
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制：不共享数据。
 - en: 'Immutability: sharing, but keeping the data immutable.'
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不可变性：共享，但保持数据不可变。
 - en: 'Threadsafe data types: storing the shared mutable data in a single threadsafe
     datatype.'
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 线程安全数据类型：将共享的可变数据存储在单个线程安全数据类型中。
 - en: 'These ideas connect to our three key properties of good software as follows:'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些想法与我们关于良好软件的三个关键属性的联系如下：
 - en: '**Safe from bugs.** We’re trying to eliminate a major class of concurrency
     bugs, race conditions, and eliminate them by design, not just by accident of timing.'
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**免于错误。** 我们试图通过设计而不仅仅是通过时间的偶然性来消除一类主要的并发错误，竞争条件。'
 - en: '**Easy to understand.** Applying these general, simple design patterns is far
     more understandable than a complex argument about which thread interleavings are
     possible and which are not.'
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**易于理解。** 应用这些通用、简单的设计模式比复杂讨论哪些线程交错可能，哪些不可能更容易理解。'
 - en: '**Ready for change.** We’re writing down these justifications explicitly in
     a thread safety argument, so that maintenance programmers know what the code depends
     on for its thread safety.'
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**为变更做好准备。** 我们将这些理由明确地写在线程安全性论证中，以便维护程序员知道代码在线程安全性方面依赖于什么。'
