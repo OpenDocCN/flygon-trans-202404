@@ -1,108 +1,165 @@
 - en: Reallocating underlying array of slice
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重新分配切片的底层数组
 - en: Reallocating underlying array of slice
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重新分配切片的底层数组
 - en: '* * *'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: When appending data into slice, if the underlying array of the slice doesn't
     have enough space, a new array will be allocated. Then the elements in old array
     will be copied into this new memory, accompanied with adding new data behind.
     So when using `Go` built-in `append` function, you must always keep the idea that
     "the array may have been changed" in mind, and be very careful about it, otherwise,
     it may bite you!
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 当向切片中添加数据时，如果切片的底层数组没有足够的空间，将会分配一个新的数组。然后将旧数组中的元素复制到这个新的内存中，并在后面添加新的数据。因此，在使用`Go`内置的`append`函数时，你必须始终牢记“数组可能已经被修改”的想法，并且要非常小心，否则它可能会伤害到你！
 - en: 'Let me explain it through a contrived example:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我通过一个刻意制造的例子来解释：
 - en: '[PRE0]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The `s1` is `[0, 0]`, and the `s2` is `[0, 0, 0]`; in `addTail` function, I
     want to add `1` and `2` behind the slice. So the wanted output is like this:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s1`是`[0, 0]`，而`s2`是`[0, 0, 0]`；在`addTail`函数中，我想在切片后面添加`1`和`2`。所以期望的输出应该是这样的：'
 - en: '[PRE1]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'But the actual result is:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 但实际结果是：
 - en: '[PRE2]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The operations on `s1` are successful, while `s2` not.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 对`s1`的操作成功，而`s2`没有成功。
 - en: 'Let''s use `delve` to debug this issue and check the internal mechanism of
     slice: Add breakpoint on `addTail` function, and it is first hit when processing
     `s1`:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用`delve`来调试这个问题，并检查切片的内部机制：在`addTail`函数上设置断点，当处理`s1`时首先命中：
 - en: '[PRE3]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The length and capacity of `s1` are both `2`, and the underlying array address
     is `0xc82000a2a0`, so what happened when executing the following statement:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s1`的长度和容量都是`2`，底层数组的地址是`0xc82000a2a0`，所以在执行以下语句时会发生什么：'
 - en: '[PRE4]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Since the length and capacity of `s1` are both `2`, there is no room for new
     buddy. To append a new value, a new array must be allocated, and it contains both
     `[0, 0]` from `s1` and the new value(`1` or `2`). You can consider `append(s,
     v)` generated an anonymous new slice, and it is appended in `ns`. We can check
     it after running "`ns = append(ns, append(s, v))`":'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于`s1`的长度和容量都是`2`，没有足够的空间添加新元素。要添加一个新值，必须分配一个新的数组，其中包含来自`s1`的`[0, 0]`和新值（`1`或`2`）。你可以将`append(s,
+    v)`看作生成了一个匿名的新切片，并且它被附加在`ns`中。我们可以在运行"`ns = append(ns, append(s, v))`"后检查它：
 - en: '[PRE5]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'We can see the length of anonymous slice is `3`, capacity is `4`, and the underlying
     array address is `0xc82000e240`, different from `s1`''s (`0xc82000a2a0`). Continue
     executing until exit loop:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到匿名切片的长度为`3`，容量为`4`，底层数组地址为`0xc82000e240`，与`s1`的地址（`0xc82000a2a0`）不同。继续执行直到退出循环：
 - en: '[PRE6]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We can see `s1`, `ns[0]` and `ns[1]` have `3` independent array.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到`s1`、`ns[0]`和`ns[1]`有`3`个独立的数组。
 - en: 'Now, let''s follow the same steps to check what happened on `s2`:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们按照相同的步骤来检查`s2`上发生了什么：
 - en: '[PRE7]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'The length of `s2` is `3`, and capacity is `4`, so there is one slot for adding
     new element. Check the `s2` and `ns`'' values after executing "`ns = append(ns,
     append(s, v))`" the first time:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s2`的长度是`3`，容量是`4`，因此有一个位置可以添加新元素。在第一次执行"`ns = append(ns, append(s, v))`"后，检查`ns`和`ns`的值：'
 - en: '[PRE8]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'We can see the new anonymous slice''s array address is also `0xc82000e220`,
     that''s because the `s2` has enough space to hold new value, no new array is allocated.
     Check the `s2` and `ns` again after adding `2`:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到新匿名切片的数组地址也是`0xc82000e220`，这是因为`s2`有足够的空间来容纳新值，不需要分配新数组。再次在添加`2`后检查`s2`和`ns`：
 - en: '[PRE9]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: All `3` slices point to the same array, so the later value(`2`) will override
     previous item(`1`).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有`3`个切片指向同一个数组，因此后面的值（`2`）将覆盖前面的项（`1`）。
 - en: So in a conclusion, `append` is very tricky since it can modify the underlying
     array without noticing you. You must know the memory layout behind every slice
     clearly, else the slice can give you a big, unwanted surprise!
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，总的来说，`append`非常棘手，因为它可以在不知情的情况下修改底层数组。你必须清楚地了解每个切片背后的内存布局，否则切片可能会给你一个巨大的、意想不到的惊喜！
