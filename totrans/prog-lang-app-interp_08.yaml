@@ -2829,47 +2829,58 @@
   id: totrans-419
   prefs: []
   type: TYPE_NORMAL
+  zh: 但换取的是开发人员获得了丰富的类型：每个数据结构都被认为是不可变的，除非它包含一个 ref，并且 ref 的存在是对开发人员和程序（如编译器）的警告，即底层值可能会持续变化。因此，例如，如果
+    b 是一个盒子，开发人员应该意识到用 v 替换所有实例的 (unbox b)，其中 v 绑定到 (unbox b) 是不明智的：前者总是获取盒子中的当前值，而后者可能引用的是较旧的内容。（相反，如果开发人员想要在某个时间点上的值，而不关心将来对盒子的突变，他们应该确保检索和绑定它，而不是总是使用
+    unbox。）
 - en: 8.4Parameter Passing
   id: totrans-420
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 8.4参数传递
 - en: In our current implementation, on every function call, we allocate a fresh location
     in the store for the parameter. This means the following program
   id: totrans-421
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们当前的实现中，在每次函数调用时，我们都会为参数在存储中分配一个新的位置。这意味着以下程序
 - en: '| (let ([f (lambda (x) (set! x 3))]) |'
   id: totrans-422
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (let ([f (lambda (x) (set! x 3))]) |'
 - en: '|   (let ([y 5]) |'
   id: totrans-423
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (let ([y 5]) |'
 - en: '|     (begin |'
   id: totrans-424
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     (begin |'
 - en: '|       (f y) |'
   id: totrans-425
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|       (f y) |'
 - en: '|       y))) |'
   id: totrans-426
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|       y))) |'
 - en: evaluates to 5, not 3. That is because the value of the formal parameter x is
     held at a different location than that of the actual parameter y, so the mutation
     affects the location of x, leaving y unscathed.
   id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算结果是 5，而不是 3。这是因为形式参数 x 的值保存在与实际参数 y 不同的位置，因此突变会影响 x 的位置，使 y 不受影响。
 - en: 'Now suppose, instead, that application behaved as follows. When the actual
     parameter is a variable, and hence has a location in memory, instead of allocating
     a new location for the value, it simply passes along the existing one for the
@@ -2885,12 +2896,15 @@
   id: totrans-428
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设，相反地，应用程序的行为如下。当实际参数是一个变量，因此在内存中有一个位置时，它不是为值分配一个新位置，而是简单地将现有的位置传递给变量。现在形式参数引用的是实际参数的相同存储位置：即，它们是变量别名。因此，对形式参数的任何突变都会泄漏到调用上下文中；上述程序将计算为
+    3 而不是 5。这被称为按引用传递参数传递策略。相反，我们的解释器实现了按值传递，这是 Java 等语言遵循的相同策略。这会引起混淆，因为当值本身是可变的时，调用者会观察到调用者对值所做的更改。然而，这只是可变值的副作用，而不是调用策略的副作用。请避免这种混淆！
 - en: 'For some years, this power was considered a good idea. It was useful because
     programmers could write abstractions such as swap, which swaps the value of two
     variables in the caller. However, the disadvantages greatly outweigh the advantages:'
   id: totrans-429
   prefs: []
   type: TYPE_NORMAL
+  zh: 多年来，这种功能被认为是一个好主意。这是有用的，因为程序员可以编写像 swap 这样的抽象，它交换了调用者中两个变量的值。然而，其缺点远远超过了优点：
 - en: A careless programmer can alias a variable in the caller and modify it without
     realizing they have done so, and the caller may not even realize this has happened
     until some obscure condition triggers it.
@@ -2898,6 +2912,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个粗心的程序员可以在调用者中为变量创建别名，并在不知情的情况下进行修改，而调用者甚至可能不会意识到发生这种情况，直到某些模糊的条件触发它。
 - en: 'Some people thought this was necessary for efficiency: they assumed the alternative
     was to copy large data structures. However, call-by-value is compatible with passing
     just the address of the data structure. You only need make a copy if (a) the data
@@ -2908,6 +2923,8 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有些人认为这对效率是必要的：他们认为替代方案是复制大型数据结构。然而，按值传递与仅传递数据结构的地址兼容。只有在 (a) 数据结构是可变的，(b) 您不希望调用者能够对其进行突变，以及
+    (c) 语言本身没有提供不可变性注释或其他机制时，才需要进行复制。
 - en: 'It can force non-uniform and hence non-modular reasoning. For instance, suppose
     we have the procedure:'
   id: totrans-432
