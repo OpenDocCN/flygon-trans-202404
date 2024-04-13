@@ -1,94 +1,136 @@
 - en: Serializers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 序列化器
 - en: What Are Serializers
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 什么是序列化器
 - en: We introduce an abstraction called a serializer. This is a procedure that takes
     as its argument another procedure (call it `proc`). The serializer returns a new
     procedure (call it `protected-proc`). When invoked, `protected-proc` invokes `proc`,
     but only if the same serializer is not already in use by another protected procedure.
     `proc` can have any number of arguments, and `protected-proc` will take the same
     arguments and return the same value.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了一个称为序列化器的抽象。这是一个接受另一个过程（称为`proc`）作为其参数的过程。序列化器返回一个新的过程（称为`protected-proc`）。当调用时，`protected-proc`调用`proc`，但只有当同一个序列化器没有被另一个受保护的过程使用时才会调用。`proc`可以有任意数量的参数，而`protected-proc`将接受相同的参数并返回相同的值。
 - en: There can be many diﬀerent serializers, all in operation at once, but each one
     can't be doing two things at once. So if we say
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能会有许多不同的序列化器同时运行，但每个序列化器不能同时执行两个任务。所以如果我们说
 - en: '[PRE0]'
+  id: totrans-4
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: then both tasks can run at the same time; it doesn't matter how their machine
     instructions are interleaved.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么两个任务可以同时运行；它们的机器指令如何交错并不重要。
 - en: But if we say
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 但如果我们说
 - en: '[PRE1]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: then, since we're using the same serializer in both tasks, the serializer will
     ensure that they don't overlap in time.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，因为我们在两个任务中使用相同的序列化器，序列化器将确保它们不会在时间上重叠。
 - en: We've introduced a new primitive procedure, `parallel-execute`. It takes any
     number of arguments, each of which is a procedure of no arguments, and invokes
     them, in parallel rather than in sequence. (This isn't a standard part of Scheme,
     but an extension for this section of the textbook.)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了一个新的基本过程，`parallel-execute`。它接受任意数量的参数，每个参数都是一个没有参数的过程，并且并行而不是按顺序调用它们。（这不是Scheme的标准部分，而是教科书本节的扩展。）
 - en: You may be wondering about the need for all those (lambda ()...) notations.
     Since a serializer isn't a special form, it can't take an expression as argument.
     Instead we must give it a procedure that it can invoke.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会想到所有那些(lambda ()...)符号的必要性。由于序列化器不是一个特殊形式，它不能接受表达式作为参数。相反，我们必须给它一个可以调用的过程。
 - en: 'Let''s look at a sample of how this code works:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一下这段代码是如何工作的示例：
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Implementing Serializers
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现序列化器
 - en: 'A serializer is a high-level abstraction. How do we make it work? Here is an
     **incorrect attempt** to implement serializers:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 序列化器是一个高级抽象。我们如何让它工作？这是一个**错误的尝试**来实现序列化器：
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This is a little complicated, so concentrate on the important parts. In particular,
     never mind about the *scheduling* aspect of parallelism--how we can ask this process
     to wait a while before trying again if the serializer is already in use. And never
     mind the stuﬀ about `apply`, which is needed only so that we can serialize procedures
     with any number of arguments.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这有点复杂，所以要集中精力关注重要部分。特别是不要在乎并行性的*调度*方面--我们如何要求这个过程在尝试再次使用序列化器之前等待一段时间。也不要在乎关于`apply`的东西，这只是为了我们可以序列化具有任意数量参数的过程。
 - en: 'The part to focus on is this:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要关注的部分是这个：
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The intent of this code is that it ﬁrst checks to see if the serializer is already
     in use. If not, we claim the serializer by setting `in-use` true, do our job,
     and then release the serializer.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码的意图是首先检查序列化器是否已经在使用。如果没有，我们通过将`in-use`设置为true来声明序列化器，完成我们的工作，然后释放序列化器。
 - en: The problem is that this sequence of events is subject to the same parallelism
     problems as the procedure we're trying to protect! What if we check the value
     of `in-use`, discover that it's false, and right at that moment another process
     sneaks in and grabs the serializer? In order to make this work we'd have to have
     another serializer protecting this one, and a third serializer protecting the
     second one, and so on.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于这一系列事件受到与我们试图保护的过程相同的并行性问题的影响！如果我们检查`in-use`的值，发现它是false，而正好在那时另一个进程悄悄地抓住了序列化器怎么办？为了使这个工作起作用，我们必须有另一个序列化器来保护这一个，第三个序列化器来保护第二个，依此类推。
 - en: '*There is no easy way to avoid this problem by clever programming tricks within
     the competing processes.* We need help at the level of the underlying machinery
     that provides the parallelism: the hardware and/or the operating system. That
@@ -98,8 +140,11 @@
     algorithm to generate guaranteed atomic test-and- set, but in practice, there
     is almost always hardware support for parallelism. Look up "Peterson''s algorithm"
     in Wikipedia if you want to see the software solution.)'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '*没有简单的方法可以通过竞争进程内的巧妙编程技巧来避免这个问题。* 我们需要在提供并行性的底层机制上获得帮助：硬件和/或操作系统。该底层必须提供*保证原子*操作，我们可以测试`in-use`的旧值并将其更改为新值，而没有其他进程介入的可能性。（事实证明，有一个非常棘手的软件算法可以生成保证原子测试和设置，但实际上，几乎总是有硬件支持并行性。如果你想看到软件解决方案，请在维基百科中查找“Peterson''s
+    algorithm”。）'
 - en: The textbook assumes the existence of a procedure called `test-and-set!` with
     this guarantee of atomicity. Although there is a pseudo-implementation on page
     312, that procedure won't really work, for the same reason that my pseudo- implementation
@@ -108,9 +153,14 @@
     instructions and so on that we started with. (This is a realistic assumption;
     modern computers do provide some such hardware mechanism, precisely for the reasons
     we're discussing now.)
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 教科书假定存在一个名为`test-and-set!`的过程，具有原子性的保证。尽管在第312页上有一个伪实现，但该过程实际上不起作用，原因与我的`make-serializer`的伪实现相同。你需要想象的是，`test-and-set!`是计算机硬件中的一条单指令，类似于我们开始讨论的Load
+    Word指令等。（这是一个现实的假设；现代计算机确实提供了一些这样的硬件机制，正是我们现在讨论的原因。）
 - en: To understand how to properly implement serializers, you first need to learn
     about and understand Mutexes (in two sections).
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解如何正确实现串行器，你首先需要了解并理解互斥锁（在两个部分中）。
