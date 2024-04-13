@@ -1,259 +1,379 @@
 - en: Memory Management
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 内存管理
 - en: Memory Management
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 内存管理
 - en: The memory model of Rust is quite close to C++. Structures that you declare
     in Rust reside on the stack or they reside in the heap.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust的内存模型与C++非常接近。你在Rust中声明的结构要么驻留在堆栈中，要么驻留在堆中。
 - en: Stack
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 堆栈
 - en: The stack is a memory reserved by the operating system for each thread in your
     program. Stack is reserved for local variables based upon their predetermined
     size by moving a stack pointer register forward by that amount. When the local
     variables go out of scope, the stack pointer reduces by the same amount.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆栈是操作系统为程序中的每个线程保留的内存。堆栈根据其预定大小移动堆栈指针寄存器向前，为本地变量保留空间。当本地变量超出范围时，堆栈指针减少相同的量。
 - en: '[PRE0]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: In C-style languages it is normal for the stack in each thread to be a single
     contiguous slab of memory that represents the "worst case" scenario for your program
     i.e. you will never need any more stack than the thread allocated at start. If
     you do exceed the stack, then you cause a stack overflow.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在C风格语言中，每个线程中的堆栈通常是代表程序的“最坏情况”情况的单个连续内存块，即你永远不会需要比线程在启动时分配的堆栈更多的堆栈。如果超出堆栈，则会导致堆栈溢出。
 - en: Some languages support the concept of split or segmented stack. In this case,
     the stack is a series of "stacklets" joined together by a linked list. When the
     stack is insufficient for the next call, it allocates another stacklet.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些语言支持分割或分段栈的概念。在这种情况下，堆栈是一系列由链表连接在一起的“堆栈块”。当堆栈不足以进行下一次调用时，它会分配另一个堆栈块。
 - en: The gcc can support a segmented stack, but it greatly complicates stack unwinding
     when an exception is thrown and also when calls are made across linker boundaries,
     e.g. between a segmented-stack aware process and a non segmented stack dynamic
     library.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: gcc可以支持分段栈，但是当抛出异常或者在链接器边界之间进行调用时，比如在了解分段栈的进程和非分段栈动态库之间进行调用时，堆栈展开会变得非常复杂。
 - en: Stack Overflows
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 堆栈溢出
 - en: The main worry from using the stack is the possibility of a stack overflow,
     i.e the stack pointer moves out of the memory reserved for the stack and starts
     trampling on other memory.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用堆栈的主要担忧是堆栈溢出的可能性，即堆栈指针移出为堆栈保留的内存并开始侵占其他内存。
 - en: 'This can occur in two common ways in isolation or combination:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以通过两种常见方式单独或组合发生：
 - en: Deeply nested function calls, e.g. a recursive function that traverses a binary
     tree, or a recursive function that never stops
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 深度嵌套的函数调用，比如递归遍历二叉树的递归函数，或者永远不会停止的递归函数。
 - en: Exhausting stack by using excessive and/or large local variables in functions,
     e.g. lots of 64KB byte arrays.
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过在函数中使用过多和/或大型本地变量来耗尽堆栈，例如大量的64KB字节数组。
 - en: C++
+  id: totrans-14
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: C++
 - en: Some C++ compilers won't catch an overflow at all. They have no guard page and
     thus allow the stack pointer to just grow whereever memory takes it until the
     program is destabilized and crashes.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些C++编译器根本不会捕捉溢出。它们没有守护页，因此允许堆栈指针随内存带它走，直到程序不稳定并崩溃。
 - en: The gcc compiler has support segmented stacks but as described earlier not without
     issue.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: gcc编译器支持分段栈，但正如前面所述，不是没有问题。
 - en: The MSVC compiler adds a guard page and stack pointer checks when when the stack
     pointer could advance more than a page in a single jump and potentially miss the
     guard page.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 当堆栈指针在单次跳转中可能前进超过一页时，MSVC编译器会添加守护页和堆栈指针检查，并且可能会错过守护页。
 - en: Rust
+  id: totrans-18
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Rust
 - en: Rust used to support a segmented stack as a means of detecting memory violation
     but since 1.4 has replaced it with a guard page at the end of the stack space.
     If the guard page is touched by a memory write, it will generate a segmentation
     fault that halts the thread. Guard pages open up a small risk that the stack could
     grow well in excess of the guard and it might take some time for a write to the
     guard to generate a fault.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust曾经支持分段栈作为检测内存违规的手段，但自1.4版本以来已将其替换为堆栈空间末尾的守护页。如果守护页被内存写入触及，它将生成一个导致线程停止的分段错误。守护页打开了堆栈可能大幅增长超过守护的小风险，并且可能需要一段时间才能使对守护的写入生成错误。
 - en: Rust aspires to support stack probe code generation on all platforms at which
     point it is likely to use that in addition to a guard page. A stack probe is additional
     generated code on functions that use more than a page of space for local variables
     to test if they exceed the stack.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust希望在所有平台上支持堆栈探测代码生成，到那时它可能会在使用守护页之外使用。堆栈探测是对使用超过一页空间的本地变量的函数生成的额外代码，用于测试它们是否超出堆栈。
 - en: Rust reduces the risk stack overflows in some indirect ways. It's easy in C++
     through inheritance or by calling a polymorphic method inadvertently set off a
     recursive loop
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust 通过一些间接的方式减少了栈溢出的风险。在 C++ 中，通过继承或者无意中调用多态方法会触发递归循环是很容易的。
 - en: Heap
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 堆
 - en: Heap is a memory that the language runtime requests from the operating system
     and makes available to your code through memory allocation calls
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆是语言运行时从操作系统请求的内存，并通过内存分配调用向您的代码提供的内存。
 - en: C++
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: C++
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Allocation simply means a portion of the heap is marked as in-use and the code
     is provided with a pointer to the reserved area to do what it likes with. Free
     causes the portion to be returned to its free state, coalescing with any free
     areas that it resides next to in memory.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 分配只是意味着将堆的一部分标记为已使用，并向代码提供一个指向保留区域的指针，以便按照自己的意愿处理。释放导致该部分返回到其空闲状态，与其在内存中相邻的任何空闲区域合并。
 - en: A heap can grow and code might create multiple heaps and might even be compelled
     to in order control problems such as heap fragmentation.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆可以增长，代码可能会创建多个堆，甚至可能被迫这样做以控制诸如堆碎片化之类的问题。
 - en: Rust
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Rust
 - en: 'To allocate memory on the heap in Rust you declare data inside of a a box.
     For example to create a 1k block of bytes:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Rust 中在堆上分配内存，你在一个盒子内声明数据。例如，要创建一个 1k 字节的块：
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Many structs in std:: and elsewhere will have a stack based portion and also
     use use heap internally to hold their buffers.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 'std:: 和其他地方的许多结构体将具有基于堆栈的部分，并且还会在内部使用堆来保存它们的缓冲区。'
 - en: Heap fragmentation
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 堆碎片化
 - en: Heap fragmentation happens when contiguous space in the heap is limited by the
     pattern of memory allocations that it already contains. When this happens a memory
     allocation can fail and the heap must be grown to make it succeed. In systems
     which do not have virtual memory / paging, memory exhaustion caused by fragmentation
     can cause the program or even the operating system to fail completely.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 当堆中的连续空间受到它已包含的内存分配模式的限制时，会发生堆碎片化。当发生这种情况时，内存分配可能会失败，堆必须增长才能使其成功。在没有虚拟内存/分页的系统中，由于碎片化造成的内存耗尽可能会导致程序甚至操作系统完全失败。
 - en: The easiest way to see fragmentation is with a simple example. We'll pretend
     there is no housekeeping structures, guard blocks or other things to get in the
     way. Imagine a 10 byte heap, where every byte is initially free.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 最简单的查看碎片化的方法是通过一个简单的示例。我们假装没有管理结构、保护块或其他可能干扰的东西。想象一个 10 个字节的堆，最初每个字节都是空闲的。
 - en: Now allocate 5 bytes for object of type A. The heap reserves 5 bytes and marks
     them used.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在为类型 A 的对象分配 5 个字节。堆保留了 5 个字节并标记为已使用。
 - en: '![](aaaaa-----.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](aaaaa-----.png)'
 - en: Now allocate 1 byte for object of type B. This is also marked used.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在为类型 B 的对象分配 1 个字节。这也被标记为已使用。
 - en: '![](aaaaaab.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](aaaaaab.png)'
 - en: Now free object A. The the portion of heap is marked unused. Now we have a block
     of 5 bytes free and a block with 4 bytes free.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在释放对象 A。堆的一部分被标记为未使用。现在我们有一个 5 个字节的空块和一个 4 个字节的空块。
 - en: '![](-----b----.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](-----b----.png)'
 - en: Now allocate 2 bytes for object of type C. Now we have a block of 3 bytes free
     and a block with 4 bytes free.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在为类型 C 的对象分配 2 个字节。现在我们有一个 3 个字节的空块和一个 4 个字节的空块。
 - en: '![](cc---b----.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](cc---b----.png)'
 - en: Now allocate 5 slots for object of type A - Oops we can't! The heap has 7 bytes
     free but they are not contiguous. At this point the runtime would be forced to
     grow the heap, i.e. ask the operating system for another chunk of memory at which
     point it can allocate 5 bytes for A.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在为类型 A 的对象分配 5 个插槽 - 糟糕！我们不能这样做！堆有 7 个字节的空闲空间，但它们不是连续的。在这一点上，运行时将被迫增加堆，即请求操作系统另一个内存块，然后它可以为
+    A 分配 5 个字节。
 - en: '![](cc---baaaaa---.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](cc---baaaaa---.png)'
 - en: The above assumes the heap is a contiguous, or that memory paging makes it seem
     so. On some systems, it might be that the heap is a linked list of chunks, in
     which case the allocated space for A would have to reside be in a single chunk,
     the newly allocated portion above.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 以上假设堆是连续的，或者内存分页使其看起来是连续的。在某些系统上，堆可能是一系列块的链接列表，在这种情况下，对象 A 的分配空间必须驻留在单个块中，即上面新分配的部分。
 - en: This is also an exagerated example, but it demonstrates how heap can have space,
     but not enough to fufilly allocations without growing.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也是一个夸张的例子，但它展示了堆可以有空间，但没有足够的空间来满足分配需求而不得不增长。
 - en: Software running in embedded devices are particularly vulnerable to fragmentation
     because they do not have virtual memory, have low physical memory and normally
     have to run for days, weeks or years at a time.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在嵌入式设备中运行的软件特别容易受到碎片化的影响，因为它们没有虚拟内存，物理内存较低，并且通常需要连续运行数天、数周或数年。
 - en: One major problem for C++ is that heap fragmentation is almost impossible to
     avoid. The standard template library allocates memory for virtually all string
     and collection work, and if a string / collection grows then it may have to reallocate
     more memory.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: C++ 的一个主要问题是几乎无法避免堆碎片化。标准模板库为几乎所有的字符串和集合工作分配内存，如果一个字符串/集合增长了，那么可能需要重新分配更多的内存。
 - en: The only way to mitigate the issue is to choose the best collection, and to
     reserve capacity wherever possible.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓解问题的唯一方法是选择最佳的集合，并在可能的地方预留容量。
 - en: '[PRE3]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Rust also has this issue and strings / collections have methods to reserve capacity.
     But as a consequence of its design it prefers the stack over the heap. Unless
     you explicitly allocate memory by putting it into a Box, Cell or RefCell you do
     not allocate it on the heap.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust 也存在这个问题，字符串/集合有方法来预留容量。但由于其设计的结果，它更倾向于使用栈而不是堆。除非显式地通过放入 Box、Cell 或 RefCell
+    来分配内存，否则不会在堆上分配内存。
 - en: RAII
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: RAII
 - en: RAII stands for Resource Acquisiton Is Initalization. It's a programming pattern
     that ties access to some resource the object's lifetime
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: RAII 是 Resource Acquisition Is Initialization 的缩写。这是一种编程模式，将对象对资源的访问与对象的生命周期绑定在一起。
 - en: C++ classes allow a pattern called RAII (). A class constructor acquires some
     resource, the destructor releases that resource. As soon as the class goes out
     of scope, the resource is released.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: C++ 类允许一种称为 RAII（资源获取即初始化）的模式。一个类构造函数获取某些资源，析构函数释放该资源。一旦类超出范围，资源就会被释放。
 - en: '**TODO** C++ example'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '**TODO** C++ 示例'
 - en: Rust is inherently RAII and enforces it through lifetimes. When an object goes
     out of scope, the thing it holds is released. Rust also allows the programmer
     to explicitly drop a struct earlier than its natural lifetime if there is a reason
     to.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust 本质上是 RAII，并通过生命周期来强制执行。当一个对象超出范围时，它所持有的东西会被释放。Rust 还允许程序员在自然生命周期之前显式地释放一个结构体，如果有理由的话。
 - en: RAII is most commonly seen for heap allocated memory but it can apply to files,
     system handles etc.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: RAII 最常见的用于堆分配的内存，但它也适用于文件、系统句柄等。
 - en: '**TODO** Rust example'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '**TODO** Rust 示例'
