@@ -3,6 +3,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第15讲：并发
 - en: So far in this class we have only considered sequential programs. Execution
     of a sequential program proceeds one step at a time, with no choice about which
     step to take next. Sequential programs are limited in that they are not very good
@@ -17,6 +18,7 @@
   id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，在本课程中，我们只考虑了顺序程序。顺序程序的执行一次只进行一步，没有关于下一步要采取的选择。顺序程序的局限性在于它们不太擅长处理多个源的同时输入，而且它们只能在单个处理器上执行。因此，许多现代应用程序都是并发的。并发编程有许多不同的方法，但它们都共享一个特点，即程序被拆分为多个独立的执行线程。每个线程运行一个顺序程序，但是线程的整体集合不再产生单一的可预测的执行步骤序列。相反，执行是*并发*进行的，导致一个线程中的步骤与其他线程中的步骤的执行顺序可能不可预测。
 - en: The granularity of concurrent programming varies widely, from coarse-grained
     techniques that loosely coordinate the execution of separate programs, such as
     *pipes* in Unix (or even the HTTP protocol between Web servers and clients), to
@@ -25,12 +27,14 @@
   id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 并发编程的粒度差异很大，从松散协调单独程序执行的粗粒度技术，例如Unix中的*管道*（甚至是Web服务器和客户端之间的HTTP协议），到并发线程共享相同内存的细粒度技术，例如*轻量级线程*。
 - en: In this lecture we will introduce concurrent progarmming through the simple
     mechanisms provided in Jane Street's [async](https://github.com/janestreet/async)
     library.
   id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本讲座中，我们将通过简单的机制介绍并发编程，这些机制由Jane Street的[async](https://github.com/janestreet/async)库提供。
 - en: 'As examples to motivate concurrent programming, consider implementing a graphical
     user interface that handles interactive input, a web crawler that builds up a
     database of web pages, and a typical server. A graphical user interface that did
@@ -52,16 +56,19 @@
   id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为激励并发编程的示例，考虑实现处理交互输入的图形用户界面、构建网页数据库的网络爬虫和典型服务器。一个没有单独执行线程用于用户交互的图形用户界面将令人沮丧，因为它不会在当前操作完成之前“锁定”。例如，Web浏览器同时处理来自图形用户界面的输入，随着新数据通过网络传入，逐步读取和呈现网页，并在网页中运行嵌入的JavaScript程序。所有这些活动同时进行，因此通常使用单独的线程来处理每个活动。另一个自然并发应用的例子是网络爬虫，它遍历网络收集页面的结构和内容信息。按顺序访问每个站点没有意义，因为大部分时间都将花在等待远程服务器和网络对每个请求的响应上。因此，网络爬虫通常高度并发，同时访问数千个不同的网站。这种设计有效地利用了处理器和网络。最后，天真的顺序服务器不会按预期运行，因为它只能逐个处理客户端的请求。有两种常用的服务器实现方法：
 - en: Handle requests from each client using a separate thread,
   id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用单独的线程处理每个客户端的请求，
 - en: Handle requests from all clients using an event loop.
   id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用事件循环处理来自所有客户端的请求。
 - en: Both of these approaches have advantages and disadvantages. Using threads requires
     complex synchronization or communication to ensure that system-wide resources
     such as shared memory are used correctly. Using event loops complicates the control
@@ -70,6 +77,7 @@
   id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种方法都有优缺点。使用线程需要复杂的同步或通信，以确保诸如共享内存之类的系统全局资源得到正确使用。使用事件循环会使程序的控制流复杂化，因为执行的多个顺序步骤必须通过循环的几次迭代来线程化。
 - en: 'Concurrency is powerful and it enables new kinds of applications, but it also
     makes writing correct programs more difficult, because execution of a concurrent
     program is *nondeterministic*: the order in which operations occur is not always
@@ -85,12 +93,15 @@
   id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 并发是强大的，它可以启用新类型的应用程序，但它也使得编写正确的程序更加困难，因为并发程序的执行是*不确定的*：操作发生的顺序并不总是预先知道的。因此，程序员必须考虑不同线程可能执行的所有可能顺序，并确保在所有这些顺序中程序都能正常工作。如果程序是纯函数的，那么非确定性就更容易，因为表达式的求值无论如何都会返回相同的值。例如，在表达式`(2*4)+(3*5)`中，可以并发执行操作（例如，同时评估左和右乘积），而不会改变答案。命令式编程则更加棘手。例如，表达式`(!x)`和`(x
+    := !x+1)`，如果由两个不同的线程执行，可能会根据哪个线程先执行而得到不同的结果。
 - en: 'The `async` library attempts to combine the best features of lightweight threads
     and event loops. The simplest way to use `async` is through `utop`. To start,
     invoke `utop` and load `async`:'
   id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '`async`库尝试结合轻量级线程和事件循环的最佳特性。使用`async`的最简单方法是通过`utop`。要开始，请调用`utop`并加载`async`：'
 - en: '[PRE0]'
   id: totrans-10
   prefs: []
@@ -101,16 +112,19 @@
   id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 该库围绕一组基元组织起来，这些基元围绕*延迟*计算的概念组织。你可以在[这里](https://ocaml.janestreet.com/ocaml-core/111.28.00/doc/async/)找到`async`的文档。
 - en: The `async` Library
   id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '`async`库'
 - en: 'A partial signature for the [Async.Std](https://ocaml.janestreet.com/ocaml-core/111.03.00/doc/async/#Std)
     module is as follows:'
   id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Async.Std](https://ocaml.janestreet.com/ocaml-core/111.03.00/doc/async/#Std)模块的部分签名如下：'
 - en: '[PRE1]'
   id: totrans-14
   prefs: []
@@ -123,16 +137,19 @@
   id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 类型为`'a Deferred.t`的值表示一个延迟计算。最初通常不可用延迟计算中封装的值。这样的延迟计算称为*不定*。然而，当值变为*确定*时，它可以被访问和用于计算的其余部分。
 - en: An Example
   id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个示例
 - en: As an example to warm up, consider the following program, which defines an internal
     function `f` that prints out an integer and then returns a deferred unit.
   id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为热身的例子，考虑以下程序，它定义了一个内部函数`f`，该函数打印一个整数然后返回一个延迟单位。
 - en: '[PRE2]'
   id: totrans-18
   prefs: []
@@ -145,12 +162,14 @@
   id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`Deferred.List.iter`迭代产生延迟值的函数，并将所得延迟单位列表合并为单个延迟单位。函数`both`将一对延迟值组合成单个延迟对。
 - en: 'If executed sequentially, this program would simply print the integers from
     `1` to `5` twice. However, if executed concurrently, as in `async`, the calls
     to `printf` can be interleaved. For example:'
   id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果按顺序执行，该程序只会打印从`1`到`5`的整数两次。然而，如果像`async`那样并发执行，对`printf`的调用就会交错。例如：
 - en: '[PRE3]'
   id: totrans-21
   prefs: []
@@ -163,15 +182,18 @@
   id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种行为的原因是延迟值是由调度器并发执行的。因此，打印到控制台的值可能以与程序的正常顺序控制流所指定的不同的顺序出现。
 - en: Programming in `async`
   id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在 `async` 中编程
 - en: 'The simplest way to create a deferred computation is to use the `return` function:'
   id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建延迟计算的最简单方法是使用 `return` 函数：
 - en: '[PRE4]'
   id: totrans-25
   prefs: []
@@ -182,6 +204,7 @@
   id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 它生成一个立即确定的延迟值，可以使用 `peek` 函数进行验证：
 - en: '[PRE5]'
   id: totrans-27
   prefs: []
@@ -194,6 +217,7 @@
   id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建延迟计算的一种更有趣的方法是将两个较小的延迟计算顺序组合起来。`bind` 运算符，用中缀形式写作 `>>=`，获取一个延迟计算的结果，并将其提供给生成另一个延迟计算的函数：
 - en: '[PRE6]'
   id: totrans-29
   prefs: []
@@ -207,6 +231,8 @@
   id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `bind` 的表达式的执行如下：当第一个计算确定时，将值提供给函数，该函数安排另一个延迟计算。当此第二个延迟确定时，整个计算就确定了。上述代码片段中使用的习惯用法可以用作先前描述的
+    `both` 函数的实现：
 - en: '[PRE7]'
   id: totrans-31
   prefs: []
@@ -219,6 +245,8 @@
   id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 此函数等待 `d1` 确定，并将结果值传递给第一个函数 `v1`，等待 `d2` 确定，并将结果值传递给第二个函数 `v2`，后者在新的延迟计算中返回
+    `(v1,v2)` 对。
 - en: 'A more interesting example of composing deferreds arises with programs that
     read and write from the file system. I/O is a particularly good match for concurrent
     programming using deferreds, because I/O operations can often block, depending
@@ -231,6 +259,9 @@
   id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个更有趣的延迟组合的例子是那些从文件系统读取和写入的程序。I/O 操作特别适合使用延迟进行并发编程，因为 I/O 操作通常会阻塞，这取决于操作系统和底层设备的行为。例如，读取操作可能会阻塞，等待磁盘可用，或者等待磁盘控制器将读头移动到物理磁盘上的适当位置。`async`
+    库包含了用于打开和操作文件的标准函数的变体。例如，这里是 [Reader](https://ocaml.janestreet.com/ocaml-core/111.28.00/doc/async/#Std.Reader)
+    模块的一个小片段：
 - en: '[PRE8]'
   id: totrans-34
   prefs: []
@@ -243,44 +274,53 @@
   id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于定义 `'a Read_result.t` 的类型称为 *多态变体*，并使用了一些我们以前没有见过的新表示法。对于本课程，它可以被视为一个普通的数据类型，其构造函数恰好以反引号符号为前缀。"[PRE9]
 - en: 'let file_contents (fn:string) : string Deferred.t ='
   id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 'let file_contents (fn:string) : string Deferred.t ='
 - en: 'let rec loop (r:Reader.t) (acc:string) : string Deferred.t ='
   id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 'let rec loop (r:Reader.t) (acc:string) : string Deferred.t ='
 - en: Reader.read_line r >>= fun res ->
   id: totrans-38
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: Reader.read_line r >>= fun res ->
 - en: match res with
   id: totrans-39
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: match res with
 - en: '| `Eof -> return acc'
   id: totrans-40
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '| `Eof -> return acc'
 - en: '| `Ok s -> loop r (acc ^ s) in'
   id: totrans-41
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '| `Ok s -> loop r (acc ^ s) in'
 - en: Reader.open_file fn >>= fun r ->
   id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: Reader.open_file fn >>= fun r ->
 - en: loop r ""
   id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: loop r ""
 - en: '[PRE10]'
   id: totrans-44
   prefs: []
@@ -290,15 +330,18 @@
   id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 'let file_length (fn:string) : int Deferred.t ='
 - en: contents fn >>= fun s ->
   id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: contents fn >>= fun s ->
 - en: return (String.length s)
   id: totrans-47
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: return (String.length s)
 - en: '[PRE11]'
   id: totrans-48
   prefs: []
@@ -308,6 +351,7 @@
   id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 'val map : ''a Deferred.t -> (''a -> ''b) -> ''b Deferred.t'
 - en: '[PRE12]'
   id: totrans-50
   prefs: []
@@ -317,18 +361,22 @@
   id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 'let file_length (fn:string) : int Deferred.t ='
 - en: contents fn >>| String.length
   id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: contents fn >>| String.length
 - en: '```'
   id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '```'
 - en: Note the use of partial application in `String.length`.
   id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意在 `String.length` 中使用了部分应用。
 - en: In the next lecture, we will see further examples of creating and programming
     with deferred computations using `async`.
   id: totrans-55
