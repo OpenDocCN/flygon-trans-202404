@@ -1,663 +1,925 @@
 - en: File Systems
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文件系统
 - en: Lecture Notes for CS 140
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: CS 140课程讲义
 - en: Spring 2014
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 2014年春季
 - en: John Ousterhout
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 约翰·奥斯特豪特
 - en: 'Readings for this topic from *Operating Systems: Principles and Practice*:
     Chapter 11, Section 13.3 (up through page 561).'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 《操作系统：原理与实践》这一主题的阅读：第11章，第13.3节（直至第561页）。
 - en: 'Problems addressed by modern file systems:'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现代文件系统解决的问题：
 - en: 'Disk Management:'
+  id: totrans-6
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁盘管理：
 - en: Fast access to files (minimize seeks)
+  id: totrans-7
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 快速访问文件（最小化寻址）
 - en: Sharing space between users
+  id: totrans-8
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户之间共享空间
 - en: Efficient use of disk space
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效利用磁盘空间
 - en: 'Naming: how do users select files?'
+  id: totrans-10
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 命名：用户如何选择文件？
 - en: 'Protection: isolation between users, controlled sharing.'
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保护：用户之间的隔离，受控共享。
 - en: 'Reliability: information must survive OS crashes and hardware failures.'
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可靠性：信息必须在操作系统崩溃和硬件故障时幸存。
 - en: 'File: a named collection of bytes stored on durable storage such as disk.'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件：存储在持久存储设备（如磁盘）上的命名字节集合。
 - en: 'File access patterns:'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件访问模式：
 - en: 'Sequential: information is processed in order, one byte after another.'
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 顺序：信息按顺序处理，一个字节接着一个字节。
 - en: 'Random Access: can address any byte in the file directly without passing through
     its predecessors. E.g. the data set for demand paging, also databases.'
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随机访问：可以直接寻址文件中的任何字节，而无需通过其前导。例如，需求分页的数据集，还有数据库。
 - en: 'Keyed (or indexed): search for blocks with particular contents, e.g. hash table,
     associative database, dictionary. Usually provided by databases, not operating
     system.'
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 键控（或索引）：搜索具有特定内容的块，例如哈希表，关联数据库，字典。通常由数据库提供，而不是操作系统。
 - en: 'Issues to consider:'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要考虑的问题：
 - en: Most files are small (a few kilobytes or less), so per-file overheads must be
     low.
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大多数文件很小（几千字节或更少），因此每个文件的开销必须很低。
 - en: Most of the disk space is in large files.
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大多数磁盘空间用于大文件。
 - en: Many of the I/O operations are for large files, so performance must be good
     for large files.
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多I/O操作用于大文件，因此大文件的性能必须良好。
 - en: Files may grow unpredictably over time.
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件可能随时间不可预测地增长。
 - en: File Descriptors
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 文件描述符
 - en: Operating system data structure with information about a file (called *inode*
     in Linux)
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包含有关文件的信息的操作系统数据结构（在Linux中称为*inode*）
 - en: Stored on disk along with file data.
+  id: totrans-25
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与文件数据一起存储在磁盘上。
 - en: Kept in memory when file is open.
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在文件打开时保留在内存中。
 - en: 'Info in file descriptor:'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件描述符中的信息：
 - en: Sectors occupied by file
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件占用的扇区
 - en: File size
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件大小
 - en: Access times (last read, last write)
+  id: totrans-30
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 访问时间（最后读取，最后写入）
 - en: Protection information (owner id, group id, etc.)
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保护信息（所有者ID，组ID等）
 - en: How should disk sectors be used to represent the bytes of a file?
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁盘扇区应如何用于表示文件的字节？
 - en: '*Contiguous allocation* (also called "extent-based"): allocate files like segmented
     memory (contiguous run of sectors). Keep a free list of unused areas of the disk.
     When creating a file, make the user specify its length, allocate all the space
     at once. Descriptor contains location and size.'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*连续分配*（也称为“基于范围的”）：像分段内存一样分配文件（连续的扇区运行）。保留未使用磁盘区域的空闲列表。创建文件时，让用户指定其长度，一次性分配所有空间。描述符包含位置和大小。'
 - en: 'Advantages:'
+  id: totrans-34
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点：
 - en: Easy access, both sequential and random
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 易于访问，顺序和随机
 - en: Simple
+  id: totrans-36
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 简单
 - en: Few seeks
+  id: totrans-37
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 少量寻址
 - en: 'Drawbacks:'
+  id: totrans-38
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缺点：
 - en: Fragmentation will make it hard to use disk space efficiently; large files may
     be impossible
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 碎片化将使磁盘空间难以有效利用；大文件可能不可能
 - en: 'Hard to predict needs at file creation timeExample: IBM OS/360.'
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 难以预测文件创建时的需求。例如：IBM OS/360。
 - en: '*Linked files*:'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*链接文件*：'
 - en: Divide disk into fixed-sized blocks (512 bytes?)
+  id: totrans-42
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将磁盘分成固定大小的块（512字节？）
 - en: Keep a linked list of all free blocks.
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保持所有空闲块的链接列表。
 - en: In file descriptor, just keep pointer to first block.
+  id: totrans-44
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在文件描述符中，只需保留指向第一个块的指针。
 - en: Each block of file contains pointer to next block.
+  id: totrans-45
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件的每个块包含指向下一个块的指针。
 - en: Advantages?
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点？
 - en: 'Drawbacks?Examples (more or less): TOPS-10, Xerox Alto.'
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缺点？示例（或多或少）：TOPS-10，Xerox Alto。
 - en: 'Windows FAT:'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Windows FAT：
 - en: Like linked allocation, except don't keep the links in the blocks themselves.
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类似于链接分配，但不要将链接保留在块本身。
 - en: Keep the links for all files in a single table called the *File Allocation Table*
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将所有文件的链接保存在称为*文件分配表*的单个表中
 - en: Table is memory resident during normal operation
+  id: totrans-51
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 表在正常操作期间驻留在内存中
 - en: Each FAT entry is disk sector number of next block in file
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个FAT条目是文件中下一个块的磁盘扇区号
 - en: Special values for "last block in file", "free block"
+  id: totrans-53
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “文件中的最后一个块”，“空闲块”的特殊值
 - en: File descriptor stores number of first block in file, size
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件描述符存储文件中第一个块的编号，大小
 - en: Originally, each FAT entry was 16 bits.
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最初，每个FAT条目为16位。
 - en: 'FAT32 supports larger disks:'
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FAT32支持更大的磁盘：
 - en: Each entry has 28 bits of sector number
+  id: totrans-57
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个条目有28位扇区号
 - en: 'Disk addresses refer to *clusters*: groups of adjacent sectors.'
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁盘地址指向*簇*：相邻扇区的组合。
 - en: Cluster sizes 2 - 32 KBytes; fixed for any particular disk partition.
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 簇大小为2-32 K字节；对于任何特定的磁盘分区是固定的。
 - en: Advantages?
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点？
 - en: Disadvantages?
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缺点？
 - en: '*Indexed files*: keep an array of block pointers for each file.'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*索引文件*：为每个��件保留一个块指针数组。'
 - en: Maximum length must be declared for file when it is created.
+  id: totrans-63
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件创建时必须声明最大长度。
 - en: Allocate array to hold pointers to all the blocks, but don't allocate the blocks.
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分配数组来保存指向所有块的指针，但不分配块。
 - en: Fill in the pointers dynamically as file is written.
+  id: totrans-65
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在文件写入时动态填充指针。
 - en: Advantages?
+  id: totrans-66
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点？
 - en: Drawbacks?
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缺点？
 - en: '*Multi-level indexes* (4.3 BSD Unix):'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*多级索引*（4.3 BSD Unix）：'
 - en: Blocks are 4 Kbytes.
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 块大小为4 K字节。
 - en: File descriptor = 14 block pointers, initially 0 ("no block").
+  id: totrans-70
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件描述符=14个块指针，初始为0（“无块”）。
 - en: First 12 point to data blocks (*direct blocks*).
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前12个指向数据块（*直接块*）。
 - en: Next entry points to an *indirect block* (contains 1024 4-byte block pointers).
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 下一个条目指向一个*间接块*（包含1024个4字节块指针）。
 - en: Last entry points to a *doubly-indirect block*.
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后一个条目指向一个*双间接块*。
 - en: Maximum file length is fixed, but large.
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件的最大长度是固定的，但很大。
 - en: Indirect blocks aren't allocated until needed.
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直接块在需要时才分配。
 - en: Advantages?
+  id: totrans-76
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点？
 - en: Block Cache
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 块缓存
 - en: Use part of main memory to retain recently-accessed disk blocks.
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用主存的一部分来保留最近访问的磁盘块。
 - en: LRU replacement.
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最近最少使用替换。
 - en: Blocks that are referenced frequently (e.g., indirect blocks for large files)
     are usually in the cache.
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 经常引用的块（例如，大文件的间接块）通常在缓存中。
 - en: This solves the problem of slow access to large files.
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这解决了对大文件的慢速访问问题。
 - en: Originally, block caches were fixed size.
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最初，块缓存是固定大小的。
 - en: As memories have gotten larger, so have block caches.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随着内存变得更大，块缓存也变得更大。
 - en: 'Many systems now unify the block cache and the VM page pool: any page can be
     used for either, based on LRU access.'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多系统现在统一块缓存和虚拟内存页池：任何页面都可以用于任何一个，基于最近最少使用的访问。
 - en: What happens when a block in the cache is modified?
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当缓存中的块被修改时会发生什么？
 - en: '*Synchronous writes*: immediately write through to disk.'
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*同步写入*：立即写入磁盘。'
 - en: 'Safe: data won''t be lost if the machine crashes'
+  id: totrans-87
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安全：如果机器崩溃，数据不会丢失。
 - en: 'Slow: process can''t continue until disk I/O completes'
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 速度慢：进程无法继续直到磁盘I/O完成。
 - en: 'May be unnecessary:'
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能是不必要的：
 - en: Many small writes to the same block
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对同一块进行许多小写入。
 - en: Some files are deleted quickly (e.g., temporary files)
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些文件被快速删除（例如，临时文件）。
 - en: '*Delayed writes*: don''t immediately write to disk:'
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*延迟写入*：不立即写入磁盘：'
 - en: Wait a while (30 seconds?) in case there are more writes to a block or the block
     is deleted
+  id: totrans-93
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 等待一段时间（30秒？）以防有更多对块的写入或块被删除。
 - en: 'Fast: writes return immediately'
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 快速：写入立即返回。
 - en: 'Dangerous: may lose data after a system crash'
+  id: totrans-95
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 危险：系统崩溃后可能丢失数据。
 - en: Free Space Management
+  id: totrans-96
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 空闲空间管理
 - en: 'Managing disk free space: many early systems just used a linked list of free
     blocks.'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 管理磁盘的空闲空间：许多早期系统只是使用一个空闲块的链表。
 - en: Each block holds many pointers to free blocks, plus a pointer to the next block
     of pointers.
+  id: totrans-98
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个块包含许多指向空闲块的指针，以及指向下一个指针块的指针。
 - en: At the beginning, free list is sorted, so blocks in a file are allocated contiguously.
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 开始时，空闲列表是排序的，因此文件中的块是连续分配的。
 - en: Free list quickly becomes scrambled, so files are spread all over disk.
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空闲列表很快变得混乱，因此文件分布在整个磁盘上。
 - en: '4.3 BSD approach to free space: *bit map*:'
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 4.3 BSD对空闲空间的处理方法：*位图*：
 - en: Keep an array of bits, one per block.
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 维护一个位数组，每个块对应一个位。
 - en: 1 means block is free, 0 means block in use
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1表示块是空闲的，0表示块正在使用。
 - en: During allocation, search bit map for a block that's close to the previous block
     of the file.
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在分配期间，搜索位图以找到与文件的上一个块接近的块。
 - en: If disk isn't full, this usually works pretty well.
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果磁盘未满，这通常运行得相当好。
 - en: If disk is nearly full this becomes very expensive and doesn't produce much
     locality.
+  id: totrans-106
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果磁盘几乎满了，这将变得非常昂贵，并且不会产生很多局部性。
 - en: 'Solution: don''t let the disk fill up!'
+  id: totrans-107
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解决方案：不要让磁盘填满！
 - en: Pretend disk has 10% less capacity than it really has
+  id: totrans-108
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假装磁盘容量比实际容量少10%。
 - en: If disk is 90% full, tell users it's full and don't allow any more data to be
     written.
+  id: totrans-109
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果磁盘使用率达到90%，告知用户磁盘已满，并禁止写入更多数据。
 - en: Block Sizes
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 块大小
 - en: Many early file systems (e.g. Unix) used a block size of 512 bytes (one sector).
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多早期文件系统（例如Unix）使用的块大小为512字节（一个扇区）。
 - en: 'Inefficient I/O: more distinct transfers, hence more seeks.'
+  id: totrans-112
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: I/O效率低：更多不同的传输，因此更多的寻道。
 - en: 'Bulkier file descriptors: only 128 pointers in an indirect block (pointers
     will occupy 1% of disk space).'
+  id: totrans-113
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更庞大的文件描述符：只有128个指针在一个间接块中（指针将占据磁盘空间的1%）。
 - en: Increase block size (e.g. 2KB clusters in FAT32)?
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 增加块大小（例如，在FAT32中使用2KB簇）？
 - en: '4.3BSD solution: multiple block sizes'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 4.3BSD解决方案：多个块大小
 - en: Large blocks are 4 KBytes; most blocks are large
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大块为4 K字节；大多数块都很大
 - en: '*Fragments* are multiples of 512 bytes, fitting within a single large block'
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*碎片*是512字节的倍数，适合放在一个大块内'
 - en: The last block in a file can be a fragment.
+  id: totrans-118
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件中的最后一个块可能是一个碎片。
 - en: One large block can hold fragments from multiple files.
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个大块可以容纳来自多个文件的碎片。
 - en: Bit map for free blocks is based on fragments.
+  id: totrans-120
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空闲块的位图基于碎片。
 - en: Disk Scheduling
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 磁盘调度
 - en: If there are several disk I/O's waiting to be executed, what is the best order
     in which to execute them?
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有几个磁盘I/O等待执行，最佳执行顺序是什么？
 - en: Goal is to minimize seek time.
+  id: totrans-123
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标是最小化寻道时间。
 - en: '*First come first served* (FCFS, FIFO): simple, but does nothing to optimize
     seeks.'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*先来先服务*（FCFS，FIFO）：简单，但对优化寻址没有帮助。'
 - en: '*Shortest seek time first* (SSTF):'
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*最短寻道时间优先*（SSTF）：'
 - en: Choose next request that is as close as possible to the previous one.
+  id: totrans-126
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择下一个请求尽可能靠近上一个请求。
 - en: Good for minimizing seeks, but can result in starvation for some requests.
+  id: totrans-127
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有助于最小化寻址，但可能导致某些请求饥饿。
 - en: '*Scan* ("elevator algorithm").'
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*扫描*（"电梯算法"）。'
 - en: Same as SSTF except heads keep moving in one direction across disk.
+  id: totrans-129
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与SSTF相同，只是磁头在磁盘上沿着一个方向移动。
 - en: Once the edge of the disk has been reached, seek to the farthest block away
     and start again.
+  id: totrans-130
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦到达磁盘边缘，就寻找到最远处的块并重新开始。
