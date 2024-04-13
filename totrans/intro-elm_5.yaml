@@ -1,66 +1,94 @@
 - en: Error Handling and Tasks
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 错误处理与任务
 - en: Error Handling and Tasks
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 错误处理与任务
 - en: One of the guarantees of Elm is that you will not see runtime errors in practice.
     NoRedInk has been using Elm in production for about a year now, and they still
     have not had one! Like all guarantees in Elm, this comes down to fundamental language
     design choices. In this case, we are helped by the fact that **Elm treats errors
     as data.** (Have you noticed we make things data a lot here?)
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Elm的一个保证是你实际上不会看到运行时错误。NoRedInk已经在生产环境中使用Elm约一年了，他们还从未出现过一个！像Elm中的所有保证一样，这归结于基本语言设计选择。在这种情况下，我们受益于Elm将错误视为数据的事实。（你是否注意到我们在这里经常将事物视为数据？）
 - en: This section is going to walk through three data structures that help you handle
     errors in a couple different ways.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一部分将介绍三种数据结构，帮助你以几种不同的方式处理错误。
 - en: '`Maybe`'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Maybe`'
 - en: '`Result`'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Result`'
 - en: '`Task`'
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Task`'
 - en: Now some of you probably want to jump right to tasks, but trust me that going
     in order will help here! You can think of these three data structures as a progression
     that slowly address crazier and crazier situations. So if you jump in at the end,
     it will be a lot to figure out all at once.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你们中的一些人可能想直接转到任务，但相信我，按顺序进行会有所帮助！你可以把这三种数据结构看作是逐渐解决越来越疯狂情况的进展。所以如果你直接跳到最后，一下子就会有很多事情要弄清楚。
 - en: Some Historical Context
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一些历史背景
 - en: There are two popular language features that consistently cause unexpected problems.
     If you have used Java or C or JavaScript or Python or Ruby, you have almost certainly
     had your code crash because of `null` values or surprise exceptions from someone
     else's code.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种流行的语言特性经常会导致意外问题。如果你使用过Java、C、JavaScript、Python或Ruby，你几乎肯定因为`null`值或其他人代码中的意外异常而使你的代码崩溃。
 - en: Now these things are extremely familiar to folks, but that does not mean they
     are good!
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，这些东西对人们来说极其熟悉，但这并不意味着它们就是好的！
 - en: 'Null'
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 空
 - en: Any time you think you have a `String` you just might have a `null` instead.
     Should you check? Did the person giving you the value check? Maybe it will be
     fine? Maybe it will crash your servers? I guess we will find out later!
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当你认为你有一个`String`，你可能只有一个`null`。你应该检查吗？给你值的人有检查吗？也许它会没事？也许它会导致服务器崩溃？我想我们以后会知道的！
 - en: 'The inventor, Tony Hoare, has this to say about it:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 发明者Tony Hoare对此有以下看法：
 - en: I call it my billion-dollar mistake. It was the invention of the null reference
     in 1965\. At that time, I was designing the first comprehensive type system for
     references in an object oriented language (ALGOL W). My goal was to ensure that
@@ -69,202 +97,301 @@
     simply because it was so easy to implement. This has led to innumerable errors,
     vulnerabilities, and system crashes, which have probably caused a billion dollars
     of pain and damage in the last forty years.
+  id: totrans-14
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我称之为我的亿万美元错误。这是在1965年发明了空引用。当时，我正在设计第一个面向对象语言（ALGOL W）中引用的全面类型系统。我的目标是确保所有引用的使用都应该绝对安全，由编译器自动执行检查。但我忍不住想要放入一个空引用，因为这样做太容易了。这导致了无数的错误、漏洞和系统崩溃，可能在过去四十年里造成了数十亿美元的痛苦和损失。
 - en: As we will see soon, the point of `Maybe` is to avoid this problem in a pleasant
     way.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们很快将看到的，`Maybe` 的要点是以一种愉快的方式避免这个问题。
 - en: Exceptions
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 异常
 - en: Joel Spolsky outlined the issues with exceptions pretty nicely [in the year
     2003](http://www.joelonsoftware.com/items/2003/10/13.html). Essentially, code
     that *looks* fine may actually crash at runtime. Surprise!
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: Joel Spolsky在[2003年](http://www.joelonsoftware.com/items/2003/10/13.html)详细概述了异常的问题。基本上，看起来没问题的代码在运行时可能会崩溃。惊喜！
 - en: The point of `Result` is to make the possibility of failure clear and make sure
     it is handled appropriately.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Result` 的要点在于明确失败的可能性，并确保适当处理。'
 - en: The point of `Task` is pretty much the same, but it also works when we have
     code that runs asynchronously. Your error handling mechanism shouldn't totally
     fall apart just because you make an HTTP request!
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Task`的要点基本相同，但在我们有异步运行的代码时也适用。你的错误处理机制不应该仅仅因为你发起了一个HTTP请求就完全崩溃！'
 - en: Maybe
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 或许
 - en: Maybe
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 或许
 - en: 'It is best to just start with the definition of `Maybe`. It is a union type
     just like in all the examples [here](union_types.html). It is defined like this:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 最好先从`Maybe`的定义开始。它像这样定义的联合类型就像所有这里的示例一样。它的定义如下：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: If you want to have a `Maybe` value, you have to use the `Nothing` or `Just`
     constructors to create it. This means that to deal with the data, you have to
     use a `case` expression. This means the compiler can ensure that you have definitely
     covered both possibilities!
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想要一个`Maybe`值，你必须使用`Nothing`或`Just`构造函数来创建它。这意味着为了处理数据，你必须使用一个`case`表达式。这意味着编译器可以确保你肯定已经涵盖了两种可能性！
 - en: There are two major cases where you will see `Maybe` values.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种情况会出现`Maybe`值。
 - en: Optional Fields
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 可选字段
 - en: 'Say we are running a social networking website. Connecting people, friendship,
     etc. You know the spiel. The Onion outlined our real goals best: [mine as much
     data as possible for the CIA](http://www.theonion.com/video/cias-facebook-program-dramatically-cut-agencys-cos-19753).
     And if we want *all* the data, we need to ease people into it. Let them add it
     later. Add features that encourage them to share more and more information over
     time.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们正在运行一个社交网络网站。连接人们，友谊等等。你知道这一套。洋葱最好地概括了我们的真正目标：[尽可能多地为中央情报局挖掘数据](http://www.theonion.com/video/cias-facebook-program-dramatically-cut-agencys-cos-19753)。如果我们想要*所有*的数据，我们需要让人们逐渐接受它。让他们以后再添加。增加一些功能，鼓励他们随着时间分享更多的信息。
 - en: So let's start with a simple model of a user. They must have a name, but we
     are going to make the age optional.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们从一个用户的简单模型开始。他们必须有一个名字，但我们将年龄设为可选。
 - en: '[PRE1]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now say Sue logs in and decides not to provide her birthday:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设苏登陆并决定不提供她的生日：
 - en: '[PRE2]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Now her friends cannot wish her a happy birthday. Sad! Later Tom creates a
     profile and *does* give his age:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在她的朋友们无法祝她生日快乐了。伤心！后来汤姆创建了一个个人资料，并*确实*提供了他的年龄：
 - en: '[PRE3]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Great, that will be nice on his birthday. But more importantly, Tom is part
     of a valuable demographic! The advertisers will be pleased.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 太好了，那将是他的生日礼物。但更重要的是，汤姆是一个有价值的人群！广告商会很高兴的。
 - en: 'Alright, so now that we have some users, how can we market alcohol to them
     without breaking any laws? People would probably be mad if we market to people
     under 21, so let''s check for that:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，现在我们有了一些用户，我们如何在不违反任何法律的情况下向他们推销酒精？如果我们向21岁以下的人推销，人们可能会生气，所以让我们检查一下：
 - en: '[PRE4]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now the cool thing is that we are forced to use a `case` to pattern match on
     the users age. It is actually impossible to write code where you forget that users
     may not have an age. Elm can make sure of it. Now we can advertise alcohol confident
     that we are not influencing minors directly! Only their older peers.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在很酷的是，我们被迫使用`case`来对用户的年龄进行模式匹配。实际上，写出忘记用户可能没有年龄的代码是不可能的。Elm可以确保这一点。现在我们可以自信地宣传酒精，而不会直接影响未成年人！只会影响他们年长的同龄人。
 - en: Partial Functions
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 部分函数
 - en: Sometimes you want a function that gives an answer sometimes, but just does
     not in other cases.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候你需要一个函数，在某些情况下给出答案，但在其他情况下却不给出。
 - en: Let's say Mountain Dew wants to do some ad buys for people ages 13 to 18\. Honestly,
     it is better to start kids on Mountain Dew younger than that, but it is illegal
     for kids under 13 to be on our site.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设百事可乐想要为13到18岁的人做一些广告购买。老实说，最好是让孩子们在这个年龄之前就开始喝百事可乐，但是对于13岁以下的孩子来说，在我们的网站上是违法的。
 - en: 'So let''s say we want to write a function that will tell us a user''s age,
     but only if they are between 13 and 18:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以假设我们想要编写一个函数，告诉我们用户的年龄，但只有当他们年龄在13到18岁之间时：
 - en: '[PRE5]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Again, we are reminded that users may not have an age, but if they do, we only
     want to return it if it is between 13 and 18\. Now Elm can guarantee that anyone
     who calls `getTeenAge` will have to handle the possibility that the age is out
     of range.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次提醒我们，用户可能没有年龄，但如果有的话，我们只想返回介于13到18岁之间的年龄。现在Elm可以保证任何调用`getTeenAge`的人都必须处理年龄超出范围的可能性。
 - en: 'This gets pretty cool when you start combining it with library functions like
     [`List.filterMap`](http://package.elm-lang.org/packages/elm-lang/core/latest/List#filterMap)
     that help you process more data. For example, maybe we want to figure out the
     distribution of ages between 13 and 18\. We could do it like this:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你开始将其与像[`List.filterMap`](http://package.elm-lang.org/packages/elm-lang/core/latest/List#filterMap)这样的库函数结合使用时，情况就变得非常有趣，它可以帮助你处理更多的数据。例如，也许我们想要弄清楚13到18岁之间年龄的分布。我们可以这样做：
 - en: '[PRE6]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We end up with only the ages we care about. Now we can feed our `List Int` into
     a function that figures out the distributions of each number.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们最终只关心的年龄。现在我们可以将我们的`List Int`输入到一个函数中，该函数可以计算出每个数字的分布。
 - en: Result
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果
 - en: Result
+  id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果
 - en: 'A `Result` is useful when you have logic that may "fail". For example, parsing
     a `String` into an `Int` may fail. What if the string is filled with the letter
     B? In cases like this, we want a function with this type:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你有可能“失败”的逻辑时，`Result` 就非常有用。例如，将一个 `String` 解析成一个 `Int` 可能会失败。如果字符串填充了字母 B
+    呢？在这种情况下，我们想要一个这样类型的函数：
 - en: '[PRE7]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: This means that `String.toInt` will take in a string value and start processing
     the string. If it cannot be turned into an integer, we provide a `String` error
     message. If it can be turned into an integer, we return that `Int`. So the `Result
     String Int` type is saying, "my errors are strings and my successes are integers."
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着 `String.toInt` 将接收一个字符串值并开始处理该字符串。如果它不能转换为整数，我们提供一个 `String` 错误消息。如果它可以转换为整数，我们就返回那个
+    `Int`。所以 `Result String Int` 类型的含义是，“我的错误是字符串，我的成功是整数。”
 - en: 'To make this as concrete as possible, let''s see the actual definition of `Result`.
     It is actually pretty similar to the `Maybe` type, but it has *two* type variables:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了尽可能具体，让我们看看 `Result` 的实际定义。它实际上与 `Maybe` 类型非常相似，但它有 *两个* 类型变量：
 - en: '[PRE8]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'You have two constructors: `Err` to tag errors and `Ok` to tag successes. Let''s
     see what happens when we actually use `String.toInt` in the REPL:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 你有两个构造函数：`Err` 标记错误和 `Ok` 标记成功。让我们看看当我们在 REPL 中实际使用 `String.toInt` 时会发生什么：
 - en: '[PRE9]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'So instead of throwing an exception like in most languages, we return data
     that indicates whether things have gone well or not. Let''s imagine someone is
     typing their age into a text field and we want to show a validation message:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，与大多数语言不同，我们不会抛出异常，而是返回表示事情进行得如何的数据。让我们想象有人正在一个文本字段中输入他们的年龄，我们想要显示一个验证消息：
 - en: '[PRE10]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Again, we have to use `case` so we are guaranteed to handle the special case
     where the number is bad.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们必须使用 `case`，这样我们就能保证处理数字不好的特殊情况。
 - en: Task
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 任务
 - en: Tasks
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 任务
 - en: These docs are getting updated for 0.18\. They will be back soon! Until then,
     the [docs](http://package.elm-lang.org/packages/elm-lang/core/4.0.0/Task) will
     give a partial overview.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些文档正在更新至 0.18 版本。它们很快就会回来！在那之前，[文档](http://package.elm-lang.org/packages/elm-lang/core/4.0.0/Task)
+    将提供部分概述。
