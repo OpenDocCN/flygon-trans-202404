@@ -1,109 +1,156 @@
 - en: The "Dependency cycles" Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '"依赖循环"系列'
 - en: One of the most common complaints about F# is that it requires code to be in
     *dependency order*. That is, you cannot use forward references to code that hasn't
     been seen by the compiler yet.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: F# 最常见的投诉之一是它要求代码按照*依赖顺序*排列。也就是说，你不能使用对编译器尚未看到的代码的前向引用。
 - en: In this series, I discuss dependency cycles, why they are bad, and how to get
     rid of them.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个系列中，我讨论了依赖循环，它们为什么是不好的，并且如何摆脱它们。
 - en: '[Cyclic dependencies are evil](cyclic-dependencies.html). Cyclic dependencies:
     Part 1.'
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[循环依赖是邪恶的](cyclic-dependencies.html)。循环依赖：第1部分。'
 - en: '[Refactoring to remove cyclic dependencies](removing-cyclic-dependencies.html).
     Cyclic dependencies: Part 2.'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[重构以移除循环依赖](removing-cyclic-dependencies.html)。循环依赖：第2部分。'
 - en: '[Cycles and modularity in the wild](cycles-and-modularity-in-the-wild.html).
     Comparing some real-world metrics of C# and F# projects.'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[循环和模块化在实践中的应用](cycles-and-modularity-in-the-wild.html)。比较 C# 和 F# 项目的一些实际度量标准。'
 - en: Cyclic dependencies are evil
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 循环依赖是邪恶的
 - en: Cyclic dependencies are evil
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 循环依赖是邪恶的
 - en: '*One of three related posts on [module organization](recipe-part3.html) and
     [cyclic dependencies](removing-cyclic-dependencies.html).*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*关于[模块组织](recipe-part3.html)和[循环依赖](removing-cyclic-dependencies.html)的三篇相关文章之一。*'
 - en: One of the most common complaints about F# is that it requires code to be in
     *dependency order*. That is, you cannot use forward references to code that hasn't
     been seen by the compiler yet.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: F# 最常见的投诉之一是它要求代码按照*依赖顺序*排列。也就是说，你不能使用对编译器尚未看到的代码的前向引用。
 - en: 'Here''s a typical example:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个典型的例子：
 - en: '"The order of .fs files makes it hard to compile... My F# application is just
     over 50 lines of code, but it''s already more work than it''s worth to compile
     even the tiniest non-trivial application. Is there a way to make the F# compiler
     more like the C# compiler, so that it''s not so tightly coupled to the order that
     files are passed to the compiler?" [[fpish.net]](http://fpish.net/topic/None/57578)'
+  id: totrans-11
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '"文件的 .fs 顺序使得编译变得困难……我的 F# 应用只有 50 多行代码，但即使是最微不足道的非平凡应用程序的编译也比它的价值大得多。有没有办法使
+    F# 编译器更像 C# 编译器，这样它就不会与向编译器传递文件的顺序紧密耦合了？" [[fpish.net]](http://fpish.net/topic/None/57578)'
 - en: 'and another:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有另一个：
 - en: '"After trying to build a slightly above-toy-size project in F#, I came to the
     conclusion that with current tools it would be quite difficult to maintain a project
     of even moderate complexity." [[www.ikriv.com]](http://www.ikriv.com/blog/?p=28)'
+  id: totrans-13
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '"尝试在 F# 中构建一个稍微大于玩具大小的项目后，我得出了这样的结论：使用当前的工具维护一个即使是中等复杂度的项目也会非常困难" [[www.ikriv.com]](http://www.ikriv.com/blog/?p=28)'
 - en: 'and another:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有另一个：
 - en: '"F# compiler [is] too linear. The F# compiler should handle all type resolution
     matters automatically, independent of declaration order" [[www.sturmnet.org]](http://www.sturmnet.org/blog/2008/05/20/f-compiler-considered-too-linear)'
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '"F# 编译器 [太] 线性了。F# 编译器应该自动处理所有类型解析问题，而不依赖于声明的顺序" [[www.sturmnet.org]](http://www.sturmnet.org/blog/2008/05/20/f-compiler-considered-too-linear)'
 - en: 'and one more:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一个：
 - en: '"The topic of annoying (and IMHO unnecessary) limitations of the F# project
     system was already discussed on this forum. I am talking about the way compilation
     order is controlled" [[fpish.net]](http://fpish.net/topic/Some/0/59219)'
+  id: totrans-17
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '"关于 F# 项目系统烦人（在我看来是不必要的）的限制已经在这个论坛上讨论过了。我指的是编译顺序的控制方式" [[fpish.net]](http://fpish.net/topic/Some/0/59219)'
 - en: Well, these complaints are unfounded. You most certainly can build and maintain
     large projects using F#. The F# compiler and the core library are two obvious
     examples.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，这些抱怨是没有根据的。你完全可以使用 F# 构建和维护大型项目。F# 编译器和核心库就是两个明显的例子。
 - en: In fact, most of these problems boil down to "why can't F# be like C#". If you
     are coming from C#, you are used to having the compiler connect everything automatically.
     Having to deal with dependency relationships explicitly is very annoying -- old-fashioned
     and regressive, even.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，大多数问题归结为"为什么 F# 不能像 C# 一样"。如果你来自 C#，你习惯于编译器自动连接一切。必须显式处理依赖关系非常令人讨厌——甚至可以说是老式和倒退的。
 - en: The aim of this post is to explain (a) why dependency management is important,
     and (b) some techniques that can help you deal with it.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇文章的目的是解释（a）为什么依赖管理很重要，以及（b）一些可以帮助你处理它的技术。
 - en: Dependencies are bad things...
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 依赖关系是坏事……
 - en: We all know that dependencies are the bane of our existence. Assembly dependencies,
     configuration dependencies, database dependencies, network dependencies -- there's
     always something.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们都知道依赖关系是我们存在的祸根。程序集依赖、配置依赖、数据库依赖、网络依赖——总是有些问题。
 - en: 'So we developers, as a profession, tend to put a lot of effort into making
     dependencies more manageable. This goal manifests itself in many disparate ways:
     the [interface segregation principle](http://en.wikipedia.org/wiki/Interface_segregation_principle),
@@ -111,123 +158,174 @@
     package management with NuGet; configuration management with puppet/chef; and
     so on. In some sense all these approaches are trying to reduce the number of things
     we have to be aware of, and the number of things that can break.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，作为开发人员，我们倾向于花费大量精力使依赖关系更易管理。这个目标以许多不同的方式体现：[接口隔离原则](http://en.wikipedia.org/wiki/Interface_segregation_principle)、控制反转和[依赖注入](http://en.wikipedia.org/wiki/Dependency_inversion_principle)；使用NuGet进行包管理；使用puppet/chef进行配置管理；等等。在某种意义上，所有这些方法都试图减少我们需要了解的事物数量，���及可能出错的事物数量。
 - en: 'This is not a new problem, of course. A large part of the classic book "[Large-Scale
     C++ Software Design](http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620)"
     is devoted to dependency management. As John Lakos, the author, put it:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这并不是一个新问题。经典书籍《[大规模C++软件设计](http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620)》的很大一部分都致力于依赖管理。正如作者约翰·拉科斯所说：
 - en: '"The maintenance cost of a subsystem can be reduced significantly by avoiding
     unnecessary dependencies among components"'
+  id: totrans-25
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “通过避免组件之间的不必要依赖，可以显著降低子系统的维护成本”
 - en: The key word here is "unnecessary". What is an "unnecessary" dependency? It
     depends, of course. But one particular kind of dependency is almost always unnecessary
     -- a **circular dependency**.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的关键词是“不必要”。什么是“不必要”的依赖？当然，这取决于情况。但一种特定类型的依赖几乎总是不必要的 -- **循环依赖**。
 - en: '... and circular dependencies are evil'
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '...而循环依赖是邪恶的'
 - en: To understand why circular dependencies are evil, let's revisit what we mean
     by a "component".
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解为什么循环依赖是邪恶的，让我们重新思考一下我们所说的“组件”是什么。
 - en: Components are Good Things. Whether you think of them as packages, assemblies,
     modules, classes or whatever, their primary purpose is to break up large amounts
     of code into smaller and more manageable pieces. In other words, we are applying
     a divide and conquer approach to the problem of software development.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 组件是好东西。无论你将它们视为包、组件、模块、类或其他什么，它们的主要目的是将大量代码分解为更小、更易管理的部分。换句话说，我们正在将分而治之的方法应用于软件开发问题。
 - en: But in order to be useful for maintenance, deployment, or whatever, a component
     shouldn't just be a random collection of stuff. It should (of course) group only
     *related code* together.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 但为了对维护、部署或其他方面有用，一个组件不应该只是一堆随机的东西。它应该（当然）仅将*相关代码*组合在一起。
 - en: In an ideal world, each component would thus be completely independent of any
     others. But generally (of course), some dependencies are always necessary.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在理想世界中，每个组件都应完全独立于其他任何组件。但通常（当然），总是有一些依赖关系是必要的。
 - en: 'But, now that we have components with *dependencies*, we need a way to manage
     these dependencies. One standard way to do this is with the "layering" principle.
     We can have "high level" layers and "low level" layers, and the critical rule
     is: *each layer should depend only on layers below it, and never on a layer above
     it*.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，现在我们有了*依赖关系*的组件，我们需要一种方法来管理这些依赖关系。一个标准的做法是使用“分层”原则。我们可以有“高层”和“低层”，关键规则是：*每一层应仅依赖于它下面的层，而不依赖于它上面的层*。
 - en: 'You are very familiar with this, I''m sure. Here''s a diagram of some simple
     layers:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我相信你对此非常熟悉。这里是一些简单层的图示：
 - en: '![](Layering1.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](Layering1.png)'
 - en: But now what happens when you introduce a dependency from the bottom layer to
     the top layer, like this?
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是现在，当你引入从底层到顶层的依赖时，会发生什么，就像这样？
 - en: '![](Layering2.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](Layering2.png)'
 - en: By having a dependency from the bottom to the top, we have introduced the evil
     "circular dependency".
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过从底层到顶层的依赖，我们引入了邪恶的“循环依赖”。
 - en: Why is it evil? Because *any* alternative layering method is now valid!
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么它邪恶？因为*任何*替代的分层方法现在都是有效的！
 - en: 'For example, we could put the bottom layer on top instead, like this:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们可以将底层放在顶部，就像这样：
 - en: '![](Layering3.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](Layering3.png)'
 - en: From a logical point of view, this alternative layering is just the same as
     the original layering.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 从逻辑角度来看，这种替代分层与原始分层完全相同。
 - en: Or how about we put the middle layer on top?
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者我们把中间层放在顶部怎么样？
 - en: '![](Layering3b.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](Layering3b.png)'
 - en: Something has gone badly wrong! It's clear that we've really messed things up.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, as soon as you have any kind of circular dependency between components,
     the *only* thing you can do is to put them *all* into the *same* layer.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Layering4.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
 - en: In other words, the circular dependency has completely destroyed our "divide
     and conquer" approach, the whole reason for having components in the first place.
     Rather than having three components, we now have just one "super component", which
     is three times bigger and more complicated than it needed to be.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Layering5.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
 - en: And that's why circular dependencies are evil.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
 - en: '*For more on this subject, see this [StackOverflow answer](http://stackoverflow.com/a/1948636/1136133)
     and [this article about layering](http://codebetter.com/patricksmacchia/2008/02/10/layering-the-level-metric-and-the-discourse-of-method/)
     by Patrick Smacchia (of NDepend).*'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
 - en: Circular dependencies in the real world
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Let''s start by looking at circular dependencies between .NET assemblies. Here
     are some war stories from Brian McNamara (my emphasis):'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
 - en: 'The .Net Framework 2.0 has this problem in spades; System.dll, System.Configuration.dll,
@@ -240,10 +338,12 @@
     arduous task was trying to untangle the circular dependencies. **"Mutual recursion
     for free" is very convenient on a small scale, but it will destroy you on a large
     scale.**'
+  id: totrans-53
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: ''
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -251,16 +351,19 @@
     SQL server, and SQL server had a dependency on VS, and whoops! in the end they
     couldn't produce a full product version where everything had the same build number,
     and had to scramble to make it work. [[fpish.net]](http://fpish.net/topic/None/59219#comment-70220)
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: So there is plenty of evidence that circular dependencies between assemblies
     are bad. In fact, circular dependencies between assemblies are considered bad
     enough that Visual Studio won't even let you create them!
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
 - en: You might say, "Yes, I can understand why circular dependencies are bad for
     assemblies, but why bother for code inside an assembly?"
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: Well, for exactly the same reasons! Layering allows better partitioning, easier
@@ -268,9 +371,11 @@
     dependency cycles "in the wild"](cycles-and-modularity-in-the-wild.html) where
     I compare C# projects and F# projects. The dependencies in the F# projects are
     a lot less spaghetti-like.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
 - en: 'Another quote from Brian''s (excellent) comment:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: I'm evangelizing an unpopular position here, but my experience is that everything
@@ -284,996 +389,1403 @@
     your own peril. A system that forces you to consider this dependency graph (roughly,
     the topological sort of components) is likely to steer you into developing software
     with cleaner architectures, better system layering, and fewer needless dependencies.
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Detecting and removing circular dependencies
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Ok, we're agreed that circular dependencies are bad. So how do we detect them
     and then get rid of them?
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
 - en: Let's start with detection. There are a number of tools to help you detect circular
     dependencies in your code.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: If you're using C#, you will need a tool like the invaluable [NDepend](http://www.ndepend.com/features.aspx#DependencyCycle).
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: And if you are using Java, there are equivalent tools such as [JDepend](http://www.clarkware.com/software/JDepend.html#cycles).
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: But if you are using F#, you're in luck! You get circular dependency detection
     for free!
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '"Very funny," you might say, "I already know about F#''s circular dependency
     prohibition -- it''s driving me nuts! What can I do to fix the problem and make
     the compiler happy?"'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: For that, you'll need to read the [next post](removing-cyclic-dependencies.html)...
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
 - en: Refactoring to remove cyclic dependencies
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Refactoring to remove cyclic dependencies
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: In the previous post, we looked at the concept of dependency cycles, and why
     they are bad.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
 - en: In this post, we'll look at some techniques for eliminating them from your code.
     Having to do this may seem annoying at first, but really, you'll come to appreciate
     that in the long run, "it's not a bug, it's a feature!"
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: Classifying some common cyclic dependencies
+  id: totrans-73
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Let's classify the kinds of dependencies you're likely to run into. I'll look
     at three common situations, and for each one, demonstrate some techniques for
     dealing with them.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
 - en: First, there is what I will call a *"method dependency"*.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: Type A stores a value of type B in a property
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type B references type A in a method signature, but doesn't store a value of
     type A
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Second, there is what I will call a *"structural dependency"*.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: Type A stores a value of type B in a property
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type B stores a value of type A in a property
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finally, there is what I will call an *"inheritance dependency"*.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
 - en: Type A stores a value of type B in a property
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type B inherits from type A
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There are, of course, other variants. But if you know how to deal with these,
     you can use the same techniques to deal with the others as well.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然还有其他变体。但是如果你知道如何处理这些，你也可以使用相同的技术来处理其他变体。
 - en: Three tips on dealing with dependencies in F#
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于在 F# 中处理依赖关系的三个提示
 - en: Before we get started, here are three useful tips which apply generally when
     trying to untangle dependencies.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始之前，这里有三个通用的有用提示，当试图解开依赖关系时通常适用。
 - en: '**Tip 1: Treat F# like F#**.'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Tip 1: 把 F# 当做 F# 对待**。'
 - en: Recognize that F# is not C#. If you are willing to work with F# using its native
     idioms, then it is normally very straightforward to avoid circular dependencies
     by using a different style of [code organization](recipe-part3.html).
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 认识到 F# 不是 C#。如果你愿意使用 F# 的本机习惯用法，那么通常可以通过使用不同风格的 [代码组织](recipe-part3.html) 来避免循环依赖。
 - en: '**Tip 2: Separate types from behavior**.'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Tip 2: 将类型与行为分离**。'
 - en: Since most types in F# are immutable, it is acceptable for them to be "exposed"
     and ["anemic"](http://www.martinfowler.com/bliki/AnemicDomainModel.html), even.
     So in a functional design it is common to separate the types themselves from the
     functions that act on them. This approach will often help to clean up dependencies,
     as we'll see below.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 F# 中的大多数类型都是不可变的，即使它们是“裸露”的和[“贫血”](http://www.martinfowler.com/bliki/AnemicDomainModel.html)，也是可以接受的。因此，在函数式设计中，将类型本身与作用于它们的函数分离是很常见的。正如我们将在下面看到的那样，这种方法通常会有助于清理依赖关系。
 - en: '**Tip 3: Parameterize, parameterize, parameterize**.'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Tip 3: 参数化，参数化，参数化**。'
 - en: Dependencies can only happen when a specific type is referenced. If you use
     generic types, you cannot have a dependency!
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 依赖关系只会在引用特定类型时发生。如果你使用通用类型，你就不能有依赖关系！
 - en: And rather than hard coding behavior for a type, why not parameterize it by
     passing in functions instead? The `List` module is a great example of this approach,
     and I'll show some examples below as well.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 而不是为类型硬编码行为，为什么不通过传递函数参数化它呢？ `List` 模块是这种方法的一个很好的例子，我也将在下面展示一些示例。
 - en: Dealing with a "method dependency"
+  id: totrans-94
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理“方法依赖”
 - en: We'll start with the simplest kind of dependency -- what I will call a "method
     dependency".
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从最简单的一种依赖关系开始--我将其称为“方法依赖”。
 - en: Here is an example.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个例子。
 - en: '[PRE0]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The `Customer` class has a property/field of type `CustomerObserver`, but the
     `CustomerObserver` class has a method which takes a `Customer` as a parameter,
     causing a mutual dependency.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Customer` 类具有一个类型为 `CustomerObserver` 的属性/字段，但 `CustomerObserver` 类有一个以 `Customer`
+    为参数的方法，导致相互依赖。'
 - en: Using the "and" keyword
+  id: totrans-99
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用“and”关键字
 - en: One straightforward way to get the types to compile is to use the `and` keyword,
     as I did above.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 将类型编译成成功的一个简单方法是使用 `and` 关键字，就像我上面做的那样。
 - en: The `and` keyword is designed for just this situation -- it allows you to have
     two or more types that refer to each other.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '`and` 关键字就是为这种情况设计的--它允许你拥有两个或更多相互引用的类型。'
 - en: To use it, just replace the second `type` keyword with `and`. Note that using
     `and type`, as shown below, is incorrect. Just the single `and` is all you need.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用它，只需用 `and` 替换第二个 `type` 关键字。请注意，使用 `and type`，如下所示，是不正确的。只需要单个 `and` 就足够了。
 - en: '[PRE1]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: But `and` has a number of problems, and using it is generally discouraged except
     as a last resort.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是 `and` 存在一些问题，通常不建议使用它，除非作为最后的手段。
 - en: First, it only works for types declared in the same module. You can't use it
     across module boundaries.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，它仅适用于在同一模块中声明的类型。你不能跨模块边界使用它。
 - en: Second, it should really only be used for tiny types. If you have 500 lines
     of code between the `type` and the `and`, then you are doing something very wrong.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，它真的只适用于微小的类型。如果在 `type` 和 `and` 之间有 500 行代码，那么你做错了什么。
 - en: '[PRE2]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The code snippet shown above is an example of how *not* to do it.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面显示的代码片段是一个示例，*不*应该这样做。
 - en: In other words, don't treat `and` as a panacea. Overusing it is a symptom that
     you have not refactored your code properly.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，不要把 `and` 当作灵丹妙药。过度使用它是你没有正确重构代码的症状。
 - en: Introducing parameterization
+  id: totrans-110
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 引入参数化
 - en: So, instead of using `and`, let's see what we can do using parameterization,
     as mentioned in the third tip.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，不要使用 `and`，让我们看看我们是否可以使用参数化，如第三个提示中所提到的。
 - en: If we think about the example code, do we *really* need a special `CustomerObserver`
     class? Why have we restricted it to `Customer` only? Can't we have a more generic
     observer class?
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们考虑一下示例代码，我们是否 *真的* 需要一个特殊的 `CustomerObserver` 类？为什么我们把它限制在了 `Customer` 上？我们不能有一个更通用的观察者类吗？
 - en: So why don't we create a `INameObserver<'T>` interface instead, with the same
     `OnNameChanged` method, but the method (and interface) parameterized to accept
     any class?
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么为什么我们不创建一个`INameObserver<'T>`接口，具有相同的`OnNameChanged`方法，但方法（和接口）参数化以接受任何类呢？
 - en: 'Here''s what I mean:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的意思是：
 - en: '[PRE3]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: In this revised version, the dependency has been broken! No `and` is needed
     at all. In fact, you could even put the types in different projects or assemblies
     now!
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个修订版本中，依赖关系已经被打破！根本不需要`and`。事实上，现在甚至可以将类型放在不同的项目或程序集中！
 - en: The code is almost identical to the first version, except that the `Customer`
     constructor accepts a interface, and `CustomerObserver` now implements the same
     interface. In fact, I would argue that introducing the interface has actually
     made the code better than before.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码几乎与第一个版本相同，只是`Customer`构造函数接受一个接口，而`CustomerObserver`现在实现了相同的接口。事实上，我认为引入接口实际上比以前更好。
 - en: But we don't have to stop there. Now that we have an interface, do we really
     need to create a whole class just to implement it? F# has a great feature called
     [object expressions](http://msdn.microsoft.com/en-us/library/dd233237.aspx) which
     allows you to instantiate an interface directly.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我们不必止步于此。既然我们有了一个接口，我们真的需要创建一个完整的类来实现它吗？F#有一个很棒的功能叫做[对象表达式](http://msdn.microsoft.com/en-us/library/dd233237.aspx)，允许你直接实例化一个接口。
 - en: Here is the same code again, but this time the `CustomerObserver` class has
     been eliminated completely and the `INameObserver` created directly.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是相同的代码，但这次完全消除了`CustomerObserver`类，并直接创建了`INameObserver`。
 - en: '[PRE4]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This technique will obviously work for more complex interfaces as well, such
     as that shown below, where there are two methods:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种技术显然也适用于更复杂的接口，比如下面所示的情况，其中有两种方法：
 - en: '[PRE5]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Using functions instead of parameterization
+  id: totrans-123
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用函数而不是参数化
 - en: 'In many cases, we can go even further and eliminate the interface class as
     well. Why not just pass in a simple function that is called when the name changes,
     like this:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，我们甚至可以进一步消除接口类。为什么不只传递一个简单的在名称更改时调用的函数呢，就像这样：
 - en: '[PRE6]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'I think you''ll agree that this snippet is "lower ceremony" than either of
     the previous versions. The observer is now defined inline as needed, very simply:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为你会同意，这段代码片段比前两个版本都更"低仪式感"。观察者现在按需内联定义，非常简单：
 - en: '[PRE7]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: True, it only works when the interface being replaced is simple, but even so,
     this approach can be used more often than you might think.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 确实，这种方法只适用于被替换的接口很简单的情况，但即使如此，这种方法可能比你想象的更常用。
 - en: 'A more functional approach: separating types from functions'
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 更具功能性的方法：将类型与函数分离
 - en: As I mentioned above, a more "functional design" would be to separate the types
     themselves from the functions that act on those types. Let's see how this might
     be done in this case.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我上面提到的，一个更"功能性的设计"是将类型本身与作用于这些类型的函数分开。让我们看看在这种情况下如何做到这一点。
 - en: 'Here is a first pass:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是第一次尝试：
 - en: '[PRE8]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'In the example above, we now have *three* modules: one for the types, and one
     each for the functions. Obviously, in a real application, there will be a lot
     more Customer related functions in the `Customer` module than just this one!'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的示例中，我们现在有*三*个模块：一个用于类型，另外两个用于函数。显然，在一个真实的应用程序中，`Customer`模块中与`Customer`相关的函数会比这一个多得多！
 - en: In this code, though, we still have the mutual dependency between `Customer`
     and `CustomerObserver`. The type definitions are more compact, so it is not such
     a problem, but even so, can we eliminate the `and`?
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这段代码中，我们仍然存在`Customer`和`CustomerObserver`之间的相互依赖。类型定义更紧凑，所以这不是什么问题，但即使如此，我们能消除`and`吗？
 - en: 'Yes, of course. We can use the same trick as in the previous approach, eliminating
     the observer type and embedding a function directly in the `Customer` data structure,
     like this:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，当然。我们可以使用与前一种方法相同的技巧，消除观察者类型，并直接将函数嵌入到`Customer`数据结构中，就像这样：
 - en: '[PRE9]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Making types dumber
+  id: totrans-137
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使类型更简单
 - en: The `Customer` type still has some behavior embedded in it. In many cases, there
     is no need for this. A more functional approach would be to pass a function only
     when you need it.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Customer`类型仍然嵌入了一些行为。在许多情况下，这是没有必要的。更具功能性的方法是只在需要时传递一个函数。'
 - en: 'So let''s remove the `observer` from the customer type, and pass it as an extra
     parameter to the `changeName` function, like this:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们从客户类型中移除`observer`，并将其作为额外参数传递给`changeName`函数，就像这样：
 - en: '[PRE10]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Here''s the complete code:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是完整的代码：
 - en: '[PRE11]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: You might be thinking that I have made things more complicated now -- I have
     to specify the `observer` function everywhere I call `changeName` in my code.
     Surely this is worse than before? At least in the OO version, the observer was
     part of the customer object and I didn't have to keep passing it in.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可能会认为我现在让事情变得更加复杂了 -- 我必须在调用我的代码中的每个`changeName`处指定`observer`函数。这肯定比以前更糟糕吧？至少在OO版本中，观察者是客户对象的一部分，我不必一直传递它。
 - en: Ah, but, you're forgetting the magic of [partial application](partial-application.html)!
     You can set up a function with the observer "baked in", and then use *that* function
     everywhere, without needing to pass in an observer every time you use it. Clever!
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 啊，但是，你忘记了[偏函数应用](partial-application.html)的魔力！你可以设置一个将观察者“烘焙”进去的函数，然后在任何地方使用*那个*函数，而无需每次使用时都传入观察者。聪明吧！
 - en: '[PRE12]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: But wait... there's more!
+  id: totrans-146
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 但是等等... 还有更多！
 - en: 'Let''s look at the `changeName` function again:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次看看`changeName`函数：
 - en: '[PRE13]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'It has the following steps:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 它有以下步骤：
 - en: do something to make a result value
+  id: totrans-150
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 做一些事情以生成结果值
 - en: call the observer with the result value
+  id: totrans-151
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 调用观察者以获取结果值
 - en: return the result value
+  id: totrans-152
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 返回结果值
 - en: This is completely generic logic -- it has nothing to do with customers at all.
     So we can rewrite it as a completely generic library function. Our new function
     will allow *any* observer function to "hook into" into the result of *any* other
     function, so let's call it `hook` for now.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是完全通用的逻辑 -- 它与客户完全无关。因此，我们可以将其重写为完全通用的库函数。我们的新函数将允许*任何*观察者函数“挂钩”到*任何*其他函数的结果中，所以现在我们先叫它`hook`。
 - en: '[PRE14]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Actually, I called it `hook2` because the function `f` being "hooked into"
     has two parameters. I could make another version for functions that have one parameter,
     like this:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，我将其称为`hook2`，因为被“挂钩”的函数`f`有两个参数。我可以为具有一个参数的函数创建另一个版本，就像这样：
 - en: '[PRE15]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: If you have read the [railway oriented programming post](recipe-part2.html),
     you might notice that this is quite similar to what I called a "dead-end" function.
     I won't go into more details here, but this is indeed a common pattern.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您已阅读了[铁路导向编程文章](recipe-part2.html)，您可能会注意到这与我称之为“死胡同”函数的内容非常相似。我不会在这里详细介绍，但这确实是一个常见模式。
 - en: Ok, back to the code -- how do we use this generic `hook` function?
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，回到代码 -- 我们如何使用这个通用的`hook`函数？
 - en: '`Customer.changeName` is the function being hooked into, and it has two parameters,
     so we use `hook2`.'
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Customer.changeName`是要挂钩的函数，它有两个参数，所以我们使用`hook2`。'
 - en: The observer function is just as before
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 观察者函数与以前一样
 - en: 'So, again, we create a partially applied `changeName` function, but this time
     we create it by passing the observer and the hooked function to `hook2`, like
     this:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们再次创建了一个部分应用的`changeName`函数，但这次我们通过将观察者和被挂钩的函数传递给`hook2`来创建它，就像这样：
 - en: '[PRE16]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Note that the resulting `changeName` has *exactly the same signature* as the
     original `Customer.changeName` function, so it can be used interchangably with
     it anywhere.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，生成的`changeName`与原始的`Customer.changeName`函数*具有完全相同的签名*，因此它可以在任何地方与原函数互换使用。
 - en: '[PRE17]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Here''s the complete code:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是完整的代码：
 - en: '[PRE18]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Creating a `hook` function like this might seem to add extra complication initially,
     but it has eliminated yet more code from the main application, and once you have
     built up a library of functions like this, you will find uses for them everywhere.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始时创建`hook`函数可能会增加额外的复杂性，但它从主应用程序中消除了更多的代码，一旦您建立了类似的函数库，您将发现到处都有用处。
 - en: By the way, if it helps you to use OO design terminology, you can think of this
     approach as a "Decorator" or "Proxy" pattern.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便说一句，如果使用OO设计术语有助于您，您可以将此方法视为“装饰器”或“代理”模式。
 - en: Dealing with a "structural dependency"
+  id: totrans-169
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理“结构依赖”
 - en: The second of our classifications is what I am calling a "structural dependency",
     where each type stores a value of the other type.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的第二类分类是我称之为“结构依赖”，其中每种类型都存储另一种类型的值。
 - en: Type A stores a value of type B in a property
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类型A在属性中存储类型B的值
 - en: Type B stores a value of type A in a property
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类型B在属性中存储类型A的值
 - en: For this set of examples, consider an `Employee` who works at a `Location`.
     The `Employee` contains the `Location` they work at, and the `Location` stores
     a list of `Employees` who work there.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这组示例，请考虑一个在`Location`工作的`Employee`。`Employee`包含他们工作的`Location`，而`Location`存储在那里工作的`Employee`列表。
 - en: Voila -- mutual dependency!
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 瞧 -- 相互依赖！
 - en: 'Here is the example in code:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是代码示例：
 - en: '[PRE19]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Before we get on to refactoring, let's consider how awkward this design is.
     How can we initialize an `Employee` value without having a `Location` value, and
     vice versa.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们进行重构之前，让我们考虑一下这种设计有多尴尬。我们如何初始化一个`Employee`值而没有`Location`值，反之亦然。
 - en: 'Here''s one attempt. We create a location with an empty list of employees,
     and then create other employees using that location:'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个尝试。我们创建一个带有空员工列表的位置，然后使用该位置创建其他员工：
 - en: '[PRE20]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: But this code doesn't work as we want. We have to set the list of employees
     for `location` as empty because we can't forward reference the `alice` and `bob`
     values..
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，这段代码并不按我们想要的方式工作。我们必须将`location`的员工列表设置为空，因为我们无法提前引用`alice`和`bob`的值。
 - en: F# will sometimes allow you to use the `and` keyword in these situation too,
     for recursive "lets". Just as with "type", the "and" keyword replaces the "let"
     keyword. Unlike "type", the first "let" has to be marked as recursive with `let
     rec`.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: F#有时也允许在这些情况下使用`and`关键字，用于递归的“let”。就像“type”一样，“and”关键字取代了“let”关键字。与“type”不同的是，第一个“let”必须用`let
+    rec`标记为递归。
 - en: Let's try it. We will give `location` a list of `alice` and `bob` even though
     they are not declared yet.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们试试。我们将给`location`一个`alice`和`bob`的列表，即使它们还没有被声明。
 - en: '[PRE21]'
+  id: totrans-183
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: But no, the compiler is not happy about the infinite recursion that we have
     created. In some cases, `and` does indeed work for `let` definitions, but this
     is not one of them! And anyway, just as for types, having to use `and` for "let"
     definitions is a clue that you might need to refactor.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，编译器对我们创建的无限递归并不满意。在某些情况下，`and`确实适用于`let`定义，但这不是其中之一！无论如何，与类型一样，必须对“let”定义使用`and`是一个提示，表明您可能需要进行重构。
 - en: 'So, really, the only sensible solution is to use mutable structures, and to
     fix up the location object *after* the individual employees have been created,
     like this:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，真正的明智之举是使用可变结构，并在创建完单个员工后修复位置对象，就像这样：
 - en: '[PRE22]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: So, a lot of trouble just to create some values. This is another reason why
     mutual dependencies are a bad idea!
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了创建一些值而搞了这么多麻烦。这是互相依赖是个坏主意的另一个原因！
 - en: Parameterizing again
+  id: totrans-188
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 再次参数化
 - en: To break the dependency, we can use the parameterization trick again. We can
     just create a parameterized vesion of `Employee`.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了打破依赖关系，我们可以再次使用参数化技巧。我们可以只创建一个参数化版本的`Employee`。
 - en: '[PRE23]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Note that we create a type alias for `Employee`, like this:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我们为`Employee`创建了一个类型别名，就像这样：
 - en: '[PRE24]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: One nice thing about creating an alias like that is that the original code for
     creating employees will continue to work unchanged.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建这样一个别名的一个好处是，原始的创建员工的代码将继续不变地工作。
 - en: '[PRE25]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Parameterizing with behavior dependencies
+  id: totrans-195
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 带有行为依赖参数化
 - en: The code above assumes that the particular class being parameterized over is
     not important. But what if there are dependencies on particular properties of
     the type?
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的代码假设参数化的特定类不重要。但是如果类型的特定属性有依赖关系呢？
 - en: 'For example, let''s say that the `Employee` class expects a `Name` property,
     and the `Location` class expects an `Age` property, like this:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设`Employee`类期望一个`Name`属性，而`Location`类期望一个`Age`属性，就像这样：
 - en: '[PRE26]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: How can we possibly parameterize this?
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何可能参数化这个？
 - en: 'Well, let''s try using the same approach as before:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，让我们尝试使用与之前相同的方法：
 - en: '[PRE27]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: The `Location` is happy with `ParameterizedEmployee.Age`, but `location.Name`
     fails to compile. obviously, because the type parameter is too generic.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Location`对`ParameterizedEmployee.Age`很满意，但`location.Name`无法编译。显然，因为类型参数太通用了。'
 - en: One way would be to fix this by creating interfaces such as `ILocation` and
     `IEmployee`, and that might often be the most sensible approach.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方式是通过创建诸如`ILocation`和`IEmployee`之类的接口来解决这个问题，这可能是最明智的方法。
 - en: But another way is to let the Location parameter be generic and pass in an *additional
     function* that knows how to handle it. In this case a `getLocationName` function.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是另一种方法是让Location参数是通用的，并传入一个*额外的函数*来处理它。在这种情况下是一个`getLocationName`函数。
 - en: '[PRE28]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: One way of thinking about this is that we are providing the behavior externally,
     rather than as part of the type.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种思考方式是，我们将行为作为外部提供，而不是作为类型的一部分。
 - en: 'To use this then, we need to pass in a function along with the type parameter.
     This would be annoying to do all the time, so naturally we will wrap it in a function,
     like this:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用这个，我们需要在类型参数的同时传递一个函数。这样做每次都很麻烦，所以自然而然地我们会将其封装在一个函数中，就像这样：
 - en: '[PRE29]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: With this in place, the original test code continues to work, almost unchanged
     (we have to change `new Employee` to just `Employee`).
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个设计，原始的测试代码仍然可以工作，几乎没有变化（我们必须将`new Employee`更改为只是`Employee`）。
 - en: '[PRE30]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'The functional approach: separating types from functions again'
+  id: totrans-211
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 函数式方法：再次将类型与函数分离
 - en: Now let's apply the functional design approach to this problem, just as we did
     before.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们将功能设计方法应用到这个问题上，就像我们之前所做的那样。
 - en: Again, we'll separate the types themselves from the functions that act on those
     types.
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次地，我们将类型本身与操作这些类型的函数分开。
 - en: '[PRE31]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Before we go any further, let's remove some unneeded code. One nice thing about
     using a record type is that you don't need to define "getters", so the only functions
     you need in the modules are functions that manipulate the data, such as `AverageAge`.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们继续之前，让我们删除一些不必要的代码。使用记录类型的一个好处是你不需要定义“getter”，所以模块中唯一需要的函数是操作数据的函数，比如`AverageAge`。
 - en: '[PRE32]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: Parameterizing again
+  id: totrans-217
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 再次参数化
 - en: Once again, we can remove the dependency by creating a parameterized version
     of the types.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们可以通过创建类型的参数化版本来移除依赖。
 - en: Let's step back and think about the "location" concept. Why does a location
     have to only contain Employees? If we make it a bit more generic, we could consider
     a location as being a "place" plus "a list of things at that place".
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们退一步，思考一下“位置”概念。为什么一个位置只能包含员工呢？如果我们把它设计得更加通用一些，我们可以将位置视为“一个地方”加上“该地方的事物清单”。
 - en: For example, if the things are products, then a place full of products might
     be a warehouse. If the things are books, then a place full of books might be a
     library.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果事物是产品，那么满是产品的地方可能是仓库。如果事物是书籍，那么满是书籍的地方可能是图书馆。
 - en: 'Here are these concepts expressed in code:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些概念在代码中表达如下：
 - en: '[PRE33]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Of course, these locations are not exactly the same, but there might be something
     in common that you can extract into a generic design, especially as there is no
     behavior requirement attached to the things they contain.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这些位置并不完全相同，但可能存在一些共同之处，你可以将其提取到一个通用设计中，特别是因为它们所包含的事物没有附加的行为要求。
 - en: So, using the "location of things" design, here is our dependency rewritten
     to use parameterized types.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，使用“事物位置”设计，我们重新编写了依赖以使用参数化类型。
 - en: '[PRE34]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: In this revised design you will see that the `AverageAge` function has been
     completely removed from the `Location` module. There is really no need for it,
     because we can do these kinds of calculations quite well "inline" without needing
     the overhead of special functions.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个修改后的设计中，`AverageAge`函数已经完全从`位置`模块中删除。实际上没有必要，因为我们可以很好地“内联”进行这些计算，而不需要特殊函数的开销。
 - en: And if you think about it, if we *did* need to have such a function pre-defined,
     it would probably be more appropriate to put in the `Employee` module rather than
     the `Location` module. After all, the functionality is much more related to how
     employees work than how locations work.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你仔细想一想，如果我们*确实*需要预先定义这样一个函数，那么把它放在`员工`模块而不是`位置`模块可能更合适。毕竟，这个功能与员工的工作方式更相关。
 - en: 'Here''s what I mean:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的意思是这样的：
 - en: '[PRE35]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: This is one advantage of modules over classes; you can mix and match functions
     with different types, as long as they are all related to the underlying use cases.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是模块优于类的一个优势；你可以混合和匹配具有不同类型的函数，只要它们都与底层用例相关。
 - en: Moving relationships into distinct types
+  id: totrans-231
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将关系移入不同的类型
 - en: In the examples so far, the "list of things" field in location has had to be
     mutable. How can we work with immutable types and still support relationships?
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 在迄今为止的示例中，位置中的“事物清单”字段必须是可变的。我们如何使用不可变类型并仍然支持关系呢？
 - en: Well one way *not* to do it is to have the kind of mutual dependency we have
     seen. In that design, synchronization (or lack of) is a terrible problem
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 不要这样做的一种方式*不是*拥有我们所见到的这种相互依赖。在那种设计中，同步（或缺乏同步）是一个可怕的问题。
 - en: For example, I could change Alice's location without telling the location she
     points to, resulting in an inconsistency. But if I tried to change the contents
     of the location as well, then I would also need to update the value of Bob as
     well. And so on, ad infinitum. A nightmare, basically.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我可以改变爱丽丝的位置而不告诉她所指向的位置，导致不一致性。但是如果我试图同时改变位置的内容，那么我还需要更新鲍勃的值。以此类推，无穷无尽。基本上是一个噩梦。
 - en: The correct way to do this with immutable data is steal a leaf from database
     design, and extract the relationship into a separate "table" or type in our case.
     The current relationships are held in a single master list, and so when changes
     are made, no synchronization is needed.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
 - en: Here is a very crude example, using a simple list of `Relationship`s.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE36]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Or course, a more efficient design would use dictionaries/maps, or special in-memory
     structures designed for this kind of thing.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
 - en: Inheritance dependencies
+  id: totrans-239
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Finally, let's look at an "inheritance dependency".
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
 - en: Type A stores a value of type B in a property
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type B inherits from type A
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We'll consider a UI control hierarchy, where every control belongs to a top-level
     "Form", and the Form itself is a Control.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s a first pass at an implementation:'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE37]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: The thing to note here is that the Form passes itself in as the `form` value
     for the Control constructor.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
 - en: This code will compile, but will cause a `NullReferenceException` error at runtime.
     This kind of technique will work in C#, but not in F#, because the class initialization
     logic is done differently.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
 - en: Anyway, this is a terrible design. The form shouldn't have to pass itself in
     to a constructor.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
 - en: A better design, which also fixes the constructor error, is to make `Control`
     an abstract class instead, and distinguish between non-form child classes (which
     do take a form in their constructor) and the `Form` class itself, which doesn't.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s some sample code:'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE38]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: Our old friend parameterization again
+  id: totrans-252
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: To remove the circular dependency, we can parameterize the classes in the usual
     way, as shown below.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE39]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: A functional version
+  id: totrans-255
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: I will leave a functional design as an exercise for you to do yourself.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
 - en: If we were going for truly functional design, we probably would not be using
     inheritance at all. Instead, we would use composition in conjunction with parameterization.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
 - en: But that's a big topic, so I'll save it for another day.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-259
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: I hope that this post has given you some useful tips on removing dependency
     cycles. With these various approaches in hand, any problems with [module organization](recipe-part3.html)
     should be able to be resolved easily.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
 - en: In the next post in this series, I'll look at dependency cycles "in the wild",
     by comparing some real world C# and F# projects.
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
 - en: As we have seen, F# is a very opinionated language! It wants us to use modules
     instead of classes and it prohibits dependency cycles. Are these just annoyances,
     or do they really make a difference to the way that code is organized? [Read on
     and find out!](cycles-and-modularity-in-the-wild.html)
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
 - en: Cycles and modularity in the wild
+  id: totrans-263
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Cycles and modularity in the wild
+  id: totrans-264
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: (*Updated 2013-06-15\. See comments at the end of the post*)
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
 - en: (*Updated 2014-04-12\. A [follow up post](roslyn-vs-fsharp-compiler.md) that
     applies the same analysis to Roslyn*)
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
 - en: (*Updated 2015-01-23\. A much clearer version of this analysis [has been done
     by Evelina Gabasova](http://evelinag.com/blog/2014/06-09-comparing-dependency-networks/).
     She knows what she is talking about, so I highly recommend you read her post first!*)
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
 - en: This is a follow up post to two earlier posts on [module organization](recipe-part3.html)
     and [cyclic dependencies](cyclic-dependencies.html).
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
 - en: I thought it would be interesting to look at some real projects written in C#
     and F#, and see how they compare in modularity and number of cyclic dependencies.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
 - en: The plan
+  id: totrans-270
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: My plan was to take ten or so projects written in C# and ten or so projects
     written in F#, and somehow compare them.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
 - en: I didn't want to spend too much time on this, and so rather than trying to analyze
     the source files, I thought I would cheat a little and analyze the compiled assemblies,
     using the [Mono.Cecil](http://www.mono-project.com/Cecil) library.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
 - en: This also meant that I could get the binaries directly, using NuGet.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
 - en: 'The projects I picked were:'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
 - en: '*C# projects*'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
 - en: '[Mono.Cecil](http://nuget.org/packages/Mono.Cecil/), which inspects programs
     and libraries in the ECMA CIL format.'
+  id: totrans-276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[NUnit](http://nuget.org/packages/NUnit/)'
+  id: totrans-277
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[SignalR](http://nuget.org/packages/Microsoft.AspNet.SignalR/) for real-time
     web functionality.'
+  id: totrans-278
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[NancyFx](http://nuget.org/packages/Nancy/), a web framework'
+  id: totrans-279
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[YamlDotNet](http://nuget.org/packages/YamlDotNet.Core/), for parsing and emitting
     YAML.'
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[SpecFlow](http://nuget.org/packages/SpecFlow/), a BDD tool.'
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Json.NET](http://nuget.org/packages/Newtonsoft.Json/).'
+  id: totrans-282
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Entity Framework](http://nuget.org/packages/EntityFramework/5.0.0).'
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[ELMAH](http://nuget.org/packages/elmah/), a logging framework for ASP.NET.'
+  id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[NuGet](http://nuget.org/packages/Nuget.Core/) itself.'
+  id: totrans-285
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Moq](http://nuget.org/packages/Moq/), a mocking framework.'
+  id: totrans-286
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[NDepend](http://ndepend.com), a code analysis tool.'
+  id: totrans-287
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: And, to show I'm being fair, a business application that I wrote in C#.
+  id: totrans-288
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*F# projects*'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
 - en: 'Unfortunately, there is not yet a wide variety of F# projects to choose from.
     I picked the following:'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
 - en: '[FSharp.Core](http://nuget.org/packages/FSharp.Core/), the core F# library.'
+  id: totrans-291
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FSPowerPack](http://nuget.org/packages/FSPowerPack.Community/).'
+  id: totrans-292
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FsUnit](http://nuget.org/packages/FsUnit/), extensions for NUnit.'
+  id: totrans-293
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Canopy](http://nuget.org/packages/canopy/), a wrapper around the Selenium
     test automation tool.'
+  id: totrans-294
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FsSql](http://nuget.org/packages/FsSql/), a nice little ADO.NET wrapper.'
+  id: totrans-295
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[WebSharper](http://nuget.org/packages/WebSharper/2.4.85.235), the web framework.'
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[TickSpec](http://nuget.org/packages/TickSpec/), a BDD tool.'
+  id: totrans-297
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FSharpx](http://nuget.org/packages/FSharpx.Core/), an F# library.'
+  id: totrans-298
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FParsec](http://nuget.org/packages/FParsec/), a parser library.'
+  id: totrans-299
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[FsYaml](http://nuget.org/packages/FsYaml/), a YAML library built on FParsec.'
+  id: totrans-300
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Storm](http://storm.codeplex.com/releases/view/18871), a tool for testing
     web services.'
+  id: totrans-301
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Foq](http://nuget.org/packages/Foq/), a mocking framework.'
+  id: totrans-302
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Another business application that I wrote, this time in F#.
+  id: totrans-303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: I did choose SpecFlow and TickSpec as being directly comparable, and also Moq
     and and Foq.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
 - en: But as you can see, most of the F# projects are not directly comparable to the
     C# ones. For example, there is no direct F# equivalent to Nancy, or Entity Framework.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
 - en: Nevertheless, I was hoping that I might observe some sort of pattern by comparing
     the projects. And I was right. Read on for the results!
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
 - en: What metrics to use?
+  id: totrans-307
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'I wanted to examine two things: "modularity" and "cyclic dependencies".'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
 - en: First, what should be the unit of "modularity"?
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
 - en: From a coding point of view, we generally work with files ([Smalltalk being
@@ -1281,6 +1793,7 @@
     and so it makes sense to think of the *file* as the unit of modularity. A file
     is used to group related items together, and if two chunks of code are in different
     files, they are somehow not as "related" as if they were in the same file.
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
 - en: In C#, the best practice is to have one class per file. So 20 files means 20
@@ -1288,6 +1801,7 @@
     nested class is in the same file as the parent class. This means that we can ignore
     them and just use top-level classes as our unit of modularity, as a proxy for
     files.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
 - en: In F#, the best practice is to have one *module* per file (or sometimes more).
@@ -1295,6 +1809,7 @@
     classes, and any classes defined within the module are turned into nested classes.
     So again, this means that we can ignore nested classes and just use top-level
     classes as our unit of modularity.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
 - en: The C# and F# compilers generate many "hidden" types, for things such as LINQ,
@@ -1303,26 +1818,32 @@
     generated by F# discriminated unions from being "authored" classes as well. That
     means that a union type with three cases will be counted as one authored type
     rather than four.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
 - en: 'So my definition of a *top-level type* is: a type that is not nested and which
     is not compiler generated.'
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
 - en: 'The metrics I chose for modularity were:'
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
 - en: '**The number of top-level types** as defined above.'
+  id: totrans-316
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**The number of authored types** as defined above.'
+  id: totrans-317
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**The number of all types**. This number would include the compiler generated
     types as well. Comparing this number to the top-level types gives us some idea
     of how representative the top-level types are.'
+  id: totrans-318
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1330,300 +1851,379 @@
     project, so we need to make adjustments based on the size of the project. The
     size metric I picked was the number of instructions, rather than the physical
     size of the file. This eliminates issues with embedded resources, etc.'
+  id: totrans-319
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Dependencies
+  id: totrans-320
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Once we have our units of modularity, we can look at dependencies between modules.
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
 - en: For this analysis, I only want to include dependencies between types in the
     same assembly. In other words, dependencies on system types such as `String` or
     `List` do not count as a dependency.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s say we have a top-level type `A` and another top-level type `B`. Then
     I say that a *dependency* exists from `A` to `B` if:'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
 - en: Type `A` or any of its nested types inherits from (or implements) type `B` or
     any of its nested types.
+  id: totrans-324
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type `A` or any of its nested types has a field, property or method that references
     type `B` or any of its nested types as a parameter or return value. This includes
     private members as well -- after all, it is still a dependency.
+  id: totrans-325
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type `A` or any of its nested types has a method implementation that references
     type `B` or any of its nested types.
+  id: totrans-326
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: This might not be a perfect definition. But it is good enough for my purposes.
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
 - en: 'In addition to all dependencies, I thought it might be useful to look at "public"
     or "published" dependencies. A *public dependency* from `A` to `B` exists if:'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
 - en: Type `A` or any of its nested types inherits from (or implements) type `B` or
     any of its nested types.
+  id: totrans-329
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Type `A` or any of its nested types has a *public* field, property or method
     that references type `B` or any of its nested types as a parameter or return value.
+  id: totrans-330
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finally, a public dependency is only counted if the source type itself is public.
+  id: totrans-331
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The metrics I chose for dependencies were:'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
 - en: '**The total number of dependencies**. This is simply the sum of all dependencies
     of all types. Again, there will be more dependencies in a larger project, but
     we will also take the size of the project into account.'
+  id: totrans-333
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**The number of types that have more than X dependencies**. This gives us an
     idea of how many types are "too" complex.'
+  id: totrans-334
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Cyclic dependencies
+  id: totrans-335
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Given this definition of dependency, then, a *cyclic dependency* occurs when
     two different top-level types depend on each other.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
 - en: Note what *not* included in this definition. If a nested type in a module depends
     on another nested type in the *same* module, then that is not a cyclic dependency.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
 - en: If there is a cyclic dependency, then there is a set of modules that are all
     linked together. For example, if `A` depends on `B`, `B` depends on `C`, and then
     say, `C` depends on `A`, then `A`, `B` and `C` are linked together. In graph theory,
     this is called a *strongly connected component*.
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
 - en: 'The metrics I chose for cyclic dependencies were:'
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
 - en: '**The number of cycles**. That is, the number of strongly connected components
     which had more than one module in them.'
+  id: totrans-340
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**The size of the largest component**. This gives us an idea of how complex
     the dependencies are.'
+  id: totrans-341
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: I analyzed cyclic dependencies for all dependencies and also for public dependencies
     only.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
 - en: Doing the experiment
+  id: totrans-343
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'First, I downloaded each of the project binaries using NuGet. Then I wrote
     a little F# script that did the following steps for each assembly:'
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
 - en: Analyzed the assembly using [Mono.Cecil](http://www.mono-project.com/Cecil)
     and extracted all the types, including the nested types
+  id: totrans-345
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: For each type, extracted the public and implementation references to other types,
     divided into internal (same assembly) and external (different assembly).
+  id: totrans-346
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Created a list of the "top level" types.
+  id: totrans-347
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Created a dependency list from each top level type to other top level types,
     based on the lower level dependencies.
+  id: totrans-348
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: This dependency list was then used to extract various statistics, shown below.
     I also rendered the dependency graphs to SVG format (using [graphViz](http://www.graphviz.org/)).
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
 - en: For cycle detection, I used the [QuickGraph library](http://quickgraph.codeplex.com/)
     to extract the strongly connected components, and then did some more processing
     and rendering.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
 - en: If you want the gory details, here is [a link to the script](https://gist.github.com/swlaschin/5742974)
     that I used, and [here is the raw data](https://gist.github.com/swlaschin/5742994).
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
 - en: It is important to recognize that this is *not* a proper statistical study,
     just a quick analysis. However the results are quite interesting, as we shall
     see.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
 - en: Modularity
+  id: totrans-353
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Let's look at the modularity first.
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here are the modularity-related results for the C# projects:'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Code size | Top-level types | Authored types | All types | Code/Top
     | Code/Auth | Code/All | Auth/Top | All/Top |'
+  id: totrans-356
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-357
   prefs: []
   type: TYPE_TB
 - en: '| ef | 269521 | 514 | 565 | 876 | 524 | 477 | 308 | 1.1 | 1.7 |'
+  id: totrans-358
   prefs: []
   type: TYPE_TB
 - en: '| jsonDotNet | 148829 | 215 | 232 | 283 | 692 | 642 | 526 | 1.1 | 1.3 |'
+  id: totrans-359
   prefs: []
   type: TYPE_TB
 - en: '| nancy | 143445 | 339 | 366 | 560 | 423 | 392 | 256 | 1.1 | 1.7 |'
+  id: totrans-360
   prefs: []
   type: TYPE_TB
 - en: '| cecil | 101121 | 240 | 245 | 247 | 421 | 413 | 409 | 1.0 | 1.0 |'
+  id: totrans-361
   prefs: []
   type: TYPE_TB
 - en: '| nuget | 114856 | 216 | 237 | 381 | 532 | 485 | 301 | 1.1 | 1.8 |'
+  id: totrans-362
   prefs: []
   type: TYPE_TB
 - en: '| signalR | 65513 | 192 | 229 | 311 | 341 | 286 | 211 | 1.2 | 1.6 |'
+  id: totrans-363
   prefs: []
   type: TYPE_TB
 - en: '| nunit | 45023 | 173 | 195 | 197 | 260 | 231 | 229 | 1.1 | 1.1 |'
+  id: totrans-364
   prefs: []
   type: TYPE_TB
 - en: '| specFlow | 46065 | 242 | 287 | 331 | 190 | 161 | 139 | 1.2 | 1.4 |'
+  id: totrans-365
   prefs: []
   type: TYPE_TB
 - en: '| elmah | 43855 | 116 | 140 | 141 | 378 | 313 | 311 | 1.2 | 1.2 |'
+  id: totrans-366
   prefs: []
   type: TYPE_TB
 - en: '| yamlDotNet | 23499 | 70 | 73 | 73 | 336 | 322 | 322 | 1.0 | 1.0 |'
+  id: totrans-367
   prefs: []
   type: TYPE_TB
 - en: '| fparsecCS | 57474 | 41 | 92 | 93 | 1402 | 625 | 618 | 2.2 | 2.3 |'
+  id: totrans-368
   prefs: []
   type: TYPE_TB
 - en: '| moq | 133189 | 397 | 420 | 533 | 335 | 317 | 250 | 1.1 | 1.3 |'
+  id: totrans-369
   prefs: []
   type: TYPE_TB
 - en: '| ndepend | 478508 | 734 | 828 | 843 | 652 | 578 | 568 | 1.1 | 1.1 |'
+  id: totrans-370
   prefs: []
   type: TYPE_TB
 - en: '| ndependPlat | 151625 | 185 | 205 | 205 | 820 | 740 | 740 | 1.1 | 1.1 |'
+  id: totrans-371
   prefs: []
   type: TYPE_TB
 - en: '| personalCS | 422147 | 195 | 278 | 346 | 2165 | 1519 | 1220 | 1.4 | 1.8 |'
+  id: totrans-372
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 2244670 | 3869 | 4392 | 5420 | 580 | 511 | 414 | 1.1 | 1.4 |'
+  id: totrans-373
   prefs: []
   type: TYPE_TB
 - en: 'And here are the results for the F# projects:'
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Code size | Top-level types | Authored types | All types | Code/Top
     | Code/Auth | Code/All | Auth/Top | All/Top |'
+  id: totrans-375
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-376
   prefs: []
   type: TYPE_TB
 - en: '| fsxCore | 339596 | 173 | 328 | 2024 | 1963 | 1035 | 168 | 1.9 | 11.7 |'
+  id: totrans-377
   prefs: []
   type: TYPE_TB
 - en: '| fsCore | 226830 | 154 | 313 | 1186 | 1473 | 725 | 191 | 2.0 | 7.7 |'
+  id: totrans-378
   prefs: []
   type: TYPE_TB
 - en: '| fsPowerPack | 117581 | 93 | 150 | 410 | 1264 | 784 | 287 | 1.6 | 4.4 |'
+  id: totrans-379
   prefs: []
   type: TYPE_TB
 - en: '| storm | 73595 | 67 | 70 | 405 | 1098 | 1051 | 182 | 1.0 | 6.0 |'
+  id: totrans-380
   prefs: []
   type: TYPE_TB
 - en: '| fParsec | 67252 | 8 | 24 | 245 | 8407 | 2802 | 274 | 3.0 | 30.6 |'
+  id: totrans-381
   prefs: []
   type: TYPE_TB
 - en: '| websharper | 47391 | 52 | 128 | 285 | 911 | 370 | 166 | 2.5 | 5.5 |'
+  id: totrans-382
   prefs: []
   type: TYPE_TB
 - en: '| tickSpec | 30797 | 34 | 49 | 170 | 906 | 629 | 181 | 1.4 | 5.0 |'
+  id: totrans-383
   prefs: []
   type: TYPE_TB
 - en: '| websharperHtml | 14787 | 18 | 28 | 72 | 822 | 528 | 205 | 1.6 | 4.0 |'
+  id: totrans-384
   prefs: []
   type: TYPE_TB
 - en: '| canopy | 15105 | 6 | 16 | 103 | 2518 | 944 | 147 | 2.7 | 17.2 |'
+  id: totrans-385
   prefs: []
   type: TYPE_TB
 - en: '| fsYaml | 15191 | 7 | 11 | 160 | 2170 | 1381 | 95 | 1.6 | 22.9 |'
+  id: totrans-386
   prefs: []
   type: TYPE_TB
 - en: '| fsSql | 15434 | 13 | 18 | 162 | 1187 | 857 | 95 | 1.4 | 12.5 |'
+  id: totrans-387
   prefs: []
   type: TYPE_TB
 - en: '| fsUnit | 1848 | 2 | 3 | 7 | 924 | 616 | 264 | 1.5 | 3.5 |'
+  id: totrans-388
   prefs: []
   type: TYPE_TB
 - en: '| foq | 26957 | 35 | 48 | 103 | 770 | 562 | 262 | 1.4 | 2.9 |'
+  id: totrans-389
   prefs: []
   type: TYPE_TB
 - en: '| personalFS | 118893 | 30 | 146 | 655 | 3963 | 814 | 182 | 4.9 | 21.8 |'
+  id: totrans-390
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 1111257 | 692 | 1332 | 5987 | 1606 | 834 | 186 | 1.9 | 8.7 |'
+  id: totrans-391
   prefs: []
   type: TYPE_TB
 - en: 'The columns are:'
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
 - en: '**Code size** is the number of CIL instructions from all methods, as reported
     by Cecil.'
+  id: totrans-393
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Top-level types** is the total number of top-level types in the assembly,
     using the definition above.'
+  id: totrans-394
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Authored types** is the total number of types in the assembly, including
     nested types, enums, and so on, but excluding compiler generated types.'
+  id: totrans-395
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**All types** is the total number of types in the assembly, including compiler
     generated types.'
+  id: totrans-396
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'I have extended these core metrics with some extra calculated columns:'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
 - en: '**Code/Top** is the number of CIL instructions per top level type / module.
@@ -1633,30 +2233,36 @@
     lines of code in a file makes reading the code impossible. In both C# and F#,
     good practice is not to have more than 500-1000 lines of code per file, and with
     a few exceptions, that seems to be the case in the source code that I looked at.'
+  id: totrans-398
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Code/Auth** is the number of CIL instructions per authored type. This is
     a measure of how "big" each authored type is.'
+  id: totrans-399
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Code/All** is the number of CIL instructions per type. This is a measure
     of how "big" each type is.'
+  id: totrans-400
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Auth/Top** is the ratio of all authored types to the top-level-types. It
     is a rough measure of how many authored types are in each unit of modularity.'
+  id: totrans-401
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**All/Top** is the ratio of all types to the top-level-types. It is a rough
     measure of how many types are in each unit of modularity.'
+  id: totrans-402
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Analysis
+  id: totrans-403
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1667,21 +2273,25 @@
     a lot more than TickSpec, of course, but it also may be a result of using more
     generic code in F#. There is not enough information to know either way right now
     -- it would be interesting to do a true side by side comparison.
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
 - en: Next, the number of top-level types. I said earlier that this should correspond
     to the number of files in a project. Does it?
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
 - en: I didn't get all the sources for all the projects to do a thorough check, but
     I did a couple of spot checks. For example, for Nancy, there are 339 top level
     classes, which implies that there should be about 339 files. In fact, there are
     actually 322 .cs files, so not a bad estimate.
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
 - en: 'On the other hand, for SpecFlow there are 242 top level types, but only 171
     .cs files, so a bit of an overestimate there. And for Cecil, the same thing: 240
     top level classes but only 128 .cs files.'
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
 - en: For the FSharpX project, there are 173 top level classes, which implies there
@@ -1689,50 +2299,61 @@
     is a serious over-estimate by a factor of more than 2\. And if we look at Storm,
     there are 67 top level classes. In fact, there are actually only 35 .fs files,
     so again it is an over-estimate by a factor of 2\.
+  id: totrans-408
   prefs: []
   type: TYPE_NORMAL
 - en: So it looks like the number of top level classes is always an over-estimate
     of the number of files, but much more so for F# than for C#. It would be worth
     doing some more detailed analysis in this area.
+  id: totrans-409
   prefs: []
   type: TYPE_NORMAL
 - en: Ratio of code size to number of top-level types
+  id: totrans-410
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The "Code/Top" ratio is consistently bigger for F# code than for C# code. Overall,
     the average top-level type in C# is converted into 580 instructions. But for F#
     that number is 1606 instructions, about three times as many.
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
 - en: I expect that this is because F# code is more concise than C# code. I would
     guess that 500 lines of F# code in a single module would create many more CIL
     instructions than 500 lines of C# code in a class.
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
 - en: 'If we visually plot "Code size" vs. "Top-level types", we get this chart:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_CodeSize_TopLevel.png)'
+  id: totrans-414
   prefs: []
   type: TYPE_IMG
 - en: What's surprising to me is how distinct the F# and C# projects are in this chart.
     The C# projects seem to have a consistent ratio of about 1-2 top-level types per
     1000 instructions, even across different project sizes. And the F# projects are
     consistent too, having a ratio of about 0.6 top-level types per 1000 instructions.
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
 - en: In fact, the number of top level types in F# projects seems to taper off as
     projects get larger, rather than increasing linearly like the C# projects.
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
 - en: The message I get from this chart is that, for a given size of project, an F#
     implementation will have fewer modules, and presumably less complexity as a result.
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
 - en: You probably noticed that there are two anomalies. Two C# projects are out of
     place -- the one at the 50K mark is FParsecCS and the one at the 425K mark is
     my business application.
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
 - en: I am fairly certain that this because both these implementations have some rather
@@ -1741,51 +2362,63 @@
     to cruft accumulating over the years, and there are some massive classes that
     ought to be refactored into smaller ones. So a metric like this is probably a
     *bad* sign for a C# code base.
+  id: totrans-419
   prefs: []
   type: TYPE_NORMAL
 - en: Ratio of code size to number of all types
+  id: totrans-420
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: On the other hand, if we compare the ratio of code to all types, including compiler
     generated ones, we get a very different result.
+  id: totrans-421
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the corresponding chart of "Code size" vs. "All types":'
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_CodeSize_AllTypes.png)'
+  id: totrans-423
   prefs: []
   type: TYPE_IMG
 - en: This is surprisingly linear for F#. The total number of types (including compiler
     generated ones) seems to depend closely on the size of the project. On the other
     hand, the number of types for C# seems to vary a lot.
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
 - en: The average "size" of a type is somewhat smaller for F# code than for C# code.
     The average type in C# is converted into about 400 instructions. But for F# that
     number is about 180 instructions.
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
 - en: I'm not sure why this is. Is it because the F# types are more fine-grained,
     or could it be because the F# compiler generates many more little types than the
     C# compiler? Without doing a more subtle analysis, I can't tell.
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
 - en: Ratio of top-level types to authored types
+  id: totrans-427
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Having compared the type counts to the code size, let''s now compare them to
     each other:'
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_TopLevel_AuthTypes.png)'
+  id: totrans-429
   prefs: []
   type: TYPE_IMG
 - en: Again, there is a significant difference. For each unit of modularity in C#
     there are an average of 1.1 authored types. But in F# the average is 1.9, and
     for some projects a lot more than that.
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: Of course, creating nested types is trivial in F#, and quite uncommon in C#,
@@ -1794,6 +2427,7 @@
     of F# has some effect on the quality of the design? This is harder to do in C#,
     but there is nothing to stop you. So might this not mean that there is a temptation
     in C# to not be as fine-grained as you could potentially be?
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
 - en: The project with the highest ratio (4.9) is my F# business application. I believe
@@ -1802,190 +2436,238 @@
     domain accurately, using the concepts [described here](designing-with-types.html).
     For other projects created using DDD principles, I would expect to see this same
     high number.
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: Dependencies
+  id: totrans-433
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Now let's look at the dependency relationships between the top level classes.
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here are the results for the C# projects:'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Top Level Types | Total Dep. Count | Dep/Top | One or more dep.
     | Three or more dep. | Five or more dep. | Ten or more dep. | Diagram |'
+  id: totrans-436
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-437
   prefs: []
   type: TYPE_TB
 - en: '| ef | 514 | 2354 | 4.6 | 76% | 51% | 32% | 13% | [svg](../assets/svg/ef.all.dot.svg) [dotfile](../assets/svg/ef.all.dot)
     |'
+  id: totrans-438
   prefs: []
   type: TYPE_TB
 - en: '| jsonDotNet | 215 | 913 | 4.2 | 69% | 42% | 30% | 14% | [svg](../assets/svg/jsonDotNet.all.dot.svg) [dotfile](../assets/svg/jsonDotNet.all.dot)
     |'
+  id: totrans-439
   prefs: []
   type: TYPE_TB
 - en: '| nancy | 339 | 1132 | 3.3 | 78% | 41% | 22% | 6% | [svg](../assets/svg/nancy.all.dot.svg) [dotfile](../assets/svg/nancy.all.dot)
     |'
+  id: totrans-440
   prefs: []
   type: TYPE_TB
 - en: '| cecil | 240 | 1145 | 4.8 | 73% | 43% | 23% | 13% | [svg](../assets/svg/cecil.all.dot.svg) [dotfile](../assets/svg/cecil.all.dot)
     |'
+  id: totrans-441
   prefs: []
   type: TYPE_TB
 - en: '| nuget | 216 | 833 | 3.9 | 71% | 43% | 26% | 12% | [svg](../assets/svg/nuget.all.dot.svg) [dotfile](../assets/svg/nuget.all.dot)
     |'
+  id: totrans-442
   prefs: []
   type: TYPE_TB
 - en: '| signalR | 192 | 641 | 3.3 | 66% | 34% | 19% | 10% | [svg](../assets/svg/signalR.all.dot.svg) [dotfile](../assets/svg/signalR.all.dot)
     |'
+  id: totrans-443
   prefs: []
   type: TYPE_TB
 - en: '| nunit | 173 | 499 | 2.9 | 75% | 39% | 13% | 4% | [svg](../assets/svg/nunit.all.dot.svg) [dotfile](../assets/svg/nunit.all.dot)
     |'
+  id: totrans-444
   prefs: []
   type: TYPE_TB
 - en: '| specFlow | 242 | 578 | 2.4 | 64% | 25% | 17% | 5% | [svg](specFlow.all.dot.svg) [dotfile](../assets/svg/specFlow.all.dot)
     |'
+  id: totrans-445
   prefs: []
   type: TYPE_TB
 - en: '| elmah | 116 | 300 | 2.6 | 72% | 28% | 22% | 6% | [svg](../assets/svg/elmah.all.dot.svg) [dotfile](../assets/svg/elmah.all.dot)
     |'
+  id: totrans-446
   prefs: []
   type: TYPE_TB
 - en: '| yamlDotNet | 70 | 228 | 3.3 | 83% | 30% | 11% | 4% | [svg](../assets/svg/yamlDotNet.all.dot.svg) [dotfile](../assets/svg/yamlDotNet.all.dot)
     |'
+  id: totrans-447
   prefs: []
   type: TYPE_TB
 - en: '| fparsecCS | 41 | 64 | 1.6 | 59% | 29% | 5% | 0% | [svg](../assets/svg/fparsecCS.all.dot.svg) [dotfile](../assets/svg/fparsecCS.all.dot)
     |'
+  id: totrans-448
   prefs: []
   type: TYPE_TB
 - en: '| moq | 397 | 1100 | 2.8 | 63% | 29% | 17% | 7% | [svg](../assets/svg/moq.all.dot.svg) [dotfile](../assets/svg/moq.all.dot)
     |'
+  id: totrans-449
   prefs: []
   type: TYPE_TB
 - en: '| ndepend | 734 | 2426 | 3.3 | 67% | 37% | 25% | 10% | [svg](../assets/svg/ndepend.all.dot.svg) [dotfile](../assets/svg/ndepend.all.dot)
     |'
+  id: totrans-450
   prefs: []
   type: TYPE_TB
 - en: '| ndependPlat | 185 | 404 | 2.2 | 67% | 24% | 11% | 4% | [svg](../assets/svg/ndependPlat.all.dot.svg) [dotfile](../assets/svg/ndependPlat.all.dot)
     |'
+  id: totrans-451
   prefs: []
   type: TYPE_TB
 - en: '| personalCS | 195 | 532 | 2.7 | 69% | 29% | 19% | 7% |  |'
+  id: totrans-452
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 3869 | 13149 | 3.4 | 70% | 37% | 22% | 9% |  |'
+  id: totrans-453
   prefs: []
   type: TYPE_TB
 - en: 'And here are the results for the F# projects:'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Top Level Types | Total Dep. Count | Dep/Top | One or more dep.
     | Three or more dep. | Five or more dep. | Ten or more dep. | Diagram |'
+  id: totrans-455
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-456
   prefs: []
   type: TYPE_TB
 - en: '| fsxCore | 173 | 76 | 0.4 | 30% | 4% | 1% | 0% | [svg](../assets/svg/fsxCore.all.dot.svg) [dotfile](../assets/svg/fsxCore.all.dot)
     |'
+  id: totrans-457
   prefs: []
   type: TYPE_TB
 - en: '| fsCore | 154 | 287 | 1.9 | 55% | 26% | 14% | 3% | [svg](../assets/svg/fsCore.all.dot.svg) [dotfile](../assets/svg/fsCore.all.dot)
     |'
+  id: totrans-458
   prefs: []
   type: TYPE_TB
 - en: '| fsPowerPack | 93 | 68 | 0.7 | 38% | 13% | 2% | 0% | [svg](../assets/svg/fsPowerPack.all.dot.svg) [dotfile](../assets/svg/fsPowerPack.all.dot)
     |'
+  id: totrans-459
   prefs: []
   type: TYPE_TB
 - en: '| storm | 67 | 195 | 2.9 | 72% | 40% | 18% | 4% | [svg](../assets/svg/storm.all.dot.svg) [dotfile](../assets/svg/storm.all.dot)
     |'
+  id: totrans-460
   prefs: []
   type: TYPE_TB
 - en: '| fParsec | 8 | 9 | 1.1 | 63% | 25% | 0% | 0% | [svg](../assets/svg/fParsec.all.dot.svg) [dotfile](../assets/svg/fParsec.all.dot)
     |'
+  id: totrans-461
   prefs: []
   type: TYPE_TB
 - en: '| websharper | 52 | 18 | 0.3 | 31% | 0% | 0% | 0% | [svg](../assets/svg/websharper.all.dot.svg) [dotfile](../assets/svg/websharper.all.dot)
     |'
+  id: totrans-462
   prefs: []
   type: TYPE_TB
 - en: '| tickSpec | 34 | 48 | 1.4 | 50% | 15% | 9% | 3% | [svg](tickSpec.all.dot.svg) [dotfile](../assets/svg/tickSpec.all.dot)
     |'
+  id: totrans-463
   prefs: []
   type: TYPE_TB
 - en: '| websharperHtml | 18 | 37 | 2.1 | 78% | 39% | 6% | 0% | [svg](../assets/svg/websharperHtml.all.dot.svg) [dotfile](../assets/svg/websharperHtml.all.dot)
     |'
+  id: totrans-464
   prefs: []
   type: TYPE_TB
 - en: '| canopy | 6 | 8 | 1.3 | 50% | 33% | 0% | 0% | [svg](../assets/svg/canopy.all.dot.svg) [dotfile](../assets/svg/canopy.all.dot)
     |'
+  id: totrans-465
   prefs: []
   type: TYPE_TB
 - en: '| fsYaml | 7 | 10 | 1.4 | 71% | 14% | 0% | 0% | [svg](../assets/svg/fsYaml.all.dot.svg) [dotfile](../assets/svg/fsYaml.all.dot)
     |'
+  id: totrans-466
   prefs: []
   type: TYPE_TB
 - en: '| fsSql | 13 | 14 | 1.1 | 54% | 8% | 8% | 0% | [svg](../assets/svg/fsSql.all.dot.svg) [dotfile](../assets/svg/fsSql.all.dot)
     |'
+  id: totrans-467
   prefs: []
   type: TYPE_TB
 - en: '| fsUnit | 2 | 0 | 0.0 | 0% | 0% | 0% | 0% | [svg](../assets/svg/fsUnit.all.dot.svg) [dotfile](../assets/svg/fsUnit.all.dot)
     |'
+  id: totrans-468
   prefs: []
   type: TYPE_TB
 - en: '| foq | 35 | 66 | 1.9 | 66% | 29% | 11% | 0% | [svg](../assets/svg/foq.all.dot.svg) [dotfile](../assets/svg/foq.all.dot)
     |'
+  id: totrans-469
   prefs: []
   type: TYPE_TB
 - en: '| personalFS | 30 | 111 | 3.7 | 93% | 60% | 27% | 7% |  |'
+  id: totrans-470
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 692 | 947 | 1.4 | 49% | 19% | 8% | 1% |  |'
+  id: totrans-471
   prefs: []
   type: TYPE_TB
 - en: 'The columns are:'
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: '**Top-level types** is the total number of top-level types in the assembly,
     as before.'
+  id: totrans-473
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Total dep. count** is the total number of dependencies between top level
     types.'
+  id: totrans-474
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Dep/Top** is the number of dependencies per top level type / module only.
     This is a measure of how many dependencies the average top level type/module has.'
+  id: totrans-475
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**One or more dep** is the number of top level types that have dependencies
     on one or more other top level types.'
+  id: totrans-476
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Three or more dep**. Similar to above, but with dependencies on three or
     more other top level types.'
+  id: totrans-477
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Five or more dep**. Similar to above.'
+  id: totrans-478
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Ten or more dep**. Similar to above. Top level types with this many dependencies
     will be harder to understand and maintain. So this is measure of how complex the
     project is.'
+  id: totrans-479
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1993,14 +2675,17 @@
     and also the [DOT file](http://www.graphviz.org/) that was used to generate the
     SVG. See below for a discussion of these diagrams. (Note that I can't expose the
     internals of my applications, so I will just give the metrics)
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
 - en: Analysis
+  id: totrans-481
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: These results are very interesting. For C#, the number of total dependencies
     increases with project size. Each top-level type depends on 3-4 others, on average.
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
 - en: On the other hand, the number of total dependencies in an F# project does not
@@ -2008,64 +2693,79 @@
     than 1-2 others, on average. And the largest project (FSharpX) has a lower ratio
     than many of the smaller projects. My business app and the Storm project are the
     only exceptions.
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s a chart of the relationship between code size and the number of dependencies:'
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_CodeSize_Dependencies.png)'
+  id: totrans-485
   prefs: []
   type: TYPE_IMG
 - en: The disparity between C# and F# projects is very clear. The C# dependencies
     seem to grow linearly with project size, while the F# dependencies seem to be
     flat.
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
 - en: Distribution of dependencies
+  id: totrans-487
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The average number of dependencies per top level type is interesting, but it
     doesn't help us understand the variability. Are there many modules with lots of
     dependencies? Or does each one just have a few?
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: This might make a difference in maintainability, perhaps. I would assume that
     a module with only one or two dependencies would be easier to understand in the
     context of the application that one with tens of dependencies.
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
 - en: Rather than doing a sophisticated statistical analysis, I thought I would keep
     it simple and just count how many top level types had one or more dependencies,
     three or more dependencies, and so on.
+  id: totrans-490
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here are the same results, displayed visually:'
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_CS_DependencyPercent.png)'
+  id: totrans-492
   prefs: []
   type: TYPE_IMG
 - en: '![](Metrics_FS_DependencyPercent.png)'
+  id: totrans-493
   prefs: []
   type: TYPE_IMG
 - en: So, what can we deduce from these numbers?
+  id: totrans-494
   prefs: []
   type: TYPE_NORMAL
 - en: First, in the F# projects, more than half of the modules have no outside dependencies
     *at all*. This is a bit surprising, but I think it is due to the heavy use of
     generics compared with C# projects.
+  id: totrans-495
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Second, the modules in the F# projects consistently have fewer dependencies
     than the classes in the C# projects.
+  id: totrans-496
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finally, in the F# projects, modules with a high number of dependencies are
     quite rare -- less than 2% overall. But in the C# projects, 9% of classes have
     more than 10 dependencies on other classes.
+  id: totrans-497
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2073,45 +2773,56 @@
     worse than my C# application with respect to these metrics. Again, it might be
     due to heavy use of non-generics in the form of domain-specific types, or it might
     just be that the code needs more refactoring!
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
 - en: The dependency diagrams
+  id: totrans-499
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: It might be useful to look at the dependency diagrams now. These are SVG files,
     so you should be able to view them in your browser.
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
 - en: Note that most of these diagrams are very big -- so after you open them you
     will need to zoom out quite a bit in order to see anything!
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
 - en: Let's start by comparing the diagrams for [SpecFlow](specFlow.all.dot.svg) and
     [TickSpec](tickSpec.all.dot.svg).
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the one for SpecFlow:'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: '[![](specflow_svg.png)](specFlow.all.dot.svg)'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s the one for TickSpec:'
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
 - en: '[![](tickspec_svg.png)](tickSpec.all.dot.svg)'
+  id: totrans-506
   prefs: []
   type: TYPE_NORMAL
 - en: Each diagram lists all the top-level types found in the project. If there is
     a dependency from one type to another, it is shown by an arrow. The dependencies
     point from left to right where possible, so any arrows going from right to left
     implies that there is a cyclic dependency.
+  id: totrans-507
   prefs: []
   type: TYPE_NORMAL
 - en: The layout is done automatically by graphviz, but in general, the types are
     organized into columns or "ranks". For example, the SpecFlow diagram has 12 ranks,
     and the TickSpec diagram has five.
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
 - en: As you can see, there are generally a lot of tangled lines in a typical dependency
@@ -2120,18 +2831,22 @@
     wouldn't really feel comfortable until I had understood all the relationships
     between the classes. And the more complex the project, the longer it takes to
     come up to speed.
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
 - en: OO vs functional design revealed?
+  id: totrans-510
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The TickSpec diagram is a lot simpler than the SpecFlow one. Is that because
     TickSpec perhaps doesn't do as much as SpecFlow?
+  id: totrans-511
   prefs: []
   type: TYPE_NORMAL
 - en: The answer is no, I don't think that it has anything to do with the size of
     the feature set at all, but rather because the code is organized differently.
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
 - en: 'Looking at the SpecFlow classes ([dotfile](../assets/svg/specFlow.all.dot)),
@@ -2139,6 +2854,7 @@
     a `TestRunnerManager` and an `ITestRunnerManager`, for example. And there are
     many other patterns that commonly crop up in OOD: "listener" classes and interfaces,
     "provider" classes and interfaces, "comparer" classes and interfaces, and so on.'
+  id: totrans-513
   prefs: []
   type: TYPE_NORMAL
 - en: But if we look at the TickSpec modules ([dotfile](../assets/svg/tickSpec.all.dot))
@@ -2146,23 +2862,28 @@
     either. There might well be a need for such things in the code, but either they
     are not exposed outside their module, or more likely, the role they play is fulfilled
     by functions rather than types.
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
 - en: I'm not picking on the SpecFlow code, by the way. It seems well designed, and
     is a very useful library, but I think it does highlight some of the differences
     between OO design and functional design.
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
 - en: Moq compared with Foq
+  id: totrans-516
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Let's also compare the diagrams for [Moq](../assets/svg/moq.all.dot.svg) and
     [Foq](../assets/svg/foq.all.dot.svg). These two projects do roughly the same thing,
     so the code should be comparable.
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
 - en: As before, the project written in F# has a much smaller dependency diagram.
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
 - en: Looking at the Moq classes ([dotfile](../assets/svg/moq.all.dot)), we can see
@@ -2170,38 +2891,47 @@
     Out of the 249 classes with dependencies, only 66 are Moq specific. If we had
     considered only the classes in the Moq namespace, we might have had a cleaner
     diagram.
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
 - en: On the other hand, looking at the Foq modules ([dotfile](../assets/svg/foq.all.dot))
     there are only 23 modules with dependencies, fewer even than just the Moq classes
     alone.
+  id: totrans-520
   prefs: []
   type: TYPE_NORMAL
 - en: So something is very different with code organization in F#.
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
 - en: FParsec compared with FParsecCS
+  id: totrans-522
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The FParsec project is an interesting natural experiment. The project has two
     assemblies, roughly the same size, but one is written in C# and the other in F#.
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: It is a bit unfair to compare them directly, because the C# code is designed
     for parsing fast, while the F# code is more high level. But... I'm going to be
     unfair and compare them anyway!
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
 - en: Here are the diagrams for the F# assembly ["FParsec"](../assets/svg/fParsec.all.dot.svg)
     and C# assembly ["FParsecCS"](../assets/svg/fparsecCS.all.dot.svg).
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
 - en: They are both nice and clear. Lovely code!
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
 - en: What's not clear from the diagram is that my methodology is being unfair to
     the C# assembly.
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
 - en: For example, the C# diagram shows that there are dependencies between `Operator`,
@@ -2209,13 +2939,16 @@
     code, these classes are all in the same physical file. In F#, they would all be
     in the same module, and their relationships would not count as public dependencies.
     So the C# code is being penalized in a way.
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
 - en: Even so, looking at the source code, the C# code has 20 source files compared
     to F#'s 8, so there is still some difference in complexity.
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
 - en: What counts as a dependency?
+  id: totrans-530
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -2224,186 +2957,234 @@
     by the C# compiler. Another maintainer could come along and unwittingly separate
     them into different files, which really *would* increase the complexity. In F#
     you could not do that so easily, and certainly not accidentally.
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
 - en: So it depends on what you mean by "module", and "dependency". In my view, a
     module contains things that really are "joined at the hip" and shouldn't easily
     be decoupled. Hence dependencies within a module don't count, while dependencies
     between modules do.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
 - en: Another way to think about it is that F# encourages high coupling in some areas
     (modules) in exchange for low coupling in others. In C#, the only kind of strict
     coupling available is class-based. Anything looser, such as using namespaces,
     has to be enforced using good practices or a tool such as NDepend.
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
 - en: Whether the F# approach is better or worse depends on your preference. It does
     make certain kinds of refactoring harder as a result.
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
 - en: Cyclic dependencies
+  id: totrans-535
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Finally, we can turn our attention to the oh-so-evil cyclic dependencies. (If
     you want to know why they are bad, [read this post](cyclic-dependencies.html)
     ).
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
 - en: Here are the cyclic dependency results for the C# projects.
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Top-level types | Cycle count | Partic. | Partic.% | Max comp.
     size | Cycle count (public) | Partic. (public) | Partic.% (public) | Max comp.
     size (public) | Diagram |'
+  id: totrans-538
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-539
   prefs: []
   type: TYPE_TB
 - en: '| ef | 514 | 14 | 123 | 24% | 79 | 1 | 7 | 1% | 7 | [svg](../assets/svg/ef.all.cycles.dot.svg) [dotfile](../assets/svg/ef.all.cycles.dot)
     |'
+  id: totrans-540
   prefs: []
   type: TYPE_TB
 - en: '| jsonDotNet | 215 | 3 | 88 | 41% | 83 | 1 | 11 | 5% | 11 | [svg](../assets/svg/jsonDotNet.all.cycles.dot.svg) [dotfile](../assets/svg/jsonDotNet.all.cycles.dot)
     |'
+  id: totrans-541
   prefs: []
   type: TYPE_TB
 - en: '| nancy | 339 | 6 | 35 | 10% | 21 | 2 | 4 | 1% | 2 | [svg](../assets/svg/nancy.all.cycles.dot.svg) [dotfile](../assets/svg/nancy.all.cycles.dot)
     |'
+  id: totrans-542
   prefs: []
   type: TYPE_TB
 - en: '| cecil | 240 | 2 | 125 | 52% | 123 | 1 | 50 | 21% | 50 | [svg](../assets/svg/cecil.all.cycles.dot.svg) [dotfile](../assets/svg/cecil.all.cycles.dot)
     |'
+  id: totrans-543
   prefs: []
   type: TYPE_TB
 - en: '| nuget | 216 | 4 | 24 | 11% | 10 | 0 | 0 | 0% | 1 | [svg](../assets/svg/nuget.all.cycles.dot.svg) [dotfile](../assets/svg/nuget.all.cycles.dot)
     |'
+  id: totrans-544
   prefs: []
   type: TYPE_TB
 - en: '| signalR | 192 | 3 | 14 | 7% | 7 | 1 | 5 | 3% | 5 | [svg](../assets/svg/signalR.all.cycles.dot.svg) [dotfile](../assets/svg/signalR.all.cycles.dot)
     |'
+  id: totrans-545
   prefs: []
   type: TYPE_TB
 - en: '| nunit | 173 | 2 | 80 | 46% | 78 | 1 | 48 | 28% | 48 | [svg](../assets/svg/nunit.all.cycles.dot.svg) [dotfile](../assets/svg/nunit.all.cycles.dot)
     |'
+  id: totrans-546
   prefs: []
   type: TYPE_TB
 - en: '| specFlow | 242 | 5 | 11 | 5% | 3 | 1 | 2 | 1% | 2 | [svg](../assets/svg/specFlow.all.cycles.dot.svg) [dotfile](../assets/svg/specFlow.all.cycles.dot)
     |'
+  id: totrans-547
   prefs: []
   type: TYPE_TB
 - en: '| elmah | 116 | 2 | 9 | 8% | 5 | 1 | 2 | 2% | 2 | [svg](../assets/svg/elmah.all.cycles.dot.svg) [dotfile](../assets/svg/elmah.all.cycles.dot)
     |'
+  id: totrans-548
   prefs: []
   type: TYPE_TB
 - en: '| yamlDotNet | 70 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | [svg](../assets/svg/yamlDotNet.all.cycles.dot.svg) [dotfile](../assets/svg/yamlDotNet.all.cycles.dot)
     |'
+  id: totrans-549
   prefs: []
   type: TYPE_TB
 - en: '| fparsecCS | 41 | 3 | 6 | 15% | 2 | 1 | 2 | 5% | 2 | [svg](../assets/svg/fparsecCS.all.cycles.dot.svg) [dotfile](../assets/svg/fparsecCS.all.cycles.dot)
     |'
+  id: totrans-550
   prefs: []
   type: TYPE_TB
 - en: '| moq | 397 | 9 | 50 | 13% | 15 | 0 | 0 | 0% | 1 | [svg](../assets/svg/moq.all.cycles.dot.svg) [dotfile](../assets/svg/moq.all.cycles.dot)
     |'
+  id: totrans-551
   prefs: []
   type: TYPE_TB
 - en: '| ndepend | 734 | 12 | 79 | 11% | 22 | 8 | 36 | 5% | 7 | [svg](../assets/svg/ndepend.all.cycles.dot.svg) [dotfile](../assets/svg/ndepend.all.cycles.dot)
     |'
+  id: totrans-552
   prefs: []
   type: TYPE_TB
 - en: '| ndependPlat | 185 | 2 | 5 | 3% | 3 | 0 | 0 | 0% | 1 | [svg](../assets/svg/ndependPlat.all.cycles.dot.svg) [dotfile](../assets/svg/ndependPlat.all.cycles.dot)
     |'
+  id: totrans-553
   prefs: []
   type: TYPE_TB
 - en: '| personalCS | 195 | 11 | 34 | 17% | 8 | 5 | 19 | 10% | 7 | [svg](../assets/svg/personalCS.all.cycles.dot.svg) [dotfile](../assets/svg/personalCS.all.cycles.dot)
     |'
+  id: totrans-554
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 3869 |  | 683 | 18% |  |  | 186 | 5% |  | [svg](../assets/svg/TOTAL.all.cycles.dot.svg) [dotfile](../assets/svg/TOTAL.all.cycles.dot)
     |'
+  id: totrans-555
   prefs: []
   type: TYPE_TB
 - en: 'And here are the results for the F# projects:'
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
 - en: '| Project | Top-level types | Cycle count | Partic. | Partic.% | Max comp.
     size | Cycle count (public) | Partic. (public) | Partic.% (public) | Max comp.
     size (public) | Diagram |'
+  id: totrans-557
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+  id: totrans-558
   prefs: []
   type: TYPE_TB
 - en: '| fsxCore | 173 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-559
   prefs: []
   type: TYPE_TB
 - en: '| fsCore | 154 | 2 | 5 | 3% | 3 | 0 | 0 | 0% | 1 | [svg](../assets/svg/fsCore.all.cycles.dot.svg) [dotfile](../assets/svg/fsCore.all.cycles.dot)
     |'
+  id: totrans-560
   prefs: []
   type: TYPE_TB
 - en: '| fsPowerPack | 93 | 1 | 2 | 2% | 2 | 0 | 0 | 0% | 1 | [svg](../assets/svg/fsPowerPack.all.cycles.dot.svg) [dotfile](../assets/svg/fsPowerPack.all.cycles.dot)
     |'
+  id: totrans-561
   prefs: []
   type: TYPE_TB
 - en: '| storm | 67 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-562
   prefs: []
   type: TYPE_TB
 - en: '| fParsec | 8 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-563
   prefs: []
   type: TYPE_TB
 - en: '| websharper | 52 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 0 | . |'
+  id: totrans-564
   prefs: []
   type: TYPE_TB
 - en: '| tickSpec | 34 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-565
   prefs: []
   type: TYPE_TB
 - en: '| websharperHtml | 18 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-566
   prefs: []
   type: TYPE_TB
 - en: '| canopy | 6 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-567
   prefs: []
   type: TYPE_TB
 - en: '| fsYaml | 7 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-568
   prefs: []
   type: TYPE_TB
 - en: '| fsSql | 13 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-569
   prefs: []
   type: TYPE_TB
 - en: '| fsUnit | 2 | 0 | 0 | 0% | 0 | 0 | 0 | 0% | 0 | . |'
+  id: totrans-570
   prefs: []
   type: TYPE_TB
 - en: '| foq | 35 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-571
   prefs: []
   type: TYPE_TB
 - en: '| personalFS | 30 | 0 | 0 | 0% | 1 | 0 | 0 | 0% | 1 | . |'
+  id: totrans-572
   prefs: []
   type: TYPE_TB
 - en: '| TOTAL | 692 |  | 7 | 1% |  |  | 0 | 0% |  | . |'
+  id: totrans-573
   prefs: []
   type: TYPE_TB
 - en: 'The columns are:'
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
 - en: '**Top-level types** is the total number of top-level types in the assembly,
     as before.'
+  id: totrans-575
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Cycle count** is the number of cycles altogether. Ideally it would be zero.
     But larger is not necessarily worse. Better to have 10 small cycles than one giant
     one, I think.'
+  id: totrans-576
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Partic.**. The number of top level types that participate in any cycle.'
+  id: totrans-577
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Partic.%**. The number of top level types that participate in any cycle,
     as a percent of all types.'
+  id: totrans-578
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2411,22 +3192,26 @@
     This is a measure of how complex the cycle is. If there are only two mutually
     dependent types, then the cycle is a lot less complex than, say, 123 mutually
     dependent types.'
+  id: totrans-579
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**... (public)** columns have the same definitions, but using only public dependencies.
     I thought it would be interesting to see what effect it would have to limit the
     analysis to public dependencies only.'
+  id: totrans-580
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The **diagram** column contains a link to a SVG file, generated from the dependencies
     in the cycles only, and also the [DOT file](http://www.graphviz.org/) that was
     used to generate the SVG. See below for an analysis.
+  id: totrans-581
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Analysis
+  id: totrans-582
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -2434,11 +3219,13 @@
     Only two of the F# projects have cycles at all, and those are tiny. For example
     in FSharp.Core there is a mutual dependency between two types right next to each
     other in the same file, [here](https://github.com/fsharp/fsharp/blob/master/src/fsharp/FSharp.Core/quotations.fs#L146).
+  id: totrans-583
   prefs: []
   type: TYPE_NORMAL
 - en: On the other hand, almost all the C# projects have one or more cycles. Entity
     Framework has the most cycles, involving 24% of the classes, and Cecil has the
     worst participation rate, with over half of the classes being involved in a cycle.
+  id: totrans-584
   prefs: []
   type: TYPE_NORMAL
 - en: Even NDepend has cycles, although to be fair, there may be good reasons for
@@ -2446,26 +3233,32 @@
     so much, and second, it's possible that the cycles are between types declared
     in the same source file. As a result, my method may penalize well-organized C#
     code somewhat (as noted in the FParsec vs. FParsecCS discussion above).
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
 - en: '![](Metrics_TopLevel_Participation.png)'
+  id: totrans-586
   prefs: []
   type: TYPE_IMG
 - en: Why the difference between C# and F#?
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
 - en: In C#, there is nothing stopping you from creating cycles -- a perfect example
     of accidental complexity. In fact, you have to make [a special effort](http://programmers.stackexchange.com/questions/60549/how-strictly-do-you-follow-the-no-dependency-cycle-rule-ndepend)
     to avoid them.
+  id: totrans-588
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: In F#, of course, it is the other way around. You can't easily create cycles
     at all.
+  id: totrans-589
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: My business applications compared
+  id: totrans-590
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -2473,19 +3266,23 @@
     applications in C#, and more recently, in F#. Unlike the other projects listed
     here, they are very focused on addressing a particular business need, with lots
     of domain specific code, custom business rules, special cases, and so on.
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
 - en: Both projects were produced under deadline, with changing requirements and all
     the usual real world constraints that stop you writing ideal code. Like most developers
     in my position, I would love a chance to tidy them up and refactor them, but they
     do work, the business is happy, and I have to move on to new things.
+  id: totrans-592
   prefs: []
   type: TYPE_NORMAL
 - en: Anyway, let's see how they stack up to each other. I can't reveal any details
     of the code other than the metrics, but I think that should be enough to be useful.
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
 - en: 'Taking the C# project first:'
+  id: totrans-594
   prefs: []
   type: TYPE_NORMAL
 - en: It has 195 top level types, about 1 for every 2K of code. Comparing this with
@@ -2494,25 +3291,30 @@
     old) it is lower risk to just add a method to an existing class rather than refactoring
     it, especially under deadline. Keeping old code stable is always a higher priority
     than making it beautiful! The result is that classes grow too large over time.
+  id: totrans-595
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The flip side of having large classes is that there many fewer cross-class dependencies!
     It has some of the better scores among the C# projects. So it goes to show that
     dependencies aren't the only metric. There has to be a balance.
+  id: totrans-596
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: In terms of cyclic dependencies, it's pretty typical for a C# project. There
     are a number of them (11) but the largest involves only 8 classes.
+  id: totrans-597
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Now let''s look at my F# project:'
+  id: totrans-598
   prefs: []
   type: TYPE_NORMAL
 - en: It has 30 modules, about 1 for every 4K of code. Comparing this with other F#
     projects, it's not excessive, but perhaps a bit of refactoring is in order.
+  id: totrans-599
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2524,6 +3326,7 @@
     can live anywhere -- it is not forced to live in the same class. Over time this
     approach may create its own problems too (COBOL anyone?) but right now, I find
     it a breath of fresh air.
+  id: totrans-600
   prefs:
   - PREF_IND
   - PREF_UL
@@ -2532,12 +3335,14 @@
     per module (4.9). As I noted above, I think this is a result of having fine-grained
     DDD-style design. The code per authored type is in line with the other F# projects,
     so that implies they are not too big or small.
+  id: totrans-601
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Also, as I noted earlier, the inter-module dependencies are the worst of any
     F# project. I know that there are some API/service functions that depend on almost
     all the other modules, but this could be a clue that they might need refactoring.
+  id: totrans-602
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2545,47 +3350,56 @@
     I can be fairly certain that all these modules are in the top layer of my application
     and will thus appear at the bottom of the module list in Visual Studio. How can
     I be so sure? Because...
+  id: totrans-603
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: In terms of cyclic dependencies, it's pretty typical for a F# project. There
     aren't any.
+  id: totrans-604
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-605
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: I started this analysis from curiosity -- was there any meaningful difference
     in the organization of C# and F# projects?
+  id: totrans-606
   prefs: []
   type: TYPE_NORMAL
 - en: I was quite surprised that the distinction was so clear. Given these metrics,
     you could certainly predict which language the assembly was written in.
+  id: totrans-607
   prefs: []
   type: TYPE_NORMAL
 - en: '**Project complexity**. For a given number of instructions, a C# project is
     likely to have many more top level types (and hence files) than an F# one -- more
     than double, it seems.'
+  id: totrans-608
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Fine-grained types**. For a given number of modules, a C# project is likely
     to have fewer authored types than an F# one, implying that the types are not as
     fine-grained as they could be.'
+  id: totrans-609
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Dependencies**. In a C# project, the number of dependencies between classes
     increases linearly with the size of the project. In an F# project, the number
     of dependencies is much smaller and stays relatively flat.'
+  id: totrans-610
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Cycles**. In a C# project, cycles occur easily unless care is taken to avoid
     them. In an F# project, cycles are extremely rare, and if present, are very small.'
+  id: totrans-611
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -2595,94 +3409,117 @@
     code! And, in two cases in particular, the C# and F# projects were written by
     the same person, and differences were still apparent, so I don't think this argument
     holds up.
+  id: totrans-612
   prefs: []
   type: TYPE_NORMAL
 - en: Future work
+  id: totrans-613
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: This approach of using *just* the binaries might have gone as far as it can
     go. For a more accurate analysis, we would need to use metrics from the source
     code as well (or maybe the pdb file).
+  id: totrans-614
   prefs: []
   type: TYPE_NORMAL
 - en: For example, a high "instructions per type" metric is good if it corresponds
     to small source files (concise code), but not if it corresponds to large ones
     (bloated classes). Similarly, my definition of modularity used top-level types
     rather than source files, which penalized C# somewhat over F#.
+  id: totrans-615
   prefs: []
   type: TYPE_NORMAL
 - en: So, I don't claim that this analysis is perfect (and I hope haven't made a terrible
     mistake in the analysis code!) but I think that it could be a useful starting
     point for further investigation.
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
 - en: '* * *'
+  id: totrans-617
   prefs: []
   type: TYPE_NORMAL
 - en: Update 2013-06-15
+  id: totrans-618
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'This post caused quite a bit of interest. Based on feedback, I made the following
     changes:'
+  id: totrans-619
   prefs: []
   type: TYPE_NORMAL
 - en: '**Assemblies profiled**'
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
 - en: Added Foq and Moq (at the request of Phil Trelford).
+  id: totrans-621
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added the C# component of FParsec (at the request of Dave Thomas and others).
+  id: totrans-622
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added two NDepend assemblies.
+  id: totrans-623
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added two of my own projects, one C# and one F#.
+  id: totrans-624
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: As you can see, adding seven new data points (five C# and two F# projects) didn't
     change the overall analysis.
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
 - en: '**Algorithm changes**'
+  id: totrans-626
   prefs: []
   type: TYPE_NORMAL
 - en: Made definition of "authored" type stricter. Excluded types with "GeneratedCodeAttribute"
     and F# types that are subtypes of a sum type. This had an effect on the F# projects
     and reduced the "Auth/Top" ratio somewhat.
+  id: totrans-627
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Text changes**'
+  id: totrans-628
   prefs: []
   type: TYPE_NORMAL
 - en: Rewrote some of the analysis.
+  id: totrans-629
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Removed the unfair comparison of YamlDotNet with FParsec.
+  id: totrans-630
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added a comparison of the C# component and F# components of FParsec.
+  id: totrans-631
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added a comparison of Moq and Foq.
+  id: totrans-632
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Added a comparison of my own two projects.
+  id: totrans-633
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The orginal post is still available [here](../archives/cycles-and-modularity-in-the-wild_20130614.html)
+  id: totrans-634
   prefs: []
   type: TYPE_NORMAL
