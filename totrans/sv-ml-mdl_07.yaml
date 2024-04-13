@@ -1,7 +1,9 @@
 - en: Chapter 7\. Apache Kafka Streams Implementation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 7 章 Apache Kafka Streams 实现
 - en: As described earlier, unlike Flink, Beam, and Spark, [Kafka Streams](https://kafka.apache.org/documentation/streams/)
     is a client library for processing and analyzing data stored in Kafka. It builds
     upon important stream-processing concepts, such as properly distinguishing between
@@ -12,8 +14,13 @@
     in memory, which can be shared by both streams. This in turn means that it is
     not necessary to merge streams—they can both execute independently while sharing
     the same state, which is the current model.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如前面所述，与 Flink、Beam 和 Spark 不同，[Kafka Streams](https://kafka.apache.org/documentation/streams/)
+    是一个用于处理和分析存储在 Kafka 中的数据的客户端库。它建立在重要的流处理概念之上，如正确区分事件时间和处理时间、窗口支持以及简单而高效的应用状态管理。由于
+    Kafka Streams 是一个 Java 虚拟机（JVM）框架，我们的架构实现相当简单和直接。由于它在单个 JVM 中运行，可以将状态实现为内存中的静态
+    Java 对象，可以被两个流共享。这意味着不需要合并流，它们可以独立执行，同时共享相同的状态，这是当前的模型。
 - en: 'Although this solution will work, it has a serious drawback: unlike engines
     such as Spark or Flink, it does not provide automated recovery. Fortunately, Kafka
     Streams allows for implementation of state using [custom state stores](http://bit.ly/2xz7or5),
@@ -21,26 +28,38 @@
     you how you can implement such a state store. Technically it is possible to use
     the key–value store provided by Kafka Streams, but I decided to create a custom
     state server to show implementation details.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这种解决方案可以工作，但它有一个严重的缺点：与 Spark 或 Flink 等引擎不同，它不提供自动恢复。幸运的是，Kafka Streams 允许使用[自定义状态存储](http://bit.ly/2xz7or5)来实现，这些存储由一个特殊的
+    Kafka 主题支持。我将从向您展示如何实现这样一个状态存储开始这一章。从技术上讲，可以使用 Kafka Streams 提供的键值存储，但我决定创建一个自定义状态服务器来展示实现细节。
 - en: Implementing the Custom State Store
+  id: totrans-3
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现自定义状态存储
 - en: 'Implementing the custom state store begins with deciding on the data that it
     needs to hold. For our implementation, the only thing that needs to be stored
     is the current and new version of our models ([complete code available here](http://bit.ly/2gbUCvJ);
     currently Kafka Stream provides only Java APIs so as a result, all code in this
     section is Java):'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现自定义状态存储始于决定它需要保存的数据。对于我们的实现，唯一需要存储的是我们模型的当前版本和新版本（[完整代码在此处可用](http://bit.ly/2gbUCvJ)；目前
+    Kafka Stream 仅提供 Java API，因此，本节中的所有代码都是 Java）：
 - en: Example 7-1\. StoreState class
+  id: totrans-5
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-1\. StoreState 类
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Kafka Streams supports several [state store types](http://bit.ly/2yYCgSU) including
     persistent and in-memory types that can further be set up as custom (user can
     define operations available on the store), key-value, or window stores (a window
@@ -49,15 +68,22 @@
     shown in [Example 7-2](#model_state_store_class), I use an in-memory, custom store
     implementing the interface `org.apache.kafka.streams.processor.StateStore` ([complete
     code available here](http://bit.ly/2xyoyK8)).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Kafka Streams 支持几种[状态存储类型](http://bit.ly/2yYCgSU)，包括持久性和内存类型，可以进一步设置为自定义（用户可以定义存储上可用的操作）、键值或窗口存储（窗口存储与键值存储不同之处在于它可以为任何给定的键存储多个值，因为该键可以存在于多个窗口中）。对于本应用程序，在[示例
+    7-2](#model_state_store_class) 中展示，我使用了一个内存中的自定义存储，实现了接口 `org.apache.kafka.streams.processor.StateStore`（[完整代码在此处可用](http://bit.ly/2xyoyK8)）。
 - en: Example 7-2\. ModelStateStore class
+  id: totrans-8
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-2\. ModelStateStore 类
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This implementation uses `ModelStateStoreChangeLogger` for periodically writing
     the current state of the store to a special Kafka topic and to restore the store
     state on startup. Because `ModelStateStoreChangeLogger` uses a Kafka topic for
@@ -65,151 +91,224 @@
     data type as a key or introduce a fake key to satisfy this requirement I used
     a fake key. It also uses `ModelStateSerde` for serializing/deserializing the content
     of the store to the binary blob, which can be stored in Kafka.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现使用 `ModelStateStoreChangeLogger` 定期将存储的当前状态写入特殊的 Kafka 主题，并在启动时恢复存储状态。因为
+    `ModelStateStoreChangeLogger` 使用 Kafka 主题存储状态，所以需要一个键。在我们的实现中，我们可以使用数据类型作为键，或者引入一个虚假键来满足这个要求，我使用了一个虚假键。它还使用
+    `ModelStateSerde` 将存储内容序列化/反序列化为二进制数据块，这些数据块可以存储在 Kafka 中。
 - en: The two main methods in this class are `flush`, which is responsible for flushing
     the current state to Kafka, and `init`, which is responsible for restoring state
     from Kafka. [Example 7-3](#model_change_logger_class) shows what the `ModelStateStoreChangeLogger`
     implementation looks like ([complete code available here](http://bit.ly/2xzFEaF)).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类中的两个主要方法是 `flush`，负责将当前状态刷新到 Kafka，和 `init`，负责从 Kafka 恢复状态。[示例 7-3](#model_change_logger_class)
+    展示了 `ModelStateStoreChangeLogger` 实现的样子（[完整代码在此处可用](http://bit.ly/2xzFEaF)）。
 - en: Example 7-3\. ModelStateStoreChangeLogger class
+  id: totrans-12
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-3\. `ModelStateStoreChangeLogger` 类
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This is a fairly simple class with one executable method, `logChange`, which
     sends the current state of the store to the topic assigned by the Kafka Streams
     runtime.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个非常简单的类，有一个可执行方法 `logChange`，它将存储的当前状态发送到 Kafka Streams 运行时分配的主题。
 - en: The second class used by `ModelStateStore` is `ModelStateSerde`, which you can
     see in [Example 7-4](#state_serializer_solidus_deserializer) ([complete code available
     here](http://bit.ly/2zgeXVy)).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ModelStateStore` 使用的第二个类是 `ModelStateSerde`，你可以在 [示例 7-4](#state_serializer_solidus_deserializer)
+    中看到（[完整代码在此处可用](http://bit.ly/2zgeXVy)）。'
 - en: Example 7-4\. State serializer/deserializer class
+  id: totrans-16
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-4\. 状态序列化器/反序列化器类
 - en: '[PRE3]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'This listing contains three classes:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个清单包含三个类：
 - en: '`ModelStateSerializer` is responsible for serialization of state to a byte
     array.'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ModelStateSerializer` 负责将状态序列化为字节数组。'
 - en: '`ModelStateDeserializer` is responsible for restoring of state from a byte
     array.'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ModelStateDeserializer` 负责从字节数组中恢复状态��'
 - en: '`ModelStateSerde` is responsible for interfacing with the Kafka Streams runtime
     and providing classes for serialization/deserialization of state data.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ModelStateSerde` 负责与 Kafka Streams 运行时进行接口交互，并提供用于状态数据序列化/反序列化的类。'
 - en: The final class that is required for the model state store is `ModelStateStoreSupplier`
     to create store instances, which you can see in [Example 7-5](#model_state_store_supplier)
     ([complete code available here](http://bit.ly/2yGVC2A)).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于模型状态存储的最终类是 `ModelStateStoreSupplier`，用于创建存储实例，你可以在 [示例 7-5](#model_state_store_supplier)
+    中看到（[完整代码在此处可用](http://bit.ly/2yGVC2A)）。
 - en: Example 7-5\. ModelStateStoreSupplier class
+  id: totrans-23
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-5\. `ModelStateStoreSupplier` 类
 - en: '[PRE4]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Implementing Model Serving
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现模型服务
 - en: With the store in place, implementing model serving using Kafka Streams becomes
     very simple; it’s basically two independent streams coordinated via a shared store
     (somewhat similar to a Flink [[Figure 4-1](ch04.html#using_flinkas_low-evel_join)],
     with the state being implemented as a state store).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了存储之后，使用 Kafka Streams 实现模型服务变得非常简单；基本上是两个独立的流通过共享存储协调（有点类似于 Flink [[图 4-1](ch04.html#using_flinkas_low-evel_join)]，状态被实现为状态存储）。
 - en: '![smlt 0701](assets/smlt_0701.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0701](assets/smlt_0701.png)'
 - en: Figure 7-1\. Kafka Streams implementation approach
+  id: totrans-28
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-1\. Kafka Streams 实现方法
 - en: '[Example 7-6](#implementation_of_model_serving) presents the overall implementation
     of this architecture ([complete code available here](http://bit.ly/2xzyYEs)).'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '[示例 7-6](#implementation_of_model_serving) 展示了这个架构的整体实现（[完整代码在此处可用](http://bit.ly/2xzyYEs)）。'
 - en: Example 7-6\. Implementation of model serving
+  id: totrans-30
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-6\. 模型服务的实现
 - en: '[PRE5]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The main method of this class configures Kafka Streams, builds the streams topology,
     and then runs them. The execution topology configuration is implemented in the
     `CreateStreams` method. It first creates the store provider. Next it creates two
     effectively independent stream-processing pipelines. Finally, it creates a state
     store and attaches it to both pipelines (processors).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类的主要方法配置 Kafka Streams，构建流拓扑，然后运行它们。执行拓扑配置在 `CreateStreams` 方法中实现。首先创建存储提供者。接下来创建两个有效独立的流处理管道。最后，创建一个状态存储并将其附加到两个管道（处理器）上。
 - en: Each pipeline reads data from its dedicated stream and then invokes a dedicated
     processor.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个流水线从其专用流中读取数据，然后调用专用处理器。
 - en: '[Example 7-7](#model_processor) shows what the model processor looks like ([complete
     code available here](http://bit.ly/2kHT9yH)).'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '[示例 7-7](#model_processor) 展示了模型处理器的外观（[完整代码在此处可用](http://bit.ly/2kHT9yH)）。'
 - en: Example 7-7\. Model processor
+  id: totrans-35
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-7\. 模型处理器
 - en: '[PRE6]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'This class has two important methods: `init`, which is responsible for connecting
     to the data store, and `process`, which is responsible for the actual execution
     of the processor’s functionality. The process method unmarshals the incoming model
     message, converts it to the internal representation, and then deposits it (as
     a new model) to the data store.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类有两个重要的方法：`init` 负责连接到数据存储，`process` 负责处理器功能的实际执行。`process` 方法对传入的模型消息进行解组，将其转换为内部表示，然后将其（作为新模型）存入数据存储。
 - en: The data stream processor is equally simple, as demonstrated in [Example 7-8](#data_processor)
     ([complete code available here](http://bit.ly/2kHT9yH)).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据流处理器同样简单，如 [示例 7-8](#data_processor) 所示（[完整代码在此处可用](http://bit.ly/2kHT9yH)）。
 - en: Example 7-8\. Data processor
+  id: totrans-39
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 7-8\. 数据处理器
 - en: '[PRE7]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Similar to the model processor, this class has two methods with the same responsibilities.
     The `process` method unmarshals an incoming data message and converts it to the
     internal representation. It then checks whether there is a new model and updates
     the content of the state store if necessary. Finally, if the model is present,
     it scores input data and prints out the result.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 与模型处理器类似，这个类有两个方法承担相同的责任。`process` 方法对传入的数据消息进行解组，并将其转换为内部表示。然后检查是否有新模型，并在必要时更新状态存储的内容。最后，如果存在模型，则对输入数据进行评分并打印结果。
 - en: Although the implementation presented here scores a single model, you can expand
     it easily to support multiple models using the data type for routing, as needed.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这里介绍的实现对单个模型进行评分，但是您可以根据需要轻松扩展以支持多个模型，使用数据类型进行路由。
 - en: Scaling the Kafka Streams Implementation
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 扩展 Kafka Streams 实现
 - en: With all the simplicity of this implementation, the question remains about the
     scalability of this solution, given that the Kafka Streams implementation runs
     within a single Java Virtual Machine (JVM). Fortunately, the Kafka Streams implementation
@@ -221,21 +320,36 @@
     same consumer group for the data topic (to ensure that every instance gets only
     part of data messages). [Figure 7-2](#scaling_kafka_streams_implementation) illustrates
     Kafka Streams scaling.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这个实现非常简单，但是在这个解决方案的可扩展性方面仍然存在疑问，因为 Kafka Streams 实现在单个 Java 虚拟机（JVM）中运行。幸运的是，基于
+    [Kafka 数据分区](http://bit.ly/2ya6BB5)，Kafka Streams 实现很容易扩展。实际上，Kafka Streams 的扩展与
+    Flink 的基于分区的连接方法非常相似（[图 4-3](ch04.html#partition-based_join)）。请记住，为了使其正常工作，每个实例必须为模型主题拥有不同的消费者组（以确保所有实例都在读取相同的模型集），并为数据主题拥有相同的消费者组（以确保每个实例只获取部分数据消息）。[图 7-2](#scaling_kafka_streams_implementation)
+    说明了 Kafka Streams 的扩展。
 - en: '![smlt 0702](assets/smlt_0702.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0702](assets/smlt_0702.png)'
 - en: Figure 7-2\. Scaling Kafka Streams implementation
+  id: totrans-46
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-2\. Kafka Streams 实现的扩展
 - en: Similar to Flink’s partition-based joins implementation, a multi-JVM implementation
     of a Kafka Streams–based model server is prone to potential race conditions, as
     it does not guarantee that models are updated in all JVMs at the same time.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 Flink 的基于分区连接实现类似，基于多个 JVM 的 Kafka Streams 模型服务器实现容易出现潜在的竞争条件，因为它不能保证所有 JVM
+    中的模型同时更新。
 - en: In [Chapter 8](ch08.html#akka_streams_implementation), we will see how we can
     use another popular streaming framework—Akka Streams—to build model serving solutions.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 [第 8 章](ch08.html#akka_streams_implementation) 中，我们将看到如何使用另一个流行的流处理框架——Akka
+    Streams——构建模型服务解决方案。

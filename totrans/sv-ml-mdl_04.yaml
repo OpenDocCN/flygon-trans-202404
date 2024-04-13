@@ -1,55 +1,79 @@
 - en: Chapter 4\. Apache Flink Implementation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第4章。Apache Flink实现
 - en: '[Flink](https://flink.apache.org/) is an open source stream-processing engine
     (SPE) that does the following:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Flink](https://flink.apache.org/)是一个开源的流处理引擎（SPE），它可以执行以下操作：'
 - en: Scales well, running on thousands of nodes
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 良好扩展，可以在数千个节点上运行
 - en: Provides powerful checkpointing and save pointing facilities that enable fault
     tolerance and restartability
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提供强大的检查点和保存点功能，实现容错和可重启性
 - en: Provides state support for streaming applications, which allows minimization
     of usage of external databases for streaming applications
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为流应用程序提供状态支持，允许最小化对外部数据库的使用
 - en: Provides powerful window semantics, allowing you to produce accurate results,
     even in the case of out-of-order or late-arriving data
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提供强大的窗口语义，允许您生成准确的结果，即使数据无序或延迟到达
 - en: Let’s take a look how we can use Flink’s capabilities to implement the proposed
     architecture
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看如何利用Flink的能力来实现提议的架构
 - en: Overall Architecture
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 整体架构
 - en: 'Flink provides a [low-level stream processing operation](http://bit.ly/apache-steam-process),
     `ProcessFunction`, which provides access to the basic building blocks of any streaming
     application:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink提供了一个[低级流处理操作](http://bit.ly/apache-steam-process)，`ProcessFunction`，它提供了对任何流应用程序的基本构建块的访问：
 - en: Events (individual records within a stream)
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 事件（流中的单个记录）
 - en: State (fault-tolerant, consistent)
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态（容错、一致性）
 - en: Timers (event time and processing time)
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计时器（事件时间和处理时间）
 - en: 'Implementation of low-level operations on two input streams is provided by
     Flink’s [low-level join](http://bit.ly/apache-steam-process) operation, which
     is bound to two different inputs (if we need to merge more than two streams it
@@ -57,236 +81,353 @@
     scheduled for the upcoming versions of Flink, would allow additional approaches
     to stream merging) and provides individual methods for processing records from
     each input. Implementing a low-level join typically follows the following [pattern](http://bit.ly/apache-steam-process):'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink提供了低级连接操作的实现，该操作绑定了两个不同的输入（如果我们需要合并多个流，可以级联多个低级连接；此外，Flink即将推出的版本中将提供[侧输入](http://bit.ly/flink-side-inputs)，允许额外的流合并方法），并为每个输入提供处理记录的单独方法。实现低级连接通常遵循以下[模式](http://bit.ly/apache-steam-process)：
 - en: Create and maintain a state object reflecting the current state of execution.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建并维护反映执行当前状态的状态对象。
 - en: Update the state upon receiving elements from one (or both) input(s).
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在从一个（或两个）输入接收元素时更新状态。
 - en: Upon receiving elements from one or both input(s) use the current state to transform
     data and produce the result.
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在从一个或两个输入接收元素时，使用当前状态来转换数据并产生结果。
 - en: '[Figure 4-1](#using_flinkas_low-evel_join) illustrates this operation.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图4-1](#using_flinkas_low-evel_join)说明了这个操作。'
 - en: '![smlt 0401](assets/smlt_0401.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0401](assets/smlt_0401.png)'
 - en: Figure 4-1\. Using Flink’s low-level join
+  id: totrans-18
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图4-1。使用Flink的低级连接
 - en: This pattern fits well into the overall architecture ([Figure 1-1](ch01.html#overall_architecture_of_model_serving)),
     which is what I want to implement.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种模式很好地适应了整体架构（[图1-1](ch01.html#overall_architecture_of_model_serving)），这正是我想要实现的。
 - en: Flink provides two ways of implementing low-level joins, key-based joins implemented
     by `CoProcessFunction`, and partition-based joins implemented by `RichCoFlatMapFunction`.
     Although you can use both for this implementation, they provide different service-level
     agreements (SLAs) and are applicable for slightly different use cases.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink提供了两种实现低级连接的方式，一种是由`CoProcessFunction`实现的基于键的连接，另一种是由`RichCoFlatMapFunction`实现的基于分区的连接。虽然你可以在这个实现中同时使用两种方式，但它们提供了不同的服务级别协议（SLAs），适用于略有不同的用例。
 - en: Using Key-Based Joins
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用基于键的连接
 - en: Flink’s `CoProcessFunction` allows key-based merging of two streams. When using
     this API, data is partitioned by key across multiple Flink executors. Records
     from both streams are routed (based on key) to an appropriate executor that is
     responsible for the actual processing, as illustrated in [Figure 4-2](#key-based_join).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink的`CoProcessFunction`允许对两个流进行基于键的合并。当使用这个API时，数据按键在多个Flink执行器之间分区。来自两个流的记录（基于键）被路由到负责实际处理的适当执行器，如[图4-2](#key-based_join)所示。
 - en: '![smlt 0402](assets/smlt_0402.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0402](assets/smlt_0402.png)'
 - en: Figure 4-2\. Key-based join
+  id: totrans-24
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图4-2。基于键的连接
 - en: 'Here are the main characteristics of this approach:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的主要特点如下：
 - en: Distribution of execution is based on key (`dataType`, see Examples [3-2](ch03.html#protobuf_definition_for_the_model_update)
     and [3-3](ch03.html#protobuf_definition_for_the_data_feed)).
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 执行的分布基于键（`dataType`，参见示例 [3-2](ch03.html#protobuf_definition_for_the_model_update)
+    和 [3-3](ch03.html#protobuf_definition_for_the_data_feed)）。
 - en: Individual models’ scoring (for a given `dataType`) is implemented by a separate
     executor (a single executor can score multiple models), which means that scaling
     Flink leads to a better distribution of individual models and consequently better
     parallelization of scorings.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 个别模型的评分（针对给定的 `dataType`）是由单独的执行器实现的（一个执行器可以对多个模型进行评分），这意味着扩展 Flink 可以更好地分布个别模型，从而更好地并行化评分。
 - en: A given model is always scored by a given executor, which means that depending
     on the data type distribution of input records, this approach can lead to “hot”
     executors
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 特定模型始终由特定执行器进行评分，这意味着根据输入记录的数据类型分布，此方法可能会导致“热”执行器。
 - en: Based on this, key-based joins are an appropriate approach for the situations
     when it is necessary to score multiple data types with relatively even distribution.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于此，基于键的连接是在需要对多个数据类型进行评分且分布相对均匀的情况下的一种适当方法。
 - en: In the heart of this implementation is a `DataProcessor` class ([complete code
     available here](http://bit.ly/DataProcessorKeyed)), which you can see in [Example 4-1](#the_dataprocessor_class).
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 此实现的核心是一个 `DataProcessor` 类（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)），您可以在
+    [示例 4-1](#the_dataprocessor_class) 中看到。
 - en: Example 4-1\. The DataProcessor class
+  id: totrans-31
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-1\. 数据处理器类
 - en: '[PRE0]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'This class has two main methods:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个类有两个主要的方法：
 - en: '`processElement2`'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '`processElement2`'
 - en: This method is invoked when a new `Model` record (`ModelToServe` class, described
     later) arrives. This method just builds a new model to serve, as in [Example 2-2](ch02.html#serving_the_model_created_from_the_execu)
     for TensorFlow models or [Example 2-6](ch02.html#serving_pmml_model) for PMML
     models, and stores it in a `newModel` state variable. Because model creation can
     be a lengthy operation, I am separating a `newModel` state from a `currentModel`
     state, so that model creation does not affect current model serving.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 当新的 `Model` 记录（稍后描述的 `ModelToServe` 类）到达时，将调用此方法。此方法只是构建一个新的用于提供服务的模型，就像 [示例 2-2](ch02.html#serving_the_model_created_from_the_execu)
+    中的 TensorFlow 模型或 [示例 2-6](ch02.html#serving_pmml_model) 中的 PMML 模型一样，并将其存储在 `newModel`
+    状态变量中。因为模型创建可能是一个耗时的操作，我将 `newModel` 状态与 `currentModel` 状态分离，以便模型创建不会影响当前模型的提供服务。
 - en: '`processElement1`'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '`processElement1`'
 - en: This is invoked when a new `Data` record (`WineRecord` class) arrives. Here,
     the availability of a new model is first checked, and if it is available, the
     `currentModel` is updated with the value of `newModel`. This ensures that the
     model update will never occur while scoring a record. We then check whether there
     is currently a model to score and invoke the actual scoring.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 当新的 `Data` 记录（`WineRecord` 类）到达时，首先检查是否有新的模型可用，如果有，则使用 `newModel` 的值更新 `currentModel`。这确保了在对记录进行评分时不会发生模型更新。然后我们检查当前是否有模型进行评分，并调用实际的评分。
 - en: 'In addition to these main methods, the class also implements support for checkpointing
     of [managed state](http://bit.ly/flink-umos). We do this by adding two additional
     interfaces to the class:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了这些主要方法外，该类还实现了对 [受管状态](http://bit.ly/flink-umos) 的检查点支持。我们通过向类添加另外两个接口来实现这一点：
 - en: '`CheckpointedFunction`'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CheckpointedFunction`'
 - en: The core interface for stateful transformation functions that maintain state
     across individual stream records.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 维护跨个别流记录的状态的状态转换函数的核心接口。
 - en: '`CheckpointedRestoring`'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CheckpointedRestoring`'
 - en: The interface providing methods for restoring state from the checkpointing.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 提供从检查点还原状态的方法的接口。
 - en: 'These two interfaces are implemented by the following three methods: `initializeState`,
     `snapshotState`, and `restoreState`.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个接口由以下三种方法实现：`initializeState`、`snapshotState` 和 `restoreState`。
 - en: '[Example 4-2](#the_modeltoserve_class) shows what the `ModelToServe` class
     used by the `DataProcessor` class looks like.'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '[示例 4-2](#the_modeltoserve_class) 展示了被 `DataProcessor` 类使用的 `ModelToServe`
+    类的样子。'
 - en: Example 4-2\. The ModelToServe class
+  id: totrans-45
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-2\. 服务模型类
 - en: '[PRE1]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This class unmarshals incoming protobufs of the model definition ([Example 3-2](ch03.html#protobuf_definition_for_the_model_update))
     and converts it into the internal format used in the rest of the code.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 此类将模型定义的传入 protobuf 解析为代码中其余部分使用的内部格式。
 - en: Similarly, we use the `DataRecord` class to unmarshal the incoming data definition
     ([Example 3-1](ch03.html#model_representation-id1)), as demonstrated in [Example 4-3](#the_datarecord_class).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们使用`DataRecord`类来解组传入的数据定义（[示例 3-1](ch03.html#model_representation-id1)），如[示例
+    4-3](#the_datarecord_class)所示。
 - en: Example 4-3\. The DataRecord class
+  id: totrans-49
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-3\. DataRecord 类
 - en: '[PRE2]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Implementation of checkpointing also requires serialization support for the
     `Model` class, shown in [Example 4-4](#the_modeltypeserializer_class) ([complete
     code available here](http://bit.ly/2gwB16C)).
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 检查点实现还需要对`Model`类进行序列化支持，如[示例 4-4](#the_modeltypeserializer_class)所示（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
 - en: Example 4-4\. The ModelTypeSerializer class
+  id: totrans-52
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-4\. ModelTypeSerializer 类
 - en: '[PRE3]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This class leverages utility methods on the model and model factory traits to
     generically implement serialization/deserialization regardless of the actual model
     implementation.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 该类利用模型和模型工厂特性上的实用方法，以通用方式实现序列化/反序列化，而不考虑实际模型实现。
 - en: Serialization implementation also requires implementation of configuration support,
     which you can see in [Example 4-5](#the_modelserializerconfigsnapshot_class) ([complete
     code available here](http://bit.ly/2gwB16C)).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 序列化实现还需要实现配置支持，可以在[示例 4-5](#the_modelserializerconfigsnapshot_class)中看到（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
 - en: Example 4-5\. The ModelSerializerConfigSnapshot class
+  id: totrans-56
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-5\. ModelSerializerConfigSnapshot 类
 - en: '[PRE4]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Overall orchestration of the execution is done using a Flink driver, shown in
     [Example 4-6](#flink_driver_for_key-based_joins) ([complete code available here](http://bit.ly/2yE1B8o)).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行的整体编排是使用 Flink 驱动程序完成的，如[示例 4-6](#flink_driver_for_key-based_joins)所示（[完整代码在此处可用](http://bit.ly/2yE1B8o)）。
 - en: Example 4-6\. Flink driver for key-based joins
+  id: totrans-59
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-6\. 用于基于键的连接的 Flink 驱动程序
 - en: '[PRE5]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The workhorse of this implementation is the `buildGraph` method. It first configures
     and creates two Kafka consumers, for models and data, and then builds two input
     data streams from these consumers. It then reads data from both streams and merges
     them.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现的核心是`buildGraph`方法。它首先配置并创建两个 Kafka 消费者，用于模型和数据，然后从这些消费者构建两个输入数据流。然后从两个流中读取数据并将它们合并。
 - en: The `FlinkKafkaConsumer010` class requires the definition of the [deserialization
     schema](http://bit.ly/2gvPIqi). Because our messages are protobuf encoded, I treat
     Kafka messages as binary blobs. To do this, it is necessary to implement the `ByteArraySchema`
     class, as shown in [Example 4-7](#the_bytearrayschema_class), defining encoding
     and decoding of Kafka data.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FlinkKafkaConsumer010` 类需要定义[反序列化模式](http://bit.ly/2gvPIqi)。因为我们的消息是protobuf编码的，我将Kafka消息视为二进制数据块。为此，需要实现`ByteArraySchema`类，如[示例
+    4-7](#the_bytearrayschema_class)所示，定义Kafka数据的编码和解码。'
 - en: Example 4-7\. The ByteArraySchema class
+  id: totrans-63
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-7\. ByteArraySchema 类
 - en: '[PRE6]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Using Partition-Based Joins
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用基于分区的连接
 - en: Flink’s `RichCoFlatMapFunction` allows merging of two streams in parallel. A
     task is split into several parallel instances for execution with each instance
     processing a subset of the task’s input data. The number of parallel instances
     of a task is called its [parallelism](http://bit.ly/2i51BaF).
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink 的`RichCoFlatMapFunction`允许并行合并两个流。任务被分成几个并行实例以执行，每个实例处理任务输入数据的一个子集。任务的并行实例数称为其[并行度](http://bit.ly/2i51BaF)。
 - en: When using this API on the partitioned stream, data from each partition is processed
     by a dedicated Flink executor. Records from the model stream are broadcast to
     all executors. As [Figure 4-3](#partition-based_join) demonstrates, each partition
@@ -294,89 +435,131 @@
     If the number of partitions of the input stream is less than Flink parallelism,
     only some of the model server instances will be utilized. Otherwise, some of the
     model server instances will serve more than one partition.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对分区流使用此 API 时，每个分区的数据由专用的 Flink 执行器处理。模型流中的记录被广播到所有执行器。如[图 4-3](#partition-based_join)所示，输入流的每个分区被路由到模型服务器的相应实例。如果输入流的分区数少于
+    Flink 的并行度，则只有一些模型服务器实例会被利用。否则，一些模型服务器实例将为多个分区提供服务。
 - en: '![smlt 0403](assets/smlt_0403.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![smlt 0403](assets/smlt_0403.png)'
 - en: Figure 4-3\. Partition-based join
+  id: totrans-69
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 4-3\. 基于分区的连接
 - en: 'Here are the main characteristics of this approach:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的主要特点如下：
 - en: The same model can be scored in one of several executors based on the partitioning
     of the data streams, which means that scaling of Flink (and input data partitioning)
     leads to better scoring throughput.
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相同的模型可以根据数据流的分区在多个执行器中进行评分，这意味着 Flink 的扩展（和输入数据的分区）会导致更好的评分吞吐量。
 - en: Because the model stream is broadcast to all model server instances, which operate
     independently, some race conditions in the model update can exist, meaning that
     at the point of the model switch, some model jitter (models can be updated at
     different times in different instances, so for some short period of time different
     input records can be served by different models) can occur.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为模型流被广播到所有独立运行的模型服务器实例，一些模型更新中可能存在竞争条件，这意味着在模型切换点，可能会出现一些模型抖动（模型可以在不同时间更新在不同实例中，因此在一段时间内不同的输入记录可能由不同的模型提供）。
 - en: Based on these considerations, using global joins is an appropriate approach
     for the situations when it is necessary to score with one or a few models under
     heavy data load.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于这些考虑，当需要在大量数据负载下使用一个或几个模型进行评分时，使用全局连接是一个合适的方法。
 - en: In the heart of this implementation is the `DataProcessorMap` class, which you
     can see in action in [Example 4-8](#the_dataprocessmap_class) ([complete code
     available here](http://bit.ly/2gcOLpYa)).
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现的核心是 `DataProcessorMap` 类，您可以在[示例 4-8](#the_dataprocessmap_class)中看到它的运行情况（[完整代码在此处可用](http://bit.ly/2gcOLpYa)）。
 - en: Example 4-8\. The DataProcessMap class
+  id: totrans-75
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-8\. 数据处理映射类
 - en: '[PRE7]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'This implementation is very similar to the `DataProcessor` class ([Example 4-1](#the_dataprocessor_class)).
     Following are the main differences between the two:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现与 `DataProcessor` 类（[示例 4-1](#the_dataprocessor_class)）非常相似。以下是两者之间的主要区别：
 - en: The `DataProcessMap` class extends `RichCoFlatMapFunction`, whereas the `DataProcessor`
     class extends the `CoProcessFunction` class.
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`DataProcessMap` 类扩展了 `RichCoFlatMapFunction`，而 `DataProcessor` 类扩展了 `CoProcessFunction`
+    类。'
 - en: 'The method names are different: `flatMap1` and `flatMap2` versus `processElement1`
     and `processElement2`. But the actual code within the methods is virtually identical.'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 方法名称不同：`flatMap1` 和 `flatMap2` 与 `processElement1` 和 `processElement2`。但方法内部的实际代码几乎相同。
 - en: Similar to the `DataProcessor` class, this class also implements support for
     checkpointing of state.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 `DataProcessor` 类类似，这个类还实现了对状态的检查点支持。
 - en: Overall orchestration of the execution is done using a Flink driver, which differs
     from the previous Flink driver for key-based joins ([Example 4-6](#flink_driver_for_key-based_joins))
     only in how streams are delivered to the executors (`keyBy` versus `broadcast`)
     and processed (`process` versus `flatMap`) and joined, as shown in [Example 4-9](#flink_driver_for_global_joins)
     ([complete code available here](http://bit.ly/2ydjA2y)).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行的整体编排是使用 Flink 驱动程序完成的，这与之前基于键的连接的 Flink 驱动程序（[示例 4-6](#flink_driver_for_key-based_joins)）在将流传递给执行器（`keyBy`
+    对 `broadcast`）和处理（`process` 对 `flatMap`）以及连接方面有所不同，如[示例 4-9](#flink_driver_for_global_joins)所示（[完整代码在此处可用](http://bit.ly/2ydjA2y)）。
 - en: Example 4-9\. Flink driver for global joins
+  id: totrans-82
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 示例 4-9\. 用于全局连接的 Flink 驱动程序
 - en: '[PRE8]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Although this example uses a single model, you can easily expand it to support
     multiple models by using a map of models keyed on the data type.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这个示例使用了一个模型，但您可以通过使用以数据类型为键的模型映射轻松扩展它以支持多个模型。
 - en: A rich streaming semantic provided by Flink low-level process APIs provides
     a very powerful platform for manipulating data streams, including their transformation
     and merging. In this chapter, you have looked at different approaches for implementing
     proposed architecture using Flink. In [Chapter 5](ch05.html#apache_beam_implementation),
     we look at how you can use Beam for solving the same problem.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: Flink 低级处理 API 提供的丰富的流语义为操作数据流（包括它们的转换和合并）提供了一个非常强大的平台。在本章中，您已经看到了使用 Flink 实现提议架构的不同方法。在[第
+    5 章](ch05.html#apache_beam_implementation)中，我们将看看如何使用 Beam 来解决相同的问题。
