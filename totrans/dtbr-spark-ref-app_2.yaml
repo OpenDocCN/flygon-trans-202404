@@ -1,309 +1,466 @@
 - en: Twitter Streaming Language Classifier
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Twitter 实时语言分类器
 - en: Twitter Streaming Language Classifier
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Twitter 实时语言分类器
 - en: In this reference application, we show how you can use Apache Spark for training
     a language classifier - replacing a whole suite of tools you may be currently
     using.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个参考应用程序中，我们展示了如何使用 Apache Spark 训练语言分类器 - 取代您可能当前正在使用的整套工具。
 - en: 'This reference application was demo-ed at a meetup which is taped here - the
     link skips straight to demo time, but the talk before that is useful too:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 此参考应用程序在一次见面会上进行了演示，演示内容可以在这里录制 - 此链接直接跳转到演示时间，但之前的讲话也很有用：
 - en: '[![Aaron Davidson doing his magic](aaron-yaaay.png)](https://www.youtube.com/watch?v=FjhRkfAuU7I#t=2035)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[![Aaron Davidson doing his magic](aaron-yaaay.png)](https://www.youtube.com/watch?v=FjhRkfAuU7I#t=2035)'
 - en: 'Here are 5 typical stages for creating a production-ready classifier. Often,
     each stage is done with a different set of tools and even by different engineering
     teams:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个生产就绪的分类器通常需要经历 5 个典型阶段。通常，每个阶段都是由不同的工具集甚至不同的工程团队完成的：
 - en: Scrape/collect a dataset.
+  id: totrans-6
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 抓取/收集数据集。
 - en: Clean and explore the data, doing feature extraction.
+  id: totrans-7
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 清理和探索数据，进行特征提取。
 - en: Build a model on the data and iterate/improve it.
+  id: totrans-8
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在数据上构建模型并迭代/改进它。
 - en: Improve the model using more and more data, perhaps upgrading your infrastructure
     to support building larger models. (Such as migrating over to Hadoop.)
+  id: totrans-9
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用更多数据来改进模型，可能需要升级基础设施以支持构建更大的模型。（例如迁移到 Hadoop。）
 - en: Apply the model in real time.
+  id: totrans-10
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 实时应用模型。
 - en: 'Spark can be used for all of the above and simple to use for all these purposes.
     We''ve chosen to break up the language classifier into 3 parts with one simple
     Spark program to accomplish each part:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark 可用于上述所有目的，并且对于所有这些目的来说都非常简单易用。我们选择将语言分类器分解为 3 部分，每部分使用一个简单的 Spark 程序来完成：
 - en: '[Collect a Dataset of Tweets](collect.html) - Spark Streaming is used to collect
     a dataset of tweets and write them out to files.'
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[收集推文数据集](collect.html) - 使用 Spark Streaming 来收集推文数据集并将其写入文件。'
 - en: '[Examine the Tweets and Train a Model](examine_and_train.html) - Spark SQL
     is used to examine the dataset of Tweets. Then Spark MLLib is used to apply the
     K-Means algorithm to train a model on the data.'
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[检查推文并训练模型](examine_and_train.html) - 使用 Spark SQL 来检查推文数据集。然后使用 Spark MLLib
+    应用 K-Means 算法对数据进行模型训练。'
 - en: '[Apply the Model in Real-time](predict.html) - Spark Streaming and Spark MLLib
     are used to filter a live stream of Tweets for those that match the specified
     cluster.'
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[实时应用模型](predict.html) - 使用 Spark Streaming 和 Spark MLLib 来过滤与指定聚类相匹配的推文的实时流。'
 - en: Collect a Dataset of Tweets
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 收集推文数据集
 - en: 'Part 1: Collect a Dataset of Tweets'
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一部分：收集推文数据集
 - en: Spark Streaming is used to collect tweets as the dataset. The tweets are written
     out in JSON format, one tweet per line. A file of tweets is written every time
     interval until at least the desired number of tweets is collected.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Spark Streaming 来收集推文作为数据集。推文以 JSON 格式写出，每行一个推文。每隔一段时间写出一个推文文件，直到收集到所需数量的推文为止。
 - en: See [Collect.scala](Collect.scala) for the full code. We'll walk through some
     of the interesting bits now.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看 [Collect.scala](Collect.scala) 获取完整代码。我们现在将浏览其中一些有趣的部分。
 - en: 'Collect.scala takes in the following argument list:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: Collect.scala 接受以下参数列表：
 - en: '*outputDirectory* - the output directory for writing the tweets. The files
     will be named ''part-%05d'''
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*outputDirectory* - 用于写入推文的输出目录。文件将以 ''part-%05d'' 命名'
 - en: '*numTweetsToCollect* - this is the minimum number of tweets to collect before
     the program exits.'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*numTweetsToCollect* - 在程序退出之前收集的最小推文数量。'
 - en: '*intervalInSeconds* - write out a new set of tweets every interval.'
+  id: totrans-22
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*intervalInSeconds* - 每个间隔写出一组新的推文。'
 - en: '*partitionsEachInterval* - this is used to control the number of output files
     written for each interval'
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*partitionsEachInterval* - 用于控制每个间隔写入的输出文件数'
 - en: Collect.scala will also require [Twitter API Credentials](https://apps.twitter.com/).
     If you have never signed up for Twitter Api Credentials, follow these steps [here](https://databricks-training.s3.amazonaws.com/realtime-processing-with-spark-streaming.html#twitter-credential-setup).
     The Twitter credentials are passed in through command line flags.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: Collect.scala 还需要[Twitter API 凭证](https://apps.twitter.com/)。如果您从未注册过 Twitter
+    Api 凭证，请按照此处的步骤进行操作[这里](https://databricks-training.s3.amazonaws.com/realtime-processing-with-spark-streaming.html#twitter-credential-setup)。Twitter
+    凭证通过命令行标志传递。
 - en: Below is a snippet of the actual code in Collect.scala. The code calls TwitterUtils
     in the Spark Streaming Twitter library to get a DStream of tweets. Then, map is
     called to convert the tweets to JSON format. Finally, call for each RDD on the
     DStream. This example repartitions the RDD to write out so that you can control
     the number of output files.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是 Collect.scala 中实际代码的片段。 该代码调用 Spark Streaming Twitter 库中的 TwitterUtils 来获取推文的
+    DStream。 然后，调用 map 将推文转换为 JSON 格式。 最后，在 DStream 上调用 for each RDD。 此示例重新分区 RDD
+    以便写出，以便您可以控制输出文件的数量。
 - en: '[PRE0]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Run [Collect.scala](Collect.scala) yourself to collect a dataset of tweets:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行[Collect.scala](Collect.scala)以自行收集推文数据集：
 - en: '[PRE1]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Examine the Tweets and Train a Model
+  id: totrans-29
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 检查推文并训练模型
 - en: 'Part 2: Examine Tweets and Train a Model'
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 2 部分：检查推文并训练模型
 - en: 'The second program examines the data found in tweets and trains a language
     classifier using K-Means clustering on the tweets:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个程序检查推文中发现的数据，并使用推文进行 K-Means 聚类来训练语言分类器：
 - en: '[Examine](examine.html) - Spark SQL is used to gather data about the tweets
     -- to look at a few of them, and to count the total number of tweets for the most
     common languages of the user.'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[检查](examine.html) - 使用 Spark SQL 收集有关推文的数据--查看其中的一些推文，并计算用户最常用语言的推文总数。'
 - en: '[Train](train.html) - Spark MLLib is used for applying the K-Means algorithm
     for clustering the tweets. The number of clusters and the number of iterations
     of algorithm are configurable. After training the model, some sample tweets from
     the different clusters are shown.'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[训练](train.html) - 使用 Spark MLLib 应用 K-Means 算法对推文进行聚类。 聚类的数量和算法的迭代次数是可配置的。
+    在训练模型之后，会显示来自不同聚类的一些样本推文。'
 - en: See [here](run_part2.html) for the command to run part 2.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 请参见[此处](run_part2.html)以获取运行第 2 部分的命令。
 - en: Examine with Spark SQL
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Spark SQL 检查
 - en: Examine with Spark SQL
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Spark SQL 进行检查
 - en: Spark SQL can be used to examine data based on the tweets. Below are some relevant
     code snippets from [ExamineAndTrain.scala](ExamineAndTrain.scala).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用 Spark SQL 根据推文检查数据。 以下是来自[ExamineAndTrain.scala](ExamineAndTrain.scala)的一些相关代码片段。
 - en: First, here is code to pretty print 5 sample tweets so that they are more human-readable.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，以下是一段代码，可以漂亮地打印出 5 个样本推文，使它们更易读。
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Spark SQL can load JSON files and infer the schema based on that data. Here
     is the code to load the json files, register the data in the temp table called
     "tweetTable" and print out the schema based on that.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark SQL 可以加载 JSON 文件并根据该数据推断模式。 以下是加载 json 文件、在名为 "tweetTable" 的临时表中注册数据并根据该数据打印模式的代码。
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Now, look at the text of 10 sample tweets.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，查看 10 个样本推文的文本。
 - en: '[PRE4]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: View the user language, user name, and text for 10 sample tweets.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看 10 个样本推文的用户语言、用户名和文本。
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Finally, show the count of tweets by user language. This can help determine
     the number of clusters that is ideal for this dataset of tweets.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，显示用户语言的推文计数。 这可以帮助确定此推文数据集的理想聚类数量。
 - en: '[PRE6]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Train with Spark MLLib
+  id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Spark MLLib 进行训练
 - en: Train with Spark MLLib
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Spark MLLib 进行训练
 - en: This section covers how to train a language classifier using the text in the
     Tweets.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节涵盖如何使用推文中的文本训练语言分类器。
 - en: 'First, we need to featurize the Tweet text. MLLib has a HashingTF class that
     does that:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要对推文文本进行特征化。 MLLib 有一个名为 HashingTF 的类可以做到这一点：
 - en: '[PRE7]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: This is the code that actually grabs the tweet text from the tweetTable and
     featurizes it. K-Means is called to create the number of clusters and the algorithm
     is run for the specified number of iterations. Finally, the trained model is persisted
     so it can be loaded later.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是实际从 tweetTable 中获取推文文本并对其进行特征化的代码。 调用 K-Means 创建聚类数量，并且该算法针对指定的迭代次数运行。 最后，将训练好的模型持久化，以便稍后加载。
 - en: '[PRE8]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Last, here is some code to take a sample set of tweets and print them out by
     cluster, so that we can see what language clusters our model contains. Pick your
     favorite to use for part 3.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，以下是一些代码，用于获取一组样本推文并按聚类打印出它们，以便我们可以看到我们的模型包含哪些语言聚类。 选择您喜欢的语言用于第 3 部分。
 - en: '[PRE9]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Run Examine And Train
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行检查和训练
 - en: Run Examine and Train
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行检查和训练
 - en: 'To run this program, the following argument list is required:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 要运行此程序，需要以下参数列表：
 - en: YOUR_TWEET_INPUT - This is the file pattern for input tweets.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: YOUR_TWEET_INPUT - 这是输入推文的文件模式。
 - en: OUTPUT_MODEL_DIR - This is the directory to persist the model.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: OUTPUT_MODEL_DIR - 这是持久化模型的目录。
 - en: NUM_CLUSTERS - The number of clusters the algorithm should create.
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: NUM_CLUSTERS - 算法应创建的聚类数量。
 - en: NUM_ITERATIONS - The number of iterations the algorithm should run for.
+  id: totrans-63
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: NUM_ITERATIONS - 算法应运行的迭代次数。
 - en: 'Here is an example command to run [ExamineAndTrain.scala](ExamineAndTrain.scala):'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是运行[ExamineAndTrain.scala](ExamineAndTrain.scala)的示例命令：
 - en: '[PRE10]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Apply the Model in Real-time
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实时应用模型
 - en: 'Part 3: Apply the Model in Real Time'
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第 3 部分：实时应用模型
 - en: 'Spark Streaming is used to filter live tweets coming in, only accepting those
     that are classified as the specified cluster (type) of tweets. It takes the following
     arguments:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark Streaming 用于过滤传入的实时推文，仅接受被分类为指定群（类型）的推文。它接受以下参数：
 - en: modelDirectory - This the directory where the model that was trained in part
     2 was persisted.
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: modelDirectory - 这是在第 2 部分训练的模型持久化的目录。
 - en: clusterNumber - This is the cluster you want to select from part 2\. Only tweets
     that match this language cluster will be printed out.
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: clusterNumber - 这是您要从第 2 部分选择的群。只有匹配此语言群的推文将被打印出来。
 - en: This program is very simple - this is the bulk of the code below. First, load
     up a Spark Streaming Context. Second, create a Twitter DStream and map it to grab
     the text. Third, load up the K-Means model that was trained in step 2\. Finally,
     apply the model on the tweets, filtering out only those that match the specified
     cluster, and print the matching tweets.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 此程序非常简单 - 下面是代码的主体部分。首先，加载 Spark Streaming 上下文。其次，创建一个 Twitter DStream 并映射它以获取文本。第三，加载在第
+    2 步中训练的 K-Means 模型。最后，在推文上应用模型，仅过滤出与指定群匹配的推文，并打印匹配的推文。
 - en: '[PRE11]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Now, run [Predict.scala](Predict.scala):'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，运行[Predict.scala](Predict.scala)：
 - en: '[PRE12]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
