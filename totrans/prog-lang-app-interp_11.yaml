@@ -157,6 +157,7 @@
   id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然在大多数手动内存管理方案中碎片化仍然是一个无法克服的问题，但即使在这个看似简单的学科中，还有更多需要考虑的事情。当我们释放一个值时会发生什么？运行时系统必须以某种方式记录它现在可供将来分配使用。它通过维护一个空闲列表来实现：一个空闲空间的链表。稍加思考就会立即提出一个问题：空闲列表本身存储在哪里，谁管理它的内存？答案是空闲列表引用存储在释放的单元中，这立即意味着每个分配的最小大小。
 - en: In principle, then, each malloc must now traverse the free list to find a suitable
     freed spot. I say “suitable” because the allocator must make a complex decision.
     Should it take the first slot that matches or a later one? And either way, what
@@ -166,6 +167,7 @@
   id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 原则上，每个malloc现在都必须遍历空闲列表，以找到一个合适的空闲位置。我说“合适”，是因为分配器必须做出一个复杂的决定。它应该采用与之匹配的第一个插槽还是后面的插槽？无论哪种方式，什么是“匹配”？它应该只取准确的大小的插槽，还是取较大的插槽并将其分成较小的插槽（从而增加创建不可用的小孔的可能性）？等等。
 - en: 'Developers like allocation to be cheap.Failing to make allocation cheap makes
     developers try to encode tricks based on reusing values, thereby reducing clarity
     and quite possibly also correctness. Therefore, in practice, allocation systems
@@ -181,22 +183,27 @@
   id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 开发人员希望分配是廉价的。使分配不廉价会导致开发人员尝试基于重复使用值的技巧，从而降低清晰度，很可能也降低正确性。因此，在实践中，分配系统往往只使用一组固定的大小，通常是2的幂次方。这使得可以维护不止一个，而是许多空闲列表，每个列表都是相同大小的空洞（即2的幂次方）。一个表引用到这些列表中的每一个，并且通过使用位移进行表索引是廉价的。作为回报，开发人员牺牲了空间，因为不是2的幂次方大小的对象最终将被不必要地填充。
+    （这是一个经典的计算机科学权衡：以时间换空间。）此外，free必须将释放的内存放入正确的插槽中，并且甚至可能将较大的块分成多个较小的块以准备将来的分配。这个模型中没有任何东西从本质上来说都是廉价的。特别是，free不是免费的。
 - en: Of course, all this assumes that developers can function in even a sound, much
     less complete, fashion. But they don’t.
   id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，所有这些都假设开发人员可以以甚至是完整的方式工作。但是他们不会。
 - en: 11.3.2Reference Counting
   id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 11.3.2引用计数
 - en: Because entirely manual reclamation puts an undue burden on developers, some
     semi-automated techniques have seen long-standing use, most notably reference
     counting.
   id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为完全手动回收给开发人员带来了不合理的负担，一些半自动化技术长期以来一直在使用，最显著的是引用计数。
 - en: In reference counting, every value has associated with it a count of how many
     references it has. The developer is responsible for incrementing and decrementing
     these counts. When the count reaches zero, the value’s space can safely be restored
@@ -204,35 +211,41 @@
   id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在引用计数中，每个值都有一个关联的计数，表示它有多少个引用。开发人员负责增加和减少这些计数。当计数达到零时，该值的空间可以安全地恢复以供将来重用。
 - en: Observe, immediately, that there are two significant assumptions lurking under
     this simple definition.
   id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 立即注意到，在这个简单的定义下隐藏着两个重要的假设。
 - en: That the developer can track every reference. Recall that every alias is also
     a reference. Thus, a developer who writes
   id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 开发人员可以追踪每个引用。请记住，每个别名也是一个引用。因此，写下这样的代码的开发人员
 - en: '| (let ([x <some value>]) |'
   id: totrans-25
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (let ([x <some value>]) |'
 - en: '|   (let ([y x]) |'
   id: totrans-26
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (let ([y x]) |'
 - en: '|     ...)) |'
   id: totrans-27
   prefs:
   - PREF_IND
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     ...)) |'
 - en: has to remember that y is a second reference to the same value being referred
     to by x, and increment the count accordingly.
   id: totrans-28
