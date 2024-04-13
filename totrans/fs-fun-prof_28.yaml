@@ -1,338 +1,488 @@
 - en: The "A functional approach to authorization" Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: “授权的函数式方法”系列
 - en: In this series of posts, I'll look at how you might handle the common security
     challenge of authorization. That is, how can you ensure that clients of your code
     can only do what you want them to do?
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这系列文章中，我将看看你可能如何处理授权的常见安全挑战。也就是说，你如何确保你代码的客户只能做你想让他们做的事情？
 - en: This series will sketch out two different approaches, first using an approach
     called *capability based security*, and second using statically checked types
     to emulate access tokens.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个系列将勾勒出两种不同的方法，首先使用一种称为*基于能力的安全*的方法，其次使用静态检查的类型来模拟访问令牌。
 - en: Interestingly, both approaches tend to produce a cleaner, more modular design
     as a side effect, which is why I like them!
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，这两种方法都倾向于产生更清晰、更模块化的设计，这也是我喜欢它们的原因！
 - en: '[A functional approach to authorization](capability-based-security.html). Capability
     based security and more.'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[授权的函数式方法](capability-based-security.html)。基于能力的安全等等。'
 - en: '[Constraining capabilities based on identity and role](capability-based-security-2.html).
     A functional approach to authorization, part 2.'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[基于身份和角色的能力限制](capability-based-security-2.html)。授权的函数式方法，第2部分。'
 - en: '[Using types as access tokens](capability-based-security-3.html). A functional
     approach to authorization, part 3.'
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[使用类型作为访问令牌](capability-based-security-3.html)。授权的函数式方法，第3部分。'
 - en: A functional approach to authorization
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 授权的函数式方法
 - en: A functional approach to authorization
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 授权的函数式方法
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于这个主题的幻灯片和视频](http://fsharpforfunandprofit.com/cap/)*'
 - en: In this series of posts, I'll look at how you might handle the common security
     challenge of authorization. That is, how can you ensure that clients of your code
     can only do what you want them to do?
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这系列文章中，我将看看你可能如何处理授权的常见安全挑战。也就是说，你如何确保你代码的客户只能做你想让他们做的事情？
 - en: This series will sketch out two different approaches, first using an approach
     called *capability based security*, and second using statically checked types
     to emulate access tokens.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个系列将勾勒出两种不同的方法，首先使用一种称为*基于能力的安全*的方法，其次使用静态检查的类型来模拟访问令牌。
 - en: Interestingly, both approaches tend to produce a cleaner, more modular design
     as a side effect, which is why I like them!
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，这两种方法都倾向于产生更清晰、更模块化的设计，这也是我喜欢它们的原因！
 - en: Before I start, I must mention a major caveat. In a .NET environment, you can
     generally use reflection to bypass compile-time checking, so the approaches shown
     here are not about preventing truly malicious attacks so much as helping you create
     designs that reduce *unintentional* security vulnerabilities.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我开始之前，我必须提到一个主要的警告。在.NET环境中，你通常可以使用反射来绕过编译时检查，因此这里展示的方法并不是关于防止真正恶意的攻击，而更多地是帮助你创建减少*无意中*的安全漏洞的设计。
 - en: Finally, I'm no expert on security -- I'm just putting down some of my own thoughts
     and suggestions. This post is certainly not meant to substitute for a proper full-fledged
     security design, nor is it a serious study of security practices. If you want
     to know more, there are links to further reading at the bottom of the post.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我不是安全方面的专家 -- 我只是写下了一些我自己的想法和建议。这篇文章当然不是为了替代一个完整的安全设计，也不是对安全实践的严肃研究。如果你想了解更多，文章底部有进一步阅读的链接。
 - en: 'Part 1: A configuration example'
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第1部分：一个配置示例
 - en: 'First, let''s start with a simple scenario:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们从一个简单的场景开始：
 - en: You have a configuration option that can be set by one part of the the code.
     Let's say it is a boolean called `DontShowThisMessageAgain`.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你有一个配置选项，可以由代码的一部分设置。假设它是一个名为`DontShowThisMessageAgain`的布尔值。
 - en: We have a component of the application (the UI say) that wants to set this option.
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们有一个应用程序的组件（比如说UI），想要设置这个选项。
 - en: In addition, we're also going to assume that the component was written by a
     malicious developer and is going to try to cause trouble if possible.
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另外，我们还假设该组件是由一个恶意的开发者编写的，并且如果可能的话，他会试图制造麻烦。
 - en: So, how should we expose this configuration setting to a potentially malicious
     caller?
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我们应该如何向潜在恶意的调用者公开这个配置设置呢？
 - en: '**Attempt 1: Give the caller the name of the configuration file**'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试1：将配置文件的名称提供给调用者**'
 - en: Let's start with a really bad idea. We'll just provide the name of the config
     file to the caller, and let them change the file themselves.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一个非常糟糕的想法开始。我们只需将配置文件的名称提供给调用者，并让他们自己更改文件。
 - en: 'Here''s how this might be written in C# pseudocode:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是如何在 C# 伪代码中编写的：
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: and the caller code would be
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 调用者代码将是
 - en: '[PRE1]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Obviously, this is not good! In order for this to work, we have to give the
     caller the ability to write to any file on the filesystem, and then a malicious
     caller could delete or corrupt all sorts of things.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这不是一个好方法！为了让这个方法生效，我们必须让调用者有能力写入文件系统上的任何文件，然后恶意调用者就可以删除或破坏各种东西。
 - en: You could avoid this to some extent by having strict permissions on the file
     system, but we're still giving way too much control to the caller.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过在文件系统上设置严格的权限可以在一定程度上避免这种情况，但我们仍然给了调用者太多的控制权。
 - en: '**Attempt 2: Give the caller a TextWriter**'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试 2：给调用者一个 TextWriter**'
 - en: Ok, so let's open the file ourselves and just give the caller the opened file
     stream as a `TextWriter`. That way the caller doesn't need permission to access
     the file system at all.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，让我们自己打开文件，然后将已打开的文件流作为`TextWriter`提供给调用者。这样，调用者根本不需要访问文件系统的权限。
 - en: But of course, a malicious caller could still corrupt the config file by writing
     garbage to the file. Again, we're giving way too much control to the caller.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，一个恶意的调用者仍然可以通过向文件写入垃圾来损坏配置文件。再次，我们给了调用者太多的控制权。
 - en: '**Attempt 3: Give the caller a key/value interface**'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试 3：给调用者一个键/值接口**'
 - en: 'Let''s lock this down by providing the caller an interface that forces them
     to treat the config file as a key/value store, like this:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过为调用者提供一个强制将配置文件视为键/值存储的接口来限制这一点，就像这样：
 - en: '[PRE2]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The caller code is then something like this:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 调用者代码如下：
 - en: '[PRE3]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: That's much better, but because it is a stringly-typed interface, a malicious
     caller could still corrupt the configuration by setting the value to a non-boolean
     which would not parse. They could also corrupt all the other configuration keys
     if they wanted to.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样要好得多，但由于它是一个字符串类型的接口，恶意调用者仍然可以通过将值设置为非布尔值来破坏配置，这样就无法解析。他们也可以在需要时破坏所有其他配置键。
 - en: '**Attempt 4: Give the caller a domain-centric interface**'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试 4：给调用者一个面向域的接口**'
 - en: Ok, so rather than having a generic config interface, let's provide an interface
     that provides specific methods for each configuration setting.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，与其拥有一个通用的配置接口，不如提供一个为每个配置设置提供特定方法的接口。
 - en: '[PRE4]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now the caller can't possibly corrupt the config, because each option is statically
     typed.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在调用者不可能破坏配置，因为每个选项都是静态类型的。
 - en: But we still have a problem! What's to stop a malicious caller changing the
     connection string when they were only supposed to change the message flag?
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我们仍然有一个问题！如何阻止一个恶意的调用者在他们只应该更改消息标志时更改连接字符串？
 - en: '**Attempt 5: Give the caller only the interface they need**'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**尝试 5：只给调用者他们需要的接口**'
 - en: Ok, so let's define a new interface that contains *only* the methods the caller
     should have access to, with all the other methods hidden.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，让我们定义一个新的接口，它*只包含*调用者应该访问的方法，而隐藏所有其他方法。
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: That's about as locked down as we can get! The caller can *only* do the thing
     we allow them to do.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们可以做到的最安全的程度！调用者*只能*做我们允许他们做的事情。
 - en: In other words, we have just created a design using the [Principle Of Least
     Authority](https://en.wikipedia.org/wiki/Principle_of_least_privilege), normally
     abbreviated to "POLA".
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们刚刚使用了[最小权限原则](https://en.wikipedia.org/wiki/Principle_of_least_privilege)，通常缩写为“POLA”来创建设计。
 - en: Security as good design
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安全即良好设计
 - en: What's interesting about this approach is that it exactly parallels what you
     would do for good design *anyway*, regardless of a malicious caller.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的有趣之处在于，它与好的设计方法完全相同，*不管*是否有恶意调用者。
 - en: Here's how I might think about designing this, basing my decisions only on core
     design principles such information hiding and decoupling.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我考虑设计这个的方式，只基于核心设计原则如信息隐藏和解耦。
 - en: If we give the caller a filename, we would be limiting ourselves to file-based
     config files. By giving the caller a TextWriter, we can make the design more mockable.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们给调用者一个文件名，我们将限制自己只能使用基于文件的配置文件。通过给调用者一个 TextWriter，我们可以使设计更易于模拟。
 - en: But if we give the caller a TextWriter, we are exposing a specific storage format
     (XML, JSON, etc) and are also limiting ourselves to text-based storage. By giving
     the caller a generic KeyValue store, we hide the format and make the implementation
     choices more flexible.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是如果我们给调用者一个 TextWriter，我们就暴露了一个特定的存储格式（XML、JSON 等），而且还限制了我们自己到文本为基础的存储。通过给调用者提供一个通用的键/值存储，我们隐藏了格式，并使实现选择更加灵活。
 - en: But if we give the caller a generic KeyValue store using strings, we are still
     exposing ourselves to bugs where the value is not a boolean, and we'd have to
     write validation and tests for that. If we use a statically typed interface instead,
     we don't have to write any corruption checking code.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是，如果我们给调用者一个使用字符串的通用 KeyValue 存储，我们仍然暴露自己于值不是布尔值的错误，我们必须为此编写验证和测试。如果我们改为使用静态类型的接口，我们就不必编写任何损坏检查代码。
 - en: But if we give the caller an interface with too many methods, we are not following
     the *[Interface Segregation Principle](https://en.wikipedia.org/wiki/Interface_segregation_principle)*.
     Hence, we should reduce the number of available methods to the absolute minimum
     needed by the caller.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是，如果我们给调用者一个具有太多方法的接口，我们就没有遵循*[接口隔离原则](https://en.wikipedia.org/wiki/Interface_segregation_principle)*。因此，我们应该将可用方法的数量减少到调用者绝对需要的最小值。
 - en: Working through a thought process like this, using good design practices only,
     we end up with exactly the same result as if we had been worried about security!
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过像这样的思考过程，仅使用良好的设计实践，我们最终得到的结果与如果我们担心安全性时完全相同！
 - en: 'That is: designing the most minimal interface that the caller needs will both
     avoid accidental complexity (good design) and increase security (POLA).'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说：设计调用者需要的最小接口既可以避免意外复杂性（良好设计），又可以增加安全性（最小授权原则）。
 - en: Of course, we don't normally have to deal with malicious callers, but we should
     treat ourselves, as developers, as unintentionally malicious. For example, if
     there is a extra method in the interface, it might well be used in a different
     context, which then increases coupling between the two contexts and makes refactoring
     harder.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们通常不必处理恶意调用者，但我们应该将自己作为开发人员视为无意中恶意。例如，如果接口中有一个额外的方法，它很可能会在不同的上下文中使用，这会增加两个上下文之间的耦合并使重构变得更加困难。
 - en: 'So, here''s a tip: **design for malicious callers and you will probably end
     up with more modular code!**'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，这里有一个提示：**为恶意调用者设计，你可能最终会得到更模块化的代码！**
 - en: Introducing capability-based security
+  id: totrans-59
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 引入基于能力的安全性
 - en: What we have done above is gradually reduce the surface area to the caller so
     that by the final design, the caller can only do exactly one thing.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们上面所做的是逐渐减少对调用者的接触面，以至最终设计，调用者只能做一件事。
 - en: That "one thing" is a "capability". The caller has a capability to set the message
     flag, and that's all.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 那个"一件事"就是一个"能力"。调用者有一个设置消息标志的能力，仅此而已。
 - en: '["Capability-based" security](https://en.wikipedia.org/wiki/Capability-based_security)
     is a security model that is based on this idea:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '["基于能力的"安全性](https://en.wikipedia.org/wiki/Capability-based_security)是基于这个想法的安全模型：'
 - en: The system provides "capabilities" to clients (in our case, via an implementation
     of an interface).
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 系统向客户端提供"能力"（在我们的情况下，通过接口的实现）。
 - en: These capabilities encapsulate any access rights that are needed. For example,
     the very fact that I have access to an implementation of the interface means that
     I can set that flag. If I did not have permission to set that flag, I would have
     not been given the capability (interface) in the first place. (I'll talk more
     about authorization in the next post).
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些能力封装了所需的任何访问权限。例如，我能够访问接口的实现这一事实意味着我可以设置那个标志。如果我没有权限设置那个标志，我就不会被赋予这个能力（接口）。（我会在下一篇文章中更多地谈论授权问题）。
 - en: Finally, the capabilities can be passed around. For example, I can acquire the
     capability at startup and then later pass it to the UI layer which can use it
     as needed.
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，这些能力可以传递。例如，我可以在启动时获取这个能力，然后稍后将其传递给 UI 层，UI 层可以根据需要使用它。
 - en: In other words, we have a "just-in-time" rather than a "just-in-case" model;
     we pass in the minimal amount of authority as and when needed, rather than having
     excess "ambient" authority available globally to everyone.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们有一个"及时授权"而不是"预防授权"的模型；我们在需要时传递最小的权限，而不是在全局范围内为每个人提供过多的"环境"权限。
 - en: The capability-based model is often focused on operating systems, but it can
     be mapped to programming languages very nicely, where it is called [the object-capability
     model](https://en.wikipedia.org/wiki/Object-capability_model).
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于能力的模型通常专注于操作系统，但它可以非常好地映射到编程语言中，这被称为[对象能力模型](https://en.wikipedia.org/wiki/Object-capability_model)。
 - en: I hope to demonstrate in this post that by using a capability-based approach
     in your code, you can create better designed and more robust code. In addition,
     potential security errors will be detectable at *compile-time* rather than at
     run-time.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我希望在这篇文章中演示，通过在代码中使用基于能力的方法，你可以创建设计更好、更健壮的代码。此外，潜在的安全错误将在*编译时*而不是运行时可检测到。
 - en: As I mentioned above, if your app is trusted, you can always use .NET reflection
     to "forge" capabilities that you are not entitled to. So, again, the approach
     shown here is not about preventing truly malicious attacks so much as it about
     creating a more robust design that reduces *unintentional* security vulnerabilities.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我上面提到的，如果你的应用被信任，你总是可以使用.NET反射来“伪造”你没有权限的能力。所以，这里展示的方法不是为了防止真正的恶意攻击，而是为了创建一个更加健壮的设计，减少*无意中*的安全漏洞。
 - en: Authority vs. permission
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 权威 vs. 权限
 - en: 'A capability-based security model tends to use the term "authority" rather
     than "permission". There is a distinction between the two:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于能力的安全模型倾向于使用术语“权限”而不是“权限”。两者之间有区别：
 - en: In an *authority* based system, once I have been granted authority to do something,
     I can pass some or all of that authority to others, add additional constraints
     of my own, and so on.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在基于*权威*的系统中，一旦我被授予了某项权限，我就可以将部分或全部权限传递给其他人，添加自己的额外约束，等等。
 - en: In a *permission* based system, I can ask for permission to do something, but
     I cannot pass that around to others.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在基于*权限*的系统中，我可以请求做某事的权限，但我不能将其传递给其他人。
 - en: It might seem that an authority based system is more open and "dangerous" than
     a permission based system. But in a permission based system, if others have access
     to me and I cooperate with them, I can act as proxy for anything they want to
     do so, so third-parties can *still* get authority indirectly. Permissions don't
     really make things more secure -- an attacker just has to use a more convoluted
     approach.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来基于权威的系统比基于权限的系统更加开放和“危险”。但在基于权限的系统中，如果其他人可以接触到我，并且我与他们合作，我可以代表他们做任何事情，因此第三方仍然可以*间接*获得权限。权限并不能真正增加安全性--攻击者只需使用更加复杂的方法。
 - en: Here's a concrete example. Let's say Alice trusts me to drive her car, and she
     is willing to let me borrow it, but she doesn't trust Bob. If I'm friends with
     Bob, I can let Bob drive the car anyway when Alice is not looking. So if Alice
@@ -340,1443 +490,2133 @@
     system just makes this explicit. Alice giving me her car keys is giving me the
     "capability" to drive her car, with full knowledge that I might give the car keys
     to someone else.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个具体的例子。假设Alice信任我开她的车，并且她愿意让我借车，但她不信任Bob。如果我和Bob是朋友，我可以在Alice不注意的时候让Bob开车。所以如果Alice信任我，她也隐含地信任我信任的任何人。基于权威的系统只是让这一点明确化。Alice把车钥匙交给我就是给我开她的车的“能力”，她完全知道我可能把车钥匙给别人。
 - en: Of course, when I act as a proxy in a permission based system, I can stop cooperating
     with the third-party if I want to, at which point the third-party loses their
     access.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，在基于权限的系统中，当我作为第三方的代理时，如果我愿意，我可以停止与第三方合作，此时第三方失去了他们的访问权限。
 - en: The equivalent of that in an authority based system is "revokable authority",
     which we will see an example of later. In the car key analogy, this might be like
     having car keys that self-destruct on demand!
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在基于权威的系统中，其等价物是“可撤销的权限”，我们将在稍后看到一个例子。在汽车钥匙的类比中，这可能类似于有自毁功能的汽车钥匙！
 - en: Modelling capabilities as functions
+  id: totrans-78
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将能力建模为函数
 - en: 'An interface with one method can be better realized as a function. So this
     interface:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 具有一个方法的接口更好地被实现为一个函数。所以这个接口：
 - en: '[PRE6]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'becomes just this function:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 就变成了这个函数：
 - en: '[PRE7]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'or in F#:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者在F#中：
 - en: '[PRE8]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: In a functional approach to capability-based security, each capability is represented
     by a function rather than an interface.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在功能性的能力基础安全方法中，每个能力都由一个函数表示，而不是一个接口。
 - en: 'The nice thing about using functions to represent capabilities is that we can
     use all the standard functional programming techniques: we can compose them, combine
     them with combinators, and so on.'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用函数表示功能的好处在于我们可以使用所有标准的函数式编程技术：我们可以组合它们，与组合子结合，等等。
 - en: The object-capability model vs. the functional programming model
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 对象能力模型 vs. 函数式编程模型
 - en: 'Many of the other requirements of the object-capability model fit well within
     a functional programming framework. Here is a comparison table:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 对象能力模型的许多其他要求很好地适应于函数式编程框架。这是一个比较表：
 - en: '| Object-capability model | Functional programming |'
+  id: totrans-89
   prefs: []
   type: TYPE_TB
+  zh: '| 对象能力模型 | 函数式编程 |'
 - en: '| No global mutable state is allowed. | No global mutable state is allowed.
     |'
+  id: totrans-90
   prefs: []
   type: TYPE_TB
+  zh: '| 不允许全局可变状态。 | 不允许全局可变状态。 |'
 - en: '| Capabilities are always passed around explicitly from parent to child, or
     from a sender to a receiver. | Functions are values that can be passed as parameters.
     |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| 能力总是明确地从父级传递到子级，或者从发送者传递到接收者。 | 函数是可以作为参数传递的值。 |'
 - en: '| Capabilities are never extracted out of the environment ("ambient authority").
     | Pure functions have all "dependencies" passed in explicitly. |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| 能力从未从环境中提取出来（"环境权限"）。 | 纯函数将所有"依赖项"显式传入。 |'
 - en: '| Capabilities cannot be tampered with. | Data is immutable. |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| 不能篡改能力。 | 数据是不可变的。 |'
 - en: '| Capabilities cannot be forged or cast to other capabilities. | In a uncompromising
     FP language, there is no reflection or casting available (of course, F# is not
     strict in this way). |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| 能力无法伪造或转换为其他能力。 | 在一个严格的 FP 语言中，没有反射或转换可用（当然，F# 在这方面不是严格的）。 |'
 - en: '| Capabilities should "fail safe". If a capability cannot be obtained, or doesn''t
     work, we must not allow any progress on paths that assumed that it was successful.
     | In a statically typed language such as F#, we can embed these kinds of control-flow
     rules into the type system. The use of `Option` is an example of this. |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| 能力应该"安全失败"。如果无法获取或无法使用某个能力，则不应允许任何依赖于其成功的路径继续进行。 | 在像 F# 这样的静态类型语言中，我们可以将这些控制流规则嵌入到类型系统中。`Option`的使用就是一个例子。
+    |'
 - en: You can see that there is quite a lot of overlap.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到有相当多的重叠。
 - en: One of the *unofficial* goals of the object-capability model is **make security
     user-friendly by making the security invisible**. I think that this is a great
     idea, and by passing capabilities as functions, is quite easily achievable.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 对象能力模型的一个*非官方*目标是**通过使安全性不可见来使安全性更加用户友好**。我认为这是一个很好的想法，通过将能力作为函数传递，这可以很容易实现。
 - en: It's important to note there is one important aspect in which a capability-based
     model does *not* overlap with a true functional model.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，能力模型与真正的功能模型有一个重要方面是*不*重叠的。
 - en: Capabilities are mostly all about (side) effects -- reading or writing the file
     system, the network, etc. A true functional model would try to wrap them somehow
     (e.g. in a monad). Personally, using F#, I would generally just allow the side-effects
     rather than constructing [a more complex framework](http://hackage.haskell.org/package/Capabilities).
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 能力主要涉及（副）作用 -- 读取或写入文件系统、网络等。真正的功能模型会尝试以某种方式封装它们（例如，在一个单子中）。就我个人而言，使用 F#，我通常只允许副作用，而不是构建[更复杂的框架](http://hackage.haskell.org/package/Capabilities)。
 - en: But again, as I noted above, the goal of this post is to not to force you into
     a 100% strict object-capability model, but to borrow some of the same ideas in
     order to create better designs.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 但再次，正如我上面提到的，本文的目标不是强迫您完全遵循严格的对象能力模型，而是借鉴其中一些想法以创建更好的设计。
 - en: Getting capabilities
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 获取能力
 - en: 'A natural question at this point is: where do these capability functions come
     from?'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时一个自然的问题是：这些能力函数来自哪里？
 - en: The answer is, some sort of service that can authorize you to have that capability.
     In the configuration example, we generally don't do serious authorization, so
     the configuration service itself will normally provide the capabilities without
     checking your identity, role or other claims.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案是，一种可以授权你拥有该能力的服务。在配置示例中，我们通常不进行严格的授权，因此配置服务本身通常会在不检查您的身份、角色或其他声明的情况下提供能力。
 - en: But now I need a capability to access the configuration service. Where does
     that come from? The buck has to stop somewhere!
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我需要一个访问配置服务的能力。那么，这个能力从哪里来呢？责任必须有所归属！
 - en: In OO designs, there is typically a bootstrap/startup stage where all the dependencies
     are constructed and an IoC container is configured. In a capability based system,
     a [so-called Powerbox](http://c2.com/cgi/wiki?PowerBox) plays a similar role of
     being the starting point for all authority.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 在面向对象的设计中，通常会有一个启动阶段，其中构造所有依赖项并配置 IoC 容器。在基于能力的系统中，一个[所谓的 Powerbox](http://c2.com/cgi/wiki?PowerBox)扮演着类似的角色，成为所有权限的起始点。
 - en: 'Here''s the code for a service that provides configuration capabilities:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个提供配置能力的服务的代码：
 - en: '[PRE9]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This code might look very similar to the interface defined earlier, but the
     difference is that this one will be initialized at startup to return capabilities
     that are then passed around.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码可能看起来与之前定义的接口非常相似，但区别在于这个将在启动时初始化，以返回然后传递的功能。
 - en: The actual users of the capabilities will not have access to the configuration
     system at all, just the capabilities they have been given. That is, the capability
     will be injected into the clients in the same way as a one method interface would
     be injected in an OO model.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 功能的实际用户根本不会访问配置系统，只能访问他们被赋予的功能。也就是说，功能将以与在 OO 模型中注入单个方法接口相同的方式注入客户端。
 - en: 'Here''s some sample C# pseudocode to demonstrate:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些示例 C# 伪代码来演示：
 - en: The capability is obtained at startup.
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 功能是在启动时获取的。
 - en: The capability is injected into the main window (`ApplicationWindow`) via the
     constructor.
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 该功能通过构造函数注入到主窗口 (`ApplicationWindow`) 中。
 - en: The `ApplicationWindow` creates a checkbox.
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ApplicationWindow` 创建了一个复选框。'
 - en: The event handler for the checkbox calls the capability.
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复选框的事件处理程序调用了该功能。
 - en: '[PRE10]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: A complete example in F#
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: F# 中的一个完整示例
 - en: Here's the code to a complete example in F# (also available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)).
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个完整的 F# 示例代码（也可在 [此处的 gist](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)
+    找到）。
 - en: This example consists of a simple window with a main region and some extra buttons.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例包括一个简单的窗口，一个主区域和一些额外的按钮。
 - en: If you click in the main area, an annoying dialog pops up with a "don't show
     this message again" option.
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你在主区域点击，一个烦人的对话框就会弹出，带有一个“不再显示此消息”的选项。
 - en: One of the buttons allows you to change the background color using the system
     color picker, and store it in the config.
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中一个按钮允许您使用系统颜色选择器更改背景颜色，并将其存储在配置中。
 - en: The other button allows you to reset the "don't show this message again" option
     back to false.
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一个按钮允许您将“不再显示此消息”的选项重置为 false。
 - en: It's very crude and very ugly -- no UI designers were hurt in the making of
     it -- but it should demonstrate the main points so far.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 它非常粗糙和丑陋 -- 在制作过程中没有 UI 设计师受伤 -- 但它应该演示了到目前为止的主要观点。
 - en: '![Example application](auth_annoying_popup.png)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![示例应用程序](auth_annoying_popup.png)'
 - en: The configuration system
+  id: totrans-124
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 配置系统
 - en: 'We start with the configuration system. Here''s an overview:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从配置系统开始。这是一个概览：
 - en: The custom types `MessageFlag`, `ConnectionString`, and `Color` are defined.
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自定义类型 `MessageFlag`、`ConnectionString` 和 `Color` 被定义了。
 - en: The record type `ConfigurationCapabilities` is defined to hold all the capabilities.
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录类型 `ConfigurationCapabilities` 被定义来保存所有功能。
 - en: An in-memory store (`ConfigStore`) is created for the purposes of the demo
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了演示目的创建了一个内存存储 (`ConfigStore`)
 - en: Finally, the `configurationCapabilities` are created using functions that read
     and write to the `ConfigStore`
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，`configurationCapabilities` 是使用读取和写入 `ConfigStore` 的函数创建的。
 - en: '[PRE11]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: The annoying popup dialog
+  id: totrans-131
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 烦人的弹出对话框
 - en: Next, we'll create the annoying popup dialog. This will be triggered whenever
     you click on the main window, *unless* the "Don't show this message again" option
     is checked.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将创建烦人的弹出对话框。这将在你点击主窗口时触发，*除非*“不再显示此消息”的选项被勾选。
 - en: The dialog consists of a label control, the message flag checkbox, and the OK
     button.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 对话框由一个标签控件、消息标志复选框和确定按钮组成。
 - en: Notice that the `createMessageFlagCheckBox` function, which creates the checkbox
     control, is passed only the two capabilities it needs -- to get and set the flag.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，`createMessageFlagCheckBox` 函数，它创建复选框控件，只传入了它需要的两个功能 -- 获取和设置标志。
 - en: This requires in turn that the main form creation function (`createForm`) is
     also passed the capabilities. These capabilities, and these capabilities *only*
     are passed in to the form. The capabilities for setting the background color or
     connection string are *not* passed in, and thus not available to be (mis)used.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 这要求主窗体创建函数 (`createForm`) 也传入了功能。这些功能，*只有*这些功能被传递给了窗体。用于设置背景颜色或连接字符串的功能 *未*
+    被传入，因此不能被（误）用。
 - en: '[PRE12]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The main application window
+  id: totrans-137
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 主应用程序窗口
 - en: 'We can now create a main window for our rather silly "application". It consists
     of:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以为我们相当愚蠢的“应用程序”创建一个主窗口。它包括：
 - en: A label control that can be clicked to produce the annoying popup (`createClickMeLabel`)
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个标签控件，可以点击以产生烦人的弹出 (`createClickMeLabel`)
 - en: A button that brings up a color picking dialog to change the background color
     (`createChangeBackColorButton`)
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个按钮，弹出颜色选择对话框以更改背景颜色（`createChangeBackColorButton`）
 - en: A button that resets the message flag to "show" again (`createResetMessageFlagButton`)
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个按钮，将消息标志重置为“显示”（`createResetMessageFlagButton`）
 - en: All three of these constructor functions are passed capabilities, but capabilities
     are different in each case.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这三个构造函数都传递了能力，但每种情况下的能力都不同。
 - en: The label control is only passed `getFlag` and `setFlag` capabilities
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标签控件仅传递了`getFlag`和`setFlag`能力。
 - en: The color picking dialog is only passed `getColor` and `setColor` capabilities
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 颜色选择对话框仅传递了`getColor`和`setColor`能力。
 - en: The button that resets the message flag is only passed the `setFlag` capability
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重置消息标志的按钮仅传递了`setFlag`能力。
 - en: In the main form (`createMainForm`) the complete set of capabilities are passed
     in, and they are recombined in various ways as needed for the child controls (`popupMessageCapabilities`,
     `colorDialogCapabilities`).
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 在主窗体（`createMainForm`）中，传递了完整的能力集，并且根据需要以各种方式重新组合为子控件（`popupMessageCapabilities`，`colorDialogCapabilities`）。
 - en: 'In addition, the capability functions are modified:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，能力函数被修改了：
 - en: A new "SetColor" capability is created from the existing one, with the addition
     of changing the form's background as well.
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从现有的能力中创建了一个新的“SetColor”能力，还添加了改变表单背景的功能。
 - en: The flag capabilities are converted from the domain type (`MessageFlag`) to
     bools that can be used directly with the checkbox.
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标志能力被转换为可以直接与复选框一起使用的布尔值。
 - en: 'Here''s the code:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE13]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The startup code
+  id: totrans-152
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 启动代码
 - en: Finally, the top-level module, here called `Startup`, gets some of the capabilities
     from the Configuration subsystem, and combines them into a tuple that can be passed
     to the main form. The `ConnectionString` capabilities are *not* passed in though,
     so there is no way the form can accidentally show it to a user or update it.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，顶级模块，这里称为`Startup`，从配置子系统获取了一些能力，并将它们组合成一个可以传递给主窗体的元组。`ConnectionString`能力*没有*被传递，所以没有办法让表单意外地将其显示给用户或更新它。
 - en: '[PRE14]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Summary of Part 1
+  id: totrans-155
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第一部分总结
 - en: As you can see, this code is very similar to an OO system designed with dependency
     injection. There is no global access to capabilities, only those passed in from
     the parent.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，这段代码与使用依赖注入设计的 OO 系统非常相似。没有全局访问能力，只有从父级传递的能力。
 - en: '![Example 1](auth_1.png)'
+  id: totrans-157
   prefs: []
   type: TYPE_IMG
+  zh: '![示例1](auth_1.png)'
 - en: Of course, the use of functions to parameterize behavior like this is nothing
     special. It's one of the most fundamental functional programming techniques. So
     this code is not really showing any new ideas, rather it is just demonstrating
     how a standard functional programming approach can be applied to enforce access
     paths.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，像这样使用函数来参数化行为并不特别。这是最基本的函数式编程技术之一。因此，这段代码实际上并没有展示任何新的想法，而只是演示了如何将标准的函数式编程方法应用于强制访问路径。
 - en: 'Some common questions at this point:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时的一些常见问题：
 - en: '**Question: This seems like extra work. Why do I need to do this at all?**'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：这似乎是额外的工作。为什么我需要这样做呢？**'
 - en: 'If you have a simple system, you certainly don''t need to do this. But here''s
     where it might be useful:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个简单的系统，你肯定不需要这样做。但是这里可能会有用：
 - en: You have a system which uses fine-grained authorization already, and you want
     to make this more explicit and easier to use in practice.
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你已经有一个使用细粒度授权的系统，并且希望在实践中使其更加明确和易于使用。
 - en: You have a system which runs at a high privilege but has strict requirements
     about leaking data or performing actions in an unauthorized context.
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你有一个以高权限运行的系统，但对于泄露数据或在未经授权的上下文中执行操作有严格要求。
 - en: In these situations, I believe that is very important to be *explicit* about
     what the capabilities are at *all points* in the codebase, not just in the UI
     layer. This not only helps with compliance and auditing needs, but also has the
     practical benefit that it makes the code more modular and easier to maintain.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这些情况下，我认为在代码库中**所有点**都明确说明能力是非常重要的，而不仅仅在 UI 层。这不仅有助于遵从和审计需求，而且还有一个实际的好处，那就是使代码更加模块化和易于维护。
 - en: '**Question: What''s the difference between this approach and dependency injection?**'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：这种方法与依赖注入有什么区别？**'
 - en: Dependency injection and a capability-based model have different goals. Dependency
     injection is all about decoupling, while capabilities are all about controlling
     access. As we have seen, both approaches end up promoting similar designs.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 依赖注入和基于功能的模型有不同的目标。依赖注入是关于解耦，而功能是关于控制访问。正如我们所看到的，这两种方法最终都会促进类似的设计。
 - en: '**Question: What happens if I have hundreds of capabilities that I need to
     pass around?**'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：如果我有数百个需要传递的功能，会发生什么？**'
 - en: It seems like this should be a problem, but in practice it tends not to be.
     For one thing, judicious use of partial application means that capabilities can
     be baked in to a function before passing it around, so that child objects are
     not even aware of them.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来这应该是一个问题，但在实践中通常不会成为问题。首先，适度使用部分应用程序意味着功能可以在传递之前被嵌入到函数中，因此子对象甚至不知道它们。
 - en: Secondly, it is very easy -- just a few lines -- to create simple record types
     that contain a group of capabilities (as I did with the `ConfigurationCapabilities`
     type) and pass those around if needed.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，非常容易 -- 只需几行代码 -- 创建包含一组功能的简单记录类型（就像我在`ConfigurationCapabilities`类型中所做���那样），并在需要时传递它们。
 - en: '**Question: What''s to stop someone accessing global capabilities without following
     this approach?**'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：有什么阻止别人在不遵循这种方法的情况下访问全局功能？**'
 - en: Nothing in C# or F# can stop you accessing global public functions. Just like
     other best practices, such as avoiding global variables, we have to rely on self-discipline
     (and maybe code reviews) to keep us on the straight and narrow path!
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 在C#或F#中没有任何东西可以阻止您访问全局公共函数。就像其他最佳实践一样，例如避免全局变量，我们必须依靠自律（也许是代码审查）来保持我们走在正确的道路上！
 - en: But in the [third part of this series](capability-based-security-3.html), we'll
     look at a way to prevent access to global functions by using access tokens.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在[本系列的第三部分](capability-based-security-3.html)中，我们将探讨一种通过使用访问令牌来防止对全局函数的访问的方法。
 - en: '**Question: Aren''t these just standard functional programming techniques?**'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：这些只是标准的函数式编程技术吗？**'
 - en: Yes. I'm not claiming to be doing anything clever here!
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的。我并不打算在这里做任何聪明的事情！
 - en: '**Question: These capability functions have side-effects. What''s up with that?**'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：这些功能函数具有副作用。这是怎么回事？**'
 - en: Yes, these capability functions are not pure. The goal here is not about being
     pure -- it's about being explicit about the provision of capabilities.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，这些功能函数不是纯的。这里的目标不是纯粹 -- 而是明确提供功能的目的。
 - en: Even if we used a pure `IO` context (e.g. in Haskell) it would not help control
     access to capabilities. That is, in the context of security, there's a big difference
     between the capability to change a password or credit card vs. the capability
     to change a background color configuration, even though they are both just "IO"
     from a computation point of view.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们使用纯`IO`上下文（例如在Haskell中），也无法帮助控制对功能的访问。也就是说，在安全性的背景下，改变密码或信用卡的能力与改变背景颜色配置的能力之间存在很大的区别，尽管从计算的角度来看它们都只是"IO"。
 - en: Creating pure capabilities is possible but not very easy to do in F#, so I'm
     going to keep it out of scope for this post.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建纯功能是可能的，但在F#中并不是很容易做到，所以我将在本文中将其排除在外。
 - en: '**Question: What''s your response to what (some person) wrote? And why didn''t
     you cite (some paper)?**'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：对于某人写的内容，你有什么回应？为什么没有引用某篇论文？**'
 - en: This is a blog post, not an academic paper. I'm not an expert in this area,
     but just doing some experiments of my own.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一篇博客文章，不是学术论文。我不是这个领域的专家，只是在做一些自己的实验。
 - en: More importantly, as I said earlier, my goal here is very different from security
     experts -- I'm *not* attempting to develop a ideal security model. Rather, I'm
     just trying to encourage some *good design* practices that can help pragmatic
     developers avoid accidental vulnerabilities in their code.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 更重要的是，正如我之前所说的，我的目标与安全专家非常不同 -- 我并不试图开发一个理想的安全模型。相反，我只是试图鼓励一些*良好的设计*实践，可以帮助务实的开发人员避免在他们的代码中出现意外的漏洞。
 - en: '**I''ve got more questions...**'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: '**我还有更多问题...**'
 - en: Some additional questions are answered at the [end of part 2](capability-based-security-2.html#summary),
     so read those answers first. Otherwise please add your question in the comments
     below, and I'll try to address it.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些额外的问题在[第二部分的结尾](capability-based-security-2.html#summary)有答案，所以请先阅读那些答案。否则，请在下面的评论中添加您的问题，我会尽力回答。
 - en: Further reading
+  id: totrans-184
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进一步阅读
 - en: The ideas on capability-based security here are mostly derived from the work
     of Mark Miller and Marc Stiegler, and the [erights.org](http://www.erights.org/)
     website, although my version is cruder and simpler.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里关于基于能力的安全性的想法主要来源于Mark Miller和Marc Stiegler的工作，以及[erights.org](http://www.erights.org/)网站，尽管我的版本��加简单和粗糙。
 - en: 'For a more complete understanding, I suggest you follow up on the links below:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更全面地理解，我建议你查看以下链接：
 - en: The Wikipedia articles on [Capability-based security](https://en.wikipedia.org/wiki/Capability-based_security)
     and [Object-capability model](https://en.wikipedia.org/wiki/Object-capability_model)
     are a good starting point.
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[基于能力的安全性](https://zh.wikipedia.org/wiki/%E5%9F%BA%E4%BA%8E%E8%83%BD%E5%8A%9B%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7)和[对象能力模型](https://zh.wikipedia.org/wiki/%E5%AF%B9%E8%B1%A1%E8%83%BD%E5%8A%9B%E6%A8%A1%E5%9E%8B)的维基百科文章是一个很好的起点。'
 - en: '[What is a Capability, Anyway?](https://webcache.googleusercontent.com/search?q=cache:www.eros-os.org/essays/capintro.html)
     by Jonathan Shapiro of the EROS project. He also discusses ACL-based security
     vs. a capability-based model.'
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[能力到底是什么？](https://webcache.googleusercontent.com/search?q=cache:www.eros-os.org/essays/capintro.html)，来自EROS项目的Jonathan
+    Shapiro。他还讨论了基于ACL的安全性与基于能力的模型。'
 - en: '["The Lazy Programmer''s Guide to Secure Computing"](http://www.youtube.com/watch?v=eL5o4PFuxTY),
     a great video on capability-based security by Marc Stiegler. Don''t miss the last
     5 mins (starting around 1h:02m:10s)!'
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["懒惰程序员的安全计算指南"](http://www.youtube.com/watch?v=eL5o4PFuxTY)，Marc Stiegler关于基于能力的安全性的一个很棒的视频。不要错过最后5分钟（大约从1小时02分钟10秒开始）！'
 - en: '["Object Capabilities for Security"](https://www.youtube.com/watch?v=EGX2I31OhBE),
     a good talk by David Wagner.'
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["安全的对象能力"](https://www.youtube.com/watch?v=EGX2I31OhBE)，David Wagner的一个很好的演讲。'
 - en: A lot of work has been done on hardening languages for security and safety.
     For example the [E Language](http://www.erights.org/elang/index.html) and [Mark
     Miller's thesis on the E Language](http://www.erights.org/talks/thesis/markm-thesis.pdf)(PDF);
     the [Joe-E Language](https://en.wikipedia.org/wiki/Joe-E) built on top of Java;
     Google's [Caja](https://developers.google.com/caja/) built over JavaScript; [Emily](http://www.hpl.hp.com/techreports/2006/HPL-2006-116.html),
     a capability based language derived from OCaml; and [Safe Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/safe-haskell/safe-haskell.pdf)(PDF).
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 已经有很多关于加固语言以提高安全性和安全性的工作。例如[E语言](http://www.erights.org/elang/index.html)和[Mark
+    Miller关于E语言的论文](http://www.erights.org/talks/thesis/markm-thesis.pdf)(PDF)；建立在Java之上的[Joe-E语言](https://en.wikipedia.org/wiki/Joe-E)；Google的基于JavaScript的[Caja](https://developers.google.com/caja/)；[Emily](http://www.hpl.hp.com/techreports/2006/HPL-2006-116.html)，一种基于OCaml的能力语言；以及[Safe
+    Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/safe-haskell/safe-haskell.pdf)(PDF)。
 - en: My approach is not about strict safeness so much as proactively designing to
     avoid unintentional breaches, and the references above do not focus on very much
     on design specifically. The most useful thing I have found is a [section on capability
     patterns in E](http://www.skyhunter.com/marcs/ewalnut.html#SEC45).
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的方法不是严格的安全性，而是积极地设计以避免意外违规，上面的参考资料并没有专注于设计。我发现最有用的是[E中关于能力模式的部分](http://www.skyhunter.com/marcs/ewalnut.html#SEC45)。
 - en: Also, if you like this kind of thing, then head over to LtU where there are
     a number of discussions, such as [this one](http://lambda-the-ultimate.org/node/1635)
     and [this one](http://lambda-the-ultimate.org/node/3930) and [this paper](http://lambda-the-ultimate.org/node/2253).
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你喜欢这种类型的东西，那就去LtU看看，那里有许多讨论，比如[这个](http://lambda-the-ultimate.org/node/1635)和[这个](http://lambda-the-ultimate.org/node/3930)，以及[这篇论文](http://lambda-the-ultimate.org/node/2253)。
 - en: Coming up next
+  id: totrans-194
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 即将推出
 - en: In the [next post](capability-based-security-2.html), we'll look at how to constrain
     capabilities based on claims such as the current user's identity and role.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[下一篇文章](capability-based-security-2.html)中，我们将看看如何基于声明（如当前用户的身份和角色）来限制能力。
 - en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx).*'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：本文中所有代码都可以在[gist这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)找到。*'
 - en: Constraining capabilities based on identity and role
+  id: totrans-197
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于身份和角色来限制能力
 - en: Constraining capabilities based on identity and role
+  id: totrans-198
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于身份和角色来限制能力
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于这个主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/cap/)*'
 - en: In the [previous post](capability-based-security.html), we started looking at
     "capabilities" as the basis for ensuring that code could not do any more than
     it was supposed to do. And I demonstrated this with a simple application that
     changed a configuration flag.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一篇文章](capability-based-security.html)中，我们开始研究了“能力”作为确保代码不能做更多事情的基础。我用一个简单的应用程序演示了这一点，该应用程序更改了一个配置标志。
 - en: In this post, we'll look at how to constrain capabilities based on the current
     user's identity and role.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们将看看如何根据当前用户的身份和角色来限制能力。
 - en: So let's switch from the configuration example to a typical situation where
     stricter authorization is required.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，让我们从配置示例切换到需要更严格授权的典型情况。
 - en: Database capabilities example
+  id: totrans-203
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据库功能示例
 - en: 'Consider a website and call-centre with a backing database. We have the following
     security rules:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个具有后备数据库的网站和呼叫中心。我们有以下安全规则：
 - en: A customer can only view or update their own record in the database (via the
     website)
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户只能查看或更新他们在数据库中的记录（通过网站）
 - en: A call-centre operator can view or update any record in the database
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 呼叫中心操作员可以查看或更新数据库中的任何记录。
 - en: This means that at some point, we'll have to do some authorization based on
     the identity and role of the user. (We'll assume that the user has been authenticated
     successfully).
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着在某个时候，我们将根据用户的身份和角色进行授权。（我们将假设用户已经成功认证）。
 - en: The tendency in many web frameworks is to put the authorization in the UI layer,
     often [in the controller](https://msdn.microsoft.com/en-us/library/system.web.mvc.authorizeattribute.aspx).
     My concern about this approach is that once you are "inside" (past the gateway),
     any part of the app has full authority to access the database, and it is all to
     easy for code to do the wrong thing by mistake, resulting in a security breach.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多Web框架的倾向是将授权放在UI层中，通常是[在控制器中](https://msdn.microsoft.com/en-us/library/system.web.mvc.authorizeattribute.aspx)。我对这种方法的担忧是，一旦您“内部”（通过门户），应用程序的任何部分都具有完全访问数据库的权限，并且很容易由于错误而使代码做错事，从而导致安全漏洞。
 - en: Not only that, but because the authority is everywhere ("ambient"), it is hard
     to review the code for potential security issues.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 不仅如此，因为权限随处可见（"环境"），很难审查代码以查找潜在的安全问题。
 - en: To avoid these issues, let's instead put the access logic as "low" as possible,
     in the database access layer in this case.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免这些问题，让我们尽可能地将访问逻辑放在“低”位置，此时放在数据库访问层。
 - en: We'll start with an obvious approach. We'll add the identity and role to each
     database call and then do authorization there.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从一个明显的方法开始。我们将将身份和角色添加到每个数据库调用中，然后在那里进行授权。
 - en: The following method assumes that there is a `CustomerIdBelongsToPrincipal`
     function that checks whether the customer id being accessed is owned by the principal
     requesting access. Then, if the `customerId` does belong to the principal, or
     the principal has the role of "CustomerAgent", the access is granted.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下方法假设存在一个 `CustomerIdBelongsToPrincipal` 函数，用于检查正在访问的客户ID是否属于请求访问的主体。然后，如果
+    `customerId` 确实属于主体，或者主体具有 "CustomerAgent" 角色，则授予访问权限。
 - en: '[PRE15]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '*Note that I have deliberately added the `IPrincipal` to the method signature
     -- we are not allowing any "magic" where the principal is fetched from a global
     context. As with the use of any global, having implicit access hides the dependencies
     and makes it hard to test in isolation.*'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '*请注意，我故意在方法签名中添加了 `IPrincipal` -- 我们不允许任何从全局上下文获取主体的“魔术”。与使用任何全局变量一样，隐式访问隐藏了依赖关系，并使得难以进行单独测试。*'
 - en: 'Here''s the F# equivalent, using a [Success/Failure return value](http://fsharpforfunandprofit.com/rop/)
     rather than throwing exceptions:'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是 F# 等价物，使用[成功/失败返回值](http://fsharpforfunandprofit.com/rop/)而不是抛出异常：
 - en: '[PRE16]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: This "inline" authorization approach is all too common, but unfortunately it
     has many problems.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种“内联”授权方法非常常见，但不幸的是，它有很多问题。
 - en: It mixes up security concerns with the database logic. If the authorization
     logic gets more complicated, the code will also get more complicated.
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它混淆了数据库逻辑与安全问题。如果授权逻辑变得更加复杂，那么代码也会变得更加复杂。
 - en: It throws an exception (C#) or returns an error (F#) if the authorization fails.
     It would be nice if we could tell *in advance* if we had the authorization rather
     than waiting until the last minute.
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果授权失败，则会抛出异常（C＃）或返回错误（F＃）。如果我们能够*提前*知道是否有授权而不是等到最后一刻，那就太好了。
 - en: Let's compare this with a capability-based approach. Instead of directly getting
     a customer, we first obtain the *capability* of doing it.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将其与基于能力的方法进行比较。我们首先获取执行该操作的*能力*，而不是直接获取客户。
 - en: '[PRE17]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: As you can see, if the authorization succeeds, a reference to the `GetCustomer`
     method is returned to the caller.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，如果授权成功，则向调用者返回对`GetCustomer`方法的引用。
 - en: It might not be obvious, but the code above has a rather large security hole.
     I can request the capability for a particular customer id, but I get back a function
     that can called for *any* customer id! That's not very safe, is it?
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能不明显，但是上面的代码有一个相当大的安全漏洞。我可以请求特定客户ID的能力，但我得到的是一个可以为*任何*客户ID调用的函数！这不太安全，对吗？
 - en: What we need to is "bake in" the customer id to the capability, so that it can't
     be misused. The return value will now be a `Func<CustomerData>`, with the customer
     id not available to be passed in any more.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要的是将客户ID“固定”到能力中，以防止被滥用。现在返回值将是一个`Func<CustomerData>`，其中客户ID不再可传递。
 - en: '[PRE18]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: With this separation of concerns in place, we can now handle failure nicely,
     by returning an *optional* value which is present if we get the capability, or
     absent if not. That is, we know whether we have the capability *at the time of
     trying to obtain it*, not later on when we try to use it.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种关注点的分离，我们现在可以很好地处理失败，通过返回一个*可选*值，如果我们获得了能力，则该值存在，否则不存在。也就是说，我们知道我们在*尝试获取它*时是否具有该能力，而不是在以后尝试使用它时。
 - en: '[PRE19]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This assumes that we're using some sort of `Option` type in C# rather than just
     returning null!
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 这假设我们在C#中使用某种`Option`类型，而不仅仅是返回null！
 - en: Finally, we can put the authorization logic into its own class (say `CustomerDatabaseCapabilityProvider`),
     to keep the authorization concerns separate from the `CustomerDatabase`.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以将授权逻辑放入其自己的类中（比如说`CustomerDatabaseCapabilityProvider`），以将授权问题与`CustomerDatabase`分开处理。
 - en: We'll have to find some way of keeping the "real" database functions private
     to all other callers though. For now, I'll just assume the database code is in
     a different assembly, and mark the code `internal`.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 不过，我们必须找到某种方式来将“真实”的数据库函数对其他调用者保持私有。暂时，我会假设数据库代码在另一个程序集中，并将代码标记为`internal`。
 - en: '[PRE20]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'And here''s the F# version of the same code:'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是相同代码的F#版本：
 - en: '[PRE21]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Here''s a diagram that represents this design:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是表示此设计的图表：
 - en: '![Example 2](auth_2.png)'
+  id: totrans-235
   prefs: []
   type: TYPE_IMG
+  zh: '![示例2](auth_2.png)'
 - en: '**Problems with this model**'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这种模型的问题**'
 - en: In this model, the caller is isolated from the `CustomerDatabase`, and the `CustomerDatabaseCapabilityProvider`
     acts as a proxy between them.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种模型中，调用者与`CustomerDatabase`隔离开来，而`CustomerDatabaseCapabilityProvider`充当它们之间的代理。
 - en: Which means, as currently designed, for every function available in `CustomerDatabase`
     there must be a parallel function available in `CustomerDatabaseCapabilityProvider`
     as well. We can see that this approach will not scale well.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着，按照目前的设计，对于`CustomerDatabase`中的每个可用函数，`CustomerDatabaseCapabilityProvider`中也必须有一个相应的函数可用。我们可以看到，这种方法不会很好地扩展。
 - en: It would be nice if we had a way to generally get capabilities for a *whole
     set* of database functions rather than one at a time. Let's see if we can do that!
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有一种方式可以一次性为*整套*数据库函数获取能力，那将会很好。让我们看看是否可以做到这一点！
 - en: Restricting and transforming capabilities
+  id: totrans-240
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 限制和转换能力
 - en: The `getCustomer` function in `CustomerDatabase` can be thought of as a capability
     with no restrictions, while the `getCustomerCapability` returns a capability restricted
     by identity and role.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`CustomerDatabase`中，`getCustomer`函数可以被认为是没有限制的能力，而`getCustomerCapability`返回的是由身份和角色限制的能力。
 - en: But note that the two function signatures are similar (`CustomerId -> CustomerData`
     vs `unit -> CustomerData`), and so they are almost interchangeable from the callers
     point of view. In a sense, then, the second capability is a transformed version
     of the first, with additional restrictions.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 但请注意，这两个函数签名相似（`CustomerId -> CustomerData` vs `unit -> CustomerData`），因此从调用者的角度来看它们几乎可以互换。在某种意义上，第二个功能是第一个的转换版本，具有额外的限制。
 - en: Transforming functions to new functions! This is something we can easily do.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 将函数转换为新函数！这是我们可以轻松做到的事情。
 - en: So, let's write a transformer that, given *any* function of type `CustomerId
     -> 'a`, we return a function with the customer id baked in (`unit -> 'a`), but
     only if the authorization requirements are met.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，让我们编写一个转换器，给定类型为`CustomerId -> 'a`的*任何*函数，我们返回一个将客户ID固定在内的函数（`unit -> 'a`），但仅当满足授权要求时。
 - en: '[PRE22]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: The type signature for the `onlyForSameIdOrAgents` function is `(CustomerId
     -> 'a) -> (unit -> 'a) option`. It accepts any `CustomerId` based function and
     returns, maybe, the same function *with the customer id already applied* if the
     authorization succeeds. If the authorization does not succeed, `None` is returned
     instead.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: '`onlyForSameIdOrAgents`函数的类型签名是`(CustomerId -> ''a) -> (unit -> ''a) option`。如果授权成功，它接受任何基于`CustomerId`的函数，并返回可能已经应用了客户ID的相同函数。如果授权不成功，则返回`None`。'
 - en: You can see that this function will work generically with *any* function that
     has a `CustomerId` as the first parameter. That could be "get", "update", "delete",
     etc.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以看到，这个函数将与*任何*以`CustomerId`作为第一个参数的函数通用地工作。这可以是“获取”，“更新”，“删除”等。
 - en: 'So for example, given:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，例如，给定：
 - en: '[PRE23]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'We can create restricted versions now, for example at the top level bootstrapper
     or controller:'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以创建受限制的版本，例如顶层引导程序或控制器：
 - en: '[PRE24]'
+  id: totrans-251
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'The types of `getCustomerOnlyForSameIdOrAgents` and `updateCustomerOnlyForSameIdOrAgents`
     are similar to the original functions in the database module, but with `CustomerId`
     replaced with `unit`:'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '`getCustomerOnlyForSameIdOrAgents`和`updateCustomerOnlyForSameIdOrAgents`的类型与数据库模块中的原始函数类似，但`CustomerId`被`unit`取代：'
 - en: '[PRE25]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '*The `updateCustomerOnlyForSameIdOrAgents` has a extra `CustomerData` parameter,
     so the extra unit where the `CustomerId` used to be is a bit ugly. If this is
     too annoying, you could easily create other versions of the function which handle
     this more elegantly. I''ll leave that as an exercise for the reader!*'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: '*`updateCustomerOnlyForSameIdOrAgents`有一个额外的`CustomerData`参数，所以额外的`unit`在原来的`CustomerId`位置有点丑陋。如果这太烦人，您可以轻松地创建其他更优雅地处理此问题的函数版本。我将把这留给读者作为练习！*'
 - en: So now we have an option value that might or might not contain the capability
     we wanted. If it does, we can create a child component and pass in the capability.
     If it does not, we can return some sort of error, or hide a element from a view,
     depending on the type of application.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有一个可能包含我们想要的功能的选项值。如果包含，我们可以创建一个子组件并传入功能。如果不包含，我们可以返回某种错误，或者根据应用程序的类型隐藏一个元素。
 - en: '[PRE26]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'Here''s a diagram that represents this design:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代表此设计的图表：
 - en: '![Example 3](auth_3.png)'
+  id: totrans-258
   prefs: []
   type: TYPE_IMG
+  zh: '![示例3](auth_3.png)'
 - en: More transforms on capabilities
+  id: totrans-259
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 更多关于功能的转换
 - en: Because capabilities are functions, we can easily create new capabilities by
     chaining or combining transformations.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为功能是函数，我们可以通过链接或组合转换轻松地创建新的功能。
 - en: 'For example, we could create a separate filter function for each business rule,
     like this:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们可以为每个业务规则创建一个单独的过滤函数，就像这样：
 - en: '[PRE27]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: For the first business rule, `onlyForSameId`, we return a capability with the
     customer id baked in, as before.
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于第一个业务规则，“onlyForSameId”，我们像以前一样返回一个带有客户ID的功能。
 - en: The second business rule, `onlyForAgents`, doesn't mention customer ids anywhere,
     so why do we restrict the function parameter to `CustomerId -> 'a`? The reason
     is that it enforces that this rule *only* applies to customer centric capabilities,
     not ones relating to products or payments, say.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个业务规则，“onlyForAgents”，在任何地方都没有提及客户ID，那么为什么我们要将函数参数限制为`CustomerId -> 'a`？原因是它强制该规则*仅适用于*与客户相关的功能，而不适用于与产品或支付相关的功能。
 - en: But now, to make the output of this filter compatible with the first rule (`unit
     -> 'a`), we need to pass in a customer id and partially apply it too. It's a bit
     of a hack but it will do for now.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是现在，为了使此过滤器的输出与第一个规则（`unit -> 'a`）兼容，我们需要传入一个客户ID并部分应用它。这有点像个技巧，但现在它能用。
 - en: We can also write a generic combinator that returns the first valid capability
     from a list.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以编写一个从列表中返回第一个有效功能的通用组合子。
 - en: '[PRE28]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: It's a trivial implementation really -- this is the kind of helper function
     that is just to help the code be a little more self-documenting.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 这其实是一个微不足道的实现 -- 这种辅助函数只是为了让代码更易于自我记录。
 - en: With this in place, we can apply the rules separately, take the two filters
     and combine them into one.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们可以单独应用规则，将两个过滤器组合成一个。
 - en: '[PRE29]'
+  id: totrans-270
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Or let's say we have some sort of restriction; the operation can only be performed
     during business hours, say.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者我们说有某种限制；比如说操作只能在工作时间内执行。
 - en: '[PRE30]'
+  id: totrans-272
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: We can write another combinator that restricts the original capability. This
     is just a version of "bind".
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以编写另一个限制原始功能的组合子。这只是一个版本的“绑定”。
 - en: '[PRE31]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'With this in place, we can restrict the "agentsOnly" capability to business
     hours:'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们可以将“agentsOnly”功能限制在工作时间内：
 - en: '[PRE32]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: So now we have created a new capability, "Customer agents can only access customer
     data during business hours", which tightens the data access logic a bit more.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们创建了一个新功能，“客户代理只能在工作时间访问客户��据”，这进一步加强了数据访问逻辑。
 - en: 'We can combine this with the previous `onlyForSameId` filter to build a compound
     capability which can access customer data:'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将其与先前的`onlyForSameId`过滤器结合使用，构建一个可以访问客户数据的复合功能：
 - en: if you have the same customer id (at any time of day)
+  id: totrans-279
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您在任何时间都有相同的客户ID
 - en: if you are a customer agent (only during business hours)
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您是客户代理（仅在工作时间）
 - en: '[PRE33]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: As you can see, this approach is a useful way to build complex capabilities
     from simpler ones.
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您所看到的，这种方法是从更简单的功能构建复杂功能的有用方式。
 - en: Additional transforms
+  id: totrans-283
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 附加转换
 - en: 'It should be obvious that you can easily create additional transforms which
     can extend capabilities in other ways. Some examples:'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显，您可以轻松地创建其他扩展功能的附加转换，以其他方式扩展功能。一些示例：
 - en: a capability that writes to an audit log on each execution.
+  id: totrans-285
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个在每次执行时写入审计日志的功能。
 - en: a capability that can only be performed once.
+  id: totrans-286
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个只能执行一次的功能。
 - en: a capability that can be revoked when needed.
+  id: totrans-287
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个在需要时可以撤销的功能。
 - en: a capability that is throttled and can only be performed a limited number of
     times in a given time period (such as password change attempts).
+  id: totrans-288
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个被限制并且在给定时间段内只能执行有限次数的功能（例如更改密码尝试）。
 - en: And so on.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 等等。
 - en: 'Here are implementations of the first three of them:'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是前三个的实现：
 - en: '[PRE34]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Let''s say that we have an `updatePassword` function, such as this:'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个`updatePassword`函数，如下所示：
 - en: '[PRE35]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'We can then create a auditable version of `updatePassword`:'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们可以创建一个`updatePassword`的可审计版本：
 - en: '[PRE36]'
+  id: totrans-295
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'And then test it:'
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后测试它：
 - en: '[PRE37]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'The results are:'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是：
 - en: '[PRE38]'
+  id: totrans-299
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'Or, we could create a one-time only version:'
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，我们可以创建一个一次性版本：
 - en: '[PRE39]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'And then test it:'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后测试它：
 - en: '[PRE40]'
+  id: totrans-303
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: 'The results are:'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是：
 - en: '[PRE41]'
+  id: totrans-305
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'Finally, we can create a revokable function:'
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以创建一个可撤销的函数：
 - en: '[PRE42]'
+  id: totrans-307
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'And then test it:'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后测试它：
 - en: '[PRE43]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'With the following results:'
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 带有以下结果：
 - en: '[PRE44]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: The code for all these F# examples is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx).
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些 F# 示例的代码都可以在[gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx)中找到。
 - en: A complete example in F#
+  id: totrans-313
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个完整的 F# 示例
 - en: Here's the code to a complete application in F# (also available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)).
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个完整的 F# 应用程序代码（也可以在[gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)中找到）。
 - en: This example consists of a simple console app that allows you to get and update
     customer records.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例由一个简单的控制台应用程序组成，允许您获取和更新客户记录。
 - en: The first step is to login as a user. "Alice" and "Bob" are normal users, while
     "Zelda" has a customer agent role.
+  id: totrans-316
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一步是以用户身份登录。 "Alice" 和 "Bob" 是普通用户，而 "Zelda" 具有客户代理角色。
 - en: Once logged in, you can select a customer to edit. Again, you are limited to
     a choice between "Alice" and "Bob". (I'm sure you can hardly contain your excitement)
+  id: totrans-317
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 登录后，您可以选择要编辑的客户。同样，您只能在“Alice”和“Bob”之间进行选择。（我相信您几乎无法控制自己的兴奋）
 - en: 'Once a customer is selected, you are presented with some (or none) of the following
     options:'
+  id: totrans-318
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择了客户后，您将看到以下选项中的一些（或没有）：
 - en: Get a customer's data.
+  id: totrans-319
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取客户数据。
 - en: Update a customer's data.
+  id: totrans-320
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更新客户数据。
 - en: Update a customer's password.
+  id: totrans-321
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更新客户的密码。
 - en: Which options are shown depend on which capabilities you have. These in turn
     are based on who you are logged in as, and which customer is selected.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 显示的选项取决于您拥有哪些功能。这又取决于您登录的身份以及选择的客户。
 - en: Implementing the domain
+  id: totrans-323
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现领域
 - en: 'We''ll start with the core domain types that are shared across the application:'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从整个应用程序共享的核心领域类型开始：
 - en: '[PRE45]'
+  id: totrans-325
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: The `FailureCase` type documents all possible things that can go wrong at the
     top-level of the application. See the ["Railway Oriented Programming" talk](http://fsharpforfunandprofit.com/rop/)
     for more discussion on this.
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FailureCase`类型记录了应用程序顶层可能出错的所有可能情况。有关更多讨论，请参见["铁路导向编程"讲座](http://fsharpforfunandprofit.com/rop/)。'
 - en: Defining the capabilities
+  id: totrans-327
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义功能
 - en: Next, we document all the capabilities that are available in the application.
     To add clarity to the code, each capability is given a name (i.e. a type alias).
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们记录应用程序中可用的所有功能。为了使代码更加清晰，为每个功能赋予一个名称（即类型别名）。
 - en: '[PRE46]'
+  id: totrans-329
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Finally, the `CapabilityProvider` is a record of functions, each of which accepts
     a customer id and principal, and returns an optional capability of the specified
     type. This record is created in the top level model and then passed around to
     the child components.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`CapabilityProvider`是一组函数记录，每个函数接受一个客户ID和主体，返回指定类型的可选能力。此记录在顶级模型中创建，然后传递给子组件。
 - en: 'Here''s the complete code for this module:'
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是该模块的完整代码：
 - en: '[PRE47]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: This module references a `SuccessFailure` result type similar to the one [discussed
     here](http://fsharpforfunandprofit.com/rop/), but which I won't show.
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块引用了类似于[这里讨论的](http://fsharpforfunandprofit.com/rop/)的`SuccessFailure`结果类型，但我不会展示它。
 - en: Implementing authentication
+  id: totrans-334
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现身份验证
 - en: Next, we'll roll our own little authentication system. Note that when the user
     "Zelda" is authenticated, the role is set to "CustomerAgent".
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将自己的小型认证系统。请注意，当用户“Zelda”经过身份验证时，角色设置为“CustomerAgent”。
 - en: '[PRE48]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: The `customerIdForName` function attempts to find the customer id associated
     with a particular name, while the `customerIdOwnedByPrincipal` compares this id
     with another one.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: '`customerIdForName`函数尝试找到与特定名称关联的客户ID，而`customerIdOwnedByPrincipal`将此ID与另一个进行比较。'
 - en: Implementing authorization
+  id: totrans-338
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现授权
 - en: Here are the functions related to authorization, very similar to what was discussed
     above.
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是与授权相关的函数，与上面讨论的非常相似。
 - en: '[PRE49]'
+  id: totrans-340
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: Implementing the database
+  id: totrans-341
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现数据库
 - en: The functions related to database access are similar to those in the earlier
     examples, only this time we have implemented a crude in-memory database (just
     a `Dictionary`).
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 与前面示例中的相关数据库访问函数类似，只是这次我们实现了一个简陋的内存数据库（只是一个`Dictionary`）。
 - en: '[PRE50]'
+  id: totrans-343
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Implementing the business services
+  id: totrans-344
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现业务服务
 - en: Next we have the "business services" (for lack of better word) where all the
     work gets done.
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是“业务服务”（缺乏更好的词），其中进行了所有的工作。
 - en: '[PRE51]'
+  id: totrans-346
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: Note that each of these functions is passed in only the capability needed to
     do its job. This code knows nothing about databases, or anything else.
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，每个函数只传递了执行其工作所需的能力。这段代码对数据库或其他任何内容一无所知。
 - en: Yes, in this crude example, the code is reading and writing directly to the
     console. Obviously in a more complex (and less crude!) design, the inputs to these
     functions would be passed in as parameters.
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，在这个简陋的示例中，代码直接读取和写入控制台。显然，在一个更复杂（并且不那么简陋！）的设计中，这些函数的输入将作为参数传递进来。
 - en: '*Here''s a simple exercise: replace the direct access to the console with a
     capability such as `getDataWithPrompt`?*'
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这是一个简单的练习：用像`getDataWithPrompt`这样的能力替换对控制台的直接访问？*'
 - en: Implementing the user interface
+  id: totrans-350
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现用户界面
 - en: Now for the user interface module, where most of the complex code lies.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是用户界面模块，大部分复杂代码都在这里。
 - en: First up is a type (`CurrentState`) that represents the state of the user interface.
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先是一种类型（`CurrentState`），表示用户界面的状态。
 - en: When we're `LoggedOut` there is no `IPrincipal` available.
+  id: totrans-353
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们处于`LoggedOut`状态时，没有`IPrincipal`可用。
 - en: When we're `LoggedIn` there is a `IPrincipal` available, but no selected customer.
+  id: totrans-354
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们处于`LoggedIn`状态时，有一个`IPrincipal`可用，但没有选定的客户。
 - en: When we're in the `CustomerSelected` state there is both a `IPrincipal` and
     a `CustomerId` available.
+  id: totrans-355
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们处于`CustomerSelected`状态时，既有`IPrincipal`又有`CustomerId`可用。
 - en: Finally, the `Exit` state is a signal to the app to shutdown.
+  id: totrans-356
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，`Exit`状态是应用程序关闭的信号。
 - en: I very much like using a "state" design like this, because it ensures that we
     can't accidentally access data that we shouldn't. For example, we literally cannot
     access a customer when none is selected, because there is no customer id in that
     state!
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 我非常喜欢使用这样的“状态”设计，因为它确保我们不会意外访问我们不应该访问的数据。例如，当没有选择客户时，我们实际上无法访问客户，因为在该状态下没有客户ID！
 - en: For each state, there is a corresponding function.
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个状态，都有一个相应的函数。
 - en: '`loggedOutActions` is run when we are in the `LoggedOut` state. It presents
     the available actions to you, and changes the state accordingly. You can log in
     as a user, or exit. If the login is successful (`authenticate name` worked) then
     the state is changed to `LoggedIn`.'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们处于`LoggedOut`状态时，将运行`loggedOutActions`。它向您展示可用的操作，并相应地更改状态。您可以登录为用户，或退出。如果登录成功（`authenticate
+    name`成功），则状态更改为`LoggedIn`。
 - en: '`loggedInActions` is run when we are in the `LoggedIn` state. You can select
     a customer, or log out. If the customer selection is successful (`customerIdForName
     customerName` worked) then the state is changed to `CustomerSelected`.'
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们处于`LoggedIn`状态时，将运行`loggedInActions`。您可以选择一个客户，或者注销。如果客户选择成功（`customerIdForName
+    customerName`成功），则状态将更改为`CustomerSelected`。
 - en: '`selectedCustomerActions` is run when we are in the `CustomerSelected` state.
     This works as follows:'
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们处于`CustomerSelected`状态时，将运行`selectedCustomerActions`。工作原理如下：
 - en: First, find out what capabilities we have.
+  id: totrans-362
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，找出我们拥有的功能。
 - en: Next convert each capability into a corresponding menu text (using `Option.map`
     because the capability might be missing), then remove the ones that are None.
+  id: totrans-363
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，将每个功能转换为相应的菜单文本（使用`Option.map`，因为功能可能缺失），然后删除那些为 None 的功能。
 - en: Next, read a line from input, and depending on what it is, call one of the "business
     services" (`getCustomer`, `updateCustomer`, or `updatePassword`).
+  id: totrans-364
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，从输入中读取一行，并根据其内容调用其中一个“业务服务”（`getCustomer`、`updateCustomer`或`updatePassword`）。
 - en: Finally the `mainUiLoop` function loops around until the state is set to `Exit`.
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`mainUiLoop` 函数循环运行，直到状态设置为`Exit`。
 - en: '[PRE52]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Implementing the top-level module
+  id: totrans-367
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现顶层模块
 - en: With all this in place, we can implement the top-level module.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这一切，我们可以实现顶层模块。
 - en: This module fetches all the capabilities, adds restrictions as explained previously,
     and creates a `capabilities` record.
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块获取所有功能，按照之前解释的方式添加限制，并创建一个`capabilities`记录。
 - en: The `capabilities` record is then passed into the user interface when the app
     is started.
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，在应用程序启动时，将`capabilities`记录传递给用户界面。
 - en: '[PRE53]'
+  id: totrans-371
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: The complete code for this example is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx).
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 此示例的完整代码可在[gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)中找到。
 - en: Summary of Part 2
+  id: totrans-373
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第二部分总结
 - en: In part 2, we added authorization and other transforms as a separate concern
     that could be applied to restrict authority. Again, there is nothing particularly
     clever about using functions like this, but I hope that this has given you some
     ideas that might be useful.
+  id: totrans-374
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第二部分中，我们将授权和其他转换作为一个单独的关注点添加，可以应用于限制权限。再次强调，使用这样的函数并没有什么特别聪明的地方，但我希望这给你一些可能有用的想法。
 - en: '**Question: Why go to all this trouble? What''s the benefit over just testing
     an "IsAuthorized" flag or something?**'
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：为什么要费这么大劲？与仅测试“IsAuthorized”标志或其他内容相比有什么好处？**'
 - en: 'Here''s a typical use of a authorization flag:'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是授权标志的典型用法：
 - en: '[PRE54]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: 'Recall the quote from the previous post: "Capabilities should ''fail safe''.
     If a capability cannot be obtained, or doesn''t work, we must not allow any progress
     on paths that assumed that it was successful."'
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下上一篇文章中的引用：“功能应该‘失败安全’。如果无法获取功能，或者功能无法正常工作，我们不应允许在假定成功的路径上取得任何进展。”
 - en: The problem with testing a flag like this is that **it's easy to forget, and
     the compiler won't complain if you do**. And then you have a possible security
     breach, as in the following code.
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试这样的标志的问题在于**很容易忘记，如果你忘记了编译器也不会抱怨**。然后你就可能存在安全漏洞，就像下面的代码一样。
 - en: '[PRE55]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: Not only that, but by "inlining" the test like this, we're mixing security concerns
     into our main code, as pointed out earlier.
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 不仅如此，通过这样“内联”测试，我们将安全问题混入了我们的主要代码中，正如之前指出的那样。
 - en: 'In contrast, a simple capability approach looks like this:'
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，简单的功能方法看起来像这样：
 - en: '[PRE56]'
+  id: totrans-383
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: In this example, it is **not possible to accidentally use the capability** if
     you are not allowed to, as you literally don't have a function to call! And this
     has to be handled at compile-time, not at runtime.
+  id: totrans-384
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，如果你没有被允许，**就不可能意外使用这个功能**，因为你根本没有要调用的函数！这必须在编译时处理，而不是在运行时。
 - en: Furthermore, as we have just seen, capabilities are just functions, so we get
     all the benefits of filtering, etc., which are not available with the inlined
     boolean test version.
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，正如我们刚刚看到的，功能只是函数，因此我们获得了所有过滤等的好处，这是内联布尔测试版本所没有的。
 - en: '**Question: In many situations, you don''t know whether you can access a resource
     until you try. So aren''t capabilities just extra work?**'
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：在许多情况下，你不知道是否可以访问资源，直到尝试。那么功能是否只是额外的工作？**'
 - en: This is indeed true. For example, you might want to test whether a file exists
     first, and only then try to access it. The IT gods are always ruthless in these
     cases, and in the time between checking the file's existence and trying to open
     it, the file will probably be deleted!
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 这的确是真的。例如，你可能想要先测试文件是否存在，然后再尝试访问它。在这些情况下，IT 神总是无情的，在检查文件存在性和尝试打开它之间的时间里，文件可能已经被删除了！
 - en: So since we will have to check for exceptions anyway, why do two slow I/O operations
     when one would have sufficed?
+  id: totrans-388
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，由于我们无论如何都必须检查异常，为什么要进行两次缓慢的 I/O 操作，当一次就足够了？
 - en: The answer is that the capability model is not about physical or system-level
     authority, but logical authority -- only having the minimum you need to accomplish
     a task.
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案是，能力模型不是关于物理或系统级别的权限，而是逻辑权限 - 只有你完成任务所需的最小功能。
 - en: For example, a web service process may be operating at a high level of system
     authority, and can access any database record. But we don't want to expose that
     to most of our code. We want to make sure that any failures in programming logic
     cannot accidentally expose unauthorized data.
+  id: totrans-390
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，Web 服务进程可能以高级系统权限运行，并且可以访问任何数据库记录。但我们不希望将这一点暴露给我们的大部分代码。我们希望确保编程逻辑中的任何失败都不能意外地暴露未经授权的数据。
 - en: Yes, of course, the capability functions themselves must do error handling,
     and as you can see in the snippets above, I'm using the `Success/Failure` result
     type as described [here](http://fsharpforfunandprofit.com/rop/). As a result,
     we will need to merge failures from core functions (e.g. database errors) with
     capability-specific failures such as `Failure OnlyAllowedOnce`.
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，功能函数本身必须进行错误处理，正如你可以在上面的代码片段中看到的那样，我正在使用如[此处](http://fsharpforfunandprofit.com/rop/)描述的`Success/Failure`结果类型。因此，我们需要将核心函数（例如，数据库错误）的失败与特定于功能的失败（例如`Failure
+    OnlyAllowedOnce`）合并。
 - en: '**Question: You''ve created a whole module with types defined for each capability.
     I might have hundreds of capabilities. Do you really expect me to do all this
     extra work?**'
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：你已经创建了一个整个模块，其中为每个功能定义了类型。我可能有数百个功能。你真的希望我做所有这些额外的工作吗？**'
 - en: 'There are two points here, so let''s address each one in turn:'
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有两个要点，所以让我们依次解决每一个：
 - en: First, do you have a system that already uses fine-grained authorization, or
     has business-critical requirements about not leaking data, or performing actions
     in an unauthorized context, or needs a security audit?
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，你是否已经有一个使用细粒度授权或具有关于不泄露数据、在未经授权的情况下执行操作或需要进行安全审计的业务关键要求的系统？
 - en: If none of these apply, then indeed, this approach is complete overkill!
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果以上情况都不适用，那么确实，这种方法完全是过度的！
 - en: 'But if you *do* have such a system, that raises some new questions:'
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是如果你确实有这样一个系统，那就提出了一些新的问题：
 - en: should the capabilities that are authorized be explicitly described in the code
     somewhere?
+  id: totrans-397
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 授权的功能是否应该在代码中明确描述？
 - en: and if so, should the capabilities be explicit throughout the code, or only
     at the top-level (e.g. in the controller) and implicit everywhere else.
+  id: totrans-398
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果是这样，功能是否应该在整个代码中显式地存在，还是只在顶层（例如，在控制器中）显式存在，而在其他地方隐式存在。
 - en: The question comes to down to whether you want to be explicit or implicit.
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题归结为你想要显式还是隐式。
 - en: Personally, I prefer things like this to be explicit. It may be a little extra
     work initially, just a few lines to define each capability, but I find that it
     generally stops problems from occurring further down the line.
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: 就我个人而言，我更喜欢这类事情是显式的。起初可能需要一点额外的工作，只需定义每个功能的几行代码，但我发现这通常可以阻止问题在后续发生。
 - en: And it has the benefit of acting as a single place to document all the security-related
     capabilities that you support. Any new requirements would require a new entry
     here, so can be sure that no capabilities can sneak in under the radar (assuming
     developers follow these practices).
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 这有利于作为一个单一的地方记录所有你支持的安全相关功能。任何新的需求都需要在这里进行新的记录，这样可以确保没有功能会悄悄地在监视范围之外实施（假设开发人员遵循这些做法）。
 - en: '**Question: In this code, you''ve rolled your own authorization. Wouldn''t
     you use a proper authorization provider instead?**'
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：在这段代码中，你自己编写了授权。你不应该使用一个合适的授权提供者吗？**'
 - en: Yes. This code is just an example. The authorization logic is completely separate
     from the domain logic, so it should be easy to substitute any authorization provider,
     such as [`ClaimsAuthorizationManager`](https://msdn.microsoft.com/en-us/library/system.security.claims.claimsauthorizationmanager.aspx)
     class, or something like [XACML](https://en.wikipedia.org/wiki/XACML).
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
 - en: '**I''ve got more questions...**'
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
 - en: If you missed them, some additional questions are answered at the [end of part
     1](capability-based-security.html#summary). Otherwise please add your question
     in the comments below, and I'll try to address it.
+  id: totrans-405
   prefs: []
   type: TYPE_NORMAL
 - en: Coming up
+  id: totrans-406
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In the [next post](capability-based-security-3.html), we'll look at how to use
     types to emulate access tokens and prevent unauthorized access to global functions.
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx)
     and [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx).*'
+  id: totrans-408
   prefs: []
   type: TYPE_NORMAL
 - en: Using types as access tokens
+  id: totrans-409
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Using types as access tokens
+  id: totrans-410
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
 - en: In the previous posts ([link](capability-based-security.html), [link](capability-based-security-2.html))
     we looked at "capabilities" as the basis for locking down code.
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
 - en: But in most of the examples so far, we've been relying on self-discipline to
     avoid using the global capabilities, or by trying to hide the "raw" capabilities
     using the `internal` keyword.
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
 - en: It's a bit ugly -- can we do better?
+  id: totrans-414
   prefs: []
   type: TYPE_NORMAL
 - en: In this post, we'll show that we can by using types to emulate "access tokens".
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
 - en: Real-world authorization
+  id: totrans-416
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: First, let's step back and look at how authorization works in the real world.
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
 - en: Here's a simplified diagram of a basic authorization system (such as [OAuth
     2.0](https://developers.google.com/accounts/docs/OAuth2#basicsteps)).
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
 - en: '![Simplified authentication](auth_token.png)'
+  id: totrans-419
   prefs: []
   type: TYPE_IMG
 - en: 'The steps, in their crudest form, are:'
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
 - en: The client presents some claims to the Authorization Service, including identity
     and the id and scope (capability) of the service it wants to access.
+  id: totrans-421
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The Authorization Service checks whether the client is authorized, and if so,
     creates an access token which is returned to the client.
+  id: totrans-422
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The client then presents this access token to the Resource Service (the service
     the client wants to use).
+  id: totrans-423
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: In general, the access token will only let the client do certain things. In
     our terminology, it has been granted a limited set of capabilities.
+  id: totrans-424
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Obviously, there's a lot more to it than that, but it will be enough to give
     us some ideas.
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
 - en: Implementing an Access Token
+  id: totrans-426
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -1785,371 +2625,537 @@
     is to stop accidental errors, we don't need to do cryptographic signatures and
     all that. All we need is some object that can *only* be created by an authorization
     service.
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
 - en: That's easy. We can just use a type with a private constructor!
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
 - en: We'll set it up so that the type can only be created by an Authorization Service,
     but is required to be passed in to the database service.
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: For example, here's an F# implementation of the `AccessToken` type. The constructor
     is private, and there's a static member that returns an instance if authorization
     is allowed.
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE57]'
+  id: totrans-431
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: Next, in the database module, we will add an extra parameter to each function,
     which is the AccessToken.
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: Because the AccessToken token is required, we can safely make the database module
     public now, as no unauthorized client can call the functions.
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE58]'
+  id: totrans-434
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: Note that the accessToken is not actually used in the implementation. It is
     just there to force callers to obtain a token at compile time.
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: So let's look at how this might be used in practice.
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE59]'
+  id: totrans-437
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: At this point we have an optional access token. Using `Option.map`, we can apply
     it to `CustomerDatabase.getCustomer` to get an optional capability. And by partially
     applying the access token, the user of the capability is isolated from the authentication
     process.
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE60]'
+  id: totrans-439
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: And finally, we can attempt to use the capability, if present.
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE61]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: So now we have a statically typed authorization system that will prevent us
     from accidentally getting too much access to the database.
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
 - en: Oops! We have made a big mistake...
+  id: totrans-443
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: This design looks fine on the surface, but we haven't actually made anything
     more secure.
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
 - en: The first problem is that the `AccessToken` type is too broad. If I can somehow
     get hold of an access token for innocently writing to a config file, I might also
     be able to use it to maliciously update passwords as well.
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: The second problem is that the `AccessToken` throws away the context of the
     operation. For example, I might get an access token for updating `CustomerId 1`,
     but when I actually *use* the capability, I could pass in `CustomerId 2` as the
     the customer id instead!
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: The answer to both these issues is to store information in the access token
     itself, at the point when the authorization is granted.
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
 - en: For example, if the token stores the operation that was requested, the service
     can check that the token matches the operation being called, which ensures that
     the token can only be used for that particular operation. In fact, as we'll see
     in a minute, we can be lazy and have the *compiler* do this checking for us!
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
 - en: And, if we also store any data (such as the customer id) that was part of the
     authorization request, then we don't need to ask for it again in the service.
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
 - en: What's more, we can trust that the information stored in the token is not forged
     or tampered with because only the Authorization Service can create the token.
     In other words, this is the equivalent of the token being "signed".
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
+  zh: 更重要的是，我们可以相信令牌中存储的信息没有被伪造或篡改，因为只有授权服务才能创建令牌。换句话说，这相当于令牌被“签名”。
 - en: Revisiting the Access Token design
+  id: totrans-451
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 重新审视访问令牌设计
 - en: So let's revisit the design and fix it up.
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们重新审视设计并加以修正。
 - en: First we will define a *distinct type* for each capability. The type will also
     contain any data needed at authorization time, such as the customer id.
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将为每种能力定义一个*独特类型*。该类型还将包含授权时需要的任何数据，如客户 id。
 - en: For example, here are two types that represent access to capabilities, one for
     accessing a customer (both read and update), and another one updating a password.
     Both of these will store the `CustomerId` that was provided at authorization time.
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这里有两种类型，代表对能力的访问，一种用于访问客户（读取和更新），另一种用于更新密码。这两种类型都会存储在授权时提供的 `CustomerId`。
 - en: '[PRE62]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: Next, the `AccessToken` type is redefined to be a generic container with a `data`
     field. The constructor is still private, but a public getter is added so clients
     can access the data field.
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，`AccessToken` 类被重新定义为具有 `data` 字段的通用容器。构造函数仍然是私有的，但添加了一个公共 getter，以便客户端可以访问数据字段。
 - en: '[PRE63]'
+  id: totrans-457
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: The authorization implementation is similar to the previous examples, except
     that this time the capability type and customer id are stored in the token.
+  id: totrans-458
   prefs: []
   type: TYPE_NORMAL
+  zh: 授权实现与之前的示例类似，只是这次能力类型和客户 id 存储在令牌中。
 - en: '[PRE64]'
+  id: totrans-459
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: Using Access Tokens in the database
+  id: totrans-460
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在数据库中使用访问令牌
 - en: With these access token types in place the database functions can be rewritten
     to require a token of a particular type. The `customerId` is no longer needed
     as an explicit parameter, because it will be passed in as part of the access token's
     data.
+  id: totrans-461
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这些访问令牌类型，数据库函数可以重写为需要特定类型的令牌。`customerId` 不再需要作为显式参数，因为它将作为访问令牌数据的一部分传递。
 - en: Note also that both `getCustomer` and `updateCustomer` can use the same type
     of token (`AccessCustomer`), but `updatePassword` requires a different type (`UpdatePassword`).
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要注意，`getCustomer` 和 `updateCustomer` 都可以使用相同类型的令牌（`AccessCustomer`），但 `updatePassword`
+    需要不同类型的令牌（`UpdatePassword`）。
 - en: '[PRE65]'
+  id: totrans-463
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: Putting it all together
+  id: totrans-464
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将所有内容整合在一起
 - en: So now let's see all this in action.
+  id: totrans-465
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们看看所有这些都是如何运作的。
 - en: 'The steps to getting a customer are:'
+  id: totrans-466
   prefs: []
   type: TYPE_NORMAL
+  zh: 获得客户的步骤是：
 - en: Attempt to get the access token from the authorization service
+  id: totrans-467
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尝试从授权服务获取访问令牌
 - en: If you have the access token, get the `getCustomer` capability from the database
+  id: totrans-468
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你有访问令牌，从数据库获取 `getCustomer` 能力
 - en: Finally, if you have the capability, you can use it.
+  id: totrans-469
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，如果你有这个能力，你就可以使用它。
 - en: Note that, as always, the `getCustomer` capability does not take a customer
     id parameter. It was baked in when the capability was created.
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，一如既往，`getCustomer` 能力不需要客户 id 参数。这在创建能力时就已经固定了。
 - en: '[PRE66]'
+  id: totrans-471
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: Now what happens if we accidentally get the *wrong* type of access token? For
     example, let us try to access the `updatePassword` function with an `AccessCustomer`
     token.
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我们意外地获得了*错误*类型的访问令牌会发生什么？例如，让我们尝试使用 `AccessCustomer` 令牌访问 `updatePassword`
+    函数。
 - en: '[PRE67]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: This code will not even compile! The line `CustomerDatabase.updatePassword token
     password` has an error.
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码甚至无法编译！`CustomerDatabase.updatePassword token password` 这行有错误。
 - en: '[PRE68]'
+  id: totrans-475
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: We have accidentally fetched the wrong kind of Access Token, but we have been
     stopped from accessing the wrong database method at *compile time*.
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们意外地获取了错误类型的访问令牌，但我们在*编译时*被阻止访问错误的数据库方法。
 - en: Using types in this way is a nice solution to the problem of global access to
     a potentially dangerous capability.
+  id: totrans-477
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方式使用类型是解决全局访问潜在危险能力问题的一个好方法。
 - en: A complete example in F#
+  id: totrans-478
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个完整的 F# 示例
 - en: In the last post, I showed a complete console application in F# that used capabilities
     to update a database.
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一篇文章中，我展示了一个完整的 F# 控制台应用程序，使用能力来更新数据库。
 - en: Now let's update it to use access tokens as well. (The code is available as
     a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx)).
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们更新它以使用访问令牌。（代码在这里作为[gist](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx)可用）。
 - en: Since this is an update of the example, I'll focus on just the changes.
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于���是示例的更新，我将专注于变更。
 - en: Defining the capabilities
+  id: totrans-482
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义能力
 - en: The capabilities are as before except that we have defined the two new types
     (`AccessCustomer` and `UpdatePassword`) to be stored inside the access tokens.
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
+  zh: 功能与之前一样，只是我们定义了两种新类型（`AccessCustomer`和`UpdatePassword`）来存储在访问令牌中。
 - en: '[PRE69]'
+  id: totrans-484
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: Implementing authorization
+  id: totrans-485
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现授权
 - en: The authorization implementation must be changed to return `AccessTokens` now.
     The `onlyIfDuringBusinessHours` restriction applies to capabilities, not access
     tokens, so it is unchanged.
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在必须更改授权实现以返回`AccessTokens`。`onlyIfDuringBusinessHours`限制适用于功能，而不是访问令牌，因此它保持不变。
 - en: '[PRE70]'
+  id: totrans-487
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: Implementing the database
+  id: totrans-488
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现数据库
 - en: Compared with the example from the previous post, the database functions have
     the `CustomerId` parameter replaced with an `AccessToken` instead.
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
+  zh: 与上一篇文章的示例相比，数据库函数的`CustomerId`参数已被替换为`AccessToken`。
 - en: 'Here''s what the database implementation looked like *before* using access
     tokens:'
+  id: totrans-490
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用访问令牌之前，数据库实现是这样的：
 - en: '[PRE71]'
+  id: totrans-491
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'And here''s what the code looks like *after* using access tokens:'
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用访问令牌之后，代码看起来是这样的：
 - en: '[PRE72]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: Implementing the business services and user interface
+  id: totrans-494
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现业务服务和用户界面
 - en: The code relating to the business services and UI is completely unchanged.
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
+  zh: 与业务服务和UI相关的代码完全没有变化。
 - en: Because these functions have been passed capabilities only, they are decoupled
     from both the lower levels and higher levels of the application, so any change
     in the authorization logic has no effect on these layers.
+  id: totrans-496
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为这些函数只传递了功能，它们与应用程序的低层级和高层级都解耦了，所以授权逻辑的任何更改都不会影响到这些层。
 - en: Implementing the top-level module
+  id: totrans-497
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现顶层模块
 - en: The major change in the top-level module is how the capabilities are fetched.
     We now have an additional step of getting the access token first.
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
+  zh: 主模块的主要变化是获取功能的方式。现在我们首先要获取访问令牌。
 - en: 'Here''s what the code looked like *before* using access tokens:'
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用访问令牌之前，代码看起来是这样的：
 - en: '[PRE73]'
+  id: totrans-500
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'And here''s what the code looks like *after* using access tokens:'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用访问令牌之后，代码看起来是这样的：
 - en: '[PRE74]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: The `tokenToCap` function is a little utility that applies the (optional) token
     to a given function as the first parameter. The output is an (equally optional)
     capability.
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tokenToCap`函数是一个小工具，将（可选的）令牌应用到给定函数的第一个参数上。输出是一个（同样是可选的）功能。'
 - en: '[PRE75]'
+  id: totrans-504
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: And that's it for the changes needed to support access tokens. You can see all
     the code for this example [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx).
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
+  zh: 至此，支持访问令牌所需的更改就完成了。你可以在[这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx)看到这个示例的所有代码。
 - en: Summary of Part 3
+  id: totrans-506
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第 3 部分总结
 - en: 'In this post, we used types to represent access tokens, as follows:'
+  id: totrans-507
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们使用类型来表示访问令牌，如下所示：
 - en: The `AccessToken` type is the equivalent of a signed ticket in a distributed
     authorization system. It has a private constructor and can only be created by
     the Authorization Service (ignoring reflection, of course!).
+  id: totrans-508
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`AccessToken`类型相当于分布式授权系统中的签名票据。它有一个私有构造函数，只能由授权服务创建（当然忽略反射！）。'
 - en: A specific type of `AccessToken` is needed to access a specific operation, which
     ensures that we can't accidentally do unauthorized activities.
+  id: totrans-509
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 访问特定操作需要一种特定类型的`AccessToken`，这确保了我们不能意外地进行未经授权的活动。
 - en: Each specific type of `AccessToken` can store custom data collected at authorization
     time, such as a `CustomerId`.
+  id: totrans-510
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每种特定类型的`AccessToken`可以存储在授权时收集的自定义数据，比如`CustomerId`。
 - en: Global functions, such as the database, are modified so that they cannot be
     accessed without an access token. This means that they can safely be made public.
+  id: totrans-511
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 全局函数，如数据库，被修改为无法在没有访问令牌的情况下访问。这意味着它们可以安全地被公开。
 - en: '**Question: Why not also store the caller in the access token, so that no other
     client can use it?**'
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：为什么不在访问令牌中也存储调用者，这样其他客户端就不能使用它了？**'
 - en: This is not needed because of the authority-based approach we're using. As discussed
     in the [first post](capability-based-security.html#authority), once a client has
     a capability, they can pass it around to other people to use, so there is no point
     limiting it to a specific caller.
+  id: totrans-513
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是不需要的，因为我们正在使用基于权限的方法。正如在[第一篇文章](capability-based-security.html#authority)中讨论的那样，一旦客户端具有某项功能，他们就可以将其传递给其他人使用，因此将其限制为特定调用者是没有意义的。
 - en: '**Question: The authorization module needs to know about the capability and
     access token types now. Isn''t that adding extra coupling?**'
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题：授权模块现在需要了解功能和访问令牌类型。这不是增加了额外的耦合吗？**'
 - en: If the authorization service is going to do its job, it has to know *something*
     about what capabilities are available, so there is always some coupling, whether
     it is implicit ("resources" and "actions" in XACML) or explicit via types, as
     in this model.
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
 - en: So yes, the authorization service and database service both have a dependency
     on the set of capabilities, but they are not coupled to each other directly.
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
 - en: '**Question: How do you use this model in a distributed system?**'
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
 - en: This model is really only designed to be used in a single codebase, so that
     type checking can occur.
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
 - en: You could probably hack it so that types are turned into tickets at the boundary,
     and conversely, but I haven't looked at that at all.
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
 - en: '**Question: Where can I read more on using types as access tokens?**'
+  id: totrans-520
   prefs: []
   type: TYPE_NORMAL
 - en: This type-oriented version of an access token is my own design, although I very
@@ -2157,60 +3163,73 @@
     some related things for Haskell [(example)](http://hackage.haskell.org/package/Capabilities)
     but I don't know of any directly analogous work that's accessible to mainstream
     developers.
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
 - en: '**I''ve got more questions...**'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
 - en: Some additional questions are answered at the end of [part 1](capability-based-security.html#summary)
     and [part 2](capability-based-security-2.html#summary), so read those answers
     first. Otherwise please add your question in the comments below, and I'll try
     to address it.
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: Conclusion
+  id: totrans-524
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Thanks for making it all the way to the end!
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
 - en: As I said at the beginning, the goal is not to create an absolutely safe system,
     but instead encourage you to think about and integrate authorization constraints
     into the design of your system from the beginning, rather than treating it as
     an afterthought.
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
 - en: What's more, the point of doing this extra work is not just to improve *security*,
     but also to *improve the general design* of your code. If you follow the principle
     of least authority, you get modularity, decoupling, explicit dependencies, etc.,
     for free!
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
 - en: 'In my opinion, a capability-based system works very well for this:'
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
 - en: Functions map well to capabilities, and the need to pass capabilities around
     fits in very well with standard functional programming patterns.
+  id: totrans-529
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Once created, capabilities hide all the ugliness of authorization from the client,
     and so the model succeeds in "making security user-friendly by making the security
     invisible".
+  id: totrans-530
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finally, with the addition of type-checked access tokens, we can have high confidence
     that no part of our code can access global functions to do unauthorized operations.
+  id: totrans-531
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: I hope you found this series useful, and might inspire you to investigate some
     of these ideas more fully.
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
 - en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_typeexample-fsx)
     and [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx).*'
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
