@@ -1,899 +1,1384 @@
 - en: A Haskell Compiler
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一个 Haskell 编译器
 - en: David Terei
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: David Terei
 - en: Why understand how GHC works?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么要了解 GHC 的工作原理？
 - en: Understand Core & STG – performance.
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理解 Core 和 STG - 性能。
 - en: Familiarity with functional terminology.
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 熟悉函数术语。
 - en: Understand execution model – reasonable cost model.
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理解执行模型 - 合理的成本模型。
 - en: The pipeline of GHC
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC 的流水线
 - en: Haskell -> GHC Haskell -> Core -> STG -> Cmm -> Assembly
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell -> GHC Haskell -> Core -> STG -> Cmm -> Assembly
 - en: GHC supports Haskell on top of an unsafe variant
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC 支持在不安全变体上的 Haskell
 - en: 'Primitive types (GHC.Prim):'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始类型（GHC.Prim）：
 - en: Char#, Int#, Word#, Double#, Float#
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Char#、Int#、Word#、Double#、Float#
 - en: Array#, ByteArray#, ArrayArray#,
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Array#、ByteArray#、ArrayArray#，
 - en: MutVar#, TVar#, MVar#
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MutVar#、TVar#、MVar#
 - en: State#, exceptions
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: State#、exceptions
 - en: All primitive types are *unlifted* – can’t contain ⊥.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有原始类型都是*未提升*的 - 不能包含 ⊥。
 - en: GHC supports Haskell on top of an unsafe variant
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC 支持在不安全变体上的 Haskell
 - en: All variants of Int (In8, Int16, Int32, Int64) are represented internally by
     Int# (64bit) on a 64bit machine.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有 Int 的变体（In8、Int16、Int32、Int64）在 64 位机器上内部由 Int#（64 位）表示。
 - en: '[PRE0]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Data constructors *lift* a type, allowing ⊥.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据构造函数*提升*了一个类型，允许 ⊥。
 - en: GHC implements IO through the RealWorld token
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC 通过 RealWorld 令牌实现 IO
 - en: IO Monad is a state passing monad.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IO Monad 是一个状态传递的单子。
 - en: '[PRE1]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '`RealWorld` token enforces ordering through data dependence.'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`RealWorld` 令牌通过数据依赖强制排序。'
 - en: '[PRE2]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Various unsafe functions throw away `RealWorld` token.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 各种不安全函数丢弃 `RealWorld` 令牌。
 - en: 'Core: a small function intermediate language'
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Core：一个小型函数中间语言
 - en: 'Idea: map Haskell to a small lanuage for easier optimization and compilation.'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 思路：将 Haskell 映射到一个更容易优化和编译的小语言。
 - en: Functional lazy language
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数式惰性语言
 - en: It consists of only a hand full of constructs!
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它只包含少量结构！
 - en: '[PRE3]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: In general think, `let` means allocation, `case` means evaluation.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一般来说，`let` 表示分配，`case` 表示评估。
 - en: Core in one slide
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个幻灯片中的 Core
 - en: '[PRE4]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Lets now look at how Haskell is compiled to [Core](http://hackage.haskell.org/trac/ghc/wiki/Commentary/Compiler/CoreSynType).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们看看 Haskell 是如何编译成 [Core](http://hackage.haskell.org/trac/ghc/wiki/Commentary/Compiler/CoreSynType)
+    的。
 - en: 'GHC Haskell to Core: monomorphic functions'
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC Haskell 到 Core：单态函数
 - en: Haskell
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE5]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Core
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE6]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'GHC Haskell to Core: polymorphic functions'
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC Haskell 到 Core：多态函数
 - en: Haskell
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE7]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Core
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE8]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'GHC Haskell to Core: polymorphic functions'
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC Haskell 到 Core：多态函数
 - en: Haskell
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE9]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Core
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE10]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'New case syntax to make obvious that evaluation is happening:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的 case 语法使评估正在发生的事情变得明显：
 - en: '[PRE11]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Where transformed to let
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Where 转换为 let
 - en: Haskell
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE12]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Core
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE13]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Patterns matching transformed to case statements
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模式匹配转换为 case 语句
 - en: Haskell
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE14]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Core
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE15]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Type classes transformed to dictionaries
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 类型类转换为字典
 - en: Haskell
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE16]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Core
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE17]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: A dictionary constructed for each instance
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为每个实例构造一个字典
 - en: Haskell
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE18]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Core
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE19]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Dictionaries constructed from dictionaries
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从字典构造字典
 - en: Haskell
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE20]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Core
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE21]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: UNPACK unboxes types
+  id: totrans-76
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: UNPACK 解压类型
 - en: Haskell
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE22]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Core
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE23]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: Only one data type for Point exists, GHC doesn’t duplicate it.
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有一个 Point 的数据类型存在，GHC 不会复制它。
 - en: UNPACK not always a good idea
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: UNPACK 不总是一个好主意
 - en: Haskell
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE24]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Core
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE25]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Great code here as working with unboxed types.
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里有很棒的代码，可以使用未装箱类型。
 - en: UNPACK not always a good idea
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: UNPACK 不总是一个好主意
 - en: Haskell
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE26]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Core
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE27]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Need to unfortunately rebox the types.
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要不幸地重新装箱这些类型。
 - en: Core Summary
+  id: totrans-94
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Core 摘要
 - en: Look at Core to get an idea of how your code will perform.
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查看 Core 以了解代码的性能如何。
 - en: Can see boxing an unboxing.
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以看到装箱和去箱化。
 - en: Language still lazy but `case` means evaluation.
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 语言仍然是惰性的，但 `case` 表示评估。
 - en: 'Middle of GHC: *Core -> Core*'
+  id: totrans-98
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC 中间：*Core -> Core*
 - en: A lot of the optimizations that GHC does is through core to core transformations.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: GHC 所做的许多优化都是通过核心到核心的转换来实现的。
 - en: 'Lets look at two of them:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看其中的两个：
 - en: Strictness and unboxing
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 严格性和去箱化
 - en: SpecConstr
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SpecConstr
 - en: '[PRE28]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Strictness & Unboxing
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 严格性和去箱化
 - en: 'Consider this factorial implementation in Haskell:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑在 Haskell 中实现这个阶乘：
 - en: '[PRE29]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: In Haskell `x` & `n` must be represented by pointers to a possibly unevaluated
     objects (thunks)
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Haskell 中，`x` 和 `n` 必须由指向可能未评估对象（thunks）的指针表示
 - en: Even if evaluated still represented by “boxed” values on the heap
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使评估了，仍然由堆上的“装箱”值表示
 - en: Strictness & Unboxing
+  id: totrans-109
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 严格性和去箱化
 - en: Core
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: Core
 - en: '[PRE30]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: We allocate thunks before the recursive call and box arguments
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在递归调用之前分配 thunks 并装箱参数
 - en: But `fac` will immediately evaluate the thunks and unbox the values!
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但 `fac` 将立即评估 thunks 并解压值！
 - en: GHC with strictness analysis
+  id: totrans-114
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 带有严格性分析的 GHC
 - en: Compile `fac` with optimizations.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用优化编译 `fac`。
 - en: '[PRE31]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Create an optimized ‘worker’ and keep original function as ‘wrapper’ to preserve
     interface.
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个优化的“工作者”并保留原始函数作为“包装器”以保持接口。
 - en: Must preserve semantics of ⊥ – `fac` ⊥ `n = optimized(fac)` ⊥ `n`
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须保留⊥的语义 - `fac` ⊥ `n = optimized(fac)` ⊥ `n`
 - en: 'SpecConstr: Extending strictness analysis to paths'
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SpecConstr：将严格性分析扩展到路径
 - en: The idea of the SpecConstr pass is to extend the strictness and unboxing from
     before but to functions where arguments aren’t strict in every code path.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: SpecConstr的想法是扩展严格性和取消装箱，但是对于在每个代码路径中参数不严格的函数。
 - en: 'Consider this Haskell function:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑这个Haskell函数：
 - en: '[PRE32]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'Not strict in first argument:'
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对第一个参数不严格：
 - en: '`drop` ⊥ [] = []'
+  id: totrans-124
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`drop` ⊥ [] = []'
 - en: '`drop` ⊥ (x:xs) = ⊥'
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`drop` ⊥ (x:xs) = ⊥'
 - en: 'SpecConstr: Extending strictness analysis to paths'
+  id: totrans-126
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SpecConstr：将严格性分析扩展到路径
 - en: 'So we get this code without extra optimization:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此我们得到这段代码而不需要额外的优化：
 - en: '[PRE33]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: But after the first time we call drop, we are strict in `n` and always evaluate
     it!
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但在第一次调用drop之后，我们对`n`是严格的并且总是评估它！
 - en: SpecConstr
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SpecConstr
 - en: The SpecConstr pass takes advantage of this to create a specialised version
     of `drop` that is only called after we have passed the first check.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: SpecConstr通过利用这一点创建`drop`的专门版本，只有在我们通过第一个检查后才调用它。
 - en: '[PRE34]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: To stop code size blowing up, GHC limits the amount of specialized functions
     it creates (specified with the `-fspec-constr-threshol` and `-fspec-constr-count`
     flags).
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了防止代码大小膨胀，GHC限制它创建的专门函数的数量（使用`-fspec-constr-threshol`和`-fspec-constr-count`标志指定）。
 - en: STG Code
+  id: totrans-134
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: STG代码
 - en: After Core, GHC compiles to another intermediate language called STG.
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Core之后，GHC编译到另一种名为STG的中间语言。
 - en: 'STG is very similar to Core but has one nice additional property:'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: STG与Core非常相似，但有一个很好的附加属性：
 - en: laziness is ‘explicit’
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 惰性是‘显式的’
 - en: '`case` = *evaluation* and ONLY place evaluation occurs (true in Core)'
+  id: totrans-138
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`case` = *评估* 和唯一的评估发生的地方（在Core中是真的）'
 - en: '`let` = *allocation* and ONLY place allocation occurs (not true in Core)'
+  id: totrans-139
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`let` = *分配* 和唯一的分配发生的地方（在Core中不是这样）'
 - en: So in STG we can explicitly see thunks being allocated for laziness using `let`
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此在STG中，我们可以明确看到使用`let`为惰性分配thunks
 - en: 'To view STG use:'
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要查看STG，请使用：
 - en: '[PRE35]'
+  id: totrans-142
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: STG Code
+  id: totrans-143
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: STG代码
 - en: Haskell
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: Haskell
 - en: '[PRE36]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: STG
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: STG
 - en: '[PRE37]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Lambda abstraction as `[arg1 arg2] f`
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Lambda抽象为`[arg1 arg2] f`
 - en: '`\r` - re-entrant'
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`\r` - 可重入'
 - en: '`\u` - updatable (i.e., thunk)'
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`\u` - 可更新（即thunk）'
 - en: Graph Reduction as a computational model for Haskell
+  id: totrans-151
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图缩减作为Haskell的计算模型
 - en: Graph reduction is a good computational model for lazy functional languages.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 图缩减是惰性函数式语言的良好计算模型。
 - en: '[PRE38]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: Graph Reduction as a computational model for Haskell
+  id: totrans-154
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图缩减作为Haskell的计算模型
 - en: Graph reduction is a good computational model for lazy functional languages.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 图缩减是惰性函数式语言的良好计算模型。
 - en: '[PRE39]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: Graph Reduction as a computational model for Haskell
+  id: totrans-157
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图缩减作为Haskell的计算模型
 - en: Graph reduction is a good computational model for lazy functional languages.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 图缩减是惰性函数式语言的良好计算模型。
 - en: Graph reduction allows lazy evaluation and sharing
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图缩减允许惰性评估和共享
 - en: '*let*: adds new node to graph.'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*let*: 向图中添加新节点。'
 - en: '*case*: expression evaluation, causes the graph to be reduced.'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*case*: 表达式评估，导致图被减少。'
 - en: When a node is reduced, it is replaced (or *updated*) with its result
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当节点被减少时，它将被替换（或*更新*）为其结果
 - en: Can think of your Haskell program as progressing by either adding new nodes
     to the graph or reducing existing ones.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以将您的Haskell程序视为通过添加新节点到图或减少现有节点来进行。
 - en: GHC execution model
+  id: totrans-164
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GHC执行模型
 - en: GHC uses closures as a unifying representation.
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GHC使用闭包作为统一表示。
 - en: All objects in the heap are closures.
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 堆中的所有对象都是闭包。
 - en: A stack frame is a closure.
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 堆栈帧是一个闭包。
 - en: GHC uses continuation-passing-style.
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GHC使用继续传递风格。
 - en: Always jump to top stack frame to return.
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 总是跳转到顶部堆栈帧以返回。
 - en: Functions will prepare stack in advance to setup call chains.
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数将提前准备堆栈以设置调用链。
 - en: Closure Representation
+  id: totrans-171
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 闭包表示
 - en: '| Closure |  |  | Info Table |'
+  id: totrans-172
   prefs: []
   type: TYPE_TB
+  zh: '| 闭包 |  |  | 信息表 |'
 - en: '|  |  |  |  |'
+  id: totrans-173
   prefs: []
   type: TYPE_TB
+  zh: '|  |  |  |  |'
 - en: Header usually just a pointer to the code and metadata for the closure.
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Header通常只是指向闭包代码和元数据的指针。
 - en: Get away with single pointer through positive and negative offsets.
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过正负偏移量只需一个指针即可获得。
 - en: Payload contains the closures environment (e.g free variables, function arguments)
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Payload包含闭包的环境（例如自由变量，函数参数）
 - en: Data closure
+  id: totrans-177
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据闭包
 - en: '[PRE40]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: '`[Header | Pointers... | Non-pointers...]`'
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[Header | Pointers... | Non-pointers...]`'
 - en: Payload is the values for the constructor
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Payload是构造函数的值
 - en: Entry code for a constructor just returns
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 构造函数的入口代码只返回
 - en: '[PRE41]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: Function closures
+  id: totrans-183
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 函数闭包
 - en: '[PRE42]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: '[Header | Pointers… | Non-pointers…]'
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Header | Pointers… | Non-pointers…]'
 - en: Payload is the bound free variables, e.g.,
+  id: totrans-186
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Payload是绑定的自由变量，例如，
 - en: '`[ &g | x ]`'
+  id: totrans-187
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[ &g | x ]`'
 - en: Entry code is the function code
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 入口代码是函数代码
 - en: Partial application closures (PAP)
+  id: totrans-189
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 部分应用闭包（PAP）
 - en: '[PRE43]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '`[Header | Arity | Payload size | Function | Payload]`'
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[Header | 元数 | Payload 大小 | 函数 | Payload]`'
 - en: Arity of the PAP (function of arity 3 with 1 argument applied gives PAP of arity
     2)
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PAP 的元数（应用了1个参数的元数为3的函数会得到元数为2的 PAP）
 - en: Function is the closure of the function that has been partially applied
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数是部分应用的函数的闭包
 - en: Thunk closures
+  id: totrans-194
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**Thunk closures**'
 - en: '[PRE44]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: '`[Header | Pointers... | Non-pointers...]`'
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[Header | 指针... | 非指针...]`'
 - en: Payload contains the free variables of the expression
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Payload 包含表达式的自由变量
 - en: Differ from function closure in that they can be updated
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与函数闭包不同之处在于它们可以被更新
 - en: Entry code is the code for the expression
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 入口代码是表达式的代码
 - en: Calling convention
+  id: totrans-200
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 调用约定
 - en: On X86 32bit - all arguments passed on stack
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 X86 32位系统上 - 所有参数通过栈传递
 - en: On X86 64bit - first 5 arguments passed in registers, rest on stack
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 X86 64位系统上 - 前5个参数通过寄存器传递，其余通过栈传递
 - en: '`R1` register in Cmm code usually is a pointer to the current closure (i.e.,
     similar to `this` in OO languages).'
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`R1` 寄存器在 Cmm 代码中通常是指向当前闭包的指针（类似于面向对象语言中的 `this`）。'
 - en: Handling thunk updates
+  id: totrans-204
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理 thunk 更新
 - en: Thunks once evaluated should update their node in the graph to be the computed
     value.
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦求值，thunk 应该更新它们在图中的节点为计算出的值。
 - en: GHC uses a *self-updating-model* – code unconditionally jumps to a thunk. Up
     to thunk to update itself, replacing code with value.
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GHC 使用*自更新模型* - 代码无条件跳转到一个 thunk。由 thunk 自己更新自己，用值替换代码。
 - en: Handling thunk updates
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理 thunk 更新
 - en: '[PRE45]'
+  id: totrans-208
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: '[PRE46]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: Handling thunk updates
+  id: totrans-210
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理 thunk 更新
 - en: '[PRE47]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '[PRE48]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: stg_upd_frame_info code updates a thunk with its value
+  id: totrans-213
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: stg_upd_frame_info 代码更新一个 thunk 的值
 - en: To update a thunk with its value we need to change its header pointer.
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要更新一个 thunk 的值，我们需要改变它的头指针。
 - en: Should point to code that simply returns now.
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在应该指向一个简单返回的代码。
 - en: Payload also now needs to include the value.
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Payload 现在也需要包含数值。
 - en: Naive solution would be to synchronize on every thunk access.
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 朴素的解决方案是在每次访问 thunk 时同步。
 - en: But we don’t need to! Races on thunks are fine since we can rely on purity.
     Races just leads to duplication of work.
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但我们不需要！thunk 上的竞争是可以接受的，因为我们可以依赖纯度。竞争只会导致工作的重复。
 - en: stg_upd_frame_info code updates a thunk with its value
+  id: totrans-219
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: stg_upd_frame_info 代码更新一个 thunk 的值
 - en: 'Thunk closure:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: Thunk 闭包：
 - en: '`[Header | Payload]`'
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[Header | Payload]`'
 - en: '`Header` = `[ Info Table Pointer | Result Slot ]`'
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Header` = `[ 信息表指针 | 结果槽 ]`'
 - en: Result slot empty when thunk unevaluated.
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当 thunk 未求值时，结果槽为空。
 - en: Update code, first places result in result slot and secondly changes the info
     table pointer.
+  id: totrans-224
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更新代码，首先将结果放入结果槽，然后更改信息表指针。
 - en: Safe to do without synchronization (need write barrier) on all architectures
     GHC supports.
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 GHC 支持的所有架构上都可以不同步地进行（需要写屏障）。
 - en: Avoiding entering values
+  id: totrans-226
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 避免进入值
 - en: Evaluation model is we always enter a closure, even values.
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 评估模型是我们总是进入一个闭包，即使是值。
 - en: This is poor for performance, we prefer to avoid entering values every single
     time.
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这对性能来说很差，我们更喜欢避免每次都进入值。
 - en: An optimization that GHC does is *pointer tagging*. The trick is to use the
     final bits of a pointer which are usually zero (last 2 for 32bit, 3 on 64) for
     storing a ‘tag’.
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GHC 所做的一个优化是*指针标记*。这个技巧是利用指针的最后几位通常为零（32位系统为最后2位，64位系统为最后3位）来存储一个“标记”。
 - en: 'GHC uses this tag for:'
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GHC 使用这个标记来：
 - en: If the object is a constructor, the tag contains the constructor number (if
     it fits)
+  id: totrans-231
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果对象是一个构造函数，标签包含构造函数编号（如果适用）
 - en: If the object is a function, the tag contains the arity of the function (if
     it fits)
+  id: totrans-232
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果对象是一个函数，标签包含函数的元数（如果适用）
 - en: Avoiding entering values
+  id: totrans-233
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 避免进入值
 - en: 'Our example code from before:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们之前的示例代码：
 - en: '[PRE49]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: 'Changes with pointer tagging:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用指针标记的变化：
 - en: '[PRE50]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: Pointer tagging makes your own data types efficient
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指针标记使你自己的数据类型高效
 - en: If the closure is a constructor, the tag contains the constructor number (if
     it fits).
+  id: totrans-239
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果闭包是一个构造函数，标签包含构造函数编号（如果适用）。
 - en: '[PRE51]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: Will be as efficient as using an `Int#` for representing true and false.
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将和使用 `Int#` 表示真和假一样高效。
