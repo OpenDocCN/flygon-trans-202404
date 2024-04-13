@@ -1,270 +1,401 @@
 - en: 'Reading 10: Debugging'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 阅读 10：调试
 - en: Software in 6.005
+  id: totrans-1
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 软件在 6.005
 - en: '| Safe from bugs | Easy to understand | Ready for change |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '| 免受 bug 的影响 | 易于理解 | 为变化做好准备 |'
 - en: '| Correct today and correct in the unknown future. | Communicating clearly
     with future programmers, including future you. | Designed to accommodate change
     without rewriting. |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '| 今天正确，未来也正确。 | 与未来的程序员清晰沟通，包括未来的你。 | 设计以适应变化而无需重写。 |'
 - en: Objectives
+  id: totrans-4
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 目标
 - en: The topic of today’s class is systematic debugging.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天课堂的主题是系统化调试。
 - en: Sometimes you have no choice but to debug – particularly when the bug is found
     only when you plug the whole system together, or reported by a user after the
     system is deployed, in which case it may be hard to localize it to a particular
     module. For those situations, we can suggest a systematic strategy for more effective
     debugging.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时你别无选择，只能进行调试 - 特别是当 bug 只在将整个系统连接在一起时才发现，或者在系统部署后由用户报告时，这种情况下很难将其定位到特定模块。对于这些情况，我们可以建议一种更有效的调试系统策略。
 - en: Reproduce the Bug
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 重现 Bug
 - en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_10_debugging,reproduce_the_bug/yQIl6IjMUt0)'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**▶ 播放 MITx 视频**](https://courses.csail.mit.edu/6.005/video/reading_10_debugging,reproduce_the_bug/yQIl6IjMUt0)'
 - en: Start by finding a small, repeatable test case that produces the failure. If
     the bug was found by regression testing, then you’re in luck; you already have
     a failing test case in your test suite. If the bug was reported by a user, it
     may take some effort to reproduce the bug. For graphical user interfaces and multithreaded
     programs, a bug may be hard to reproduce consistently if it depends on timing
     of events or thread execution.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先找到一个小的、可重复的测试用例，产生故障。如果 bug 是通过回归测试发现的，那么你很幸运；你的测试套件中已经有一个失败的测试用例。如果 bug 是由用户报告的，可能需要一些努力来重现
+    bug。对于图形用户界面和多线程程序，如果 bug 取决于事件的时间或线程执行，可能很难一致地重现 bug。
 - en: Nevertheless, any effort you put into making the test case small and repeatable
     will pay off, because you’ll have to run it over and over while you search for
     the bug and develop a fix for it. Furthermore, after you’ve successfully fixed
     the bug, you’ll want to add the test case to your regression test suite, so that
     the bug never crops up again. Once you have a test case for the bug, making this
     test work becomes your goal.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，无论你付出多少努力使测试用例变小且可重复，都会得到回报，因为在搜索 bug 并开发修复方案时，你将不得不一遍又一遍地运行它。此外，在成功修复 bug
+    后，你会希望将测试用例添加到回归测试套件中，以便 bug 不再出现。一旦你有了 bug 的测试用例，使这个测试用例工作成为你的目标。
 - en: 'Here’s an example. Suppose you have written this function:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个例子。假设你写了这个函数：
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: A user passes the whole text of Shakespeare’s plays into your method, something
     like `mostCommonWord(allShakespearesPlaysConcatenated)`, and discovers that instead
     of returning a predictably common English word like `"the"` or `"a"`, the method
     returns something unexpected, perhaps `"e"`.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个用户将整个莎士比亚剧本的文本传递给你的方法，类似于 `mostCommonWord(allShakespearesPlaysConcatenated)`，发现该方法返回的不是可预测的常见英文单词，如
+    `"the"` 或 `"a"`，而是一些意外的东西，也许是 `"e"`。
 - en: 'Shakespeare’s plays have 100,000 lines containing over 800,000 words, so this
     input would be very painful to debug by normal methods, like print-debugging and
     breakpoint-debugging. Debugging will be easier if you first work on reducing the
     size of the buggy input to something manageable that still exhibits the same (or
     very similar) bug:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 莎士比亚的剧本有 10 万行，包含超过 80 万字，因此通过常规方法进行调试，如打印调试和断点调试，将会非常痛苦。如果你首先努力减少有 bug 的输入的大小，使其变得可管理，同时仍然展示相同（或非常相似）的
+    bug，调试将会更容易：
 - en: does the first half of Shakespeare show the same bug? (Binary search! Always
     a good technique. More about this below.)
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一半莎士比亚的作品是否显示相同的 bug？（二分查找！这总是一个很好的技巧。更多关于这个下面。）
 - en: does a single play have the same bug?
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个剧本是否有相同的 bug？
 - en: does a single speech have the same bug?
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个演讲是否有相同的 bug？
 - en: Once you’ve found a small test case, find and fix the bug using that smaller
     test case, and then go back to the original buggy input and confirm that you fixed
     the same bug.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦找到一个小的测试用例，使用该较小的测试用例找到并修复 bug，然后回到原始有 bug 的输入，并确认你修复了相同的 bug。
 - en: reading exercises
+  id: totrans-19
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Reducing a bug to a test case
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 将 bug 缩小到一个测试用例
 - en: Suppose a user reports that `mostCommonWord("chicken chicken chicken beef")`
     returns `"beef"` instead of `"chicken"`.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设一个用户报告说 `mostCommonWord("chicken chicken chicken beef")` 返回 `"beef"` 而不是 `"chicken"`。
 - en: (missing answer)
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）
 - en: (missing explanation)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）
 - en: (missing explanation)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）
 - en: (missing explanation)
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）
 - en: (missing explanation)
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: (missing answer)
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）
 - en: (missing explanation)
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Give all answers that make sense, not just the simplest one (because the simplest
     one sometimes no longer exhibits the bug!)
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 给出所有有意义的答案，而不仅仅是最简单的一个（因为最简单的有时候不再表现出错误！）
 - en: Regression testing
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 回归测试
 - en: Suppose you reduce the `"chicken chicken chicken beef"` input down to `"c c
     b"`, which also has a problem. You find a bug, fix it, and observe that both `"c
     c b"` and `"chicken chicken chicken beef"` are now returning the right answer.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你将`"chicken chicken chicken beef"`输入缩减为`"c c b"`，这也存在问题。你找到一个错误，修复它，并观察到现在`"c
+    c b"`和`"chicken chicken chicken beef"`都返回了正确的答案。
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Understand the Location and Cause of the Bug
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 理解错误的位置和原因
 - en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_10_debugging,understand_the_location_and_cause_of_the_bug/guQ0TiPSo-c)'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**▶ 播放 MITx 视频**](https://courses.csail.mit.edu/6.005/video/reading_10_debugging,understand_the_location_and_cause_of_the_bug/guQ0TiPSo-c)'
 - en: 'To localize the bug and its cause, you can use the scientific method:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 要定位错误及其原因，可以使用科学方法：
 - en: '**Study the data.** Look at the test input that causes the bug, and the incorrect
     results, failed assertions, and stack traces that result from it.'
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**研究数据。** 查看导致错误的测试输入，以及由此产生的不正确结果、失败的断言和堆栈跟踪。'
 - en: '**Hypothesize.** Propose a hypothesis, consistent with all the data, about
     where the bug might be, or where it *cannot* be. It’s good to make this hypothesis
     general at first.'
+  id: totrans-41
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**假设。** 提出一个假设，与所有数据一致，关于错误可能在哪里，或者它*不可能*在哪里。最好一开始将这个假设概括。'
 - en: '**Experiment.** Devise an experiment that tests your hypothesis. It’s good
     to make the experiment an *observation* at first – a probe that collects information
     but disturbs the system as little as possible.'
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**实验。** 设计一个测试你假设的实验。最好一开始将实验作为*观察* - 一种收集信息但尽可能少干扰系统的探针。'
 - en: '**Repeat.** Add the data you collected from your experiment to what you knew
     before, and make a fresh hypothesis. Hopefully you have ruled out some possibilities
     and narrowed the set of possible locations and reasons for the bug.'
+  id: totrans-43
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**重复。** 将你从实验中收集到的数据添加到之前所知的内容中，并提出一个新的假设。希望你已经排除了一些可能性，并缩小了可能的错误位置和原因集。'
 - en: 'Let’s look at these steps in the context of the `mostCommonWord()` example,
     fleshed out a little more with three helper methods:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在`mostCommonWord()`示例的背景下看看这些步骤，再加上三个辅助方法进行详细说明：
 - en: '[PRE1]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 1\. Study the Data
+  id: totrans-46
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 1\. 研究数据
 - en: One important form of data is the stack trace from an exception. Practice reading
     the stack traces that you get, because they will give you enormous amounts of
     information about where and what the bug might be.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种重要的数据形式是异常的堆栈跟踪。练习阅读你得到的堆栈跟踪，因为它们将为你提供关于错误可能在哪里以及是什么的大量信息。
 - en: The process of isolating a small test case may also give you data that you didn’t
     have before. You may even have two related test cases that *bracket* the bug in
     the sense that one succeeds and one fails. For example, maybe `mostCommonWords("c
     c, b")` is broken, but `mostCommonWords("c c b")` is fine.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 隔离一个小测试案例的过程也可能给你之前没有的数据。你甚至可能有两个相关的测试案例，*夹击*了错误，即一个成功一个失败。例如，也许`mostCommonWords("c
+    c, b")`有问题，但`mostCommonWords("c c b")`没问题。
 - en: 2\. Hypothesize
+  id: totrans-49
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2\. 假设
 - en: '![data flowing through the modules of the program](../Images/e60a4d6d78c04ad09dfae667a944e163.jpg)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![数据流经程序模块](../Images/e60a4d6d78c04ad09dfae667a944e163.jpg)'
 - en: It helps to think about your program as modules, or steps in an algorithm, and
     try to rule out whole sections of the program at once.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 将程序视为模块或算法中的步骤有助于思考，并尝试一次性排除程序的整个部分。
 - en: The flow of data in `mostCommonWord()` is shown at right. If the symptom of
     the bug is an exception in `countOccurrences()`, then you can rule out everything
     downstream, specifically `findMostFrequent()`.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mostCommonWord()`中的数据流如右图所示。如果错误的症状是在`countOccurrences()`中出现异常，那么你可以排除所有下游内容，特别是`findMostFrequent()`。'
 - en: Then you would choose a hypothesis that tries to localize the bug even further.
     You might hypothesize that the bug is in `splitIntoWords()`, corrupting its results,
     which then cause the exception in `countOccurrences()`. You would then use an
     experiment to test that hypothesis. If the hypothesis is true, then you would
     have ruled out `countOccurrences()` as the source of the problem. If it’s false,
     then you would rule out `splitIntoWords()`.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后你会选择一个试图进一步定位 bug 的假设。你可能会假设 bug 在`splitIntoWords()`中，损坏了其结果，然后导致`countOccurrences()`中的异常。然后你会使用一个实验来测试这个假设。如果假设成立，那么你就排除了`countOccurrences()`作为问题的来源。如果它是错误的，那么你就排除了`splitIntoWords()`。
 - en: 3\. Experiment
+  id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3\. 实验
 - en: 'A good experiment is a gentle observation of the system without disturbing
     it much. It might be:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个好的实验是对系统进行轻微观察而不会过多干扰它。可能是：
 - en: Run a **different test case.** The test case reduction process discussed above
     used test cases as experiments.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行一个**不同的测试用例**。上面讨论的测试用例缩减过程使用测试用例作为实验。
 - en: Insert a **print statement** or **assertion** in the running program, to check
     something about its internal state.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在运行的程序中插入一个**打印语句**或**断言**，以检查其内部状态的某些内容。
 - en: Set a **breakpoint** using a debugger, then single-step through the code and
     look at variable and object values.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用调试器设置一个**断点**，然后逐步执行代码并查看变量和对象的值。
 - en: It’s tempting to try to insert *fixes* to the hypothesized bug, instead of mere
     probes. This is almost always the wrong thing to do. First, it leads to a kind
     of ad-hoc guess-and-test programming, which produces awful, complex, hard-to-understand
     code. Second, your fixes may just mask the true bug without actually removing
     it.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 试图插入*修复*以猜测的 bug，而不是仅仅是探针，这很诱人，但几乎总是错误的。首先，这会导致一种临时猜测和测试编程，产生糟糕、复杂、难以理解的代码。其次，你的修复可能只是掩盖了真正的
+    bug，而没有真正解决它。
 - en: For example, if you’re getting an `ArrayOutOfBoundsException`, try to understand
     what’s going on first. Don’t just add code that avoids or catches the exception,
     without fixing the real problem.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果你得到一个`ArrayOutOfBoundsException`，先尝试了解发生了什么。不要只是添加避免或捕获异常的代码，而不解决真正的问题。
 - en: Other tips
+  id: totrans-61
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 其他提示
 - en: '**Bug localization by binary search**. Debugging is a search process, and you
     can sometimes use binary search to speed up the process. For example, in `mostCommonWords`,
     the data flows through three helper methods. To do a binary search, you would
@@ -272,8 +403,11 @@
     between the first helper method call and the second, and insert probes (like breakpoints,
     print statements, or assertions) there to check the results. From the answer to
     that experiment, you would further divide in half.'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '**二分法进行 bug 定位**。调试是一个搜索过程，有时你可以使用二分法来加速这个过程。例如，在`mostCommonWords`中，数据通过三个辅助方法流动。要进行二分搜索，你会把这个工作流程分成两半，也许猜测
+    bug 在第一个辅助方法调用和第二个之间，然后在那里插入探针（比如断点、打印语句或断言）来检查结果。从那个实验的答案中，你会进一步分成两半。'
 - en: '**Prioritize your hypotheses**. When making your hypothesis, you may want to
     keep in mind that different parts of the system have different likelihoods of
     failure. For example, old, well-tested code is probably more trustworthy than
@@ -281,8 +415,11 @@
     The Java compiler and runtime, operating system platform, and hardware are increasingly
     more trustworthy, because they are more tried and tested. You should trust these
     lower levels until you’ve found good reason not to.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**优先考虑你的假设**。在提出假设时，你可能想记住系统的不同部分有不同的故障可能性。例如，经过老旧测试的代码可能比最近添加的代码更可靠。Java 库代码可能比你的更可靠。Java
+    编译器和运行时、操作系统平台和硬件越来越可靠，因为它们经过了更多的尝试和测试。在找到充分理由之前，你应该信任这些较低的级别。'
 - en: '**Swap components**. If you have another implementation of a module that satisfies
     the same interface, and you suspect the module, then one experiment you can do
     is to try swapping in the alternative. For example, if you suspect your binarySearch()
@@ -292,27 +429,38 @@
     system, run your program on a different OS. If you suspect the hardware, run on
     a different machine. You can waste a lot of time swapping unfailing components,
     however, so don’t do this unless you have good reason to suspect a component.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '**交换组件**。如果你有另一个满足相同接口的模块实现，并且你怀疑这个模块，那么你可以尝试一下替换另一个实现。例如，如果你怀疑你的binarySearch()实现，那么尝试用一个更简单的linearSearch()代替。如果你怀疑java.util.ArrayList，你可以用java.util.LinkedList代替。如果你怀疑Java运行时，尝试用不同版本的Java。如果你怀疑操作系统，尝试在不同的操作系统上运行程序。如果你怀疑硬件，尝试在不同的机器上运行。然而，除非你有充分的理由怀疑一个组件，否则不要浪费时间替换无故失败的组件。'
 - en: '**Make sure your source code and object code are up to date.** Pull the latest
     version from the repository, and delete all your binary files and recompile everything
     (in Eclipse, this is done by Project → Clean).'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '**确保你的源代码和目标代码是最新的。**从存储库中拉取最新版本，并删除所有的二进制文件然后重新编译所有东西（在 Eclipse 中，通过 Project
+    → Clean 完成）。'
 - en: '**Get help.** It often helps to explain your problem to someone else, even
     if the person you’re talking to has no idea what you’re talking about. Lab assistants
     and fellow 6.005 students usually do know what you’re talking about, so they’re
     even better.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**寻求帮助**。向别人解释你的问题通常会有所帮助，即使你对方不知道你在说什么。实验室助理和其他6.005学生通常知道你在说什么，所以他们更好。'
 - en: '**Sleep on it.** If you’re too tired, you won’t be an effective debugger. Trade
     latency for efficiency.'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '**先睡一觉。**如果你太累了，你就不会成为一个有效的调试者。把延迟换成效率。'
 - en: Fix the Bug
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 修复 Bug
 - en: Once you’ve found the bug and understand its cause, the third step is to devise
     a fix for it. Avoid the temptation to slap a patch on it and move on. Ask yourself
     whether the bug was a coding error, like a misspelled variable or interchanged
@@ -320,84 +468,127 @@
     Design errors may suggest that you step back and revisit your design, or at the
     very least consider all the other clients of the failing interface to see if they
     suffer from the bug too.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你找到了错误并理解了它的原因，第三步就是为其设计一个修复方案。避免急于贴上补丁然后继续。问问自己，这个 bug 是编码错误，比如拼写错误的变量或者交换的方法参数，还是设计错误，比如未详细说明或不足的接口。设计错误可能意味着你需要退后一步重新审视你的设计，或者至少考虑一下失败接口的其他所有客户端是否也受到了这个
+    bug 的影响。
 - en: Think also whether the bug has any relatives. If I just found a divide-by-zero
     error here, did I do that anywhere else in the code? Try to make the code safe
     from future bugs like this. Also consider what effects your fix will have. Will
     it break any other code?
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 还要考虑一下这个 bug 是否有任何类似的。如果我刚刚在这里发现了一个除以零的错误，我还在代码中其他地方这样做了吗？尝试使代码免受未来类似 bug 的影响。还要考虑你的修复会产生什么影响。它会破坏任何其他代码吗？
 - en: Finally, after you have applied your fix, add the bug’s test case to your regression
     test suite, and run all the tests to assure yourself that (a) the bug is fixed,
     and (b) no new bugs have been introduced.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，在应用了修复方案之后，将 bug 的测试用例添加到回归测试套件中，并运行所有测试以确保（a）bug已修复，（b）未引入新的 bug。
 - en: reading exercises
+  id: totrans-72
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Debugging strategy
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 调试策略
 - en: Suppose you are debugging the `quadraticRoots` function, which appears to be
     producing wrong answers sometimes.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你正在调试`quadraticRoots`函数，它似乎有时会产生错误的答案。
 - en: '[PRE2]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Put the following items in the order that you should try them: 1, 2, 3, … Say
     “wat” for items that are nonsense statements.'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '将以下项目按照你应该尝试它们的顺序放入: 1, 2, 3, ... 对于无意义的陈述，说“wat”。'
 - en: <select class="form-control"><option>1</option>,<option>2</option>,<option>3</option>,<option>4</option>,<option>5</option>,<option>wat</option></select>(missing
     answer)<select class="form-control"><option>1</option>,<option>2</option>,<option>3</option>,<option>4</option>,<option>5</option>,<option>wat</option></select>(missing
     answer)<select class="form-control"><option>1</option>,<option>2</option>,<option>3</option>,<option>4</option>,<option>5</option>,<option>wat</option></select>(missing
     answer)<select class="form-control"><option>1</option>,<option>2</option>,<option>3</option>,<option>4</option>,<option>5</option>,<option>wat</option></select>(missing
     answer)<select class="form-control"><option>1</option>,<option>2</option>,<option>3</option>,<option>4</option>,<option>5</option>,<option>wat</option></select>(missing
     answer)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: <select class="form-control"><option>1</option>，<option>2</option>，<option>3</option>，<option>4</option>，<option>5</option>，<option>wat</option></select>（缺少答案）<select
+    class="form-control"><option>1</option>，<option>2</option>，<option>3</option>，<option>4</option>，<option>5</option>，<option>wat</option></select>（缺少答案）<select
+    class="form-control"><option>1</option>，<option>2</option>，<option>3</option>，<option>4</option>，<option>5</option>，<option>wat</option></select>（缺少答案）<select
+    class="form-control"><option>1</option>，<option>2</option>，<option>3</option>，<option>4</option>，<option>5</option>，<option>wat</option></select>（缺少答案）<select
+    class="form-control"><option>1</option>，<option>2</option>，<option>3</option>，<option>4</option>，<option>5</option>，<option>wat</option></select>（缺少答案）
 - en: (missing explanation)
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Summary
+  id: totrans-79
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 总结
 - en: 'In this reading, we looked at how to debug systematically:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇阅读中，我们看了如何系统地调试：
 - en: reproduce the bug as a test case, and put it in your regression suite
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将 bug 重现为测试用例，并将其放入回归测试套件中
 - en: find the bug using the scientific method
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用科学方法找到 bug
 - en: fix the bug thoughtfully, not slapdash
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 深思熟虑地修复 bug，而不是匆忙行事
 - en: 'Thinking about our three main measures of code quality:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 思考我们的三个主要代码质量指标：
 - en: '**Safe from bugs.** We’re trying to prevent them and get rid of them.'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**免受 bug 之害。** 我们正试图阻止它们并摆脱它们。'
 - en: '**Easy to understand.** Techniques like static typing, final declarations,
     and assertions are additional documentation of the assumptions in your code. Variable
     scope minimization makes it easier for a reader to understand how the variable
     is used, because there’s less code to look at.'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**易于理解。** 静态类型、最终声明和断言等技术是你的代码中假设的额外文档。变量范围的最小化使读者更容易理解变量的使用方式，因为需要查看的代码更少。'
 - en: '**Ready for change.** Assertions and static typing document the assumptions
     in an automatically-checkable way, so that when a future programmer changes the
     code, accidental violations of those assumptions are detected.'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**为变化做好准备。** 断言和静态类型将假设以一种可自动检查的方式记录下来，因此当未来的程序员更改代码时，可以检测到对这些假设的意外违反。'
