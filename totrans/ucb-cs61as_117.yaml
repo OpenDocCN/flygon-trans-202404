@@ -1,35 +1,49 @@
 - en: Streams Are Delayed Lists
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 流是延迟的列表
 - en: Stream Constructor and Selectors
+  id: totrans-1
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 流构造器和选择器
 - en: 'On the surface, streams are just lists with different names for the procedures
     that manipulate them. They have a constructor `cons-stream` , and two selectors,
     `stream-car` and `stream-cdr`, which satisfies these constraints:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 表面上，流只是具有不同名称的列表，用于操作它们的过程不同。它们有一个构造器 `cons-stream`，和两个选择器，`stream-car` 和 `stream-cdr`，满足以下约束：
 - en: '`(stream-car (cons-stream x y))` returns `x`'
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`(stream-car (cons-stream x y))` 返回 `x`'
 - en: '`(stream-cdr (cons-stream x y))` returns `y`'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`(stream-cdr (cons-stream x y))` 返回 `y`'
 - en: In order to construct the stream as we use it, we will arrange for the cdr of
     a stream to be evaluated when it is accessed by the `stream-cdr` procedure rather
     than when the stream is constructed.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在使用流时构造流，我们将安排流的 cdr 在被 `stream-cdr` 过程访问时评估，而不是在流构造时评估。
 - en: As a data abstraction, streams are the same as lists. The difference is the
     time at which the elements are evaluated. With ordinary lists, both the `car`
     and the `cdr` are evaluated at construction time. With streams, the cdr isn't
     evaluated until selection time.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为数据抽象，流与列表相同。区别在于元素评估的时间。对于普通列表，`car` 和 `cdr` 在构造时都会被评估。对于流而言，cdr 在选择时才会被评估。
 - en: Our implementation of streams will be based on a special form called `delay`.
     Evaluating `(delay [exp])` does not evaluate the expression [exp], but rather
     returns a so-called delayed object, which we can think of as a "promise" to evaluate
@@ -37,180 +51,280 @@
     `force` that takes a delayed object as argument and performs the evaluation --
     in effect, forcing the delay to fulfill its promise. We will see below how `delay`
     and `force` can be implemented, but first let us use these to construct streams.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们对流的实现将基于一个称为 `delay` 的特殊形式。评估 `(delay [exp])` 不会评估表达式 [exp]，而是返回一个所谓的延迟对象，我们可以将其视为在将来某个时间评估
+    [exp] 的“承诺”。作为 `delay` 的伴随，有一个名为 `force` 的过程，它以延迟对象作为参数执行评估 -- 实际上，强制延迟实现其承诺。我们将在下面看到如何实现
+    `delay` 和 `force`，但首先让我们使用它们来构建流。
 - en: '`cons-stream` is a special form such that `(cons-stream [a] [b])` is equivalent
     to `(cons [a] (delay [b]))`.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '`cons-stream` 是这样一个特殊形式，使得 `(cons-stream [a] [b])` 等价于 `(cons [a] (delay [b]))`。'
 - en: 'This means that we will construct using pairs of `cars` and delayed `cdrs`.
     These will be our `stream-car` and `stream-cdr` procedures:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着我们将使用对 `car` 和延迟的 `cdr` 进行成对构造。这些将是我们的 `stream-car` 和 `stream-cdr` 过程：
 - en: '[PRE0]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Note that `cons-stream` is a special form. If it weren't, calling `(cons-stream
     a b)` would evaluate `b`, meaning `b` wouldn't be delayed.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意 `cons-stream` 是一个特殊形式。如果不是的话，调用 `(cons-stream a b)` 将会评估 `b`，这意味着 `b` 将不会延迟。
 - en: '`the-empty-stream`'
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '`the-empty-stream`'
 - en: There is a distinguishable object, `the-empty-stream`, which cannot be the result
     of any `cons-stream` operation, and which can be identified with the predicate
     `stream-null?`.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个可区分的对象，`the-empty-stream`，它不能是任何 `cons-stream` 操作的结果，并且可以用谓词 `stream-null?`
+    来识别。
 - en: Stream Analogs of List Procedures
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 列表程序的流类比
 - en: We can make and use streams, in just the same way as we can make and use lists,
     to represent aggregate data arranged in a sequence. In particular, we can build
     stream analogs of `list-ref`, `map`, `for-each`, and so on.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以制作和使用流，就像我们可以制作和使用列表一样，以表示按顺序排列的聚合数据。特别是，我们可以构建 `list-ref`、`map`、`for-each`
+    等的流类比。
 - en: '`stream-ref`'
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '`stream-ref`'
 - en: '[PRE1]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: If we define x as
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们定义 x 为
 - en: '[PRE2]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: then `(stream-ref x 0)` returns 0 and `(stream-ref x 2)` returns 2. (Note that
     n starts counting from 0)
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么 `(stream-ref x 0)` 返回 0，`(stream-ref x 2)` 返回 2。（注意 n 从 0 开始计数）
 - en: '`stream-map`'
+  id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '`stream-map`'
 - en: '[PRE3]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: If x is the same as above, then `(stream-map square x)` returns a stream with
     `(0 1 4)`
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 x 与上面相同，那么 `(stream-map square x)` 将返回一个包含 `(0 1 4)` 的流
 - en: '`stream-for-each`'
+  id: totrans-24
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '`stream-for-each`'
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '`stream-for-each` is useful for viewing streams. The following may be helpful
     for checking what''s going on:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stream-for-each` 用于查看流很有用。以下可能有助于检查发生了什么：'
 - en: '[PRE5]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Computation Using Streams
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用流进行计算
 - en: 'Let''s take another look at the second prime computation we saw earlier, reformulated
     in terms of streams:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次看一下我们之前看到的第二个素数计算，用流的术语重新表述：
 - en: '[PRE6]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: So we begin by calling `stream-enumerate-interval` with the arguments 10,000
     and 1,000,000\. This creates a stream of the numbers from 10,000 to 1,000,000.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以我们首先用参数 10,000 和 1,000,000 调用 `stream-enumerate-interval`。这将创建一个从 10,000 到
+    1,000,000 的数字流。
 - en: '[PRE7]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The result returned is `(cons 10000 (delay (stream-enumerate-interval 10001
     1000000)))` This is a stream represented as a pair whose `car` is 10,000 and whose
     `cdr` is a promise to enumerate more of the interval if it becomes necessary.
     Now we filter it using `stream-filter`
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回的结果是 `(cons 10000 (delay (stream-enumerate-interval 10001 1000000)))` 这是一个流，表示为一个对，其
+    `car` 是 10,000，`cdr` 是一个承诺，如果有必要，将枚举更多的区间。现在我们使用 `stream-filter` 进行过滤
 - en: '[PRE8]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '`stream-filter` tests the `stream-car` of the stream (the car of the pair,
     which is 10,000). Since this is not prime, `stream-filter` examines the `stream-cdr`
     of its input stream. The call to `stream-cdr` forces evaluation of the delayed
     `stream-enumerate-interval`, which now returns'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stream-filter` 测试流的 `stream-car`（对偶的 car，即 10,000）。由于这不是素数，`stream-filter`
+    检查其输入流的 `stream-cdr`。对 `stream-cdr` 的调用强制评估延迟的 `stream-enumerate-interval`，现在返回'
 - en: '[PRE9]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '`stream-filter` now looks at the `stream-car` of this stream, 10,001, sees
     that this is not prime either, forces another `stream-cdr`, and so on, until `stream-enumerate-interval`
     yields the prime 10,007, whereupon `stream- filter`, according to its definition,
     returns'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stream-filter` 现在查看这个流的 `stream-car`，10,001，看到这也不是素数，强制另一个 `stream-cdr`，依此类推，直到
+    `stream-enumerate-interval` 产生素数 10,007，然后根据其定义，`stream-filter` 返回'
 - en: '[PRE10]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: which is
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是
 - en: '[PRE11]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: This result is now passed to `stream-cdr` in our original expression. This forces
     the delayed `stream-filter`, which in turn keeps forcing the delayed `stream-enumerate-interval`
     until it finds the next prime, which is 10,009. Finally, the result passed to
     `stream-car` in our original expression is
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在将此结果传递给我们原始表达式中的 `stream-cdr`。这强制了延迟的 `stream-filter`，进而保持强制延迟的 `stream-enumerate-interval`，直到找到下一个素数，即
+    10,009。最后，传递给我们原始表达式中的 `stream-car` 的结果是
 - en: '[PRE12]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '`Stream-car` returns 10,009, and the computation is complete. Only as many
     integers were tested for primality as were necessary to find the second prime,
     and the interval was enumerated only as far as was necessary to feed the prime
     filter.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Stream-car` 返回 10,009，并且计算完成。只有测试了必要数量的整数以找到第二个素数，并且只枚举了必要的区间来提供素数筛选器。'
 - en: Implementing `delay` and `force`
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现 `delay` 和 `force`
 - en: Although `delay` and `force` may seem like mysterious operations, their implementation
     is really quite straightforward. `delay` must package an expression so that it
     can be evaluated later on demand, and we can accomplish this simply by treating
     the expression as the body of a procedure. `delay` can be a special form such
     that
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 `delay` 和 `force` 可能看起来像神秘的操作，但它们的实现实际上非常简单。`delay` 必须封装一个表达式，以便以后按需评估，我们可以简单地将表达式视为过程的主体来实现这一点。`delay`
+    可以是一个特殊形式，如下
 - en: '[PRE13]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: is syntactic sugar for
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 是语法糖，等同于
 - en: '[PRE14]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '`force` simply calls the procedure (of no arguments) produced by `delay`, so
     we can implement `force` as a procedure:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '`force` 简单地调用由 `delay` 生成的过程（无参数），因此我们可以将 `force` 实现为一个过程：'
 - en: '[PRE15]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Again, note the importance of `delay` being a special form. If it is not, then
     when we call `(delay b)`, `b` will be evaluated before we evaluate the body.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次注意 `delay` 作为特殊形式的重要性。如果不是，那么当我们调用 `(delay b)` 时，`b` 将在我们评估主体之前被评估。
 - en: This implementation suffices for `delay` and `force` to work as advertised,
     but there is an important optimization that we can include. In many applications,
     we end up forcing the same delayed object many times. This can lead to serious
@@ -222,43 +336,68 @@
     takes as argument a procedure (of no arguments) and returns a memoized version
     of the procedure. The first time the memoized procedure is run, it saves the computed
     result. On subsequent evaluations, it simply returns the result.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种实现足以使 `delay` 和 `force` 正常工作，但我们可以包含一个重要的优化。在许多应用程序中，我们最终会多次强制相同的延迟对象。这可能导致涉及流的递归程序严重低效。解决方案是构建延迟对象，以便第一次强制它们时，它们存储计算的值。后续的强制将简单地返回存储的值，而不重复计算。换句话说，我们将
+    `delay` 实现为一个特殊用途的记忆化过程。实现这一点的一种方法是使用以下过程，该过程以一个过程（无参数）作为参数，并返回该过程的记忆化版本。第一次运行记忆化过程时，它保存计算结果。在后续的评估中，它只是返回结果。
 - en: '[PRE16]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '`Delay` is then defined so that (delay [exp]) is equivalent to'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Delay` 然后被定义为（delay [exp]）等同于'
 - en: '[PRE17]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: and `force` is unchanged
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 而`force`保持不变
 - en: Takeaways
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 收获
 - en: 'In this section, you learned:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，你学到了：
 - en: What a stream is
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 流是什么样的
 - en: Some useful applications of streams
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 流的一些有用应用
 - en: How to implement `delay` and `force`
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何实现`delay`和`force`
 - en: What's Next?
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 接下来呢？
 - en: Let's go to the next subsection and learn about infinite lists!
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们继续下一小节，学习无限列表！
