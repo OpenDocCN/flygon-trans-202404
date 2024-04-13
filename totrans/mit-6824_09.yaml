@@ -1,1181 +1,1745 @@
 - en: DSM and Sequential Consistency
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: DSM 和顺序一致性
 - en: '6.824 2015 Lecture 9: DSM and Sequential Consistency'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 9 讲：DSM 和顺序一致性
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：** 这些讲义稍作修改，来自 2015 年春季的 6.824 课程网站上发布的讲义。'
 - en: '**Topic:** Distributed computing'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '**主题：** 分布式计算'
 - en: parallel computing on distributed machines
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在分布式机器上进行并行计算
 - en: 4 papers on how to use a collection of machines to solve big computational problems
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 4 篇关于如何使用一组机器解决大型计算问题的论文
 - en: 'we already read one of them: MapReduce'
+  id: totrans-6
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们已经阅读了其中一个：MapReduce
 - en: 3 other papers (IVY, TreadMarks, and Spark)
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另外 3 篇论文（IVY、TreadMarks 和 Spark）
 - en: two provide a general-purpose memory model
+  id: totrans-8
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两者提供通用内存模型
 - en: Spark is in MapReduce style
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Spark 类似于 MapReduce 风格
 - en: Distributed Shared Memory (DSM) programming model
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分布式共享内存（DSM）编程模型
 - en: Adopt the same programming model that multiprocessors offer
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 采用多处理器提供的相同编程模型
 - en: Programmers can use locks and shared memory
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序员可以使用锁和共享内存
 - en: Programmers are familiar with this model
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序员熟悉这种模型
 - en: e.g., like goroutines sharing memory
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，像 goroutines 一样共享内存
 - en: General purpose
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通用型
 - en: e.g., no restrictions like with MapReduce
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，不像 MapReduce 那样有限制
 - en: Applications that run on a multiprocessor can run on IVY/TreadMarks
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在多处理器上运行的应用程序可以在 IVY/TreadMarks 上运行
 - en: '**Challenge:** distributed systems don''t have physical shared memory'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**挑战：** 分布式系统没有物理共享内存'
 - en: On a network of cheap machines
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在一组廉价机器的网络上
 - en: '[diagram: LAN, machines w/ RAM, MGR]'
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[图示：LAN，带有 RAM 的机器，MGR]'
 - en: 'Diagram:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 图示：
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Diagram:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 图示：
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**Approach:**'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '**方法：**'
 - en: Simulate shared memory using hardware support for virtual memory
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用硬件支持的虚拟内存模拟共享内存
 - en: 'General idea illustrated with 2 machines:'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用 2 台机器阐明的一般思路：
 - en: Part of the address space maps a part of M0's physical memory
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 地址空间的一部分映射到 M0 的物理内存的一部分
 - en: On M0 it maps to the M0's physical page
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 M0 上，映射为 M0 的物理页
 - en: On M1 it maps to not present
+  id: totrans-30
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 M1 上，映射为不存在
 - en: Part of the address space maps a part of M1's physical memory
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 地址空间的一部分映射到 M1 的物理内存的一部分
 - en: On M0 it maps to not present
+  id: totrans-32
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 M0 上，映射为不存在
 - en: On M1 it maps to its physical memory
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 M1 上，映射到其物理内存
 - en: A thread of the application on M1 may refer to an address that lives on M0
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 上的应用程序线程可能引用位于 M0 上的地址
 - en: If thread LD/ST to that "shared" address, M1's hardware will take a page fault
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果线程 LD/ST 到那个“共享”地址，M1 的硬件将发生页错误
 - en: Because page is mapped as not present
+  id: totrans-36
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为页被映射为不存在
 - en: OS propagates page fault to DSM runtime
+  id: totrans-37
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作系统将页错误传播到 DSM 运行时
 - en: DSM runtime can fetch page from M0
+  id: totrans-38
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: DSM 运行时可以从 M0 获取页面
 - en: DSM on M0, maps page not present, and sends page to M1
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M0 上的 DSM，将页映射为不存在，并将页发送到 M1
 - en: DSM on M1 receives it from M0, copies it somewhere in memory (say address 4096)
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 上的 DSM 从 M0 接收到，将其复制到内存的某处（比如地址 4096）
 - en: DSM on M1 maps the shared address to physical address 4096
+  id: totrans-41
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 上的 DSM 将共享地址映射到物理地址 4096
 - en: DSM returns from page fault handler
+  id: totrans-42
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: DSM 从页错误处理程序返回
 - en: Hardware retries LD/ST
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 硬件重试 LD/ST
 - en: Runs threaded code w/o modification
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行多线程代码而无需修改
 - en: e.g. matrix multiply, physical simulation, sort
+  id: totrans-45
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如矩阵乘法、物理模拟、排序
 - en: '**Challenges:**'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '**挑战：**'
 - en: How to implement it efficiently?
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何高效实现它？
 - en: IVY and Treadmarks
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IVY 和 Treadmarks
 - en: How to provide fault tolerance?
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何提供容错性？
 - en: Many DSMs [punt](https://www.google.com/search?q=punt&oq=punt) on this
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多 DSM（分布式共享内存系统）对此进行了折中处理
 - en: Some DSM checkpoint the whole memory periodically
+  id: totrans-51
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些 DSM 定期对整个内存进行检查点
 - en: We will return to this when talking about Spark
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们在谈论 Spark 时会回到这个问题上
 - en: '**Correctness: coherence**'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '**正确性：一致性**'
 - en: We need to articulate what is correctness before optimizing performance
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在优化性能之前，我们需要明确什么是正确的
 - en: Optimizations should preserve correctness
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优化应该保证正确性
 - en: Less obvious than it may seem!
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比看起来不那么明显！
 - en: Choice trades off between performance and programmer-friendliness
+  id: totrans-57
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择在性能和程序员友好性之间权衡
 - en: Huge factor in many designs
+  id: totrans-58
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这在许多设计中是一个巨大的因素
 - en: More in next lecture
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更多内容将在下一讲中介绍
 - en: Today's paper assumes a simple model
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 今天的论文假设了一个简单的模型
 - en: The distributed memory should behave like a single memory
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分布式内存应该表现得像单一内存
 - en: Load/stores much like put/gets in labs 2-4
+  id: totrans-62
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Load/stores 类似于实验 2-4 中的 put/gets
 - en: '**Example 1:**'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**示例 1：**'
 - en: '[PRE2]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Naive distributed shared memory
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 幼稚的分布式共享内存
 - en: '**Diagram 1:**'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图示 1：**'
 - en: M0, M1, M2, LAN
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M0、M1、M2、LAN
 - en: each machine has a local copy of all of memory
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台机器都有所有内存的本地副本
 - en: 'read: from local memory'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取：来自本地内存
 - en: 'write: send update msg to each other host (but don''t wait)'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 写入：向其他主机发送更新消息（但不等待）
 - en: 'fast: never waits for communication'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 快速：从不等待通信
 - en: Does this naive memory work well?
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种天真的记忆是否有效？
 - en: What will it do with [Example 1](#example-1)?
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它会对 [示例 1](#example-1) 做什么？
 - en: It can fail because M0 and M1 could not see the writes by the time their `if`
     statements are reached so they will both print *yes*.
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它可能会失败，因为 M0 和 M1 在到达它们的 `if` 语句时可能无法看到写入，因此它们都会打印*是*。
 - en: Naive distributed memory is fast but incorrect
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 天真的分布式内存快速但不正确
 - en: 'Diagram (broken scheme):'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 图表（破碎的方案）：
 - en: '[PRE3]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: M0 does write locally and tells other machines about the write after it has
     done it
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M0 在本地写入并在完成后告知其他机器
 - en: imagine what output you would get instead of 9, if each machine was running
     a program that incremented the value at address A 3 times
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想象一下，如果每台机器都运行一个将地址 A 处的值增加 3 次的程序，您将获得什么输出
 - en: Coherence = *sequential consistency*
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 一致性=*顺序一致性*
 - en: '"Read sees *most recent* write" is not clear enough when you have multiple
     processes'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当你有多个进程时，“读取看到*最新*写入”的表述不够清晰
 - en: Need to nail down correctness a bit more precisely
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要更加精确地确定正确性
 - en: 'Sequential consistency means:'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 顺序一致性意味着：
 - en: The result of any execution is the same as if
+  id: totrans-84
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任何执行的结果都与如果相同
 - en: the operations of all the processors were executed in some sequential order
     (total order)
+  id: totrans-85
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有处理器的操作按某种顺序（总顺序）执行
 - en: and the operations of each individual processor appear in this sequence in the
     order specified by its program
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并且每个单独处理器的操作以其程序指定的顺序出现在此顺序中
 - en: (if P says A before B, you can't have B; A; show up in that seq. order)
+  id: totrans-87
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （如果 P 在 B 之前说 A，那么在该顺序中不能有 B; A; 出现）
 - en: and read sees last write in total order
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并且读取在总顺序中看到上次写入
 - en: There must be some total order of operations such that
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须存在某些操作的总顺序，使得
 - en: Each machine's instructions appear in-order in the order
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每台机器的指令按顺序出现在顺序中
 - en: All machines see results consistent with that order
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 所有机器看到与该顺序一致的结果
 - en: i.e. reads see most recent write in the order
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即读取以顺序中的最新写入为准
 - en: Behavior of a single shared memory
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单个共享内存的行为
 - en: Would sequential consistency cause our example to get the intuitive result?
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺序一致性是否会导致我们的示例获得直观的结果？
 - en: 'Sequence:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺序：
 - en: '[PRE4]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The system is required to merge these into one order, and to maintain the order
     of each machine's operations.
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 系统需要将这些合并为一个顺序，并保持每台机器操作的顺序。
 - en: 'So there are a few possibilities:'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以有几种可能性：
 - en: '`Wx1 Ry0 Wy1 Rx1`'
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Wx1 Ry0 Wy1 Rx1`'
 - en: '`Wx1 Wy1 Ry1 Rx1`'
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Wx1 Wy1 Ry1 Rx1`'
 - en: '`Wx1 Wy1 Rx1 Ry1`'
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Wx1 Wy1 Rx1 Ry1`'
 - en: others too, but all symmetric?
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其他人也是，但都是对称的吗？
 - en: What is forbidden?
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 什么是被禁止的？
 - en: '`Wx1 Ry0 Wy1 Rx0` -- Rx0 read didn''t see preceding Wx1 write (naive system
     did this)'
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Wx1 Ry0 Wy1 Rx0` -- Rx0 读取未看到前面的 Wx1 写入（天真的系统这样做了）'
 - en: '`Ry0 Wy1 Rx0 Wx1` -- M0''s instructions out of order (some CPUs do this)'
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Ry0 Wy1 Rx0 Wx1` -- M0 的指令顺序错误（一些 CPU 这样做）'
 - en: Go's memory consistency model
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: Go 的内存一致性模型
 - en: What is Go's semantics for the example?
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go 对示例的语义是什么？
 - en: Go would allow both goroutines to print "yes"!
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go 将允许两个 goroutine 都打印“是”！
 - en: Go race detector wouldn't like the example program anyway
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go 的竞争检测器无论如何都不会喜欢示例程序
 - en: Programmer is *required* to use locks/channels to get sensible semantics
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序员*必须*使用锁定/通道来获取合理的语义
 - en: Go doesn't require the hardware/DSM to implement strict consistency
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go 不要求硬件/DSM 实现严格一致性
 - en: More about weaker consistency on Thursday
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于更弱一致性的详细内容将于星期四讨论
 - en: 'Example:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '[PRE5]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Go's memory model tells you if thread A will see the write to x if it has seen
     the write to y
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果线程 A 看到了对 y 的写入，Go 的内存模型告诉你线程 A 是否会看到对 x 的写入
 - en: In Go, there's no guarantee x's write will be seen if y was written
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Go 中，如果 y 已被写入，就不能保证 x 的写入会被看到
 - en: A simple implementation of sequential consistency
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺序一致性的简单实现
 - en: 'A straightforward way to get sequential consistency: Just have a manager in
     between the two or three machines that interleaves their instructions'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 获得顺序一致性的一种直接方法：在两台或三台机器之间添加一个管理器，将它们的指令交错执行
 - en: '[PRE6]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '**Diagram 2:**'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图表 2：**'
 - en: '[PRE7]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: single memory server
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单个内存服务器
 - en: each machine sends r/w ops to server, in order, waiting for reply
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台机器按顺序将 r/w 操作发送到服务器，等待回复
 - en: server picks order among waiting ops
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器从等待操作中选择顺序
 - en: server executes one by one, sending replies
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器逐个执行，发送回复
 - en: 'big ideas:'
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大的思路：
 - en: if people just read some data, we can replicate it on all of them
+  id: totrans-127
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果人们只是读取一些数据，我们可以在所有人上复制它
 - en: if someone writes data, we need to prevent other people from writing it
+  id: totrans-128
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有人写入数据，我们需要阻止其他人写入它
 - en: so we take the page out of those other people's memory
+  id: totrans-129
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以我们借鉴了其他人的记忆
 - en: This simple implementation will be slow
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种简单的实现将会很慢
 - en: single server will get overloaded
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单个服务器将会过载
 - en: no local cache, so all operations wait for server
+  id: totrans-132
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有本地缓存，因此所有操作都等待服务器
 - en: Which brings us to **IVY**
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 这让我们谈到了 **IVY**
 - en: 'IVY: Integrated shared Virtual memory at Yale'
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IVY：耶鲁大学集成共享虚拟内存
 - en: Memory Coherence in Shared Virtual Memory Systems, Li and Hudak, PODC 1986
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 共享虚拟内存系统中的内存一致性，Li 和 Hudak，PODC 1986
 - en: IVY big picture
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY 的大局观
 - en: '[PRE8]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Operates on pages of memory, stored in machine DRAM (no mem server)
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作内存页，存储在机器 DRAM 中（没有内存服务器）
 - en: Each page present in each machine's virtual address space
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个页面都存在于每台机器的虚拟地址空间中
 - en: On each a machine, a page might be invalid, read-only, or read-write
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台机器上，页面可能无效、只读或读写
 - en: Uses VM hardware to intercept reads/writes
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用虚拟内存硬件拦截读取/写入
 - en: 'Invariant:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 不变量：
 - en: 'A page is either:'
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 页面要么是：
 - en: Read/write on one machine, invalid on all others; or
+  id: totrans-144
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在一个机器上读/写，所有其他机器无效；或
 - en: Read/only on $\geq 1$ machines, read/write on none
+  id: totrans-145
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 $\geq 1$ 台机器上只读，无读写
 - en: 'Read fault on an invalid page:'
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在无效页面上的读取故障：
 - en: Demote R/W (if any) to R/O
+  id: totrans-147
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 降级 R/W（如果有的话）为 R/O
 - en: Copy page
+  id: totrans-148
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制页面
 - en: Mark local copy R/O
+  id: totrans-149
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标记本地副本 R/O
 - en: 'Write fault on an R/O page:'
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在只读页面上的写故障：
 - en: Invalidate all copies
+  id: totrans-151
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使所有副本无效
 - en: Mark local copy R/W
+  id: totrans-152
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标记本地副本 R/W
 - en: IVY allows multiple reader copies between writes
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY 允许在写入之间存在多个读取者副本
 - en: For speed -- local reads are fast
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了速度 - 本地读取速度快
 - en: No need to force an order for reads that occur between two writes
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不需要强制读取顺序，该顺序发生在两次写入之间的读取中
 - en: Let them occur concurrently -- a copy of the page at each reader
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让它们同时发生 - 每个读者都有页面的副本
 - en: Why crucial to invalidate all copies before write?
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么在写入之前必须使所有副本无效？
 - en: Once a write completes, all subsequent reads *must* see new data
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦写入完成，所有后续读取*必须*看到新数据
 - en: Otherwise we break our example, and don't get sequential consistency
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，我们会破坏我们的示例，并且无法获得顺序一致性
 - en: How does IVY do on the example?
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY 在示例中的表现如何？
 - en: I.e. could both M0 and M1 print "yes"?
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即，M0 和 M1 可以同时打印 “是” 吗？
 - en: If M0 sees y == 0,
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 M0 看到 y == 0，
 - en: M1 hasn't done ites write to y (no stale data == reads see prior writes),
+  id: totrans-163
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 尚未将其写入 y（无陈旧数据 == 读取先前写入的数据），
 - en: M1 hasn't read x (each machine in order),
+  id: totrans-164
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 尚未读取 x（每台机器按顺序），
 - en: M1 must see x == 1 (no stale data == reads see prior writes).
+  id: totrans-165
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: M1 必须看到 x == 1（无陈旧数据 == 读取先前写入的数据）。
 - en: 'Message types:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 消息类型：
 - en: '[don''t list these on board, just for reference]'
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[不要在板上列出这些，仅供参考]'
 - en: RQ read query (reader to manager (MGR))
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RQ 读取查询（读取者到管理器（MGR））
 - en: RF read forward (MGR to owner)
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RF 读取转发（MGR 到所有者）
 - en: RD read data (owner to reader)
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RD 读取数据（所有者到读取者）
 - en: RC read confirm (reader to MGR)
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RC 读取确认（读取者到 MGR）
 - en: '&c'
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 等等
 - en: (see [ivy-code.txt](code/ivy-code.txt) on web site)
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: （参见[ivy-code.txt](code/ivy-code.txt)网站上的文件）
 - en: 'Scenario 1: M0 has writeable copy, M1 wants to read'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 情景 1：M0 有可写副本，M1 想要读取
 - en: '**Diagram 3:**'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 3：**'
 - en: '[PRE9]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: M1 tries to read gets a page fault
+  id: totrans-177
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M1 尝试读取得到页面错误
 - en: b.c. page must have been marked invalid since M0 has it for R/W (see invariant
     described earlier)
+  id: totrans-178
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为必须将页面标记为无效，所以 M0 拥有它以进行 R/W（请参阅前面描述的不变量）
 - en: M1 sends RQ to MGR
+  id: totrans-179
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M1 发送 RQ 到 MGR
 - en: MGR sends RF to M0, MGR adds M1 to `copy_set`
+  id: totrans-180
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: MGR 将 RF 发送到 M0，MGR 将 M1 添加到 `copy_set`
 - en: What is `copy_set`?
+  id: totrans-181
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 什么是 `copy_set`？
 - en: '"The `copy_set` field lists all processors that have copies of the page. This
     allows an invalidation operation to be performed without using broadcast."'
+  id: totrans-182
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “`copy_set` 字段列出了所有具有页面副本的处理器。这允许执行无需广播的失效操作。”
 - en: M0 marks page as $access = read$, sends RD to M1
+  id: totrans-183
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M0 标记页面为 $access = read$，发送 RD 到 M1
 - en: M1 marks $access = read$, sends RC to MGR
+  id: totrans-184
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M1 标记 $access = read$，发送 RC 到 MGR
 - en: 'Scenario 2: now M2 wants to write'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 情景 2：现在 M2 想要写入
 - en: '**Diagram 4:**'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 4：**'
 - en: '[PRE10]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Page fault on M2
+  id: totrans-188
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M2 上的页面故障
 - en: M2 sends WQ to MGR
+  id: totrans-189
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M2 发送 WQ 到 MGR
 - en: MGR sends IV to copy_set (i.e. M1)
+  id: totrans-190
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: MGR 发送 IV 到 copy_set（即 M1）
 - en: M1 sends IC msg to MGR
+  id: totrans-191
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M1 发送 IC 消息到 MGR
 - en: MGR sends WF to M0, sets owner=M2, copy_set={}
+  id: totrans-192
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: MGR 将 WF 发送到 M0，设置 owner=M2，copy_set={}
 - en: M0 sends WD to M2, access=none
+  id: totrans-193
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M0 向 M2 发送 WD，访问=无
 - en: M2 marks r/w, sends WC to MGR
+  id: totrans-194
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: M2 标记 r/w，发送 WC 到 MGR
 - en: '**Q:** What if two machines want to write the same page at the same time?'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 如果两台机器同时想要写入同一页怎么办？'
 - en: '**Q:** What if one machine reads just as ownership is changing hands?'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Q：** 如果一台机器在所有权转移时刚好读取了怎么办？'
 - en: Does IVY provide strict consistency?
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY 是否提供严格一致性？
 - en: 'no: MGR might process two STs in order opposite to issue time'
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不：MGR 可能按照与发出时间相反的顺序处理两个 ST
 - en: 'no: ST may take a long time to revoke read access on other machines'
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不：ST 可能需要很长时间来撤销其他机器上的读取访问权限
 - en: so LDs may get old data long after the ST issues
+  id: totrans-200
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此 LDs 可能长时间获取到过时的数据，之后才发出 ST
 - en: What if there were no IC message?
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有 IC 消息会怎样？
 - en: '**TODO:** What is IC?'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '**待办事项：** IC 是什么？'
 - en: (this is the new Question)
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （这是新问题）
 - en: i.e. MGR didn't wait for holders of copies to ACK?
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即 MGR 没有等待副本持有者确认？
 - en: No WC?
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有 WC？
 - en: '**TODO:** What is WC?'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: '**待办事项：** WC 是什么？'
 - en: (this used to be The Question)
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （这曾经是问题）
 - en: e.g. MGR unlocked after sending WF to M0?
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，MGR在将WF发送到M0后解锁？
 - en: MGR would send subsequent RF, WF to M2 (new owner)
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MGR将后续的RF，WF发送到M2（新所有者）
 - en: What if such a WF/RF arrived at M2 before WD?
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果这样的WF/RF在WD之前到达M2会怎样？
 - en: No problem! M2 has `ptable[p].lock` locked until it gets WD
+  id: totrans-211
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没问题！M2在获得WD之前一直锁定`ptable[p].lock`
 - en: RC + `info[p].lock` prevents RF from being overtaken by a WF
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RC + `info[p].lock`防止RF被WF超越
 - en: so it's not clear why WC is needed!
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此不清楚为什么需要WC！
 - en: but I am not confident in this conclusion
+  id: totrans-214
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但我对这个结论不太有信心
 - en: What if there were no RC message?
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有RC消息会怎样？
 - en: i.e. MGR unlocked after sending RF?
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即MGR在发送RF后解锁？
 - en: could RF be overtaken by subsequent WF?
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: RF是否会被后续的WF超越？
 - en: or by a subsequent IV?
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者受后续IV的限制？
 - en: In what situations will IVY perform well?
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY在哪些情况下表现良好？
 - en: Page read by many machines, written by none
+  id: totrans-220
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 页面被许多机器读取，但没有被写入
 - en: Page written by just one machine at a time, not used at all by others
+  id: totrans-221
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每次只有一台机器写入页面，其他机器根本不使用
 - en: Cool that IVY moves pages around in response to changing use patterns
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY以响应不断变化的使用模式移动页面的方式很酷
 - en: Will page size of e.g. 4096 bytes be good or bad?
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，页面大小为4096字节是好还是坏？
 - en: good if spatial locality, i.e. program looks at large blocks of data
+  id: totrans-224
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有空间局部性，即程序查看大块数据会怎样？
 - en: bad if program writes just a few bytes in a page
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果程序只在一页中写入少量字节会怎样？
 - en: subsequent readers copy whole page just to get a few new bytes
+  id: totrans-226
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 后续��取者为了获取一些新字节而复制整个页面
 - en: bad if false sharing
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果存在虚假共享会很糟糕
 - en: i.e. two unrelated variables on the same page
+  id: totrans-228
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即两个不相关的变量在同一页上
 - en: and at least one is frequently written
+  id: totrans-229
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并且至少有一个频繁写入
 - en: page will bounce between different machines
+  id: totrans-230
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 页面将在不同机器之间反弹
 - en: even read-only users of a non-changing variable will get invalidations
+  id: totrans-231
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使只读取不变量的用户也会收到失效
 - en: even though those computers never use the same location
+  id: totrans-232
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使这些计算机从不使用相同的位置
 - en: What about IVY's performance?
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: IVY的表现如何？
 - en: after all, the point was speedup via parallelism
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 毕竟，目的是通过并行性获得加速
 - en: What's the best we could hope for in terms of performance?
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 在性能方面，我们能期望什么是最好的？
 - en: $N \times$ faster on N machines
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在N台机器上，速度提高N倍
 - en: What might prevent us from getting $N \times$ speedup?
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么可能阻止我们获得N倍速度提升？
 - en: Application is inherently non-scalable
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序固有地不可扩展
 - en: Can't be split into parallel activities
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不能分割成并行活动
 - en: Application communicates too many bytes
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序通信的字节数太多
 - en: So network prevents more machines yielding more performance
+  id: totrans-241
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，网络阻止了更多机器产生更多性能
 - en: Too many small reads/writes to shared pages
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对共享页面进行太多小读/写
 - en: 'Even if # bytes is small, IVY makes this expensive'
+  id: totrans-243
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使字节数很少，IVY也会使其变得昂贵
 - en: How well do they do?
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们的表现如何？
 - en: 'Figure 4: near-linear for PDE (partial derivative equations)'
+  id: totrans-245
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图4：对于PDE（偏微分方程）几乎是线性的
 - en: 'Figure 6: very sub-linear for sort'
+  id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图6：排序对于非常次线性
 - en: sorting a huge array involves moving a lot of data
+  id: totrans-247
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对一个巨大数组进行排序涉及移动大量数据
 - en: almost certain to move all data over the network at least once
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 几乎肯定会至少将所有数据通过网络传输一次
 - en: 'Figure 7: near-linear for matrix multiply'
+  id: totrans-249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图7：矩阵乘法几乎是线性的
 - en: in general, you end up being limited by network throughput for instance when
     reading a lot of pages
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一般来说，当读取大量页面时，你最终会受到网络吞吐量的限制
 - en: Why did sort do poorly?
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么排序表现不佳？
 - en: Here's my guess
+  id: totrans-252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是我的猜测
 - en: N machines, data in 2*N partitions
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: N台机器，数据分为2*N个分区
 - en: 'Phase 1: Local sort of 2*N partitions for N machines'
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第1阶段：对于N台机器，本地排序2*N个分区
 - en: 'Phase 2: 2N-1 merge-splits; each round sends all data over network'
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第2阶段：2N-1次合并分裂；每轮次将所有数据发送到网络
 - en: Phase 1 probably gets linear speedup
+  id: totrans-256
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第1阶段可能会获得线性速度提升
 - en: Phase 2 probably does not -- limited by LAN speed
+  id: totrans-257
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第2阶段可能不会 -- 受限于局域网速度
 - en: also more machines may mean more rounds
+  id: totrans-258
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同样，更多机器可能意味着更多轮次
 - en: 'So for small # machines, local sort dominates, more machines helps'
+  id: totrans-259
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此对于少量机器，本地排序占主导地位，更多机器有助于提高性能
 - en: 'For large # machines, communication dominates, more machines don''t help'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于大量机器，通信占主导地位，更多机器并不会有所帮助
 - en: Also, more machines shifts from n*log(n) local sort to n^2 bubble-ish short
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 此外，更多机器从n*log(n)本地排序转移到n^2冒泡式排序
 - en: How could one speed up IVY?
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何加快IVY的速度？
 - en: 'next lecture: relax the consistency model'
+  id: totrans-263
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 下一堂课：放宽一致性模型
 - en: allow multiple writers to same page!
+  id: totrans-264
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许多个写者写入同一页！
 - en: Paper intro says DSM subsumes RPC -- is that true?
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文介绍称DSM包含RPC -- 这是真的吗？
 - en: When would DSM be better than RPC?
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 何时DSM比RPC更好？
 - en: More transparent. Easier to program.
+  id: totrans-267
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更透明。更易编程。
 - en: When would RPC be better?
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 何时RPC更好？
 - en: Isolation. Control over communication. Tolerate latency.
+  id: totrans-269
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 隔离。控制通信。容忍延迟。
 - en: Portability. Define your own semantics.
+  id: totrans-270
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可移植性。定义自己的语义。
 - en: Abstraction?
+  id: totrans-271
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 抽象？
 - en: Might you still want RPC in your DSM system? For efficient sleep/wakeup?
+  id: totrans-272
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在您的 DSM 系统中可能仍然希望使用 RPC 吗？ 为了高效的休眠/唤醒？
 - en: Known problems in Section 3.1 pseudo-code
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 第 3.1 节伪代码中的已知问题
 - en: Fault handlers must wait for owner to send `p` before confirming to manager
+  id: totrans-274
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 故障处理程序必须等待所有者发送 `p` 然后再向管理器确认
 - en: Deadlock if owner has page R/O and takes write fault
+  id: totrans-275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果所有者具有只读页面并且发生写入错误，则会发生死锁
 - en: Worrisome that no clear order `ptable[p].lock` vs `info[p].lock`
+  id: totrans-276
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 令人担忧的是没有明确的顺序 `ptable[p].lock` 与 `info[p].lock`
 - en: 'TODO: Whaaaat?'
+  id: totrans-277
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 待办事项：嗯？
 - en: Write server / manager must set `owner = request_node`
+  id: totrans-278
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编写服务器/管理器必须设置 `owner = request_node`
 - en: Manager parts of fault handlers don't ask owner for the page
+  id: totrans-279
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 故障处理程序的管理器部分不会向所有者请求页面
 - en: Does processing of the invalidate request hold `ptable[p].lock?`
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 处理失效请求是否持有 `ptable[p].lock`？
 - en: probably can't -- deadlock
+  id: totrans-281
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能不行 -- 死锁

@@ -1,1386 +1,2004 @@
 - en: Harp
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Harp
 - en: '6.824 2015 Lecture 8: Harp'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015年第8讲：Harp
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲座笔记是从2015年春季6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)上发布的内容稍作修改。'
 - en: 'Paper: [Replication in the Harp File System](papers/bliskov-harp.pdf)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文：[Harp文件系统中的复制](papers/bliskov-harp.pdf)
 - en: Liskov, Ghemawat, Gruber, Johnson, Shrira, Williams
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 利斯科夫，盖马瓦特，格鲁伯，约翰逊，施里拉，威廉姆斯
 - en: SOSP 1991
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SOSP 1991
 - en: Why are we reading this paper?
+  id: totrans-6
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么我们在读这篇论文？
 - en: Harp was the first complete primary/backup system that dealt w/ partition
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp是第一个完整的主/备份系统，处理了分区问题。
 - en: It's a complete case study of a replicated service (file server)
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它是一个完整的复制服务（文件服务器）的案例研究
 - en: It uses Raft-like replication techniques
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它使用类似Raft的复制技术
 - en: How could a 1991 paper still be worth reading?
+  id: totrans-10
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 1991年的论文如何仍然值得阅读？
 - en: Harp introduced techniques that are still widely used
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp引入的技术仍然被广泛使用
 - en: There are few papers describing complete replicated systems
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 很少有论文描述完整的复制系统
 - en: The paper is a mix of fundamentals and incidentals
+  id: totrans-13
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 这篇论文混合了基本原理和次要内容。
 - en: We care a lot about replication
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们非常关心复制
 - en: We may not care much about NFS specifically
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可能对NFS本身不太在乎
 - en: But we care a lot about the challenges faced when integrating a real application
     with a replication protocol.
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是我们非常关心将实际应用程序与复制协议集成时面临的挑战。
 - en: And we care about where optimization is possible.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们关心优化的可能性所在。
 - en: I'm going to focus on parts of Harp that aren't already present in Raft.
+  id: totrans-18
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 我将专注于Harp中尚不存在的部分。
 - en: But note that Harp pre-dates Raft by 20+ years.
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但请注意，Harp比Raft早了20多年。
 - en: Raft is, to a great extent, a tutorial on ideas pioneered by Harp.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Raft在很大程度上是Harp开创性思想的教程。
 - en: Though they differ in many details.
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管它们在许多细节上有所不同。
 - en: What does Harp paper explain that Raft paper does not?
+  id: totrans-22
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp论文解释了Raft论文没有解释的内容？
 - en: Adapting a complex service to state machine abstraction
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将复杂服务适应状态机抽象
 - en: e.g. possibility of applying an operation twice
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如应用操作两次的可能性
 - en: Lots of optimizations
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大量优化
 - en: pipelining of requests to backup
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请求流水线到备份
 - en: 'witness, to reduce the # of replicas'
+  id: totrans-27
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证者，以减少复本的数量
 - en: primary-only execution of read-only operations using leases
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用租约只在主服务器上执行只读操作
 - en: Efficient re-integration of re-started server with large state
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重新启动的服务器与大状态的高效重新集成
 - en: Don't want to do things like copying entire disks
+  id: totrans-30
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不想做像复制整个磁盘这样的事情
 - en: '"Catch-up" for re-joining replicas'
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '"赶上"重新加入复制品'
 - en: Power failure, including simultaneous failure of all servers
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电源故障，包括所有服务器同时失败
 - en: Efficient persistence on disk
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 磁盘上的高效持久性
 - en: Freeing of log
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 日志释放
 - en: Harp authors had not implemented recovery yet
+  id: totrans-35
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp的作者尚未实现恢复
 - en: Earlier paper (1988) describes [View-stamped Replication](http://www.pmg.csail.mit.edu/papers/vr.pdf)
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 较早的论文（1988年）描述了[视图戳复制](http://www.pmg.csail.mit.edu/papers/vr.pdf)
 - en: '[Later (2006) paper](http://pmg.csail.mit.edu/papers/vr-revisited.pdf) has
     clearer description, though a bit different:'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[稍后（2006年）的论文](http://pmg.csail.mit.edu/papers/vr-revisited.pdf)描述更清晰，虽然有些不同：'
 - en: Basic setup is familiar
+  id: totrans-38
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 基本设置是熟悉的
 - en: Clients, primary, backup(s), witness(es).
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端，主服务器，备份（S），见证者（S）。
 - en: Client -> Primary
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端 -> 主服务器
 - en: Primary -> Backups
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器 -> 备份
 - en: Backups -> Primary
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 备份（S）-> 主服务器
 - en: Primary waits for all backups / promoted witnesses in current view
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器等待当前视图中的所有备份/晋升的见证者
 - en: Commit point
+  id: totrans-44
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提交点
 - en: Primary -> execute and reply to Client
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器 -> 执行并回复客户端
 - en: Primary -> tell Backups to Commit
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器 -> 告诉备份要提交
 - en: '`2n+1` servers, `n` backups, `n` witnesses, 1 primary'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`2n+1`个服务器，`n`个备份，`n`个见证者，1个主服务器。'
 - en: need a majority of `n+1` servers `=>`
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要`n+1`个服务器的大多数`=>`
 - en: tolerate up to `n` failures
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 容忍多达`n`个故障
 - en: clients send NFS requests to primary
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端将NFS请求发送到主服务器
 - en: primary forwards each request to all the backups
+  id: totrans-51
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器将每个请求转发给所有备份
 - en: after all the backups have replied, the primary can execute the op and apply
     it to its FS
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在所有备份回复之后，主服务器可以执行操作并将其应用于其文件系统
 - en: in a later operation, primary piggybacks an ACK to tell backups the op. commited
+  id: totrans-53
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在后续操作中，主服务器通过ACK告诉备份操作已提交
 - en: Why are `2b+1` servers necessary to tolerate `b` failures?
+  id: totrans-54
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么需要`2b+1`个服务器来容忍`b`个故障？
 - en: (This is review...)
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （这是复习...）
 - en: Suppose we have `N` servers, and execute a write.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设我们有`N`个服务器，并执行写操作。
 - en: Can't wait for more than `N-b`, since `b` might be dead.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不能等待超过`N-b`，因为`b`可能已经死了。
 - en: So let's require waiting for `N-b` for each operation.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以让我们要求每个操作等待`N-b`。
 - en: The `b` we didn't wait for might be live and in another partition.
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们没有等待的`b`可能是活动的，并且在另一个分区中。
 - en: We can prevent them from proceeding if `N-b > b`.
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果`N-b > b`，我们可以阻止它们继续进行。
 - en: I.e. `N > 2b => N = 2b + 1` is enough.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即`N > 2b => N = 2b + 1`就足够了。
 - en: What are Harp's witnesses?
+  id: totrans-62
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp的见证人是什么？
 - en: The primary and backups have FSs
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主要操作者和备份都有FSs
 - en: The witnesses don't receive anything from primary and don't have FSs
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人不会从主要操作者接收任何内容，也没有FSs
 - en: Suppose we have a `P, B` and a `W`
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设我们有一个`P，B`和一个`W`
 - en: If there's a partition `P | B, W`, the witness acts as a tie breaker
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有一个分区`P | B, W`，见证人充当裁决者
 - en: whichever one (P or B) can talk to the witness gets to continue and execute
     client side operations
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 无论哪个（P或B）能与见证人交流，都可以继续执行客户端操作
 - en: 'witness acts as a tie breaker: whoever can talk to it wins and gets to act
     as a primary'
+  id: totrans-68
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人充当裁决者：谁能与其交流就能获胜并成为主要操作者
 - en: a second use of the witness is to record operations
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人的第二个用途是记录操作
 - en: once a witness is part of the partition `B, W`, it records operations so that
     a majority of nodes have the latest operations
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦见证人成为分区`B, W`的一部分，它记录操作，以便大多数节点具有最新操作。
 - en: a final function of the witness is that when the primary comes back to life,
     the witness has been logging every single operation issued since primary disappeared,
     so witness can replay every op to primary and primary will be up to date w.r.t.
     all the operations executed
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人的最终功能是，当主要操作者复活时，自主操作者已经记录了自主消失以来发出的每一个操作，因此见证人可以重新执行每个操作给主要操作者，使主要操作者对执行的所有操作保持最新状态
 - en: efficiently bring primary up to speed
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效地使主要操作者跟上速度
 - en: the backup could do that too, but Harp is designed so that backup dumps the
     op logs to disk and witnesses keep the logs themselves so they can quickly send
     them to primary for reapplying
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 备份也可以做到，但Harp设计为备份将操作日志转储到磁盘，见证人保留日志本身，以便能够快速将其发送给主要操作者重新应用
 - en: assumption that reapplying witness logs is faster than copying backup disk
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重新应用见证人日志比复制备份磁盘更快的假设
 - en: assumption that witness logs won't get too big
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人日志不会变得太大的假设
 - en: The witnesses are one significant difference from Raft.
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 见证人是与Raft的一个重要区别。
 - en: The `b` witnesses do not ordinarily hear about operations or keep state.
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这`b`个见证人通常不会听取操作或保留状态。
 - en: Why is that OK?
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么这样做没问题？
 - en: '`b+1` of `2b+1` do have state'
+  id: totrans-79
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`2b+1`中的`b+1`确实有状态'
 - en: So any `b` failures leaves at least one live copy of state.
+  id: totrans-80
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，任何`b`个故障都会留下至少一个活动状态的副本。
 - en: Why are the `b` witnesses needed at all?
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么需要`b`个见证人？
 - en: If `b` replicas with state do fail, witnesses give the required `b+1` majority.
+  id: totrans-82
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果带有状态的`b`个副本失败，见证人提供所需的`b+1`多数派支持。
 - en: To ensure that only one partition operates -- no split brain.
+  id: totrans-83
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以确保只有一个分区在运行--没有分裂的情况。
 - en: So, for a 3-server system, the witness is there to break ties about which partition
     is allowed to operate when primary and backup are in different partitions.
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，在一个3服务器系统中，见证人用于解决主要操作者和备份位于不同分区时允许哪个分区操作的冲突。
 - en: The partition with the witness wins.
+  id: totrans-85
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 带有见证人的分区获胜。
 - en: Does primary need to send operations to witnesses?
+  id: totrans-86
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 主要操作者需要将操作发送给见证人吗？
 - en: The primary must collect ACKs from a majority of the `2b+1` for every r/w operation.
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主要操作者必须从`2b+1`中的大多数收集每个r/w操作的ACK。
 - en: To ensure that it is still the primary -- still in the majority partition.
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以确保它仍然是主要操作者--仍然处于多数派分区。
 - en: To ensure that operation is on enough servers to intersect with any
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以确保操作在足够多的服务器上以与任何交集
 - en: future majority that forms a new view.
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 形成新视图的未来多数派。
 - en: If all backups are up, primary+backups are enough for that majority.
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果所有备份都正常，主要操作者+备份足以形成多数派。
 - en: 'If `m` backups are down:'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果`m`个备份宕机：
 - en: Primary must talk to `m` "promoted" witnesses to get its majority for each op.
+  id: totrans-93
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主要操作者必须与`m`个“晋升”的见证人交流，以获得每个操作的多数派支持。
 - en: Those witnesses must record the op, to ensure overlap with any
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些见证人必须记录该操作，以确保与任何重叠
 - en: future majority.
+  id: totrans-95
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 未来的多数派。
 - en: Thus each "promoted" witness keeps a log.
+  id: totrans-96
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，每个“晋升”的见证人都会保留一个日志。
 - en: So in a `2b+1` system, a view always has `b+1` servers that the primary must
     contact for each op, and that store each op.
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，在一个`2b+1`系统中，每个视图始终有`b+1`个主要操作者必须为每个操作联系的服务器，并且存储每个操作。
 - en: 'Note: somewhat different from Raft'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意：与Raft有些不同
 - en: Raft keeps sending each op to all servers, proceeds when majority answer
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Raft继续将每个操作发送到所有服务器，当大多数回答时继续
 - en: So leader must keep full log until failed server re-joins
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此领导者必须保持完整的日志，直到失败的服务器重新加入
 - en: Harp eliminates failed server from view, doesn't send to it
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp从视图中消除失败的服务器，不会将操作发送给它
 - en: Only witness has to keep a big log; has special plan (ram, disk, tape).
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有见证者必须保留一个大日志；有特殊计划（内存，磁盘，磁带）。
 - en: The bigger issue is that it can take a lot of work to bring a re-joining replica
     up to date; careful design is required.
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更大的问题是，将重新加入的副本更新到最新状态可能需要大量工作；需要仔细设计。
 - en: What's the story about the UPS?
+  id: totrans-104
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: UPS的故事是什么？
 - en: This is one of the most interesting aspects of Harp's design
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是Harp设计中最有趣的方面之一
 - en: Each server's power cord is plugged into a UPS
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台服务器的电源线都插在UPS上
 - en: UPS has enough battery to run server for a few minutes
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: UPS有足够的电池可以运行服务器几分钟
 - en: UPS tells server (via serial port) when main A/C power fails
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: UPS通过串口告诉服务器主交流电断电了
 - en: Server writes dirty FS blocks and Harp log to disk, then shuts down
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器将脏文件系统块和Harp日志写入磁盘，然后关闭
 - en: What does the UPS buy for Harp?
+  id: totrans-110
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp购买UPS是为了什么？
 - en: Efficient protection against A/C power failure of ALL servers
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有效防止所有服务器的交流电故障
 - en: For failures of up to b servers, replication is enough
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于最多b台服务器的故障，复制就足够了
 - en: If *all* servers failed and lost state, that's more than b failures,
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果*所有*服务器都失败并丢失状态，那就不止b次故障了，
 - en: so Harp has no guarantee (and indeed no state!)
+  id: totrans-114
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以Harp没有保证（实际上没有状态！）
 - en: 'With UPS:'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有了UPS：
 - en: Each server can reply *without* writing disk!
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每台服务器都可以在不写入磁盘的情况下回复！
 - en: But still guarantees to retain latest state despite simultaneous power fail
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但仍然保证保留最新状态，尽管同时发生电源故障
 - en: 'But note:'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但请注意：
 - en: UPS does not protect against other causes of simultaneous failure
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: UPS不能保护其他同时发生故障的原因
 - en: e.g. bugs, earthquake
+  id: totrans-120
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如错误，地震
 - en: Harp treats servers that re-start after UPS-protected crash differently
+  id: totrans-121
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp对在UPS保护的崩溃后重新启动的服务器进行了不同处理
 - en: than those that re-start with crash that lost in-memory state
+  id: totrans-122
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 而不是那些重新启动时丢失内存状态的崩溃
 - en: Because the latter may have forgotten *committed* operations
+  id: totrans-123
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为后者可能已经忘记了*已提交*的操作
 - en: For independent failures Harp has powerful guarantees, for stuff like software
     bugs that will cause a cascade of crashes, it doesn't really have solutions
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于独立的故障，Harp有强大的保证，对于像软件错误这样会导致一系列崩溃的东西，它并没有真正的解决方案
 - en: '**Larger point**, faced by every fault-tolerant system'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '**更大的���点**，每个容错系统都面临的问题'
 - en: Every replicated system tends to need to have a commit point
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个复制系统都倾向于需要一个提交点
 - en: Replicas *must* keep persistent state to deal w/ failure of all servers
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 副本*必须*保持持久状态以应对所有服务器的故障
 - en: Committed operations
+  id: totrans-128
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 已提交的操作
 - en: Latest view number, proposal number, &c
+  id: totrans-129
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最新的视图编号，提案编号等
 - en: Must persist this state before replying
+  id: totrans-130
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须在回复之前持久化这个状态
 - en: Writing every commit to disk is very slow!
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每次写入都写入磁盘非常慢！
 - en: 10 ms per disk write, so only 100 ops/second
+  id: totrans-132
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个磁盘写入需要10毫秒，所以每秒只有100个操作
 - en: 'So there are a few common patterns:'
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所以有几种常见模式：
 - en: Low throughput
+  id: totrans-134
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 低吞吐量
 - en: Batching, high delay
+  id: totrans-135
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 批处理，高延迟
 - en: batch a lot of writes and do them all at the same time to amortize the cost
     of each write
+  id: totrans-136
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 批量写入很多数据并同时执行它们以分摊每次写入的成本
 - en: but now you need to make clients wait for their write to finish more
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但现在你需要让客户端等待他们的写入完成更多
 - en: because they are also waiting for other clients' writes to finish
+  id: totrans-138
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为它们也在等待其他客户端的写入完成
 - en: Lossy or inconsistent recovery from simultaneous failure
+  id: totrans-139
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从同时发生的故障中丢失或不一致的恢复
 - en: no guarantees after crashes
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 崩溃后没有保证
 - en: Batteries, flash, SSD w/ capacitor, &c
+  id: totrans-141
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 电池，闪存，带电容的固态硬盘等
 - en: Let's talk about Harp's log management and operation execution
+  id: totrans-142
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 让我们谈谈Harp的日志管理和操作执行
 - en: Primary and backup must apply client operations to their state
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器和备份必须将客户端操作应用到它们的状态中
 - en: State here is a file system -- directories, file, owners, permissions, &c
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里的状态是一个文件系统--目录，文件，所有者，权限等
 - en: Harp must mimic an ordinary NFS server to the client
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp必须模拟普通的NFS服务器给客户端
 - en: i.e. not forget about ops for which it has sent a reply
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即不要忘记已发送回复的操作
 - en: What is in a typical log record?
+  id: totrans-147
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 典型日志记录中有什么？
 - en: Not just the client-issued op., like `chmod`
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不仅仅是客户端发出的操作，比如`chmod`
 - en: 'Log record stores:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志记录存储：
 - en: Client's NFS operation (write, mkdir, chmod, &c)
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端的NFS操作（写入，创建目录，修改权限等）
 - en: 'Shadow state: modified i-nodes and directory content *after* execution'
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 阴影状态：执行后修改的i节点和目录内容
 - en: (i.e. the results after executing the operation)
+  id: totrans-152
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （即执行操作后的结果）
 - en: Client RPC request ID, for duplicate detection
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端RPC请求ID，用于重复检测
 - en: Primary might repeat an RPC if it thinks the backup has failed
+  id: totrans-154
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器可能会重复一个RPC，如果它认为备份服务器已经失败
 - en: Reply to send to client, for duplicate detection
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 回复发送给客户端，用于重复检测
 - en: Why does Harp have so many log pointers?
+  id: totrans-156
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么Harp有这么多日志指针？
 - en: FP most recent client request
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FP最近的客户端请求
 - en: CP commit point (real in primary, latest heard in backup)
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: CP提交点（主服务器中的真实点，备份中的最新听到的点）
 - en: AP highest update sent to disk
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: AP 最高更新发送到磁盘
 - en: LB disk has finished writing up to here
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: LB磁盘已完成写入到此处
 - en: GLB all nodes have completed disk up to here
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GLB所有节点已将磁盘写入到此处
 - en: Why the FP-CP gap?
+  id: totrans-162
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么存在FP-CP间隔？
 - en: So primary doesn't need to wait for ACKs from each backup
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，主服务器无需等待每个备份的ACK。
 - en: before sending next operation to backups
+  id: totrans-164
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在将下一个操作发送到备份之前
 - en: Primary pipelines ops CP..FP to the backups.
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主服务器将操作CP..FP流水线传输到备份。
 - en: Higher throughput if concurrent client requests.
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有并发客户端请求，则吞吐量更高。
 - en: Why the AP-LB gap?
+  id: totrans-167
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么存在AP-LB间隔？
 - en: Allows Harp to issue many ops as disk writes before waiting for disk
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许Harp在等待磁盘之前发出许多操作作为磁盘写入
 - en: The disk is more efficient if it has lots of writes (e.g. arm scheduling)
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有大量写入（例如，ARM调度），则磁盘更高效
 - en: What is the LB?
+  id: totrans-170
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: LB是什么？
 - en: This replica has everything `<= LB` on disk.
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 此副本在磁盘上拥有所有小于等于`LB`的内容。
 - en: So it won't need those log records again.
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，它将不再需要这些日志记录。
 - en: Why the LB-GLB gap?
+  id: totrans-173
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么存在LB-GLB间隔？
 - en: GLB is min(all servers' LBs).
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GLB是所有服务器的LB的最小值。
 - en: GLB is earliest record that *some* server might need if it loses memory.
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GLB是最早的记录，如果某个服务器失去内存，则*某些*服务器可能需要它。
 - en: When does Harp execute a client operation?
+  id: totrans-176
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp何时执行客户端操作？
 - en: There are two answers!
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种答案！
 - en: When operation arrives, primary figures out exactly what should happen.
+  id: totrans-178
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当操作到达时，主服务器确切地确定应该发生什么。
 - en: Produces resulting on-disk bytes for modified i-nodes, directories, &c.
+  id: totrans-179
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成修改了i-node、目录等的结果磁盘字节。
 - en: This is the shadow state.
+  id: totrans-180
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是影子状态。
 - en: This happens before the CP, so the primary must consult recent operations in
     the log to find the latest file system state.
+  id: totrans-181
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这发生在CP之前，因此主服务器必须查阅日志中的最近操作以找到最新的文件系统状态。
 - en: After the operation commits, primary and backup can apply it to their file systems.
+  id: totrans-182
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 操作提交后，主服务器和备份可以将其应用到其文件系统上。
 - en: They copy the log entry's shadow state to the file system;
+  id: totrans-183
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们将日志条目的影子状态复制到文件系统；
 - en: they do not really execute the operation.
+  id: totrans-184
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们实际上并未执行该操作。
 - en: And now the primary can reply to the client's RPC.
+  id: totrans-185
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在主服务器可以回复客户端的RPC了。
 - en: Why does Harp split execution in this way?
+  id: totrans-186
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp为何以这种方式分割执行？
 - en: If a server crashes and reboots, it is brought up to date by replaying log entries
     it might have missed. Harp can't know exactly what the last pre-crash operation
     was, so Harp may repeat some. It's not correct to fully execute some operations
     twice, e.g. file append.
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果服务器崩溃并重新启动，则通过重放可能已错过的日志条目将其更新到最新状态。Harp无法确定崩溃前的最后一个操作是什么，因此可能会重复一些操作。完全执行某些操作两次是不正确的，例如文件追加。
 - en: So Harp log entries contain the *resulting* state, which is what's applied.
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，Harp日志条目包含*结果*状态，这是应用的内容。
 - en: 'Append example:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 追加示例：
 - en: '[PRE0]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: If backup crashes after it writes A1 to disk but before replying to primary,
     when the backup reboots there's no obvious way of telling whether it executed
     A1\. As a result, it has to reexecute it. Thus, these log records have to be "repeatable."
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果备份在将A1写入磁盘后崩溃，但在回复给主服务器之前，备份重新启动时没有明显的方法告知其是否执行了A1。因此，它必须重新执行它。因此，这些日志记录必须是“可重复的”。
 - en: '*Actually,* a lot of replication systems have to cope with this, and this is
     one way to deal with it. It also illustrates how non-straightforward replication
     can be.'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: '*实际上*，许多复制系统都必须处理这个问题，这是一种处理方式。这也说明了复制可能是多么不简单。'
 - en: Harp needs to be aware of FS-level inodes for instance
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp需要意识到FS级inode，例如
 - en: 'The point: multiple replay means replication isn''t transparent to the service.'
+  id: totrans-194
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 关键在于，多次重放意味着复制对服务不透明。
 - en: Service must be modified to generate and accept the state modifications that
     result from client operations.
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务必须修改以生成和接受来自客户端操作的状态修改。
 - en: In general, when applying replication to existing services, the service must
     be modified to cope with multiple replay.
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一般而言，在将复制应用于现有服务时，服务必须进行修改以处理多次重放。
 - en: Can Harp primary execute read-only operations w/o replicating to backups?
+  id: totrans-197
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp主服务器能否执行只读操作而不复制到备份？
 - en: e.g. reading a file.
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如读取文件。
 - en: Would be faster -- after all, there's no new data to replicate.
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这将更快--毕竟，没有新数据需要复制。
 - en: 'The reason we forward read only operations to backup is to make sure we find
     out if we were partitioned and 1000 ops were executed that we don''t know about:
     make sure we don''t reply with an old write of the data we are reading'
+  id: totrans-200
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们将只读操作转发到备份的原因是确保我们找出是否分区，并且执行了我们不知道的1000次操作：确保我们不会用正在读取的数据的旧写入进行回复
 - en: What's the danger?
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有何危险？
 - en: 'Harp''s idea: leases'
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp的理念：租约
 - en: Backups promise not to form a new view for some time.
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 备份承诺不会在一段时间内形成新的视图。
 - en: (i.e. not to process any ops as a primary)
+  id: totrans-204
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （即不要将任何操作作为主节点处理）
 - en: Primary can execute read-only ops locally for that time minus slop.
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点可以在本地执行只读操作，时间减去误差。
 - en: because it knows backup won't execute ops as primary during that time (backup
     promised this!)
+  id: totrans-206
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为它知道在那段时间内备份不会作为主节点执行任何操作（备份承诺了这一点！）
 - en: 'Depends on reasonably *synchronized clocks*:'
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 取决于相当同步的时钟：
 - en: 'Robert Morris: "Not really happy about this."'
+  id: totrans-208
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Robert Morris：“对此并不太满意。”
 - en: Primary and backup must have bounded disagreement on how fast time passes.
+  id: totrans-209
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点和备份之间必须对时间流逝速度有界的不同意见。
 - en: This really requires a bounded frequency skew
+  id: totrans-210
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这实际上需要有界的频率偏差
 - en: Apparently hardware is really bad at providing this
+  id: totrans-211
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 显然硬件在提供这个方面做得很糟糕
 - en: What state should primary use when executing a read-only operation?
+  id: totrans-212
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 主节点执行只读操作时应该使用什么状态？
 - en: Does it have to wait for all previously arrived operations to commit?
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它必须等待所有先前到达的操作都提交吗？
 - en: No! That would be almost as slow as committing the read-only op.
+  id: totrans-214
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不！那几乎和提交只读操作一样慢。
 - en: Should it look at state as of operation at FP, i.e. latest r/w operation?
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它应该查看FP操作时的状态吗，即最新的读/写操作？
 - en: No! That operation has not committed; not allowed to reveal its effects.
+  id: totrans-216
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不行！该操作尚未提交；不允许显示其效果。
 - en: Thus Harp executes read-only ops with state as of CP.
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，Harp使用CP时的状态执行只读操作。
 - en: What if client sends a WRITE and (before WRITE finishes) a READ of same data?
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果客户端发送了一个写操作，然后（在写操作完成之前）读取了相同的数据怎么办？
 - en: READ may see data *before* the WRITE!
+  id: totrans-219
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读操作可能在写操作之前看到数据！
 - en: Why is that OK?
+  id: totrans-220
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么可以这样？
 - en: The client sent the READ and the WRITE concurrently. It has no right to expect
     one order or the other. So if the READ doesn't see the WRITE's effects, that's
     acceptable -- it's the same answer you'd get if the READ had moved through the
     network faster than the WRITE, which could happen. You can only expect a READ
     to see a WRITE's effect if you issue the WRITE, wait for a reply to the WRITE,
     and then issue the READ.
+  id: totrans-221
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端同时发送了读操作和写操作。它没有权利期望其中一种顺序。因此，如果读操作没有看到写操作的效果，那是可以接受的——如果读操作通过网络比写操作更快，那么你会得到相同的答案，这种情况可能发生。只有在发出写操作，等待写操作的回复，然后发出读操作时，才能期望读操作看到写操作的效果。
 - en: How does failure recovery work?
+  id: totrans-222
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 失败恢复是如何工作的？
 - en: I.e. how does Harp recover replicated state during view change?
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即，Harp在视图更改期间如何恢复复制的状态？
 - en: 'Setup for the following scenarios:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 为以下情景做准备：
 - en: '5 servers: S1 is usually primary, S2+S3 are backups, S4+S5 witnesses'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 5个服务器：S1通常是主节点，S2+S3是备份，S4+S5是见证者
 - en: 'Scenario:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 情景：
 - en: '[PRE1]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Will S2 have every committed operation?
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2会拥有每一个已提交的操作吗？
 - en: Yes.
+  id: totrans-229
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的。
 - en: Will S2 have every operation S1 received?
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2会拥有S1接收的每一个操作吗？
 - en: No. No, maybe op didn't reach S2 from S1 and then S1 crashed.
+  id: totrans-231
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不。不，可能操作从S1到S2，然后S1崩溃了。
 - en: Will S2's log tail be the same as S3's log tail?
+  id: totrans-232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2的日志尾部会与S3的日志尾部相同吗？
 - en: Not necessarily.
+  id: totrans-233
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不一定。
 - en: Maybe op reached S2 but not S3 and then S1 crashed.
+  id: totrans-234
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能操作已经到达了S2，但未到达S3，然后S1崩溃了。
 - en: Maybe op reached S2, and S3 crashed, so S4 was promoted. Then S3 came back up?
+  id: totrans-235
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能操作已经到达了S2，而S3崩溃了，所以S4被提升为领导者。然后S3恢复了？
 - en: How far back can S2 and S3 log tail differ?
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2和S3的日志尾部可以相差多远？
 - en: Not up to the CP, because committed ops could be committed w/ help of promoted
     witness `=>` backup logs differ
+  id: totrans-237
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不是由CP决定，因为已提交的操作可能是在提升见证者的帮助下提交的`=>`备份日志不同
 - en: How to cause S2 and S3's log to be the same?
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何使S2和S3的日志保持一致？
 - en: Must commit ops that appeared in both S2+S3 logs
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须提交在S2+S3日志中都出现的操作
 - en: What about ops that appear in only one log?
+  id: totrans-240
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那些只出现在一个日志中的操作怎么处理？
 - en: In this scenario, can discard since could not have committed
+  id: totrans-241
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这种情况下，可以丢弃，因为可能没有提交。
 - en: But in general committed op might be visible in just one log
+  id: totrans-242
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但通常已提交的操作可能仅在一个日志中可见。
 - en: From what point does promoted witness have to start keeping a log?
+  id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从什么时候开始，被提升的见证者必须开始保留日志？
 - en: What if S1 crashed just before replying to a client?
+  id: totrans-244
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 如果S1在回复客户端之前崩溃了怎么办？
 - en: Will the client ever get a reply?
+  id: totrans-245
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端会收到回复吗？
 - en: After S1 recovers, with intact disk, but lost memory.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: S1恢复后，磁盘完好无损，但内存丢失。
 - en: It will be primary, but Harp can't immediately use its state or log.
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它将成为主节点，但Harp不能立即使用其状态或日志。
 - en: Unlike Raft, where leader only elected if it has the best log.
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与Raft不同，领导者只有在拥有最佳日志时才会选举。
 - en: Harp must replay log from promoted witness (S4)
+  id: totrans-249
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Harp必须从被提升的见证者（S4）重新播放日志
 - en: Could S1 have executed an op just before crashing that the replicas didn't execute
     after taking over?
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S1在崩溃前是否执行了一个操作，而副本在接管后没有执行？
 - en: No, execution up to CP only, and CP is safe on S2+S3.
+  id: totrans-251
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不，只执行到CP，而CP在S2+S3上是安全的。
 - en: 'New scenario: S2 and S3 are partitioned (but still alive)'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 新场景：S2 和 S3 被分区（但仍然存活）。
 - en: Can S1+S4+S5 continue to process operations?
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S1+S4+S5 能够继续处理操作吗？
 - en: Yes, promoted witnesses S4+S5
+  id: totrans-254
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的，晋升为见证人 S4+S5
 - en: S4 moves to S2/S3 partition
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S4 移动到 S2/S3 分区
 - en: Can S1+S5 continue?
+  id: totrans-256
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S1+S5 能够继续吗？
 - en: No, primary S1 doesn't get enough backup ACKs
+  id: totrans-257
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不，主要的 S1 没有得到足够的备份 ACK
 - en: Can S2+S3+S4 continue?
+  id: totrans-258
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2+S3+S4 能够继续吗？
 - en: Yes, new view copies log entries S4->S2, S4->S3, now S2 is primary
+  id: totrans-259
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的，新视图将日志条目从 S4 复制到 S2、S3，现在 S2 是主要的
 - en: 'Note:'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：
 - en: New primary was missing many committed operations
+  id: totrans-261
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新主要缺少了许多已提交的操作
 - en: In general some *committed* operations may be on only one server
+  id: totrans-262
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一般来说，一些 *已提交* 操作可能仅在一个服务器上
 - en: 'New scenario: S2 and S3 are partitioned (but still alive)'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 新场景：S2 和 S3 被分区（但仍然存活）。
 - en: S4 crashes, loses memory contents, reboots in S2/S3 partition
+  id: totrans-264
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S4 崩溃，丢失内存内容，重新启动到 S2/S3 分区
 - en: Can they continue?
+  id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们可以继续吗？
 - en: Only if there wasn't another view that formed and committed more ops
+  id: totrans-266
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仅当没有形成并提交更多操作的其他视图时。
 - en: How to detect?
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何检测？
 - en: 'Depends on what S4''s on-disk view # says.'
+  id: totrans-268
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 取决于 S4 的磁盘视图号是什么。
 - en: 'OK if S4''s disk view # is same as S2+S3''s.'
+  id: totrans-269
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 S4 的磁盘视图号与 S2+S3 的相同，则可以。
 - en: No new views formed.
+  id: totrans-270
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 未形成新的视图。
 - en: S2+S3 must have heard about all committed ops in old view.
+  id: totrans-271
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2+S3 必须知道旧视图中所有已提交操作的情况。
 - en: Everybody (S1-5) suffers a power failure.
+  id: totrans-272
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 每个人（S1-5）都遭遇断电。
 - en: S4 disk and memory are lost, but it does re-start after repair.
+  id: totrans-273
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S4 的磁盘和内存丢失了，但修复后会重新启动。
 - en: S1 and S5 never recover.
+  id: totrans-274
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S1 和 S5 永远无法恢复。
 - en: S2 and S3 save everything on disk, re-start just fine.
+  id: totrans-275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2 和 S3 在磁盘上保存所有内容，重新启动没有问题。
 - en: Can S2+S3+S4 continue?
+  id: totrans-276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2+S3+S4 能够继续吗？
 - en: (harder than it looks)
+  id: totrans-277
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （比看起来更难）
 - en: 'Believe the answer is "No": cannot be sure what state S4 had before failure.'
+  id: totrans-278
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相信答案是“否”：无法确定故障之前 S4 的状态。
 - en: Might have formed a new view with S1+S5, and committed some ops.
+  id: totrans-279
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能通过 S1+S5 形成一个新视图，并执行一些操作。
 - en: Can S2 and S3 know about the previous view? Not always.
+  id: totrans-280
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S2 和 S3 能知道先前的视图吗？不总是。
 - en: When can Harp form a new view?
+  id: totrans-281
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp 何时可以形成新视图？
 - en: No other view possible.
+  id: totrans-282
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 没有其他可能的视图。
 - en: 'Know view # of most recent view.'
+  id: totrans-283
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 知道最近视图的视图号。
 - en: Know all ops from most recent view.
+  id: totrans-284
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 知道最近视图的所有操作。
 - en: 'Details:'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 细节：
 - en: (1) is true if you have n+1 nodes in new view.
+  id: totrans-286
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你有 n+1 个节点在新视图中，则 (1) 为真。
 - en: '(2) true if you have n+1 nodes that did not lose view # since last view.'
+  id: totrans-287
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你有 n+1 个节点，并且自上一个视图以来没有丢失视图号，则为真。
 - en: 'View # stored on disk, so they just have to know disk is OK.'
+  id: totrans-288
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视图号存储在磁盘上，所以它们只需要知道磁盘是正常的。
 - en: One of them *must* have been in the previous view.
+  id: totrans-289
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其中之一 *必须* 在先前的视图中。
 - en: So just take the highest view number.
+  id: totrans-290
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此只需取最高视图号。
 - en: 'And #3?'
+  id: totrans-291
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '还有 #3 吗？'
 - en: Need a disk image, and a log, that together reflect all operations through the
     end of the previous view.
+  id: totrans-292
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要一个磁盘映像和一个日志，共同反映出上一个视图结束时的所有操作。
 - en: Perhaps from different servers, e.g. log from promoted witness, disk from backup
     that failed multiple views ago.
+  id: totrans-293
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能来自不同的服务器，例如晋升的见证人的日志，多个视图之前失败的备份。
 - en: Does Harp have performance benefits?
+  id: totrans-294
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Harp 有性能优势吗？
 - en: In Fig 5-1, why is Harp *faster* than non-replicated server?
+  id: totrans-295
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在图 5-1 中，为什么 Harp 比非复制服务器 *更快*？
 - en: How much win would we expect by substituting RPC for disk operations?
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过将 RPC 替换为磁盘操作，我们可以期待多少胜利？
 - en: Why graph x=load y=response-time?
+  id: totrans-297
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么图形 x=load y=response-time？
 - en: Why does this graph make sense?
+  id: totrans-298
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么这张图有意义？
 - en: Why not just graph total time to perform X operations?
+  id: totrans-299
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么不只是图形总时间执行 X 操作？
 - en: One reason is that systems sometimes get more/less efficient w/ high load.
+  id: totrans-300
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个原因是系统有时在高负载下变得更有效率/不那么有效率。
 - en: And we care a lot how they perform w/ overload.
+  id: totrans-301
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们非常关心他们在超载情况下的表现。
 - en: Why does response time go up with load?
+  id: totrans-302
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 为什么响应时间随负载增加而增加？
 - en: Why first gradual...
+  id: totrans-303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么首先是渐进的...
 - en: Queuing and random bursts?
+  id: totrans-304
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 排队和随机突发？
 - en: And some ops more expensive than others, cause temp delays.
+  id: totrans-305
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有些操作比其他操作更昂贵，导致临时延迟。
 - en: Then almost straight up?
+  id: totrans-306
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后几乎笔直上升？
 - en: Probably has hard limits, like disk I/Os per second.
+  id: totrans-307
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能有硬限制，如每秒磁盘 I/O 次数。
 - en: Queue length diverges once offered load > capacity
+  id: totrans-308
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦提供的负载 > 容量，队列长度就会发散
