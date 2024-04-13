@@ -1,0 +1,1446 @@
+- en: PNUTS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 17: PNUTS'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PNUTS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: a solution to the same problem Spanner and memcached solved
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PNUTS is a more-principled designed than the memcache Facebook design
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"it was actually designed"'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: make reads fast
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'upside: web applications are able to do fast local reads due to replication'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'downside: writes will be slow, because they need to be replicated'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: because writes have to be distributed to all the regions, there will be a fundamental
+    delay between when writes happen and when the updates actually propagate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` potential for stale reads'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if there's data that could be updated by concurrent clients, there will be a
+    problem with multiple writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need all regions to see our writes in the same order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: each region has its own set of webservers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each region stores all data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each table in a region is partitioned among storage units (SUs)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: routers know the partitioning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each SU has a disk
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Updates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: each record in PNUTS has its own master region through which all writes have
+    to go
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: different than memcache at facebook, they had a master region for *all* records
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in PNUTS every record has a different master
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note: a record is just a row in a table (and has an extra field that stores
+    its master)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: updating records that are in regions far away from the user will take longer
+    of course
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how does the webserver know where to send the update?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: contact one of the routers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: router looks at the key, knows it's stored in say SU3
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: find out from SU3 that a different region `r2` has the master copy
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: doesn't know which SU at `r2` the record is at
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: contact one of the routers in `r2`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: router tells you the SU to store it at
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the SU then needs to send out the update to all the other regions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the SU sends the update to the message brokers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not clear if SU applies the update to its own disk before
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the message broker writes a copy of the update to the disk because it is *committing*
+    to actually sending the update everywhere
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: important because we don't want a failed server to result in partially propagating
+    the update
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the MB will send it out to other MBs at other sites
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: somehow the web app needs to find out that the write completes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not clear who sends the ACK back
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: seems that the MB replies back to the webserver app as soon as it commits the
+    update to the disk
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: asynchronous writes because, from POV of webapp, write is done when MB has written
+    it to its disk
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'why isn''t the MB a bottleneck? It has to write a lot of stuff:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: different applications have a different message broker
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB may be able to do much more batching of the writes
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe also MB writes are also less complex than normal database writes where
+    you have to modify Btrees, maybe go through a file system, etc.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: because they funnel all the writes through some MB they get some semantics for
+    writes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write semantics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Write order to single records
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Alice writes where record which has 3 columns (Name, Where, What)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice's application says `write(what=awake)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: write goes through PNUTS
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice's application says `write(where=work)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: write goes through PNUTS
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: useful semantics given by PNUTS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other people in different regions might see
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: alice at home asleep
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: alice at home awake
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: alice at work awake
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other people won't see a view of the record inconsistent with the order of the
+    writes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: alice at work asleep
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: kind of the main consistency semantics provided by PNUTS
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a result of sequencing the writes through the MBs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paper calls this *per-record timeline consistency*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: note that their model restricts them to only have transactions on a single record
+    basis
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When would you care about stale data?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: after you added something to your shopping cart, you would expect to see it
+    there
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reads vs. staleness
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Writes, atomic updates
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Example: increment a counter in a record'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Question of the day
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Alice comes back from spring break and she:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: removes her mom from her ACL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: posts spring break photos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can her mom see her photos due to out-of-order writes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If Alice has all the photos her mom can see in a single record, then no.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assuming the code her mom is executing reads the full record (ACL + photos)
+    when doing the check, and doesn't first read the ACL, wait a while and then read
+    the photos
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If webapp server fails in the middle of doing a bunch of writes, then only partial
+    info would have been written to PNUTS, possibly leading to corruption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: no transactions for multiple writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If SU crashes and reboots, it can recover from disk and MB can keep retrying
+    it
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens when SU loses its disk? It needs to recover the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: the paper says the SU will clone its data from a SU from another region
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: main challenge is that updates are being sent by MBs to records that are being
+    copied
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: either updates go to source of copy, or destination of copy remembers the update
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ultimately they both need to have the update in the end
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Evaluation mostly focuses on latency and not on throughput. Maybe this is specific
+    to their needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not clear how they can support millions of users with MBs that can only do hundreds
+    of writes per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is it taking them 75ms to do a local update, where everyone is in the same
+    region?
+  prefs: []
+  type: TYPE_NORMAL
+- en: computation, disk, network?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 75ms is enormous for a write in a DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Brian F. Cooper, Raghu Ramakrishnan, Utkarsh Srivastava, Adam Silberstein,
+    Philip Bohannon, Hans-Arno Jacobsen, Nick Puz, Daniel Weaver and Ramana Yerneni.
+    PNUTS: Yahoo!''s Hosted Data Serving Platform. Proceedings of VLDB, 2008.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why this paper?
+  prefs: []
+  type: TYPE_NORMAL
+- en: same basic goals as Facebook/memcache paper, more principled design
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: multi-region is very challenging -- 100ms network delays
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: conscious trade-off between consistency and performance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is PNUTS' overall goal?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: overall story similar to that of Spanner and Facebook/memcache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: data centers ("regions") all over the world
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: web applications, e.g. mail, shopping, social net
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each app probably runs at all regions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PNUTS keeps state for apps
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'per-user: profile, shopping cart, friend list'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'per-item: book popularity, user comments'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: app might need any piece of data at any data center
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need to handle lots of concurrent updates to different data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. lots of users must be able to add items to shopping cart at same time thus
+    1000s of PNUTS servers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1000s of servers => crashes must be frequent
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overview
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: each region has all data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each table partitioned by key over storage units
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tablet servers + routers know the partition plan
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why replicas of all data at multiple regions?
+  prefs: []
+  type: TYPE_NORMAL
+- en: multiple regions -> each user's data geographically close to user
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: multiple complete replicas -> maybe survive entire region failure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: complete replicas -> read anything quickly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: since some data used by many users / many regions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: once you have multiple regions, fast reads are very important
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the drawbacks of a copy at each region?
+  prefs: []
+  type: TYPE_NORMAL
+- en: updates will be slow, need to contact every region
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: local reads will probably be stale
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: updates from multiple regions need to be sorted out
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: keep replicas identical
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: avoid order anomalies
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: don't lose updates (e.g. read-modify-write for counter)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: disk space probably not an issue for their uses
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is the data and query model?
+  prefs: []
+  type: TYPE_NORMAL
+- en: basically key/value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reads/writes probably by column
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so a write might replace just one column, not whole record
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: range scan for ordered tables
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How do updates work?
+  prefs: []
+  type: TYPE_NORMAL
+- en: app server gets web request, needs to write data in PNUTS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need to update every region!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why not just have app logic send update to every region?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if app crashes after updating only some regions?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if concurrent updates to same record?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PNUTS has a "record master" for each record
+  prefs: []
+  type: TYPE_NORMAL
+- en: all updates must go through that region
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each record has a hidden column indicating region of record master
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: responsible storage unit executes updates one at a time per record
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tells MB to broadcast update to all regions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: per-record master probably better than Facebook/memcache master region
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So the complete update story (some guesswork):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: App wants to update some columns of a record, knows key
+  prefs: []
+  type: TYPE_NORMAL
+- en: app sends key and update to local SU1
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'SU1 looks up record master for key: SI2'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SU1 sends update request to router at SI2
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: router at SI2 forwards update to local SU2 for key
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SU2 sends update to local Message Broker (MB)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'MB stores on disk + backup MB, sends vers # to original app how does MB know
+    the vers #? maybe SU2 told it or perhaps SU2 (not MB) replies to original app'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MB sends update to router at every region
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: every region updates local copy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Puzzles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1 says MB is commit point
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. MB writes to log on two disks, keeps trying to deliver why isn't MB disk
+    a terrible bottleneck?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: does update go to MB then SU2? or SU2 then MB? or SU2, MB, SU2?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe MB then SU2, since MB is commit point
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe SU2 then MB, since SU2 has to check it's the record's master and perhaps
+    pick the new version number, tho maybe not needed
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'who replies to client w/ new version #?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All writes are multi-region and thus slow -- why does it make sense?
+  prefs: []
+  type: TYPE_NORMAL
+- en: application waits for MB commit but not propagation ("asynchronous")
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: master likely to be local (they claim 80% of the time)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so MB commit will often be quick
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and app/user will often see its own writes soon
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: still, eval says 300ms if master is remote!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'down side: readers at non-master regions may see stale data'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does a read-only query execute?
+  prefs: []
+  type: TYPE_NORMAL
+- en: multiple kinds of reads (section 2.2) -- why?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: application gets to choose how consistent
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`read-any(k)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: read from local SU
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: might return stale data (even if you just wrote!)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'why: app wants speed but doesn''t care about freshness'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`read-critical(k, required_version)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe read from local SU if it has vers >= required_version
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise read from master SU?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'why: app wants to see its own write'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`read-latest(k)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: always read from master SU (? "if local copy too stale")
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: slow if master is remote!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'why: app needs fresh data'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if app needs to increment a counter stored in a record?
+  prefs: []
+  type: TYPE_NORMAL
+- en: app reads old value, increments locally, writes new value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if the local read produced stale data?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if read was OK, but concurrent updates?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`test-and-set-write(version#, new value)` gives you atomic update to one record'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'master rejects the write if current version # != version#'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so if concurrent updates, one will lose and retry
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TestAndSet` example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Question
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: how does PNUTS cope with Example 1 (page 2)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Initially Alice's mother is in Alice's ACL, so mother can see photos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice removes her mother from ACL
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Alice posts spring-break photos
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'could her mother see update #2 but not update #1?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: esp if mother uses different region than Alice or if Alice does the updates
+    from different regions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ACL and photo list must be in the same record
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: since PNUTS guarantees order only for updates to same record
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice sends updates to her record's master region in order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: master region broadcasts via MB in order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB tells other regions to apply updates in order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What if Alice''s mother:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reads the old ACL, that includes mother
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reads the new photo list
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'answer: just one read of Alice''s record, has both ACL and photo list'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if record doesn't have new ACL, order says it can't have new photos either
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How could a storage system get this wrong?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No ordering through single master (e.g. Dynamo)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to change record's master if no failures?
+  prefs: []
+  type: TYPE_NORMAL
+- en: e.g. I move from Boston to LA
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perhaps just update the record, via old master?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: since ID of master region is stored in the record
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: old master announces change over MB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a few subsequent updates might go to the old master
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it will reject them, app retries and finds new master?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if we wanted to do bank transfers?
+  prefs: []
+  type: TYPE_NORMAL
+- en: from one account (record) to another
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can `t-a-s-w` be used for this?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: multi-record updates are not atomic
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other readers can see intermediate state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other writers are not locked out
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: multi-record reads are not atomic
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: might read one account before xfer, other account after xfer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is lack of general transactions a problem for web applications?
+  prefs: []
+  type: TYPE_NORMAL
+- en: maybe not, if programmers know to expect it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about tolerating failures?
+  prefs: []
+  type: TYPE_NORMAL
+- en: App server crashes midway through a set of updates
+  prefs: []
+  type: TYPE_NORMAL
+- en: not a transaction, so only some of writes will happen
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but master SU/MB either did or didn't get each write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so each write happens at all regions, or none
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SU down briefly, or network temporarily broken/lossy
+  prefs: []
+  type: TYPE_NORMAL
+- en: (I'm guessing here, could be wrong)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB keeps trying until SU acks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SU shouldn't ACK until safely on disk
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SU loses disk contents, or doesn't automatically reboot
+  prefs: []
+  type: TYPE_NORMAL
+- en: can apps read from remote regions?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paper doesn't say
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need to restore disk content from SUs at other regions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: subscribe to MB feed, and save them for now
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: copy content from SU at another region
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: replay saved MB updates
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Puzzle:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to ensure we didn't miss any MB updates for this SU?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. subscribe to MB at time=100, but source SU only saw through 90?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: will replay apply updates twice? is that harmful?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paper mentions sending checkpoint message through MB
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe fetch copy as of when the checkpoint arrived
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and only replay after the checkpoint
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BUT no ordering among MB streams from multiple regions
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB crashes after accepting update
+  prefs: []
+  type: TYPE_NORMAL
+- en: logs to disks on two MB servers before ACKing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: recovery looks at log, (re)sends logged msgs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: record master SU maybe re-sends an update if MB crash before ACK
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'maybe record version #s will allow SUs to ignore duplicate'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB is a neat idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'atomic: updates all replicas, or none'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: rather than app server updating replicas (crash...)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'reliable: keeps trying, to cope with temporarily SU/region failure'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'async: apps don''t have to wait for write to complete, good for WAN'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'ordered: keeps replicas identical even w/ multiple writers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Record's master region loses network connection
+  prefs: []
+  type: TYPE_NORMAL
+- en: can other regions designate a replacement RM?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'no: original RM''s MB may have logged updates, only some sent out'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: do other regions have to wait indefinitely? yes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is one price of ordered updates / strict-ish consistency
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Evaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Evaluation focuses on latency and scaling, not throughput
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5.2: time for an insert while busy'
+  prefs: []
+  type: TYPE_NORMAL
+- en: depends on how far away Record Master is
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'RM local: 75.6 ms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'RM nearby: 131.5 ms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'RM other coast: 315.5 ms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is 5.2 measuring? from what to what?
+  prefs: []
+  type: TYPE_NORMAL
+- en: maybe web server starts insert, to RM replies w/ new version?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not time for MB to propagate to all regions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: since then local RM wouldn't be `< remote`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why 75 ms?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is it 75 ms of network speed-of-light delay?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'no: local'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is the 75 ms mostly queuing, waiting for other client's operations?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'no: they imply 100 clients was max that didn''t cause delay to rise'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: End of 5.2 suggests 40 ms of 75 ms in in SU
+  prefs: []
+  type: TYPE_NORMAL
+- en: how could it take 40 ms?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each key/value is one file?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: creating a file takes 3 disk writes (directory, inode, content)?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what's the other 35 ms?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MB disk write?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But only 33 ms (not 75) for "ordered table" (MySQL/Innodb)
+  prefs: []
+  type: TYPE_NORMAL
+- en: closer to the one or two disk write we'd expect
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '5.3 / Figure 3: effect of increasing request rate'
+  prefs: []
+  type: TYPE_NORMAL
+- en: what do we expect for graph w/ x-axis req rate, y-axis latency?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: system has some inherent capacity, e.g. total disk seeks/second
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for lower rates, constant latency
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for higher rates, queue grows rapidly, avg latency blows up
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: blow-up should be near max capacity of h/w
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'e.g. # disk arms / seek time'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we don't see that in Figure 3
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: apparently their clients were not able to generate too much load
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: end of 5.3 says clients too slow
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: at >= 75 ms/op, 300 clients -> about 4000/sec
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: text says max possible rate was about 3000/second
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 10% writes, so 300 writes/second
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 5 SU per region, so 60 writes/SU/second
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: about right if each write does a random disk I/O
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but you'll need lots of SUs for millions of active users
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stepping back, what were PNUTS key design decisions?
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication of all data at multiple regions
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: fast reads, slow writes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: relaxed consistency -- stale reads
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: b/c writes are slow
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only single-row transactions w/ test-and-set-write
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: sequence all writes thru master region
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'pro: keeps replicas identical, enforces serial order on updates, easy to reason
+    about'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'con: slow, no progress if master region disconnected'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: Dynamo, a very different design'
+  prefs: []
+  type: TYPE_NORMAL
+- en: async replication, but no master
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: eventual consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: always allow updates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tree of versions if network partitions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: readers must reconcile versions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

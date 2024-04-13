@@ -1,0 +1,466 @@
+- en: Chapter 9\. Monitoring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'General approaches for obtaining execution information include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logging
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Writing this information (periodically) to an external storage (for example
+    databases)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Although both of these approaches work and are often used, they typically suffer
+    from the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They introduce additional latency to the execution—they are typically implemented
+    using synchronous calls within the execution itself.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They require additional software components—database, log aggregators, and so
+    on—which translates to additional maintenance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both [Flink](http://bit.ly/2zgfsif) and [Kafka Streams](http://docs.confluent.io/current/streams/developer-guide.html#id8)
+    recently introduced queryable state ([Figure 9-1](#queryable_state)), which is
+    a different approach to such monitoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Kafka Streams documentation](http://docs.confluent.io/current/streams/developer-guide.html#id8)
+    defines queryable state (interactive queries) as an approach, which, according
+    to the documentation
+  prefs: []
+  type: TYPE_NORMAL
+- en: lets you get more from streaming than just the processing of data. This feature
+    allows you to treat the stream processing layer as a lightweight embedded database
+    and, more concretely, to directly query the latest state of your stream processing
+    application, without needing to materialize that state to external databases or
+    external storage first.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![smlt 0901](assets/smlt_0901.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-1\. Queryable state
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Flink
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Flink recently introduced a managed keyed-state interface that provides access
+    to a state that is scoped to the key of the current execution. This means that
+    this type of state can be used only on a Flink `KeyedStream`, and is applicable
+    only to Flink’s key-based joins implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The current Flink implementation includes the following [state options](http://bit.ly/2yh8sUw):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ValueState<T>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This keeps a value that can be updated and retrieved. You can set the value
+    using `update(T)` and retrieve it using `T value()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ListState<T>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This keeps a list of elements. `ListState` supports appending elements and retrieving
+    an `Iterable` over all currently stored elements. You add elements using `add(T)`,
+    and retrieve an `Iterable` by using `Iterable<T> get()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ReducingState<T>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This keeps a single value representing an aggregation of all values added to
+    the state. Similar to `ListState`, you can add an element using `add(T)`, but
+    the elements are reduced to an aggregate using a specified `ReduceFunction`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`FoldingState<T, ACC>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This keeps a single value that represents the aggregation of all values added
+    to the state. Unlike `ReducingState`, the type of the aggregate can be different
+    from the type of elements that are added to the state. Similar to `ReducingState`,
+    you add elements by using `add(T)` and you fold them into an aggregate using a
+    specified `FoldFunction`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flink also provides the `QueryableStateClient` class that you can use for queries
+    against the [KvState](http://vishnuviswanath.com/flink_queryable_state1.html)
+    instances that serve the state internally. You need to configure it with a valid
+    Flink `JobManager` address, port, and job ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To incorporate queryable statistics in our implementation, you must modify the
+    `DataProcessor` class ([Example 4-1](ch04.html#the_dataprocessor_class)) by adding
+    in `ValueState<T>`. The updated version of this class looks like [Example 9-1](#the_modeltoservestats_class)
+    ([complete code available here](http://bit.ly/DataProcessorKeyed)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-1\. The ModelToServeStats class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This addition tracks the current model name, the time it was introduced, number
+    of usages, overall execution time, and minimum/maximum execution time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can access this information by using a queryable state client that you can
+    implement as shown in [Example 9-2](#flink_queryable_state_client) ([complete
+    code available here](http://bit.ly/2zg0J77)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-2\. Flink queryable state client
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This simple implementation polls the running Flink server every `timeInterval`
+    and prints results. `jobId` here is a current `jobId` executed by a Flink server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kafka Streams
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When dealing with Kafka Streams, you must consider two things: what is happening
+    in a single Java Virtual Machine (JVM), and how several JVMs representing a single
+    Kafka Streams application work together. As a result, [Kafka queryable APIs](http://docs.confluent.io/current/streams/developer-guide.html#id8)
+    comprise two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Querying local state stores (for an application instance)](http://bit.ly/2gddeMb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This provides access to the state that is managed locally by an instance of
+    your application (partial state). In this case, an application instance can directly
+    query its own local state stores. You can thus use the corresponding (local) data
+    in other parts of your application code that are not related to calling the Kafka
+    Streams API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Querying remote state stores (for the entire application)](http://bit.ly/2yhezYj)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To query the full state of an application, it is necessary to bring together
+    local fragments of the state from every instance. This means that in addition
+    to being able to query local state stores, it is also necessary to be able to
+    discover all the running instances of an application. Collectively, these building
+    blocks enable intra-application communications (between instances of the same
+    app) as well as inter-application communication (from other applications) for
+    interactive queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation begins with defining the state representation, `ModelServingInfo`,
+    which can be queried to get information about the current state of processing,
+    as demonstrated in [Example 9-3](#the_modelservinginfo_class) ([complete code
+    available here](http://bit.ly/2kGYGWu)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-3\. The ModelServingInfo class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, you must add this information to the state store shown in [Example 7-2](ch07.html#model_state_store_class).
+    [Example 9-4](#updated_statestore_class) shows you how ([complete code available
+    here](http://bit.ly/2gbUCvJ)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-4\. Updated StoreState class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This adds two instances of the `ModelServingInfo` class (similar to the `Model`
+    class). Adding those will in turn require a change in `ModelSerde` ([Example 7-4](ch07.html#state_serializer_solidus_deserializer))
+    to implement serialization/deserialization support for the `ModelServingInfo`
+    class ([complete code available here](http://bit.ly/2zgeXVy)). [Example 9-5](#modelservinginfo_serialization_solidus)
+    presents the code to do this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-5\. ModelServingInfo serialization/deserialization
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, you also must change the `ModelStateStore` class ([Example 7-2](ch07.html#model_state_store_class)).
+    First, the Streams queryable state allows only read access to the store data,
+    which requires introduction of an interface supporting only read access that can
+    be used for query ([Example 9-6](#queryable_state_store_interface)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-6\. Queryable state store interface
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this in place, you can extend the `DataProcessorWithStore` class ([Example 7-7](ch07.html#model_processor))
+    to collect your execution information, as shown in [Example 9-7](#updated_data_processor_class)
+    ([complete code available here](http://bit.ly/2kH9HqR)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-7\. Updated data processor class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: To make the full state of the application (all instances) queryable, it is necessary
+    to provide discoverability of the additional instances. [Example 9-8](#simple_metadata_service)
+    presents a simple implementation of such a service ([complete code available here](http://bit.ly/2wNZfzs)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-8\. Simple metadata service
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: To actually be able to serve this information, you implement a simple REST service
+    exposing information from the metadata service using an HTTP server implementation
+    as well as a framework for building a REST service. In this example, I used Jetty
+    and JAX-RS (with corresponding JAX-RS annotations), which are popular choices
+    in the Java ecosystem. [Example 9-9](#simple_rest_service_implementation) shows
+    a simple REST service implementation that uses metadata service and model serving
+    information ([complete code available here](http://bit.ly/2i2QAXj)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-9\. Simple REST service implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This implementation provides several REST methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the list of application instances (remember, for scalability it is possible
+    to run multiple instances of a Kafka Streams application, where each is responsible
+    for a subset of partitions of the topics). It returns back the list of instances
+    with a list of state stores available in each instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get a list of application instances containing a store with a given name.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get `Model` serving information from a store with a given name.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This code requires implementation of two additional classes: a class used as
+    a data container for returning information about stores on a given host, and a
+    model store type used for locating a store in the Kafka Streams instance. [Example 9-10](#host_store_information)
+    shows what the data container class looks like ([complete code available here](http://bit.ly/2xzllVI)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-10\. Host store information
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The model store type looks like [Example 9-11](#host_store_information-id1)
+    ([complete code available here](http://bit.ly/2xyoyK8)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-11\. Host store information
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, to bring this all together, you need to update the overall implementation
+    of model serving with Kafka Streams covered in [Example 7-6](ch07.html#implementation_of_model_serving),
+    as shown in [Example 9-12](#updated_model_serving_with_kafka_streams) ([complete
+    code available here](http://bit.ly/2xzyYEs)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-12\. Updated model serving with Kafka Streams
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this is done, you can obtain the state store content by querying the store
+    by name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Akka Streams
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Akka Streams does not support queryable state (or any state), but by introducing
+    a small change to our custom stage implementation ([Example 8-2](ch08.html#stage_implementation)),
+    it is possible to expose the state from the stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, you first must create an interface for querying the state from the
+    stage, as shown in [Example 9-13](#state_query_interface) (compare to Kafka Streams
+    queryable state store interface, [Example 9-6](#queryable_state_store_interface)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-13\. State query interface
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this in place, you can write stage implementation to support this interface
+    and collect statistics, as demonstrated in [Example 9-14](#updated_model_stage)
+    ([complete code available here](http://bit.ly/2zeLEm9)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-14\. Updated ModelStage
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this implementation, the `dataRecordIn` handler is extended to collect execution
+    statistics. Additionally, implementation of the State query interface ([Example 9-13](#state_query_interface))
+    is provided so that the stage can be queried for the current model state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For REST interface implementation, I used [Akka HTTP](http://doc.akka.io/docs/akka-http/current/scala/http/).
+    The resource used for statistics access can be implemented as shown in [Example 9-15](#implementing_rest_resource)
+    ([complete code available here](http://bit.ly/2xzNwJi)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-15\. Implementing REST resource
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: To bring it all together, you must modify the Akka model server ([Example 8-3](ch08.html#akka_model_server_implementation)),
+    as demonstrated in [Example 9-16](#updated_akka_model_server_implementation) ([complete
+    code available here](http://bit.ly/2zfyrtf)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 9-16\. Updated Akka model server implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are several changes here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of using `dropMaterializedValue`, we are going to use `keepModelMaterializedValue`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A new method `startRest` is implemented, which starts an internal REST service
+    based on the resource ([Example 9-16](#updated_akka_model_server_implementation))
+    and the implementation of the interface ([Example 9-14](#updated_model_stage)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Materialized state is used for accessing statistics data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although this solution provides access to local (instance-based) model serving
+    statistics, it does not provide any support for getting application-based information
+    (compare to the queryable Kafka Streams store). Fortunately Kafka itself keeps
+    track of instances with the same group ID and provides (not very well documented)
+    [AdminClient](http://bit.ly/2wOIuEk) APIs ([usage example](http://bit.ly/2yb2Lrf))
+    with which you can get the list of hosts for a consumer group. Assuming that all
+    instances execute on different hosts with the same port, you can use this information
+    to discover all applications instances and connect to all of them to get the required
+    information. This is not a completely reliable method, but you can use it in the
+    majority of cases to get complete application statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark and Beam
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Neither Spark nor Beam currently support queryable state, and I have not seen
+    any definitive plans and proposals to add this support in the future. So, if you
+    use either of these tools, you can implement monitoring by using either logging
+    or an external database, for example, [Cassandra](http://cassandra.apache.org/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of Spark, there is an additional option: use the [Spark Job Server](https://github.com/spark-jobserver/spark-jobserver),
+    which provides a REST API for Spark jobs and contexts. The Spark Job Server supports
+    using Spark as a [query engine](http://bit.ly/2wOEkMy) (similar to queryable state).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecturally [Spark Job Server](http://bit.ly/2wOEkMy) consists of a REST
+    job server providing APIs to consumers and managing application jars, execution
+    context, and job execution on the Spark runtime. Sharing [contexts](https://github.com/spark-jobserver/spark-jobserver/blob/master/doc/contexts.md)
+    allows multiple jobs to access the same object (the Resilient Distributed Dataset
+    [RDD] state in our case). So, in this case, our Spark implementation ([Example 6-1](ch06.html#model_serving_with_spark))
+    can be extended to add a model execution state to the RDD state. This will enable
+    creation of a simple application that queries this state data using Spark Job
+    Server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You should now have a thorough understanding of the complexities of serving
+    models produced by machine learning in streaming applications. You learned how
+    to export trained models in both TensorFlow and PMML formats and serve these models
+    using several popular streaming engines and frameworks. You also have several
+    solutions at your fingertips to consider. When deciding on the specific technology
+    for your implementation, you should take into account the number of models you’re
+    serving, the amount of data to be scored by each model and the complexity of the
+    calculations, your scalability requirements, and your organization’s existing
+    expertise. I encourage you to check out the materials referenced throughout the
+    text for additional information to help you implement your solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: About the Authors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Boris Lublinsky** is a Principal Architect at Lightbend. He has over 25 years
+    of experience in enterprise, technical architecture, and software engineering.
+    He is coauthor of *Applied SOA: Service-Oriented Architecture and Design Strategie*s
+    (Wiley) and *Professional Hadoop Solutions* (Wiley). He is also an author of numerous
+    articles on architecture, programming, big data, SOA, and BPM.'
+  prefs: []
+  type: TYPE_NORMAL

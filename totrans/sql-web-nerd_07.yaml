@@ -1,0 +1,157 @@
+- en: '| [![Fixing a Macintosh so that it doesn''t crash when you connect it to the
+    Internet.](../Images/d1a42c3d8c81e9a3b5f55ef52da7a1f3.jpg)](/http://philip.greenspun.com/images/pcd3559/fixing-a-macintosh-23.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Triggers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    | [![Eve preparing to stop a Macintosh from crashing](../Images/ffb671b2bcfa9d3ca58771df1dba41c5.jpg)](/http://philip.greenspun.com/images/pcd3559/macintosh-repair-toolkit-30.tcl)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A trigger is a fragment of code that you tell Oracle to run before or after
+    a table is modified. A trigger has the power to
+  prefs: []
+  type: TYPE_NORMAL
+- en: make sure that a column is filled in with default information
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: make sure that an audit row is inserted into another table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: after finding that the new information is inconsistent with other stuff in the
+    database, raise an error that will cause the entire transaction to be rolled back
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Consider the `general_comments` table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Users and administrators are both able to edit comments. We want to make sure
+    that we know when a comment was last modified so that we can offer the administrator
+    a "recently modified comments page". Rather than painstakingly go through all
+    of our Web scripts that insert or update comments, we can specify an invariant
+    in Oracle that "after every time someone touches the `general_comments` table,
+    make sure that the `modified_date` column is set equal to the current date-time."
+    Here''s the trigger definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We're using the PL/SQL programming language, discussed in [the procedural language
+    chapter](procedural.html). In this case, it is a simple `begin-end` block that
+    sets the `:new` value of `modified_date` to the result of calling the `sysdate`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using SQL*Plus, you have to provide a / character to get the program to
+    evaluate a trigger or PL/SQL function definition. You then have to say "show errors"
+    if you want SQL*Plus to print out what went wrong. Unless you expect to write
+    perfect code all the time, it can be convenient to leave these SQL*Plus incantations
+    in your .sql files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Audit Table Example
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Turf Accountants. Dublin, Ireland.](../Images/d22c1d49c61283dfbfabc1872300cd80.jpg)](/http://philip.greenspun.com/images/pcd1120/dublin-turf-accountants-25.tcl)
+    The canonical trigger example is the stuffing of an audit table. For example,
+    in the data warehouse section of the ArsDigita Community System, we keep a table
+    of user queries. Normally the SQL code for a query is kept in a `query_columns`
+    table. However, sometimes a user might hand edit the generated SQL code, in which
+    case we simply store that in the `query_sql`queries table. The SQL code for a
+    query might be very important to a business and might have taken years to evolve.
+    Even if we have good RDBMS backups, we don''t want it getting erased because of
+    a careless mouse click. So we add a `queries_audit` table to keep historical values
+    of the `query_sql` column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Note first that `queries_audit` has no primary key. If we were to make `query_id`
+    the primary key, we'd only be able to store one history item per query, which
+    is not our intent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How to keep this table filled? We could do it by making sure that every Web
+    script that might update the `query_sql` column inserts a row in `queries_audit`
+    when appropriate. But how to enforce this after we''ve handed off our code to
+    other programmers? Much better to let the RDBMS enforce the auditing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The structure of a row-level trigger is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Let''s go back and look at our trigger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is named `queries_audit_sql`; this is really of no consequence so long as
+    it doesn't conflict with the names of other triggers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It will be run `before update`, i.e., only when someone is executing an SQL
+    UPDATE statement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It will be run only when someone is updating the table `queries`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It will be run only when the old value of `query_sql` is not null; we don't
+    want to fill our audit table with NULLs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It will be run only when the new value of `query_sql` is different from the
+    old value; we don't want to fill our audit table with rows because someone happens
+    to be updating another column in `queries`. Note that SQL's three-valued logic
+    forces us to put in an extra test for `new.query_sql is null` because `old.query_sql
+    <> new.query_sql` will not evaluate to true when `new.query_sql` is NULL (a user
+    wiping out the custom SQL altogether; a very important case to audit).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Oracle Application Developer's Guide, [Using Database Triggers](http://www.oradoc.com/keyword/triggers)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: [views](views.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)[Add a comment](/comments/add?page_id=3456)'
+  prefs: []
+  type: TYPE_NORMAL

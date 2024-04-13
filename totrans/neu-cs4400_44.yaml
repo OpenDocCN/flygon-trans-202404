@@ -1,0 +1,246 @@
+- en: Recursion without the MagicTuesday, February 14th
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PLAI §22.4](plai.pdf#section.22.4 "Eliminating Recursion") (we go much deeper)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Note: This explanation is similar to the one you can find in “The Why of Y”,
+    by Richard Gabriel.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To implement recursion without the `define` magic, we first make an observation:
+    this problem does *not* come up in a dynamically-scoped language. Consider the
+    `let`-version of the problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This works fine — because by the time we get to evaluate the body of the function,
+    `fact` is already bound to itself in the current dynamic scope. (This is another
+    reason why dynamic scope is perceived as a convenient approach in new languages.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regardless, the problem that we have with lexical scope is still there, but
+    the way things work in a dynamic scope suggest a solution that we can use now.
+    Just like in the dynamic scope case, when `fact` is called, it does have a value
+    — the only problem is that this value is inaccessible in the lexical scope of
+    its body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of trying to get the value in via lexical scope, we can imitate what
+    happens in the dynamically scoped language by passing the `fact` value to itself
+    so it can call itself (going back to the original code in the broken-scope language):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'except that now the recursive call should still send itself along:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The problem is that this required rewriting calls to `fact` — both outside and
+    recursive calls inside. To make this an acceptable solution, calls from both places
+    should not change. Eventually, we should be able to get a working `fact` definition
+    that uses just
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first step in resolving this problem is to curry the `fact` definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now `fact` is no longer our factorial function — it’s a function that constructs
+    it. So call it `make-fact`, and bind `fact` to the actual factorial function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can try to do the same thing in the body of the factorial function: instead
+    of calling `(self self)`, just bind `fact` to it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This works fine, but if we consider our original goal, we need to get that
+    local `fact` binding outside of the `(lambda (n) ...)` — so we’re left with a
+    definition that uses the factorial expression as is. So, swap the two lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But the problem is that this gets us into an infinite loop because we’re trying
+    to evaluate `(self self)` too early. In fact, if we ignore the body of the `let`
+    and other details, we basically do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this expression has an interesting property: it reduces to itself, so evaluating
+    it gets stuck in an infinite loop.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So how do we solve this? Well, we know that `(self self)` *should* be the same
+    value that is the factorial function itself — so it must be a one-argument function.
+    If it’s such a function, we can use a value that is equivalent, except that it
+    will not get evaluated until it is needed, when the function is called. The trick
+    here is the observation that `(lambda (n) (add1 n))` is really the same function
+    as `add1`, except that the `add1` part doesn’t get evaluated until the function
+    is called. Applying this trick to our code produces a version that does not get
+    stuck in the same infinite loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Continuing from here — we know that
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(remember how we derived `fun` from a `with`), so we can turn that `let` into
+    the equivalent function application form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And note now that the (lambda (fact) …) expression is everything that we need
+    for a recursive definition of `fact` — it has the proper factorial body with a
+    plain recursive call. It’s almost like the usual value that we’d want to define
+    `fact` as, except that we still have to abstract on the recursive value itself.
+    So lets move this code into a separate definition for `fact-core`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can now proceed by moving the `(make-fact make-fact)` self application into
+    its own function which is what creates the real factorial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Rewrite the `make-fact` definition using an explicit `lambda`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and fold the functionality of `make-fact` and `make-real-fact` into a single
+    `make-fact` function by just using the value of `make-fact` explicitly instead
+    of through a definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can now observe that `make-real-fact` has nothing that is specific to factorial
+    — we can make it take a “core function” as an argument:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and call it `make-recursive`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’re almost done now — there’s no real need for a separate `fact-core` definition,
+    just use the value for the definition of `fact`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'turn the `let` into a function form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'do some renamings to make things simpler — `make` and `self` turn to `x`, and
+    `core` to `f`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or we can manually expand that first (lambda (x) (x x)) application to make
+    the symmetry more obvious (not really surprising because it started with a `let`
+    whose purpose was to do a self-application):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we finally got what we were looking for: a general way to define *any*
+    recursive function without any magical `define` tricks. This also work for other
+    recursive functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A convenient tool that people often use on paper is to perform a kind of a
+    syntactic abstraction: “assume that whenever I write (twice foo) I really meant
+    to write (foo foo)”. This can often be done as plain abstractions (that is, using
+    functions), but in some cases — for example, if we want to abstract over definitions
+    — we just want such a rewrite rule. (More on this towards the end of the course.)
+    The broken-scope language does provide such a tool — `rewrite` extends the language
+    with a rewrite rule. Using this, and our `make-recursive`, we can make up a recursive
+    definition form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In other words, we’ve created our own “magical definition” form. The above
+    code can now be written in almost the same way it is written in plain Racket:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, note that make-recursive is limited to 1-argument functions only because
+    of the protection from eager evaluation. In any case, it can be used in any way
+    you want, for example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'is a function that *returns* itself rather than calling itself. Using the rewrite
+    rule, this would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which is the same as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: in plain Racket.
+  prefs: []
+  type: TYPE_NORMAL

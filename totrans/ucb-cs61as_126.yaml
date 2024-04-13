@@ -1,0 +1,404 @@
+- en: Eval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The rest of the lesson has concepts that may be confusing the first time you
+    learn about them, so carefully reread sentences that are hard to understand! It's
+    also important to remember that the metacircular evaluator is all about abstraction,
+    so if you don't understand how something is implemented just yet, it'll probably
+    be explained in a later section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eval
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Does this code look familar to you? It should; it's part of the Racket-1/Scheme-1
+    interpreter you learned in Lesson 6! If you look at line 3, you can see that `eval-1`
+    is using Scheme's `eval` procedure. You didn't really have to worry too much about
+    the details in Lesson 6, because Scheme's `eval` procedure handled all the details.
+    But what are the details behind Scheme's `eval`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now is time to look at how `mc-eval` is written. Take a look, and compare it
+    to `eval-1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`mc-eval` is defined to do the work of underlying Scheme''s `eval` to interpret
+    Scheme''s syntax rules and to decompose each call into the appropriate action.
+    Don''t worry if you don''t understand it. We will go through this code step-by-
+    step.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What Does mc-eval Do?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The procedure `mc-eval` takes as arguments an expression and an environment.
+    It classifies the expression and directs its evaluation. In order to keep the
+    procedure general, we express the determination of the type of an expression abstractly,
+    making no commitment to any particular representation for the various types of
+    expressions. Each type of expression has a predicate that tests for it and an
+    abstract means for selecting its parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When `mc-eval` processes a procedure application, it uses `list-of-values`
+    to produce the list of arguments to which the procedure is to be applied. The
+    procedure `list- of-values` takes as an argument the operands of the combination.
+    It evaluates each operand and returns a list of the corresponding values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Left to Right? Right to Left?** Given some list of operands,`list-of-values`
+    will recursively construct a nested cons structure of calls to `mc-eval` on each
+    operand. Notice that we cannot tell the order that the metacircular evaluator
+    evaluates operands from left to right or from right to left. Its evaluation order
+    is inherited from the underlying Scheme: If the arguments to `cons` in `list-of-values`
+    are evaluated from left to right, then `list-of-values` will evaluate operands
+    from left to right; and if the arguments to `cons` are evaluated from right to
+    left, then `list-of-values` will evaluate operands from right to left.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write a version of `list-of-values` that evaluates operands from left to right
+    regardless of the order of evaluation in the underlying Scheme. Also write a version
+    of `list-of-values` that evaluates operands from right to left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's go line by line to see what each expression in the conditional does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Evaluating Expressions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](http://www.bbc.co.uk/music/tinthepark/2010/img/home/radio1_small_promo.jpg
+    )'
+  prefs: []
+  type: TYPE_IMG
+- en: For self-evaluating expressions, such as numbers, `mc-eval` returns the expression
+    itself. `mc-eval` must look up variables in the environment to find their values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The only self-evaluating items are numbers and strings:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (self-evaluating? exp) (cond ((number? exp) true) ((string? exp) true)
+    (else false)))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Remember, words are **not** strings. Strings use double quotes (e.g. `"Hello,
+    world!"`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Variables are represented by symbols:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (variable? exp) (symbol? exp))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Special Forms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQzrLHmk190OIaf1 -xqLtrpW-BYa-yWwYHL58ZZBqQw6AVbqSZ2qw)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Special Forms: Sentences and Words'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For quoted expressions, `mc-eval` returns the expression that was quoted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall that the Scheme parser automatically transforms the expression `'(some
+    text here)` into the expression pair `(quote (some text here))`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, quotations have the form `(quote <text-of-quotation>)`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`Quoted?` is defined in terms of the procedure `tagged-list?`, which identifies
+    lists beginning with a designated symbol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Special Form: Lambda'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A `lambda` expression must be transformed into an applicable procedure by packaging
+    together the parameters and body specified by the lambda expression with the environment
+    of the evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lambda expressions are lists that begin with the symbol lambda:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There is a constructor for lambda expressions, which is used by `definition-
+    value`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Special Form: Sequences'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![](http://x-equals.com/blog/wp-content/editing_sequences_5_seq_1280.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`Eval-sequence` is used by `apply` to evaluate the sequence of expressions
+    in a procedure body. It is also used by `eval` to evaluate the sequence of expressions
+    in a `begin` expression. It takes as arguments a sequence of expressions and an
+    environment, and evaluates the expressions in the order in which they occur. The
+    value returned is the value of the final expression.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (eval-sequence exps env) (cond ((last-exp? exps) (mc-eval (first-exp
+    exps) env)) (else (mc-eval (first-exp exps) env) (eval-sequence (rest-exps exps)
+    env))))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`Begin` packages a sequence of expressions into a single expression. A `begin`
+    expression requires evaluating its sequence of expressions in the order in which
+    they appear. We include syntax operations on `begin` expressions to extract the
+    actual sequence from the `begin` expression, as well as selectors that return
+    the first expression and the rest of the expressions in the sequence.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (begin? exp) (tagged-list? exp 'begin)) (define (begin-actions exp)
+    (cdr exp)) (define (last-exp? seq) (null? (cdr seq))) (define (first-exp seq)
+    (car seq)) (define (rest-exps seq) (cdr seq))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'There is a constructor `sequence->exp` (for use by `cond->if`) that transforms
+    a sequence into a single expression, using `begin` if necessary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Special Form: Conditionals'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![](http://callofcarly.files.wordpress.com/2011/10/if.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`Eval-if` evaluates the predicate part of an `if` expression in the given environment.
+    If the result is true, eval-if evaluates the consequent, otherwise it evaluates
+    the alternative:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (eval-if exp env) (if (true? (mc-eval (if-predicate exp) env)) (mc-eval
+    (if-consequent exp) env) (mc-eval (if-alternative exp) env)))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The use of `true?` in `eval-if` highlights the issue of the connection between
+    an implemented language and an implementation language. The `if-predicate` is
+    evaluated in the language being implemented and thus yields a value in that language.
+    The interpreter predicate `true?` translates that value into a value that can
+    be tested by the if in the implementation language: The metacircular representation
+    of truth might not be the same as that of the underlying Scheme.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`true?` and `false?` are define as following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: An `if` expression requires special processing of its parts, so as to evaluate
+    the consequent if the predicate is true, and otherwise to evaluate the alternative.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (define (if? exp) (tagged-list? exp 'if)) (define (if-predicate exp) (cadr exp))
+    (define (if-consequent exp) (caddr exp)) (define (if-alternative exp) (if (not
+    (null? (cdddr exp))) (cadddr exp) 'false))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'There is a constructor for `if` expressions, to be used by `cond->if` to transform
+    `cond` expressions into `if` expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: A case analysis (`cond`) is transformed into a nest of `if` expressions and
+    then evaluated.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'can be represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: There are syntax procedures that extract the parts of a cond expression, and
+    a procedure `cond->if` that transforms `cond` expressions into `if` expressions.
+    A case analysis begins with `cond` and has a list of predicate-action clauses.
+    A clause is an `else` clause if its predicate is the symbol `else`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Expressions (such as `cond`) that we choose to implement as syntactic transformations
+    are called **derived expressions**. `Let` expressions are also derived expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Special Form: Assignments and Definitions'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![](http://2.bp.blogspot.com/-BJ9VKWsOh74/UjWTv9D1TZI/AAAAAAAAfFA/c0x9oTVm2S4/
+    s1600/DEFINE_TwitterAvatar_R1_eo.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An assignment to (or a definition of) a variable must recursively call `eval`
+    to compute the new value to be associated with the variable. The environment must
+    be modified to change (or create) the binding of the variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following procedure handles assignments to variables. It calls `eval` to
+    find the value to be assigned and passes the variable and the resulting value
+    to `set-variable-value!` to be defined in the designated environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definitions of variables are handled in a similar manner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: By convention, the symbol `ok` is returned as the value of an assignment or
+    a definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's look at how assignment expressions are represented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Assignments have the form `(set! <var> <value>)`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Definitions have the form `(define <var> <value>)` or the form
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The latter form (standard procedure definition) can be re-written as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The corresponding syntax procedures are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**And and Or**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recall the definitions of the special forms `and` and `or` from Unit 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'and: The expressions are evaluated from left to right. If any expression evaluates
+    to false, `false` is returned; any remaining expressions are not evaluated. If
+    all the expressions evaluate to true values, the value of the last expression
+    is returned. If there are no expressions then true is returned.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'or: The expressions are evaluated from left to right. If any expression evaluates
+    to a true value, that value is returned; any remaining expressions are not evaluated.
+    If all expressions evaluate to false, or if there are no expressions, then `false`
+    is returned.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Install `and` and `or` as new special forms for the evaluator by defining appropriate
+    syntax procedures and evaluation procedures `eval-and` and `eval-or`. Alternatively,
+    show how to implement `and` and `or` as derived expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: mc-eval Definition Revisited
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's take a look at `mc-eval`'s definition again. Does it make sense to you
+    now?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Wait, wait, what''s apply? I don''t know what that is!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are going to explore it in the next subsection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following use mc-eval in their definition? Multiple answers may
+    be correct, so check each answer individually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Takeaways
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this subsection, you learned how Scheme evaluates the expressions using `mc-eval`
+    and other procedures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's Next?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Go to the next subsection and learn how Scheme applies the evaluated expressions!
+  prefs: []
+  type: TYPE_NORMAL

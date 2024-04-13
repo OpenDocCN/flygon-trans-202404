@@ -1,0 +1,325 @@
+- en: 3A First Look at Interpretation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have a representation of programs, there are many ways in which
+    we might want to manipulate them. We might want to display a program in an attractive
+    way (“pretty-print”), convert into code in some other format (“compilation”),
+    ask whether it obeys certain properties (“verification”), and so on. For now,
+    we’re going to focus on asking what value it corresponds to (“evaluation”—<wbr>the
+    reduction of programs to values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s write an evaluator, in the form of an interpreter, for our arithmetic
+    language. We choose arithmetic first for three reasons: (a) you already know how
+    it works, so we can focus on the mechanics of writing evaluators; (b) it’s contained
+    in every language we will encounter later, so we can build upwards and outwards
+    from it; and (c) it’s at once both small and big enough to illustrate many points
+    we’d like to get across.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1Representing Arithmetic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s first agree on how we will represent arithmetic expressions. Let’s say
+    we want to support only two operations—<wbr>addition and multiplication—<wbr>in
+    addition to primitive numbers. We need to represent arithmetic expressions. What
+    are the rules that govern nesting of arithmetic expressions? We’re actually free
+    to nest any expression inside another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why did we not include division? What impact does it have on the remarks above?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We’ve ignored division because it forces us into a discussion of what expressions
+    we might consider legal: clearly the representation of 1/2 ought to be legal;
+    the representation of 1/0 is much more debatable; and that of 1/(1-1) seems even
+    more controversial. We’d like to sidestep this controversy for now and return
+    to it later [REF].Thus, we want a representation for numbers and arbitrarily nestable
+    addition and multiplication. Here’s one we can use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type ArithC |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numC (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [plusC (l : ArithC) (r : ArithC)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [multC (l : ArithC) (r : ArithC)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 3.2Writing an Interpreter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let’s write an interpreter for this arithmetic language. First, we should
+    think about what its type is. It clearly consumes a ArithC value. What does it
+    produce? Well, an interpreter evaluates—<wbr>and what kind of value might arithmetic
+    expressions reduce to? Numbers, of course. So the interpreter is going to be a
+    function from arithmetic expressions to numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write your test cases for the interpreter.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Because we have a recursive datatype, it is natural to structure our interpreter
+    as a recursive function over it. Here’s a first template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Templates are explained in great detail in How to Design Programs.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '| (define (interp [a : ArithC]) : number |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ArithC a |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numC (n) n] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusC (l r) ...] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multC (l r) ...])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'You’re probably tempted to jump straight to code, which you can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (interp [a : ArithC]) : number |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ArithC a |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numC (n) n] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusC (l r) (+ l r)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multC (l r) (* l r)])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you spot the errors?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Instead, let’s expand the template out a step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (interp [a : ArithC]) : number |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ArithC a |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numC (n) n] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusC (l r) ... (interp l) ... (interp r) ...] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multC (l r) ... (interp l) ... (interp r) ...])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'and now we can fill in the blanks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (interp [a : ArithC]) : number |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ArithC a |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numC (n) n] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusC (l r) (+ (interp l) (interp r))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multC (l r) (* (interp l) (interp r))])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Later on [REF], we’re going to wish we had returned a more complex datatype
+    than just numbers. But for now, this will do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Congratulations: you’ve written your first interpreter! I know, it’s very nearly
+    an anticlimax. But they’ll get harder—<wbr>much harder—<wbr>pretty soon, I promise.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3Did You Notice?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I just slipped something by you:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the “meaning” of addition and multiplication in this new language?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'That’s a pretty abstract question, isn’t it. Let’s make it concrete. There
+    are many kinds of addition in computer science:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First of all, there’s many different kinds of numbers: fixed-width (e.g., 32-bit)
+    integers, signed fixed-width (e.g., 31-bits plus a sign-bit) integers, arbitrary
+    precision integers; in some languages, rationals; various formats of fixed- and
+    floating-point numbers; in some languages, complex numbers; and so on. After the
+    numbers have been chosen, addition may support only some combinations of them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition, some languages permit the addition of datatypes such as matrices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Furthermore, many languages support “addition” of strings (we use scare-quotes
+    because we don’t really mean the mathematical concept of addition, but rather
+    the operation performed by an operator with the syntax +). In some languages this
+    always means concatenation; in some others, it can result in numeric results (or
+    numbers stored in strings).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These are all different meanings for addition. Semantics is the mapping of syntax
+    (e.g., +) to meaning (e.g., some or all of the above).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This brings us to our first game of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of these is the same?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 + 2
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 1 + 2
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ’1’ + ’2’
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ’1’ + ’2’
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Now return to the question above. What semantics do we have? We’ve adopted
+    whatever semantics Racket provides, because we map + to Racket’s +. In fact that’s
+    not even quite true: Racket may, for all we know, also enable + to apply to strings,
+    so we’ve chosen the restriction of Racket’s semantics to numbers (though in fact
+    Racket’s + doesn’t tolerate strings).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we wanted a different semantics, we’d have to implement it explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: What all would you have to change so that the number had signed- 32-bit arithmetic?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In general, we have to be careful about too readily borrowing from the host
+    language. We’ll return to this topic later [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4Growing the Language
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ve picked a very restricted first language, so there are many ways we can
+    grow it. Some, such as representing data structures and functions, will clearly
+    force us to add new features to the interpreter itself (assuming we don’t want
+    to use Gödel numbering). Others, such as adding more of arithmetic itself, can
+    be done without disturbing the core language and hence its interpreter. We’ll
+    examine this next ([A First Taste of Desugaring](first-desugar.html)).
+  prefs: []
+  type: TYPE_NORMAL

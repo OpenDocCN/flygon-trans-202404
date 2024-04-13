@@ -1,0 +1,412 @@
+- en: 29Parametric Polymorphism
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [29.1 Parameterized Types](#%28part._.Parameterized_.Types%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [29.2 Making Parameters Explicit](#%28part._.Making_.Parameters_.Explicit%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [29.3 Rank-1 Polymorphism](#%28part._.Rank-1_.Polymorphism%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [29.4 Interpreting Rank-1 Polymorphism as Desugaring](#%28part._.Interpreting_.Rank-1_.Polymorphism_as_.Desugaring%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [29.5 Alternate Implementations](#%28part._.Alternate_.Implementations%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [29.6 Relational Parametricity](#%28part._relnl-param%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: Which of these is the same?
+  prefs: []
+  type: TYPE_NORMAL
+- en: List<String>
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: List<String>
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: List<String>
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Actually, none of these is quite the same. But the first and third are very
+    alike, because the first is in Java and the third in ML, whereas the second, in
+    C++, is different. All clear? No? Good, read on!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.1Parameterized Types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider what would be the intended type of map in Pyret:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This says that for all types A and B, map consumes a function that generates
+    B values from A values, and a list of A values, and generates the corresponding
+    list of B values. Here, A and B are not concrete types; rather, each is a [☛ type
+    variable](glossary.html#%28elem._glossary-type._variable%29) (in our terminology,
+    these should properly be called “type identifiers” because they don’t change within
+    the course of an instantiation; however, we will stick to the traditional terminology).A
+    different way to understand this is that there is actually an infinite family
+    of map functions. For instance, there is a map that has this type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and another one of this type (nothing says the types have to be base types):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and yet another one of this type (nothing says A and B can’t be the same):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and so on. Because they have different types, they would need different names:
+    map-num-str, map-num-num-to-num, map-str-str, and so on. But that would make them
+    different functions, so we’d have to always refer to a specific map rather than
+    each of the generic one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Obviously, it is impossible to load all these functions into our standard library:
+    there’s an infinite number of these! We’d rather have a way to obtain each of
+    these functions on demand. Our naming convention offers a hint: it is as if map
+    takes two type parameters in addition to its two regular value ones. Given the
+    pair of types as arguments, we can then obtain a map that is customized to that
+    particular type. This kind of parameterization over types is called parametric
+    polymorphism.Not to be confused with the “polymorphism” of objects, which we will
+    discuss separately [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.2Making Parameters Explicit
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In other words, we’re effectively saying that map is actually a function of
+    perhaps four arguments, two of them types and two of them actual values (a function
+    and a list). In a language with explicit types, we might try to write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but this raises many questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What goes in place of the ???? These are the types that are going to take the
+    place of A and B on an actual use. But if A and B are bound to types, then what
+    is their type?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do we really want to call map with four arguments every time we invoke it?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do we want to be passing types—<wbr>which are static—<wbr>at the same time as
+    dynamic values?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If these are types but they are only provided at run-time invocation, how can
+    we type-check clients, who need to know what kind of list they are getting?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The answers to these questions actually lead to a very rich space of polymorphic
+    type systems, most of which we will not explore here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe that once we start parameterizing, more code than we expect ends up
+    being parameterized. For instance, consider the type of the humble link. Its type
+    really is parametric over the type of values in the list (even though it doesn’t
+    actually depend on those values!—<wbr>more on that in a bit ([Relational Parametricity](#%28part._relnl-param%29)))
+    so every use of link must be instantiated at the appropriate type. For that matter,
+    even empty must be instantiated to create an empty list of the correct type! Of
+    course, Java and C++ programmers are familiar with this pain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.3Rank-1 Polymorphism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead, we will limit ourselves to one particularly useful and tractable point
+    in this space, which is the type system of Standard ML, of earlier versions of
+    Haskell, roughly that of Java and C# with generics, and roughly that obtained
+    using templates in C++. This language defines what is called predicative, rank-1,
+    or prenex polymorphism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first divide the world of types into two groups. The first group consists
+    of the type language we’ve used until now, but extended to include type variables;
+    these are called monotypes. The second group, known as polytypes, consists of
+    parameterized types; these are conventionally written with a ∀ prefix, a list
+    of type variables, and then a monotype expression that might use these variables.
+    Thus, the type of map would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since “∀” is the logic symbol for “for all”, you would read this as: “for all
+    types A and B, the type of map is...”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In rank-1 polymorphism, the type variables can only be substituted with monotypes.
+    (Furthermore, these can only be concrete types, because there would be nothing
+    left to substitute any remaining type variables.) As a result, we obtain a clear
+    separation between the type variable-parameters and regular parameters. We don’t
+    need to provide a “type annotation” for the type variables because we know precisely
+    what kind of thing they can be. This produces a relatively clean language that
+    still offers considerable expressive power.Impredicative languages erase the distinction
+    between monotypes and polytypes, so a type variable can be instantiated with another
+    polymorphic type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe that because type variables can only be replaced with monotypes, they
+    are all independent of each other. As a result, all type parameters can be brought
+    to the front of the parameter list. In Pyret, for instance, the following defines
+    a polymorphic identity function:<pyret-poly-id> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun<T> id(x :: T) -> T: x; |'
+  prefs: []
+  type: TYPE_TB
+- en: 'where T is the type parameter. At every use, we separate the provision of type
+    parameters from value parameters by using <...> for the type parameters and (...)
+    for the values. In general, then, we can write types in the form ∀ tv, ... : t
+    where the tv are type variables and t is a monotype (that might refer to those
+    variables). This justifies not only the syntax but also the name “prenex”. It
+    will prove to also be useful in the implementation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.4Interpreting Rank-1 Polymorphism as Desugaring
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The simplest implementation of this feature is to view it as a form of desugaring:
+    this is essentially the interpretation taken by C++. (Put differently, because
+    C++ has a macro system in the form of templates, by a happy accident it obtains
+    a form of rank-1 polymorphism through the use of templates.) Consider the abve
+    polymorphic identity function ([<pyret-poly-id>](#%28elem._pyret-poly-id%29)).
+    Suppose the implementation is that, on every provision of a type to the name,
+    it replaces the type variable with the given type in the body: given a concrete
+    type for T, it yields a procedure of one argument of type (T -> T) (where T is
+    appropriately substituted). Thus we can instantiate id at many different types—<wbr>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '—<wbr>thereby obtaining identity functions at each of those types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In contrast, expressions like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: will, as we would expect, fail to type-check (rather than fail at run-time).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this approach has two important limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s try to define a recursive polymorphic function, such as filter. Earlier
+    we have said that we ought to instantiate every single polymorphic value (such
+    as even cons and empty) with types, but to keep our code concise we’ll focus just
+    on type parameters for filter. Here’s the code:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Observe that at the recursive uses of filter, we must instantiate it with the
+    appropriate type.This is a perfectly good definition. There’s just one problem.
+    If we try to use it—<wbr>e.g.,
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: the implementation will not terminate. This is because the desugarer is repeatedly
+    trying to make new copies of the code of filter at each recursive call.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If, in contrast, we define a local helper function that performs the recursion,
+    this problem can be made to disappear. Can you figure out that version?
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Consider two instantiations of the identity function. They would necessarily
+    be different because they are two different pieces of code residing at different
+    locations in memory.Indeed, the use of parametric polymorphism in C++ is notorious
+    for creating code bloat. However, all this duplication is unnecessary! There’s
+    absolutely nothing in the body of id, for instance, that actually depends on the
+    type of the argument. Indeed, the entire infinite family of id functions can share
+    just one implementation. The simple desugaring strategy fails to provide this.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In other words, the desugaring based strategy, which is essentially an implementation
+    by substitution, has largely the same problems we saw earlier with regards to
+    substitution as an implementation of parameter instantiation ([From Substitution
+    to Environments](Interpreting_Functions.html#%28part._subst-to-env%29)). However,
+    in other cases substitution also gives us a ground truth for what we expect as
+    the program’s behavior. The same will be true with polymorphism, as we will soon
+    see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe that one virtue to the desugaring strategy is that it does not require
+    our type checker to “know” about polymorphism. Rather, the core type language
+    can continue to be monomorphic, and all the (rank-1) polymorphism is handled entirely
+    through expansion. This offers a cheap strategy for adding polymorphism to a language,
+    though—<wbr>as C++ shows—<wbr>it also introduces significant overheads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, though we have only focused on functions, the preceding discussion
+    applies equally well to data structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.5Alternate Implementations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are other implementation strategies that don’t suffer from these problems.
+    We won’t go into them here, but the essence is to memoize ([REF]) expansion. Because
+    we can be certain that, for a given set of type parameters, we will always get
+    the same typed body, we never need to instantiate a polymorphic function at the
+    same type twice. This avoids the infinite loop. If we type-check the instantiated
+    body once, we can avoid checking at other instantiations of the same type (because
+    the body will not have changed). Furthermore, we do not need to retain the instantiated
+    sources: once we have checked the expanded program, we can dispose of the expanded
+    terms and retain just one copy at run-time. This avoids all the problems discussed
+    in the pure desugaring strategy shown above, while retaining the benefits.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Actually, we are being a little too glib. One of the benefits of static types
+    is that they enable us to pick more precise run-time representations. For instance,
+    in most languages a static type can tell us whether we have a 32-bit or 64-bit
+    number, or for that matter a 32-bit value or a 1-bit value (effectively, a boolean).
+    A compiler can then generate specialized code for each representation, taking
+    advantage of how the bits are laid out (for example, 32 booleans can use a [☛
+    packed representation](glossary.html#%28elem._glossary-packed._representation%29)
+    to fit into a single 32-bit word). Thus, after type-checking at each used type,
+    the polymorphic instantiator may keep track of all the special types at which
+    a function or data structure was used, and provide this information to the compiler
+    for code-generation. This will then result in several copies of the function,
+    but only as many as those for which the compiler can generate distinct, efficient
+    representations—<wbr>which is usually fixed, and far fewer than the total number
+    of types a program can use. Furthermore, the decision to make these copies reflects
+    a [☛ space-time tradeoff](glossary.html#%28elem._glossary-space-time._tradeoff%29).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 29.6Relational Parametricity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There’s one last detail we must address regarding polymorphism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We earlier said that a function like cons doesn’t depend on the specific values
+    of its arguments. This is also true of map, filter, and so on. When map and filter
+    want to operate on individual elements, they take as a parameter another function
+    which in turn is responsible for making decisions about how to treat the elements;
+    map and filter themselves simply obey their parameter functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to “test” whether this is true is to substitute some different values
+    in the argument list, and a correspondingly different parameter function. That
+    is, imagine we have a relation between two sets of values; we convert the list
+    elements according to the relation, and the parameter function as well. The question
+    is, will the output from map and filter also be predictable by the relation? If,
+    for some input, this was not true of the output of map, then it must be that map
+    somehow affected the value itself, not just letting the function do it. But in
+    fact this won’t happen for map, or indeed most of the standard polymorphic functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Functions that obey this relational rule are called relationally parametricRead
+    Wadler’s Theorems for Free! and Reynolds’s Types, Abstraction and Parametric Polymorphism..
+    This is another very powerful property that types give us, because they tell us
+    there is a strong limit on the kinds of operations such polymorphic functions
+    can perform: essentially, that they can drop, duplicate, and rearrange elements,
+    but not directly inspect and make decisions on them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At first this sounds very impressive (and it is!), but on inspection you might
+    realize this doesn’t square with your experience. In Java, for instance, a polymorphic
+    method can still use instanceof to check which particular kind of value it obtained
+    at run-time, and change its behavior accordingly. Such a method would not be relationally
+    parametric!On the Web, you will often find this property described as the inability
+    of a function to inspect the argument—<wbr>which is not quite right. In fact,
+    relational parametricity can equally be viewed as a statement of the weakness
+    of the language: that it permits only a very limited set of operations. (You could
+    still inspect the type—<wbr>but not act upon what you learned, which makes the
+    inspection pointless. Therefore, a run-time system that wants to simulate relational
+    parametricity would have to remove operations like instanceof as well as various
+    proxies to it: for instance, adding 1 to a value and catching exceptions would
+    reveal whether the value is a number.) Nevertheless, it is a very elegant and
+    surprising result, and shows the power of program reasoning possible with rich
+    type systems.'
+  prefs: []
+  type: TYPE_NORMAL

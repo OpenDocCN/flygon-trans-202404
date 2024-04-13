@@ -1,0 +1,172 @@
+- en: 'Implementing Lexical Scope: Closures and EnvironmentsTuesday, February 7th'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So how do we fix this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lets go back to the root of the problem: the new evaluator does not behave
+    in the same way as the substituting evaluator. In the old evaluator, it was easy
+    to see how functions can behave as objects that remember values. For example,
+    when we do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'the result was a function value, which actually was the syntax object for this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now if we call this function from someplace else like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'it is clear what the result will be: f is bound to a function that adds 1 to
+    its input, so in the above the later binding for `x` has no effect at all.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But with the caching evaluator, the value of
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'is simply:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: and there is no place where we save the 1 — *that’s* the root of our problem.
+    (That’s also what makes people suspect that using `lambda` in Racket and any other
+    functional language involves some inefficient code-recompiling magic.) In fact,
+    we can verify that by inspecting the returned value, and see that it does contain
+    a free identifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clearly, we need to create an object that contains the body and the argument
+    list, like the function syntax object — but we don’t do any substitution, so in
+    addition to the body an argument name(s) we need to remember that we still need
+    to substitute `x` by `1` . This means that the pieces of information we need to
+    know are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: and that last bit has the missing `1`. The resulting object is called a `closure`
+    because it closes the function body over the substitutions that are still pending
+    (its environment).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the first change is in the value of functions which now need all these pieces,
+    unlike the `Fun` case for the syntax object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A second place that needs changing is the when functions are called. When we’re
+    done evaluating the `call` arguments (the function value and the argument value)
+    but before we apply the function we have two *values* — there is no more use for
+    the current substitution cache at this point: we have finished dealing with all
+    substitutions that were necessary over the current expression — we now continue
+    with evaluating the body of the function, with the new substitutions for the formal
+    arguments and actual values given. But the body itself is the same one we had
+    before — which is the previous body with its suspended substitutions that we *still*
+    did not do.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rewrite the evaluation rules — all are the same except for evaluating a `fun`
+    form and a `call` form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a side note, these substitution caches are a little more than “just a cache”
+    now — they actually hold an *environment* of substitutions in which expression
+    should be evaluated. So we will switch to the common *environment* name now.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In case you find this easier to follow, the “flat algorithm” for evaluating
+    a `call` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note how the scoping rules that are implied by this definition match the scoping
+    rules that were implied by the substitution-based rules. (It should be possible
+    to prove that they are the same.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The changes to the code are almost trivial, except that we need a way to represent
+    `<{fun {x} Ef}, env>` pairs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implication of this change is that we now cannot use the same type for function
+    syntax and function values since function values have more than just syntax. There
+    is a simple solution to this — we never do any substitutions now, so we don’t
+    need to translate values into expressions — we can come up with a new type for
+    values, separate from the type of abstract syntax trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we do this, we will also fix our hack of using FLANG as the type of values:
+    this was merely a convenience since the AST type had cases for all kinds of values
+    that we needed. (In fact, you should have noticed that Racket does this too: numbers,
+    strings, booleans, etc are all used by both programs and syntax representation
+    (s-expressions) — but note that function values are *not* used in syntax.) We
+    will now implement a separate `VAL` type for runtime values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we need now a type for such environments — we can use `Listof` for this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but we can just as well define a new type for environment values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Reimplementing `lookup` is now simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: … we don’t need `extend` because we get `Extend` from the type definition, and
+    we also get `(EmptyEnv)` instead of `empty-subst`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now use this with the new type for values — two variants of these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now the new implementation of `eval` which uses the new type and implements
+    lexical scope:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also need to update `arith-op` to use `VAL` objects. The full code follows
+    — it now passes all tests, including the example that we used to find the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE

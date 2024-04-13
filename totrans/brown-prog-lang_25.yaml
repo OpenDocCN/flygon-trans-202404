@@ -1,0 +1,603 @@
+- en: 25Interpreting Conditionals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [25.1 The Design Space of Conditionals](#%28part._design-space-cond%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [25.2 The Game Plan for Conditionals](#%28part._.The_.Game_.Plan_for_.Conditionals%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [25.2.1 The Interpreter’s Type](#%28part._.The_.Interpreter_s_.Type%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [25.2.2 Updating Arithmetic](#%28part._.Updating_.Arithmetic%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [25.2.3 Defensive Programming](#%28part._.Defensive_.Programming%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [25.2.4 Interpreting Conditionals](#%28part._.Interpreting_.Conditionals%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [25.3 Growing the Conditional Language](#%28part._grow-conds%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now that we have the first stirrings of a programming language, let’s grow
+    it out a little. The heart of a programming language consists of control—<wbr>the
+    ability to order executed instructions—<wbr>and data—<wbr>the representations
+    of information consumed and produced by programs. We will therefore add both control
+    and data to our language, through a simple and important kind: conditionals. Though
+    this seems (and is) a very simple concept, it will force us to tackle several
+    design issues in both the language and the interpreter’s pipeline, and is thus
+    surprisingly illuminating.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.1The Design Space of Conditionals
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Even the simplest conditional exposes us to many variations in language design.
+    Consider one of the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (if test-exp then-part else-part) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The intent is that test-exp is evaluated first; if it results in a true value
+    then (only) then-part is evaluated, else (only) else-part is evaluated. (We usually
+    refer to these two parts as branches, since the program’s control must take one
+    or the other.) However, even this simple construct results in at least three different,
+    mostly independent design decisions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What kind of values can the test-exp be? In some languages they must be Boolean
+    values (two values, one representing truth and the other falsehood). In other
+    languages this expression can evaluate to just about any value, with some set—<wbr>colloquially
+    called truthy—<wbr>representing truth (i.e., they result in execution of the then-part)
+    while the remaining ones are falsy, meaning they cause else-part to run.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Initially, it may seem attractive to design a language with several truthy
+    and falsy values: after all, this appears to give the programmer more convenience,
+    permitting non-Boolean-valued functions and expressions to be used in conditionals.
+    However, this can lead to bewildering inconsistencies across languages:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| Value |  | JS |  | Perl |  | PHP |  | Python |  | Ruby |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 0 |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| "" |  | falsy |  | falsy |  | falsy |  | falsy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| NaN |  | falsy |  | truthy |  | truthy |  | truthy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| nil/null/None/undef |  | falsy |  | falsy |  | falsy |  | falsy |  | falsy
+    |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| "0" |  | truthy |  | falsy |  | falsy |  | truthy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| -1 |  | truthy |  | truthy |  | truthy |  | truthy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| [] |  | truthy |  | truthy |  | falsy |  | falsy |  | truthy |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| empty map/object |  | truthy |  | falsy |  | falsy |  | falsy |  | truthy
+    |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: 'Of course, it need not be so complex. Scheme, for instance, has only one value
+    that is falsy: false itself (written as #f). Every other value is truthy. For
+    those who value allowing non-Boolean values in conditionals, this represents an
+    elegant trade-off: it means a function need not worry that a type-consistent value
+    resulting from a computation might cause a conditional to reverse itself. (For
+    instance, if a function returns strings, it need not worry that the empty string
+    might be treated differently from every other string.)While writing this chapter,
+    I stumbled on a strange bug in Pyret: all numeric s-expressions parsed as s-num
+    values except 0, which parsed as a s-sym. Eventually Justin Pombrio reported:
+    “It’s a silly bug with a if in JavaScript that’s getting 0 and thinking it’s false.”
+    Note that Ruby and Lua have relatively few falsy values; it may not be coincidental
+    that their creators were deeply influenced by Scheme.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'What kind of terms are the branches? Some languages make a distinction between
+    statements and expressions; in such languages, designers need to decide which
+    of these are permitted. In some languages, there are even two syntactic forms
+    of conditional to reflect these two choices: e.g., in C, if uses statements (and
+    does not return any value) while the “ternary operator” ((...?...:...)) permits
+    expressions and returns a value.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the branches are expressions and hence allowed to evaluate to values, how
+    do the values relate? Many (but not all) languages with static type systems expect
+    the two branches to have the same type [REF]. Languages without static type systems
+    usually place no restrictions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For now, we will assume that the conditional expression can only be a Boolean
+    value; the branches are expressions (because that is all we have in our language
+    anyway); and the two branches can return values of different types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.2The Game Plan for Conditionals
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To add conditionals to the language, we have to cover a surprising amount of
+    ground:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to define syntax. We’ll use
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| true |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| false |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| (if test-exp then-exp else-exp) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: to represent the two Boolean constants and the conditional expression.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We need to modify the representation of programs to handle these new constructs.
+    Here’s our new expression language (with the name adjusted to signal its growth
+    beyond pure arithmetic):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We need to adjust the pre-desugaring language (ExprExt) as well to account for
+    the new constructs.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We need to modify the parser and desugarer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Modify parse and desugar to work with the extended language. Adjust the datatypes
+    as needed. Be sure to write tests.
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: There’s one more big change needed. Do you see what it is?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 25.2.1The Interpreter’s Type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If our terms are no longer purely arithmetic in nature, then we can no longer
+    expect our interpreter to produce only numeric answers! For instance, what should
+    be the result of evaluating the following program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(that is, the program corresponding to the source text true)?Beware: what I’ve
+    presented you with is actually a test of your character!“A lesser man might have
+    wavered that day in the hospital corridor, a weaker man might have compromised
+    on such excellent substitutes as Drum Major, Minor Major, Sergeant Major, or C.
+    Sharp Major, but Major Major’s father had waited fourteen years for just such
+    an opportunity, and he was not a person to waste it.”—<wbr>Joseph Heller You might
+    be sorely tempted to decide that true should evaluate to 1 (and, for good measure,
+    that false should evaluate to 0). What are the consequences of this?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It precludes being able to have a language with pure Booleans. This will have
+    consequences when we get to types [REF].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'It means you can perform arithmetic on truth values. This might not sound so
+    surprising: after all, conjunction (and) and disjunction (or) can, after all,
+    be thought in terms of arithmetic. But once you you say truth values are numbers,
+    you can no longer detect if a programmer accidentally subtracts one truth value
+    from another, divides them, and so on.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It isn’t even clear which numbers should represent which truth values. Historically,
+    some languages have made zero represent truth; others have even chosen to use
+    non-negative numbers for truth and negative numbers for falsity. None of these
+    choices is more clearly “correct” than other ones, which suggests we’re really
+    just guessing our way around here.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most of all, we can’t keep hacking our way out of this situation. How are we
+    going to represent strings or lists? With [Gödel numbering](https://en.wikipedia.org/wiki/G%C3%B6del_numbering)?
+    What happens when we get to functions, coroutines, continuations?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In short, avoid encoding! There’s no good reason to make numbers do double-duty:
+    let Booleans be their own type. In any respectable implementation this will impose
+    little to no additional cost to program execution, while greatly reducing programmer
+    confusion.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The consequence of this decisionOf course, you’re welcome to experiment with
+    different decisions. The beauty of writing little interpreters is you can change
+    what you want and explore the consequences of those changes. is that we will need
+    a way to represent all the possible outcomes from the interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Try to sketch a representation for yourself.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here’s a reasonable one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For now, this is naturally a quite shallow representation: it simply helps
+    us tell numbers and Booleans apart. Later, we will add values that have much more
+    interesting structure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.2.2Updating Arithmetic
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, we’re ready to augment our interpreter. We can ignore the arithmetic
+    lines, which should be unchanged (because we haven’t changed anything about how
+    we will perform arithmetic), and focus on the new parts of the language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Right?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Wrong. Because we’ve changed the type of value the interpreter produces, we
+    have to update the rules for arithmetic, too, to reflect that. We can do this
+    quickly, but we’ll do it in a few steps to illustrate a point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we’ll handle the easy case:<ext-arith-cond-interp> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun interp(e :: ExprC) -> Value: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (ExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; numC(n) => numV(n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<ext-arith-cond-arith-cases>](#%28elem._ext-arith-cond-arith-cases%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<ext-arith-cond-bool-cases>](#%28elem._ext-arith-cond-bool-cases%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now let’s consider addition and multiplication. We could do it directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but this will get repetitive: calling interp on each branch, dereferencing
+    the numeric field, and wrapping the answer in numV. It would be better to abstract
+    over this so we don’t have to repeat code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.2.3Defensive Programming
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Actually, there is a more serious problem lurking in the above code. It’s in
+    this expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(and in the other, similar one). First, it blindly refers to the n field irrespective
+    of whether the resulting value actually represents a number; if some other variant
+    also had a field of this name, this would silently succeed! (We saw this problem
+    before: (part "danger-field-access").) Therefore, we really ought to make sure
+    that the recursive call to interp really does return a number; and now the logic
+    is clearly getting more complicated than we would like to do in-line. Instead,
+    we’ll define a helper function that takes the operation to perform and does everything
+    else:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we can now show the revised definitions of the arithmetic operations:<ext-arith-cond-arith-cases>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => arith-binop(lam(x, y): x + y end, l, r) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   &#124; multC(l, r) => arith-binop(lam(x, y): x * y end, l, r) |'
+  prefs: []
+  type: TYPE_TB
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Before we move on, let’s ponder one more question. Suppose we could be certain
+    that no other variant would have a field named n. Then, is there any difference
+    between the version that checks is-numV for each of the values and the version
+    that does not?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Seemingly, the answer is no: if there is no n field, the version that accesses
+    n will halt with an error signaled by Pyret, just as arith-binop would have stopped
+    it. However, there is an important philosophical difference between the two versions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The version that performs a check in arith-binop is providing the error at the
+    level of the language being implemented. It does not depend on Pyret to perform
+    any checks; furthermore, it can give an error in terms of the interpreted language,
+    using terminology that makes sense to the programmer in that language.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In contrast, the version that delegates the check to Pyret is allowing a meta-error
+    to percolate through. This requires being very certain of how Pyret works, whether
+    it will perform the check at the right time and in the right place, and then halt
+    program execution in the appropriate way. Furthermore, the error message it produces
+    might make no sense to the programmer: Pyret might say “Field n not found”, but
+    to a person using a language with only arithmetic and conditionals, the very term
+    “field” might mean nothing.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thus, in a production system, we should be sure to catch errors in our implementation,
+    not hope that the implementing language will do the right thing. In this study,
+    however, we will sometimes be loose about this, to keep the code simpler and more
+    readable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.2.4Interpreting Conditionals
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Finally, we are ready to handle the actual point of this exercise: conditionals.
+    The two constants are easy:<ext-arith-cond-bool-cases> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; trueC => boolV(true) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   &#124; falseC => boolV(false) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   [<ext-arith-cond-bool-if>](#%28elem._ext-arith-cond-bool-if%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The conditional expression is not actually hard; it just forces us to think.Thinking,
+    after all, rather being the point of this entire study. This is where we encode
+    truthy/falsy distinctions; indeed, one could arguably have three possibilities:
+    true values, false values, and other values! (A third possibility here is tantamount
+    to having an equality operator returning anything other than true and false values.
+    Though highly unusual, it is neither impossible nor nonexistent: in fact, Pyret
+    does this [REF]!) However, because we’ve decided that we will only handle Boolean
+    values, and there are only two kinds of these (not least because we’ve chosen
+    to represent them using Pyret’s Booleans), this becomes quite simple:<ext-arith-cond-bool-if>
+    ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; ifC(cnd, thn, els) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ic = interp(cnd) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if is-boolV(ic): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       if ic.b: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(thn) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(els) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       raise(''not a boolean'') |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: And that’s it. Now we have a complete, working interpreter for conditionals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 25.3Growing the Conditional Language
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To create a truly useful language of conditionals, however, we need at least
+    two more things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A way to compute Boolean values, not just write them as constants. For instance,
+    we should add operations on numbers (such as numeric comparison). This is relatively
+    easy, especially given that we already have arith-binop parameterized over the
+    operation to perform and returning a Value (rather than a number). The bigger
+    nuisance is pushing this through parsing and desugaring. It would instead be better
+    to create generic unary and binary operations and look them up in a table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It would also be useful to have a way to combine conditionals (negation, disjunction,
+    conjunction).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Generalize the parser and desugarer to look up a table of unary and binary operations
+    and represent them uniformly, instead of having a different variant for each one.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Negation is straightforward: it’s just a unary function. However, in a programming
+    language, disjunction (or) and conjunction (and) should not be thought of as functions.
+    For instance, in Scheme, it is common to write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (and (not (= x 0)) (/ 1 x)) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'If both (not (= x 0)) and (/ 1 x) were treated as arguments and evaluated right
+    away, then the very situation we’re trying to protect against—<wbr>division by
+    zero—<wbr>would occur right away.Of course, this is not a problem in a lazy language
+    [REF]. Therefore, it is better to think of these are desugaring into cascading
+    conditionals: for instance, one possible desugaring for the above expression might
+    be'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (if (not (= x 0)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     false |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     (/ 1 0)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement negation, conjunction, and disjunction.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Define a multi-armed conditional expression that desugars into nested ifs.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL

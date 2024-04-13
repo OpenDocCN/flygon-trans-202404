@@ -1,0 +1,1073 @@
+- en: '"Flat Datacenter Storage" Case Study'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 4: "Flat Datacenter Storage" Case Study'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flat datacenter storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Flat Datacenter Storage](papers/fds.pdf), *Nightingale, Elson, Fan, Hofmann,
+    Howell, Suzue*, OSDI 2012'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why are we looking at this paper?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Lab 2 wants to be like this when it grows up
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: though details are all different
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fantastic performance -- world record cluster sort
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: good systems paper -- details from apps all the way to network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is FDS?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: a cluster storage system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: stores giant blobs -- 128-bit ID, multi-megabyte content
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: clients and servers connected by network with high bisection bandwidth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for big-data processing (like MapReduce)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cluster of 1000s of computers processing data in parallel
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: High-level design -- a common pattern
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: lots of clients
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lots of storage servers ("tractservers")
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lots of bandwidth between any two servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: data is stored in blobs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: addressed by 128bit IDs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: further split into tracts
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: numbered from 0
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 8MB sized
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: partition the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: master ("metadata server") controls partitioning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: replica groups for reliability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tract table locator (TLT) stores a bunch entries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in a `k`-replicated system, each entry has `k` tractservers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to find where a tract `t` for blob `b` is?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: compute TLT entry as `(h(b) + t) mod len(tlt)`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and you'll get a list of servers in that entry
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: blob metadata is *distributed* and NOT stored in the TLT
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to write a tract from a blob?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: look it up as described above
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: send write to all servers in TLT entry
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only acknowledge write to client if *all* servers replied
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to read a tract from a blob?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: look it up as described above
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: send read to *a random* server in the TLT entry
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why is this high-level design useful?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 1000s of disks of space
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: store giant blobs, or many big blobs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1000s of servers/disks/arms of parallel throughput
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can expand over time -- reconfiguration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: large pool of storage servers for instant replacement after failure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Motivating app: MapReduce-style sort'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: a mapper reads its split `1/M'th` of the input file (e.g., a tract)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: map emits a `<key, record>` for each record in split
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: map partitions keys among `R` intermediate files (`M*R` intermediate files in
+    total)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a reducer reads 1 of `R` intermediate files produced by each mapper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reads `M` intermediate files (of `1/R` size)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sorts its input
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: produces `1/R'th` of the final sorted output file (`R` blobs)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FDS sort
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FDS sort does not store the intermediate files in FDS
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a client is both a mapper and reducer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FDS sort is not locality-aware
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in mapreduce, master schedules workers on machine that are close to the data
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g., in same cluster later versions of FDS sort uses more fine-grained work
+    assignment e.g., mapper doesn't get 1/N of the input file but something smaller
+    deals better with stragglers
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The abstract's main claims are about performance.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: They set the world-record for disk-to-disk sorting in 2012 for MinuteSort
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1,033 disks and 256 computers (136 tract servers, 120 clients)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1,401 Gbyte in 59.4s
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Does the abstract''s 2 GByte/sec per client seem impressive?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: how fast can you read a file from Athena AFS? (abt 10 MB/sec)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how fast can you read a typical hard drive?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how fast can typical networks move data?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Abstract claims recover from lost disk (92 GB) in 6.2 seconds'
+  prefs: []
+  type: TYPE_NORMAL
+- en: that's 15 GByte / sec
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: impressive?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how is that even possible? that's 30x the speed of a disk!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: who might care about this metric?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What should we want to know from the paper?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: API?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: layout?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: finding data?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: add a server?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: replication?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: failure handling?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: failure model?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: consistent reads/writes? (i.e. does a read see latest write?)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Not in FDS: "The current protocol for replication depends upon the client to
+    issue all writes to all replicas. This decision means that FDS provides weak consistency
+    guarantees to clients. For example, if a client writes a tract to 1 of 3 replicas
+    and then crashes, other clients reading different replicas of that tract will
+    observe differing state."'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"Writes are not guaranteed to be committed in order of issue. Applications
+    with ordering requirements are responsible for issuing operations after previous
+    acknowledgments have been received, rather than concurrently. FDS guarantees atomicity:
+    a write is either committed or failed completely"'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: config mgr failure handling?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: good performance?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: useful for apps?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: API
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Figure 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 128-bit blob IDs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: blobs have a length
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only whole-tract read and write -- 8 MB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why are 128-bit blob IDs a nice interface?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not file names?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why do 8 MB tracts make sense?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Figure 3...)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What kinds of client applications is the API aimed at?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and not aimed at?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Layout: how do they spread data over the servers?'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Section 2.2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: break each blob into 8 MB tracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TLT maintained by metadata server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: has `n` entries
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for blob `b` and tract `t`, `i = (hash(b) + t) mod n`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TLT[i]` contains list of tractservers w/ copy of the tract'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: clients and servers all have copies of the latest TLT table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example four-entry TLT with no replication:'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Q:** hy have tracts at all? Why not store each blob on just one server?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What kinds of apps will benefit from striping?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What kinds of apps won't?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How fast will a client be able to read a single tract?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Where does the abstract''s single-client 2 GB number come from?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Why not the UNIX i-node approach?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'store an array per blob, indexed by tract #, yielding tractserver'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so you could make per-tract placement decisions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. write new tract to most lightly loaded server
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why not `hash(b + t)`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** How many TLT entries should there be?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: how about `n = number of tractservers`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why do they claim this works badly? Section 2.2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The system needs to choose server pairs (or triplets &c) to put in TLT entries
+  prefs: []
+  type: TYPE_NORMAL
+- en: For replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Section 3.3
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How about:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why is this a bad idea?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How long will repair take?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the risks if two servers fail?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** why is the paper''s `n^2` scheme better?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: TLT with `n^2` entries, with every server pair occuring once
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How long will repair take?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the risks if two servers fail?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why do they actually use a minimum replication level of 3?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Same `n^2` table as before, third server is randomly chosen
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What effect on repair time?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What effect on two servers failing?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if three disks fail?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Adding a tractserver
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: To increase the amount of disk space / parallel throughput
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Metadata server picks some random TLT entries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Substitutes new server for an existing server in those TLT entries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extending a tract's size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Newly created blobs have a length of 0 tracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applications must extend a blob before writing past the end of it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The extend operation is atomic, is safe to execute concurrently with other clients,
+    and returns the new size of the blob as a result of the client’s call.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A separate API tells the client the blob's current size.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extend operations for a blob are sent to the tractserver that owns that blob’s
+    metadata tract.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The tractserver serializes it, atomically updates the metadata, and returns
+    the new size to each caller.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If all writers follow this pattern, the extend operation provides a range of
+    tracts the caller may write without risk of conflict. Therefore, the extend API
+    is functionally equivalent to the Google File System's "atomic append."
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Space is allocated lazily on tractservers, so tracts claimed but not used do
+    not waste storage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How do they maintain `n^2` plus one arrangement as servers leave join?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Unclear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** How long will adding a tractserver take?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What about client `write`''s while tracts are being transferred?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: receiving tractserver may have copies from client(s) and from old srvr
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how does it know which is newest?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if a client reads/writes but has an old tract table?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tractservers tell him
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replication
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A writing client sends a copy to each tractserver in the TLT.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A reading client asks one tractserver.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why don''t they send writes through a primary?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: puts a lot of work on a primary? has to lookup and know TLT
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: goal is not to have just one backup for a primary, it's to replicate and strip
+    data effectively across many disks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What problems are they likely to have because of lack of primary?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why weren't these problems show-stoppers?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens after a tractserver fails?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Metadata server stops getting heartbeat RPCs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Picks random replacement for each TLT entry failed server was in
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New TLT gets a new version number
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replacement servers fetch copies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example of the tracts each server holds:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Q:** Why not just pick one replacement server?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: it will have to take in a lot of writes for the lost data `=>` bad perf.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How long will it take to copy all the tracts?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** If a tractserver''s net breaks and is then repaired, might srvr serve
+    old data?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** If a server crashes and reboots with disk intact, can contents be used?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: e.g. if it only missed a few writes?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.2.1's "partial failure recovery"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but won't it have already been replaced?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to know what writes it missed?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** When is it better to use 3.2.1''s partial failure recovery?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens when the metadata server crashes?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '**Q:** While metadata server is down, can the system proceed?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: yes, clients who have the TLT can go on
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Is there a backup metadata server?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: not in the paper, they said they might use Paxos for replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** not clear why replicating the metadata server would lead to consistency
+    problems'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How does rebooted metadata server get a copy of the TLT?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eh, maybe it has it on disk?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maybe it just simply reconstructs it from all the heartbeats?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Does their scheme seem correct?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: how does the metadata server know it has heard from all tractservers?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it doesn't, it just adds servers as they send heartbeats
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how does it know all tractservers were up to date?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** Up to date with what?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Random issues
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '**Q:** Is the metadata server likely to be a bottleneck?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: hard to tell. what's the use case?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if you have a client w/ that has memory to remember TLT then he only contacts
+    metadata server once and then starts doing all of his reads/writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if you have a lot of clients joining the system, or coming back but forgetting
+    the TLT (because of lack of storage maybe), then the metadata server would be
+    in use heavily
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: however, this won't affect the bandwidth the clients get once they downloaded
+    the TLT
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why do they need the scrubber application mentioned in 2.3?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: why don't they delete the tracts when the blob is deleted?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: faster to do GC, rather than scheduling & executing deletes?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can a blob be written after it is deleted?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** not sure, seems like yes, because the metadata for that blob is in
+    tract -1 and I don''t think `WriteTract` checks the metadata before every write,
+    so you could maybe have races'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '**Q:** How do we know we''re seeing "good" performance? What''s the best you
+    can expect?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: best you can expect is to take each disks bandwidth and have the system's bandwidth
+    be `# of disk * disk bandwidth`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Limiting resource for 2 GBps single-client?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: assuming this is end of 5.2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 30 tractservers means maximum of 30 * 130MB/s = 3.9GBps
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so limiting resource is network bandwidth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Figure 4a: Why starts low? Why goes up? Why levels off? Why does it
+    level off at that particular performance?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: starts low because single client bandwidth is limited
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'goes up b.c. as # of clients is increased each one adds more bandwidth to the
+    system'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: levels off because at some point the client bandwidth > server's bandwidth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why levels off at 32 GBps for `x` clients w/ 516 disks?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Figure 3 suggests a 10,000 RPM disk can read 5MB chunks at around 130MB/s
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: writes are similar
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not clear from logarithmic scale graph what `x` is
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`10 < x < 50` (maybe `25 < x < 50`?)'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`516 disks * 130MB/s = 67 GBps`, so seems like best case performance should''ve
+    leveled off at more than 32 GBps?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in reality not all disks are 130MB/s maybe? (only the 10,000rpm SAS onese were
+    that fast)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in reality multiple disks on a single node might make that number smaller maybe?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: anyway, something like `x=40` clients would have `40 * 10Gbps = 40 * 1.25GBps
+    = 50 Gbps` which is higher than the actual (claimed) bandwidth of the server of
+    32 GBps
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Figure 4b shows random r/w as fast as sequential (Figure 4a). Is this
+    what you''d expect?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes. Random R/W requests for different tracts go to different servers, just
+    like sequential ones do `=`> no difference
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why are writes slower than reads with replication in Figure 4c?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A write is sent to all tract servers? Not over until all of them reply.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: w/ higher number of clients writing `=>` more work done by each server
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Paper says: "As expected, the write bandwidth is about onethird of the read
+    bandwidth since clients must send three copies of each write"'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A read is sent to just one?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Where does the 92 GB in 6.2 seconds come from?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 1, 4th column
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: that's 15 GB / second, both read and written
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1000 disks, triple replicated, 128 servers?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what's the limiting resource? disk? cpu? net?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How big is each sort bucket?
+  prefs: []
+  type: TYPE_NORMAL
+- en: i.e. is the sort of each bucket in-memory?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1400 GB total
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 128 compute servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: between 12 and 96 GB of RAM each
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hmm, say 50 on average, so total RAM may be 6400 GB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus sort of each bucket is in memory, does not write passes to FDS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus total time is just four transfers of 1400 GB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'client limit: `128 * 2 GB/s = 256 GB / sec`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'disk limit: `1000 * 50 MB/s = 50 GB / sec`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus bottleneck is likely to be disk throughput
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,2467 @@
+- en: NormNormalization of STLC
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* Chapter written and maintained by Andrew Tolmach *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Language
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We begin by repeating the relevant language definition, which is
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: similar to those in the [MoreStlc](MoreStlc.html) chapter, plus supporting
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: results including type preservation and step determinism.  (We
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: won't need progress.)  You may just wish to skip down to the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Normalization section...
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Require Import Coq.Lists.List.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import ListNotations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Smallstep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Constructors multi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inductive ty : Type :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TBool : ty'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TArrow : ty → ty → ty'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TProd  : ty → ty → ty'
+  prefs: []
+  type: TYPE_NORMAL
+- en: .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inductive tm : Type :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* pure STLC *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tvar : id → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tapp : tm → tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tabs : id → ty → tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* pairs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tpair : tm → tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfst : tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tsnd : tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* booleans *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ttrue : tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfalse : tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tif : tm → tm → tm → tm.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* i.e., if t[0] then t[1] else t[2] *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Fixpoint subst (x:id) (s:tm) (t:tm) : tm :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match t with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tvar y ⇒ if beq_id x y then s else t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tabs y T t[1] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tabs y T (if beq_id x y then t[1] else (subst x s t[1]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tapp t[1] t[2] ⇒ tapp (subst x s t[1]) (subst x s t[2])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tpair t[1] t[2] ⇒ tpair (subst x s t[1]) (subst x s t[2])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfst t[1] ⇒ tfst (subst x s t[1])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tsnd t[1] ⇒ tsnd (subst x s t[1])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ttrue ⇒ ttrue'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfalse ⇒ tfalse'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tif t[0] t[1] t[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tif (subst x s t[0]) (subst x s t[1]) (subst x s t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inductive value : tm → Prop :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| v_abs : ∀x T[11] t[12],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value (tabs x T[11] t[12])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| v_pair : ∀v[1] v[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: value (tpair v[1] v[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| v_true : value ttrue'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| v_false : value tfalse'
+  prefs: []
+  type: TYPE_NORMAL
+- en: .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Constructors value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reserved Notation "t1 '⇒' t2" (at level 40).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inductive step : tm → tm → Prop :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_AppAbs : ∀x T[11] t[12] v[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tapp (tabs x T[11] t[12]) v[2]) ⇒ [x:=v[2]]t[12]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_App1 : ∀t[1] t[1]'' t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tapp t[1] t[2]) ⇒ (tapp t[1]' t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_App2 : ∀v[1] t[2] t[2]'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[2] ⇒ t[2]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tapp v[1] t[2]) ⇒ (tapp v[1] t[2]')
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* pairs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_Pair1 : ∀t[1] t[1]'' t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tpair t[1] t[2]) ⇒ (tpair t[1]' t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_Pair2 : ∀v[1] t[2] t[2]'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[2] ⇒ t[2]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tpair v[1] t[2]) ⇒ (tpair v[1] t[2]')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_Fst : ∀t[1] t[1]'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tfst t[1]) ⇒ (tfst t[1]')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_FstPair : ∀v[1] v[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tfst (tpair v[1] v[2])) ⇒ v[1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_Snd : ∀t[1] t[1]'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tsnd t[1]) ⇒ (tsnd t[1]')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_SndPair : ∀v[1] v[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tsnd (tpair v[1] v[2])) ⇒ v[2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* booleans *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_IfTrue : ∀t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tif ttrue t[1] t[2]) ⇒ t[1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_IfFalse : ∀t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tif tfalse t[1] t[2]) ⇒ t[2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ST_If : ∀t[0] t[0]'' t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: t[0] ⇒ t[0]' →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tif t[0] t[1] t[2]) ⇒ (tif t[0]' t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: where "t1 '⇒' t2" := (step t[1] t[2]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation multistep := (multi step).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation "t1 '⇒*' t2" := (multistep t[1] t[2]) (at level 40).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Constructors step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation step_normal_form := (normal_form step).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma value__normal : ∀t, value t → step_normal_form t.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros t H; induction H; intros [t' ST]; inversion ST...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Definition context := partial_map ty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inductive has_type : context → tm → ty → Prop :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Typing rules for proper terms *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_Var : ∀Γ x T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Γ x = Some T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tvar x) T
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_Abs : ∀Γ x T[11] T[12] t[12],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type (update Γ x T[11]) t[12] T[12] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tabs x T[11] t[12]) (TArrow T[11] T[12])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_App : ∀T[1] T[2] Γ t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[1] (TArrow T[1] T[2]) →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[2] T[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tapp t[1] t[2]) T[2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* pairs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_Pair : ∀Γ t[1] t[2] T[1] T[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[1] T[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[2] T[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tpair t[1] t[2]) (TProd T[1] T[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_Fst : ∀Γ t T[1] T[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t (TProd T[1] T[2]) →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tfst t) T[1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_Snd : ∀Γ t T[1] T[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t (TProd T[1] T[2]) →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tsnd t) T[2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* booleans *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_True : ∀Γ,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ ttrue TBool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_False : ∀Γ,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ tfalse TBool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T_If : ∀Γ t[0] t[1] t[2] T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[0] TBool →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[1] T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t[2] T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (tif t[0] t[1] t[2]) T
+  prefs: []
+  type: TYPE_NORMAL
+- en: .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Constructors has_type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Extern 2 (has_type _ (tapp _ _) _) ⇒ eapply T_App; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Extern 2 (_ = _) ⇒ compute; reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inductive appears_free_in : id → tm → Prop :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_var : ∀x,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tvar x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_app1 : ∀x t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[1] → appears_free_in x (tapp t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_app2 : ∀x t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[2] → appears_free_in x (tapp t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_abs : ∀x y T[11] t[12],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: y ≠ x  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[12] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tabs y T[11] t[12])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* pairs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_pair1 : ∀x t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tpair t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_pair2 : ∀x t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tpair t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_fst : ∀x t,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tfst t)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_snd : ∀x t,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tsnd t)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* booleans *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_if[0] : ∀x t[0] t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[0] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tif t[0] t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_if[1] : ∀x t[0] t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tif t[0] t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| afi_if[2] : ∀x t[0] t[1] t[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t[2] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x (tif t[0] t[1] t[2])
+  prefs: []
+  type: TYPE_NORMAL
+- en: .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Constructors appears_free_in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition closed (t:tm) :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀x, ¬ appears_free_in x t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma context_invariance : ∀Γ Γ'' t S,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t S  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (∀x, appears_free_in x t → Γ x = Γ' x)  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ' t S.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros. generalize dependent Γ'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction H;
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros Γ' Heqv...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Var *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Var](Norm.html#T_Var)... rewrite ← Heqv...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Abs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Abs](Norm.html#T_Abs)... apply IHhas_type. intros y Hafi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [update](Maps.html#update), [t_update](Maps.html#t_update). destruct
+    ([beq_idP](Maps.html#beq_idP) x y)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Pair *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Pair](Norm.html#T_Pair)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_If *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [T_If](Norm.html#T_If)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma free_in_context : ∀x t T Γ,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appears_free_in x t →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∃T', Γ x = Some T'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros x t T Γ Hafi Htyp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction Htyp; inversion Hafi; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Abs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct IHHtyp as [T' Hctx]... ∃T'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in Hctx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite [false_beq_id](Maps.html#false_beq_id) in Hctx...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Corollary typable_empty__closed : ∀t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty t T  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: closed t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros. unfold [closed](Norm.html#closed). intros x H[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([free_in_context](Norm.html#free_in_context) _ _ _ _ H[1] H) as [T'
+    C].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion C. Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma substitution_preserves_typing : ∀Γ x U v t S,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type (update Γ x U) t S  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty v U   →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ ([x:=v]t) S.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (* Theorem: If Gamma,x:U |- t : S and empty |- v : U, then      Gamma |- (x:=vt) S. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros Γ x U v t S Htypt Htypv.
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalize dependent Γ. generalize dependent S.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Proof: By induction on the term t.  Most cases follow directly      from the IH, with the exception of tvar and tabs.
+         The former aren't automatic because we must reason about how the      variables interact. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction t;
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros S Γ Htypt; simpl; inversion Htypt; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tvar *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. rename i into y.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If t = y, we know that          empty ⊢ v : U and          Γ,x:U ⊢ y : S
+           and, by inversion, update Γ x U y = Some S.  We want to        show that Γ
+    ⊢ [x:=v]y : S.        There are two cases to consider: either x=y or x≠y. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in H[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) x y).
+  prefs: []
+  type: TYPE_NORMAL
+- en: + (* x=y *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If x = y, then we know that U = S, and that [x:=v]y = v.        So what we really must show is that if empty
+    ⊢ v : U then        Γ ⊢ v : U.  We have already proven a more general version
+           of this theorem, called context invariance. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[1]; subst. clear H[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [context_invariance](Norm.html#context_invariance)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros x Hcontra.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([free_in_context](Norm.html#free_in_context) _ _ S [empty](Maps.html#empty)
+    Hcontra) as [T' HT']...
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion HT'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + (* x<>y *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If x ≠ y, then Γ y = Some S and the substitution has no          effect.  We can show that Γ
+    ⊢ y : S by T_Var. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Var](Norm.html#T_Var)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tabs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename i into y. rename t into T[11].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If t = tabs y T[11] t[0], then we know that          Γ,x:U ⊢ tabs y T[11]
+    t[0] : T[11]→T[12]          Γ,x:U,y:T[11] ⊢ t[0] : T[12]          empty ⊢ v :
+    U        As our IH, we know that forall S Gamma,          Γ,x:U ⊢ t[0] : S → Γ
+    ⊢ [x:=v]t[0] S.        We can calculate that          x:=vt = tabs y T[11] (if beq_id x y then t[0] else x:=vt[0])
+           And we must show that Γ ⊢ [x:=v]t : T[11]→T[12].  We know        we will do so using T_Abs, so it remains to be shown that:
+             Γ,y:T[11] ⊢ if beq_id x y then t[0] else [x:=v]t[0] : T[12]        We consider two cases: x
+    = y and x ≠ y.     *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Abs](Norm.html#T_Abs)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) x y).
+  prefs: []
+  type: TYPE_NORMAL
+- en: + (* x=y *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If x = y, then the substitution has no effect.  Context        invariance shows that Γ,y:U,y:T[11] and Γ,y:T[11] are
+           equivalent.  Since the former context shows that t[0] : T[12], so        does the latter. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [context_invariance](Norm.html#context_invariance)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros x Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_id](Maps.html#beq_id) y x)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + (* x<>y *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* If x ≠ y, then the IH and context invariance allow us to show that          Γ,x:U,y:T[11]
+    ⊢ t[0] : T[12]       =>          Γ,y:T[11],x:U ⊢ t[0] : T[12]       =>          Γ,y:T[11]
+    ⊢ [x:=v]t[0] : T[12] *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHt. eapply [context_invariance](Norm.html#context_invariance)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) y z)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: subst. rewrite [false_beq_id](Maps.html#false_beq_id)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Theorem preservation : ∀t t'' T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty t T  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: t ⇒ t'  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty t' T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros t t' T HT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* Theorem: If empty ⊢ t : T and t ⇒ t'', then empty ⊢ t'' : T. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember (@[empty](Maps.html#empty) [ty](Norm.html#ty)) as Γ. generalize dependent
+    HeqGamma.
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalize dependent t'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Proof: By induction on the given typing derivation.  Many cases are      contradictory (T_Var, T_Abs).  We show just the interesting ones. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction HT;
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros t' HeqGamma HE; subst; inversion HE; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_App *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* If the last rule used was T_App, then t = t[1] t[2], and three rules        could have been used to show t
+    ⇒ t': ST_App1, ST_App2, and        ST_AppAbs. In the first two cases, the result follows directly from
+           the IH. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion HE; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + (* ST_AppAbs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(* For the third case, suppose            t[1] = tabs x T[11] t[12]          and
+               t[2] = v[2].          We must show that empty ⊢ [x:=v[2]]t[12] : T[2].
+             We know by assumption that              empty ⊢ tabs x T[11] t[12] :
+    T[1]→T[2]          and by inversion              x:T[1] ⊢ t[12] : T[2]          We have already proven that substitution_preserves_typing and
+                 empty ⊢ v[2] : T[1]          by assumption, so we are done. *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [substitution_preserves_typing](Norm.html#substitution_preserves_typing)
+    with T[1]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion HT[1]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Fst *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion HT...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Snd *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion HT...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma step_deterministic :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: deterministic step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: unfold [deterministic](Smallstep.html#deterministic).
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros t t' t'' E[1] E[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalize dependent t''.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction E[1]; intros t'' E[2]; inversion E[2]; subst; clear E[2]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_AppAbs *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- inversion H[3].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_App1 *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- inversion E[1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '-  f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H[1]...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_App2 *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H[3]...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_Pair1 *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H[1]...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_Pair2 *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso; apply [value__normal](Norm.html#value__normal) in H...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_Fst *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion E[1]; subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[0]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[1]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_FstPair *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[2]; subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[0]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_Snd *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion E[1]; subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[0]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[1]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_SndPair *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- exfalso.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[2]; subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + apply [value__normal](Norm.html#value__normal) in H[0]...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* ST_IfTrue *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* ST_IfFalse *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* ST_If *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- inversion E[1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- inversion E[1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- f_equal...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition halts  (t:tm) : Prop :=  ∃t'', t ⇒* t'' ∧  value t''.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma value_halts : ∀v, value v → halts v.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros v H. unfold [halts](Norm.html#halts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∃v. split.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [multi_refl](Smallstep.html#multi_refl).
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Inductive R : ty → tm → Prop :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| R_bool : ∀b t, has_type empty t TBool →'
+  prefs: []
+  type: TYPE_NORMAL
+- en: halts t →
+  prefs: []
+  type: TYPE_NORMAL
+- en: R TBool t
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| R_arrow : ∀T[1] T[2] t, has_type empty t (TArrow T[1] T[2]) →'
+  prefs: []
+  type: TYPE_NORMAL
+- en: halts t →
+  prefs: []
+  type: TYPE_NORMAL
+- en: (∀s, R T[1] s → R T[2] (tapp t s)) →
+  prefs: []
+  type: TYPE_NORMAL
+- en: R (TArrow T[1] T[2]) t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, Coq rejects this definition because it violates the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*strict positivity requirement* for inductive definitions, which says'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: that the type being defined must not occur to the left of an arrow in
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: the type of a constructor argument. Here, it is the third argument to
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: R_arrow, namely (∀ s, R T[1] s → R TS (tapp t s)), and
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: specifically the R T[1] s part, that violates this rule.  (The
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: outermost arrows separating the constructor arguments don't count when
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: applying this rule; otherwise we could never have genuinely inductive
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: properties at all!)  The reason for the rule is that types defined
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: with non-positive recursion can be used to build non-terminating
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: functions, which as we know would be a disaster for Coq's logical
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: soundness. Even though the relation we want in this case might be
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: perfectly innocent, Coq still rejects it because it fails the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: positivity test.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Fortunately, it turns out that we *can* define R using a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Fixpoint:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: As immediate consequences of this definition, we have that every
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: element of every set R_T halts in a value and is closed with type
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 't :'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we proceed to show the main result, which is that every
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: well-typed term of type T is an element of R_T.  Together with
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: R_halts, that will show that every well-typed term halts in a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: value.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma step_preserves_halting : ∀t t'', (t ⇒ t'') → (halts t ↔ halts t'').'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros t t' ST. unfold [halts](Norm.html#halts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: split.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* -> *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros [t'' [STM V]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion STM; subst.
+  prefs: []
+  type: TYPE_NORMAL
+- en: exfalso. apply [value__normal](Norm.html#value__normal) in V. unfold [normal_form](Smallstep.html#normal_form)
+    in V. apply V. ∃t'. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite ([step_deterministic](Norm.html#step_deterministic) _ _ _ ST H). ∃t''.
+    split; assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* <- *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros [t'0 [STM V]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∃t'0. split; eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma step_preserves_R : ∀T t t'', (t ⇒ t'') → R T t → R T t''.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction T;  intros t t' E Rt; unfold [R](Norm.html#R); fold [R](Norm.html#R);
+    unfold [R](Norm.html#R) in Rt; fold [R](Norm.html#R) in Rt;
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct Rt as [typable_empty_t [halts_t RRt]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* TBool *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. eapply [preservation](Norm.html#preservation); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. apply ([step_preserves_halting](Norm.html#step_preserves_halting) _ _
+    E); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* TArrow *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. eapply [preservation](Norm.html#preservation); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. apply ([step_preserves_halting](Norm.html#step_preserves_halting) _ _
+    E); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply IHT2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [ST_App1](Norm.html#ST_App1). apply E.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply RRt; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma multistep_preserves_R : ∀T t t'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: (t ⇒* t') → R T t → R T t'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros T t t' STM; induction STM; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHSTM. eapply [step_preserves_R](Norm.html#step_preserves_R). apply H.
+    assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma step_preserves_R'' : ∀T t t'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty t T → (t ⇒ t') → R T t' → R T t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma multistep_preserves_R'' : ∀T t t'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type empty t T → (t ⇒* t') → R T t' → R T t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros T t t' HT STM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction STM; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [step_preserves_R'](Norm.html#step_preserves_R'). assumption. apply H.
+    apply IHSTM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [preservation](Norm.html#preservation);  eauto. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Multisubstitutions, Multi-Extensions, and Instantiations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: However, before we can proceed to formalize the statement and
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: proof of the lemma, we'll need to build some (rather tedious)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: machinery to deal with the fact that we are performing *multiple*
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: substitutions on term t and *multiple* extensions of the typing
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: context.  In particular, we must be precise about the order in which
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: the substitutions occur and how they act on each other.  Often these
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: details are simply elided in informal paper proofs, but of course Coq
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: won't let us do that. Since here we are substituting closed terms, we
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: don't need to worry about how one substitution might affect the term
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: put in place by another.  But we still do need to worry about the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*order* of substitutions, because it is quite possible for the same'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: identifier to appear multiple times among the x[1],...xn with
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: different associated vi and Ti.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: To make everything precise, we will assume that environments are
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: extended from left to right, and multiple substitutions are performed
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: from right to left.  To see that this is consistent, suppose we have
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: an environment written as ...,y:bool,...,y:nat,...  and a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: corresponding term substitution written as ...[y:=(tbool true)]...[y:=(tnat
+    3)]...t.  Since environments are extended from
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: left to right, the binding y:nat hides the binding y:bool; since
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: substitutions are performed right to left, we do the substitution
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: y:=(tnat 3) first, so that the substitution y:=(tbool true) has
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: no effect. Substitution thus correctly preserves the type of the term.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: With these points in mind, the following definitions should make sense.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: A *multisubstitution* is the result of applying a list of
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: substitutions, which we call an *environment*.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: We need similar machinery to talk about repeated extension of a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: typing context using a list of (identifier, type) pairs, which we
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: call a *type assignment*.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will need some simple operations that work uniformly on
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: environments and type assigments
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: An *instantiation* combines a type assignment and a value
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: environment with the same domains, where corresponding elements are
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: in R.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now proceed to prove various properties of these definitions.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma vacuous_substitution : ∀ t x,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¬ appears_free_in x t  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀t', [x:=t']t = t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma subst_closed: ∀t,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: closed t  →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀x t', [x:=t']t = t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros. apply [vacuous_substitution](Norm.html#vacuous_substitution). apply
+    H. Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma subst_not_afi : ∀t x v,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: closed v →  ¬ appears_free_in x ([x:=v]t).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto. (* rather slow this way *)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: unfold [closed](Norm.html#closed), [not](http://coq.inria.fr/library/Coq.Init.Logic.html#not).
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction t; intros x v P A; simpl in A.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tvar *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) x i)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tapp *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tabs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) x i)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tpair *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tfst *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tsnd *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* ttrue *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tfalse *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tif *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion A; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma duplicate_subst : ∀t'' x t v,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: closed v → [x:=t]([x:=v]t') = [x:=v]t'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros. eapply [vacuous_substitution](Norm.html#vacuous_substitution). apply
+    [subst_not_afi](Norm.html#subst_not_afi). auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma swap_subst : ∀t x x[1] v v[1],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: x ≠ x[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: closed v → closed v[1] →
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x[1]:=v[1]]([x:=v]t) = [x:=v]([x[1]:=v[1]]t).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction t; intros; simpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tvar *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) x i); destruct ([beq_idP](Maps.html#beq_idP)
+    x[1] i).
+  prefs: []
+  type: TYPE_NORMAL
+- en: + subst. exfalso...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + subst. simpl. rewrite ← [beq_id_refl](Maps.html#beq_id_refl). apply [subst_closed](Norm.html#subst_closed)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + subst. simpl. rewrite ← [beq_id_refl](Maps.html#beq_id_refl). rewrite [subst_closed](Norm.html#subst_closed)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: + simpl. rewrite [false_beq_id](Maps.html#false_beq_id)... rewrite [false_beq_id](Maps.html#false_beq_id)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma msubst_closed: ∀t, closed t → ∀ss, msubst ss t = t.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction ss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a. simpl. rewrite [subst_closed](Norm.html#subst_closed); assumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixpoint closed_env (env:env) {struct env} :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: match env with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| nil ⇒ True'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (x,t)::env'' ⇒ closed t ∧ closed_env env'''
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma subst_msubst: ∀env x v t, closed v → closed_env env →'
+  prefs: []
+  type: TYPE_NORMAL
+- en: msubst env ([x:=v]t) = [x:=v](msubst (drop x env) t).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction env0; intros; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a. simpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[0]. fold [closed_env](Norm.html#closed_env) in H[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) i x).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- subst. rewrite [duplicate_subst](Norm.html#duplicate_subst); auto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- simpl. rewrite [swap_subst](Norm.html#swap_subst); eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma msubst_var:  ∀ss x, closed_env ss →'
+  prefs: []
+  type: TYPE_NORMAL
+- en: msubst ss (tvar x) =
+  prefs: []
+  type: TYPE_NORMAL
+- en: match lookup x ss with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some t ⇒ t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| None ⇒ tvar x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction ss; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. destruct ([beq_id](Maps.html#beq_id) i x).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [msubst_closed](Norm.html#msubst_closed). inversion H; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHss. inversion H; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma msubst_abs: ∀ss x T t,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: msubst ss (tabs x T t) = tabs x T (msubst (drop x ss) t).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction ss; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. destruct ([beq_id](Maps.html#beq_id) i x); simpl; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma msubst_app : ∀ss t[1] t[2], msubst ss (tapp t[1] t[2]) = tapp (msubst
+    ss t[1]) (msubst ss t[2]).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction ss; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. rewrite ← IHss. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma mupdate_lookup : ∀(c : tass) (x:id),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: lookup x c = (mupdate empty c) x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction c; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct a. unfold [lookup](Norm.html#lookup), [mupdate](Norm.html#mupdate),
+    [update](Maps.html#update), [t_update](Maps.html#t_update). destruct ([beq_id](Maps.html#beq_id)
+    i x); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma mupdate_drop : ∀(c: tass) Γ x x'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: mupdate Γ (drop x c) x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: = if beq_id x x' then Γ x' else mupdate Γ c x'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction c; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- destruct ([beq_idP](Maps.html#beq_idP) x x''); auto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- destruct a. simpl.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_idP](Maps.html#beq_idP) i x).
+  prefs: []
+  type: TYPE_NORMAL
+- en: + subst. rewrite IHc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [update](Maps.html#update), [t_update](Maps.html#t_update). destruct
+    ([beq_idP](Maps.html#beq_idP) x x'); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + simpl. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+    destruct ([beq_idP](Maps.html#beq_idP) i x'); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: subst. rewrite [false_beq_id](Maps.html#false_beq_id); congruence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma instantiation_domains_match: ∀{c} {e},'
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c e →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀{x} {T},
+  prefs: []
+  type: TYPE_NORMAL
+- en: lookup x c = Some T → ∃t, lookup x e = Some t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros c e V. induction V; intros x[0] T[0] C.
+  prefs: []
+  type: TYPE_NORMAL
+- en: solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl in *.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_id](Maps.html#beq_id) x x[0]); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma instantiation_env_closed : ∀c e,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c e → closed_env e.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros c e V; induction V; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: econstructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [closed_env](Norm.html#closed_env). fold [closed_env](Norm.html#closed_env).
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. eapply [typable_empty__closed](Norm.html#typable_empty__closed). eapply
+    [R_typable_empty](Norm.html#R_typable_empty). eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma instantiation_R : ∀c e,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c e →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀x t T,
+  prefs: []
+  type: TYPE_NORMAL
+- en: lookup x c = Some T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: lookup x e = Some t → R T t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros c e V. induction V; intros x' t' T' G E.
+  prefs: []
+  type: TYPE_NORMAL
+- en: solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [lookup](Norm.html#lookup) in *. destruct ([beq_id](Maps.html#beq_id)
+    x x').
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion G; inversion E; subst. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Lemma instantiation_drop : ∀c env,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c env →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀x, instantiation (drop x c) (drop x env).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros c e V. induction V.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros. simpl. constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros. unfold [drop](Norm.html#drop). destruct ([beq_id](Maps.html#beq_id)
+    x x[0]); auto. constructor; eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma multistep_App2 : ∀v t t'','
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v → (t ⇒* t') → (tapp v t) ⇒* (tapp v t').
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros v t t' V STM. induction STM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [multi_refl](Smallstep.html#multi_refl).
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [multi_step](Smallstep.html#multi_step).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [ST_App2](Norm.html#ST_App2); eauto. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma msubst_preserves_typing : ∀c e,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c e →
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∀Γ t S, has_type (mupdate Γ c) t S →
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ (msubst e t) S.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: induction 1; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl in H. simpl. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl in H[2]. simpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHinstantiation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [substitution_preserves_typing](Norm.html#substitution_preserves_typing);
+    eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply ([R_typable_empty](Norm.html#R_typable_empty) H[0]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma msubst_R : ∀c env t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type (mupdate empty c) t T →
+  prefs: []
+  type: TYPE_NORMAL
+- en: instantiation c env →
+  prefs: []
+  type: TYPE_NORMAL
+- en: R T (msubst env t).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros c env0 t T HT V.
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalize dependent env0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* We need to generalize the hypothesis a bit before setting up the induction. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([mupdate](Norm.html#mupdate) [empty](Maps.html#empty) c) as Γ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: assert (∀x, Γ [x](Norm.html#x) = [lookup](Norm.html#lookup) [x](Norm.html#x)
+    c).
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros. rewrite HeqGamma. rewrite [mupdate_lookup](Norm.html#mupdate_lookup).
+    auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: clear HeqGamma.
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalize dependent c.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction HT; intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Var *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite H[0] in H. destruct ([instantiation_domains_match](Norm.html#instantiation_domains_match)
+    V H) as [t P].
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [instantiation_R](Norm.html#instantiation_R); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite [msubst_var](Norm.html#msubst_var). rewrite P. auto. eapply [instantiation_env_closed](Norm.html#instantiation_env_closed);
+    eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Abs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite [msubst_abs](Norm.html#msubst_abs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* We'll need variants of the following fact several times, so its simplest to
+           establish it just once. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'assert (WT: [has_type](Norm.html#has_type) [empty](Maps.html#empty) ([tabs](Norm.html#tabs)
+    x T[11] ([msubst](Norm.html#msubst) ([drop](Norm.html#drop) x env0) t[12])) ([TArrow](Norm.html#TArrow)
+    T[11] T[12])).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{ eapply [T_Abs](Norm.html#T_Abs). eapply [msubst_preserves_typing](Norm.html#msubst_preserves_typing).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{ eapply [instantiation_drop](Norm.html#instantiation_drop); eauto. }'
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [context_invariance](Norm.html#context_invariance).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{ apply HT. }'
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [update](Maps.html#update), [t_update](Maps.html#t_update). rewrite [mupdate_drop](Norm.html#mupdate_drop).
+    destruct ([beq_idP](Maps.html#beq_idP) x x[0]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: + auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: + rewrite H.
+  prefs: []
+  type: TYPE_NORMAL
+- en: clear - c n. induction c.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. rewrite [false_beq_id](Maps.html#false_beq_id); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. destruct a. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_id](Maps.html#beq_id) i x[0]); auto. }
+  prefs: []
+  type: TYPE_NORMAL
+- en: unfold [R](Norm.html#R). fold [R](Norm.html#R). split.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: split. apply [value_halts](Norm.html#value_halts). apply [v_abs](Norm.html#v_abs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([R_halts](Norm.html#R_halts) H[0]) as [v [P Q]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: pose proof ([multistep_preserves_R](Norm.html#multistep_preserves_R) _ _ _ P
+    H[0]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [multistep_preserves_R'](Norm.html#multistep_preserves_R') with ([msubst](Norm.html#msubst)
+    ((x,v)::env0) t[12]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [T_App](Norm.html#T_App). eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [R_typable_empty](Norm.html#R_typable_empty); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [multi_trans](Smallstep.html#multi_trans). eapply [multistep_App2](Norm.html#multistep_App2);
+    eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [multi_R](Smallstep.html#multi_R).
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpl. rewrite [subst_msubst](Norm.html#subst_msubst).
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [ST_AppAbs](Norm.html#ST_AppAbs); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [typable_empty__closed](Norm.html#typable_empty__closed).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply ([R_typable_empty](Norm.html#R_typable_empty) H[1]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [instantiation_env_closed](Norm.html#instantiation_env_closed); eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply (IHHT ((x,T[11])::c)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros. unfold [update](Maps.html#update), [t_update](Maps.html#t_update), [lookup](Norm.html#lookup).
+    destruct ([beq_id](Maps.html#beq_id) x x[0]); auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: constructor; auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_App *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite [msubst_app](Norm.html#msubst_app).
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct (IHHT1 c H env0 V) as [_ [_ P[1]]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: pose proof (IHHT2 c H env0 V) as P[2]. fold [R](Norm.html#R) in P[1]. auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Theorem normalization : ∀t T, has_type empty t T → halts t.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: replace t with ([msubst](Norm.html#msubst) [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)
+    t) by reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply (@[R_halts](Norm.html#R_halts) T).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply ([msubst_R](Norm.html#msubst_R) [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil));
+    eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [V_nil](Norm.html#V_nil).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,1753 @@
+- en: 33Control Operations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [33.1 Control on the Web](#%28part._.Control_on_the_.Web%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.1.1 Program Decomposition into Now and Later](#%28part._.Program_.Decomposition_into_.Now_and_.Later%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.1.2 A Partial Solution](#%28part._.A_.Partial_.Solution%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.1.3 Achieving Statelessness](#%28part._.Achieving_.Statelessness%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.1.4 Interaction with State](#%28part._.Interaction_with_.State%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [33.2 Conversion to Continuation-Passing Style](#%28part._.Conversion_to_.Continuation-.Passing_.Style%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.2.1 Implementation by Desugaring](#%28part._.Implementation_by_.Desugaring%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.2.2 Understanding the Output](#%28part._.Understanding_the_.Output%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.2.3 An Interaction Primitive by Transformation](#%28part._read-num-cps%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [33.3 Implementation in the Core](#%28part._.Implementation_in_the_.Core%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.3.1 Converting the Interpreter](#%28part._.Converting_the_.Interpreter%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [33.3.2 An Interaction Primitive in the Core](#%28part._.An_.Interaction_.Primitive_in_the_.Core%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [33.4 Generators](#%28part._.Generators%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [33.5 Continuations and Stacks](#%28part._.Continuations_and_.Stacks%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [33.6 Tail Calls](#%28part._.Tail_.Calls%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: The term control refers to any programming language instruction that causes
+    evaluation to proceed, because it “controls” the program counter of the machine.
+    In that sense, sequential execution of instructions is “control”, as is even an
+    arithmetic expression (and in the presence of state, this control is laid bare
+    through the order in which effects occur); other forms of control found in all
+    ordinary programming languages include function calls and returns. However, in
+    practice we use the term to refer primarily to those operations that cause non-local
+    transfer of control beyond that of mere functions and procedures, usually starting
+    with exceptions. We will study such operations in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we study the following control operators, it’s worth remembering that even
+    without them, we still have languages that are Turing-complete, so these control
+    operations provide no more “power”. Therefore, what control operators do is change
+    and potentially improve the way we express our intent, and therefore enhance the
+    structure of programs. Thus, it pays to being our study by focusing on program
+    structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.1Control on the Web
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let us begin our study by examining the structure of Web programs. Consider
+    the following program:Henceforth, we’ll call this our “addition server”. You should,
+    of course, understand this as a stand-in for more sophisticated applications.
+    For instance, the two prompts might ask for starting and ending points for a trip,
+    and in place of addition we might compute a route or compute airfares. There might
+    even be computation between the two steps: e.g., after entering the first city,
+    the airline might prompt us with choices of where it flies from there.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is based on a hypothetical a read-number function that, when run, suspends
+    program execution, prompts for a number and, when the user enters one, resumes
+    computation. You might find it excessively pedantic that I’d mention the suspension
+    and resumption of computation, but this detail will prove to be absolutely central
+    to our study, so don’t gloss over these steps!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now suppose we want to run this on a Web server. We immediately encounter a
+    difficulty: the structure of server-side Web programs is such that they generate
+    a single Web page—<wbr>such as the one asking for the first number—<wbr>and then
+    halt. As a result, the rest of the program—<wbr>which in this case prompts for
+    the second number, then adds the two, and then prints that result, is lost.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why do Web servers behave in such a strange way?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'There are at least two reasons for this behavior: one perhaps historical, and
+    the other technical. The historical reason is that Web servers were initially
+    designed to serve pages, i.e., static content. Any program that ran had to generate
+    its output to a file, from which a server could offer it. Naturally, developers
+    wondered why that same program couldn’t run on demand. This made Web content dynamic.
+    Terminating the program after generating a single piece of output was the simplest
+    incremental step in transitioning the Web from “pages” to “programs”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The more important reason—<wbr>and the one that has stayed with us—<wbr>is
+    technical. Imagine our addition server has generated its first prompt. The pending
+    computation is not trivial: it must remember the first response, generate the
+    second prompt, perform the addition, and then display the result. This computation
+    must suspend waiting for the user’s input. If there are millions of users, then
+    millions of computations must be suspended (imagine threads running in virtual
+    machines, each consuming memory for local data), creating an enormous performance
+    problem. Furthermore, suppose a user does not actually complete the computation—<wbr>analogous
+    to searching at an on-line bookstore or airline site, but not completing the purchase.
+    How does the server know when or even whether to terminate the computation? Until
+    it does, the resources associated with that computation remain in use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conceptually, therefore, the Web protocol was designed to be stateless: it
+    would not store state on the server associated with intermediate computations.
+    Instead, Web program developers would be forced to maintain all necessary state
+    elsewhere, and each request would need to be able to resume the computation in
+    full. In practice the Web has not proven to be stateless, but it still hews in
+    this direction, and studying the structure of such programs is very instructive.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now consider client-side Web programs: those that run inside the browser, written
+    in or compiled to JavaScript. Suppose such a computation needs to communicate
+    with a server. The primitive for this is called XMLHttpRequest. The user makes
+    an instance of this primitive and invokes its send method to send a message to
+    the server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Communicating with a server is not, however, instantaneous: it takes some time;
+    if the server faces a heavy load, it could take a long time; and indeed, it may
+    never complete at all, depending on the state of the network and the server. (These
+    are the same problems faced above by get-number, with a user taking the place
+    of a server: the user may take a long time to enter a number, or may never do
+    so at all.) If the send method suspended program execution, the entire (client-side)
+    application would be blocked, indefinitely. You would not want to use such a program.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To keep the application responsive, the designers of XMLHttpRequest therefore
+    had a choice. They could make JavaScript multi-threaded, but because the language
+    also has state, programmers would have to confront all the problems of combining
+    state with concurrency. In particular, beginners would have to wrestle with a
+    combination of features that even experienced programmers do not use well, probably
+    resulting in numerous deadlocked Web sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead, JavaScript is single-threaded: i.e., there is only one thread of execution
+    at a time.Due to the structuring problems this causes, there are now various proposals
+    to, in effect, add “safe” threads to JavaScript. The ideas described in this chapter
+    can be viewed as an alternative that offer similar structuring benefits. When
+    the send method is invoked, JavaScript instead suspends the current computation
+    and returns control to an event loop, which can now invoke other suspended computations.
+    Devlopers associate a callback with the send. When (and if) a response returns,
+    this callback is added to the queue of suspended computations, thereby enabling
+    it to resume.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This callback needs to embody the rest of the processing of that request. Thus,
+    for entirely different reasons—<wbr>not performance, but avoiding the problems
+    of synchronization, non-atomicity, and deadlocks—<wbr>the client-side Web has
+    evolved to impose essentially the same problems of program structure on developers
+    as the server-side Web. Let us now better understand that structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.1.1Program Decomposition into Now and Later
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let us consider what it takes to make our addition program work in a stateless
+    setting, such as on a Web server. First we have to determine the first interaction.
+    This is the prompt for the first number, because Pyret evaluates arguments from
+    left to right. It is instructive to divide the program into two parts: what happens
+    to generate the first interaction (which can run right now), and what needs to
+    happen after it (which must be “remembered” somehow). The former is easy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ve already explained in prose what’s left, but now it’s time to write it
+    as a program. It seems to be something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A Web server can’t execute the above, however, because it evidently isn’t a
+    program. We instead need some way of writing this as one.Let’s observe a few characteristics
+    of this computation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It needs to be a syntactically valid program.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It needs to stay suspended until the request comes in.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It needs a way—<wbr>such as a parameter—<wbr>to refer to the value from the
+    first interaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Put together these characteristics and we have a clear representation—<wbr>a
+    function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 33.1.2A Partial Solution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'On the Web, there is an additional wrinkle: each Web page with input elements
+    needs to refer to a program stored on the Web, which will receive the data from
+    the form and process it. This program is named in the action field of a form.
+    Thus, imagine that the server generates a fresh label, stores the above function
+    in a table associated with that label, and refers to the label in the action field.
+    When (and if) the client actually submits the form the server extracts the associated
+    function, supplies it with the form’s values, and thus resumes execution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Is the solution above stateless?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Let’s imagine that we have a custom Web server that maintains the above table.
+    In such a server, we might have a special version of read-number—<wbr>call it
+    read-number-suspend—<wbr>that records the rest of the program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, this is not sufficient. The moment we perform the second read-number,
+    we’re back to having forgotten the rest of the computation. Therefore, the second
+    one needs to be converted to use read-number-suspend, too. What is the rest of
+    its computation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: where v1 is the value from the first computation. Putting together the pieces,
+    the fully-translated program is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how the inner closure depends on being nested inside the outer one, so
+    that v1 is bound in the addition. Also observe how the addition and printing got
+    moved from initiating “immediately” after the first number was provided to waiting
+    until the second number was also available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ascribe types to the above computation. Also determine the type of the Web server
+    and of the table holding these procedures.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 33.1.3Achieving Statelessness
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We haven’t actually achieved statelessness yet, because we have this large table
+    residing on the server, with no clear means to remove entries from it. It would
+    be better if we could avoid the server state entirely. This means we have to move
+    the relevant state to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are actually two ways in which the server holds state. One is that we
+    have reserved the right to create as many entries in the hash table as we wish.
+    This makes the server storage space proportional to the number of interactions—<wbr>a
+    dynamic value—<wbr>rather than the size of the program, a static value with a
+    clear bound. The other is what we’re storing in the table: honest-to-goodness
+    closures, each of which might be different and closed over copious amounts of
+    state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start by eliminating the closure. Instead, let’s have each of the functions
+    be named and at the top-level (which immediately forces us to have only a fixed
+    number of them, bounded by the size of the program):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Observe how each code block refers only to the name of the next procedure,
+    rather than to a real closure. The value of the argument comes from the form.
+    There’s just one problem: v1 in prog-2 is a free identifier!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The way to fix this problem is, instead of creating a closure after one step,
+    to send v1 to the client to be stored there. Where do we store this? The browser
+    offers two mechanisms for doing this: cookies and hidden fields. Which one do
+    we use?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.1.4Interaction with State
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'One way to avoid this problem is to find a channel of communication between
+    what follows the first and second prompts. Recall that we have noted that state
+    provides such a channel of communication ([The Design of Stateful Language Operations](implementing-mutation.html#%28part._design-of-state-ops%29)).
+    Therefore, we could use a top-level variable to communicate the value of v1. To
+    be suggestive, we’ll call this variable cookie:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'from which we can eliminate closures easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, this means every intermediate computation will share the same
+    cookie variable. If we open up two concurrent windows and try to add different
+    first numbers, the latest first number will always reside in cookie, so the other
+    window is going to see unpredictable results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This, of course, is precisely what happens on the Web.These problems are not
+    hypothetical. For instance, see Section 2 of [Modeling Web Interactions and Errors](http://cs.brown.edu/~sk/Publications/Papers/Published/kfgf-model-web-inter-error/).
+    The browser’s cookies are merely a client-side implementation of the store. Thus,
+    Web sites that store their information in cookies are susceptible to exactly this
+    problem: two concurrent interactions with the site will end up interfering with
+    one another. Therefore, the pervasive use of cookies on Web sites, induced by
+    Web programming traditions, results in actively less usable sites.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast, the Web offers another mechanism for storing information on the
+    client: the hidden field. Because they are local to each page, and each page corresponds
+    to a closure, they are precisely analogous to a closure’s environment! Thus, instead
+    of storing the value of v1 in a single, global cookie, if we were to store it
+    in a hidden field in the response page, then two different response pages would
+    have different values in their hidden field, which would be sent back to the server
+    on the next request—<wbr>thereby avoiding the interference problem entirely.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.2Conversion to Continuation-Passing Style
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The style of functions we’ve been writing has a name. Though we’ve presented
+    ideas in terms of the Web, we’re relying on a much older idea: the functions are
+    called continuations, and this style of programs is called continuation-passing
+    style (CPS).We will take the liberty of using CPS as both a noun and verb: a particular
+    structure of code and the process that converts code into it. This is worth studying
+    in its own right, because it is the basis for studying a variety of other non-trivial
+    control operations—<wbr>such as generators.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Earlier, we converted programs so that no Web input operation was nested inside
+    another. The motivation was simple: when the program terminates, all nested computations
+    are lost. A similar argument applies, in a more local sense, in the case of XMLHttpRequest:
+    any computation depending on the result of a response from a Web server needs
+    to reside in the callback associated with the request to the server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, we don’t need to transform every expression. We only care about expressions
+    that involve actual Web interaction. For example, if we computed a more complex
+    mathematical expression than just addition, we wouldn’t need to transform it.
+    If, however, we had a function call, we’d either have to be absolutely certain
+    the function didn’t have any Web invocations either inside it, or in the functions
+    in invokes, or the ones they invoke...or else, to be defensive, we should transform
+    them all. Therefore, we have to transform every expression that we can’t be sure
+    performs no Web interactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The heart of our transformation is therefore to turn every function, f, into
+    one with an extra argument. This extra argument is the continuation, which represents
+    the rest of the computation. f, instead of returning a value, instead passes the
+    value it would have returned to its continuation. Thus, the continuation is itself
+    a function of one argument; this argument represents the value that would have
+    been returned by f. A function returns a value to “pass it to the rest of the
+    computation”; CPS makes this explicit, because invoking a continuation (in place
+    of returning a value) precisely passes it to the function representing the rest
+    of the computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CPS is a general transformation, which we can apply to any program. Because
+    it’s a program transformation, we can think of it as a special kind of desugaring
+    that transforms programs within the same language: from the full language to a
+    more restricted version that obeys the pattern we’ve been discussing. As a result,
+    we can reuse an evaluator for the full language to also evaluate programs in the
+    CPS subset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.2.1Implementation by Desugaring
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us therefore implement CPS as a source-to-source transformation. Thought
+    of as a function, it consumes and returns ExprC expressions, but the output expressions
+    will have the peculiar structure we have seen above, and will therefore be a strict
+    subset of all ExprC expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Put differently, the comment about “strict subset” above means that certain
+    ExprC expressions are not legal in the output that CPS generates. Provide examples.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: <cps-trans> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun cps(e :: ExprC) -> ExprC: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (ExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-trans-numC>](#%28elem._cps-trans-num.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-trans-plusC>](#%28elem._cps-trans-plus.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-trans-idC>](#%28elem._cps-trans-id.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-trans-fdC>](#%28elem._cps-trans-fd.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-trans-appC>](#%28elem._cps-trans-app.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Our representation in CPS will be to turn every expression into a procedure
+    of one argument, the continuation. The converted expression will eventually either
+    supply a value to the continuation or will pass the continuation on to some other
+    expression that will—<wbr>by preserving this invariant inductively—<wbr>supply
+    it with a value. Applied to Pyret, all output from CPS will look like fun (k):
+    ... end. Since we are applying CPS to Paret instead, it will look like fdC("k",
+    ...). Either way, note that lexical scope keeps these k’s from clashing with any
+    other identifiers of the same name.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First let’s dispatch with the easy case, which is atomic values. Because we
+    already have a value, we are ready to “return” it, which we do by supplying it
+    to the continuation:<cps-trans-numC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; numC(_) => fdC("k", appC(idC("k"), e)) |'
+  prefs: []
+  type: TYPE_TB
+- en: and similarly:<cps-trans-idC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; idC(_) => fdC("k", appC(idC("k"), e)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Extend the language to handle conditionals.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Extend the language to support mutable state as well. Does this have any impact
+    on the CPS process, i.e., does it change the pattern of conversion?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Next, let’s handle binary operators. We have seen the essence of this transformation
+    earlier, applied to the Web:<cps-trans-plusC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     fdC("k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       appC(cps(l), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         fdC("l-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           appC(cps(r), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             fdC("r-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               appC(idC("k"), plusC(idC("l-v"), idC("r-v")))))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: This assumes that the primitive operator, in this case addition, does not itself
+    need to be transformed; on the Web, for instance, it’s a safe bet that performing
+    arithmetic does not involve any Web interactions.Unless, of course, the arithmetic
+    is part of a cryptographic algorithm, in which case it may be necessary to notify
+    the NSA of the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we have function definition and application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s tempting to think that, because function are just values, they too can
+    be passed unchanged to the continuation. Why is this not true?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Before proceeding, alter the underlying language to also permit two-argument
+    function definitions and, correspondingly, applications. Name the definitions
+    fd2C and the applications app2C.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For an application we have to evaluate both the function and argument expressions.
+    Once we’ve obtained these, we are ready to apply the function. Therefore, it is
+    tempting to write<cps-trans-appC-try-1> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     fdC("k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       appC(cps(f), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         fdC("f-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           appC(cps(a), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             fdC("a-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               appC(idC("k"), appC(idC("f-v"), idC("a-v")))))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do you see why this is wrong?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The problem is that, though the function is a value, that value is a closure
+    with a potentially complicated body: evaluating the body can, for example, result
+    in further Web interactions, at which point the rest of the function’s body, as
+    well as the pending k(...) (i.e., the rest of the program), will all be lost.
+    To avoid this, we have to supply k to the function’s value, and let the inductive
+    invariant ensure that k will eventually be invoked with the value of applying
+    f-v to a-v:<cps-trans-appC> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     fdC("k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       appC(cps(f), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         fdC("f-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           appC(cps(a), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             fdC("a-v", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               app2C(idC("f-v"), idC("a-v"), idC("k"))))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'A function is itself a value, so it should be returned to the pending computation.
+    The application case above, however, shows that we have to transform functions
+    to take an extra argument, namely the continuation at the point of invocation.
+    This leaves us with a quandary: which continuation do we supply to the body?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <cps-trans-fdC-try-1> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; fdC(v, b) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     fdC("k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       appC(idC("k"), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         fd2C(v, "dyn-k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           appC(cps(b), ???)))) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'That is, in place of ???, which continuation do we supply: k or dyn-k?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Which continuation should we supply?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The former is the continuation at the point of closure creation. The latter
+    is the continuation at the point of closure invocation. In other words, the former
+    is “static” and the latter is “dynamic”. In this case, we need to use the dynamic
+    continuation, otherwise something very strange would happen: the program would
+    return to the point where the closure was created, rather than where it is being
+    used! This would result in seemingly very strange program behavior, so we wish
+    to avoid it. Observe that we are consciously choosing the dynamic continuation
+    just as, where scope was concerned we chose the static environment but where state
+    was concerned we chose the “dynamic” (namely, most recent) store. Thus continuations
+    are more like state than they are like lexical binding, a similarity we will return
+    to later [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <cps-trans-fdC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; fdC(v, b) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     fdC("k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       appC(idC("k"), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         fd2C(v, "dyn-k", |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           appC(cps(b), idC("dyn-k"))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: After you have understood this material, replace "dyn-k" with "k", predict what
+    should change, and check that it does.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Testing any code converted to CPS is slightly annoying because all CPS terms
+    expect a continuation. In a real environment, the initial continuation is one
+    that simply either (a) consumes a value and returns it, or (b) consumes a value
+    and prints it, or (c) consumes a value, prints it, and gets ready for another
+    computation (as the prompt in a REPL does). All three of these are effectively
+    just the identity function in various guises. Thus, the following definition is
+    helpful for testing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: For instance,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 33.2.2Understanding the Output
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The output of this transformation takes some getting used to. Consider a very
+    simple example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: This evaluates to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For (slightly more) readability, let’s transform this from Paret to Pyret and
+    give it a name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We had to insert the shadow declarations to confirm to Pyret that we really
+    did mean to shadow these identifiers. We can then apply it to the identity function
+    to observe that it produces the expected answer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also rename the different ks to better tell them apart:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Terms like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'would seem a significant decrease in code readability, but that’s only until
+    you learn how to “read” such a program. This is equivalent to saying: “k1 represents
+    the rest of the program after evaluating 1. Evaluate 1, and send its result—<wbr>the
+    value 1—<wbr>to the rest of the computation, namely k1.” This value (1) is bound
+    to l-v, the identifier representing the left-hand-side value of the addition...which,
+    of course, is precisely what 1 is.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is an active line of research in creating better CPS transformations that
+    produce fewer intermediate function terms; we’ve actually used one of the very
+    oldest and least sophisticated. The trade-off is in simplicity of desugaring versus
+    simplicity of output, with the two roughly inversely correlated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.2.3An Interaction Primitive by Transformation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At this point we have identified a problem in program structure; we hypothesized
+    a better API for it; we transformed an example to use such an API; and then we
+    generalized that transformation. But now we have a program structure so complex
+    that it is unclear what use it could possibly be. The point of this transformation
+    was so that every sub-expression would have an associated continuation, which
+    a interaction-friendly primitive can use. Let’s see how to do that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To enable this, we will now add two primitives: read-numC and read-num-webC.
+    The idea is that user programs (pre-CPS) will use the former, which the transformation
+    will convert into uses of the latter. Here are the two new language forms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The prompt p is assumed to be an expression that evaluates to what we want to
+    print to the user. In our impoverished language this is a number, which is sufficient
+    for illustration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will assume that cps does not need to handle read-num-webC (because the end-user
+    is not expected to write this directly), while interp does not need to handle
+    read-numC (because we want this interpreter to function even in a setting that
+    periodically terminates input, so it cannot block waiting for a response).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Transforming read-numC into read-num-webC in cps is now easy, because the continuation
+    argument now gives us exactly what we need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let us build an implementation of read-num-webC in the interpreter that
+    properly simulates a program that halts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we need a way to record the current resumption point. In a real system
+    this might be remembered on a server or marshaled into a value sent to the client.See
+    [this paper](http://cs.brown.edu/~sk/Publications/Papers/Published/mfgkf-web-restructuring-cps-journal/)
+    for more on how to marshal the continuation to the client. Here, we’ll just record
+    it in a global variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Sure enough, something interesting will be there once we start running the
+    program.Now let us modify the interpreter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: First we evaluate the prompt expression to obtain an actual prompt. We then
+    print this to the screen. Crucially, we then store the current continuation to
+    the global variable. Finally, we halt the program’s execution; this step is vital
+    in keeping us honest, so that we don’t accidentally rely on Pyret to resume our
+    computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Introduce an error in cps and show how halting the program highlights it, while
+    not doing so silently masks it.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Suppose we run this on the following input program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pyret prints
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Web interaction: 1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Error: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| "Program halted waiting for user input" |'
+  prefs: []
+  type: TYPE_TB
+- en: and the program halts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this point, web-continuation contains a genuine, run-time closure (a closV
+    value). This represents a continuation: a program value representing the rest
+    of the computation.Due to a bug in the current implementation, you can’t inspect
+    the value of web-continuation directly; but you can access it from a function
+    that closes over it. The user now supplies an input in the imagined Web form;
+    this is provided as the actual argument to the continuation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can do this as follows. We extract the function and environment from the
+    closure, and apply the function to the provided parameter, evaluating this in
+    the context of the closure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Sure enough, using this with 3 as the first input yields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| >  run-wc(3) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Web interaction: 2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Error: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| "Program halted waiting for user input" |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Oooh, promising! Now we try this again with, say, 4 as the second input, and
+    we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > run-wc(4) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| numV(7) |'
+  prefs: []
+  type: TYPE_TB
+- en: Et voilà!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, then, is the key lesson. By transforming the program into CPS we were
+    able to write a normal-looking program—<wbr>read-numC(numC(1)), read-numC(numC(2))—<wbr>and
+    run it on an intepreter that truly terminated after each interaction, and were
+    still able to resume the computation successfully, running to completion without
+    losing track of computations or of scope errors. That is, we can write the program
+    in direct style, with properly nested expressions, and a compiler—<wbr>in this
+    case, the CPS converter—<wbr>takes care of making it work with a suitable underlying
+    API. This is what good programming languages ought to do!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Modify the program to store each previous continuations with some kind of unique
+    tag. Now that you have access to multiple continuations, simulate the effect of
+    different browser actions such as reloading the page (re-invoking a continuation),
+    going back (using a prior continuation), cloning a page (re-using a continuation),
+    etc. Does your implementation still work?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 33.3Implementation in the Core
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we’ve seen how CPS can be implemented through desguaring, we should
+    ask whether it can be put in the core instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recall that we’ve said that CPS applies to all programs. We have one program
+    we are especially interested in: the interpreter. Sure enough, we can apply the
+    CPS transformation to it, making available what are effectively the same continuations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.3.1Converting the Interpreter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Rather than mindlessly applying the transformation, which would result in a
+    very unwieldy (and unreadable) intepreter, we’ll clean things up a little as we
+    go. Note first of all that the interpreter needs to take an additional argument,
+    representing the rest of the computation:<cps-interp> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun interp(e :: ExprC, nv :: List<Binding>, k): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (ExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-numC>](#%28elem._cps-interp-num.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-plusC>](#%28elem._cps-interp-plus.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-idC>](#%28elem._cps-interp-id.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-fdC/fd2C>](#%28elem._cps-interp-fd.C%2Ffd2.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-appC>](#%28elem._cps-interp-app.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<cps-interp-app2C>](#%28elem._cps-interp-app2.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Note that we have not annotated k, and we’ve dropped the return annotation on
+    interp. Fill them in.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When we have values, we simply “return” them through the continuation:<cps-interp-numC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; numC(n) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     k(numV(n)) |'
+  prefs: []
+  type: TYPE_TB
+- en: <cps-interp-idC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; idC(s) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     k(lookup(s, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: For binary operations where the operator is a primitive, we have to follow the
+    CPS pattern:<cps-interp-plusC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(l, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       lam(l-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(r, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           lam(r-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             k(plus-v(l-v, r-v)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         end) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end) |'
+  prefs: []
+  type: TYPE_TB
+- en: Note that CPS also ends up enforcing an order-of-evalation (in this case, left-to-right)
+    just as mutation did.For function definitions, we have to be careful. Earlier
+    ([<cps-trans-fdC>](#%28elem._cps-trans-fd.C%29)), we added a continuation parameter
+    to closures. However, the fdC data structures are merely data; it is functions
+    like interp that need to be given the extra parameter. Therefore, we can leave
+    these alone:<cps-interp-fdC/fd2C> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; fdC(_, _) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     k(closV(e, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   &#124; fd2C(_, _, _) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     k(closV(e, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Finally, applications have to be converted to CPS as we have seen before:<cps-interp-appC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(f, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       lam(clos-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(a, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           lam(arg-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             interp(clos-v.f.body, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               xtnd-env(bind(clos-v.f.arg, arg-v), clos-v.e), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               k) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           end) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end) |'
+  prefs: []
+  type: TYPE_TB
+- en: and similarly when there are two arguments:<cps-interp-app2C> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; app2C(f, a1, a2) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(f, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       lam(clos-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(a1, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           lam(arg1-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             interp(a2, nv, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               lam(arg2-v): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                 interp(clos-v.f.body, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                   xtnd-env(bind(clos-v.f.arg1, arg1-v), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                     xtnd-env(bind(clos-v.f.arg2, arg2-v), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                       clos-v.e)), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                 k) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|               end) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           end) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'By converting the interpreter to CPS we have given it access to an extra parameter:
+    k, the continuation of the interpreter. Because the interpreter’s execution mimics
+    the intended behavior of the interpreted program, the continuation of the interpreter
+    reflects the rest of the behavior of the interpreted program: i.e., applying interp
+    to an expression e with continuation k will result in k being given the value
+    of e. We can therefore put k to work by exposing it to programs being interpreted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.3.2An Interaction Primitive in the Core
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can now lift our previous solution [[An Interaction Primitive by Transformation](#%28part._read-num-cps%29)]
+    to this modified interpreter. This time, instead of the continuation being created
+    by the program, it’s created by the interpreter itself, with the program oblivious
+    to this activity. Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that we must first evaluate the prompt expression to obtain its value.
+    Now, however, there is no longer a continuation expression to evaluate: the interpreter
+    has the continuation at the ready. It is this continuation that we store in web-continuation.Observe
+    that this value is now a genuine closure in Pyret, not a closure data structure
+    we have constructed. Therefore, to apply it we can no longer extract its fields;
+    instead, the only thing we can do with it is to apply it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this in place, if we evaluate the expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we observe the same behavior as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Web interaction: 1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Error: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| "Program halted waiting for user input" |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > run-wc(3) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Web interaction: 2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Error: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| "Program halted waiting for user input" |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > run-wc(4) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| numV(7) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Despite their similarities, there are two major differences between the two
+    strategies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using CPS, the hard work was actually done in the program transformation.
+    The interpreter as a whole was essentially unchanged from before; indeed, the
+    main addition to the interpreter was effectively debugging support in the form
+    of halting its execution, so we could make sure the continuation strategy was
+    correct. Here, the transformation is of the interpreter itself, done one time,
+    and the interpreter works to generate the continuations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In particular, the continuation now closes over the rest of the behavior, not
+    of the interpreted program but the interpreting one. Because the latter’s job,
+    however, is to precisely mimic that of the former, we cannot observe this difference.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the latter case, static scope (in Pyret) ensures that the correct computations
+    are resumed, even if we have multiple continuations stored. Both strategies implicitly
+    point out that continuations are themselves statically scoped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.4Generators
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many programming languages now have a notion of generators. A generator is like
+    a procedure, in that one can invoke it in an application. Whereas a regular procedure
+    always begins execution at the beginning, a generator resumes from where it last
+    left off. Of course, that means a generator needs a notion of “exiting before
+    it’s done”. This is known as yielding, namely returning control to whatever called
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are many variations between generators. The points of variation, predictably,
+    have to do with how to enter and exit a generator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some languages a generator is an object that is instantiated like any other
+    object, and its execution is resumed by invoking a method (such as next in Python).
+    In others it is just like a procedure, and indeed it is re-entered by applying
+    it like a function.In languages where values in addition to regular procedures
+    can be used in an application, all such values are collectively called applicables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In some languages the yielding operation—<wbr>such as Python’s yield—<wbr>is
+    available only inside the syntactic body of the generator. In others, such as
+    Racket, yield is an applicable value bound in the body, but by virtue of being
+    a value, it can be passed to abstractions, stored in data structures, and so on.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Python’s design represents an extreme point in that a generator is simply any
+    function that contains the keyword yield in its body. In addition, Python’s yield
+    cannot be passed as a parameter to another function that performs the yielding
+    on behalf of the generator.There is also a small issue of naming. In many languages
+    with generators, the yielder is automatically called yield (as in Python). Another
+    possibility is that the user of the generator must indicate in the generator expression
+    what name to give the yielder; for example, in Racket,Curiously, Python expects
+    users to determine what to call self or this in objects, but it does not provide
+    the same flexibility for yield, because it has no other way to determine which
+    functions are generators!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (generator (yield) (from) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|            (rec (f (lambda (n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                      (begin |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        (yield n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        (f (+ n 1))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|              (f from))) |'
+  prefs: []
+  type: TYPE_TB
+- en: but it might equivalently be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (generator (y) (from) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|            (rec (f (lambda (n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                      (begin |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        (y n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        (f (+ n 1))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|              (f from))) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'and if the yielder is an actual value, a user can also abstract over yielding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (generator (y) (from) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|            (rec (f (lam (n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                      (seq |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        ((yield-helper y) n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                        (f (+ n 1))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|              (f from))) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'where yield-helper will presumably perform the actual yielding.There are actually
+    two more design decisions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Is yield a statement or expression? In many languages it is actually an expression,
+    meaning it has a value: the one supplied when resuming the generator. This makes
+    the generator more flexible because the user of a generator can use the parameter(s)
+    to alter the generator’s behavior, rather than being forced to use state to communicate
+    desired changes.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What happens at the end of the generator’s execution? In many languages, a generator
+    raises an exception to signal its completion.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'To implement generators, it will be especially useful to work from our CPS
+    interpreter. Why? Remember how generators work: to yield, a generator must'
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember where in its execution it currently is, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: know where in its caller it should return to.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: while, when invoked, it should
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember where in its execution its caller currently is, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: know where in its body it should return to.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Observe the duality between invocation and yielding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you might guess, these “where”s correspond to continuations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Add generators to a CPS interpreter.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How do generators differ from coroutines and threads? Implement coroutines and
+    threads using a similar strategy.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We have seen that Python’s generators do not permit any abstraction over yielding,
+    whereas Racket’s do. Assuming this was intentional, why might Python have made
+    such a design decision?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 33.5Continuations and Stacks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Surprising as it may seem, CPS conversion actually provides tremendous insight
+    into the nature of the program execution stack. The first thing to understand
+    is that every continuation is actually the stack itself. This might seem odd,
+    given that stacks are low-level machine primitives while continuations are seemingly
+    complex procedures. But what is the stack, really?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s a record of what remains to be done in the computation. So is the continuation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s traditionally thought of as a list of stack frames. That is, each frame
+    has a reference to the frames remaining after it finishes. Similarly, each continuation
+    is a small procedure that refers to—<wbr>and hence closes over—<wbr>its own continuation.
+    If we had chosen a different representation for program instructions, combining
+    this with the data structure representation of closures, we would obtain a continuation
+    representation that is essentially the same as the machine stack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each stack frame also stores procedure parameters. This is implicitly managed
+    by the procedural representation of continuations, whereas this was done explicitly
+    in the data stucture representation (using bind).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each frame also has space for “local variables”. In principle so does the continuation,
+    though by desugaring local binding, we’ve effectively reduced everything to procedure
+    parameters. Conceptually, however, some of these are “true” procedure parameters
+    while others are local bindings turned into procedure parameters by desugaring.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The stack has references to, but does not close over, the heap. Thus changes
+    to the heap are visible across stack frames. In precisely the same way, closures
+    refer to, but do not close over, the store, so changes to the store are visible
+    across closures.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Therefore, traditionally the stack is responsible for maintaining lexical scope,
+    which we get automatically because we are using closures in a statically-scoped
+    language.Now we can study the conversion of various terms to understand the mapping
+    to stacks. For instance, consider the conversion of a function application ([<cps-trans-appC>](#%28elem._cps-trans-app.C%29)).
+    How do we “read” this? As follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s use k to refer to the stack present before the function application begins
+    to evaluate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When we begin to evaluate the function position (f), create a new stack frame
+    (fdC("f-v"): ...;. This frame has one free identifier: k. Thus its closure needs
+    to record one element of the environment, namely the rest of the stack.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The code portion of the stack frame represents what is left to be done once
+    we obtain a value for the function: evaluate the argument, and perform the application,
+    and return the result to the stack expecting the result of the application: k.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When evaluation of f completes, we begin to evaluate a, which also creates
+    a stack frame: fdC("a-v"): ...;. This frame has two free identifiers: k and f-v.
+    This tells us:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We no longer need the stack frame for evaluating the function position, but
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we now need a temporary that records the value—<wbr>hopefully a function value—<wbr>of
+    evaluating the function position.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The code portion of this second frame also represents what is left to be done:
+    invoke the function value with the argument, in the stack expecting the value
+    of the application.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Similarly, examining the CPS conversion of conditionals would tell us that we
+    have to create a new frame to evaluate the conditional expression we have to create
+    a new stack frame. This frame closes over the stack expecting the value of the
+    entire conditional. This frame makes a decision based on the value of the conditional
+    expression, and invokes one of the other expressions. Once we have examined this
+    value the frame created to evaluate the conditional expression is no longer necessary,
+    so evaluation can proceed in the original continuation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Viewed through this lens, we can more easily provide an operational explanation
+    for generators. Each generator has its own private stack, and when execution attempts
+    to return past its end, our implementation raises an error. On invocation, a generator
+    stores a reference to the stack of the “rest of the program”, and resumes its
+    own stack. On yielding, the system swaps references to stacks. Coroutines, threads,
+    and generators are all conceptually similar: they are all mechanisms to create
+    “many little stacks” instead of having a single, global stack.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 33.6Tail Calls
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Observe that the stack patterns above add a frame to the current stack, perform
+    some evaluation, and eventually always return to the current stack. In particular,
+    observe that in an application, we need stack space to evaluate the function position
+    and then the arguments, but once all these are evaluated, we resume computation
+    using the stack we started out with before the application. In other words, function
+    calls do not themselves need to consume stack space: we only need space to compute
+    the arguments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, not all languages observe or respect this property. In languages that
+    do, programmers can use recursion to obtain iterative behavior: i.e., a sequence
+    of function calls can consume no more stack space than no function calls at all.
+    This removes the need to create special looping constructs; indeed, loops can
+    simply be expressed as a syntactic sugar.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Of course, this property does not apply in general. If a call to f is performed
+    to compute an argument to a call to g, the call to f is still consuming space
+    relative to the context surrounding g. Thus, we should really speak of a relationship
+    between expressions: one expression is in tail position relative to another if
+    its evaluation requires no additional stack space beyond the other. In our CPS
+    desugaring, every expression that uses k as its continuation—<wbr>such as a function
+    application after all the sub-expressions have been evaluated, or the then- and
+    else-branches of a conditional—<wbr>are all in tail position relative to the enclosing
+    application (and perhaps recursively further up). In contrast, every expression
+    that has to create a new stack frame is not in tail position.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some languages have special support for tail recursion: when a procedure calls
+    itself in tail position relative to its body. This is obviously useful, because
+    it enables recursion to efficiently implement loops. However, it hurts “loops”
+    that cannot be squeezed into a single recursive function. For instance, when implementing
+    a scanner or other state machine, it is most convenient to have a set of functions
+    each representing one state, and transitioning to other states by making (tail)
+    function calls. It is onerous (and misses the point) to turn these into a single
+    recursive function. If, however, a language recognizes tail calls as such, it
+    can optimize these cross-function calls just as much as it does intra-function
+    ones.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Scheme and Racket, in particular, promise to implement tail calls without allocating
+    additional stack space. Though some people refer to this as “tail call optimization”,
+    this term is misleading: an optimization is optional, whereas whether or not a
+    language promises to properly implement tail calls is a semantic feature. Developers
+    need to know how the language will behave because it affects how they program:
+    they need to know how to structure their loops!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because of this feature, observe something interesting about the program after
+    CPS transformation: all of its function applications are themselves tail calls!
+    Assuming the program might terminate at any call is tantamount to not using any
+    stack space at all (because the stack would get wiped out).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Any program that consumes some amount of stack, when converted to CPS and run,
+    suddenly consumes no stack space at all. Why?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As a corollary, does conversion to CPS reduce the overall memory footprint of
+    the program?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Java’s native security model employs a mechanism called stack inspection (look
+    it up if you aren’t familiar with it). What is the interaction between CPS and
+    stack inspection? That is, if we were to CPS a program, would this affect its
+    security behavior?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If not, why not?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If so, how, and what would you suggest doing to recover security assuming the
+    CPS conversion was necessary?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL

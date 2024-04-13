@@ -1,0 +1,302 @@
+- en: Chapter 3\. Implementing Model Scoring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As depicted in [Figure 1-1](ch01.html#overall_architecture_of_model_serving),
+    the overall architecture of our implementation is reading two input streams, the
+    models stream and the data stream, and then joining them for producing the results
+    stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two main options today for implementing such stream-based applications:
+    stream-processing engines or stream-processing libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Modern stream-processing engines](http://bit.ly/bigdata-stream-processing)
+    (SPEs) take advantage of cluster architectures. They organize computations into
+    a set of operators, which enables execution parallelism; different operators can
+    run on different threads or different machines. An engine manages operator distribution
+    among the cluster’s machines. Additionally, SPEs typically implement checkpointing,
+    which allows seamless restart execution in case of failures.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A stream-processing library (SPL), on the other hand, is a library, and often
+    domain-specific language (DSL), of constructs simplifying building streaming applications.
+    Such libraries typically do not support distribution and/or clustering; this is
+    typically left as an exercise for developer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although these are very different, because both have the word “stream” in them,
+    they are often used interchangeably. In reality, as outlined in [Jay Kreps’s blog](https://www.confluent.io/blog/introducing-kafka-streams-stream-processing-made-simple/),
+    they are two very different approaches to building streaming applications, and
+    choosing one of them is a trade-off between power and simplicity. A side-by-side
+    [comparison](http://bit.ly/2yFAMRn) of Flink and Kafka Streams outlines the major
+    differences between the two approaches, which lies in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the way they are deployed and managed (which often is a function of who owns
+    these applications from an organizational perspective) and how the parallel processing
+    (including fault tolerance) is coordinated. These are core differences—they are
+    ingrained in the architecture of these two approaches.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using an SPE is a good fit for applications that require features provided out
+    of the box by such engines, including scalability and high throughput through
+    parallelism across a cluster, event-time semantics, checkpointing, built-in support
+    for monitoring and management, and mixing of stream and batch processing. The
+    drawback of using engines is that you are constrained with the programming and
+    deployment models they provide.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, SPLs provide a programming model that allows developers to build
+    the applications or microservices the way that fits their precise needs and deploy
+    them as simple standalone Java applications. But in this case, developers need
+    to roll out their own scalability, high availability, and monitoring solutions
+    (Kafka Streams supports some of them by using Kafka).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Today’s most popular [SPEs](http://bit.ly/codecentric-SPEs) includes: [Apache
+    Spark](https://spark.apache.org/), [Apache Flink](https://flink.apache.org/),
+    [Apache Beam](https://beam.apache.org/), whereas most popular stream libraries
+    are [Apache Kafka Streams](https://kafka.apache.org/documentation/streams/) and
+    [Akka Streams](http://doc.akka.io/docs/akka/current/scala/stream/index.html).
+    In the following chapters, I show how you can use each of them to implement our
+    architecture of model serving.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several common artifacts in my implementations that are used regardless
+    of the streaming engine/framework: model representation, model stream, data stream,
+    model factory, and test harness, all of which are described in the following sections.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Representation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before diving into specific implementation details, you must decide on the model’s
+    representation. The question here is whether it is necessary to introduce special
+    abstractions to simplify usage of the model in specific streaming libraries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I decided to represent model serving as an “ordinary” function that can be used
+    at any place of the stream processing pipeline. Additionally, representation of
+    the model as a simple function allows for a functional composition of models,
+    which makes it simpler to combine multiple models for processing. Also, comparison
+    of Examples [2-2](ch02.html#serving_the_model_created_from_the_execu), [2-4](ch02.html#serving_a_model_based_on_the_saved_model),
+    and [2-6](ch02.html#serving_pmml_model), shows that different model types (PMML
+    versus TensorFlow) and different representations (saved model versus ordinary
+    graph) result in the same basic structure of the model scoring pipeline that can
+    be generically described using the Scala trait shown in [Example 3-1](#model_representation-id1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-1\. Model representation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The basic methods of this trait are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`score()` is the basic method for model implementation, converting input data
+    into a result or score.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`cleanup()` is a hook for a model implementer to release all of the resources
+    associated with the model execution-model lifecycle support.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`toBytes()` is a supporting method used for serialization of the model content
+    (used for checkpointing).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`getType()` is a supporting method returning an index for the type of model
+    used for finding the appropriate model factory class (see the section that follows).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This trait can be implemented using JPMML or TensorFlow Java APIs and used at
+    any place where model scoring is required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Stream
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is also necessary to define a format for representing models in the stream.
+    I decided to use [Google protocol buffers](https://developers.google.com/protocol-buffers/)
+    (“protobuf” for short) for model representation, as demonstrated in [Example 3-2](#protobuf_definition_for_the_model_update).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-2\. Protobuf definition for the model update
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The model here (model content) can be represented either inline as a byte array
+    or as a reference to a location where the model is stored. In addition to the
+    model data our definition contains the following fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`name`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The name of the model that can be used for monitoring or UI applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`description`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A human-readable model description that you can use for UI applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dataType`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data type for which this model is applicable (our model stream can contain multiple
+    different models, each used for specific data in the stream). See [Chapter 4](ch04.html#apache_flink_implementation)
+    for more details of this field utilization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`modelType`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For now, I define only three model types, PMML and two TensorFlow types, graph
+    and saved models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout implementation, [ScalaPB](https://scalapb.github.io/) is used for
+    protobuf marshaling, generation, and processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Stream
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Similar to the model stream, protobufs are used for the data feed definition
+    and encoding. Obviously, a specific definition depends on the actual data stream
+    that you are working with. For our [wine quality dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality),
+    the protobuf looks like [Example 3-3](#protobuf_definition_for_the_data_feed).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-3\. Protobuf definition for the data feed
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that a `dataType` field is added to both the model and data definitions.
+    This field is used to identify the record type (in the case of multiple data types
+    and models) to match it to the corresponding models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this simple case, I am using only a single concrete data type, so [Example 3-3](#protobuf_definition_for_the_data_feed)
+    shows direct data encoding. If it is necessary to support multiple data types,
+    you can either use protobuf’s [`oneof`](http://bit.ly/googledev-proto3) construct,
+    if all the records are coming through the same stream, or separate streams, managed
+    using separate Kafka topics, can be introduced, one for each data type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The proposed data type–based linkage between data and model feeds works well
+    when a given record is scored with a single model. If this relationship is one-to-many,
+    where each record needs to be scored by multiple models, a composite key (data
+    type with model ID) can be generated for every received record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Factory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As defined above, a model in the stream is delivered in the form of a protobuf
+    message that can contain either a complete representation of the model or a reference
+    to the model location. To generalize model creation from the protobuf message,
+    I introduce an additional trait, `ModelFactory`, which supports building models
+    out of a Model Descriptor (an internal representation of the protobuf definition
+    for the model update [in [Example 3-2](#protobuf_definition_for_the_model_update)];
+    the actual code for this class is shown later in the book). An additional use
+    for this interface is to support serialization and deserialization for [checkpointing](https://en.wikipedia.org/wiki/Application_checkpointing).
+    We can describe the model factory using the trait presented in [Example 3-4](#model_factory_representation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-4\. Model factory representation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the basic methods of this trait:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`create`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A method creating a model based on the Model descriptor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`restore`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A method to restore a model from a byte array emitted by the model’s `toByte`
+    method. These two methods need to cooperate to ensure proper functionality of
+    `ModelSerializer`/`ModelDeserializer`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test Harness
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I have also created a small test harness to be able to validate implementations.
+    It comprises two simple Kafka clients: one for models, one for data. Both are
+    based on a common `KafkaMessageSender` class ([complete code available here](http://bit.ly/kafka-ms))
+    shown in [Example 3-5](#the_kafka_messagesender_class).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-5\. The KafkaMessageSender class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This class uses Kafka APIs to create a Kafka producer and send messages. The
+    `DataProvider` class uses the `KafkaMessageSender` class to send data messages
+    ([complete code available here](http://bit.ly/kafka-dataprovider)), as demonstrated
+    in [Example 3-6](#data_provider_class).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 3-6\. DataProvider class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The actual data is the same data as that used for training the [wine quality
+    dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality), which is stored
+    locally in the form of a CSV file. The file is read into memory and then the records
+    are converted from text records to protobuf records, which are published to the
+    Kafka topic using an infinite loop with a predefined pause between sends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A similar [implementation](http://bit.ly/kafka-modelprovider) produces models
+    for serving. For the set of models, I am using results of different training algorithms
+    in both TensorFlow (exported as execution graph) and PMML formats, which are published
+    to the Kafka topic using an infinite loop with a predefined pause between sends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have outlined the necessary components, [Chapter 4](ch04.html#apache_flink_implementation)
+    through [Chapter 8](ch08.html#akka_streams_implementation) demonstrate how you
+    can implement this solution using specific technology.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1266 @@
+- en: MVars revisited
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Exercise: Write transfer function to move money between accounts'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`wget` [`cs240h.stanford.edu/transfer.hs`](http://cs240h.scs.stanford.edu/transfer.hs)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Should work atomically with multiple threads
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: E.g., other threads should never see money in neither account or both accounts
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Don't transfer money if insufficient funds in account
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: First attempt at solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's wrong with the above code?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: First attempt at solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's wrong with the above code?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can deadlock when simultaneously transferring money in both directions
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: Throwing an exception when not enough money is ugly... what if we just waited
+    for enough money to show up before completing the transfer?
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'How would you fix #1?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second attempt at solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Strategy: Use non-blocking [`tryTakeMVar`](http://www.haskell.org/ghc/docs/latest/html/libraries/base-4.7.0.0/Control-Concurrent-MVar.html#v:tryTakeMVar)
+    for second `MVar`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If it fails, release both and try again in different order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Is this gross enough for you yet?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If not, make the code sleep when not enough funds are present in `from`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '... or fix it to handle asynchronous exceptions properly'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Software transactional memory](http://hackage.haskell.org/package/stm)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if instead we used database-like transactions?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Read and write a bunch of variables
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Writes initially go to log, then get committed atomically at end
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Did you get an inconsistent view or clash with another update? No problem, just
+    abort and retry the whole transaction
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Would be hard to do in C or Java
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if you wrote to the network or file system during transaction?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"Externalized" actions can''t easily be rolled back'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But in Haskell, the `IO` type (or lack thereof) can control side effects
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Slides inspired by good write-up in [[Peyton Jones]](http://research.microsoft.com/en-us/um/people/simonpj/papers/stm/beautiful.pdf)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[STM](http://hackage.haskell.org/package/stm) basics'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: New variable type `TVar a` (kind of like an [`IORef a`](http://www.haskell.org/ghc/docs/latest/html/libraries/base-4.7.0.0/Data-IORef.html))
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Module [`Control.Concurrent.TVar`](http://hackage.haskell.org/package/stm-2.4.3/docs/Control-Concurrent-STM-TVar.html)
+    gives you
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: New [`STM` monad](http://hackage.haskell.org/package/stm-2.4.3/docs/Control-Monad-STM.html)
+    allows `TVar` access but no irreversible side effects
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`atomically` lets you run `STM` computations from `IO`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You get: semantics of one global lock + parallelism of fine-grained locks!'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In exchange, you give up the ability to perform externalized `IO` actions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: STM Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: `subtract a b = b - a`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Language wart: Unlike all other binary operators, can''t make section with
+    `(- a)` because that''s unary negation (i.e., `0-a`)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if you want to wait when not enough money in account?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Aborting
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`retry` aborts the transaction'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But `STM` knows what `TVar`s code read to detect conflicts...
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can sleep until some `TVar` code read changes w/o explicit condition variables
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`orElse` tries second action if first one aborts (sleeps if both abort)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Effectively provides nested transactions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enforcing invariants
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`alwaysSucceeds` adds invariant to check after every transaction'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (Either the invariant throws an exception or its return value ignored)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Example: say you are paranoid about negative account balances'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Will catch errors immediately at end of & roll back faulty transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Switching gears...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's get back to pure functional code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does the compiler represent data in memory?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Naïve Haskell data representation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A value requires a constructor, plus arguments
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At runtime, need to determine a value's constructor, but not it's type
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (Compiler already type-checked program, so no runtime type checks)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: For a type like `[Int]`, `constrno` might be 0 for `[]` and 1 for `(:)`, where
+    `[]` has 0-sized `args` and `(:)` has 2-element `args`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For a type like `Int`, `constrno` can be the actual integer, with no `args`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For a single-constructor type (e.g., `Point`) `constrno` not used
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Problems with our approach so far
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No way to represent exceptions or thunks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Garbage collector needs to know how many elements are in `args`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Small values such as `Int`s always require chasing a pointer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add level of indirection to describe values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`gcInfo` says how many `Val *`s are in `args` and where they are'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`tag == CONSTRNO` means `constrno` valid, used as on last slide'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`tag == IND` means `args[0]` is an indirect *forwarding pointer* to another
+    `Val` and union is unused; useful if size of `args` grows'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Function values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A `Val` whose `ValInfo` has `tag == FUNC` uses the `func` field
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'To apply function `f` to argument `a` (where both are type `Val *`):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Note that `func`'s first argument (`closure`) is the function `Val` itself
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Provides a *closure* environment so `ValInfo`/`func` can be re-used
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`func`''s second argument (`arg`) is the argument `a` on which the function
+    is being evaluated'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Assume all functions take one argument
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Logically this is fine since we have currying
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For performance, real compilers must optimize multi-argument case
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Closures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Top-level bindings don't need the `closure` argument to `func`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The `Val` for function `addOne` can have zero-length `args`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Local bindings may need environment values in `closure`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Compiler will only emit code for local function `addn` once
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But logically, there is a separate `addn` function (with a different `n`) for
+    each invocation of `add`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So each `addn` instance is a different `Val`, but all share the same `ValInfo`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `args[0]` in each `Val` to specify the value of `n`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thunk values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A `Val` with `tag == THUNK` uses the `thunk` field in `ValInfo`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '*Updates* `v` (turns it into non-thunk) or returns a non-`NULL` `Exception
+    *`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To evaluate a thunk:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Two big differences between thunks and functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A function takes an argument, while a thunk does not
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A function value is immutable, while a thunk updates itself
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note also that a thunk may throw an exception
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functions can, too, but for simplicity let's implement it by having the function
+    return a thunk that throws an exception
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Forcing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Turning a thunk into a non-thunk is known as *forcing* it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if a thunk's return value doesn't fit in thunk's `args`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is why we have the `IND` `ValInfo` tag--Allocate new `Val`, place indirect
+    forwarding pointer in old `Val`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A possible implementation of forcing that walks `IND` pointers:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Currying
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's use simple implementation of currying (GHC very complex)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Set `closure->args` to head of list of previously curried args
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Compiler emits 3 `ValInfo`s and 3 functions for `const3`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Top-level binding's `ValInfo` has `func = const3_1`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`const3_1` creates `Val v1` where `arg[0]` is first argument (`a`) and `info->func
+    = const3_2`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`const3_2` creates a `Val v2` where `arg[0]` is the second argument (`b`),
+    `arg[1]` is `v1`, and `info->func` is `const3_3`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`const3_3` has access to all arguments and actually implements `const3`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Shared arguments have common arg tails, only evaluated once
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Code for currying example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unboxed types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unfortunately, now `Int` has even more overhead
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To use, must check `i->info->tag` then access `i->info->constr`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Moreover, each number needs a distinct `ValInfo` structure (but `ValInfo`s statically
+    allocated--how do you know what numbers the program will need)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Idea: Have special *unboxed* types that don''t use `struct Val`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Unboxed types have no constructor and cannot be thunks (no `ValInfo`)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can fit in a single register or take the place of a `Val *` arg
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Must extend `GCInfo` to identify which args are and are not boxed
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unboxed types in GHC
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: GHC exposes unboxed types (even though not part of Haskell)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Symbols use `#` character--must enable with [`-XMagicHash`](http://www.haskell.org/ghc/docs/latest/html/users_guide/syntax-extns.html#magic-hash)
+    option
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Have unboxed types (`Int#`) and primitive operations on them (`+#`)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See [GHC.Prim](http://www.haskell.org/ghc/docs/latest/html/libraries/ghc-prim-0.3.1.0/GHC-Prim.html)
+    or type "`:browse GHC.Prim`" in GHCI
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also have [unboxed constants](http://www.haskell.org/ghc/docs/latest/html/users_guide/syntax-extns.html#magic-hash)--`2#`,
+    `'a'#`, `2##` (unsigned), `2.0##`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is `Int` really?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Single-constructor data type, with a single, unboxed argument
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Lets `Int` contain thunk, but avoids pointer dereference once evaluated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Restrictions on unboxed types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Cannot instantiate type variables with unboxed types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Enforced by making unboxed types a different kind of type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Recall type variables have kinds with stars (∗, ∗ → ∗, etc.), never `#`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Polymorphism works because all types of kind ∗ represented as `Val *`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`seq` revisited'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Recall `seq :: a -> b -> b`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If `seq a b` is forced, then first `a` is forced, then `b` is forced and returned
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Consider the following code (similar to concurrency lecture):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`seqTest1` hangs forever, while `seqTest2` happily returns 6'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`seq` only forces a `Val`, not the `arg` fields of the `Val`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`seqTest2`''s `seq` forces `str`''s constructor `(:)`, but not the head or
+    tail'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is known as putting `str` in *Weak Head Normal Form* (WHNF)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can't fully evaluate an arbitrary data type (but see [Control.DeepSeq](http://hackage.haskell.org/packages/archive/deepseq/latest/doc/html/Control-DeepSeq.html))
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: hypothetical `seq` implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Strictness revisited
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recall strictness flag on fields in data declarations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`Int` has `!` before it, meaning it must be strict'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Strict means the `Int`'s `ValInfo` cannot have `tag` `THUNK` or `IND`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Accessing a strict `Int` touches only one cache line
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recall `data Int = I# Int#` has only one constructor
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Plus strict flag means `tag == CONSTRNO`, so know what's in `ValInfo`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Plus `Int#` is unboxed
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thus, once `IntWrapper` forced, immediately safe to access `Int` as
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: Semantic effects of strictness
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Strictness is primarily used for optimization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To avoid building up long chains of thunks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To save overhead of checking whether thunk evaluated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'But has semantic effects: A non-strict `Int` is not just a number'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can also throw an exception or loop forever when evaluated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Such behavior can be modeled as a special value ⊥ ("bottom")
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So the values of `Int` are {0, 1}^(64) ∪ {⊥}
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Types that include value ⊥ are called *lifted*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note 1: an unboxed type is necessarily unlifted'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note 2: `!Int` not a first-class type, only valid for `data` fields'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`case` statements revisited'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`case` statement pattern matching can force thunks'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An *irrefutable* pattern is one that always matches
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A pattern consisting of a single variable or `_` is irrefutable
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Any non-irrefutable pattern forces evaluation of the argument
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Matching happens top-to-bottom, and left-to-right within alternatives
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Function pattern matching is the same as (desuggared into) `case`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Recall `undefined :: a` is `Prelude` symbol with value ⊥'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Adding `~` before a pattern makes it irrefutable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`newtype` declarations'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've seen two ways to introduce new types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`data` -- creates a new (boxed) type, adding overhead of a `Val` wrapper'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`type` -- creates an alias for an existing type, with no overhead'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sometimes you want a new type implemented by an existing type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: E.g., might want `Meters`, `Seconds`, `Grams`, all implemented by `Double`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using `type` would make them all synonymous, facilitating errors
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Might want different instances of `Show` for each, impossible with `type`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Could say `data Meters = Meters Double` -- but will add overhead
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `newtype` keyword introduces new type with no overhead
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use just like `data`, but limited to one constructor and one field
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is possible because all type-checking is compile-time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`newtype` semantics'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What's the semantic difference between these two declarations?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '[PRE40]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Exercise: Suppose you have'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Write code that behaves differently for `uNTInt` vs. `uSInt`
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`newtype` semantics'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What's the semantic difference between these two declarations?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '[PRE43]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The `NTInt` constructor is a "fake" compile-time-only construct
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A case statement deconstructing a `newtype` compiles to nothing
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Conversely, forcing a value (by matching constructor) forces strict fields
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The [`UNPACK`](http://www.haskell.org/ghc/docs/latest/html/users_guide/pragmas.html#unpack-pragma)
+    pragma
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`newtype` almost always better than `data` when it applies'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about a multi-field data type?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Fields are strict, we know they'll have `CONSTRNO` `ValInfo`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why not stick the `Int#`s directly into the `args` of a `TwoInts` `Val`?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GHC provides an `UNPACK` pragma to do just this
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: Works for any strict field with a single-constructor datatype
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unlike `newtype`, `UNPACK` is not always a win
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you pass field as argument, will need to re-box it
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-funbox-strict-fields` flag unpacks *all* strict fields'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[`ByteString`s](http://www.haskell.org/ghc/docs/latest/html/libraries/bytestring-0.10.4.0/index.html)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Haskell `String`s obviously not very efficient
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Strict `ByteString`s efficiently manipulate raw bytes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Implements a similar interface to lists: `S.head`, `S.tail`, `S.length`, `S.foldl`,
+    `S.cons` (like `:`), `S.empty` (like `[]`), `S.hPut` (like `hPutStr`), `S.readFile`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Must import qualified to avoid name clashes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S.pack` and `S.unpack` translate to/from `[Word8]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S8` has same functions as `S`, but uses `Char` instead of `Word8`--means you
+    lose upper bits of `Char` (use [`toString`](http://hackage.haskell.org/packages/archive/utf8-string/0.3.7/doc/html/Data-ByteString-UTF8.html#v:toString)
+    from [utf8-string](http://hackage.haskell.org/package/utf8-string) to avoid loss)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implementation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '[Lazy `ByteString`s](http://www.haskell.org/ghc/docs/latest/html/libraries/bytestring-0.10.4.0/Data-ByteString-Lazy.html)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Same package implements [*lazy* `ByteString`s](http://www.haskell.org/ghc/docs/latest/html/libraries/bytestring-0.10.4.0/Data-ByteString-Lazy.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Provides mostly the same functions as strict `ByteString` modules
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Confusing that both modules use same names for many things
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Important to look at import qualifications to understand code
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Worse: documentation does not qualify symbol names'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Tip: **hover your mouse over symbol and look at URL to figure out module**'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Also, `S.ByteString` and `S8.ByteString` are the same type (re-exported), and
+    similarly for `L.ByteString` and `L8.ByteString`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S.ByteString` and `L.ByteString` *not* same type, but can convert:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Lazy `ByteString` implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lazy `ByteString`s are implemented in terms of strict ones
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Invariant: `Chunk`''s first argument (`S.ByteString`) never `null`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basically a linked list of strict `ByteString`s
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Head is strict, tail is not, allowing lazy computation or I/O
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When to use strict/lazy `ByteString`s?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Obviously use lazy when you need laziness (e.g., lazy I/O, infinite or cyclical
+    strings, etc.)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lazy also much faster at concatenation (need to build a new list of `S.ByteString`s,
+    but not copy the data they contain)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Strict makes it much easier to implement things like string search
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Converting strict to lazy `ByteString`s is cheap, reverse is not (so if a library
+    can work efficiently on lazy `ByteString`s, good to expose that functionality)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL

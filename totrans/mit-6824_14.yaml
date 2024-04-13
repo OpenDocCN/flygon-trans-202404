@@ -1,0 +1,311 @@
+- en: Spark
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 14: Spark'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'MapReduce benefits:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scales
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fault tolerance
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Strategy dealing with stragglers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a map task is low, MapReduce starts another task on a different machine
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tasks don't communicate, so easy to have them run twice in parallel
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'MapReduce limitations:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: very rigid form of computation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: one map phase, one level of communication between maps and reduce, and the reduce
+    phase
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if you wanted to build an inverted index **and** then sort it by the most
+    popular keyword `=>` you would need two MapReduce jobs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so, cannot properly deal with multi-stage, iterative nor interactive jobs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users needed more complicated computations `=>` Spark
+  prefs: []
+  type: TYPE_NORMAL
+- en: There were previous solutions that tackled different types of computations individually.
+    Spark's aim was to provide one solution for a general enough model of computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hard to do DSM while maintaining scalability and fault tolerance properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RDDs: Resilient Distributed Datasets**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a Scala object essentially
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: immutable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: partitioned across machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example (build an RDD of all the lines in a text file that start with "ERROR"):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'RDDs are created by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: by referring to data in external storage
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: by *transforming* other RDDs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: like the `Filter` call above
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Actions** kick off a computation on the RDD, like the `count()` call in the
+    example.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `persist()` call tells Spark to hold the RDD in memory, for fast access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No work is done until the `count()` action is seen and executed (lazy evaluation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: you can save work by combining all the filters applied before the action
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: faster to read AND filter than to read the file entirely and then do another
+    filter pass
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fault tolerance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Lineage graphs: dependencies between RDDs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Machines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you lose an RDD's partition like p4 (because M2 failed), you can rebuild
+    it by tracing through the dependency graph and decide (based on what's already
+    computed) where to start and what to recompute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do you know on what machines to recompute? In this example, `b3` and `b4`
+    would be replicated on other machines (maybe on `M1` and `M3`), so that's where
+    you would restart the computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Spark computation expressivity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Spark is pretty general: a lot of existing parallel computation paradigms,
+    like MapReduce, can be implemented easily on top of it'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason coarse-grained writes are good enough is because a lot of parallel
+    algorithms simply apply the same op over all data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Partitioning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Can have a custom partitioning function that says "this RDD has 10 partitions,
+    1st one is all elements starting with `a`, etc.."
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you use your data set multiple times, grouping it properly so that the data
+    you need sits on the same machine is important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PageRank example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start every page with rank 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Everyone splits their rank across their neighbours
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: website 1 will give 0.5 to node 3 and node 4 and receive 0.5 from node 2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Iterate how many times? Until it converges apparently.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example of bad allocation, because we''ll transfer a lot of data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example with partitioning:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Does PageRank need communication at all then? Yes, the `contribs` RDD does a
+    `reduceByKey`
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TODO: Not sure what it does'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internal representation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'RDD methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`partitions` -- returns a list of partitions'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`preferredLocations(p)` -- returns the preferred locations of a partition'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tells you about machines where computation would be faster
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`dependencies`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how you depend on other RDDs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`iterator(p, parentIters)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ask an RDD to compute one of its partitions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`partitioner`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: allows you to specify a partitioning function
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE

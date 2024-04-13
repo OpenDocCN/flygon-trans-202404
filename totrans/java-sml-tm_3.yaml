@@ -1,0 +1,1360 @@
+- en: Specifics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Specifics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section provides some more specific advice on various Java language features
+    and gotchas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A lot of what is covered in this section can be automated by tools such as FindBugs,
+    PMD, Checkstyle and Sonar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Know How To Implement Hashcode And Equals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Know How to Implement Hashcode and Equals
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Implementing `hashCode` and `equals` is not straightforward. Do not implement
+    them unless it is necessary to do so. If you do implement them, make sure you
+    know what you are doing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is well known that if you override equals then you must also override the
+    `hashCode` method (see Effective Java item 9).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If logically-equal objects do not have the same `hashCode` they will behave
+    in a surprising manner if placed in a hash based collection such as `HashMap`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By "surprising", we mean your program will behave incorrectly in a fashion that
+    is very difficult to debug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, implementing `equals` is surprisingly hard to do correctly. Effective
+    Java item 8 spends about 12 pages discussing the topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The contract for equals is handily stated in the Javadoc of `java.lang.Object`.
+    We will not repeat it here or repeat the discussion of what it means, that can
+    be found in Effective Java and large swathes of the internet. Instead we will
+    look at strategies for implementing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whichever strategy you adopt, it is important that you first write tests for
+    your implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is easy for an equals method to cause hard-to-diagnose bugs if the code changes
+    (e.g. if fields are added or their type changes). Writing tests for equals methods
+    used to be a painful and time-consuming procedure, but libraries now exist that
+    make it trivial to specify the common cases (see Testing FAQs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don't
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is the simplest strategy and the one you should adopt by default in the
+    interests of keeping your codebase small.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most classes do not need an equals method. Unless your class represents some
+    sort of value it makes little sense to compare it with another so stick with the
+    inherited implementation from Object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An irritating gray area are classes where the production code never has a requirement
+    to compare equality but the test code does. The dilemma here is whether to implement
+    the methods purely for the benefit of the tests or to complicate the test code
+    with custom equality checks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is, of course, no right answer here; we would suggest first trying the
+    compare-it-in-the test approach before falling back to providing a custom equals
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The custom equality checks can be cleanly shared by implementing a custom assertion
+    using a library such as AssertJ or Hamcrest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Effective Java tentatively suggests having your class throw an error if equals
+    is unexpectedly called
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This seems like a good idea but, unfortunately, it will confuse most static
+    analysis tools. On balance, it probably creates more problems than it solves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Auto-Generate With an IDE
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Most IDEs provide some method of auto-generating `hashCode` and `equals` methods.
+    This is an easily-accessible approach, but the resulting methods are (depending
+    on the IDE and its settings) often ugly and complex such as the ones generated
+    by Eclipse shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unless your IDE can be configured to produce clean methods (as discussed below)
+    we do not generally recommend this approach. It is easy for bugs to be introduced
+    into this code by hand editing over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hand Roll Clean Methods
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Java 7 introduced the `java.util.Objects` class that makes implementing `hashCode`
+    trivial. Guava provides the similar `com.google.common.base.Objects` class which
+    may be used with earlier versions of Java.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Objects` class also simplifies implementing equals a little by pushing
+    most null checks into the `Objects.equals` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first `if` statement is not logically required and could be safely omitted;
+    it may, however, provide performance benefits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, we would recommend that such micro-optimizations are not included unless
+    they have been proven to provide a benefit. In the case of equals methods, we
+    suggest that the optimization is left in place. It is likely to justify itself
+    in at least some of your classes and there is value in having all methods follow
+    an identical template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The example above uses `getClass` to check that objects are of the same type.
+    An alternative is to use `instanceof` as follows
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This results in a behavioral difference - comparing instances of `MyClass` with
+    its subclasses will return true with `instanceof` but false with `getClass`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Effective Java Josh Bloch argues in favor of `instanceof` as the `getClass`
+    implementation violates a strict interpretation of the Liskov substitution principle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, if `instanceof` is used, it is easy for the symmetric property of
+    the equals contract to be violated if a subclass overrides equals. i.e.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you find yourself in a situation where you need to consider the nuances of
+    whether subclasses are equal to their parents then we strongly suggest you reconsider
+    your design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having to think about maintaining the equals contract in a class hierarchy is
+    painful and you shouldn't need to put yourself, or your team, through this for
+    normal server-side coding tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the majority of cases, if you think it makes sense for your class to implement
+    `hashCode` and `equals`, we strongly suggest you make your class final so hierarchies
+    do not need to be considered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you believe you have a case where it makes sense for subclasses to be treated
+    as equivalent to their parent, use `instanceof` but ensure that the parent equals
+    method is made final.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoid relationships that are more complex than this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Commons EqualsBuilder and HashCodeBuilder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Apache commons hashcode and equals builders were once a popular way of generating
+    these methods. We do not recommend their use in new code as most of what they
+    achieved is now provided by `java.util.Objects` without bringing in a 3rd party
+    library, or by the Guava equivalent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These classes do provide the option of a single line reflection based implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The brevity of these implementations is attractive, but their performance is
+    measurably poorer than others discussed so far. Good performance tests and regular
+    profiling can help determine whether a poorly performing method genuinely leads
+    to performance bottlenecks in your application. If you are confident that you
+    would detect such adverse impacts then using these methods as initial placeholder
+    implementations may be a reasonable approach. But in general we suggest you avoid
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code Generators
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A number of projects exist that can auto-generate value objects at build-time.
+    Two of the better known options are :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Google auto](https://github.com/google/auto/tree/master/value)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Project Lombok](https://projectlombok.org/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But many others are available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Google Auto
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Google *Auto* will create a subclass with the *obvious* implementation of an
+    abstract class annotated with `@AutoValue`. This implementation will include functioning
+    `hashcode` and `equals` methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is clearly far less effort than hand crafting a complete `Animal` class,
+    but there are some downsides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the issues with code generators are discussed in "Consider Code Generators
+    Carefully", which categorized them into *friction* and *surprise*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, Google Auto introduces some *friction* as the code shown above will not
+    compile within an IDE until the generator has run to produce the `AutoValue_Animal`
+    class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is also some *surprise*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because it is a value, Animal would normally be implemented as a final class
+    - but we have been forced to make it abstract. The team behind *Auto* recommend
+    you add a package-private constructor to prevent other child classes being created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike normal Java, the order in which accessors are declared is important because
+    it is used by the generator to define the order of the constructor parameters.
+    Re-ordering the accessors can, therefore, have the surprising effect of introducing
+    a bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lombok
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Lombok can also (amongst other things) generate full implementations of value
+    objects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It takes a different approach to Google auto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given an annotated class such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It will alter the class at build-time to produce an implementation along the
+    lines of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: While Google *Value* asks the programmer to provide a valid public API for a
+    class, *Lombok* creates the public API based on a description of its internal
+    state. The description is valid Java syntax but has a different meaning when interpreted
+    by Lombok.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Lombok* causes some friction. It is not practical to use *Lombok* without
+    an IDE that understands it - code using the autogenerated api will appear to be
+    invalid. An IDE plugin must be installed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While it (arguably) introduces less friction than auto once the IDE plugin is
+    installed, the behavior of *Lombok* is much more surprising. It is easy to explain
+    what *Auto* does - it generates a class at build-time that implements an interface
+    you define. It is much harder to predict or explain what *Lombok* will do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although *Lombok* requires the programmer to write less code than solutions
+    such as *Auto*, it deviates further from normal Java.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you consider using a code generator for Value classes, we would recommend
+    you consider approaches such as *Auto* before *Lombok*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To its credit *Lombok* does provide an escape route (see "Prefer reversible
+    decisions") in the form of delombok which allows you to output the generated classes.
+    These can then be used to replace the annotated originals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Removing *Auto* is similarly straightforward - the generated classes can be
+    checked into the source tree. The artificial abstract class/implementation split
+    can then be removed via simple refactorings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Not Reassign Parameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Do Not Re-Assign Parameters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Parameters to methods should never be re-assigned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detail
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Reassigning to parameters makes code harder to understand and provides no meaningful
+    advantage over creating a new variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the method is large, it can be difficult to track the lifecycle of a parameter.
+    Even within short methods, re-using parameters will cause problem. As the variable
+    is being used to represent two separate concepts, it is often not possible to
+    name it meaningfully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If another variable of the same type as a parameter is needed, it should be
+    declared locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bad**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Better**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Parameters may be declared final so that the reader can tell at a glance that
+    its value will not change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limit Scope
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Limit Variables to the Smallest Possible Scope
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Variables should be declared as late as possible so that they have the narrowest
+    possible scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Bad*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Better*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Better still*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sometimes, assigning to well-named, temporary variables will result in more
+    readable code than calling a method inline because it helps the reader follow
+    the data and logical flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a rule of thumb, if you are unable to come up with a name for a variable
+    that does little more than mirror a method from which its value was retrieved,
+    then the variable should be eliminated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prefer For Each Loops To For Loops
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Prefer For-Each Loops to For Loops
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Use `for each` loops in preference to indexed for loops.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `for each` loop introduced with Java 5 avoids the potential out-by-one errors
+    of indexed for loops and is more concise than code using iterators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Bad*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*A little better*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Prefer Maps And Filters To Imperative Loops
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Prefer Maps and Filters to Imperative Loops
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Imperative loops hide application logic inside boilerplate code - prefer maps
+    and filters as these separate the logic from the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Most loop based code can be re-written in a more declarative style using filters
+    and maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Java 8 made this easy by introducing lambdas and the streams API, but the same
+    style can be applied in Java 7 using anonymous inner classes and third party libraries
+    such as Guava.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filters and maps highlight what the code is intended to achieve. This is less
+    clear in the imperative implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bad**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Better (Java 8)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Better (Java 7 using Guava)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that, although the Java 7 version requires more lines of code (in the form
+    of the ugly boilerplate for the anonymous inner class), the logic of the `selectValues`
+    method is clearer. If the logic required in the Predicate or mapping Function
+    is required in multiple places then it is straightforward to move this to a common
+    location. This is harder to achieve with the imperative version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that the method that creates the Predicate has been made static. It
+    is a good idea to do this, where possible, when returning an anonymous class to
+    prevent a long lived instance preventing the parent class from being garbage collected.
+    Although the Predicate is only short-lived in this instance, applying static dogmatically
+    in all cases avoids the overhead of thinking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoid Apis From Prehistory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Avoid APIs from Pre-History
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Do not use `Vector`, `StringBuffer` and other archaic parts of the JDK.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Java has been around for over 20 years. In order to maintain backwards compatibility,
+    it has hoarded all manner of APIs that no longer make sense to use. Some of them
+    are handily marked with @Deprecated annotation, others are not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, many are still used in university courses and online examples.
+    New Java programmers may not be aware they have been replaced - a few to watch
+    out for include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`java.util.Vector` - use `ArrayList` instead'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`java.lang.StringBuffer` - use `StringBuilder` instead'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`java.util.Stack` - use a `Dequeue` (e.g. `ArrayDeqeue`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`java.util.Hashtable` - use a `Map` (e.g. `HashMap`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`java.util.Enumeration` - use an `Iterator` or an `Iterable`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each of these replacements (except `Enumeration`) differ from the originals
+    by not being synchronized. If you think you need a synchronized collection go
+    away somewhere quiet and think again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beware Casts And Generics Warnings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Beware Casts and Generics Warnings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Casts dilute the benefit of Java's type system, making code both less readable
+    and less safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoid casts wherever possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you find yourself writing one, stop and ask yourself why you are writing
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What would need to be changed in your code so you did not need to write that
+    cast?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why can't you make that change?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detail
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Java's type system is there to help us - it catches bugs at compile-time and
+    documents our code, making it easier to understand and navigate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we add a cast to our code, we lose both these benefits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Casts get introduced into code for three main reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have reached the limits of Java's type system and the programmer must take
+    control
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The overall design of the code is poor
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The code uses raw generic types
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We'll look at these in reverse order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code with Raw Types
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If code contains raw generic types (either because the code pre-dates Java 5
+    or the programmer is not familiar with Java) then it will create the need to cast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The compiler will not be happy that we have failed to fully declare the type
+    of `List` we are dealing with and will (depending on how it's been configured)
+    generate an error or warning on the line where `list` is declared e.g.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, for errant code such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The compiler will issue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure that all such warnings are addressed, either by imposing a zero compiler
+    warnings policy or by configuring the compiler to treat them as errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this case, removing both the cast and the warning is straight forward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Poor Design
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Sometimes, removing a cast or fixing a warning is non-trivial. We have bumped
+    into issue two - poor design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Normally, objects placed into a collection should be of a single type or of
+    multiple types related by a common superclass or interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, unrelated types have been placed into the same list with a String used
+    to communicate some sort of information about how "processing" of a widget has
+    failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The classic OO fix for this code would be to introduce a `ProcessResult` interface
+    with two concrete implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The original code can then be fixed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or, more concisely in Java 8:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: It may also sometimes make sense to use a disjoint union type aka `Either`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This technique can be particularly useful as an interim step when reworking
+    legacy code that uses mixed type raw collections, but can also be a sensible approach
+    when dealing with error conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, Java does not provide an `Either` type out of the box but at
+    its simplest it looks something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Libraries such as Atlassian's Fugue provide implementations with much richer
+    functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the simplistic form of `Either` with Java 7 the code could be re-written
+    as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'While most Java programmers will prefer the earlier OO version, this version
+    has two advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It requires no change to the *structure* of the original code - all we have
+    really done is make the types document what is happening
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It requires less code
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This pattern can help quickly tame a legacy code base that is difficult to comprehend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limits of the Type System
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Sometimes we do reach the limits of Java's type system and need to cast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we do this, we must make certain that the cast is safe and there is no
+    better solution to our problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, we may need to sometimes suppress a Generics warning, this can be
+    done by annotating with `@SuppressWarnings` e.g.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the compiler has no way of knowing what type has been serialized to the
+    String. Hopefully the programmer does or else a runtime error will occur.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Not Use Magic Numbers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Do Not Use Magic Numbers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Magic numbers should be replaced with well-named constants that describe their
+    meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detail
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Placing numeric or string literals directly into source code causes two problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is unlikely that the **meaning** of the literal will be clear
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the value changes updates are required where ever the literal has been duplicated
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Literals should therefore be replaced with well-named constants and Enums.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bad**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Better**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**You''ve missed the point**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the constants you extract relate to an identifiable concept, create an Enum
+    instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Good**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some coding standards make statements such as "0 and 1 are exceptions to this
+    rule". This is, however, an oversimplification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sometimes 0 and 1 will have a clear local meaning as they are being used as
+    part of low level code e.g.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: But 0 and 1 may also have domain-specific values that should be extracted into
+    constants like any other literal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Server-side Java can also often be re-written in a cleaner fashion without
+    the use of numeric literals, e.g.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Not Use The Assert Keyword
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Don't Use the Assert Keyword
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Assertions are a useful coding technique that can provide many benefits but
+    in most circumstances it is better to implement them using third party libraries
+    rather than the `assert` keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Assertions written with the assert keyword are only enabled when the `-ea` JVM
+    flag is set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The intent of this flag is to allow the assertions to be enabled in development
+    and testing but disabled in production to avoid the performance overhead of assertion
+    logic. This is usually a premature optimization and increases the opportunity
+    for mistakes as the code will behave differently in development vs production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Switching off assertions in production also greatly dilutes their value. If
+    a coding error has been made assertions ensure that it is reported early, close
+    to the bug. If assertions are turned off in production bugs may propagate silently.
+    This may make their consequences more severe and will certainly make the issue
+    harder to diagnose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So for these reasons, unless you are working in a very performance sensitive
+    domain, assertions should always be enabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For always-on assertions third party libraries such as Guava's preconditions
+    provide a better solution than the `assert` keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A separate issue is the use of the `assert` keyword in tests. This is usually
+    the result of a lack of familiarity with Java and JUnit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In codebases found in the wild where `assert` has been used in tests the `-ea`
+    flag is rarely set, meaning that the tests can never fail. For tests JUnit's built
+    in assertions or modern test focused assertion libraries such as AssertJ should
+    always be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoid Floats And Doubles
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Avoid Floats and Doubles
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Avoid using floats and doubles (both the primitives and their wrappers).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detail
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Floats and doubles introduce a minefield of rounding and comparison issues.
+    While they are a sensible choice for some domains where you do not care about
+    rounding errors integers or `BigDecimal` are usually a better choice for server-side
+    business code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core issue is that floating point numbers are not able to represent many
+    numbers (e.g. `0.1`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This leads to unexpected results that may not be caught by simple test cases
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: But
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: The simplest solution in this case would be to replace the floats with integer
+    values (i.e. track the balance in units of cents rather than dollars).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In situations where floats can't be replaced by integers code can be re-written
+    to use `BigDecimal`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that although `BigDecimal` can be constructed from a float this would take
+    us back to where we started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: When to use floats and doubles
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Floats and doubles clearly can't be all bad or it is unlikely that they would
+    have been included in the Java language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primitive floating point types have performance advantages over `BigDecimal`
+    that can be significant in highly numerical domains such as machine learning,
+    physics engines, scientific applications etc. In these domains the performance
+    benefit may greatly out-weigh the additional risk of error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code using `BigDecimal` is also inherently more verbose and clumsy than code
+    that uses primitives. If you are working in a domain where the imprecision of
+    floating point types is acceptable you might prefer the cleaner code they allow,
+    but be sure you are making this choice consciously with an understanding of the
+    pitfalls involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Not Use Reflection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Don't use Reflection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Do not use reflection in your code (i.e. anything from the `java.lang.reflect`
+    package).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Reflection is a powerful tool; it allows Java to do things that would otherwise
+    be either impossible or require large amounts of boilerplate code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, while it is sometimes useful when creating a framework or library it is
+    unlikely to be a good way to solve the types of problem we encounter in normal
+    server-side application code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So why would we want to avoid using a powerful tool that Java provides?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reflection has three main drawbacks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loss of Compile Time Safety
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Reflection moves errors from compile time to runtime - this is a Bad Thing ™
+  prefs: []
+  type: TYPE_NORMAL
+- en: The compiler is our first form of defense against defects and the type system
+    is one of the most effective tools we have to document our code. We should not
+    throw these things away lightly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loss of Refactor Safety
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Refactoring and code analysis tools are blind to reflection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although they may make some attempt to take it into account, the additional
+    possibilities reflection creates for how a program might behave means the tools
+    can no longer provide rigorous guarantees that they have understood the program.
+    In the presence of reflection refactorings that would otherwise be safe may change
+    program and analysis tools may report incorrect results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Harder Code Comprehension
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the same way that Reflection makes it harder for automated tools to understand
+    code, it also makes it harder for humans to understand code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reflection introduces surprises.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This method is never called, I can safely delete it.* Oh. Reflection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*I can safely change the behavior of this private method as I know where it
+    is called from.* Oh. Reflection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Know The JDK One Liners
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Know common one liners
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The JDK contains a number of utility functions that should be used to replace
+    more verbose code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As discussed in "Optimize for Readability not Performance" we should prefer
+    simple code to more complex code that we think might be more efficient (unless
+    we have demonstrated that the more complex code has a real benefit via profiling
+    and performance testing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes however we find ourself in the happy situation where we do not need
+    to make a trade off between the clarity of our code and (presumed) performance.
+    Sometimes there is also reason to believe that cleanest version of the code might
+    also be slightly more efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a number of small functions scattered around the JDK that are both
+    cleaner than the code they are commonly used to replace, and also possible slightly
+    more efficient. These should be used whenever possible, and once you know they
+    are there any code that doesn't use them looks will look slightly wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most IDEs will prompt you to use some or all of these one liners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: java.util.Arrays.asList
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For when you need to convert an array to a fixed size list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: List <string class="hljs-class">ss = Arrays.asList(“1”, “2”);</string>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is cleaner and more efficient than the commonly seen alternatives such
+    as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: List <string class="hljs-class">ss = new ArrayList<>(); ss.add(“1”); ss.sdd(“2”);</string>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The list implementation returned by `asList` is specialized and may consume
+    slightly less memory than an ArrayList.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be aware that the lists created by this method are not fully immutable. They
+    are fixed size and will throw a java.lang.UnsupportedOperation if you try to add
+    or remove members, but modifying methods such as `set` will succeed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are working with Java 9 the `List.of` methods provide a superior alternative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: java.util.Collections.empty*
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `java.util.Collections` class contains methods that create unmodifiable
+    versions of the common collections classes specialized to contain either no entries
+    or single entries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most common ones are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`emptyMap`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`emptyList`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`emptySet`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`singletonList`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`singletonMap`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`singletonSet`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But there are other more specialized methods there as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, using these results in cleaner more descriptive code compared to the
+    common alternatives and the specialized data structures returned may have a slightly
+    smaller footprint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are working with Java 9 the static `of` methods provide a superior alternative
+    to the single entry methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: valueOf
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Is slightly more efficient than the subjectively uglier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`valueOf` will return one of two fixed Boolean instances while calling the
+    constructor will always allocate a new object.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly for Integers `valueOf` will return a shared instance for values between
+    -128 and 127.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Long.valueOf` will similarly return objects from a cache.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Oracle JDK does not currently look to use a cache for Floats or Doubles
+    when calling `valueOf`. So using `valueOf` in preference to new for floating points
+    might not have an advantage, but it has no disadvantage either.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overloaded versions of the `valueOf` methods construct their desired types from
+    Strings. If you need to create a boxed primitive from a String, this is the way
+    to do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth noting that, although it is not guaranteed by the spec, in practice
+    Java compilers implement auto boxing by calling `valueOf`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: and
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: Are equivalent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As of Java 9 the boxed primitive constructors are deprecated in favour of the
+    `valueOf` and parse methods (see below).
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseXXX
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Similar to `valueOf` the `parseXXX` methods convert a string to a primitive,
+    only in this case the primitive is not boxed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This does exactly what the method says, and compared to the commonly seen alternative:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: It avoids the construction and unboxing of a Float object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar methods exist for Boolean, Double, Integer and the other primitive types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: isEmpty
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A common clumsy idiom is to check if a Collection is empty by checking its
+    size:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The clearer and more concise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: May also be more computationally efficient, depending on the data structure
+    it is being called on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often there is no performance difference, but for a large `ConcurrentLinkedQueue`
+    the difference can be significant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Java 9 factory methods
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Java 9 added static factory `of` methods to the List, Set and Map interfaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These allow us to construct the collections cleanly e.g.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `of` methods are overloaded to up to 10 values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code reads slightly better than the Java 8 `Arrays.asList` version and returns
+    a fully structurally immutable list that does not allow elements to be replaced.
+    It may also be slightly more efficient as it avoids allocating an array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although `of` is overloaded to take no parameters this expressed intent less
+    well than `emptyList` etc which may therefore still be preferred.
+  prefs: []
+  type: TYPE_NORMAL

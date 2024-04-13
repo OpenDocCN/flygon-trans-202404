@@ -1,0 +1,1128 @@
+- en: Optimism, Causality, Vector Timestamps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 15: Optimism, Causality, Vector Timestamps'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consistency so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Concurrency* forces us to to think about meaning of reads/writes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Sequential consistency:* everyone sees same read/write order (IVY)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Release consistency:* everyone sees writes in unlock order (TreadMarks)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Sequential and release consistency are slow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: in general, must ask before each operation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'IVY: read faults and write faults -> ask manager'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'TreadMarks: acquire and release -> ask lock manager'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can we get better performance by weakening consistency?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Paxos:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also slow; several messages to reach agreement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More than IVY+TreadMarks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, "low" availability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If no majority, no progress.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not suitable for disconnected operation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimistic Concurrency Control
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Do the operation now (e.g., read/write cached copy)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Check if it was OK later
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recover if not OK
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A simple example -- optimistic peer-to-peer chat
+  prefs: []
+  type: TYPE_NORMAL
+- en: We each have a computer attached to internet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When I type something, send msg. to each participant
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recv msg -> add to end of chat window
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do we care about message ordering for chat?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network may deliver in different order at different participants
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Joe: The answer is 40'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Fred: No, it''s 41'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alice: That''s correct'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Maybe Sam sees different order:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Joe: 40'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alice: That''s correct'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What went wrong in this example?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alice "computed" her message based on certain inputs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sam can only interpret if he has seen those inputs too
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Suppose this is an auction chat program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If there were a 4th person, Sam:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: So to Sam this might not make sense. His problem is that Sam didn't know what
+    Alice knew when she sent her message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Definition:** `x` causally precedes `y`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`x` precedes `y` if:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M0 does `x`, then M0 does `y`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M0 does `x`, M0 sends msg to M1, M1 does `y`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[transitive closure](https://en.wikipedia.org/wiki/Transitive_closure)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`x` and `y` are generally writes, or msgs, or file versions'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: also "`y` causally depends on `x`"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Definition:** causal consistency'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if `x` causally precedes `y`, everyone sees `x` before `y`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Pros, cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pro: no single master'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Con: not a total order on events'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Slow implementation of causal consistency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Unique ID for every msg
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Node keeps set of all msg IDs received -- "history"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When sending `m`, send current history set, too
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receiver delays incoming msg `m` until has received everything in `m`'s set
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: History sets will grow huge -- can we abbreviate?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each node numbers its msgs 1, 2, 3, &c
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deliver each node's msgs in order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then history need only include latest # seen from each node'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H1/4 implies saw 1, 2, 3 also
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This notation doesn't grow over time, unlike history sets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Called a *Vector Timestamp* or *Version Vector*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vector Timestamp
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Each node numbers its own actions (sent msgs, in this case)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VT is a vector of numbers, one slot per node
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each message sent out with a VT
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`VT[i]=x =>` sender had seen all msgs from node `i` up through `#x`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the assumption here is that a node broadcasts messages to all other nodes (since
+    we're trying to replicate a system effectively)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: have to know how many nodes there are in the whole system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise, complicated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VTs get very large when you have thousands of machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VT comparisons
+  prefs: []
+  type: TYPE_NORMAL
+- en: to answer "should msg A be displayed before msg B?"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: let `a` and `b` denote the VTs associated with msgs `A` and `B`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can reason about causality (i.e. is `a < b` or are they concurrent `a ||
+    b`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'four situations: `a < b, a || b`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a < b` if two conditions hold:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For all hosts `i`:'
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`a[i] <= b[i]`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. `a` summarizes a proper prefix of `b`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. either
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`b`''s sender and `a`''s sender have both seen the same # of messages from
+    host `i`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`b`''s sender has seen more recent message from host `i` than `a`''s sender
+    has seen'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*AND* there exists `j, s.t. a[j] < b[j]`'
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: i.e. `a` causally precedes `b`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`b`''s sender has *definitely* seen more recent message from host `i` than
+    `a`''s sender has seen'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a || b` if:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'exists i,j: `a[i] < b[i]` and `a[j] > b[j]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. neither summarizes a prefix of the other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. neither causally precedes the other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is because, as we said before, there's no total order
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many systems use VT variants, but for somewhat different purposes
+  prefs: []
+  type: TYPE_NORMAL
+- en: TreadMarks, Ficus, Bayou, Dynamo, &c
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: compact way to say *"I've seen everyone's updates up to this point"*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: compact way to agree whether event `x` preceded event `y`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I am pretending there's one fundamental principle here
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but it's only true if you stand fairly far back
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CBCAST -- "causal broadcast" protocol
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: General-purpose ordering protocol, useful for peer-to-peer chat
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: From Cornell Isis research project
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Key property:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Delivers messages to individual nodes in causal order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If `a` causally precedes `b`, CBCAST delivers `a` first
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[diagram: node, msg buf, VC, chat app]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each node keeps a local vector clock, `VC`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`VCi[j] = k` means node `i` has seen all msgs from `j` up through message `k`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summarizes what the application has also seen
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`send(m)` at node `i`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`VCi[i] += 1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`broadcast(m, i, VCi)`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'on `receive(m, i, mv)` at node `j`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`j`''s CBCAST library buffers the message'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'release to application only when:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`mv <= VCj`, except `mv[i] = VCj[i] + 1`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. node `j` has seen every msg that causally precedes `m` `VCj[i] = mv[i]`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so msgs will reflect receipt of `m`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why fast?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No central manager, no global order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If no causal dependencies, CBCAST doesn't delay messages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`M0 sends <1,0>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`M1 sends <0,1>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receivers are allowed to deliver in either order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Causal consistency still allows more surprises than sequential
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sam can still see:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Joe: 40'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Fred: 41'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bob: 42'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alice: That''s correct'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Did she mean 42 or 41?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Causal consistency only says Alice's msg will be delivered after
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: all msgs she had seen when she sent it
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Not* that it will be delivered before all msgs she hadn''t seen'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` if CBCAST present `x` and then `y` that does *not* imply `x` happened
+    before `y` necessarily'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'TreadMarks uses VTs to order writes to same variable by different machines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: VTs are often used for optimistic updating of replicated data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Everyone has a copy, anyone can write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Don''t want IVY-style MGR or locking: network delays, failures'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Need to sync replicas, accept only "newest" data, detect conflicts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File sync (Ficus, Coda, Rumor)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Distributed DBs (Amazon Dynamo, Voldemort, Riak)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File synchronization -- e.g. Ficus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Multiple computers have a copy of all files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each can modify its local copy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merge changes later -- optimistic
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fie synchronization with disconnected operation support
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: two people edit the same file on two different airplanes :)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when they get back online, server needs to detect this
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...and solve it'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...and not lose updates (lazy server can just throw away one set of changes)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: user has files replicated at work, at home, on laptop
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hosts may be off, on airplane, &c -- not always on Internet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: work on `H1` for a while, sync changes to `H2`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: work on `H2`, sync changes to `H3`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: work on `H3`, sync to `H1`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Overall goal:** push changes around to keep machines identical'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Constraint: No Lost Updates'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only OK for sync to copy version `x2` over version `x1` if
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`x2` includes all updates that are in `x1`.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example 2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: What if there were concurrent updates?
+  prefs: []
+  type: TYPE_NORMAL
+- en: So that neither version includes the other's updates?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Copying would then lose one of the updates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So sync doesn't copy, declares a "conflict"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conflicts are a necessary consequence of optimistic writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to decide if one version contains all of another's updates?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We could record each file's entire modification history.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: List of hostname/localtime pairs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And carry history along when synchronizing between hosts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For example 1: `H2: H1/T1,H2/T2 H3: H1/T1`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For example 2: `H1: H1/T1,H1/T2 H2: H1/T1,H2/T3`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then its easy to decide if version `x` supersedes version `y`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If `y`'s history is a prefix of `x`'s history.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can use VTs to compress these histories!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each host remembers a VT per file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Number each host's writes to a file (or assign wall-clock times)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Just remember # of last write from each host'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`VT[i]=x` => file version includes all of host `i`''s updates through `#x`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'VTs for Example 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After H1''s change: `v1=<1,0,0>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'After H2''s change: `v2=<1,1,0>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v1 < v2`, so H2 ignores H3''s copy (no conflict since `<`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v2 > v1`, so H1/H3 would accept H2''s copy (again no conflict)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'VTs for Example 2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After H1''s first change: `v1=<1,0,0>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'After H1''s second change: `v2=<2,0,0>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'After H2''s change: `v3=<1,1,0>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: v3 neither `<` nor `>` v1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus neither has seen all the other's updates
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus there's a conflict
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if there *are* conflicting updates?
+  prefs: []
+  type: TYPE_NORMAL
+- en: VTs can detect them, but then what?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Depends on the application.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Easy:* mailbox file with distinct immutable messages, just union.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Medium:* changes to different lines of a C source file (diff+patch).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Hard:* changes to the same line of C source.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reconciliation must be done manually for the hard cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Today's paper is all about reconciling conflicts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to think about VTs for file synchronization?
+  prefs: []
+  type: TYPE_NORMAL
+- en: They detect whether there was a serial order of versions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I.e. when I modified the file, had I already seen your modification?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If yes, no conflict
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If no, conflict
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Or:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A VT summarizes a file's complete version history
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There's no conflict if your version is a prefix of my version
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about file deletion?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can H1 just forget a file's VT if it deletes the file?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'No: when H1 syncs w/ H2, it will look like H2 has a new file.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H1 must remember deleted files' VTs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Treat delete like a file modification.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H1: f=1 ->H2`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H2: del ->H1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: second sync sees `H1:<1,0> H2<1,1>`, so delete wins at H1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There can be delete/write conflicts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H1: f=1 ->H2 f=2`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H2: del ->H1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H1:<2,0> vs H2:<1,1> -- conflict`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is it OK to delete at H1?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to delete the VTs of deleted files?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is it enough to wait until all hosts have seen the delete msg?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sync would carry, for deleted files, set of hosts who have seen del
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"Wait until everyone has seen delete" doesn''t work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`H1: ->H3 forget`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H2: f=1 ->H1,H3 del,seen ->H1 ->H1`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H3: seen ->H1`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`H2 needs to re-tell H1 about f, deletion, and f''s VT`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H2 doesn't know that H3 has seen the delete
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So H3 might synchronize with H1 and it *would* then tell H1 of f
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It would be illegal for to to disappear on H1 and re-appear
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So -- this scheme doesn't allow hosts to forget reliably
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Working VT GC scheme from Ficus replicated file system
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Phase 1:* accumulate set of nodes that have seen delete'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: terminates when == complete set of nodes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Phase 2:* accumulate set of nodes that have completed Phase 1'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when == all nodes, can totally forget the file
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If H1 then syncs against H2,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H2 must be in Phase 2, or completed Phase 2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if in Phase 2, H2 knows H1 once saw the delete, so need not tell H1 abt file
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if H2 has completed Phase 2, it doesn't know about the file either
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A classic problem with VTs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many hosts -> big VTs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy for VT to be bigger than the data!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No very satisfying solution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many file synchronizers don't use VTs -- e.g. Unison, rsync
+  prefs: []
+  type: TYPE_NORMAL
+- en: File modification times enough if only two parties, or star
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Need to remember "modified since last sync"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VTs needed if you want any-to-any sync with > 2 hosts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Replication + optimistic updates for speed, high availability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Causal consistency yields sane order of optimistic updates (CBCAST)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Causal ordering detects conflicting updates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vector Timestamps compactly summarize update histories
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

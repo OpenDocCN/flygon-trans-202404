@@ -1,0 +1,411 @@
+- en: '| [![](../Images/c35793514ec5d8bbeb86056093ad381f.jpg)](/http://philip.greenspun.com/images/pcd0088/graceland-piano-32.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Indexing and Tuning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![Downtown Las Vegas (Fremont Street) by night.](../Images/76b707811196a52d4379e39119a7dfaa.jpg)](/http://philip.greenspun.com/images/pcd2898/las-vegas-downtown-at-night-18.tcl)
+    One of the great dividends of investing in an RDBMS is that you don''t have to
+    think too much about the computer''s inner life. You''re the programmer and say
+    what kinds of data you want. The computer''s job is to fetch it and you don''t
+    really care how.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maybe you'll start caring after that $500,000 database server has been grinding
+    away on one of your queries for two solid hours...
+  prefs: []
+  type: TYPE_NORMAL
+- en: While software is being developed, it is rare for tables to contain more than
+    a handful of rows. Nobody wants to sit in SQL*Plus or at Web forms and type in
+    test data. After the application launches and tables begin to fill up, people
+    eventually notice that a particular section of the site is slow. Here are the
+    steps that you must take
+  prefs: []
+  type: TYPE_NORMAL
+- en: Find a URL that is running too slowly.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If possible, enable query logging from your Web or application server. What
+    you want is for the Web server to write every SQL query and transaction into a
+    single file so that you can see exactly what the database management system was
+    told to do and when. This the kind of feature that makes a Web programming environment
+    truly productive that it is tough to advertise it to the Chief Technology Officer
+    types who select Web programming environment (i.e., if you're stuck using some
+    closed-source Web connectivity middleware/junkware you might not be able to do
+    this).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With AOLserver, enable query logging by setting `Verbose=On` in the `[ns/db/pool/**poolname**]`
+    section of your .ini file. The queries will show up in the error log ("/home/nsadmin/log/server.log"
+    by default).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Request the problematic URL from a Web browser.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: fire up Emacs and load the query log into a buffer; spawn a shell and run sqlplus
+    from the shell, logging in with the same username/password as used by the Web
+    server
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: you can now cut (from server.log) and paste (into sqlplus) the queries performed
+    by the script backing the slow URL. However, first you must turn on tracing so
+    that you can see what Oracle is doing.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Oops! It turns out that Oracle is unhappy about just writing to standard output.
+    For each user that wants to trace queries, you need to feed sqlplus the file $ORACLE_HOME/rdbms/admin/utlxplan.sql
+    which contains a single table definition:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Type "set autotrace on" again (it should work now; if you get an error about
+    the PLUSTRACE role then tell your dbadmin to run $ORACLE_HOME/sqlplus/admin/plustrce.sql
+    as SYS then GRANT your user that role).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Type "set timing on" (you'll get reports of elapsed time)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: cut and paste the query of interest.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Now that we're all set up, let's look at a few examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple B-Tree Index
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose that we want to ask "Show me the users who''ve requested a page within
+    the last few minutes". This can support a nice "Who''s online now?" page, like
+    what you see at [http://www.photo.net/shared/whos-online](http://www.photo.net/shared/whos-online).
+    Here''s the source code to find users who''ve requested a page within the last
+    10 minutes (600 seconds):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We''re querying the users table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Suppose that we ask for information about User #37\. Oracle need not scan the
+    entire table because the declaration that `user_id` be the table''s primary key
+    implicitly causes an index to be constructed. The `last_visit` column, however,
+    is not constrained to be unique and therefore Oracle will not build an index on
+    its own. Searching for the most recent visitors at photo.net will require scanning
+    all 60,000 rows in the `users` table. We can add a B-Tree index, for many years
+    the only kind available in any database management system, with the following
+    statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Now Oracle can simply check the index first and find pointers to rows in the
+    `users` table with small values of `last_visit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tracing/Tuning Case 1: did we already insert the message? The SQL here comes
+    from an ancient version of the bulletin board system in the ArsDigita Community
+    System (see [http://www.photo.net/bboard/](http://www.photo.net/bboard/) for an
+    example). In the bad old days when we were running the Illustra relational database
+    management system, it took so long to do an INSERT that users would keep hitting
+    "Reload" on their browsers. When they were all done, there were three copies of
+    a message in the bulletin board. So we modified the insertion script to check
+    the `bboard` table to see if there was already a message with exactly the same
+    values in the `one_line` and `message` columns. Because `message` is a CLOB column,
+    you can''t just do the obvious "=" comparison and need to call the PL/SQL function
+    `dbms_lob.instr`, part of Oracle''s built-in DBMS_LOB package.'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s a SQL*Plus session looking for an already-posted message with a subject
+    line of "foo" and a body of "bar":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Note the "10,299 physical reads". Disk drives are very slow. You don''t really
+    want to be doing more than a handful of physical reads. Let''s look at the heart
+    of the query plan:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Looks as though Oracle is hitting the `bboard_by_topic` index for the ROWIDs
+    of "just the rows that have a topic of ''photo.net''". It is then using the ROWID,
+    an internal Oracle pointer, to pull the actual rows from the BBOARD table. Presumably
+    Oracle will then count up just those rows where the ONE_LINE and MESSAGE columns
+    are appropriate. This might not actually be so bad in an installation where there
+    were 500 different discussion groups. Hitting the index would eliminate 499/500
+    rows. But BBOARD_BY_TOPIC isn''t a very selective index. Let''s investigate the
+    selectivity with the query `select topic, count(*) from bboard group by topic
+    order by count(*) desc`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| topic | count(*) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| photo.net | 14159 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| Nature Photography | 3289 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| Medium Format Digest | 1639 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| Ask Philip | 91 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| web/db | 62 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'The `bboard` table only has about 19,000 rows and the photo.net topic has 14,000
+    of them, about 75%. So the index didn''t do us much good. In fact, you''d have
+    expected Oracle not to use the index. A full table scan is generally faster than
+    an index scan if more than 20% of the rows need be examined. Why didn''t Oracle
+    do the full table scan? Because the table hadn''t been "analyzed". There were
+    no statistics for the cost-based optimizer so the older rule-based optimizer was
+    employed. You have to periodically tell Oracle to build statistics on tables if
+    you want the fancy cost-based optimizer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The final numbers don't look much better. But at least the cost-based optimizer
+    has figured out that the topic index won't be worth much. Now we're just scanning
+    the full `bboard` table. While transferring 20,000 rows from Illustra to Oracle
+    during a photo.net upgrade, we'd not created any indices. This speeded up loading
+    but then we were so happy to have the system running deadlock-free that we forgot
+    to recreate an index that we'd been using on the Illustra system expressly for
+    the purpose of making this query fast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Bboard postings are now indexed by subject line, which should be a very selective
+    column because it is unlikely that many users would choose to give their question
+    the same title. This particular query will be faster now but inserts and updates
+    will be slower. Why? Every INSERT or UPDATE will have to update the `bboard` table
+    blocks on the hard drive and also the `bboard_index_by_one_line` blocks, to make
+    sure that the index always has up-to-date information on what is in the table.
+    If we have multiple physical disk drives we can instruct Oracle to keep the index
+    in a separate tablespace, which the database administrator has placed on a separate
+    disk:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Now the index will be kept in a different tablespace (`philgidx`) from the
+    main table. During inserts and updates, data will be written on two separate disk
+    drives in parallel. Let''s try the query again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We''ve brought physical reads down from 12266 to 3\. Oracle is checking the
+    index on `one_line` and then poking at the main table using the ROWIDs retrieved
+    from the index. It might actually be better to build a concatenated index on two
+    columns: the user ID of the person posting and the subject line, but at this point
+    you might make the engineering decision that 3 physical reads is acceptable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tracing/Tuning Case 2: new questions'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the top of each forum page, e.g., [http://www.photo.net/bboard/q-and-a.tcl?topic=photo.net](http://www.photo.net/bboard/q-and-a.tcl?topic=photo.net),
+    the ArsDigita Community System shows questions asked in the last few days (configurable,
+    but the default is 7 days). After the forum filled up with 30,000 messages, this
+    page was perceptibly slow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'A full table scan and 12,071 physical reads just to get 61 rows! It was time
+    to get medieval on this query. Since the query''s WHERE clause contains topic,
+    refers_to, and posting_time, the obvious thing to try is building a concatenated
+    index on all three columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 60 reads is better than 12,000\. One bit of clean-up, though. There is no reason
+    to have a BBOARD_BY_TOPIC index if we are going to keep this BBOARD_FOR_NEW_QUESTIONS
+    index, whose first column is TOPIC. The query optimizer can use BBOARD_FOR_NEW_QUESTIONS
+    even when the SQL only restricts based on the TOPIC column. The redundant index
+    won't cause any services to fail, but it will slow down inserts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We were so pleased with ourselves that we decided to drop an index on `bboard`
+    by the `refers_to` column, reasoning that nobody ever queries `refers_to` without
+    also querying on `topic`. Therefore they could just use the first two columns
+    in the `bboard_for_new_questions` index. Here''s a query looking for unanswered
+    questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Ouch! 497,938 physical reads. Let''s try it with the index in place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: This is still a fairly expensive query, but 200 times faster than before and
+    it executes in a fraction of a second. That's probably fast enough considering
+    that this is an infrequently requested page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tracing/Tuning Case 3: forcing Oracle to cache a full table scan'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You may have a Web site that is basically giving users access to a huge table.
+    For maximum flexibility, it might be the case that this table needs to be sequentially
+    scanned for every query. In general, Oracle won''t cache blocks retrieved during
+    a full table scan. The Oracle tuning guide helpfully suggests that you include
+    the following cache hints in your SQL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: You will find, however, that this doesn't work if your buffer cache (controlled
+    by db_block_buffers; see above) isn't large enough to contain the table. Oracle
+    is smart and ignores your hint. After you've reconfigured your Oracle installation
+    to have a larger buffer cache, you'll probably find that Oracle is *still* ignoring
+    your cache hint. That's because you also need to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: and then Oracle will work as advertised in the tuning guide. It makes sense
+    when you think about it because Oracle can't realistically start stuffing things
+    into the cache unless it knows roughly how large the table is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If it is still too slow
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![The Samaritans.  Dublin, Ireland.](../Images/c59cd0e592a3493354c3c40e9e0b4310.jpg)](/http://philip.greenspun.com/images/pcd1120/dublin-samaritans-18.tcl)
+    If your application is still too slow, you need to talk to the database administrator.
+    If you *are* the database administrator as well as the programmer, you need to
+    hire a database administrator ("dba").'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A professional dba is great at finding queries that are pigs and building indices
+    to make them faster. The dba might be able to suggest that you partion your tables
+    so that infrequently used data are kept on a separate disk drive. The dba can
+    make you extra tablespaces on separate physical disk drives. By moving partitions
+    and indices to these separate disk drives, the dba can speed up your application
+    by factors of 2 or 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A factor of 2 or 3? Sounds pretty good until you reflect on the fact that moving
+    information from disk into RAM would speed things up by a factor of 100,000\.
+    This isn''t really possible for database updates, which must be recorded in a
+    durable medium (exception: fancy EMC disk arrays, which contain write caches and
+    batteries to ensure durability of information in the write cache). However, it
+    is relatively easy for queries. As a programmer, you can add indices and supply
+    optimizer hints to increase the likelihood that your queries will be satisfied
+    from Oracle''s block cache. The dba can increase the amount of the server''s RAM
+    given over to Oracle. If that doesn''t work, the dba can go out and order more
+    RAM!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*In 1999, Oracle running on a typical ArsDigita server gets 1 GB of RAM.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Guy Harrison's [Oracle SQL High-Performance Tuning](http://www.amazon.com/exec/obidos/ASIN/0136142311/pgreenspun-20)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Oracle8 Server Tuning](http://www.oradoc.com/keyword/tuning)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: [data warehousing](data-warehousing.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)[Add a comment](/comments/add?page_id=3515)'
+  prefs: []
+  type: TYPE_NORMAL

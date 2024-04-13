@@ -1,0 +1,294 @@
+- en: Argus
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 20: Argus'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Atomic commit: two-phase commit'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: how to use two-phase commit for distributed transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Argus
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have a bunch of computers that do different things (not replicas). Like
+    two computers, one stores events for people in A-L, another for people in M-Z.
+    If you want to create an event for Alice and Mike you need to interact with both
+    servers and make sure that the event is either created on both or on neither.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenges are *crashes* and *network failures* which inject ambiguities
+    ( not responding cause of crash or network failure?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Ivy and TreadMarks if one of the machines crashed it had no way to recover.
+    We also saw MapReduce and Spark which had a story for crash recovery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Idea 1: tentative changes'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Idea 2: single machine/entity (transaction coordinator) decides'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'state: unknown, committed, aborted'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if any thinks "committed", then none think "aborted"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if any think "aborted", then none think "committed"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two-phase commit (2PC)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Used frequently in real distributed databases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`Prepare` asks "are you still alive and willing to commit this transaction?"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: servers may say no
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: servers may be unreachable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Termination protocol
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: maybe the TC has a timeout while it's waiting for the yes/no response to one
+    or more prepare messages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: at this point, it can abort the transaction, because no one has started a commit
+    (since the TC did not send it, since it was waiting on yes/no)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B times out while waiting for prepare message
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` B hasn''t replied to prepare `=>` TC hasn''t sent commit to the participants
+    `=>` TC can send abort'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B times out waiting for commit/abort after saying *no* to prepare
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` B can abort because it knows the TC will abort everyone'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B times out waiting for commit/abort after saying *yes* to prepare
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` B said yes to TC and TC could have received `yes` from everyone else (or
+    not) `=>` outcome can be either commit or abort `=>` B has to wait'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: there are some lucky cases in which `B` could decide to abort/commit if `A`
+    tells it via another channel
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does this waiting make 2PC impractical? People are split up?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about reboots? If one of the participants said yes to a prepare, it has
+    to remember that across reboots or crashes, so that it can be able to finish the
+    transaction (commit or abort).
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the calendar example, it would also need to remember the tentative schedule
+    in `tent[]`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'extra note: since in the diagram the TC did not wait for ACKs on commit/abort
+    the participants need to persist their locks around the transaction so that they
+    don''t do a subsequent transaction before this one is finished'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens if TC crashes in the middle of sending commits?
+  prefs: []
+  type: TYPE_NORMAL
+- en: it has to remember all committed/non-committed transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Resemblance to Paxos?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos is a way to build highly available systems by replication (all servers
+    have all data and are doing the same thing)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos system can proceed even if some of the servers are down
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2PC you cannot make progress even if just one server is down
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each server is doing a *different thing* (want every server to do its own part
+    in a transaction)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While 2PC helps a set of servers reach agreement, it it not fault tolerant or
+    available (it cannot proceed when servers are down)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You might think you can do the calendar scheduling with Paxos by having both
+    servers agree on the schedule op. However, while agreeing on the op will work,
+    committing the op will not. For instance, what if one server's user is busy during
+    the scheduled time? Then it cannot commit the op while the other one might be
+    able to. Paxos doesn't help solve that conflict.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Atomic distributed transactions: write your transaction code without thinking
+    about what other transactions could be going on'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bank example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is called *serializability*: The effect of running a bunch of transactions
+    is the same as if they were run in some sequential order (no interleaving allowed:
+    exec first half of T1, exec first half of T2, finish second half of T1, finish
+    T2).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to implement transactions is to use locks for each data record that
+    are acquired before a transaction begins operating on those records and holds
+    them until it commits or aborts. This is called **two-phase locking**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Deadlock can occur if T1 acquires x and then y while T2 acquires y and then
+    x. Database systems for instance have ways to deal with this::'
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeout on acquiring locks and retry
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only allow transactions to acquire locks in a certain order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perform deadlock detection if single-machine setup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Nobody ever likes to use 2PC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: because of the waiting/blocking issue when a server times out waiting for a
+    commit/abort after having said "no" to a prepare
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When participants acquire locks they are holding them across multiple RTTs in
+    the network because you have to wait for the commit message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Argus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: the cool thing is that it attempts to absorb as much of the nitty-gritty junk
+    of distributed systems programming inside the language
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the desire was to have a clean story for handling RPC failures
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Argus sets up a framework where RPC failures can be handled cleanly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: does all the bookkeeping required to rollback the transactions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Argus has to know about the data in order to be able to rollback
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it needs to create tentative updates and so on
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE

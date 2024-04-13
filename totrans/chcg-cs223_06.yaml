@@ -1,0 +1,366 @@
+- en: Buttons, Channels, and 2D Graphics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this tutorial, we will work through several more examples of FRP in Elm.
+    Our motivating application will be building an integer counter that can be updated
+    with buttons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will start with the application `State`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: To warm up the development process, we will first define `main` in terms of
+    a dummy constant signal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: And, to set up the basis for our GUI, we start with a simple rendering function
+    that writes the current value of the counter to the middle of the screen. We bind
+    some libraries to single letter names for brevity (e.g. `E` for [`Graphics.Element`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element),
+    `T` for [`Text`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Text),
+    and `C` for [`Graphics.Collage`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Collage)).
+    Notice how `E.container` is used to define a sized `Element` with content placed
+    in a particular `Position` within, and `E.flow` places a list of `Elements` next
+    to one another in a particular `Direction`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Underneath the counter display, we want to draw two buttons, one for incrementing
+    and one for clearing. The [`Graphics.Input`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Input)
+    library offers the following to build buttons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is a `Signal.Message`? This type describes a value that gets sent over
+    a `Channel` (also defined in [`Signal`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Signal)).
+    Okay, so what is a `Channel`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channels
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Channels provide a way to create "pipes" through which messages (of a specified
+    type) can be sent from one part of an Elm application to another. They are created
+    by the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: I like to think of channels as "dynamically generated signals." But why is there
+    a need for a separate mechanism?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the programming we have done so far, we start with the bunch of primitive
+    signals that Elm provides, and then we derive other signals in terms of them.
+    But these derived signals do not generate new kinds of events or messages. Instead,
+    an entire program can be thought of as propagating the updates to primitive signals.
+    This program structure is exhibited by the acylic nature of signal graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what if the programmer wants to define new signals? For example, say the
+    programmer wants to draw *n* buttons to the screen, each of which should have
+    its own events, such as `Mouse.clicks` only that it is "local" to the button rather
+    the entire window. Well, if the programmer knew exactly what the number *n* is,
+    and if Elm provided enough separate button signals (`Button1.clicks`, `Button2.clicks`,
+    `Button3.clicks`, etc.), then these primitive signals could be used. But what
+    if this number is large, and what if it's not known before running the program?
+    For this, we need a way to dynamically generate signals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channels are the solution that Elm provides. They are a separate mechanism than
+    signals, and they are impure. Every time the `channel` function is invoked, it
+    creates a new pipe in the world that can be used by application components to
+    communicate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gasp! We are already breaking outside of the purely functional model? Other,
+    more expressive formulations of FRP do not require a separate mechanism like this.
+    In these "higher-order" FRP systems, *signals of signals* can be used to encode
+    dynamically generated signals. But along with this expressiveness comes other
+    challenges, both in design and efficient implementation, that are the subject
+    of ongoing research.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast, Elm strikes a balance of "first-order" FRP that prohibits signals
+    of signals, and instead provides this separate channel mechanism for the common
+    case of dynamically generated buttons and HTML elements that need to respond to
+    typical browser events. Once a `Channel` has been created, it can then be converted
+    to a `Signal` using the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Part of the novelty in Elm is that it provides an increasingly practical implementation
+    of this language design choice. Time will tell whether the balance it strikes
+    is a good fit!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back to Buttons
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now, going back to the `button` function, we need to define `Signal.Message`s
+    (using the [`Signal.send`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Signal)
+    function) that will be sent when each button is clicked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that this function defines a channel (of type `Channel a`) and the message
+    (of type `a`) to send upon some request, but this function itself does not "send"
+    the message. Instead, the library functions in [`Graphics.Input`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Input)
+    (such as `button`) and [`Graphics.Input.Field`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Input-Field)
+    that take `Signal.Message`s as arguments are the ones that initiate message sends
+    upon certain browser events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall that our `upstate` function above ignored its first argument and simply
+    incremented the `State`. So, let's start by defining a `Channel` on which to send
+    dummy values, each of which will trigger an update.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we'll add two buttons to our view that send the dummy message `()` over
+    the channel `ch`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we will `subscribe` to `ch` in `main` in order to `upstate` every time
+    a message is sent (that is, every time one of the two buttons is clicked).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a useful checkpoint because we have two "working" buttons. But we clearly
+    need to restructure things so that the second button resets the counter rather
+    than increments it. To achieve this, we need to distinguish between the two different
+    kinds of messages that our buttons may send and define our `upstate` function
+    to update the `State` accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, we need to update the messages that are sent by each button. While we're
+    at it, let's also add some space in between the counter and buttons (using [`List.intersperse`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/List)
+    and [`E.spacer`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we have a working counter! Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/Buttons0.elm)
+    and the [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/Buttons0.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Styling Buttons
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Having gotten the basic functionality of our counter working, let's now make
+    it look better. The function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: in [`Graphics.Input`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Input)
+    takes three `Elements` to draw depending on whether the button is up, hovered
+    over, or down, respectively. We can make use of this to use different colors for
+    each.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Calling `myButton` instead of `button` in `view` then renders our slightly fancier
+    buttons. This is cool, but the default styles are still not very pretty. It would
+    be nice to have borders around the buttons and also change the font style to make
+    it more readable. Looking through the type signatures in [`Graphics.Input`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Input),
+    [`Graphics.Element`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element)
+    and [`Text`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Text), there
+    do not seem to be library functions that will do exactly what we want. So, we'll
+    have to work with a lower-level "unstructured" graphics library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unstructured 2D Graphics
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`Graphics.Element` has many useful layout functions, but if we want to do more
+    freeform drawing, we need to use the [`Graphics.Collage`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Collage)
+    library. The working type is a `Form` and there are many ways to create them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions like `circle` and `rect` create `Shape` values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: How do we convert `Shape`s to `Form`s? Searching the documentation for the type
+    signature "`Shape -> Form`" reveals several functions, such as `filled` and `outlined`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once we are done building some `Form`s, how do we convert them to `Element`s
+    so that they can be rendered? Ah, searching for the type signature "`Form -> Element`"
+    reveals the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And what if we have an `Element` that we want to mix into an unstructured graphics
+    canvas. Searching for "`Element -> Form`" reveals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's now put some of these tools to use in order to style our counter buttons.
+    First, let's use the [`Text`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Text)
+    library to format strings more nicely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, let's define a custom line style for drawing borders rather than the default
+    one provided called `defaultLineStyle`. These values are described by the [record
+    type](http://elm-lang.org/learn/Syntax.elm#records) `LineStyle` that contains
+    several parameters. We only want to customize a subset of these parameters, so
+    we can use record update syntax to create a new record that is just like `defaultLineStyle`
+    except for a couple changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that here we use the let binding `ls` as a workaround, because right now
+    the parser allows only a syntactic variable (without a module qualifier, such
+    as "`C.`" here) to be used for the record being copied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will now draw custom buttons, but we will define each of the three `Elements`
+    using collages rather than ordinary buttons like before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `myButton` function draws a button in three steps: first, the solid color,
+    then the border, and then the button label. The list of `Form`s passed to `collage`
+    is interpreted to be in increasing z-order, meaning each successive element is
+    rendered on top of the previous. As a result, we must put the label after the
+    solid rectangle so that it does not get hidden.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a final tweak, let's change the style of the counter display to match our
+    buttons. So that the display is centered, we create a container of the same width
+    as the buttons and center the text within it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[![](../Images/ef4e5a5828c9d15fe7f05bfd1d0ae6f4.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/Buttons1.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our counter is now much more stylish than before! Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/Buttons1.elm)
+    and the [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/Buttons1.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Pure Buttons"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Some of you may not have been able to fully enjoy our button example, due to
+    the discussion of channels and impurity earlier. If you have been wondering to
+    yourself whether there is some other way, I applaud you for your purity when it
+    comes to purity. There is an alternative to using channels to define buttons in
+    Elm, but it comes with other major downsides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is to use only primitive mouse signals, and keep track of where buttons
+    are in the window manually in our own code. In other words, we can roll our own
+    little event system and renderer. This approach will throw out many of the benefits
+    provided by the abstractions in [`Graphics.Element`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element).
+    But, we could follow this approach if we are really determined. We will work through
+    part of what it would is required to implement the counter application using "pure"
+    buttons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever the mouse is clicked, we need to determine whether its position is
+    within a "button" or not. So we will have to keep track of the button's boundaries
+    (in pixels). In addition to the counter, let's display the position of the last
+    click for development purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The positions reported by `Mouse.positions` treat `(0,0)` as the upper-left
+    corner of the window, so we use negative x- and y-values to denote the initial
+    state when there have been no clicks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For simplicity, let's position the counter display and buttons in the upper-left
+    corner one on top of the other with no space in between. This will simplify our
+    pixel calculuations. After defining the width and height of our display and buttons,
+    we can then update the counter in `State` only if the click appears within the
+    boundaries of a "button."
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then set up the controller to trigger updates based on changes in the most
+    recent mouse click position.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, the view. When using the [`Graphics.Collage`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Collage)
+    library, it is important to realize that the coordinate system for `collage` is
+    centered in the middle of the collage, and `move` (supplied with positive arguments)
+    translates `Shapes` in a collage up and to the right. (You probably discovered
+    this on your own while working through Homework 1.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a really quick-and-dirty rendering of the counter and buttons that takes
+    these two factors into account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/PureButtons.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Buttons/PureButtons.html).
+    For fun, you may want to continue down this path and implement the entire application
+    from before in the `Channel`-less style. If you do, take a moment to reflect on
+    whether your views have become any less pure.
+  prefs: []
+  type: TYPE_NORMAL

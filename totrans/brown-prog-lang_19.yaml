@@ -1,0 +1,1443 @@
+- en: 19Graphs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [19.1 Understanding Graphs](#%28part._.Understanding_.Graphs%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.2 Representations](#%28part._.Representations%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.2.1 Links by Name](#%28part._string-keys%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.2.2 Links by Indices](#%28part._.Links_by_.Indices%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.2.3 A List of Edges](#%28part._.A_.List_of_.Edges%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.2.4 Abstracting Representations](#%28part._.Abstracting_.Representations%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.3 Measuring Complexity for Graphs](#%28part._complexity-of-graphs%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.4 Reachability](#%28part._.Reachability%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.4.1 Simple Recursion](#%28part._.Simple_.Recursion%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.4.2 Cleaning up the Loop](#%28part._.Cleaning_up_the_.Loop%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.4.3 Traversal with Memory](#%28part._.Traversal_with_.Memory%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.4.4 A Better Interface](#%28part._.A_.Better_.Interface%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.5 Depth- and Breadth-First Traversals](#%28part._dfs-bfs%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.6 Graphs With Weighted Edges](#%28part._.Graphs_.With_.Weighted_.Edges%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.7 Shortest (or Lightest) Paths](#%28part._.Shortest__or_.Lightest__.Paths%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [19.8 Moravian Spanning Trees](#%28part._.Moravian_.Spanning_.Trees%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.8.1 The Problem](#%28part._.The_.Problem%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.8.2 A Greedy Solution](#%28part._.A_.Greedy_.Solution%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.8.3 Another Greedy Solution](#%28part._.Another_.Greedy_.Solution%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.8.4 A Third Solution](#%28part._.A_.Third_.Solution%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [19.8.5 Checking Component Connectedness](#%28part._union-find-functional%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'In [From Acyclicity to Cycles](Sharing_and_Equality.html#%28part._acyc-to-cyc%29)
+    we introduced a special kind of sharing: when the data become cyclic, i.e., there
+    exist values such that traversing other reachable values from them eventually
+    gets you back to the value at which you began. Data that have this characteristic
+    are called graphs.Technically, a cycle is not necessary to be a graph; a tree
+    or a DAG is also regarded as a (degenerate) graph. In this section, however, we
+    are interested in graphs that have the potential for cycles.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lots of very important data are graphs. For instance, the people and connections
+    in social media form a graph: the people are nodes or vertices and the connections
+    (such as friendships) are links or edges. They form a graph because for many people,
+    if you follow their friends and then the friends of their friends, you will eventually
+    get back to the person you started with. (Most simply, this happens when two people
+    are each others’ friends.) The Web, similarly is a graph: the nodes are pages
+    and the edges are links between pages. The Internet is a graph: the nodes are
+    machines and the edges are links between machines. A transportation network is
+    a graph: e.g., cities are nodes and the edges are transportation links between
+    them. And so on. Therefore, it is essential to understand graphs to represent
+    and process a great deal of interesting real-world data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Graphs are important and interesting for not only practical but also principled
+    reasons. The property that a traversal can end up where it began means that traditional
+    methods of processing will no longer work: if it blindly processes every node
+    it visits, it could end up in an infinite loop. Therefore, we need better structural
+    recipes for our programs. In addition, graphs have a very rich structure, which
+    lends itself to several interesting computations over them. We will study both
+    these aspects of graphs below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.1Understanding Graphs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider again the binary trees we saw earlier [[Re-Examining Equality](Sharing_and_Equality.html#%28part._identical-eq%29)].
+    Let’s now try to distort the definition of a “tree” by creating ones with cycles,
+    i.e., trees with nodes that point back to themselves (in the sense of identical).
+    As we saw earlier [[From Acyclicity to Cycles](Sharing_and_Equality.html#%28part._acyc-to-cyc%29)],
+    it is not completely straightforward to create such a structure, but what we saw
+    earlier [[Streams From Functions](func-as-data.html#%28part._streams-from-funs%29)]
+    can help us here, by letting us suspend the evaluation of the cyclic link. That
+    is, we have to not only use rec, we must also use a function to delay evaluation.
+    In turn, we have to update the annotations on the fields. Since these are not
+    going to be “trees” any more, we’ll use a name that is suggestive but not outright
+    incorrect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s try to construct some cyclic values. Here are a few examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s try to compute the size of a BinT. Here’s the obvious program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: (We’ll see why we call it sizeinf in a moment.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What happens when we call sizeinf(tr)?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'It goes into an infinite loop: hence the inf in its name.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two very different meanings for “size”. One is, “How many times can
+    we traverse an edge?” The other is, “How many distinct nodes were constructed
+    as part of the data structure?” With trees, by definition, these two are the same.
+    With a DAG the former exceeds the latter but only by a finite amount. With a general
+    graph, the former can exceed the latter by an infinite amount. In the case of
+    a datum like tr, we can in fact traverse edges an infinite number of times. But
+    the total number of constructed nodes is only one! Let’s write this as test cases
+    in terms of a size function, to be defined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It’s clear that we need to somehow remember what nodes we have visited previously:
+    that is, we need a computation with “memory”. In principle this is easy: we just
+    create an extra data structure that checks whether a node has already been counted.
+    As long as we update this data structure correctly, we should be all set. Here’s
+    an implementation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The extra parameter, seen, is called an accumulator, because it “accumulates”
+    the list of seen nodes.Note that this could just as well be a set; it doesn’t
+    have to be a list. The support function it needs checks whether a given node has
+    already been seen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: How does this do? Well, sizect(tr) is indeed 1, but sizect(t1) is 3 and sizect(t2)
+    is 7!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Explain why these answers came out as they did.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The fundamental problem is that we’re not doing a very good job of remembering!
+    Look at this pair of lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The nodes seen while traversing the left branch are effectively forgotten,
+    because the only nodes we remember when traversing the right branch are those
+    in ns: namely, the current node and those visited “higher up”. As a result, any
+    nodes that “cross sides” are counted twice.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The remedy for this, therefore, is to remember every node we visit. Then, when
+    we have no more nodes to process, instead of returning only the size, we should
+    return all the nodes visited until now. This ensures that nodes that have multiple
+    paths to them are visited on only one path, not more than once. The logic for
+    this is to return two values from each traversal—<wbr>the size and all the visited
+    nodes—<wbr>and not just one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sure enough, this function satisfies the above tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.2Representations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The representation we’ve seen above for graphs is certainly a start towards
+    creating cyclic data, but it’s not very elegant. It’s both error-prone and inelegant
+    to have to write lam everywhere, and remember to apply functions to () to obtain
+    the actual values. Therefore, here we explore other representations of graphs
+    that are more conventional and also much simpler to manipulate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are numerous ways to represent graphs, and the choice of representation
+    depends on several factors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The structure of the graph, and in particular, its density. We will discuss
+    this further later ([Measuring Complexity for Graphs](#%28part._complexity-of-graphs%29)).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The representation in which the data are provided by external sources. Sometimes
+    it may be easier to simply adapt to their representation; in particular, in some
+    cases there may not even be a choice.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The features provided by the programming language, which make some representations
+    much harder to use than others.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Previously [(part "sets")], we have explored the idea of having many different
+    representations for one datatype. As we will see, this is very true of graphs
+    as well. Therefore, it would be best if we could arrive at a common interface
+    to process graphs, so that all later programs can be written in terms of this
+    interface, without overly depending on the underlying representation.In terms
+    of representations, there are three main things we need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A way to construct graphs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A way to identify (i.e., tell apart) nodes or vertices in a graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Given a way to identify nodes, a way to get that node’s neighbors in the graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Any interface that satisfies these properties will suffice. For simplicity,
+    we will focus on the second and third of these and not abstract over the process
+    of constructing a graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our running example will be a graph whose nodes are cities in the United States
+    and edges are known direct flight connections between them, reminiscent of the
+    route maps found in the back of airlines’ in-flight magazines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.2.1Links by Name
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here’s our first representation. We will assume that every node has a unique
+    name (such a name, when used to look up information in a repository of data, is
+    sometimes called a key). A node is then a key, some information about that node,
+    and a list of keys that refer to other nodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(Here we’re assuming our keys are strings.)Here’s a concrete instance of such
+    a graph:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Given a key, here’s how we look up its neighbor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Convert the comment in the function into an invariant about the datum. Express
+    this invariant as a refinement and add it to the declaration of graphs.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'With this support, we can look up neighbors easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When it comes to testing, some tests are easy to write. Others, however, might
+    require describing entire nodes, which can be unwieldy, so for the purpose of
+    checking our implementation it suffices to examine just a part of the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 19.2.2Links by Indices
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In some languages, it is common to use numbers as names. This is especially
+    useful when numbers can be used to get access to an element in a constant amount
+    of time (in return for having a bound on the number of elements that can be accessed).
+    Here, we use a list—<wbr>which does not provide constant-time access to arbitrary
+    elements—<wbr>to illustrate this concept. Most of this will look very similar
+    to what we had before; we’ll comment on a key difference at the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the datatype:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Our graph now looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'where we’re assuming indices begin at 0. To find a node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can then find neighbors almost as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, our tests also look similar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Something deeper is going on here. The keyed nodes have intrinsic keys: the
+    key is part of the datum itself. Thus, given just a node, we can determine its
+    key. In contrast, the indexed nodes represent extrinsic keys: the keys are determined
+    outside the datum, and in particular by the position in some other data structure.
+    Given a node and not the entire graph, we cannot know for what its key is. Even
+    given the entire graph, we can only determine its key by using identical, which
+    is a rather unsatisfactory approach to recovering fundamental information. This
+    highlights a weakness of using extrinsically keyed representations of information.
+    (In return, extrinsically keyed representations are easier to reassemble into
+    new collections of data, because there is no danger of keys clashing: there are
+    no intrinsic keys to clash.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.2.3A List of Edges
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The representations we have seen until now have given priority to nodes, making
+    edges simply a part of the information in a node. We could, instead, use a representation
+    that makes edges primary, and nodes simply be the entities that lie at their ends:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, our flight network becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To obtain the set of neighbors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And to be sure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, this representation makes it difficult to store complex information
+    about a node without replicating it. Because nodes usually have rich information
+    while the information about edges tends to be weaker, we often prefer node-centric
+    representations. Of course, an alternative is to think of the node names as keys
+    into some other data structure from which we can retrieve rich information about
+    nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.2.4Abstracting Representations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We would like a general representation that lets us abstract over the specific
+    implementations. We will assume that broadly we have available a notion of Node
+    that has content, a notion of Keys (whether or not intrinsic), and a way to obtain
+    the neighbors—<wbr>a list of keys—<wbr>given a key and a graph. This is sufficient
+    for what follows. However, we still need to choose concrete keys to write examples
+    and tests. For simplicity, we’ll use string keys [[Links by Name](#%28part._string-keys%29)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.3Measuring Complexity for Graphs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we begin to define algorithms over graphs, we should consider how to
+    measure the size of a graph. A graph has two components: its nodes and its edges.
+    Some algorithms are going to focus on nodes (e.g., visiting each of them), while
+    others will focus on edges, and some will care about both. So which do we use
+    as the basis for counting operations: nodes or edges?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It would help if we can reduce these two measures to one. To see whether that’s
+    possible, suppose a graph has \(k\) nodes. Then its number of edges has a wide
+    range:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No two nodes are connected. Then there are no edges at all.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Every two nodes is connected. Then there are essentially as many edges as the
+    number of pairs of nodes: approximately \(k^2\).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In general, we call a graph with significantly fewer edges than nodes a sparse
+    graph, while one with significantly more edges than nodes is called dense.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of nodes can thus be significantly less or even significantly more
+    than the number of edges. Were this difference a matter of constants, we could
+    have ignored it; but it’s not. For sparse graphs, the number of nodes dominates
+    the number of edges by a factor of \(k\) (or even infinity, if there truly are
+    zero edges, but such graphs are usually not very interesting or difficult to process);
+    for extremely dense graphs, too, the ratio is one of \(k\), but in the other direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, when we want to speak of the complexity of algorithms over graphs,
+    we have to consider the sizes of both the number of nodes and edges. In a connected
+    graphA graph is connected if, from every node, we can traverse edges to get to
+    every other node., however, there must be at least as many edges as nodes, which
+    means the number of edges dominates the number of nodes. Since we are usually
+    processing connected graphs, or connected parts of graphs one at a time, we can
+    bound the number of nodes by the number of edges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.4Reachability
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Many uses of graphs need to address reachability: whether we can, using edges
+    in the graph, get from one node to another. For instance, a social network might
+    suggest as contacts all those who are reachable from existing contacts. On the
+    Internet, traffic engineers care about whether packets can get from one machine
+    to another. On the Web, we care about whether all public pages on a site are reachable
+    from the home page. We will study how to compute reachability using our travel
+    graph as a running example.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.4.1Simple Recursion
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'At its simplest, reachability is easy. We want to know whether there exists
+    a pathA path is a sequence of zero or more linked edges. between a pair of nodes,
+    a source and a destination. (A more sophisticated version of reachability might
+    compute the actual path, but we’ll ignore this for now.) There are two possibilities:
+    the source and destintion nodes are the same, or they’re not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If they are the same, then clearly reachability is trivially satisfied.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If they are not, we have to iterate through the neighbors of the source node
+    and ask whether the destination is reachable from each of those neighbors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This translates into the following function:<graph-reach-1-main> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun reach-1(src :: Key, dst :: Key, g :: Graph) -> Boolean: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if src == dst: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<graph-reach-1-loop>](#%28elem._graph-reach-1-loop%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       loop(neighbors(src, g)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: where the loop through the neighbors of src is:<graph-reach-1-loop> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun loop(ns): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (List) ns: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; empty => false |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; link(f, r) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         if reach-1(f, dst, g): true else: loop(r) end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: We can test this as follows:<graph-reach-tests> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   check: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach = reach-1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "nwk", kn-cities) is true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "chi", kn-cities) is true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "wor", kn-cities) is false |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "hou", kn-cities) is true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "den", kn-cities) is true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     reach("nwk", "saf", kn-cities) is true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: Unfortunately, we don’t find out about how these tests fare, because some of
+    them don’t complete at all. That’s because we have an infinite loop, due to the
+    cyclic nature of graphs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Which of the above examples leads to a cycle? Why?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 19.4.2Cleaning up the Loop
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Before we continue, let’s try to improve the expression of the loop. While the
+    nested function above is a perfectly reasonable definition, we can use Pyret’s
+    for to improve its readability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The essence of the above loop is to iterate over a list of boolean values;
+    if one of them is true, the entire loop evaluates to true; if they are all false,
+    then we haven’t found a path to the destination node, so the loop evaluates to
+    false. Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this, we can replace the loop definition and use with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 19.4.3Traversal with Memory
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Because we have cyclic data, we have to remember what nodes we’ve already visited
+    and avoid traversing them again. Then, every time we begin traversing a new node,
+    we add it to the set of nodes we’ve already started to visit so that. If we return
+    to that node, because we can assume the graph has not changed in the meanwhile,
+    we know that additional traversals from that node won’t make any difference to
+    the outcome.This property is known as [☛ idempotence](glossary.html#%28elem._glossary-idempotence%29).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We therefore define a second attempt at reachability that take an extra argument:
+    the set of nodes we have begun visiting (where the set is represented as a graph).
+    The key difference from [<graph-reach-1-main>](#%28elem._graph-reach-1-main%29)
+    is, before we begin to traverse edges, we should check whether we’ve begun processing
+    the node or not. This results in the following definition:<graph-reach-2> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun reach-2(src :: Key, dst :: Key, g :: Graph, visited :: List<Key>) ->
+    Boolean: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if visited.member(src): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       false |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else if src == dst: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       true |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       new-visited = link(src, visited) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       for ormap(n from neighbors(src, g)): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         reach-2(n, dst, g, new-visited) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'In particular, note the extra new conditional: if the reachability check has
+    already visited this node before, there is no point traversing further from here,
+    so it returns false. (There may still be other parts of the graph to explore,
+    which other recursive calls will do.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Does it matter if the first two conditions were swapped, i.e., the beginning
+    of reach-2 began with
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '? Explain concretely with examples.'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We repeatedly talk about remembering the nodes that we have begun to visit,
+    not the ones we’ve finished visiting. Does this distinction matter? How?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 19.4.4A Better Interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As the process of testing reach-2 shows, we may have a better implementation,
+    but we’ve changed the function’s interface; now it has a needless extra argument,
+    which is not only a nuisance but might also result in errors if we accidentally
+    misuse it. Therefore, we should clean up our definition by moving the core code
+    to an internal function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have now restored the original interface while correctly implementing reachability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Does this really gives us a correct implementation? In particular, does this
+    address the problem that the size function above addressed? Create a test case
+    that demonstrates the problem, and then fix it.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 19.5Depth- and Breadth-First Traversals
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is conventional for computer science texts to call these depth- and breadth-first
+    search. However, searching is just a specific purpose; traversal is a general
+    task that can be used for many purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reachability algorithm we have seen above has a special property. At every
+    node it visits, there is usually a set of adjacent nodes at which it can continue
+    the traversal. It has at least two choices: it can either visit each immediate
+    neighbor first, then visit all of the neighbors’ neighbors; or it can choose a
+    neighbor, recur, and visit the next immediate neighbor only after that visit is
+    done. The former is known as breadth-first traversal, while the latter is depth-first
+    traversal.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithm we have designed uses a depth-first strategy: inside [<graph-reach-1-loop>](#%28elem._graph-reach-1-loop%29),
+    we recur on the first element of the list of neighbors before we visit the second
+    neighbor, and so on. The alternative would be to have a data structure into which
+    we insert all the neighbors, then pull out an element at a time such that we first
+    visit all the neighbors before their neighbors, and so on. This naturally corresponds
+    to a queue ([An Example: Queues from Lists](amortized-analysis.html#%28part._queue-data-structure%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using a queue, implement breadth-first traversal.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'If we correctly check to ensure we don’t re-visit nodes, then both breadth-
+    and depth-first traversal will properly visit the entire reachable graph without
+    repetition (and hence not get into an infinite loop). Each one traverses from
+    a node only once, from which it considers every single edge. Thus, if a graph
+    has \(N\) nodes and \(E\) edges, then a lower-bound on the complexity of traversal
+    is \(O([N, E \rightarrow N + E])\). We must also consider the cost of checking
+    whether we have already visited a node before (which is a set membership problem,
+    which we address elsewhere: (part "sets")). Finally, we have to consider the cost
+    of maintaining the data structure that keeps track of our traversal. In the case
+    of depth-first traversal, recursion—<wbr>which uses the machine’s stack—<wbr>does
+    it automatically at constant overhead. In the case of breadth-first traversal,
+    the program must manage the queue, which can add more than constant overhead.In
+    practice, too, the stack will usually perform much better than a queue, because
+    it is supported by machine hardware.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This would suggest that depth-first traversal is always better than breadth-first
+    traversal. However, breadth-first traversal has one very important and valuable
+    property. Starting from a node \(N\), when it visits a node \(P\), count the number
+    of edges taken to get to \(P\). Breadth-first traversal guarantees that there
+    cannot have been a shorter path to \(P\): that is, it finds a shortest path to
+    \(P\).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why “a” rather than “the” shortest path?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Prove that breadth-first traversal finds a shortest path.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 19.6Graphs With Weighted Edges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider a transportation graph: we are usually interested not only in whether
+    we can get from one place to another, but also in what it “costs” (where we may
+    have many different cost measures: money, distance, time, units of carbon dioxide,
+    etc.). On the Internet, we might care about the [☛ latency](glossary.html#%28elem._glossary-latency%29)
+    or [☛ bandwidth](glossary.html#%28elem._glossary-bandwidth%29) over a link. Even
+    in a social network, we might like to describe the degree of closeness of a friend.
+    In short, in many graphs we are interested not only in the direction of an edge
+    but also in some abstract numeric measure, which we call its weight.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the rest of this study, we will assume that our graph edges have weights.
+    This does not invalidate what we’ve studied so far: if a node is reachable in
+    an unweighted graph, it remains reachable in a weighted one. But the operations
+    we are going to study below only make sense in a weighted graph.We can, however,
+    always treat an unweighted graph as a weighted one by giving every edge the same,
+    constant, positive weight (say one).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When treating an unweighted graph as a weighted one, why do we care that every
+    edge be given a positive weight?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Revise the graph data definitions to account for edge weights.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Weights are not the only kind of data we might record about edges. For instance,
+    if the nodes in a graph represent people, the edges might be labeled with their
+    relationship (“mother”, “friend”, etc.). What other kinds of data can you imagine
+    recording for edges?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 19.7Shortest (or Lightest) Paths
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Imagine planning a trip: it’s natural that you might want to get to your destination
+    in the least time, or for the least money, or some other criterion that involves
+    minimizing the sum of edge weights. This is known as computing the shortest path.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We should immediately clarify an unfortunate terminological confusion. What
+    we really want to compute is the lightest path—<wbr>the one of least weight. Unfortunately,
+    computer science terminology has settled on the terminology we use here; just
+    be sure to not take it literally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct a graph and select a pair of nodes in it such that the shortest path
+    from one to the other is not the lightest one, and vice versa.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We have already seen ([Depth- and Breadth-First Traversals](#%28part._dfs-bfs%29))
+    that breadth-first search constructs shortest paths in unweighted graphs. These
+    correspond to lightest paths when there are no weights (or, equivalently, all
+    weights are identical and positive). Now we have to generalize this to the case
+    where the edges have weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will proceed inductively, gradually defining a function seemingly of this
+    type
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'that reflects the weight of the lightest path from the source node to that
+    one. But let’s think about this annotation: since we’re building this up node-by-node,
+    initially most nodes have no weight to report; and even at the end, a node that
+    is unreachable from the source will have no weight for a lightest (or indeed,
+    any) path. Rather than make up a number that pretends to reflect this situation,
+    we will instead use an option type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: When there is some value it will be the weight; otherwise the weight will be
+    none.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s think about this inductively. What do we know initially? Well, certainly
+    that the source node is at a distance of zero from itself (that must be the lightest
+    path, because we can’t get any lighter). This gives us a (trivial) set of nodes
+    for which we already know the lightest weight. Our goal is to grow this set of
+    nodes—<wbr>modestly, by one, on each iteration—<wbr>until we either find the destination,
+    or we have no more nodes to add (in which case our desination is not reachable
+    from the source).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inductively, at each step we have the set of all nodes for which we know the
+    lightest path (initially this is just the source node, but it does mean this set
+    is never empty, which will matter in what we say next). Now consider all the edges
+    adjacent to this set of nodes that lead to nodes for which we don’t already know
+    the lightest path. Choose a node, \(q\), that minimizes the total weight of the
+    path to it. We claim that this will in fact be the lightest path to that node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this claim is true, then we are done. That’s because we would now add \(q\)
+    to the set of nodes whose lightest weights we now know, and repeat the process
+    of finding lightest outgoing edges from there. This process has thus added one
+    more node. At some point we will find that there are no edges that lead outside
+    the known set, at which point we can terminate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It stands to reason that terminating at this point is safe: it corresponds
+    to having computed the reachable set. The only thing left is to demonstrate that
+    this greedy algorithm yields a lightest path to each node.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will prove this by contradiction. Suppose we have the path \(s \rightarrow
+    d\) from source \(s\) to node \(d\), as found by the algorithm above, but assume
+    also that we have a different path that is actually lighter. At every node, when
+    we added a node along the \(s \rightarrow d\) path, the algorithm would have added
+    a lighter path if it existed. The fact that it did not falsifies our claim that
+    a lighter path exists (there could be a different path of the same weight; this
+    would be permitted by the algorithm, but it also doesn’t contradict our claim).
+    Therefore the algorithm does indeed find the lightest path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What remains is to determine a data structure that enables this algorithm.
+    At every node, we want to know the least weight from the set of nodes for which
+    we know the least weight to all their neighbors. We could achieve this by sorting,
+    but this is overkill: we don’t actually need a total ordering on all these weights,
+    only the lightest one. A heap [REF] gives us this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What if we allowed edges of weight zero? What would change in the above algorithm?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What if we allowed edges of negative weight? What would change in the above
+    algorithm?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For your reference, this algorithm is known as Dijkstra’s Algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8Moravian Spanning Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At the turn of the milennium, the US National Academy of Engineering surveyed
+    its members to determine the “Greatest Engineering Achievements of the 20th Century”.
+    The list contained the usual suspects: electronics, computers, the Internet, and
+    so on. But a perhaps surprising idea topped the list: (rural) electrification.Read
+    more about it [on their site](http://www.greatachievements.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8.1The Problem
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To understand the history of national electrical grids, it helps to go back
+    to [Moravia](http://en.wikipedia.org/wiki/Moravia) in the 1920s. Like many parts
+    of the world, it was beginning to realize the benefits of electricity and intended
+    to spread it around the region. A Moravian academia named Otakar Borůvka heard
+    about the problem, and in a remarkable effort, described the problem abstractly,
+    so that it could be understood without reference to Moravia or electrical networks.
+    He modeled it as a problem about graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Borůvka observed that at least initially, any solution to the problem of creating
+    a network must have the following characteristics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The electrical network must reach all the towns intended to be covered by it.
+    In graph terms, the solution must be spanning, meaning it must visit every node
+    in the graph.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Redundancy is a valuable property in any network: that way, if one set of links
+    goes down, there might be another way to get a payload to its destination. When
+    starting out, however, redundancy may be too expensive, especially if it comes
+    at the cost of not giving someone a payload at all. Thus, the initial solution
+    was best set up without loops or even redundant paths. In graph terms, the solution
+    had to be a tree.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the goal was to solve this problem for the least cost possible. In
+    graph terms, the graph would be weighted, and the solution had to be a minimum.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thus Borůvka defined the Moravian Spanning Tree (MST) problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8.2A Greedy Solution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Borůvka had published his problem, and another Czech mathematician, [Vojtěch
+    Jarník](http://en.wikipedia.org/wiki/Vojt%C4%9Bch_Jarn%C3%ADk), came across it.
+    Jarník came up with a solution that should sound familiar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Begin with a solution consisting of a single node, chosen arbitrarily. For the
+    graph consisting of this one node, this solution is clearly a minimum, spanning,
+    and a tree.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of all the edges incident on nodes in the solution that connect to a node not
+    already in the solution, pick the edge with the least weight.Note that we consider
+    only the incident edges, not their weight added to the weight of the node to which
+    they are incident.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add this edge to the solution. The claim is that for the new solution will be
+    a tree (by construction), spanning (also by construction), and a minimum. The
+    minimality follows by an argument similar to that used for Dijkstra’s Algorithm.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Jarník had the misfortune of publishing this work in Czech in 1930, and it went
+    largely ignored. It was rediscovered by others, most notably by R.C. Prim in 1957,
+    and is now generally known as Prim’s Algorithm, though calling it Jarník’s Algorithm
+    would attribute credit in the right place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing this algorithm is pretty easy. At each point, we need to know the
+    lightest edge incident on the current solution tree. Finding the lightest edge
+    takes time linear in the number of these edges, but the very lightest one may
+    create a cycle. We therefore need to efficiently check for whether adding an edge
+    would create a cycle, a problem we will return to multiple times ([Checking Component
+    Connectedness](#%28part._union-find-functional%29)). Assuming we can do that effectively,
+    we then want to add the lightest edge and iterate. Even given an efficient solution
+    for checking cyclicity, this would seem to require an operation linear in the
+    number of edges for each node. With better representations we can improve on this
+    complexity, but let’s look at other ideas first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8.3Another Greedy Solution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Recall that Jarník presented his algorithm in 1930, when computers didn’t exist,
+    and Prim his in 1957, when they were very much in their infancy. Programming computers
+    to track heaps was a non-trivial problem, and many algorithms were implemented
+    by hand, where keeping track of a complex data structure without making errors
+    was harder still. There was need for a solution that was required less manual
+    bookkeeping (literally speaking).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 1956, [Joseph Kruskal](http://en.wikipedia.org/wiki/Joseph_Kruskal) presented
+    such a solution. His idea was elegantly simple. The Jarník algorithm suffers from
+    the problem that each time the tree grows, we have to revise the content of the
+    heap, which is already a messy structure to track. Kruskal noted the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To obtain a minimum solution, surely we want to include one of the edges of
+    least weight in the graph. Because if not, we can take an otherwise minimal solution,
+    add this edge, and remove one other edge; the graph would still be just as connected,
+    but the overall weight would be no more and, if the removed edge were heavier,
+    would be less.Note the careful wording: there may be many edges of the same least
+    weight, so adding one of them may remove another, and therefore not produce a
+    lighter tree; but the key point is that it certainly will not produce a heavier
+    one. By the same argument we can add the next lightest edge, and the next lightest,
+    and so on. The only time we cannot add the next lightest edge is when it would
+    create a cycle (that problem again!).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, Kruskal’s algorithm is utterly straightforward. We first sort all
+    the edges, ordered by ascending weight. We then take each edge in ascending weight
+    order and add it to the solution provided it will not create a cycle. When we
+    have thus processed all the edges, we will have a solution that is a tree (by
+    construction), spanning (because every connected vertex must be the endpoint of
+    some edge), and of minimum weight (by the argument above). The complexity is that
+    of sorting (which is \([e \rightarrow e \log e]\) where \(e\) is the size of the
+    edge set. We then iterate over each element in \(e\), which takes time linear
+    in the size of that set—<wbr>modulo the time to check for cycles. This algorithm
+    is also easy to implement on paper, because we sort all the edges once, then keep
+    checking them off in order, crossing out the ones that create cycles—<wbr>with
+    no dynamic updating of the list needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8.4A Third Solution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Both the Jarník and Kruskal solutions have one flaw: they require a centralized
+    data structure (the priority heap, or the sorted list) to incrementally build
+    the solution. As parallel computers became available, and graph problems grew
+    large, computer scientists looked for solutions that could be implemented more
+    efficiently in parallel—<wbr>which typically meant avoiding any centralized points
+    of synchronization, such as these centralized data structures.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 1965, M. Sollin constructed an algorithm that met these needs beautifully.
+    In this algorithm, instead of constructing a single solution, we grow multiple
+    solution components (potentially in parallel if we so wish). Each node starts
+    out as a solution component (as it was at the first step of Jarník’s Algorithm).
+    Each node considers the edges incident to it, and picks the lightest one that
+    connects to a different component (that problem again!). If such an edge can be
+    found, the edge becomes part of the solution, and the two components combine to
+    become a single component. The entire process repeats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because every node begins as part of the solution, this algorithm naturally
+    spans. Because it checks for cycles and avoids them, it naturally forms a tree.Note
+    that avoiding cycles yields a DAG and is not automatically guaranteed to yield
+    a tree. We have been a bit lax about this difference throughout this section.
+    Finally, minimality follows through similar reasoning as we used in the case of
+    Jarník’s Algorithm, which we have essentially run in parallel, once from each
+    node, until the parallel solution components join up to produce a global solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Of course, maintaining the data for this algorithm by hand is a nightmare.
+    Therefore, it would be no surprise that this algorithm was coined in the digital
+    age. The real surprise, therefore, is that it was not: it was originally created
+    by [Otakar Borůvka](http://en.wikipedia.org/wiki/Otakar_Bor%C5%AFvka) himself.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Borůvka, you see, had figured it all out. He’d not only understood the problem,
+    he had:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: pinpointed the real problem lying underneath the electrification problem so
+    it could be viewed in a context-independent way,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: created a descriptive language of graph theory to define it precisely, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even solved the problem in addition to defining it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: He’d just come up with a solution so complex to implement by hand that Jarník
+    had in essence de-parallelized it so it could be done sequentially. And thus this
+    algorithm lay unnoticed until it was reinvented ([several times, actually](http://en.wikipedia.org/wiki/Bor%C5%AFvka's_algorithm))
+    by Sollin in time for parallel computing folks to notice a need for it. But now
+    we can just call this Borůvka’s Algorithm, which is only fitting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you might have guessed by now, this problem is indeed called the MST in other
+    textbooks, but “M” stands not for Moravia but for “Minimum”. But given Borůvka’s
+    forgotten place in history, I prefer the more whimsical name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8.5Checking Component Connectedness
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we’ve seen, we need to be able to efficiently tell whether two nodes are
+    in the same component. One way to do this is to conduct a depth-first traversal
+    (or breadth-first traversal) starting from the first node and checking whether
+    we ever visit the second one. (Using one of these traversal strategies ensures
+    that we terminate in the presence of loops.) Unfortunately, this takes a linear
+    amount of time (in the size of the graph) for every pair of nodes—<wbr>and depending
+    on the graph and choice of node, we might do this for every node in the graph
+    on every edge addition! So we’d clearly like to do this better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is helpful to reduce this problem from graph connectivity to a more general
+    one: of disjoint-set structure (colloquially known as union-find for reasons that
+    will soon be clear). If we think of each connected component as a set, then we’re
+    asking whether two nodes are in the same set. But casting it as a set membership
+    problem makes it applicable in several other applications as well.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The setup is as follows. For arbitrary values, we want the ability to think
+    of them as elements in a set. We are interested in two operations. One is obviously
+    union, which merges two sets into one. The other would seem to be something like
+    is-in-same-set that takes two elements and determines whether they’re in the same
+    set. Over time, however, it has proven useful to instead define the operator find
+    that, given an element, “names” the set (more on this in a moment) that the element
+    belongs to. To check whether two elements are in the same set, we then have to
+    get the “set name” for each element, and check whether these names are the same.
+    This certainly sounds more roundabout, but this means we have a primitive that
+    may be useful in other contexts, and from which we can easily implement is-in-same-set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now the question is, how do we name sets? The real question we should ask is,
+    what operations do we care to perform on these names? All we care about is, given
+    two names, they represent the same set precisely when the names are the same.
+    Therefore, we could construct a new string, or number, or something else, but
+    we have another option: simply pick some element of the set to represent it, i.e.,
+    to serve as its name. Thus we will associate each set element with an indicator
+    of the “set name” for that element; if there isn’t one, then its name is itself
+    (the none case of parent):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will assume we have some equality predicate for checking when two elements
+    are the same, which we do by comparing their value parts, ignoring their parent
+    values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why do we check only the value parts?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We will assume that for a given set, we always return the same representative
+    element. (Otherwise, equality will fail even though we have the same set.) Thus:We’ve
+    used the name fynd because find is already defined to mean something else in Pyret.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'where Sets is the list of all elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'How do we find the representative element for a set? We first find it using
+    is-same-element; when we do, we check the element’s parent field. If it is none,
+    that means this very element names its set; this can happen either because the
+    element is a singleton set (we’ll initialize all elements with none), or it’s
+    the name for some larger set. Either way, we’re done. Otherwise, we have to recursively
+    find the parent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why is this recursive in the nested cases?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'What’s left is to implement union. For this, we find the representative elements
+    of the two sets we’re trying to union; if they are the same, then the two sets
+    are already in a union; otherwise, we have to update the data structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To update, we arbitrarily choose one of the set names to be the name of the
+    new compound set. We then have to update the parent of the other set’s name element
+    to be this one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are some tests to illustrate this working:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Unfortunately, this implementation suffers from two major problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, because we are performing functional updates, the value of the parent
+    reference keeps “changing”, but these changes are not visible to older copies
+    of the “same” value. An element from different stages of unioning has different
+    parent references, even though it is arguably the same element throughout. This
+    is a place where functional programming hurts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Relatedly, the performance of this implementation is quite bad. fynd recursively
+    traverses parents to find the set’s name, but the elements traversed are not updated
+    to record this new name. We certainly could update them by reconstructing the
+    set afresh each time, but that complicates the implementation and, as we will
+    soon see, we can do much better.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The bottom line is that pure functional programming is not a great fit with
+    this problem. We need a better implementation strategy: [Disjoint Sets Redux](Algorithms_That_Exploit_State.html#%28part._union-find%29).'
+  prefs: []
+  type: TYPE_NORMAL

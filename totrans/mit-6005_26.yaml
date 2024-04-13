@@ -1,0 +1,646 @@
+- en: 'Reading 26: Little Languages'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In this reading we will begin to explore the design of a **little language**
+    for constructing and manipulating music. Here’s the bottom line: when you need
+    to solve a problem, instead of writing a *program* to solve just that one problem,
+    build a *language* that can solve a range of related problems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal for this reading is to introduce the idea of **representing code as
+    data** and familiarize you with an initial version of the **music language**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Representing code as data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Recall the [`Formula` datatype from *Recursive Data Types*](../16-recursive-data-types/recursive/#another_example_boolean_formulas):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We used instances of `Formula` to take propositional logic formulas, e.g. ***(p
+    ∨ q) ∧ (¬p ∨ r)***, and represent them in a data structure, e.g.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the parlance of grammars and parsers, formulas are a *language*, and `Formula`
+    is an [*abstract syntax tree*](../18-parser-generators/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But why did we define a `Formula` type? Java already has a way to represent
+    expressions of Boolean variables with *logical and*, *or*, and *not*. For example,
+    given `boolean` variables `p`, `q`, and `r`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Done!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is that the Java code expression `(p || q) && ((!p) || r)` is evaluated
+    as soon as we encounter it in our running program. The `Formula` value `And(Or(...),
+    Or(...))` is a **first-class value** that can be stored, passed and returned from
+    one method to another, manipulated, and evaluated now or later (or more than once)
+    as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Formula` type is an example of **representing code as data**, and we’ve
+    seen many more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this [functional object](../24-map-filter-reduce/#first-class_functions_in_java):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An instance of `VariableNameComparator` is a value that can be passed around,
+    returned, and stored. But at any time, the function that it represents can be
+    invoked by calling its `compare` method with a couple of `Variable` arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lambda expressions allow us to create functional objects with a compact syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Building languages to solve problems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When we define an [abstract data type](../12-abstract-data-types/), we’re extending
+    the universe of built-in types provided by Java to include a new type, with new
+    operations, appropriate to our problem domain. This new type is like a new language:
+    a new set of nouns (values) and verbs (operations) we can manipulate. Of course,
+    those nouns and verbs are abstractions built on top the existing nouns and verbs
+    which were themselves already abstractions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *language* has greater flexibility than a mere *program*, because we can use
+    a language to solve a large class of related problems, instead of just a single
+    problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s the difference between writing `(p || q) && ((!p) || r)` and devising
+    a `Formula` type to represent the semantically-equivalent Boolean formula.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And it’s the difference between writing a matrix multiplication function and
+    devising a [`MatrixExpression` type](../16-recursive-data-types/matexpr/) to represent
+    matrix multiplications — and store them, manipulate them, optimize them, evaluate
+    them, and so on.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: First-class functions and functional objects enable us to create particularly
+    powerful languages because we can capture patterns of computation as reusable
+    abstractions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Music language
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In class, we will design and implement a language for generating and playing
+    music. To prepare, let’s first understand the Java APIs for playing music with
+    the [MIDI](http://en.wikipedia.org/wiki/MIDI) synthesizer. We’ll see how to write
+    a *program* to play MIDI music. Then we’ll begin to develop our music *language*
+    by writing a recursive abstract data type for simple musical tunes. We’ll choose
+    a notation for writing music in strings, and we’ll implement a parser to create
+    instances of our `Music` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [**full source code for the basic music language**](https://github.com/mit6005/fa16-ex26-music-starting)
+    is on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Clone** the [fa16-ex26-music-starting](https://github.com/mit6005/fa16-ex26-music-starting)
+    repo so you can run the code and follow the discussion below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Playing MIDI music
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**`music.midi.MidiSequencePlayer`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/midi/MidiSequencePlayer.java)
+    uses the Java MIDI APIs to play sequences of notes. It’s quite a bit of code,
+    and you don’t need to understand how it works.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MidiSequencePlayer` implements the [**`music.SequencePlayer`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/SequencePlayer.java)
+    interface, allowing clients to use it without depending on the particular MIDI
+    implementation. We *do* need to understand this interface and the types it depends
+    on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`addNote : SequencePlayer × Instrument × Pitch × double × double → void`**
+    ([SequencePlayer.java:15](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/SequencePlayer.java#L15))
+    is the workhorse of our music player. Calling this method schedules a musical
+    pitch to be played at some time during the piece of music.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`play : SequencePlayer → void`** ([SequencePlayer.java:20](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/SequencePlayer.java#L20))
+    actually plays the music. Until we call this method, we’re just scheduling music
+    that will, eventually, be played.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `addNote` operation depends on two more types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**`Instrument`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Instrument.java)
+    is an enumeration of all the available MIDI instruments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**`Pitch`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Pitch.java)
+    is an abstract data type for musical pitches (think keys on the piano keyboard).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the [**`Pitch`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Pitch.java)
+    documentation and the specifications for its [public constructor](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Pitch.java#L57-68)
+    and all its [public methods](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Pitch.java#L70-122).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our music data type will rely on `Pitch` in its rep, so be sure to understand
+    the `Pitch` spec as well as its rep and abstraction function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the MIDI sequence player and `Pitch`, we’re ready to write code for our
+    first bit of music!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the [**`music.examples.ScaleSequence`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/examples/ScaleSequence.java)
+    code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Run the main method in `ScaleSequence`.** You should hear a one-octave scale!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Pitch
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which observers could `MidiSequencePlayer` use to determine what frequency an
+    arbitrary `Pitch` represents?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: transpose
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Pitch.transpose(int)` is a:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: addNote
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SequencePlayer.addNote(..)` is a:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Music data type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `Pitch` datatype is useful, but if we want to represent a whole piece of
+    music using `Pitch` objects, we should create an abstract data type to encapsulate
+    that representation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To start, we’ll define the [**`Music`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Music.java)
+    type with a few operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`notes : String × Instrument → Music`** ([MusicLanguage.java:51](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L51))
+    makes a new Music from a string of simplified abc notation, described below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`duration : Music → double`** ([Music.java:11](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Music.java#L11))
+    returns the duration, in beats, of the piece of music.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`play : Music × SequencePlayer × double → void`** ([Music.java:18](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Music.java#L18))
+    plays the piece of music using the given sequence player.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll implement `duration` and `play` as instance methods of `Music`, so we
+    declare them in the `Music` interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`notes` will be a static factory method; rather than put it in `Music` (which
+    we could do), we’ll put it in a separate class: [**`MusicLanguage`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java)
+    will be our place for all the static methods we write to operate on `Music`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we’ve chosen some operations in the spec of `Music`, let’s choose a
+    representation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Looking at [`ScaleSequence`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/examples/ScaleSequence.java),
+    the first concrete variant that might jump out at us is one to capture the information
+    in each call to `addNote`: a particular pitch on a particular instrument played
+    for some amount of time. We’ll call this a [**`Note`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Note.java).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The other basic element of music is the silence between notes: [**`Rest`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Rest.java).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, we need a way to glue these basic elements together into larger pieces
+    of music. We’ll choose a tree-like structure: [**`Concat(m1,m2:Music)`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Concat.java)
+    represents `m1` followed by `m2`, where `m1` and `m2` are any music.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This tree structure turns out to be an elegant decision as we further develop
+    our `Music` type later on. In a real design process, we might iterate on the recursive
+    structure of `Music` before we find the best implementation.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Here’s the datatype definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Composite
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '`Music` is an example of the **composite pattern**, in which we treat both
+    single objects (*primitives*, e.g. `Note` and `Rest`) and groups of objects (*composites*,
+    e.g. `Concat`) the same way.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Formula` is also an example of the composite pattern.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The GUI view tree relies heavily on the composite pattern: there are *primitive
+    views* like `JLabel` and `JTextField` that don’t have children, and *composite
+    views* like `JPanel` and `JScollPage` that do contain other views as children.
+    Both implement the common `JComponent` interface.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The composite pattern gives rise to a tree data structure, with primitives at
+    the leaves and composites at the internal nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Emptiness
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'One last design consideration: how do we represent the empty music? It’s always
+    good to have a representation for *nothing*, and we’re certainly not going to
+    use `null`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We could introduce an `Empty` variant, but instead we’ll use a `Rest` of duration
+    `0` to represent emptiness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing basic operations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First we need to create the [**`Note`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Note.java),
+    [**`Rest`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Rest.java),
+    and [**`Concat`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Concat.java)
+    variants. All three are straightforward to implement, starting with constructors,
+    `checkRep`, some observers, `toString`, and the equality methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the `duration` operation is an instance method, each variant implements
+    `duration` appropriately.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `play` operation is also an instance method; we’ll discuss it below under
+    [*implementing the player*](#implementing_the_player).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And we’ll discuss the `notes` operation in [*implementing the parser*](#implementing_the_parser).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the [`Note`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Note.java),
+    [`Rest`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Rest.java),
+    and [`Concat`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Concat.java)
+    classes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To avoid representation exposure, let’s add some additional static factory
+    methods to the `Music` interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`note : double × Pitch × Instrument → Music`** ([MusicLanguage.java:92](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L92))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`rest : double → Music`** ([MusicLanguage.java:100](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L100))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`concat : Music × Music → Music`** ([MusicLanguage.java:113](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L113))
+    is our first producer operation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All three of them are easy to implement by constructing the appropriate variant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Music rep
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assume we have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which of the following represent a middle C followed by A above middle C?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Music notation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will write pieces of music using a simplified version of [**abc notation**](http://en.wikipedia.org/wiki/ABC_notation),
+    a text-based music format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve already been representing pitches using their familiar letters. Our simplified
+    abc notation represents sequences of **notes** and **rests** with syntax for indicating
+    their **duration**, **accidental** (sharp or flat), and **octave**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`C D E F G A B C'' B A G F E D C`** represents the one-octave ascending and
+    descending C major scale we played in `ScaleSequence`. `C` is middle C, and `C''`
+    is C one octave above middle C. Each note is a quarter note.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`C/2 D/2 _E/2 F/2 G/2 _A/2 _B/2 C''`** is the ascending scale in C minor,
+    played twice as fast. The E, A, and B are flat. Each note is an eighth note.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the specification of [`notes` in `MusicLanguage`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L20-50).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You don’t need to understand the parser implementation yet, but you should understand
+    the simplified abc notation enough to make sense of the examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re not familiar with music theory — why is an octave 8 notes but only
+    12 semitones? — don’t worry. You might not be able to look at the abc strings
+    and guess what they sound like, but you can understand the point of choosing a
+    convenient textual syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Simplified abc syntax
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of these notes are twice as long as `E/4`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `notes` method parses strings of simplified abc notation into `Music`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`notes : String × Instrument → Music`** ([MusicLanguage.java:51](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L51))
+    splits the input into individual symbols (e.g. `A,,/2`, `.1/2`). We start with
+    the empty `Music`, `rest(0)`, symbols are parsed individually, and we build up
+    the `Music` using `concat`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`parseSymbol : String × Instrument → Music`** ([MusicLanguage.java:62](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L62))
+    returns a `Rest` or a `Note` for a single abc symbol (`symbol` in the grammar).
+    It only parses the type (rest or note) and duration; it relies on `parsePitch`
+    to handle pitch letters, accidentals, and octaves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`parsePitch : String → Pitch`** ([MusicLanguage.java:77](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/MusicLanguage.java#L77))
+    returns a `Pitch` by parsing a `pitch` grammar production. You should be able
+    to understand the recursion — what’s the base case? What are the recursive cases?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: parsePitch
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of these inputs is handled by the base case of `parsePitch`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the player
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Recall our operation for playing music:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`play : Music × SequencePlayer × double → void`** ([Music.java:18](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Music.java#L18))
+    plays the piece of music using the given sequence player after the given number
+    of beats delay.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does this operation take `atBeat`? Why not simply play the music *now*?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we define `play` in that way, we won’t be able to play sequences of notes
+    over time unless we actually *pause* during the `play` operation, for example
+    with `Thread.sleep`. Our sequence player’s [`addNote` operation](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/SequencePlayer.java#L15)
+    is already designed to schedule notes in the future — it handles the delay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With that design decision, it’s straightforward to implement `play` in every
+    variant of `Music`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the [`Note.play`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Note.java#L55),
+    [`Rest.play`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Rest.java#L33),
+    and [`Concat.play`](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/Concat.java#L51)
+    methods.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should be able to follow their recursive implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just one more piece of utility code before we’re ready to jam: [**`music.midi.MusicPlayer`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/midi/MusicPlayer.java)
+    plays a `Music` using the `MidiSequencePlayer`. `Music` doesn’t know about the
+    concrete type of the sequence player, so we need a bit of code to bring them together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bringing this *all* together, let’s use the `Music` ADT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read** and understand the [**`music.examples.ScaleMusic`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/examples/ScaleMusic.java)
+    code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Run the main method in `ScaleMusic`.** You should hear the same one-octave
+    scale again.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s not very exciting, so **read** [**`music.examples.RowYourBoatInitial`**](https://github.com/mit6005/fa16-ex26-music-starting/blob/master/src/music/examples/RowYourBoatInitial.java)
+    and **run the main method.** You should hear *Row, row, row your boat*!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can you follow the flow of the code from calling `notes(..)` to having an instance
+    of `Music` to the recursive `play(..)` call to individual `addNote(..)` calls?
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: notes
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are 27 notes in *Row, row, row your boat*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the actual implementation, how many `Music` objects will be created by
+    the `notes` call in `RowYourBoatInitial`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: duration
+  prefs: []
+  type: TYPE_NORMAL
+- en: What should be the result of `rowYourBoat.duration()`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Music
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assume we have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: And
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which of the following is a valid `Music`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be continued
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Playing *Row, row, row your boat* is pretty exciting, but so far the most powerful
+    thing we’ve done is not so much the *music language* as it is the very basic *music
+    parser*. Writing music using the simplified abc notation is clearly much more
+    **easy to understand**, **safe from bugs**, and **ready for change** than writing
+    page after page of `addNote` `addNote` `addNote`…
+  prefs: []
+  type: TYPE_NORMAL
+- en: In class, we’ll expand our music language and turn it into a powerful tool for
+    constructing and manipulating complex musical structures.
+  prefs: []
+  type: TYPE_NORMAL

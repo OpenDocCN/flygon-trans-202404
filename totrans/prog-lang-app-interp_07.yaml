@@ -1,0 +1,969 @@
+- en: 7Functions Anywhere
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The introduction to the Scheme programming language definition establishes
+    this design principle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Programming languages should be designed not by piling feature on top of feature,
+    but by removing the weaknesses and restrictions that make additional features
+    appear necessary. [REF]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As design principles go, this one is hard to argue with. (Some restrictions,
+    of course, have good reason to exist, but this principle forces us to argue for
+    them, not admit them by default.) Let’s now apply this to functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the things we stayed coy about when introducing functions ([Adding Functions
+    to the Language](adding-functions.html)) is exactly where functions go. We may
+    have suggested we’re following the model of an idealized DrRacket, with definitions
+    and their uses kept separate. But, inspired by the Scheme design principle, let’s
+    examine how necessary that is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why can’t functions definitions be expressions? In our current arithmetic-centric
+    language we face the uncomfortable question “What value does a function definition
+    represent?”, to which we don’t really have a good answer. But a real programming
+    language obviously computes more than numbers, so we no longer need to confront
+    the question in this form; indeed, the answer to the above can just as well be,
+    “A function value”. Let’s see how that might work out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What can we do with functions as values? Clearly, functions are a distinct
+    kind of value than a number, so we cannot, for instance, add them. But there is
+    one evident thing we can do: apply them to arguments! Thus, we can allow function
+    values to appear in the function position of an application. The behavior would,
+    naturally, be to apply the function. Thus, we’re proposing a language where the
+    following would be a valid program (where I’ve used brackets so we can easily
+    identify the function)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (+ 2 ([define (f x) (* x 3)] 4)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: and would evaluate to (+ 2 (* 4 3)), or 14. (Did you see that I just used substitution?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.1Functions as Expressions and Values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s first define the core language to include function definitions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<expr-type>](#(elem._(chunk._~3cexpr-type~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type ExprC |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numC (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [idC (s : symbol)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [<app-type>](#(elem._(chunk._~3capp-type~3e~3a1))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [plusC (l : ExprC) (r : ExprC)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [multC (l : ExprC) (r : ExprC)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [<fun-type>](#(elem._(chunk._~3cfun-type~3e~3a1)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: For now, we’ll simply copy function definitions into the expression language.
+    We’re free to change this if necessary as we go along, but for now it at least
+    allows us to reuse our existing test cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<fun-type-take-1>](#(elem._(chunk._~3cfun-type-take-1~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[fdC (name : symbol) (arg : symbol) (body : ExprC)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We also need to determine what an application looks like. What goes in the
+    function position of an application? We want to allow an entire function definition,
+    not just its name. Because we’ve lumped function definitions in with all other
+    expressions, let’s allow an arbitrary expression here, but with the understanding
+    that we want only function definition expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We might consider more refined datatypes that split function definitions apart
+    from other kinds of expressions. This amounts to trying to classify different
+    kinds of expressions, which we will return to when we study types. [REF]
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[<app-type>](#(elem._(chunk._~3capp-type~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[appC (fun : ExprC) (arg : ExprC)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'With this definition of application, we no longer have to look up functions
+    by name, so the interpreter can get rid of the list of function definitions. If
+    we need it we can restore it later, but for now let’s just explore what happens
+    with function definitions are written at the point of application: so-called immediate
+    functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s tackle interp. We need to add a case to the interpreter for function
+    definitions, and this is a good candidate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [fdC (n a b) expr] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens when you add this?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Immediately, we see that we have a problem: the interpreter no longer always
+    returns numbers, so we have a type error.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve alluded periodically to the answers computed by the interpreter, but never
+    bothered gracing these with their own type. It’s time to do so now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<answer-type-take-1>](#(elem._(chunk._~3canswer-type-take-1~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numV (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [funV (name : symbol) (arg : symbol) (body : ExprC)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'We’re using the suffix of V to stand for values, i.e., the result of evaluation.
+    The pieces of a funV will be precisely those of a fdC: the latter is input, the
+    former is output. By keeping them distinct we allow each one to evolve independently
+    as needed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we must rewrite the interpreter. Let’s start with its type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<interp-hof>](#(elem._(chunk._~3cinterp-hof~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (interp [expr : ExprC] [env : Env]) : Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ExprC expr |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [<interp-body-hof>](#(elem._(chunk._~3cinterp-body-hof~3e~3a1))))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: This change naturally forces corresponding type changes to the Binding datatype
+    and to lookup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modify Binding and lookup, appropriately.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[<interp-body-hof>](#(elem._(chunk._~3cinterp-body-hof~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [numC (n) (numV n)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| [idC (n) (lookup n env)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| [<app-case>](#(elem._(chunk._~3capp-case~3e~3a1))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| [<plus/mult-case>](#(elem._(chunk._~3cplus/mult-case~3e~3a1))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| [<fun-case>](#(elem._(chunk._~3cfun-case~3e~3a1))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Clearly, numeric answers need to be wrapped in the appropriate numeric answer
+    constructor. Identifier lookup is unchanged. We have to slightly modify addition
+    and multiplication to deal with the fact that the interpreter returns Values,
+    not numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<plus/mult-case>](#(elem._(chunk._~3cplus/mult-case~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [plusC (l r) (num+ (interp l env) (interp r env))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| [multC (l r) (num* (interp l env) (interp r env))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'It’s worth examining the definition of one of these helper functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (num+ [l : Value] [r : Value]) : Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (cond |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(and (numV? l) (numV? r)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|      (numV (+ (numV-n l) (numV-n r)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [else |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|      (error ''num+ "one argument was not a number")])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Observe that it checks that both arguments are numbers before performing the
+    addition. This is an instance of a safe run-time system. We’ll discuss this topic
+    more when we get to types. [REF]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two more cases to cover. One is function definitions. We’ve already
+    agreed these will be their own kind of value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<fun-case-take-1>](#(elem._(chunk._~3cfun-case-take-1~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[fdC (n a b) (funV n a b)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'That leaves one case, application. Though we no longer need to look up the
+    function definition, we’ll leave the code structured as similarly as possible:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<app-case-take-1>](#(elem._(chunk._~3capp-case-take-1~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [appC (f a) (local ([define fd f]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|               (interp (fdC-body fd) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (extend-env (bind (fdC-arg fd) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                         (interp a env)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                   mt-env)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: In place of the lookup, we reference f which is the function definition, sitting
+    right there. Note that, because any expression can be in the function definition
+    position, we really ought to harden the code to check that it is indeed a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What does is mean? That is, do we want to check that the function definition
+    position is syntactically a function definition (fdC), or only that it evaluates
+    to one (funV)? Is there a difference, i.e., can you write a program that satisfies
+    one condition but not the other?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We have two choices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can check that it syntactically is an fdC and, if it isn’t reject it as an
+    error.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We can evaluate it, and check that the resulting value is a function (and signal
+    an error otherwise).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We will take the latter approach, because this gives us a much more flexible
+    language. In particular, even if we can’t immediately imagine cases where we,
+    as humans, might need this, it might come in handy when a program needs to generate
+    code. And we’re writing precisely such a program, namely the desugarer! (See [Sugaring
+    Over Anonymity](#(part._let-desugar)).) As a result, we’ll modify the application
+    case to evaluate the function position:[<app-case-take-2>](#(elem._(chunk._~3capp-case-take-2~3e~3a1)))
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [appC (f a) (local ([define fd (interp f env)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|               (interp (funV-body fd) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (extend-env (bind (funV-arg fd) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                         (interp a env)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                   mt-env)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modify the code to perform both versions of this check.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'And with that, we’re done. We have a complete interpreter! Here, for instance,
+    are some of our old tests again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (test (interp (plusC (numC 10) (appC (fdC ''const5 ''_ (numC 5)) (numC 10)))
+    |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|               mt-env) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (numV 15)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (test/exn (interp (appC (fdC ''f1 ''x (appC (fdC ''f2 ''y (plusC (idC ''x) (idC ''y)))
+    |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                           (numC 4))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                         (numC 3)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                   mt-env) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|           "name not found") |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 7.2Nested What?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The body of a function definition is an arbitrary expression. A function definition
+    is itself an expression. That means a function definition can contain a...function
+    definition. For instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<nested-fdC>](#(elem._(chunk._~3cnested-fd.C~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (fdC ''f1 ''x |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|      (fdC ''f2 ''x |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|           (plusC (idC ''x) (idC ''x)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Evaluating this isn’t very interesting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (funV ''f1 ''x (fdC ''f2 ''x (plusC (idC ''x) (idC ''x)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: But suppose we apply the above function to something:[<applied-nested-fdC>](#(elem._(chunk._~3capplied-nested-fd.C~3e~3a1)))
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (appC [<nested-fdC>](#(elem._(chunk._~3cnested-fd.C~3e~3a1))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (numC 4)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Now the answer becomes more interesting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (funV ''f2 ''x (plusC (idC ''x) (idC ''x))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'It’s almost as if applying the outer function had no impact on the inner function
+    at all. Well, why should it? The outer function introduces an identifier which
+    is promptly masked by the inner function introducing one of the same name, thereby
+    masking the outer definition if we obey static scope (as we should!). But that
+    suggests a different program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (appC (fdC ''f1 ''x |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|            (fdC ''f2 ''y |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                 (plusC (idC ''x) (idC ''y)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (numC 4)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'This evaluates to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (funV ''f2 ''y (plusC (idC ''x) (idC ''y))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Hmm, that’s interesting.Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s interesting?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To see what’s interesting, let’s apply this once more:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (appC (appC (fdC ''f1 ''x |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                  (fdC ''f2 ''y |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (plusC (idC ''x) (idC ''y)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|             (numC 4)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (numC 5)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'This produces an error indicating that the identifier representing x isn’t
+    bound!But it’s bound by the function named f1, isn’t it? For clarity, let’s switch
+    to representing it in our hypothetical Racket syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ((define (f1 x) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|    ((define (f2 y) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (+ x y)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     4)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|  5) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: On applying the outer function, we would expect x to be substituted with 5,
+    resulting in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ((define (f2 y) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|    (+ 5 y)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|  4) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: which on further application and substitution yields (+ 5 4) or 9, not an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we’re again failing to faithfully capture what substitution
+    would have done.On the other hand, observe that with substitution, as we’ve defined
+    it, we would be replacing x with (numV 4), resulting in a function body of (plusC
+    (numV 5) (idC ’y)), which does not type. That is, substitution is predicated on
+    the assumption that the type of answers is a form of syntax. It is actually possible
+    to carry through a study of even very advanced programming constructs under this
+    assumption, but we won’t take that path here. A function value needs to remember
+    the substitutions that have already been applied to it. Because we’re representing
+    substitutions using an environment, a function value therefore needs to be bundled
+    with an environment. This resulting data structure is called a closure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While we’re at it, observe that the appC case above uses funV-arg and funV-body,
+    but not funV-name. Come to think of it, why did a function need a name? so that
+    we could find it. But if we’re using the interpreter to find the function for
+    us, then there’s nothing to find and fetch. Thus the name is merely descriptive,
+    and might as well be a comment. In other words, a function no more needs a name
+    than any other immediate constant: we don’t name every use of 3, for instance,
+    so why should we name every use of a function? A function is inherently anonymous,
+    and we should separate its definition from its naming.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (But, you might say, this argument only makes sense if functions are always
+    written in-place. What if we want to put them somewhere else? Won’t they need
+    names then? They will, and we’ll return to this ([Sugaring Over Anonymity](#(part._let-desugar))).)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.3Implementing Closures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We need to change our representation of values to record closures rather than
+    raw function text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<answer-type>](#(elem._(chunk._~3canswer-type~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numV (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [closV (arg : symbol) (body : ExprC) (env : Env)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'While we’re at it, we might as well alter our syntax for defining functions
+    to drop the useless name. This construct is historically called a lambda:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<fun-type>](#(elem._(chunk._~3cfun-type~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[lamC (arg : symbol) (body : ExprC)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When encountering a function definition, the interpreter must now remember to
+    save the substitutions that have been applied so far:“Save the environment! Create
+    a closure today!” —<wbr>Cormac Flanagan
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<fun-case>](#(elem._(chunk._~3cfun-case~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[lamC (a b) (closV a b env)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This saved set, not the empty environment, must be used when applying a function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<app-case>](#(elem._(chunk._~3capp-case~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [appC (f a) (local ([define f-value (interp f env)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|               (interp (closV-body f-value) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (extend-env (bind (closV-arg f-value) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                         (interp a env)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                   (closV-env f-value))))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'There’s actually another possibility: we could use the environment present
+    at the point of application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [appC (f a) (local ([define f-value (interp f env)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|               (interp (closV-body f-value) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (extend-env (bind (closV-arg f-value) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                         (interp a env)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                   env)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens if we extend the dynamic environment instead?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In retrospect, it becomes even more clear why we interpreted the body of a function
+    in the empty environment. When a function is defined at the top-level, it is not
+    “closed over” any identifiers. Therefore, our previous function applications have
+    been special cases of this form of application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7.4Substitution, Again
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have seen that substitution is instructive in thinking through how to implement
+    lambda functions. However, we have to be careful with substitution itself! Suppose
+    we have the following expression (to give lambda functions their proper Racket
+    syntax):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (lambda (f) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (lambda (x) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (f 10))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Now suppose we substitute for f the following expression: (lambda (y) (+ x
+    y)). Observe that it has a free identifier (x), so if it is ever evaluated, we
+    would expect to get an unbound identifier error. Substitution would appear to
+    give:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (lambda (x) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   ((lambda (y) (+ x y)) 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'But observe that this latter program has no free identifiers!That’s because
+    we have too naive a version of substitution. To prevent unexpected behavior like
+    this (which is a form of dynamic binding), we need to define capture-free substitution.
+    It works roughly as follows: we first consistently rename all bound identifiers
+    to entirely previously unused (known as fresh) names. Imagine that we give each
+    identifier a numeric suffix to attain freshness. Then the original expression
+    becomes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (lambda (f1) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (lambda (x1) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (f1 10))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '(Observe that we renamed f to f1 in both the binding and bound locations.)
+    Now let’s do the same with the expression we’re substituting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (lambda (y1) (+ x y1)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Why didn’t we rename x? Because x may be a reference to a top-level binding,
+    which should then also be renamed. This is simply another application of the consistent
+    renaming principle. In the current setting, the distinction is irrelevant. Now
+    let’s substitute for f1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (lambda (x1) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   ((lambda (y1) (+ x y1)) 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '...and x is still free! This is a good form of substitution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But one moment. What happens if we try the same example in our environment-based
+    interpreter?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try it out.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Observe that it works correctly: it reports an unbound identifier error. Environments
+    automatically implement capture-free substitution!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: In what way does using an environment avoid the capture problem of substitution?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 7.5Sugaring Over Anonymity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now let’s get back to the idea of naming functions, which has evident value
+    for program understanding. Observe that we do have a way of naming things: by
+    passing them to functions, where they acquire a local name (that of the formal
+    parameter). Anywhere within that function’s body, we can refer to that entity
+    using the formal parameter name.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, we can take a collection of function definitions and name them using
+    other...functions. For instance, the Racket code
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (double x) (+ x x)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (double 10) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: could first be rewritten as the equivalent
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define double (lambda (x) (+ x x))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (double 10) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'We can of course just inline the definition of double, but to preserve the
+    name, we could write this as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ((lambda (double) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|    (double 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|  (lambda (x) (+ x x))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Indeed, this pattern—<wbr>which we will pronounce as “left-left-lambda”—<wbr>is
+    a local naming mechanism. It is so useful that in Racket, it has its own special
+    syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([double (lambda (x) (+ x x))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (double 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'where let can be defined by desugaring as shown above.Here’s a more complex
+    example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (double x) (+ x x)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (define (quadruple x) (double (double x))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (quadruple 10) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: This could be rewritten as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([double (lambda (x) (+ x x))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (let ([quadruple (lambda (x) (double (double x)))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (quadruple 10))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: which works just as we’d expect; but if we change the order, it no longer works—<wbr>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([quadruple (lambda (x) (double (double x)))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (let ([double (lambda (x) (+ x x))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (quadruple 10))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '—<wbr>because quadruple can’t “see” double. so we see that top-level binding
+    is different from local binding: essentially, the top-level has an “infinite scope”.
+    This is the source of both its power and problems.There is another, subtler, problem:
+    it has to do with recursion. Consider the simplest infinite loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (loop-forever x) (loop-forever x)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (loop-forever 10) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Let’s convert it to let:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([loop-forever (lambda (x) (loop-forever x))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (loop-forever 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Seems fine, right? Rewrite in terms of lambda:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ((lambda (loop-forever) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|    (loop-forever 10)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|  (lambda (x) (loop-forever x))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Clearly, the loop-forever on the last line isn’t bound!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is another feature we get “for free” from the top-level. To eliminate this
+    magical force, we need to understand recursion explicitly, which we will do soon
+    [REF].
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1570 @@
+- en: Eventual Consistency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 12: Eventual Consistency'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exam
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Bring papers and lecture notes for exam
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bayou: Eventual consistency'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: a set of copies of the data, where applications can use any copy of the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: local read/write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even if the network breaks, I can still use the local copy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*disconnected operation*'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ad-hoc synchronization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: laptop, phone, tablet can synchronize amongst each other instead of relying
+    on Internet connection
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can work with database servers that have different data and synchronize with
+    each other
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: similar to Ficus, but Bayou has more sophisticated conflict resolution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conflicts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: what to do about the inevitable conflicts that happen when you allow people
+    to write to their local copies and synchronize them later
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Meeting room scheduler
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Traditional approach (central server):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not a good approach because it requires everyone to have connectivity to the
+    server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Would be nice if you have PDA send appointment to laptop, which can then send
+    it to the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Update functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Main idea:** Update functions. Instead of the application saying "write this
+    DB record", the application hands a function that behaves differently based on
+    what''s in the DB.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if free at 10am
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reserve @10am
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: else if free at 9am
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reserve @9am
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: else
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reserve
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bayou takes this function from the PDA and gives it to the laptop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose A and B want the same times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A wants: either staff meeting at 10 or 11'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B wants: hiring meeting at 10 or 11'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you simply apply these functions to node A''s and B''s databases, that''s
+    not enough:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'X syncs with A: X gets 10am staff meeting'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'X syncs with B: X gets 11am hiring meeting'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Y syncs with B: Y gets 10am hiring meeting'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Y syncs with A: Y gets 11am staff meeting'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Bad:** now X and Y have differing views'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` have to execute `A`''s and `B`''s update functions in the same order'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Numbering updates
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Next idea:** number update functions, so that you can view them as being
+    a log'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classic way to order things is to stamp them with numbers and sorting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: initially let the Bayou update ID be `<time T, nodeId>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: possible for time `T` to be the same for two update IDs, but then the node IDs
+    will differ (presumably)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'ordering rules:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a < b` if `a.T < b.T` or `a.T == b.T and a.ID < b.ID`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If we take the previous example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: When Y syncs with B and then with A, it'll see A's update occurred earlier
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so it undoes B's update, applies A's and then B's again
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We need to be able to roll back and re-execute the log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Are the updates consistent with causality?
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDA A adds a meeting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A synchronizes with B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B deletes A's meeting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If some 3rd node sees these updates, it would be necessary to have the meeting
+    creation timestamp be smaller than the deletion timestamp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lamport logical clock
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Each node maintains `T_max`, the highest timestamp this node has ever seen from
+    itself or from another node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a node creates an event and adds it to the log, it picks timestamp `T =
+    max (T_max + 1, wall clock time)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: new timestamps are always higher than timestamps the node has ever seen
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tentative entries, commit scheme
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It's annoying that entries in the calendar are always displayed as tentative
+    because another (earlier) update could come in and replace it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: maybe because the new update sender was disconnected for a long time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We're looking for a way to all agree that anything above a certain point in
+    the log will never change (it's frozen, no one can modify stuff there)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bad idea:** One possibility is to have all the replicas exchange summary
+    w/ each other about what they''ve seen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: X has seen all A's updates through 20, B's through 17, and C's through 72
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: these are timestamps (logical clocks)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we know that X will never create a timestamp less than 72
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: similarly, node Y also has a min timestamp that he will generate next
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: say 30
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can take the minimum over all these minimums `min(30, 72) = 30` and commit
+    all operations up to that point
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: problem is it requires every node to be up and connected to all other nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Commit scheme for Bayou
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'They have one magic node, a primary. Every update that passes through the primary,
+    the primary stamps it with a *commit sequence number* (CSN), the actual ordering
+    number becomes: `<csn, T, node ID>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary does not wait for earlier updates (with smaller `T`) to arrive first,
+    it just timestamps things as they come
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: commit preserves causal order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: commit does not preserve wall clock order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you don''t have a CSN: `<-, T, nodeID>`, all commited operations are considered
+    to occur before uncommitted ones.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO:** not clear what this example was supposed to show'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A's meeting created
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B's meeting created
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B synchronizes with C
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B synchronizes with A
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: C synchronizes with primary
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary applies CSN to A's op, but not B's
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B synchronizes with primary
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vector timestamps
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Synchronization
+  prefs: []
+  type: TYPE_NORMAL
+- en: A has
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 10, X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 20, Y>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 30, X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 40, X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B has
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 10, X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 20, Y>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-, 30, X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A syncs with B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sends a version vector to B describe which updates it has from every node
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A: `[X 40, Y 20]`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (remember that the timestamps are always increased by senders)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B: `[X 30, Y 20]`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If B compares A's VT with his, he notices that he needs updates by X between
+    timestamp 30 and 40
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A new node joins
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now some VTs will have an entry for some new node Z. For instance, in the previous
+    example
+  prefs: []
+  type: TYPE_NORMAL
+- en: A can send [X 40, Y 20, Z 60] to B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also need a way to remove nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But B won't know if `Z` is newly added or newly deleted?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Z joins the system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Z talks to X
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: X generates Z's unique node ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Z's ID = `<Tz, X's node ID>`, where Tz is the time Z talked to X
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: X sends an update timestamped with `<-, Tz, X>` that says "new server z"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Everybody will see this first before seeing Z's updates
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Z's updates have timestamps higher than Tz
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: note that IDs are unbounded in size
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Forgetting nodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Z's ID = `<20, X>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A syncs -> B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A has log entry from Z `<-, 25, <20, X>>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B has no VT entry for Z
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now B needs to figure out from A's updates if Z was added or removed
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Case 1: If B''s VT entry for `X` is less than the timestamp in `Z`''s ID, then
+    that means that `B` hasn''t even seen the creation for `Z`, let alone any updates
+    from `Z` => `B` should create the entry for `Z` because `Z` is new to `B`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Case 2: If B''s VT entry for `X` is higher than the timestamp in `Z`''s ID,
+    (ie. B has seen updates from `X` after it created `Z`), then B must''ve seen `Z`''s
+    creation `=>` B must have seen a deletion notice'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** If Z''s entry is missing from `B` then `Z` (probably?) says `<-, T,
+    Z> bye, T > Tz`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage
+    System](papers/bayou-conflicts.pdf) Terry, Theimer, Petersen, Demers, Spreitzer,
+    Hauser, SOSP 95'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some material from [Flexible Update Propagation for Weakly Consistent Replication](http://people.cs.umass.edu/~arun/cs677/notes/Bayou.pdf),
+    SOSP 97
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why this paper?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Eventual consistency is pretty common
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: git, iPhone sync, Dropbox, Amazon Dynamo
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why do people like eventual consistency?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fast read/write of local copy (no primary, no paxos)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: disconnected operation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What goes wrong?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: doesn't look like "single copy" (no primary, no paxos)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: conflicting writes to different copies
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to reconcile them when discovered?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bayou has the most sophisticated reconciliation story
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Paper context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Early 1990s (like Ficus)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dawn of PDAs, laptops, tablets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H/W clunky but clear potential
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Commercial devices did not have wireless
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Devices might be off or not have network access
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This problem has not gone away!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: iPhone sync, Dropbox sync, Dynamo
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's build a conference room scheduler
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only one meeting allowed at a time (one room).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each entry has a time and a description.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We want everyone to end up seeing the same set of entries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Traditional approach: one server'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Server executes one client request at a time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Checks for conflicting time, says yes or no
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Updates DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Proceeds to next request
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Server implicitly chooses order for concurrent requests
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why aren't we satisfied with central server?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to use scheduler on disconnected iPhone &c
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So need DB replica in each node.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Modify on any node, as well as read.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Periodic connectivity to net.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Periodic direct contact with other calendar users (e.g. bluetooth).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Straw man 1: merge DBs'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Similar to iPhone calendar sync, or file sync.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: May need to compare every DB entry -- lots of time and net b/w.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Still need a story for conflicting entries, i.e. two meetings at same time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User may not be available to decide at time of DB merge.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So need automatic reconciliation.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Idea for conflicts: update functions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application supplies a function, not a new value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Read current state of DB, decide best change.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: E.g. "Meet at 9 if room is free at 9, else 10, else 11."
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rather than just "Meet at 9"
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Function can make reconciliation decision for absent user.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sync exchanges functions, not DB content.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Problem:** can''t just apply update functions to DB replica'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A''s fn: staff meeting at 10:00 or 11:00'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B''s fn: hiring meeting at 10:00 or 11:00'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: X syncs w/ A, then B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Y syncs w/ B, then A
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Will X put A's meeting at 10:00, and Y put A's at 11:00?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Goal:** eventual consistency'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OK for X and Y to disagree initially
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But after enough syncing, all nodes' DBs should be identical
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Idea:** ordered update log'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ordered log of updates at each node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Syncing == ensure both nodes have same updates in log.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DB is result of applying update functions in order.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Same log `=>` same order `=>` same DB content.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How can nodes agree on update order?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Update ID: `<time T, node ID>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: T is creating node's wall-clock time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Ordering updates a and b:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a < b` if `a.T < b.T` or (`a.T = b.T` and `a.ID < b.ID`)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: What DB content before sync?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A: staff at 10:00'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B: hiring at 10:00'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is what A/B user will see before syncing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now A and B sync with each other
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each sorts new entries into its log, order by time-stamp
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both now know the full set of updates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A can just run B's update function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But B has *already* run B's operation, too soon!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Roll back and replay
+  prefs: []
+  type: TYPE_NORMAL
+- en: B needs to to "roll back" DB, re-run both ops in the right order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Big point: the log holds the truth; the DB is just an optimization'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will optimize roll-back in a bit
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Displayed meeting room calendar entries are "tentative"
+  prefs: []
+  type: TYPE_NORMAL
+- en: B's user saw hiring at 10, then it changed to hiring at 11
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Will update order be consistent with wall-clock time?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maybe A went first (in wall-clock time) with `<10,A>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Node clocks unlikely to be perfectly synchronized
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So B could then generate <9,b>
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B's meeting gets priority, even though A asked first
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not "externally consistent"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Will update order be consistent with causality?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if A adds a meeting,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then B sees A's meeting,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then B deletes A's meeting.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Perhaps
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<10,A> add`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<9,B> delete` -- B''s clock is slow'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now delete will be ordered before add!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lamport logical clocks for causal consistency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Want to timestamp events s.t.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if node observes E1, then generates E2, then `TS(E2) > TS(E1)`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So all nodes will order E1, then E2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Tmax` = highest time-stamp seen from any node (including self)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`T = max(Tmax + 1, wall-clock time)` -- to generate a timestamp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note properties:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: E1 then E2 on same node `=> TS(E1) < TS(E2)`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BUT
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TS(E1) < TS(E2)` does not imply E1 came before E2'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Logical clock solves add/delete causality example
+  prefs: []
+  type: TYPE_NORMAL
+- en: When B sees `<10,A>`,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B will set its Tmax to 10, so
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B will generate `<11,B>` for its delete
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Irritating that there could always be a long-delayed update with lower TS
+  prefs: []
+  type: TYPE_NORMAL
+- en: That can cause the results of my update to change
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User can never be sure if meeting time is final!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Would be nice if updates were eventually "stable"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` no changes in update order up to that point'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` results can never again change -- you know for sure when your meeting
+    is'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` don''t have to roll back, re-run committed updates'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Bad idea:** a fully decentralized "commit" scheme'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Proposal: `<10,A>` is stable if all nodes have seen all updates w/ `TS <= 10`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Have sync always send in log order -- "prefix property"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you have seen updates w/ `TS > 10` from *every* node
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then you'll never again see one `< <10,A>`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So `<10,A>` is stable
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why doesn't Bayou do this?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not all nodes are connected to each other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does Bayou commit updates, so that they are stable?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One node designated "primary replica".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It marks each update it receives with a permanent CSN.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Commit Sequence Number.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That update is committed.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So a complete time stamp is `<CSN, local-time, node-id>`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Uncommitted updates (are considered to) come after all committed updates w/
+    this new timestamping scheme
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CSN notifications are synced between nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The CSNs define a total order for committed updates.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All nodes will eventually agree on it.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Will commit order match tentative order?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Syncs send in log order (prefix property)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Including updates learned from other nodes.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So if A's update log says
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-,10,X>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<-,20,A>`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A will send both to primary, in that order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primary will assign CSNs in that order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Commit order will, in this case, match tentative order
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Will commit order always match tentative order?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'No: primary may see newer updates before older ones.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A has just: `<-,10,A> W1`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B has just: `<-,20,B> W2`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If `C` sees both, C''s order: `W1 W2`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B syncs with primary, gets `CSN=5`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Later A syncs w/ primary, gets `CSN=6`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When C syncs w/ primary, its order will change to `W2 W1`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<5,20,B> W1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<6,10,A> W2`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So: committing may change order.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Committing allows app to tell users which calendar entries are stable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A stable meeting room time is final.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Nodes can discard committed updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, keep a copy of the DB as of the highest known CSN
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Roll back to that DB when replaying tentative update log
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Never need to roll back farther
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prefix property guarantees seen `CSN=x => seen CSN<x`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No changes to update order among committed updates
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How do I sync if I've discarded part of my log?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose I've discarded all updates with CSNs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I keep a copy of the stable DB reflecting just discarded entries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When I propagate to node `X`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If node X's highest CSN is less than mine,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I can send him my stable DB reflecting just committed updates.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Node X can use my DB as starting point.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And X can discard all CSN log entries.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then play his tentative updates into that DB.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If node X's highest CSN is greater than mine,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: X doesn't need my DB.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In practice, Bayou nodes keep the last few committed updates.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To reduce chance of having to send whole DB during sync.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to sync?
+  prefs: []
+  type: TYPE_NORMAL
+- en: A sending to B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Need a quick way for B to tell A what to send
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Committed updates easy: B sends its CSN to A'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about tentative updates?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A has: `<-,10,X>` `<-,20,Y>` `<-,30,X>` `<-,40,X>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B has: `<-,10,X>` `<-,20,Y>` `<-,30,X>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At start of sync, B tells A "X 30, Y 20"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sync prefix property means B has all X updates before 30, all Y before 20
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A sends all X's updates after `<-,30,X>`, all Y's updates after `<-,20,X>`,
+    &c
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is a version vector -- it summarize log content
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It's the "F" vector in Figure 4
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A''s F: `[X:40,Y:20]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B''s F: `[X:30,Y:20]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How could we cope with a new server Z joining the system?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Could it just start generating writes, e.g. `<-,1,Z>` ?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And other nodes just start including Z in VVs?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If A syncs to B, A has `<-,10,Z>`, but B has no Z in VV
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A should pretend B's VV was `[Z:0,...]`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens when Z retires (leaves the system)?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We want to stop including Z in VVs!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to announce that Z is gone?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Z sends update `<-,?,Z> "retiring"`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you see a retirement update, omit Z from VV
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to deal with a VV that's missing Z?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If A has log entries from Z, but B''s VV has no Z entry:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. A has `<-,25,Z>`, B's VV is just `[A:20, B:21]`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maybe Z has retired, B knows, A does not
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maybe Z is new, A knows, B does not
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Need a way to disambiguate: Z missing from VV b/c new, or b/c retired?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bayou's retirement plan
+  prefs: []
+  type: TYPE_NORMAL
+- en: Z joins by contacting some server `X`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Z's ID is generated by X as `<Tz,X>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tz is X's logical clock as of when Z joined
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note: unbounded ID size'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: X issues `<-,Tz,X> "new server Z"`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does `ID=<Tz,X>` scheme help disambiguate new vs forgotten?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose Z's ID is `<20,X>`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A syncs to B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A has log entry from `Z <-,25,<20,X>>`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: B's VV has no Z entry
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'One case:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B''s VV: `[X:10, ...]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`10 < 20` implies B hasn''t yet seen X''s "new server Z" update'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The other case:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B''s VV: `[X:30, ...]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`20 < 30` implies B once knew about Z, but then saw a retirement update'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's step back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is eventual consistency a useful idea?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yes: people want fast writes to local copies'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: iPhone sync, Dropbox, Dynamo, Riak, Cassandra, &c
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Are update conflicts a real problem?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes -- all systems have some more or less awkward solution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is Bayou's complexity warranted?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I.e. log of update functions, version vectors, tentative operations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only critical if you want peer-to-peer sync
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I.e. both disconnected operation AND ad-hoc connectivity
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only tolerable if humans are main consumers of data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise you can sync through a central server (iPhone, Dropbox)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or read locally but send updates through a master (PNUTS, Spanner)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But there's are good ideas for us to learn from Bayou
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update functions for automatic application-driven conflict resolution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ordered update log is the real truth, not the DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Logical clock for causal consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

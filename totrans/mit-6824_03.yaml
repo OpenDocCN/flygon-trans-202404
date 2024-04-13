@@ -1,0 +1,1111 @@
+- en: Primary/Backup Replication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 3: Primary/Backup Replication'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Remus](papers/remus.pdf) case study'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lab 2 introduction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fault tolerance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We'd like a service that continues despite failures!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Definitions:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Available* -- still usable despite [some class of] failures'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Correct* -- act just like a single server to clients'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A lot of issues that come up have to do with *correctness*
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Very hard!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Very useful!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Need a failure model: what will we try to cope with?'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Most common:* Independent fail-stop computer failures'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*fail-stop failures:* computed correctly for a while and then stopped'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: as opposed to computing incorrectly (different situation)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: have to assume independence of failures
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (o.w. we could have primary fail `=>` backup fail `=>` fffffuu....)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Remus further assumes only one failure at a time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Another model:* Site-wide power failure (and eventual reboot)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (Network partition)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No bugs, no malice
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Core idea: replication'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Two* servers (or more)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each replica keeps state needed for the service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If one replica fails, others can continue
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: fault-tolerant MapReduce master'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Lab 1 workers are already fault-tolerant, but not master
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[Diagram: M1, M2, workers]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'State:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: worker list
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: which jobs done
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: which workers idle
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TCP connection state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: program counter
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Big questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What *state* to replicate?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Example:* Remus replicates all of RAM and the CPU state'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does replica get state?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When to *cut over* to backup?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is primary really down or is just the network down?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Are anomalies visible at cut-over?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What will clients see?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to repair / re-integrate?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to get a new backup?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Two main approaches:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**State transfer**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '"Primary" replica executes the service'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primary sends [new] state to backups
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Example:* Remus'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Replicated state machine**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All replicas (primary and backup) execute all operations
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If same start state & same operations & same order & deterministic & *then*
+    `=>` same end state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Ops* are transferred and not the state'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*State transfer* is simpler'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: But state may be large, slow to transfer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Remus* uses state transfer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Replicated state machine* can be more efficient'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If operations are small compared to data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But complex, e.g. order on multi-core, determinism
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hard to make sure everyone got to the same state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Determinism can be problematic (time, threads, etc.)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labs use replicated state machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Remus: High Availability via Asynchronous Virtual Machine Replication, NSDI
+    2008'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Very ambitious system
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Whole-system replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Completely *transparent* to applications and clients
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: High availability for any existing software
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Would be magic if it worked well!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Failure model:*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Independent hardware faults
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Site-wide power failure
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Plan 1 (slow, broken):'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`[Diagram: app, O/S, Remus underneath]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: two machines, *primary* and *backup*; plus net and other machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary runs o/s and application s/w, talks to clients, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: backup does *not* initially execute o/s, applications, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it only executes some Remus code
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'a few times per second:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pause primary
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: copy **entire RAM**, registers, disk to backup
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 10Gbps = 1GB/s network bandwidth
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 100MB/s disk bandwidth
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: network bandwidth limits RAM transfer rate
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: disk bandwidth limits disk transfer rate
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: resume primary
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'if primary fails:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: start backup executing!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Is Plan 1 correct (as described above)?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: i.e. does it look just like a single reliable server?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'No:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client sends write req. to primary, primary replies before backup had a chance
+    to copy the new state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary fails, backup takes over, but it does not reflect the last write req.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client will be screwed because his write was lost
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What will outside world see if primary fails and replica takes over?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will backup have same state as last visible on primary?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Might a client request be lost? Executed twice?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Yes: see above question'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How to decide if primary has failed?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** How will clients know to talk to backup rather than primary?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What if site-wide power failure?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Primary is running some o/s, has a plan for reboot from disk "crash-consistent"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if primary fails while sending state to backup?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: i.e. backup is mid-way through absorbing new state?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if primary gets request, sends checkpoint to backup, and just before
+    replying primary fails?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TCP layer will take care of this? If client retransmits request, that could
+    be problematic (side effects). So hopefully TCP kicks in and notices that no reply
+    came back. How? Primary was just about to reply, but Remus held the reply in the
+    buffer. Backup will have same state so it'll think it has replied and wait for
+    an ACK from the client, which will never come because the client got nothing.
+    Thus, backup will retransmit the packets that the primary never had a chance to
+    and finally get the ACK from the client.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Is Plan 1 efficient?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we eliminate the fact that backup *state* trails the primary?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Seems very hard!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primary would have to tell backup (and wait) on every instruction.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can we *conceal* the fact that backup's state lags primary?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prevent outside world from *seeing* that backup is behind last primary state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. prevent primary sent RPC reply but backup state doesn't reflect that RPC
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. MapReduce `Register()` RPC, which it would be bad for backup to forget
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Idea:* primary "holds" output until backup state catches up to output point'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. primary receives RPC request, processes it, creates reply packet, but Remus
+    holds reply packet until backup has received corresponding state update
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Remus epochs, checkpoints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Primary runs for a while in Epoch 1 (E1), holding E1's output
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary pauses
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary copies RAM+disk changes from E1 to local buffer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary resumes execution in E2, holding E2's output
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary sends checkpoint of RAM+disk to backup
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Backup copies all to separate RAM, then applies, then ACKs
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary releases E1's output
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Backup applies E1's changes to RAM and disk
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If primary fails, backup finishes applying last epoch's disk+RAM, then starts
+    executing
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Any externally visible anomalies?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What if primary receives + executes a request, crashes before checkpoint?
+    backup won''t have seen request!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That''s fine as long as primary did not reply to that request: client will
+    just send request again'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** If primary sends a packet, then crashes, is backup guaranteed to have
+    state changes implied by that packet?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes. That's the whole point of keeping the sent network packets buffered until
+    the backup is up to date.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if primary crashes partway through release of output? must backup
+    re-send? How does it know what to re-send?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** How does Remus decide it should switch to backup?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Naive mechanism: If the primary stops talking to the backup, then something
+    went wrong.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Are there situations in which Remus will incorrectly activate the backup?
+    i.e. primary is actually alive'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network partition...
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** When primary recovers, how does Remus restore replication? Needed, since
+    eventually active ex-backup will itself fail'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What if *both* fail, e.g. site-wide power failure?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAM content will be lost, but disks will probably survive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After power is restored, reboot guest from one of the disks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: O/S and application recovery code will execute
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: disk must be "crash-consistent"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So probably not the backup disk if was in middle of installing checkpoint
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: disk shouldn't reflect any held outputs (... why not?)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So probably not the primary's disk if was executing
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I do not understand this part of the paper (Section 2.5)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Seems to be a window during which neither disk could be used if power failed
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary writes its disk during epoch
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: meanwhile backup applies last epoch's writes to its disk
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** In what situations will Remus likely have good performance?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** In what situations will Remus likely have low performance?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Should epochs be short or long?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remus evaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Summary:* 1/2 to 1/4 native speed'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Checkpoints are big and take time to send
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Output hold limits speed at which clients can interact
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why so slow?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Checkpoints are big and take time to generate and send
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 100ms for SPECweb2005 -- because many pages written
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So inter-checkpoint intervals must be long
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So output must be held for quite a while
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So client interactions are slow
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only 10 RPCs per second per client
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How could one get better performance for replication?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Big savings possible with application-specific schemes:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: just send state really needed by application, not all state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: send state in optimized format, not whole pages
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: send operations if they are smaller than state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: likely *not* transparent to applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and probably not to clients either
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primary-backup replication in Lab 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Outline
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: simple key/value database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary and backup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*replicated state machine:* replicate by primary sending each operation to
+    backups'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tolerate network problems, including partition
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: either keep going, correctly
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or suspend operations until network is repaired
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: allow replacement of failed servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you implement essentially all of this (unlike lab 1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*"View server"* decides who primary `p` and backup `b` are'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Main goal:* avoid "split brain" -- disagreement about who primary is'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clients and servers ask view server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They don't make independent decisions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Repair
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: view server can co-opt "idle" server as `b` after old `b` becomes `p`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary initializes new backup's state
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Key points:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Only one primary at a time!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The primary must have the latest state!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We will work out some rules to ensure these
+  prefs: []
+  type: TYPE_NORMAL
+- en: View server
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Maintains a sequence of "views"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Monitors server liveness
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each server periodically sends a ping RPC (more like a heartbeat)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*"dead"* if missed `N` pings in a row'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*"live"* after single ping'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can be more than two servers pinging view server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if more than two, *"idle"* servers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If primary is dead:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: new view with previous backup as primary
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If backup is dead, or no backup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: new view with previously idle server as backup
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OK to have a view with just a primary, and no backup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But -- if an idle server is available, make it the backup
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to ensure new primary has up-to-date replica of state?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Only promote previous backup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. don't make an idle server the primary
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Backup must remember if it has been initialized by primary
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If not, don't function as primary even if promoted!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Can more than one server think it is primary?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How to ensure only one server acts as primary?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '...even though more than one may *think* it is primary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"Acts as"* `==` executes and responds to client requests'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The basic idea:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Primary in view `i` must have been primary or backup in view `i-1`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Primary must wait for backup to accept each request
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Q:** What if there''s no backup or the backup doesn''t know it''s a backup?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** Primary can''t make progress without a backup if it''s part of the view,
+    so it just waits'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** If the view is updated and the backup is taken out of the view then
+    primary can operate in "dangerous mode" without a backup'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Non-backup must reject forwarded requests
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Non-primary must reject direct client requests
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Every operation must be before or after state transfer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How can new backup get state?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: e.g. all the keys and values
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if S2 is backup in view `i`, but was not in view `i-1`,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: S2 should ask primary to transfer the complete state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Rule for state transfer:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: every operation (`Put/Get/Append`) must be either before or after state xfer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`==` state xfer must be atomic w.r.t. operations'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: either
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: op is before, and xferred state reflects op
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: op is after, xferred state doesn't reflect op, primary forwards op after state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Does primary need to forward `Get()`''s to backup?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After all, `Get()` doesn't change anything, so why does backup need to know?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and the extra RPC costs time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'has to do with ensuring there''s just one primary:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: suppose there's two primaries by accident (P and P' both think they are primaries)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how can this occur? network partition?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: suppose client sends a Get request to the wrong primary P'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then P' will try to fwd the request to P (which P' thinks it's the backup)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'then P will tell P'': *"Hey, bug off, I''m the primary"*'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How could we make primary-only `Get()`''s work?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Are there cases when the Lab 2 protocol cannot make forward progress?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: View service fails
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primary fails before backup gets state
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will start fixing those in Lab 3
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

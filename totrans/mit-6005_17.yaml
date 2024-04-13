@@ -1,0 +1,703 @@
+- en: 'Reading 17: Regular Expressions & Grammars'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'After today’s class, you should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understand the ideas of grammar productions and regular expression operators
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be able to read a grammar or regular expression and determine whether it matches
+    a sequence of characters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be able to write a grammar or regular expression to match a set of character
+    sequences and parse them into a data structure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Today’s reading introduces several ideas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: grammars, with productions, nonterminals, terminals, and operators
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: regular expressions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: parser generators
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Some program modules take input or produce output in the form of a sequence
+    of bytes or a sequence of characters, which is called a *string* when it’s simply
+    stored in memory, or a *stream* when it flows into or out of a module. In today’s
+    reading, we talk about how to write a specification for such a sequence. Concretely,
+    a sequence of bytes or characters might be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A file on disk, in which case the specification is called the *file format*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Messages sent over a network, in which case the specification is a *wire protocol*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A command typed by the user on the console, in which case the specification
+    is a *command line interface*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A string stored in memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For these kinds of sequences, we introduce the notion of a *grammar*, which
+    allows us not only to distinguish between legal and illegal sequences, but also
+    to parse a sequence into a data structure that a program can work with. The data
+    structure produced from a grammar will often be a recursive data type like we
+    talked about in the [recursive data type reading](../16-recursive-data-types/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also talk about a specialized form of a grammar called a *regular expression*.
+    In addition to being used for specification and parsing, regular expressions are
+    a widely-used tool for many string-processing tasks that need to disassemble a
+    string, extract information from it, or transform it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next reading will talk about parser generators, a kind of tool that translate
+    a grammar automatically into a parser for that grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammars
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To describe a sequence of symbols, whether they are bytes, characters, or some
+    other kind of symbol drawn from a fixed set, we use a compact representation called
+    a *grammar*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *grammar* defines a set of sentences, where each *sentence* is a sequence
+    of symbols. For example, our grammar for URLs will specify the set of sentences
+    that are legal URLs in the HTTP protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The symbols in a sentence are called *terminals* (or tokens).
+  prefs: []
+  type: TYPE_NORMAL
+- en: They’re called terminals because they are the leaves of a tree that represents
+    the structure of the sentence. They don’t have any children, and can’t be expanded
+    any further. We generally write terminals in quotes, like `'http'` or `':'`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A grammar is described by a set of *productions*, where each production defines
+    a *nonterminal*. You can think of a nonterminal like a variable that stands for
+    a set of sentences, and the production as the definition of that variable in terms
+    of other variables (nonterminals), operators, and constants (terminals). Nonterminals
+    are internal nodes of the tree representing a sentence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A production in a grammar has the form
+  prefs: []
+  type: TYPE_NORMAL
+- en: nonterminal ::= expression of terminals, nonterminals, and operators
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In 6.005, we will name nonterminals using lowercase identifiers, like `x` or
+    `y` or `url`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the nonterminals of the grammar is designated as the *root*. The set
+    of sentences that the grammar recognizes are the ones that match the root nonterminal.
+    This nonterminal is often called `root` or `start`, but in the grammars below
+    we will typically choose more memorable names like `url`, `html`, and `markdown`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammar Operators
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The three most important operators in a production expression are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: concatenation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: repetition
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: union (also called alternation)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can also use additional operators which are just syntactic sugar (i.e.,
+    they’re equivalent to combinations of the big three operators):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: option (0 or 1 occurrence)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 1+ repetition (1 or more occurrences)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: character classes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By convention, the operators `*`, `?`, and `+` have highest precedence, which
+    means they are applied first. Alternation `|` has lowest precedence, which means
+    it is applied last. Parentheses can be used to override this precedence, so that
+    a sequence or alternation can be repeated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: grouping using parentheses
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Reading a Grammar 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this grammar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading a Grammar 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading a Grammar 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading a Grammar 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: URL'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Suppose we want to write a grammar that represents URLs. Let’s build up a grammar
+    gradually by starting with simple examples and extending the grammar as we go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a simple URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A grammar that represents the set of sentences containing *only this URL* would
+    look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But let’s generalize it to capture other domains, as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can write this as one line, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This grammar represents the set of all URLs that consist of just a two-part
+    hostname, where each part of the hostname consists of 1 or more letters. So `http://mit.edu/`
+    and `http://yahoo.com/` would match, but not `http://ou812.com/`. Since it has
+    only one nonterminal, a *parse tree* for this URL grammar would look like the
+    picture on the right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this one-line form, with a single nonterminal whose production uses only
+    operators and terminals, a grammar is called a *regular expression* (more about
+    that later). But it will be easier to understand if we name the parts using new
+    nonterminals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![the parse tree produced by parsing ''http://mit.edu'' with a grammar with
+    url, hostname, and word nonterminals](http://web.mit.edu/6.005/www/fa16/classes/17-regex-grammarsfigures/url-with-hostname.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The parse tree for this grammar is now shown at right. The tree has more structure
+    now. The leaves of the tree are the parts of the string that have been parsed.
+    If we concatenated the leaves together, we would recover the original string.
+    The `hostname` and `word` nonterminals are labeling nodes of the tree whose subtrees
+    match those rules in the grammar. Notice that the immediate children of a nonterminal
+    node like `hostname` follow the pattern of the `hostname` rule, `word '.' word`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How else do we need to generalize? Hostnames can have more than two components,
+    and there can be an optional port number:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To handle this kind of string, the grammar is now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![the parse tree produced by parsing ''http://mit.edu'' with a grammar with
+    a recursive hostname rule](http://web.mit.edu/6.005/www/fa16/classes/17-regex-grammarsfigures/url-with-recursive-hostname.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Notice how hostname is now defined recursively in terms of itself.* Which
+    part of the hostname definition is the base case, and which part is the recursive
+    step? What kinds of hostnames are allowed?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the repetition operator, we could also write hostname like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another thing to observe is that this grammar allows port numbers that are not
+    technically legal, since port numbers can only range from 0 to 65535\. We could
+    write a more complex definition of port that would allow only these integers,
+    but that’s not typically done in a grammar. Instead, the constraint 0 <= port
+    <= 65535 would be specified alongside the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are more things we should do to go farther:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: generalizing `http` to support the additional protocols that URLs can have
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: generalizing the `/` at the end to a slash-separated path
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: allowing hostnames with the full set of legal characters instead of just a-z
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Writing a Grammar
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose we want the `url` grammar to also match strings of the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but not strings of the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So we change the grammar to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Markdown and HTML'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now let’s look at grammars for some file formats. We’ll be using two different
+    markup languages that represent typographic style in text. Here they are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Markdown
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTML
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: For simplicity, our example HTML and Markdown grammars will only specify italics,
+    but other text styles are of course possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the grammar for our simplified version of Markdown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![a parse tree produced by the Markdown grammar](http://web.mit.edu/6.005/www/fa16/classes/17-regex-grammarsfigures/markdown.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here’s the grammar for our simplified version of HTML:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![a parse tree produced by the HTML grammar](http://web.mit.edu/6.005/www/fa16/classes/17-regex-grammarsfigures/html.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Recursive Grammars
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look at the `markdown` and `html` grammars above, and compare their `italic`
+    productions. Notice that not only do they differ in delimiters (`_` in one case,
+    `< >` tags in the other), but also in the nonterminal that is matched between
+    those delimiters. One grammar is recursive; the other grammar is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each string below, if you match the specified grammar against it, which
+    letters are inside matches to the `italic` nonterminal? Your answer should be
+    some subset of the letters `abcde`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regular Expressions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A *regular* grammar has a special property: by substituting every nonterminal
+    (except the root one) with its righthand side, you can reduce it down to a single
+    production for the root, with only terminals and operators on the right-hand side.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our URL grammar was regular. By replacing nonterminals with their productions,
+    it can be reduced to a single expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Markdown grammar is also regular:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But our HTML grammar can’t be reduced completely. By substituting righthand
+    sides for nonterminals, you can eventually reduce it to something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: …but the recursive use of `html` on the righthand side can’t be eliminated,
+    and can’t be simply replaced by a repetition operator either. So the HTML grammar
+    is not regular.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reduced expression of terminals and operators can be written in an even
+    more compact form, called a *regular expression*. A regular expression does away
+    with the quotes around the terminals, and the spaces between terminals and operators,
+    so that it consists just of terminal characters, parentheses for grouping, and
+    operator characters. For example, the regular expression for our `markdown` format
+    is just
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Regular expressions are also called *regexes* for short. A regex is far less
+    readable than the original grammar, because it lacks the nonterminal names that
+    documented the meaning of each subexpression. But a regex is fast to implement,
+    and there are libraries in many programming languages that support regular expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The regex syntax commonly implemented in programming language libraries has
+    a few more special operators, in addition to the ones we used above in grammars.
+    Here’s are some common useful ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using backslashes is important whenever there are terminal characters that
+    would be confused with special characters. Because our `url` regular expression
+    has `.` in it as a terminal, we need to use a backslash to escape it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Regular Expressions
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following regular expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using regular expressions in Java
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Regular expressions (“regexes”) are widely used in programming, and you should
+    have them in your toolbox.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Java, you can use regexes for manipulating strings (see [`String.split`](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#split-java.lang.String-),
+    [`String.matches`](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#matches-java.lang.String-),
+    [`java.util.regex.Pattern`](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html)).
+    They’re built-in as a first-class feature of modern scripting languages like Python,
+    Ruby, and Javascript, and you can use them in many text editors for find and replace.
+    Regular expressions are your friend! Most of the time. Here are some examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Replace all runs of spaces with a single space:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Match a URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Extract part of an HTML tag:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice the backslashes in the URL and HTML tag examples. In the URL example,
+    we want to match a literal period `.`, so we have to first escape it as `\.` to
+    protect it from being interpreted as the regex match-any-character operator, and
+    then we have to further escape it as `\\.` to protect the backslash from being
+    interpreted as a Java string escape character. In the HTML example, we have to
+    escape the quote mark `"` as `\"` to keep it from ending the string. The frequency
+    of backslash escapes makes regexes still less readable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Using regexes in Java
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Write the shortest regex you can to remove single-word, lowercase-letter-only
+    HTML tags from a string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the desired output is `"The Good, the Bad, and the Ugly"`, what is shortest
+    regex you can put in place of TODO? You may find it useful to [run this example
+    in the Online Python Tutor](http://www.pythontutor.com/java.html#code=public+class+Regex+%7B%0A++++public+static+void+main(String%5B%5D+args%29+%7B%0A++++++++String+input+%3D+%22The+%3Cb%3EGood%3C/b%3E,+the+%3Ci%3EBad%3C/i%3E,+and+the+%3Cstrong%3EUgly%3C/strong%3E%22%3B+%0A++++++++String+regex+%3D+%22TODO%22%3B%0A++++++++String+output+%3D+input.replaceAll(regex,+%22%22%29%3B%0A++++++++System.out.println(output%29%3B%0A++++%7D%0A%7D&mode=edit&origin=opt-frontend.js&cumulative=false&heapPrimitives=false&textReferences=false&py=java&rawInputLstJSON=%5B%5D).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Context-Free Grammars
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In general, a language that can be expressed with our system of grammars is
+    called context-free. Not all context-free languages are also regular; that is,
+    some grammars can’t be reduced to single nonrecursive productions. Our HTML grammar
+    is context-free but not regular.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The grammars for most programming languages are also context-free. In general,
+    any language with nested structure (like nesting parentheses or braces) is context-free
+    but not regular. That description applies to the Java grammar, shown here in part:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Machine-processed textual languages are ubiquitous in computer science. Grammars
+    are the most popular formalism for describing such languages, and regular expressions
+    are an important subclass of grammars that can be expressed without recursion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The topics of today’s reading connect to our three properties of good software
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safe from bugs.** Grammars and regular expressions are declarative specifications
+    for strings and streams, which can be used directly by libraries and tools. These
+    specifications are often simpler, more direct, and less likely to be buggy then
+    parsing code written by hand.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easy to understand.** A grammar captures the shape of a sequence in a form
+    that is easier to understand than hand-written parsing code. Regular expressions,
+    alas, are often not easy to understand, because they are a one-line reduced form
+    of what might have been a more understandable regular grammar.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ready for change.** A grammar can be easily edited, but regular expressions,
+    unfortunately, are much harder to change, because a complex regular expression
+    is cryptic and hard to understand.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

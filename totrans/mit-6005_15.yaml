@@ -1,0 +1,997 @@
+- en: 'Reading 15: Equality'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Understand equality defined in terms of the abstraction function, an equivalence
+    relation, and observations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Differentiate between reference equality and object equality.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Differentiate between strict observational and behavioral equality for mutable
+    types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understand the Object contract and be able to implement equality correctly for
+    mutable and immutable types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶︎ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_15_equality,introduction/Bo5bI1CcbMo)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous readings we’ve developed a rigorous notion of *data abstraction*
+    by creating types that are characterized by their operations, not by their representation.
+    For an abstract data type, the *abstraction function* explains how to interpret
+    a concrete representation value as a value of the abstract type, and we saw how
+    the choice of abstraction function determines how to write the code implementing
+    each of the ADT’s operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this reading we turn to how we define the notion of *equality* of values
+    in a data type: the abstraction function will give us a way to cleanly define
+    the equality operation on an ADT.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the physical world, every object is distinct – at some level, even two snowflakes
+    are different, even if the distinction is just the position they occupy in space.
+    (This isn’t strictly true of all subatomic particles, but true enough of large
+    objects like snowflakes and baseballs and people.) So two physical objects are
+    never truly “equal” to each other; they only have degrees of similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the world of human language, however, and in the world of mathematical concepts,
+    you can have multiple names for the same thing. So it’s natural to ask when two
+    expressions represent the same thing: 1+2, √9, and 3 are alternative expressions
+    for the same ideal mathematical value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Three Ways to Regard Equality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Formally, we can regard equality in several ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using an abstraction function**. Recall that an abstraction function f: R
+    → A maps concrete instances of a data type to their corresponding abstract values.
+    To use f as a definition for equality, we would say that a equals b if and only
+    if f(a)=f(b).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using a relation**. An *equivalence* is a relation E ⊆ T x T that is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'reflexive: E(t,t) ∀ t ∈ T'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'symmetric: E(t,u) ⇒ E(u,t)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'transitive: E(t,u) ∧ E(u,v) ⇒ E(t,v)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To use E as a definition for equality, we would say that a equals b if and only
+    if E(a,b).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These two notions are equivalent. An equivalence relation induces an abstraction
+    function (the relation partitions T, so f maps each element to its partition class).
+    The relation induced by an abstraction function is an equivalence relation (check
+    for yourself that the three properties hold).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A third way we can talk about the equality between abstract values is in terms
+    of what an outsider (a client) can observe about them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using observation**. We can say that two objects are equal when they cannot
+    be distinguished by observation – every operation we can apply produces the same
+    result for both objects. Consider the set expressions {1,2} and {2,1}. Using the
+    observer operations available for sets, cardinality |…| and membership ∈, these
+    expressions are indistinguishable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|{1,2}| = 2 and |{2,1}| = 2'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1 ∈ {1,2} is true, and 1 ∈ {2,1} is true
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2 ∈ {1,2} is true, and 2 ∈ {2,1} is true
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3 ∈ {1,2} is false, and 3 ∈ {2,1} is false
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: … and so on
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In terms of abstract data types, “observation” means calling operations on the
+    objects. So two objects are equal if and only if they cannot be distinguished
+    by calling any operations of the abstract data type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Duration'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here’s a simple example of an immutable ADT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now which of the following values should be considered equal?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Think in terms of both the abstraction-function definition of equality, and
+    the observational equality definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Any second now
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the code for `Duration` and the objects `d1`, `d2`, `d3`, `d4` just
+    created above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the abstraction-function notion of equality, which of the following would
+    be considered equal to `d1`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eye on the clock
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the observational notion of equality, which of the following would be
+    considered equal to `d1`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: == vs. equals()
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶︎ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_15_equality,_vs_equals/SEGmpKM874c)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like many languages, Java has two different operations for testing equality,
+    with different semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `==` operator compares references. More precisely, it tests *referential*
+    equality. Two references are == if they point to the same storage in memory. In
+    terms of the snapshot diagrams we’ve been drawing, two references are `==` if
+    their arrows point to the same object bubble.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `equals()` operation compares object contents – in other words, *object*
+    equality, in the sense that we’ve been talking about in this reading. The equals
+    operation has to be defined appropriately for every abstract data type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For comparison, here are the equality operators in several languages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  | *referential equality* | *object equality* |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Java | `==` | `equals()` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Objective C | `==` | `isEqual:` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| C# | `==` | `Equals()` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Python | `is` | `==` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Javascript | `==` | n/a |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Note that `==` unfortunately flips its meaning between Java and Python. Don’t
+    let that confuse you: `==` in Java just tests reference identity, it doesn’t compare
+    object contents.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As programmers in any of these languages, we can’t change the meaning of the
+    referential equality operator. In Java, `==` always means referential equality.
+    But when we define a new data type, it’s our responsibility to decide what object
+    equality means for values of the data type, and implement the `equals()` operation
+    appropriately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Equality of Immutable Types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `equals()` method is defined by `Object`, and its default implementation
+    looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, the default meaning of `equals()` is the same as referential
+    equality. For immutable data types, this is almost always wrong. So you have to
+    **override** the `equals()` method, replacing it with your own implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s our first try for `Duration`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There’s a subtle problem here. Why doesn’t this work? Let’s try this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can [see this code in action](http://www.pythontutor.com/java.html#code=public+class+Duration+%7B%0A++++private+final+int+mins%3B%0A++++private+final+int+secs%3B%0A++++//+rep+invariant%3A%0A++++//++++mins+%3E%3D+0,+secs+%3E%3D+0%0A++++//+abstraction+function%3A%0A++++//++++represents+a+span+of+time+of+mins+minutes+and+secs+seconds%0A%0A++++/**+Make+a+duration+lasting+for+m+minutes+and+s+seconds.+*/%0A++++public+Duration(int+m,+int+s%29+%7B%0A++++++++mins+%3D+m%3B+secs+%3D+s%3B%0A++++%7D%0A++++/**+%40return+length+of+this+duration+in+seconds+*/%0A++++public+long+getLength(%29+%7B%0A++++++++return+mins*60+%2B+secs%3B%0A++++%7D%0A++++//+Problematic+definition+of+equals(%29%0A++++public+boolean+equals(Duration+that%29+%7B%0A++++++++return+this.getLength(%29+%3D%3D+that.getLength(%29%3B++++++++%0A++++%7D%0A++++public+static+void+main(String%5B%5D+args%29+%7B%0A++++++Duration+d1+%3D+new+Duration+(1,+2%29%3B%0A++++++Duration+d2+%3D+new+Duration+(1,+2%29%3B%0A++++++Object+o2+%3D+d2%3B%0A++++++System.out.println(%22d1.equals(d2%29%3D%22+%2B+d1.equals(d2%29%29%3B%0A++++++System.out.println(%22d1.equals(o2%29%3D%22+%2B+d1.equals(o2%29%29%3B%0A++++%7D%0A%7D&mode=display&origin=opt-frontend.js&cumulative=false&heapPrimitives=false&textReferences=false&py=java&rawInputLstJSON=%5B%5D&curInstr=33).
+    You’ll see that even though `d2` and `o2` end up referring to the very same object
+    in memory, you still get different results for them from `equals()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What’s going on? It turns out that `Duration` has **overloaded** the `equals()`
+    method, because the method signature was not identical to `Object`’s. We actually
+    have two `equals()` methods in `Duration`: an implicit `equals(Object)` inherited
+    from `Object`, and the new `equals(Duration)`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve seen overloading since the very beginning of the course in [static checking](../01-static-checking/#types).
+    Recall from [the Java Tutorials](http://docs.oracle.com/javase/tutorial/java/javaOO/methods.html)
+    that the compiler selects between overloaded operations using the compile-time
+    type of the parameters. For example, when you use the `/` operator, the compiler
+    chooses either integer division or float division based on whether the arguments
+    are ints or floats. The same compile-time selection happens here. If we pass an
+    `Object` reference, as in `d1.equals(o2)`, we end up calling the `equals(Object)`
+    implementation. If we pass a `Duration` reference, as in `d1.equals(d2)`, we end
+    up calling the `equals(Duration)` version. This happens even though `o2` and `d2`
+    both point to the same object at runtime! Equality has become inconsistent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s easy to make a mistake in the method signature, and overload a method when
+    you meant to override it. This is such a common error that Java has a language
+    feature, the annotation [`@Override`](https://docs.oracle.com/javase/tutorial/java/annotations/predefined.html),
+    which you should use whenever your intention is to override a method in your superclass.
+    With this annotation, the Java compiler will check that a method with the same
+    signature actually exists in the superclass, and give you a compiler error if
+    you’ve made a mistake in the signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here’s the right way to implement `Duration`’s `equals()` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This fixes the problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can [see this code in action](http://www.pythontutor.com/java.html#code=public+class+Duration+%7B%0A++++private+final+int+mins%3B%0A++++private+final+int+secs%3B%0A++++//+rep+invariant%3A%0A++++//++++mins+%3E%3D+0,+secs+%3E%3D+0%0A++++//+abstraction+function%3A%0A++++//++++represents+a+span+of+time+of+mins+minutes+and+secs+seconds%0A%0A++++/**+Make+a+duration+lasting+for+m+minutes+and+s+seconds.+*/%0A++++public+Duration(int+m,+int+s%29+%7B%0A++++++++mins+%3D+m%3B+secs+%3D+s%3B%0A++++%7D%0A++++/**+%40return+length+of+this+duration+in+seconds+*/%0A++++public+long+getLength(%29+%7B%0A++++++++return+mins*60+%2B+secs%3B%0A++++%7D%0A++++%40Override%0A++++public+boolean+equals+(Object+thatObject%29+%7B%0A++++++++if+(!(thatObject+instanceof+Duration%29%29+return+false%3B%0A++++++++Duration+thatDuration+%3D+(Duration%29+thatObject%3B%0A++++++++return+this.getLength(%29+%3D%3D+thatDuration.getLength(%29%3B%0A++++%7D%0A++++public+static+void+main(String%5B%5D+args%29+%7B%0A++++++Duration+d1+%3D+new+Duration+(1,+2%29%3B%0A++++++Duration+d2+%3D+new+Duration+(1,+2%29%3B%0A++++++Object+o2+%3D+d2%3B%0A++++++System.out.println(%22d1.equals(d2%29%3D%22+%2B+d1.equals(d2%29%29%3B%0A++++++System.out.println(%22d1.equals(o2%29%3D%22+%2B+d1.equals(o2%29%29%3B%0A++++%7D%0A%7D&mode=display&origin=opt-frontend.js&cumulative=false&heapPrimitives=false&textReferences=false&py=java&rawInputLstJSON=%5B%5D&curInstr=49)
+    in the Online Python Tutor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: instanceof
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The [`instanceof` operator](https://docs.oracle.com/javase/tutorial/java/nutsandbolts/op2.html)
+    tests whether an object is an instance of a particular type. Using `instanceof`
+    is dynamic type checking, not the static type checking we vastly prefer. In general,
+    using `instanceof` in object-oriented programming is a bad smell. In 6.005 — and
+    this is another of our rules that holds true in most good Java programming — **`instanceof`
+    is disallowed anywhere except for implementing `equals`**. This prohibition also
+    includes other ways of inspecting objects’ runtime types. For example, [`getClass`](http://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#getClass--)
+    is also disallowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll see examples of when you might be tempted to use `instanceof`, and how
+    to write alternatives that are safer from bugs and more ready for change, in a
+    future reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Object Contract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The specification of the `Object` class is so important that it is often referred
+    to as *the `Object` Contract*. The contract can be found in the method specifications
+    for the `Object` class. Here we will focus on the contract for `equals`. When
+    you override the `equals` method, you must adhere to its general contract. It
+    states that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`equals` must define an equivalence relation – that is, a relation that is
+    reflexive, symmetric, and transitive;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`equals` must be consistent: repeated calls to the method must yield the same
+    result provided no information used in `equals` comparisons on the object is modified;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for a non-null reference `x`, `x.equals(null)` should return false;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hashCode` must produce the same result for two objects that are deemed equal
+    by the `equals` method.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Breaking the Equivalence Relation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s start with the equivalence relation. We have to make sure that the definition
+    of equality implemented by `equals()` is actually an equivalence relation as defined
+    earlier: reflexive, symmetric, and transitive. If it isn’t, then operations that
+    depend on equality (like sets, searching) will behave erratically and unpredictably.
+    You don’t want to program with a data type in which sometimes `a` equals `b`,
+    but `b` doesn’t equal `a`. Subtle and painful bugs will result.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example of how an innocent attempt to make equality more flexible
+    can go wrong. Suppose we wanted to allow for a tolerance in comparing `Duration`
+    objects, because different computers may have slightly unsynchronized clocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which property of the equivalence relation is violated?
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Equals-ish
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the latest implementation of `Duration` in the reading, reprinted
+    here for convenience:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Suppose these `Duration` objects are created:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Skewed up(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buggy equality(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Breaking Hash Tables
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**▶︎ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_15_equality,the_object_contract,breaking_hash_tables/hP2FNsAJQG4)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand the part of the contract relating to the `hashCode` method, you’ll
+    need to have some idea of how hash tables work. Two very common collection implementations,
+    `HashSet` and `HashMap`, use a hash table data structure, and depend on the `hashCode`
+    method to be implemented correctly for the objects stored in the set and used
+    as keys in the map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A hash table is a representation for a mapping: an abstract data type that
+    maps keys to values. Hash tables offer constant time lookup, so they tend to perform
+    better than trees or lists. Keys don’t have to be ordered, or have any particular
+    property, except for offering `equals` and `hashCode`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s how a hash table works. It contains an array that is initialized to a
+    size corresponding to the number of elements that we expect to be inserted. When
+    a key and a value are presented for insertion, we compute the hashcode of the
+    key, and convert it into an index in the array’s range (e.g., by a modulo division).
+    The value is then inserted at that index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rep invariant of a hash table includes the fundamental constraint that keys
+    are in the slots determined by their hash codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hashcodes are designed so that the keys will be spread evenly over the indices.
+    But occasionally a conflict occurs, and two keys are placed at the same index.
+    So rather than holding a single value at an index, a hash table actually holds
+    a list of key/value pairs, usually called a *hash bucket*. A key/value pair is
+    implemented in Java simply as an object with two fields. On insertion, you add
+    a pair to the list in the array slot determined by the hash code. For lookup,
+    you hash the key, find the right slot, and then examine each of the pairs until
+    one is found whose key equals the query key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it should be clear why the `Object` contract requires equal objects to have
+    the same hashcode. If two equal objects had distinct hashcodes, they might be
+    placed in different slots. So if you attempt to lookup a value using a key equal
+    to the one with which it was inserted, the lookup may fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Object`’s default `hashCode()` implementation is consistent with its default
+    `equals()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: For references `a` and `b`, if `a == b`, then the address of a `==` the address
+    of b. So the `Object` contract is satisfied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But immutable objects need a different implementation of `hashCode()`. For
+    `Duration`, since we haven’t overridden the default `hashCode()` yet, we’re currently
+    breaking the `Object` contract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`d1` and `d2` are `equal()`, but they have different hash codes. So we need
+    to fix that.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple and drastic way to ensure that the contract is met is for `hashCode`
+    to always return some constant value, so every object’s hash code is the same.
+    This satisfies the `Object` contract, but it would have a disastrous performance
+    effect, since every key will be stored in the same slot, and every lookup will
+    degenerate to a linear search along a long list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The standard way to construct a more reasonable hash code that still satisfies
+    the contract is to compute a hash code for each component of the object that is
+    used in the determination of equality (usually by calling the `hashCode` method
+    of each component), and then combining these, throwing in a few arithmetic operations.
+    For `Duration`, this is easy, because the abstract value of the class is already
+    an integer value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Josh Bloch’s fantastic book, *Effective Java*, explains this issue in more detail,
+    and gives some strategies for writing decent hash code functions. The advice is
+    summarized in [a good StackOverflow post](http://stackoverflow.com/questions/113511/hash-code-implementation).
+    Recent versions of Java now have a utility method [`Objects.hash()`](http://docs.oracle.com/javase/8/docs/api/java/util/Objects.html#hash-java.lang.Object...-)
+    that makes it easier to implement a hash code involving multiple fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note, however, that as long as you satisfy the requirement that equal objects
+    have the same hash code value, then the particular hashing technique you use doesn’t
+    make a difference to the correctness of your code. It may affect its performance,
+    by creating unnecessary collisions between different objects, but even a poorly-performing
+    hash function is better than one that breaks the contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most crucially, note that if you don’t override `hashCode` at all, you’ll get
+    the one from `Object`, which is based on the address of the object. If you have
+    overridden `equals`, this will mean that you will have almost certainly violated
+    the contract. So as a general rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Always override `hashCode` when you override `equals`.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Many years ago in (a precursor to 6.005 confusingly numbered) 6.170, a student
+    spent hours tracking down a bug in a project that amounted to nothing more than
+    misspelling `hashCode` as `hashcode`. This created a new method that didn’t override
+    the `hashCode` method of `Object` at all, and strange things happened. Use `@Override`!
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Give me the code
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following ADT class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Equality of Mutable Types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶︎ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_15_equality,equality_of_mutable_types/HlSJmV919rE)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve been focusing on equality of immutable objects so far in this reading.
+    What about mutable objects?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recall our definition: two objects are equal when they cannot be distinguished
+    by observation. With mutable objects, there are two ways to interpret this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: when they cannot be distinguished by observation *that doesn’t change the state
+    of the objects*, i.e., by calling only observer, producer, and creator methods.
+    This is often strictly called **observational equality**, since it tests whether
+    the two objects “look” the same, in the current state of the program.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when they cannot be distinguished by *any* observation, even state changes.
+    This interpretation allows calling any methods on the two objects, including mutators.
+    This is often called **behavioral equality**, since it tests whether the two objects
+    will “behave” the same, in this and all future states.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For immutable objects, observational and behavioral equality are identical,
+    because there aren’t any mutator methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For mutable objects, it’s tempting to implement strict observational equality.
+    Java uses observational equality for most of its mutable data types, in fact.
+    If two distinct `List` objects contain the same sequence of elements, then `equals()`
+    reports that they are equal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But using observational equality leads to subtle bugs, and in fact allows us
+    to easily break the rep invariants of other collection data structures. Suppose
+    we make a `List`, and then drop it into a `Set`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can check that the set contains the list we put in it, and it does:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But now we mutate the list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: And it no longer appears in the set!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It’s worse than that, in fact: when we iterate over the members of the set,
+    we still find the list in there, but `contains()` says it’s not there!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the set’s own iterator and its own `contains()` method disagree about whether
+    an element is in the set, then the set clearly is broken. You can [see this code
+    in action](http://www.pythontutor.com/java.html#code=import+java.util.*%3B%0Apublic+class+WhyObservationalEqualityHurts+%7B%0A++public+static+void+main(String%5B%5D+args%29+%7B%0A++++List%3CString%3E+list+%3D+new+ArrayList%3C%3E(%29%3B%0A++++list.add(%22a%22%29%3B%0A++++Set%3CList%3CString%3E%3E+set+%3D+new+HashSet%3CList%3CString%3E%3E(%29%3B%0A++++set.add(list%29%3B%0A++++System.out.println(%22set.contains(list%29%3D%22+%2B+set.contains(list%29%29%3B%0A++++list.add(%22goodbye%22%29%3B%0A++++System.out.println(%22set.contains(list%29%3D%22+%2B+set.contains(list%29%29%3B%0A++++for+(List%3CString%3E+l+%3A+set%29+%7B+%0A++++++System.out.println(%22set.contains(l%29%3D%22+%2B+set.contains(l%29%29%3B%0A++++%7D%0A++%7D%0A%7D&mode=display&origin=opt-frontend.js&cumulative=false&heapPrimitives=false&textReferences=false&py=java&rawInputLstJSON=%5B%5D&curInstr=13)
+    on Online Python Tutor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s going on? `List<String>` is a mutable object. In the standard Java implementation
+    of collection classes like `List`, mutations affect the result of `equals()` and
+    `hashCode()`. When the list is first put into the `HashSet`, it is stored in the
+    hash bucket corresponding to its `hashCode()` result at that time. When the list
+    is subsequently mutated, its `hashCode()` changes, but `HashSet` doesn’t realize
+    it should be moved to a different bucket. So it can never be found again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When `equals()` and `hashCode()` can be affected by mutation, we can break the
+    rep invariant of a hash table that uses that object as a key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a telling quote from the specification of `java.util.Set`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: Great care must be exercised if mutable objects are used as set elements.
+    The behavior of a set is not specified if the value of an object is changed in
+    a manner that affects equals comparisons while the object is an element in the
+    set.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Java library is unfortunately inconsistent about its interpretation of `equals()`
+    for mutable classes. Collections use observational equality, but other mutable
+    classes (like `StringBuilder`) use behavioral equality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lesson we should draw from this example is that **`equals()` should implement
+    behavioral equality**. In general, that means that two references should be `equals()`
+    if and only if they are aliases for the same object. So mutable objects should
+    just inherit `equals()` and `hashCode()` from `Object`. For clients that need
+    a notion of observational equality (whether two mutable objects “look” the same
+    in the current state), it’s better to define a new method, e.g., `similar()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Final Rule for equals() and hashCode()
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**For immutable types**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`equals()` should compare abstract values. This is the same as saying `equals()`
+    should provide behavioral equality.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hashCode()` should map the abstract value to an integer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So immutable types must override both `equals()` and `hashCode()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**For mutable types**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`equals()` should compare references, just like `==`. Again, this is the same
+    as saying `equals()` should provide behavioral equality.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hashCode()` should map the reference into an integer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So mutable types should not override `equals()` and `hashCode()` at all, and
+    should simply use the default implementations provided by `Object`. Java doesn’t
+    follow this rule for its collections, unfortunately, leading to the pitfalls that
+    we saw above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Bag
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose `Bag<E>` is a mutable ADT representing what is often called a *multiset*,
+    an unordered collection of objects where an object can occur more than once. It
+    has the following operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Suppose we run this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bag behavior
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `Bag` is implemented with behavioral equality, which of the following expressions
+    are true?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bean bag
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `Bag` were part of the Java API, it would probably implement observational
+    equality, counter to the recommendation in the reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `Bag` implemented observational equality despite the dangers, which of the
+    following expressions are true?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Autoboxing and Equality
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**▶︎ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_15_equality,the_final_rule_for_equals_and_hashcode,autoboxing_and_equality/2w7-UynuSeI)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One more instructive pitfall in Java. We’ve talked about primitive types and
+    their object type equivalents – for example, `int` and `Integer`. The object type
+    implements `equals()` in the correct way, so that if you create two `Integer`
+    objects with the same value, they’ll be `equals()` to each other:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But there’s a subtle problem here; `==` is overloaded. For reference types
+    like `Integer`, it implements referential equality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But for primitive types like `int`, `==` implements behavioral equality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So you can’t really use `Integer` interchangeably with `int`. The fact that
+    Java automatically converts between `int` and `Integer` (this is called *autoboxing*
+    and *autounboxing*) can lead to subtle bugs! You have to be aware what the compile-time
+    types of your expressions are. Consider this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can [see this code in action](http://www.pythontutor.com/java.html#code=import+java.util.*%3B%0Apublic+class+AutounboxingProblem+%7B%0A++public+static+void+main(String%5B%5D+args%29+%7B%0A++++Map%3CString,+Integer%3E+a+%3D+new+HashMap%3C%3E(%29,+b+%3D+new+HashMap%3C%3E(%29%3B%0A++++a.put(%22c%22,+130%29%3B+//+put+ints+into+the+map%0A++++b.put(%22c%22,+130%29%3B%0A++++System.out.println(%22a.get(%5C%22c%5C%22%29+%3D%3D+b.get(%5C%22c%5C%22%29+returns+%22%0A++++++++++++++++++++++++%2B+(a.get(%22c%22%29+%3D%3D+b.get(%22c%22%29%29+%29%3B%0A++%7D%0A%7D&mode=display&origin=opt-frontend.js&cumulative=false&heapPrimitives=false&textReferences=false&py=java&rawInputLstJSON=%5B%5D&curInstr=6)
+    on Online Python Tutor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Boxes
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the last code example above…
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the compile-time type of the expression `130`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>int</option>,<option>Integer</option>,<option>String</option>,<option>something
+    else</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After executing `a.put("c", 130)`, what is the runtime type that is used to
+    represent the value 130 in the map?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>int</option>,<option>Integer</option>,<option>String</option>,<option>something
+    else</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the compile-time type of `a.get("c")`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>int</option>,<option>Integer</option>,<option>String</option>,<option>something
+    else</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Circles
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Draw a snapshot diagram after the code above has executed. How many `HashMap`
+    objects are in your snapshot diagram?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: How many `Integer` objects are in your snapshot diagram?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Equals
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this code executes, what would `a.get("c").equals(b.get("c"))` return?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>true­</option>,<option>false­</option>,<option>compile-time
+    error</option>,<option>runtime error</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What would `a.get("c") == b.get("c")` return?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>true­</option>,<option>false­</option>,<option>compile-time
+    error</option>,<option>runtime error</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unboxes
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now suppose you assign the `get()` results to `int` variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: After executing this code, what is the value of `isEqual`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>true­</option>,<option>false­</option>,<option>compile-time
+    error</option>,<option>runtime error</option></select>(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Equality should be an equivalence relation (reflexive, symmetric, transitive).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Equality and hash code must be consistent with each other, so that data structures
+    that use hash tables (like `HashSet` and `HashMap`) work properly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The abstraction function is the basis for equality in immutable data types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reference equality is the basis for equality in mutable data types; this is
+    the only way to ensure consistency over time and avoid breaking rep invariants
+    of hash tables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Equality is one part of implementing an abstract data type, and we’ve already
+    seen how important ADTs are to achieving our three primary objectives. Let’s look
+    at equality in particular:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safe from bugs**. Correct implementation of equality and hash codes is necessary
+    for use with collection data types like sets and maps. It’s also highly desirable
+    for writing tests. Since every object in Java inherits the `Object` implementations,
+    immutable types must override them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easy to understand**. Clients and other programmers who read our specs will
+    expect our types to implement an appropriate equality operation, and will be surprised
+    and confused if we do not.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ready for change**. Correctly-implemented equality for *immutable* types
+    separates equality of reference from equality of abstract value, hiding from clients
+    our decisions about whether values are shared. Choosing behavioral rather than
+    observational equality for *mutable* types helps avoid unexpected aliasing bugs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

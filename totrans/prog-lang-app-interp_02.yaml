@@ -1,0 +1,342 @@
+- en: 2Everything (We Will Say) About Parsing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Parsing is the act of turning an input character stream into a more structured,
+    internal representation. A common internal representation is as a tree, which
+    programs can recursively process. For instance, given the stream
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 23 + 5 - 6 |'
+  prefs: []
+  type: TYPE_TB
+- en: we might want a tree representing addition whose left node represents the number
+    23 and whose right node represents subtraction of 6 from 5. A parser is responsible
+    for performing this transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing is a large, complex problem that is far from solved due to the difficulties
+    of ambiguity. For instance, an alternate parse tree for the above input expression
+    might put subtraction at the top and addition below it. We might also want to
+    consider whether this addition operation is commutative and hence whether the
+    order of arguments can be switched. Everything only gets much, much worse when
+    we get to full-fledged programming languages (to say nothing of natural languages).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.1A Lightweight, Built-In First Half of a Parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'These problems make parsing a worthy topic in its own right, and entire books,
+    tools, and courses are devoted to it. However, from our perspective parsing is
+    mostly a distraction, because we want to study the parts of programming languages
+    that are not parsing. We will therefore exploit a handy feature of Racket to manage
+    the transformation of input streams into trees: read. read is tied to the parenthetical
+    form of the language, in that it parses fully (and hence unambiguously) parenthesized
+    terms into a built-in tree form. For instance, running (read) on the parenthesized
+    form of the above input—<wbr>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (+ 23 (- 5 6)) |'
+  prefs: []
+  type: TYPE_TB
+- en: —<wbr>will produce a list, whose first element is the symbol ’+, second element
+    is the number 23, and third element is a list; this list’s first element is the
+    symbol ’-, second element is the number 5, and third element is the number 6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.2A Convenient Shortcut
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you know you need to test your programs extensively, which is hard to do
+    when you must manually type terms in over and over again. Fortunately, as you
+    might expect, the parenthetical syntax is integrated deeply into Racket through
+    the mechanism of quotation. That is, ’<expr>—<wbr>which you saw a moment ago in
+    the above example—<wbr>acts as if you had run (read) and typed <expr> at the prompt
+    (and, of course, evaluates to the value the (read) would have).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3Types for Parsing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Actually, I’ve lied a little. I said that (read)—<wbr>or equivalently, using
+    quotation—<wbr>will produce a list, etc. That’s true in regular Racket, but in
+    Typed PLAI, the type it returns a distinct type called an s-expression, written
+    in Typed PLAI as s-expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > (read) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - s-expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| [type in (+ 23 (- 5 6))] |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ''(+ 23 (- 5 6)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Racket has a very rich language of s-expressions (it even has notation to represent
+    cyclic structures), but we will use only the simple fragment of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the typed language, an s-expression is treated distinctly from the other
+    types, such as numbers and lists. Underneath, an s-expression is a large recursive
+    datatype that consists of all the base printable values—<wbr>numbers, strings,
+    symbols, and so on—<wbr>and printable collections (lists, vectors, etc.) of s-expressions.
+    As a result, base types like numbers, symbols, and strings are both their own
+    type and an instance of s-expression. Typing such data can be fairly problematic,
+    as we will discuss later [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Typed PLAI takes a simple approach. When written on their own, values like
+    numbers are of those respective types. But when written inside a complex s-expression—<wbr>in
+    particular, as created by read or quotation—<wbr>they have type s-expression.
+    You have to then cast them to their native types. For instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > ''+ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - symbol |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ''+ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > (define l ''(+ 1 2)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > l |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - s-expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ''(+ 1 2) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > (first l) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| . typecheck failed: (listof ''_a) vs s-expression in: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   first |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (quote (+ 1 2)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   l |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   first |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > (define f (first (s-exp->list l))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > f |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - s-expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ''+ |'
+  prefs: []
+  type: TYPE_TB
+- en: 'This is similar to the casting that a Java programmer would have to insert.
+    We will study casting itself later [REF].Observe that the first element of the
+    list is still not treated by the type checker as a symbol: a list-shaped s-expression
+    is a list of s-expressions. Thus,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > (symbol->string f) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| . typecheck failed: symbol vs s-expression in: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   symbol->string |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   f |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   symbol->string |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   f |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   first |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (first (s-exp->list l)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   s-exp->list |'
+  prefs: []
+  type: TYPE_TB
+- en: 'whereas again, casting does the trick:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > (symbol->string (s-exp->symbol f)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - string |'
+  prefs: []
+  type: TYPE_TB
+- en: '| "+" |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The need to cast s-expressions is a bit of a nuisance, but some complexity
+    is unavoidable because of what we’re trying to accomplish: to convert an untyped
+    input stream into a typed output stream through robustly typed means. Somehow
+    we have to make explicit our assumptions about that input stream.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately we will use s-expressions only in our parser, and our goal is to
+    get away from parsing as quickly as possible! Indeed, if anything this should
+    be inducement to get away even quicker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.4Completing the Parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In principle, we can think of read as a complete parser. However, its output
+    is generic: it represents the token structure without offering any comment on
+    its intent. We would instead prefer to have a representation that tells us something
+    about the intended meaning of the terms in our language, just as we wrote at the
+    very beginning: “representing addition”, “represents a number”, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this, we must first introduce a datatype that captures this representation.
+    We will separately discuss ([Representing Arithmetic](first-interp.html#(part._dt-for-arith)))
+    how and why we obtained this datatype, but for now let’s say it’s given to us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type ArithC |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numC (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [plusC (l : ArithC) (r : ArithC)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [multC (l : ArithC) (r : ArithC)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'We now need a function that will convert s-expressions into instances of this
+    datatype. This is the other half of our parser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (parse [s : s-expression]) : ArithC |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (cond |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(s-exp-number? s) (numC (s-exp->number s))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(s-exp-list? s) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|      (let ([sl (s-exp->list s)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|        (case (s-exp->symbol (first sl)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|          [(+) (plusC (parse (second sl)) (parse (third sl)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|          [(*) (multC (parse (second sl)) (parse (third sl)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|          [else (error ''parse "invalid list input")]))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [else (error ''parse "invalid input")])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > (parse ''(+ (* 1 2) (+ 2 3))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| - ArithC |'
+  prefs: []
+  type: TYPE_TB
+- en: '| (plusC |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  (multC (numC 1) (numC 2)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  (plusC (numC 2) (numC 3))) |'
+  prefs: []
+  type: TYPE_TB
+- en: Congratulations! You have just completed your first representation of a program.
+    From now on we can focus entirely on programs represented as recursive trees,
+    ignoring the vagaries of surface syntax and how to get them into the tree form.
+    We’re finally ready to start studying programming languages!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens if you forget to quote the argument to the parser? Why?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 2.5Coda
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Racket’s syntax, which it inherits from Scheme and Lisp, is controversial.
+    Observe, however, something deeply valuable that we get from it. While parsing
+    traditional languages can be very complex, parsing this syntax is virtually trivial.
+    Given a sequence of tokens corresponding to the input, it is absolutely straightforward
+    to turn parenthesized sequences into s-expressions; it is equally straightforward
+    (as we see above) to turn s-expressions into proper syntax trees. I like to call
+    such two-level languages bicameral, in loose analogy to government legislative
+    houses: the lower-level does rudimentary well-formedness checking, while the upper-level
+    does deeper validity checking. (We haven’t done any of the latter yet, but we
+    will [REF].)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The virtues of this syntax are thus manifold. The amount of code it requires
+    is small, and can easily be embedded in many contexts. By integrating the syntax
+    into the language, it becomes easy for programs to manipulate representations
+    of programs (as we will see more of in [REF]). It’s therefore no surprise that
+    even though many Lisp-based syntaxes have had wildly different semantics, they
+    all share this syntactic legacy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we could just use XML instead. That would be much better. Or JSON.
+    Because that wouldn’t be anything like an s-expression at all.
+  prefs: []
+  type: TYPE_NORMAL

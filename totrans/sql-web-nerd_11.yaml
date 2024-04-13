@@ -1,0 +1,529 @@
+- en: '| [![Hawaii](../Images/dba259bd7bdf0e51fe26e0ce0cb7e5fc.jpg)](/http://philip.greenspun.com/images/pcd4235/trees-34.4.jpg)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Trees in Oracle SQL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![A tree in Canyon de Chelly](../Images/5c0e7c5b1bc555ab5e82bd442e822596.jpg)](/http://philip.greenspun.com/images/pcd2148/canyon-de-chelly-tree-5.4.jpg)
+    On its face, the relational database management system would appear to be a very
+    poor tool for representing and manipulating trees. This chapter is designed to
+    accomplish the following things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: show you that a row in an SQL database can be thought of as an object
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: show you that a pointer from one object to another can be represented by storing
+    an integer key in a regular database column
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: demonstrate the Oracle tree extensions (CONNECT BY ... PRIOR)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: show you how to work around the limitations of CONNECT BY with PL/SQL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The canonical example of trees in Oracle is the org chart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: '[![Joshua Tree National Park](../Images/97a384ca26084f87d1b3e02d1b9051f8.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-78.tcl)
+    The integers in the `supervisor_id` are actually pointers to other rows in the
+    `corporate_slaves` table. Need to display an org chart? With only standard SQL
+    available, you''d write a program in the client language (e.g., C, Lisp, Perl,
+    or Tcl) to do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: query Oracle to find the employee `where supervisor_id is null`, call this `$big_kahuna_id`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: query Oracle to find those employees whose `supervisor_id = $big_kahuna_id`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: for each subordinate, query Oracle again to find their subordinates.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: repeat until no subordinates found, then back up one level
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'With the Oracle CONNECT BY clause, you can get all the rows out at once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This seems a little strange. It looks as though Oracle has produced all possible
+    trees and subtrees. Let''s add a START WITH clause:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: '[![Trees at sunrise.  Big Sur, California.](../Images/68b59ea96fe1033693f439a534e1e58a.jpg)](/http://philip.greenspun.com/images/pcd3448/big-sur-trees-74.tcl)
+    Notice that we''ve used a subquery in the START WITH clause to find out who is/are
+    the big kahuna(s). For the rest of this example, we''ll just hard-code in the
+    `slave_id` 1 for brevity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Though these folks are in the correct order, it is kind of tough to tell from
+    the preceding report who works for whom. Oracle provides a magic pseudo-column
+    that is meaningful only when a query includes a CONNECT BY. The pseudo-column
+    is `level`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The `level` column can be used for indentation. Here we will use the concatenation
+    operator (`||`) to add spaces in front of the name column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'If you want to limit your report, you can use standard WHERE clauses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Suppose that you want people at the same level to sort alphabetically. Sadly,
+    the ORDER BY clause doesn''t work so great in conjunction with CONNECT BY:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: SQL is a set-oriented language. In the result of a CONNECT BY query, it is precisely
+    the order that has value. Thus it doesn't make much sense to also have an ORDER
+    BY clause.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JOIN doesn't work with CONNECT BY
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Carlingford, Ireland.](../Images/7f044a9d1d84560f4e5193335b07becb.jpg)](/http://philip.greenspun.com/images/pcd1120/carlingford-83.tcl)
+    If we try to build a report showing each employee and his or her supervisor''s
+    name, we are treated to one of Oracle''s few informative error messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We can work around this particular problem by creating a view:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Notice that we''ve had to rename `level` so that we didn''t end up with a view
+    column named after a reserved word. The view works just like the raw query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: but we can JOIN now
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: If you have sharp eyes, you'll notice that we've actually OUTER JOINed so that
+    our results don't exclude the big boss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Select-list subqueries *do* work with CONNECT BY
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Instead of the VIEW and JOIN, we could have added a subquery to the select
+    list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The general rule in Oracle is that you can have a subquery that returns a single
+    row anywhere in the select list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does this person work for me?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose that you''ve built an intranet Web service. There are things that your
+    software should show to an employee''s boss (or boss''s boss) that it shouldn''t
+    show to a subordinate or peer. Here we try to figure out if the VP Marketing (#2)
+    has supervisory authority over Jane Nerd (#7):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Apparently not. Notice that we start with the VP Marketing (#2) and stipulate
+    `level > 1` to be sure that we will never conclude that someone supervises him
+    or herself. Let''s ask if the Big Boss Man (#1) has authority over Jane Nerd:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Even though Big Boss Man isn''t Jane Nerd''s direct supervisor, asking Oracle
+    to compute the relevant subtree yields us the correct result. In the ArsDigita
+    Community System Intranet module, we decided that this computation was too important
+    to be left as a query in individual Web pages. We centralized the question in
+    a PL/SQL procedure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Family trees
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'What if the graph is a little more complicated than employee-supervisor? For
+    example, suppose that you are representing a family tree. Even without allowing
+    for divorce and remarriage, exotic South African fertility clinics, etc., we still
+    need more than one pointer for each node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'In applying the lessons from the employee examples, the most obvious problem
+    that we face now is whether to follow the mother or the father pointers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Here''s what the official Oracle docs have to say about CONNECT BY:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'specifies the relationship between parent rows and child rows of the hierarchy.
+    condition can be any condition as described in "Conditions". However, some part
+    of the condition must use the PRIOR operator to refer to the parent row. The part
+    of the condition containing the PRIOR operator must have one of the following
+    forms:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'There is nothing that says `comparison_operator` has to be merely the equals
+    sign. Let''s start again with my mom''s father but CONNECT BY more than one column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Instead of arbitrarily starting with Grandpa Nick, let''s ask Oracle to show
+    us all the trees that start with a person whose parents are unknown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: PL/SQL instead of JOIN
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Tree branch at Glen Ellis Falls on Rt. 16 in New Hampshire](../Images/854aa475d933949e060b89fab3f871fb.jpg)](/http://philip.greenspun.com/images/pcd4537/glen-ellis-tree-branch-86.tcl)
+    The preceding report is interesting but confusing because it is hard to tell where
+    the trees meet in marriage. As noted above, you can''t do a JOIN with a CONNECT
+    BY. We demonstrated the workaround of burying the CONNECT BY in a view. A more
+    general workaround is using PL/SQL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: PL/SQL instead of JOIN and GROUP BY
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose that in addition to displaying the family tree in a Web page, we also
+    want to show a flag when a story about a family member is available. First we
+    need a way to represent stories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'To show the number of stories alongside a family member''s listing, we would
+    typically do an OUTER JOIN and then GROUP BY the columns other than the `count(family_story_id)`.
+    In order not to disturb the CONNECT BY, however, we create another PL/SQL function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: '[![Tree at Point Lobos.  California Coast, just south of Carmel.](../Images/2661480edc82974485e0402ec8e62c36.jpg)](/http://philip.greenspun.com/images/pcd1628/point-lobos-tree-25.tcl)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working Backwards
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What does it look like to start at the youngest generation and work back?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We ought to be able to view all the trees starting from all the leaves but
+    Oracle seems to be exhibiting strange behavior:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: What's wrong? If we try the subquery by itself, we get a reasonable result.
+    Here are all the `relative_id`s that appear in the `mother` or `father` column
+    at least once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The answer lies in that extra blank line at the bottom. There is a NULL in
+    this result set. Experimentation reveals that Oracle behaves asymmetrically with
+    NULLs and IN and NOT IN:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The answer is buried in the Oracle documentation of NOT IN: "Evaluates to FALSE
+    if any member of the set is NULL." The correct query in this case?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Performance and Tuning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Elke in a tree. Victoria, British Columbia 1993.](../Images/d0ecdf1255d115893a8467f5fe102a3b.jpg)](/http://philip.greenspun.com/images/pcd1676/elke-in-tree-60.tcl)
+    Oracle is not getting any help from the Tree Fairy in producing results from a
+    CONNECT BY. If you don''t want tree queries to take O(N^2) time, you need to build
+    indices that let Oracle very quickly answer questions of the form "What are all
+    the children of Parent X?"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the corporate slaves table, you''d want two concatenated indices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![A tree in Petrified Forest (north-central Arizona).](../Images/f1b7d98722df8dbb7623892de8f25ed4.jpg)](/http://philip.greenspun.com/images/pcd2148/petrified-forest-tree-15.4.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[SQL Reference section on CONNECT BY](http://www.oradoc.com/keyword/connectby)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PL/SQL User''s Guide and Reference](http://www.oradoc.com/keyword/plsql)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gratuitous Photos
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Joshua Tree National Park](../Images/1f0d0c6eee96f6a84f60d35d393c4191.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-79.tcl)[![Mojave
+    Desert.  Joshua Tree National Park](../Images/9b08cfb566eb1f00efdf10239a602367.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-40.tcl)[![Florence''s
+    Boboli Gardens](../Images/54834a9c8884d134064fa29de60e6711.jpg)](/http://philip.greenspun.com/images/pcd0800/boboli-tree-lane-72.tcl)[![Maple
+    trees near Peacham, Vermont](../Images/6e1e9cfaefc1189511de3cb39c3cdb76.jpg)](/http://philip.greenspun.com/images/pcd2488/maple-trees-12.tcl)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![Joshua Tree.  Joshua Tree National Park.](../Images/5469b36b6fffc84d1f298390a61d1b10.jpg)](/http://philip.greenspun.com/images/pcd4228/joshua-tree-10.4.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next: [dates](dates.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader's Comments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Oracle9i does CONNECT BY on joins. It also adds an "ORDER SIBLINGS BY" clause,
+    fixing the omission that prevents you from ordering each level of the query.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Couldn't find the article at Dartmouth :(, it looked really interesting!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Andrew Wolfe](/shared/community-member?user_id=260484), March 24, 2004
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Interested readers should check out Joe Celko's nested set model for representing
+    trees in SQL. No need to be locked into proprietary SQL dialects and probably
+    a couple of orders of magnitude faster to query!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Here's some links...
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.intelligententerprise.com/001020/celko.jhtml
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.dbmsmag.com/9603d06.html
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.dbmsmag.com/9604d06.html
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.dbmsmag.com/9605d06.html
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.dbmsmag.com/9606d06.html
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.sqlteam.com/Forums/topic.asp?TOPIC_ID=14099
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://www.dbazine.com/oracle/or-articles/tropashko4
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: + http://mrnaz.com/static/articles/trees_in_sql_tutorial/mptt_overview.php
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Regards, Mattster
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Matt Anon](/shared/community-member?user_id=280913), April 3, 2007
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Add a comment](/comments/add?page_id=4604)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Related Links
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[representing an m-ary tree in sql](http://www.cs.dartmouth.edu/~apd/archives/000019.html)-
+    This method allows for very fast retrieval of descendants and modification of
+    an m-ary tree. no self-referencing or nested select statements are necessary to
+    retrieve some or all descendants. the labelling of nodes is such that it allows
+    very simple and fast querying for DFS order of nodes. it was partially inspired
+    by huffman encoding.   (contributed by [Anthony D''Auria](/shared/community-member?user_id=242782))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Dead link](http://web.archive.org/web/*/http://www.cs.dartmouth.edu/~apd/archives/000019.html)-
+    The link above to Dartmouth college appears to be dead, but Web Archive kept a
+    copy of the page   (contributed by [Tom Lebr](/shared/community-member?user_id=261924))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Add a link](/links/add?page_id=4604)'
+  prefs: []
+  type: TYPE_NORMAL

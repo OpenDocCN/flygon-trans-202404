@@ -1,0 +1,1239 @@
+- en: Paxos
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 5: Paxos'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Starting a new group of lectures on stronger fault tolerance
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Today:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'cleaner approach to replication: RSM via Paxos'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lab 3
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Subsequent lectures:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to use Paxos to build systems (Harp, EPaxos, Spanner)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Links:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Paxos Made Simple](papers/paxos-simple.pdf), by Leslie Lamport, 2001'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Simple explanations from Quora](https://www.quora.com/Distributed-Systems/What-is-a-simple-explanation-of-the-Paxos-algorithm)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Neat Algorithms - Paxos](http://harry.me/blog/2014/12/27/neat-algorithms-paxos/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Paxos Replicated State Machines as the Basis of a High-Performance Data Store](http://static.usenix.org/event/nsdi11/tech/full_papers/Bolosky.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Paxos notes](http://wellquite.org/blog/paxos_notes.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Paxos made simple paper review](http://blog.acolyer.org/2015/03/04/paxos-made-simple/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[On some subtleties of Paxos](http://the-paper-trail.org/blog/on-some-subtleties-of-paxos/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Recall: RSM'
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintain replicas by executing operations in the same order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: requires all replicas to agree on the (set and) order of operations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lab 2 critique
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary/backup with viewserver
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**pro:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: conceptually simple
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: just two msgs per op (request, reply)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary can do computation, send result to backup
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only two k/v servers needed to tolerate one failure
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: works with network partition
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**con:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ViewServer is a *single point of failure*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: order can be messy, e.g. new view, data to backup, ack, &c
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tension if backup is slow / temporarily unavail
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: primary can wait for backup -- slow
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: viewserver can declare backup dead -- expensive, hurts fault tolerance
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'We would like a general-purpose ordering scheme with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: no single point of failure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: graceful handling of slow / intermittent replicas
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: handling of network partitions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Paxos** will be a key building block for this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: some number of nodes participate in *an instance of Paxos*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What is this *instance*?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** *"Each new command requires a separate Paxos agreement, which the paper
+    calls an instance. So the database replicas might agree that the first command
+    to execute is ''command one'', and they use Paxos to agree on that. Then that
+    instance of Paxos is done. A while later another client sends ''command two'';
+    the replicas start up an entirely separate instance of Paxos to agree on this
+    second client command.''* --RTM'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each node knows the address of every other node for that instance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'each instance of Paxos can reach consensus on at most one value typically,
+    a system uses many instances of Paxos each instance usually decides one operation
+    assumptions: asynchronous, non-Byzantine'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What does Paxos provide? How does it work?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**"black-box"** interface to a Paxos instance, on each node:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Propose a value (e.g., operation)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Check what value has been decided, if any
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[ Lab 3A: `src/paxos/paxos.go`: Start, Status ]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Correctness:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if agreement reached, all agreeing nodes see same value
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Fault-tolerance:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can tolerate non-reachability of a minority of nodes (correctness implies they
+    won't agree at all)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Liveness:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a majority must be alive and able to communicate reliably (minorities are not
+    live)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to build a system using Paxos?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Primary/Backup like Lab 2, but use Paxos to replicate the ViewServer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[ next Tuesday''s lecture will be about such a system ]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Lab 3*: no ViewServer, all replicas use Paxos instead of primary/backup'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Replicating either the ViewServer or K/V server with Paxos is similar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will look at a sketch of how to do a Paxos-based K/V server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **basic idea**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[ Diagram: clients, replicas, log in each replica, K/V layer, Paxos layer]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no viewserver
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: three replicas
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: clients can send RPCs to any replica (not just primary)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: server appends each client op to a replicated *log* of operations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Put`, `Get` (and more later)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: log entries (instances) are numbered sequentially
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos ensures agreement on content of each log entry
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: separate Paxos agreement for each of these log entries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'separate *instance* of Paxos algorithm is run for log entry #`i`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Can one log entry be agreed on at the same time with another? What if
+    they depend on one another like `Put(k1, a)` and `Append(k1, b)`?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** Yes! They can be agreed upon on the same time.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** you can have agreed on log entry #`i` before agreeing on log entry #`i+1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This means the reply associated with the `Get` or `Put` request in log entry
+    `i+1` will have to wait for the other log entries to be set (interesting)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: servers can throw away log entries that all other servers have agreed on (and
+    responded to?)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but if a server crashes, the other servers will know to keep their log entries
+    around for when it comes back
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: protocol does **not** require designated proposers or leaders for correctness
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: these only help w/ performance
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: low probability of proposing "livelock" that can be overcome by having proposers
+    wait a random amount of time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: once a Paxos node agrees on a value it never changes its mind
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client sends `Put(a, b)` to `S1`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S1` picks a log entry 3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S1` uses Paxos to get all servers to agree that entry 3 holds `Put(a,b)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client sends `Get(a)` to `S2`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S2` picks log entry 4'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S2` uses Paxos to get all servers to agree that entry 4 holds `Get(a)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S2` scans log up to entry 4 to find latest `Put(a, ...)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** `O(n)` worst case for doing a `Get` because you can have `Put` followed
+    by a gazillion `PutAppend`''s (or you can have just one `Put` stored way back?).'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can the replicas index their log? I suppose. If they all store it fully.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S2` replies with that value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S2` can cache content of DB up through last log scan'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Q: Why a log?'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Why not require all replicas to agree on each op in lock-step?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allows one replica to fall behind, then catch up
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. if it is slow
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other replicas do not have to wait
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allows one replica to crash and catch up
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if it keeps state on disk
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can replay missed operations
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allows pipelining/overlap of agreement
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: agreement turns out to require multiple message rounds
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Q: What about agreement -- we need all replicas to have same op in each log
+    slot'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Provided by Paxos, as we will see next
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Agreement is hard (1):*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: May be multiple proposals for the op in a particular log slot
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Sx` (server `x`) may initially hear of one, `Sy` may hear of another'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clearly one must later change its mind
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Thus: multiple rounds, tentative initially'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How do we know when agreement is permanent -- no longer tentative?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Agreement is hard (2):*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO:** If `S1` and `S2` agree, and `S3` and `S4` don''t respond, are we
+    done?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Agreement has to be able to complete even w/ failed servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can't distinguish failed server from network partition
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So maybe `S3`/`S4` are partitioned have "agreed" on a different operation!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Two **main ideas** in Paxos:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many rounds may be required but they will converge on one value
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A majority is required for agreement -- prevent "split brain"
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*Key point*: any two majorities overlap'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so any later majority will share at least one server w/ any earlier majority
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so any later majority can find out what earlier majority decided
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** How?'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lab 3B K/V server creates a separate Paxos instance for each client `Put`, `Get`
+  prefs: []
+  type: TYPE_NORMAL
+- en: rest of lecture focuses on agreement for a specific instance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos sketch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'each node consists of three logical entities:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**proposer**'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**acceptor**'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**learner**'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each proposer wants to get agreement on its value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: could try to use a "designated leader" to avoid dueling proposers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OK to have multiple proposers, so leader election can be approximate
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer contacts acceptors, tries to assemble a majority
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if a majority respond, we're done
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'in our K/V server example, roughly:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer gets RPC from client, proposes operation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: acceptors are internal to Paxos, help decide consensus
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: learner figures out what operation was decided to run, responds to client
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Broken strawman:* can we do Paxos in a single round?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptor "accepts" the first value that it hears from proposer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when is consensus reached?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can we take the value with the most votes?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'no, need a majority of accepts for the same value: `floor(n/2)+1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise, consensus on 2 different values (lossy/partitioned network)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Problem:*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'suppose we have 3 servers: `S1`, `S2`, `S3`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if each server proposes + accepts its own value?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no majority, stuck
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but maybe we can detect this situation and recover?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Worse:* `S3` crashes `->` we may have reached majority, but we''ll never know'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need a way for acceptors to change their mind, if no consensus reached yet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basic Paxos exchange
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why `n`?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: to distinguish among multiple rounds, e.g. proposer crashes, simul props
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: want later rounds to supersede earlier ones
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: numbers allow us to compare early/late
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`n` values must be unique and roughly follow time'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`n = <time, server ID>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g., ID can be server's IP address
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*"round"* is the same as *"proposal"* but completely different from "instance"'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: round/proposal numbers are *WITHIN* a particular instance
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Definition:** server S *accepts* `n/v`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: it responded `accept_ok` to `accept(n, v)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Definition:** `n/v` is *chosen*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a majority of servers accepted `n/v`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **crucial property:**
+  prefs: []
+  type: TYPE_NORMAL
+- en: if a value was chosen, any subsequent choice must be the same value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. protocol must not change its mind
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe a different proposer &c, but same value!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this allows us to freely start new rounds after crashes &c
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tricky b/c *"chosen"* is system-wide property
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. majority accepts, then proposer crashes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** What happens here?'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*no node can tell locally that agreement was reached*'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer doesn't send out value with `prepare`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**TODO:** How is any value accepted by an acceptor then?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: acceptors send back any value they have already accepted
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if there is one, proposer proposes that value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to avoid changing an existing choice
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if no value already accepted,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer can propose any value (e.g. a client request)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer must get `prepare_ok` from majority
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to guarantee intersection with any previous majority,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to guarantee proposer hears of any previously chosen value
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now the protocol -- see the handout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Example 1** (normal operation):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: S1 and S2 will reply with `prepare_ok(1, 0, null)` to the `p1` message.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If `dA` is lost, one of the nodes waiting can run Paxos again and try a new
+    `n` higher than the previous one.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the `prepare_ok(2, 1, 'A')` reply will come back,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then the node is forced to send `a2vA` and hopefully this time, after the node
+    gets the `accept_ok` message, it will send out `dA` messages that won't get lost
+    again
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a value is said to be chosen when a majority of acceptors in the `accept` handler
+    take the accept branch and accept the value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: however, not everyone will *know* this, so that's why the `decide` message is
+    sent out
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These diagrams are not specific about who the proposer is
+  prefs: []
+  type: TYPE_NORMAL
+- en: it doesn't really matter
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the proposers are logically separate from the acceptors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we only care about what acceptors saw and replied
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note Paxos only requires a majority of the servers
+  prefs: []
+  type: TYPE_NORMAL
+- en: so we can continue even though `S3` was down
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer must not wait forever for any acceptor's response
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What would happen if network partition?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: I.e. `S3` was alive and had a proposed value B
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`S3`''s prepare would not assemble a majority'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The homework question
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: How does Paxos ensure that the following sequence of events can't happen? What
+    actually happens, and which value is ultimately chosen?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**The point:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if the system has already reached agreement, majority will know value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: any new majority of prepares will intersect that majority
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so subsequent proposer will learn of already-agreed-on value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and send it in accept msgs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example 2** (concurrent proposers):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: What will happen?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What will `A2` do if it gets `a10v10` accept msg from `A1`?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`a10v10` means `accept(n=10,v=10)` which happens after the `prepare->` is sent
+    and the `<-prepare_ok` is received'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** A2 will reject because it has a higher `np` from `p11`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What will `A1` do if it gets `a11v11` accept msg from `A3`?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A:** `A1` will reply `ACCEPT_OK` and change its value to 11 because `n =
+    11 > np = 10`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if A3 were to crash at this point (and not restart)?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How about this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Has the system agreed to a value at this point?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's the commit point?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: i.e. exactly when has agreement been reached?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. at what point would changing the value be a disaster?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: after a majority has the same `v_a`? no -- why not? above counterexample
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'after a majority has the same `v_a/n_a`? yes -- why sufficient? sketch:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: suppose majority has same `v_a/n_a`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: acceptors will reject `accept()` with lower `n`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'for any higher `n`: prepare''s must have seen our majority `v_a/n_a` (overlap)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if overlap servers saw `prepare(n)` before `accept(v_a, n_a)`?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: would reject `v_a/n_a`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus wouldn't have a majority yet
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proposer might be free to choose `v != v_a`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why does the proposer need to pick `v_a` with highest `n_a`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Two cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There was a majority before `n=11`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`n=11`''s prepares would have seen value and re-used it'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so it's safe for `n=12` to re-use `n=11`'s value
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There was not a majority before `n=11`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`n=11` might have obtained a majority'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so it's required for `n=12`to re-use `n=11`'s value
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why does prepare handler check that `n > n_p`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: it's taking `max(concurrent n's)`, for accept handler
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: responding to all `prepare()` with `prepare_ok()` would be also fine,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but proposers with `n < n_p` would be ignored by `accept()` anyway
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why does accept handler check `n >= n_p`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: required to ensure agreement
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: there's a unique highest `n` active
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: everyone favors the highest `n`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'without `n >= n_p` check, you could get this bad scenario:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why does accept handler update `n_p = n`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: required to prevent earlier `n`'s from being accepted
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: node can get `accept(n,v)` even though it never saw `prepare(n)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'without `n_p = n`, can get this bad scenario:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: What if new proposer chooses `n < old proposer`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: i.e. if clocks are not synced
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cannot make progress, though no correctness problem
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if an acceptor crashes after receiving accept?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: What if an acceptor reboots after sending `prepare_ok`?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: does it have to remember `n_p` on disk?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'if `n_p` not remembered, this could happen:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 11's proposer did not see value 10, so 11 proposed its own value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but just before that, 10 had been chosen!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b/c `S2` did not remember to ignore `a10v10`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can Paxos get stuck?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Yes, if there is not a majority that can communicate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How about if a majority is available?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Possible to livelock: dueling proposers, keep `prepare`''ing higher `n`''s'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'One reason to try electing a leader: reduce chance of dueling proposers'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With single proposer and reachable majority, should reach consensus
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL

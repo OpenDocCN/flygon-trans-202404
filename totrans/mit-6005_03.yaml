@@ -1,0 +1,1124 @@
+- en: 'Reading 3: Testing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Reading exercises are due the night before class.** You must complete the
+    reading exercises in this reading by Sunday, September 11 at 10:00 pm.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***Basic Java* exercises in the Java Tutor**](../../getting-started/java-tutor/#required)
+    are also due Sunday, September 11 at 10:00 pm.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optionally,** complete [the first three levels of Java Tutor exercises](../../getting-started/java-tutor/#optional)
+    by Monday, September 12 at 10:00 pm to earn a free slack day on [Problem Set 0](../../psets/ps0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives for Today’s Class
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'After today’s class, you should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: understand the value of testing, and know the process of test-first programming;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: be able to design a test suite for a method by partitioning its input and output
+    space and choosing good test cases;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: be able to judge a test suite by measuring its code coverage; and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: understand and know when to use blackbox vs. whitebox testing, unit tests vs.
+    integration tests, and automated regression testing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Validation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many readings include optional videos from the MITx version of 6.005\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[More info about the videos](../../general/#classes_readings_and_nanoquizzes)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,validation/1tgKOH6jYIY)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Testing is an example of a more general process called *validation*. The purpose
+    of validation is to uncover problems in a program and thereby increase your confidence
+    in the program’s correctness. Validation includes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Formal reasoning** about a program, usually called *verification*. Verification
+    constructs a formal proof that a program is correct. Verification is tedious to
+    do by hand, and automated tool support for verification is still an active area
+    of research. Nevertheless, small, crucial pieces of a program may be formally
+    verified, such as the scheduler in an operating system, or the bytecode interpreter
+    in a virtual machine, or [the filesystem in an operating system](http://www.csail.mit.edu/crash_tolerant_data_storage).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Code review.** Having somebody else carefully read your code, and reason
+    informally about it, can be a good way to uncover bugs. It’s much like having
+    somebody else proofread an essay you have written. We’ll talk more about code
+    review in the next reading.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Testing**. Running the program on carefully selected inputs and checking
+    the results.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Even with the best validation, it’s very hard to achieve perfect quality in
+    software. Here are some typical *residual defect rates* (bugs left over after
+    the software has shipped) per kloc (one thousand lines of source code):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1 - 10 defects/kloc: Typical industry software.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '0.1 - 1 defects/kloc: High-quality validation. The Java libraries might achieve
+    this level of correctness.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '0.01 - 0.1 defects/kloc: The very best, safety-critical validation. NASA and
+    companies like Praxis can achieve this level.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This can be discouraging for large systems. For example, if you have shipped
+    a million lines of typical industry source code (1 defect/kloc), it means you
+    missed 1000 bugs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Software Testing is Hard
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here are some approaches that unfortunately don’t work well in the world of
+    software.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exhaustive testing** is infeasible. The space of possible test cases is generally
+    too big to cover exhaustively. Imagine exhaustively testing a 32-bit floating-point
+    multiply operation, `a*b`. There are 2^64 test cases!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Haphazard testing** (“just try it and see if it works”) is less likely to
+    find bugs, unless the program is so buggy that an arbitrarily-chosen input is
+    more likely to fail than to succeed. It also doesn’t increase our confidence in
+    program correctness.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Random or statistical testing** doesn’t work well for software. Other engineering
+    disciplines can test small random samples (e.g. 1% of hard drives manufactured)
+    and infer the defect rate for the whole production lot. Physical systems can use
+    many tricks to speed up time, like opening a refrigerator 1000 times in 24 hours
+    instead of 10 years. These tricks give known failure rates (e.g. mean lifetime
+    of a hard drive), but they assume continuity or uniformity across the space of
+    defects. This is true for physical artifacts.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it’s not true for software. Software behavior varies discontinuously and
+    discretely across the space of possible inputs. The system may seem to work fine
+    across a broad range of inputs, and then abruptly fail at a single boundary point.
+    The [famous Pentium division bug](http://www.willamette.edu/~mjaneba/pentprob.html)
+    affected approximately 1 in 9 billion divisions. Stack overflows, out of memory
+    errors, and numeric overflow bugs tend to happen abruptly, and always in the same
+    way, not with probabilistic variation. That’s different from physical systems,
+    where there is often visible evidence that the system is approaching a failure
+    point (cracks in a bridge) or failures are distributed probabilistically near
+    the failure point (so that statistical testing will observe some failures even
+    before the point is reached).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, test cases must be chosen carefully and systematically, and that’s
+    what we’ll look at next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Testing basics
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the 1990s, the Ariane 5 launch vehicle, designed and built for the European
+    Space Agency, self-destructed 37 seconds after its first launch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason was a control software bug that went undetected. The Ariane 5’s guidance
+    software was reused from the Ariane 4, which was a slower rocket. When the velocity
+    calculation converted from a 64-bit floating point number (a `double` in Java
+    terminology, though this software wasn’t written in Java) to a 16-bit signed integer
+    (a `short`), it overflowed the small integer and caused an exception to be thrown.
+    The exception handler had been disabled for efficiency reasons, so the guidance
+    software crashed. Without guidance, the rocket crashed too. The cost of the failure
+    was $1 billion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What ideas does this story demonstrate?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer) (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting on Your Testing Hat
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,validation,putting_on_your_testing_hat/Eyl2cUMAneQ)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing requires having the right attitude. When you’re coding, your goal is
+    to make the program work, but as a tester, you want to **make it fail**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s a subtle but important difference. It is all too tempting to treat code
+    you’ve just written as a precious thing, a fragile eggshell, and test it very
+    lightly just to see it work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, you have to be brutal. A good tester wields a sledgehammer and beats
+    the program everywhere it might be vulnerable, so that those vulnerabilities can
+    be eliminated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test-first Programming
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Test early and often. Don’t leave testing until the end, when you have a big
+    pile of unvalidated code. Leaving testing until the end only makes debugging longer
+    and more painful, because bugs may be anywhere in your code. It’s far more pleasant
+    to test your code as you develop it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In test-first-programming, you write tests before you even write any code.
+    The development of a single function proceeds in this order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write a specification for the function.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write tests that exercise the specification.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write the actual code. Once your code passes the tests you wrote, you’re done.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The **specification** describes the input and output behavior of the function.
+    It gives the types of the parameters and any additional constraints on them (e.g.
+    `sqrt`’s parameter must be nonnegative). It also gives the type of the return
+    value and how the return value relates to the inputs. You’ve already seen and
+    used specifications on your problem sets in this class. In code, the specification
+    consists of the method signature and the comment above it that describes what
+    it does. We’ll have much more to say about specifications a few classes from now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing tests first is a good way to understand the specification. The specification
+    can be buggy, too — incorrect, incomplete, ambiguous, missing corner cases. Trying
+    to write tests can uncover these problems early, before you’ve wasted time writing
+    an implementation of a buggy spec.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing Test Cases by Partitioning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Creating a good test suite is a challenging and interesting design problem.
+    We want to pick a set of test cases that is small enough to run quickly, yet large
+    enough to validate the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![partitioning a function''s input space](../Images/36e3cefd360ba43bf8cbbe4945137ad4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: To do this, we divide the input space into **subdomains**, each consisting of
+    a set of inputs. Taken together the subdomains completely cover the input space,
+    so that every input lies in at least one subdomain. Then we choose one test case
+    from each subdomain, and that’s our test suite.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea behind subdomains is to partition the input space into sets of similar
+    inputs on which the program has similar behavior. Then we use one representative
+    of each set. This approach makes the best use of limited testing resources by
+    choosing dissimilar test cases, and forcing the testing to explore parts of the
+    input space that random testing might not reach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also partition the output space into subdomains (similar outputs on which
+    the program has similar behavior) if we need to ensure our tests will explore
+    different parts of the output space. Most of the time, partitioning the input
+    space is sufficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: `BigInteger.multiply()`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let’s look at an example. [`BigInteger`](http://docs.oracle.com/javase/8/docs/api/?java/math/BigInteger.html)
+    is a class built into the Java library that can represent integers of any size,
+    unlike the primitive types `int` and `long` that have only limited ranges. BigInteger
+    has a method `multiply` that multiplies two BigInteger values together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For example, here’s how it might be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This example shows that even though only one parameter is explicitly shown
+    in the method’s declaration, `multiply` is actually a function of *two* arguments:
+    the object you’re calling the method on (`a` in the example above), and the parameter
+    that you’re passing in the parentheses (`b` in this example). In Python, the object
+    receiving the method call would be explicitly named as a parameter called `self`
+    in the method declaration. In Java, you don’t mention the receiving object in
+    the parameters, and it’s called `this` instead of `self`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we should think of `multiply` as a function taking two inputs, each of type
+    `BigInteger`, and producing one output of type `BigInteger`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`multiply : BigInteger × BigInteger → BigInteger`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we have a two-dimensional input space, consisting of all the pairs of integers
+    (a,b). Now let’s partition it. Thinking about how multiplication works, we might
+    start with these partitions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a and b are both positive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a and b are both negative
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a is positive, b is negative
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a is negative, b is positive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are also some special cases for multiplication that we should check:
+    0, 1, and -1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a or b is 0, 1, or -1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, as a suspicious tester trying to find bugs, we might suspect that the
+    implementor of BigInteger might try to make it faster by using `int` or `long`
+    internally when possible, and only fall back to an expensive general representation
+    (like a list of digits) when the value is too big. So we should definitely also
+    try integers that are very big, bigger than the biggest `long`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: a or b is small
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the absolute value of a or b is bigger than `Long.MAX_VALUE`, the biggest possible
+    primitive integer in Java, which is roughly 2^63.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s bring all these observations together into a straightforward partition
+    of the whole `(a,b)` space. We’ll choose `a` and `b` independently from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![partitioning multiply()](../Images/585394d0bc7d12b5dae64ababce10bcb.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '0'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '1'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '-1'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: small positive integer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: small negative integer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: huge positive integer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: huge negative integer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So this will produce 7 × 7 = 49 partitions that completely cover the space of
+    pairs of integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To produce the test suite, we would pick an arbitrary pair (a,b) from each
+    square of the grid, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (a,b) = (-3, 25) to cover (small negative, small positive)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (a,b) = (0, 30) to cover (0, small positive)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (a,b) = (2^100, 1) to cover (large positive, 1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The figure at the right shows how the two-dimensional (a,b) space is divided
+    by this partition, and the points are test cases that we might choose to completely
+    cover the partition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: `max()`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let’s look at another example from the Java library: the integer `max()` function,
+    found in the [`Math`](http://docs.oracle.com/javase/8/docs/api/java/lang/Math.html)
+    class.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Mathematically, this method is a function of the following type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`max : int × int → int`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![partitioning-max](../Images/8e197e8aea463b6e895e0b71783996be.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'From the specification, it makes sense to partition this function as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a < b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a = b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a > b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Our test suite might then be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (a, b) = (1, 2) to cover a < b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (a, b) = (9, 9) to cover a = b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (a, b) = (-5, -6) to cover a > b
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Include Boundaries in the Partition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Bugs often occur at *boundaries* between subdomains. Some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 0 is a boundary between positive numbers and negative numbers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the maximum and minimum values of numeric types, like `int` and `double`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: emptiness (the empty string, empty list, empty array) for collection types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the first and last element of a collection
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why do bugs often happen at boundaries? One reason is that programmers often
+    make **off-by-one mistakes** (like writing `<=` instead of `<`, or initializing
+    a counter to 0 instead of 1). Another is that some boundaries may need to be handled
+    as special cases in the code. Another is that boundaries may be places of discontinuity
+    in the code’s behavior. When an `int` variable grows beyond its maximum positive
+    value, for example, it abruptly becomes a negative number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s important to include boundaries as subdomains in your partition, so that
+    you’re choosing an input from the boundary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s redo **`max : int × int → int`**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Partition into:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*relationship between a and b*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a < b
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a = b
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a > b
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*value of a*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a = 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a < 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a > 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a = minimum integer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a = maximum integer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*value of b*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b = 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b < 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b > 0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b = minimum integer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: b = maximum integer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Now let’s pick test values that cover all these classes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1, 2) covers a < b, a > 0, b > 0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (-1, -3) covers a > b, a < 0, b < 0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (0, 0) covers a = b, a = 0, b = 0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (Integer.MIN_VALUE, Integer.MAX_VALUE) covers a < b, a = minint, b = maxint
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (Integer.MAX_VALUE, Integer.MIN_VALUE) covers a > b, a = maxint, b = minint
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two Extremes for Covering the Partition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'After partitioning the input space, we can choose how exhaustive we want the
+    test suite to be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Full Cartesian product**.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every legal combination of the partition dimensions is covered by one test case.
+    This is what we did for the `multiply` example, and it gave us 7 × 7 = 49 test
+    cases. For the `max` example that included boundaries, which has three dimensions
+    with 3 parts, 5 parts, and 5 parts respectively, it would mean up to 3 × 5 × 5
+    = 75 test cases. In practice not all of these combinations are possible, however.
+    For example, there’s no way to cover the combination a < b, a=0, b=0, because
+    `a` can’t be simultaneously less than zero and equal to zero.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Cover each part.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every part of each dimension is covered by at least one test case, but not necessarily
+    every combination. With this approach, the test suite for `max` might be as small
+    as 5 test cases if carefully chosen. That’s the approach we took above, which
+    allowed us to choose 5 test cases.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Often we strike some compromise between these two extremes, based on human judgement
+    and caution, and influenced by whitebox testing and code coverage tools, which
+    we look at next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Partitioning
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following specification:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which of the following are reasonable partitions for the `start` parameter?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Partitioning a String
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following are reasonable partitions for the `text` parameter?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blackbox and Whitebox Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,blackbox_and_whitebox_testing/bMiw7XGsAyY)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall from above that the *specification* is the description of the function’s
+    behavior — the types of parameters, type of return value, and constraints and
+    relationships between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blackbox testing** means choosing test cases only from the specification,
+    not the implementation of the function. That’s what we’ve been doing in our examples
+    so far. We partitioned and looked for boundaries in `multiply` and `max` without
+    looking at the actual code for these functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Whitebox testing** (also called glass box testing) means choosing test cases
+    with knowledge of how the function is actually implemented. For example, if the
+    implementation selects different algorithms depending on the input, then you should
+    partition according to those domains. If the implementation keeps an internal
+    cache that remembers the answers to previous inputs, then you should test repeated
+    inputs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When doing whitebox testing, you must take care that your test cases don’t *require*
+    specific implementation behavior that isn’t specifically called for by the spec.
+    For example, if the spec says “throws an exception if the input is poorly formatted,”
+    then your test shouldn’t check *specifically* for a `NullPointerException` just
+    because that’s what the current implementation does. The specification in this
+    case allows *any* exception to be thrown, so your test case should likewise be
+    general to preserve the implementor’s freedom. We’ll have much more to say about
+    this in the class on specs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Blackbox and whitebox testing
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which of the following test cases are likely to be boundary values produced
+    by white box testing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Documenting Your Testing Strategy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,documenting_your_testing_strategy/7osZ0SPaEU8)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the example function on the left, on the right is how we can document the
+    testing strategy we worked on in the [partitioning exercises above](#two_extremes_for_covering_the_partition).
+    The strategy also addresses some boundary values we didn’t consider before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Document the strategy at the top of the test class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Document how each test case was chosen, including white box tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coverage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,coverage/kSPlAyLLnFs)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One way to judge a test suite is to ask how thoroughly it exercises the program.
+    This notion is called *coverage*. Here are three common kinds of coverage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Statement coverage**: is every statement run by some test case?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Branch coverage**: for every `if` or `while` statement in the program, are
+    both the true and the false direction taken by some test case?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Path coverage**: is every possible combination of branches — every path through
+    the program — taken by some test case?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Branch coverage is stronger (requires more tests to achieve) than statement
+    coverage, and path coverage is stronger than branch coverage. In industry, 100%
+    statement coverage is a common goal, but even that is rarely achieved due to unreachable
+    defensive code (like “should never get here” assertions). 100% branch coverage
+    is highly desirable, and safety critical industry code has even more arduous criteria
+    (e.g., “MCDC,” modified decision/condition coverage). Unfortunately 100% path
+    coverage is infeasible, requiring exponential-size test suites to achieve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A standard approach to testing is to add tests until the test suite achieves
+    adequate statement coverage: i.e., so that every reachable statement in the program
+    is executed by at least one test case. In practice, statement coverage is usually
+    measured by a code coverage tool, which counts the number of times each statement
+    is run by your test suite. With such a tool, white box testing is easy; you just
+    measure the coverage of your black box tests, and add more test cases until all
+    important statements are logged as executed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![EclEmma code coverage tool for Eclipse](../Images/175816548385f82690792f60f2c4ed1e.jpg)](figures/eclemma.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good code coverage tool for Eclipse is [EclEmma](http://www.eclemma.org/),
+    shown on the right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lines that have been executed by the test suite are colored green, and lines
+    not yet covered are red. If you saw this result from your coverage tool, your
+    next step would be to come up with a test case that causes the body of the while
+    loop to execute, and add it to your test suite so that the red lines become green.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Using a coverage tool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Install EclEmma](http://www.eclemma.org/installation.html) in Eclipse on your
+    laptop. Use your laptop, because you’ll need it for testing exercises in class,
+    too.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then create a new Java class called `Hailstone.java` (you can make a new project
+    for it, or just put it in the project from class 2 exercises) containing this
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run this class with EclEmma code coverage highlighting turned on, by choosing
+    Run → Coverage As → Java Application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By changing the initial value of `n`, you can observe how EclEmma highlights
+    different lines of code differently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>green</option>,<option>yellow</option>,<option>red</option>,<option>white</option></select>(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: <select class="form-control"><option>green</option>,<option>yellow</option>,<option>red</option>,<option>white</option></select>(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unit Testing and Stubs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,unit_testing_and_stubs/wBLK4DFKCFM)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A well-tested program will have tests for every individual module (where a module
+    is a method or a class) that it contains. A test that tests an individual module,
+    in isolation if possible, is called a **unit test**. Testing modules in isolation
+    leads to much easier debugging. When a unit test for a module fails, you can be
+    more confident that the bug is found in that module, rather than anywhere in the
+    program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The opposite of a unit test is an **integration test**, which tests a combination
+    of modules, or even the entire program. If all you have are integration tests,
+    then when a test fails, you have to hunt for the bug. It might be anywhere in
+    the program. Integration tests are still important, because a program can fail
+    at the connections between modules. For example, one module may be expecting different
+    inputs than it’s actually getting from another module. But if you have a thorough
+    set of unit tests that give you confidence in the correctness of individual modules,
+    then you’ll have much less searching to do to find the bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose you’re building a web search engine. Two of your modules might be `getWebPage()`,
+    which downloads web pages, and `extractWords()`, which splits a page into its
+    component words:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These methods might be used by another module `makeIndex()` as part of the
+    web crawler that makes the search engine’s index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In our test suite, we would want:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: unit tests just for `getWebPage()` that test it on various URLs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: unit tests just for `extractWords()` that test it on various strings
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: unit tests for `makeIndex()` that test it on various sets of URLs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One mistake that programmers sometimes make is writing test cases for `extractWords()`
+    in such a way that the test cases depend on `getWebPage()` to be correct. It’s
+    better to think about and test `extractWords()` in isolation, and partition it.
+    Using test partitions that involve web page content might be reasonable, because
+    that’s how `extractWords()` is actually used in the program. But don’t actually
+    call `getWebPage()` from the test case, because `getWebPage()` may be buggy! Instead,
+    store web page content as a literal string, and pass it directly to `extractWords()`.
+    That way you’re writing an isolated unit test, and if it fails, you can be more
+    confident that the bug is in the module it’s actually testing, `extractWords()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the unit tests for `makeIndex()` can’t easily be isolated in this
+    way. When a test case calls `makeIndex()`, it is testing the correctness of not
+    only the code inside `makeIndex()`, but also all the methods called by `makeIndex()`.
+    If the test fails, the bug might be in any of those methods. That’s why we want
+    separate tests for `getWebPage()` and `extractWords()`, to increase our confidence
+    in those modules individually and localize the problem to the `makeIndex()` code
+    that connects them together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Isolating a higher-level module like `makeIndex()` is possible if we write **stub**
+    versions of the modules that it calls. For example, a stub for `getWebPage()`
+    wouldn’t access the internet at all, but instead would return mock web page content
+    no matter what URL was passed to it. A stub for a class is often called a [**mock
+    object**](http://en.wikipedia.org/wiki/Mock_object). Stubs are an important technique
+    when building large systems, but we will generally not use them in 6.005.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automated Testing and Regression Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_3_testing,automated_testing_and_regression_testing/D-EwMsS4_JA)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nothing makes tests easier to run, and more likely to be run, than complete
+    automation. **Automated testing** means running the tests and checking their results
+    automatically. A test driver should not be an interactive program that prompts
+    you for inputs and prints out results for you to manually check. Instead, a test
+    driver should invoke the module itself on fixed test cases and automatically check
+    that the results are correct. The result of the test driver should be either “all
+    tests OK” or “these tests failed: …” A good testing framework, like JUnit, helps
+    you build automated test suites.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that automated testing frameworks like JUnit make it easy to run the tests,
+    but you still have to come up with good test cases yourself. *Automatic test generation*
+    is a hard problem, still a subject of active computer science research.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have test automation, it’s very important to rerun your tests when
+    you modify your code. This prevents your program from *regressing* — introducing
+    other bugs when you fix new bugs or add new features. Running all your tests after
+    every change is called **regression testing**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever you find and fix a bug, take the input that elicited the bug and add
+    it to your automated test suite as a test case. This kind of test case is called
+    a *regression test*. This helps to populate your test suite with good test cases.
+    Remember that a test is good if it elicits a bug — and every regression test did
+    in one version of your code! Saving regression tests also protects against reversions
+    that reintroduce the bug. The bug may be an easy error to make, since it happened
+    once already.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This idea also leads to *test-first debugging*. When a bug arises, immediately
+    write a test case for it that elicits it, and immediately add it to your test
+    suite. Once you find and fix the bug, all your test cases will be passing, and
+    you’ll be done with debugging and have a regression test for that bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, these two ideas, automated testing and regression testing, are
+    almost always used in combination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regression testing is only practical if the tests can be run often, automatically.
+    Conversely, if you already have automated testing in place for your project, then
+    you might as well use it to prevent regressions. So **automated regression testing**
+    is a best-practice of modern software engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Regression testing
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following best defines regression testing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer) (missing answer) (missing answer) (missing answer)Running automated
+    tests
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following are good times to rerun all your JUnit tests?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing techniques
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of these techniques are useful for choosing test cases in test-first programming,
+    before any code is written?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this reading, we saw these ideas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test-first programming. Write tests before you write code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Partitioning and boundaries for choosing test cases systematically.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: White box testing and statement coverage for filling out a test suite.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unit-testing each module, in isolation as much as possible.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Automated regression testing to keep bugs from coming back.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The topics of today’s reading connect to our three key properties of good software
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safe from bugs.** Testing is about finding bugs in your code, and test-first
+    programming is about finding them as early as possible, immediately after you
+    introduced them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easy to understand.** Testing doesn’t help with this as much as code review
+    does.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ready for change.** Readiness for change was considered by writing tests
+    that only depend on behavior in the spec. We also talked about automated regression
+    testing, which helps keep bugs from coming back when changes are made to code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An exercise for the reader
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point you should have completed all the reading exercises above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Completing the reading exercises prepares you for the *nanoquiz* at the beginning
+    of each class meeting, and submitting the exercises is required by 10pm the evening
+    before class.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,164 @@
+- en: 'Recitation 15: Socket Programming in Async'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recitation introduces the key ideas behind programming with *sockets* using
+    the Async library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Addresses and Ports
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many programs communicate with other programs over a network. Examples include
+    web browsers, databases, SSH, streaming music services, and many others. To support
+    such programs, most operating systems provide an abstraction called *sockets*
+    that facilitates communicating with programs running on other hosts (or even the
+    same host).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two ways to use a socket: a *client* can connect to a server over
+    a socket, while a *server* can listen for connections from clients and then respond
+    to requests.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A socket is usually identified by either a DNS name (e.g., `www.cs.cornell.edu`)
+    or an IP address (e.g., `128.84.154.137`), as well as a port (e.g., 80). By convention,
+    commonly used services are associated with specific ports. For example, port `80`
+    is typically used for HTTP traffic. On UNIX machines, a listing of common ports
+    is given in the /etc/services file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Servers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The primary job of a server is to create a socket, listen for connections from
+    clients, and handle their requests. Hence, a server consists of some initialization
+    code, and an infinite loop that continuously listens for new connections from
+    clients. To allow multiple clients to use the same server, it is important that
+    the code for different clients execute concurrently—otherwise only one client
+    could interact with the server at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create a server in Async, we can use the `create` function from the [Tcp.Server](https://ocaml.janestreet.com/ocaml-core/111.03.00/doc/async/#Std.Tcp.Server)
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The details of these arguments is explained below. The `create` function handles
+    much of the boilerplate code needed to initialize a TCP server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first line creates the server itself. The first optional argument, `on_handler_error`,
+    specifies what should happen if the `handler` function raises an exception. The
+    ``Ignore` variant, indicates that the exception should be silently dropped. Other
+    alternatives include propagating the exception to the enclosing context (``Raise`),
+    or calling an handler function `f` provided as an argument (``Call f`). The second
+    argument specifies the TCP port to listen on, in this instance `3110`. The next
+    argument is a handler function that is invoked on each client. In this case, it
+    is just a dummy that returns a unit value immediately. More generally, it might
+    read input from the client, do some computation, and send a response. The function
+    receives as arguments `a`, `r`, and `w`, which represent the address of the client
+    and the read and write endpoints of a communication channel for interacting with
+    it respectively. The `r` and `w` arguments can be converted into values of type
+    `Pipe.Reader.t` and `Pipe.Writer.t` using the `Reader.pipe` and `Writer.pipe`
+    functions. The final line uses the `ignore` function to convert the resulting
+    deferred value to a unit value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To actually run the server, we need need to start the Async scheduler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To test the server, we can connect to it using command-line utilities such as
+    `telnet` or `netcat`. On UNIX systems, details can be found in the manual pages
+    (e.g., `man telnet` or `man netcat`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several things to notice about this code. First, the handler for each
+    client returns a value of type `unit Deferred.t`. This allows the server to continue
+    to process requests from other clients while the handler is being executed. It
+    is essential that the code be concurrent because in general the handler may involve
+    a lot of waiting or computation—reading files off of the disk, computing the result
+    of a database query, or waiting for interactive input from the client, etc. For
+    example, in the case of an SSH server, the handler will run as long as the remote
+    shell session is open, which can be weeks or even months! Second, the deferred
+    value corresponding to the server is simply ignored. Usually it is not a good
+    idea to ignore values. However, in the case of a server, this value is often not
+    needed because the server continues listening for connections until the `close`
+    function is called,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: or the whole process is terminated by the operating system. In this case, we
+    will never need to call `close`, so the server will run until we kill it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clients
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we've already seen, one simple way to interact with a server is to use command-line
+    utilities such as `telnet` to connect to a server, send it input, and receive
+    responses. More generally, we may want to embed a client into a programs. For
+    example, a client could connect to one web server to read a list of prices for
+    a given item, and then connect to a database server to store the data for later
+    analysis. The Async library also includes functions that make it easy to create
+    TCP clients, which can be used hand-in-hand with the functions for creating servers,
+    or with arbitrary other servers on the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create a server we can use the following pair of functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: As an example, the following code
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: connects to the server listening at port `3110` on the local machine, sends
+    the string `"Hello World!"` to the server, reads the response, and then shuts
+    down the connection. The variant ``Both` passed to `Socket.shutdown` indicates
+    that both the read and write pipes should be closed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Going Further
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The essential pieces of many clients and servers can be expressed using just
+    these simple functions for creating and communicating over TCP sockets. Analogous
+    functions exist in most other languages, although without Async's abstraction
+    of deferred computation, there are typically many more details related to forking
+    and synchronizing operating-system level threads. If you want to go further, we
+    suggest coding up some simple servers that implement functionality such as serving
+    up a fortune cookie to clients, or fetching the weather from a server such as
+    `weather.cornell.edu`. On the client side, you may find it interesting to write
+    programs that automate common tasks such as fetching headlines from your favorite
+    newspaper. Another issue to investigate concerns exceptions—what should happen
+    when a client or server does not behave as expected. Generally speaking, exceptions
+    must be handled gracefully, so that a single misbehaving client does not interrupt
+    the service for others. Finally, the [Typed TCP](https://ocaml.janestreet.com/ocaml-core/111.03.00/doc/async/#Std.Typed_tcp)
+    module provides a number of useful helper functions for creating clients and servers
+    that communicate using messages drawn from a specific application-level protocol.
+    These functions can be used to automate much of the boilerplate code related to
+    parsing and pretty-printing strings, and also provides a simple form of typechecking.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,299 @@
+- en: '| [![Chinatown.  San Francisco, California](../Images/4469ebdfd51d1fd0a742f99eb8a403e5.jpg)](/http://philip.greenspun.com/images/pcd0923/san-francisco-chinatown-43.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Complex Queries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    | [![Golden Gate Bridge.  San Francisco, California.](../Images/e2f80568876b29658b71afc396e50d00.jpg)](/http://philip.greenspun.com/images/pcd0741/golden-gate-duo-87.tcl)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose that you want to start lumping together information from multiple rows.
+    For example, you''re interested in JOINing users with their classified ads. That
+    will give you one row per ad posted. But you want to mush all the rows together
+    for a particular user and just look at the most recent posting time. What you
+    need is the GROUP BY construct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The `group by users.user_id, users.email` tells SQL to "lump together all the
+    rows that have the same values in these two columns." In addition to the grouped
+    by columns, we can run aggregate functions on the columns that aren''t being grouped.
+    For example, the MAX above applies to the posting dates for the rows in a particular
+    group. We can also use COUNT to see at a glance how active and how recently active
+    a user has been:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'A publisher who was truly curious about this stuff probably wouldn''t be interested
+    in these results alphabetically. Let''s find our most recently active users. At
+    the same time, let''s get rid of the unsightly "MAX(CLASSI" at the top of the
+    report:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Note that we were able to use our *correlation names* of "how_recent" and "how_many"
+    in the ORDER BY clause. The `desc` ("descending") directives in the ORDER BY clause
+    instruct Oracle to put the largest values at the top. The default sort order is
+    from smallest to largest ("ascending").
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upon close inspection, the results are confusing. We instructed Oracle to rank
+    first by date and second by number of postings. Yet for 1998-12-13 we don't see
+    both users with three total postings at the top. That's because Oracle dates are
+    precise to the second even when the hour, minute, and second details are not displayed
+    by SQL*Plus. A better query would include the clause
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: where the built-in Oracle function `trunc` truncates each date to midnight on
+    the day in question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finding co-moderators: The HAVING Clause'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The WHERE clause restricts which rows are returned. The HAVING clause operates
+    analogously but on groups of rows. Suppose, for example, that we''re interested
+    in finding those users who''ve contributed heavily to our discussion forum:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Seventy three hundred rows. That's way too big considering that we are only
+    interested in nominating a couple of people. Let's restrict to more recent activity.
+    A posting contributed three years ago is not necessarily evidence of interest
+    in the community right now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We wanted to kill rows, not groups, so we did it with a WHERE clause. Let's
+    get rid of the people who are already serving as maintainers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The concept of User ID makes sense for both rows and groups, so we can restrict
+    our results either with the extra WHERE clause above or by letting the relational
+    database management system produce the groups and then we''ll ask that they be
+    tossed out using a HAVING clause:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This doesn''t get to the root cause of our distressingly large query result:
+    we don''t want to see groups where `how_many` is less than 30\. Here''s the SQL
+    for "show me users who''ve posted at least 30 messages in the past 60 days, ranked
+    in descending order of volubility":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We had to do this in a HAVING clause because the number of rows in a group is
+    a concept that doesn't make sense at the per-row level on which WHERE clauses
+    operate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle 8's SQL parser is too feeble to allow you to use the `how_many` correlation
+    variable in the HAVING clause. You therefore have to repeat the `count(*)` incantation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Set Operations: UNION, INTERSECT, and MINUS Oracle provides set operations
+    that can be used to combine rows produced by two or more separate SELECT statements.
+    UNION pools together the rows returned by two queries, removing any duplicate
+    rows. INTERSECT combines the result sets of two queries by removing any rows that
+    are not present in both. MINUS combines the results of two queries by taking the
+    the first result set and subtracting from it any rows that are also found in the
+    second. Of the three, UNION is the most useful in practice.'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In the ArsDigita Community System ticket tracker, people reporting a bug or
+    requesting a feature are given a menu of potential deadlines. For some projects,
+    common project deadlines are stored in the `ticket_deadlines` table. These should
+    appear in an HTML SELECT form element. We also, however, want some options like
+    "today", "tomorrow", "next week", and "next month". The easiest way to handle
+    these is to query the `dual` table to perform some date arithmetic. Each of these
+    queries will return one row and if we UNION four of them together with the query
+    from `ticket_deadlines`, we can have the basis for a very simple Web script to
+    present the options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: will produce something like
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The INTERSECT and MINUS operators are seldom used. Here are some contrived
+    examples. Suppose that you collect contest entries by Web users, each in a separate
+    table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Now let''s populate with some dummy data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Suppose that we''ve got a new contest on the site. This time we''re giving
+    away a trip to Churchill, Manitoba to photograph polar bears. We assume that the
+    most interested users will be those who''ve entered both the travel and the camera
+    contests. Let''s get their user IDs so that we can notify them via email (spam)
+    about the new contest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Or suppose that we''re going to organize a personal trip to Paris and want
+    to find someone to share the cost of a room at the Crillon. We can assume that
+    anyone who entered the Paris trip contest is interested in going. So perhaps we
+    should start by sending them all email. On the other hand, how can one enjoy a
+    quiet evening with the absinthe bottle if one''s companion is constantly blasting
+    away with an electronic flash? We''re interested in people who entered the Paris
+    trip contest but who *did not* enter the camera giveaway:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Next: [Transactions](transactions.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader's Comments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In less trivial uses of UNION, you can use UNION ALL, instructing Oracle not
+    to remove duplicates and saving the sort if you know there aren't going to be
+    any duplicate rows(or maybe don't care)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Neal Sidhwaney](/shared/community-member?user_id=217722), December 10, 2002
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Another example of using MINUS is shown in the following crazy-looking (and
+    Oracle-specific [1]) query which selects the 91st through 100th rows of a subquery.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'And in PostgreSQL (and MySQL too for that matter) it is as simple as:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: select * from my_table order by my_id limit 90,10
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'An easier way for Oracle (according to a random post in a devshed.com forum
+    I googled) would be like this:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: select * from my_table order by my_id where rownum between 90,100
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: (Though the whole point about how to use MINUS is well taken)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Gabriel Ricard](/shared/community-member?user_id=237502), February 26, 2003
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Oops. I was wrong. Phil emailed me and explained that my rownum example won't
+    work (just goes to show that not everything you find on the internet is right!).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Gabriel Ricard](/shared/community-member?user_id=237502), March 17, 2003
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Add a comment](/comments/add?page_id=3461)'
+  prefs: []
+  type: TYPE_NORMAL

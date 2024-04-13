@@ -1,0 +1,994 @@
+- en: ImpParserLexing and Parsing in Coq
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* DROP *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Require Import Coq.Strings.String.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Coq.Strings.Ascii.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Coq.Arith.Arith.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Coq.Arith.EqNat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Coq.Lists.List.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import ListNotations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Imp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition isWhite (c : ascii) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let n := nat_of_ascii c in
+  prefs: []
+  type: TYPE_NORMAL
+- en: orb (orb (beq_nat n 32)   (* space *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (beq_nat n 9))   (* tab *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (orb (beq_nat n 10)   (* linefeed *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (beq_nat n 13)). (* Carriage return. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation "x '<=?' y" := (leb x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(at level 70, no associativity) : nat_scope.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition isLowerAlpha (c : ascii) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let n := nat_of_ascii c in
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (97 <=? n) (n <=? 122).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition isAlpha (c : ascii) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let n := nat_of_ascii c in
+  prefs: []
+  type: TYPE_NORMAL
+- en: orb (andb (65 <=? n) (n <=? 90))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (andb (97 <=? n) (n <=? 122)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition isDigit (c : ascii) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let n := nat_of_ascii c in
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (48 <=? n) (n <=? 57).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inductive chartype := white | alpha | digit | other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition classifyChar (c : ascii) : chartype :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: if isWhite c then
+  prefs: []
+  type: TYPE_NORMAL
+- en: white
+  prefs: []
+  type: TYPE_NORMAL
+- en: else if isAlpha c then
+  prefs: []
+  type: TYPE_NORMAL
+- en: alpha
+  prefs: []
+  type: TYPE_NORMAL
+- en: else if isDigit c then
+  prefs: []
+  type: TYPE_NORMAL
+- en: digit
+  prefs: []
+  type: TYPE_NORMAL
+- en: else
+  prefs: []
+  type: TYPE_NORMAL
+- en: other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint list_of_string (s : string) : list ascii :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match s with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| EmptyString ⇒ []'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| String c s ⇒ c :: (list_of_string s)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint string_of_list (xs : list ascii) : string :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: fold_right String EmptyString xs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition token := string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint tokenize_helper (cls : chartype) (acc xs : list ascii)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': list (list ascii) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let tk := match acc with [] ⇒ [] | _::_ ⇒ [rev acc] end in
+  prefs: []
+  type: TYPE_NORMAL
+- en: match xs with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [] ⇒ tk'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (x::xs'') ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match cls, classifyChar x, x with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _, _, "("      ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tk ++ ["("]::(tokenize_helper other [] xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _, _, ")"      ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tk ++ [")"]::(tokenize_helper other [] xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _, white, _    ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tk ++ (tokenize_helper white [] xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| alpha,alpha,x  ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tokenize_helper alpha (x::acc) xs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| digit,digit,x  ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tokenize_helper digit (x::acc) xs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| other,other,x  ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tokenize_helper other (x::acc) xs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,tp,x         ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tk ++ (tokenize_helper tp [x] xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: end %char.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition tokenize (s : string) : list string :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: map string_of_list (tokenize_helper white [] (list_of_string s)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example tokenize_ex[1] :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tokenize "abc12==3  223*(3+(a+c))" %string
+  prefs: []
+  type: TYPE_NORMAL
+- en: = ["abc"; "12"; "=="; "3"; "223";
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"*"; "("; "3"; "+"; "(";'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"a"; "+"; "c"; ")"; ")"]%string.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof. reflexivity. Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inductive optionE (X:Type) : Type :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| SomeE : X → optionE X'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| NoneE : string → optionE X.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implicit Arguments SomeE [[X]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implicit Arguments NoneE [[X]].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation "'DO' ( x , y ) <== e1 ; e2"
+  prefs: []
+  type: TYPE_NORMAL
+- en: := (match e[1] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| SomeE (x,y) ⇒ e[2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| NoneE err ⇒ NoneE err'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (right associativity, at level 60).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notation "'DO' ( x , y ) <-- e1 ; e2 'OR' e3"
+  prefs: []
+  type: TYPE_NORMAL
+- en: := (match e[1] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| SomeE (x,y) ⇒ e[2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| NoneE err ⇒ e[3]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (right associativity, at level 60, e[2] at next level).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Open Scope string_scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition parser (T : Type) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: list token → optionE (T * list token).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint many_helper {T} (p : parser T) acc steps xs :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps, p xs with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0, _ ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NoneE "Too many recursive calls"
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _, NoneE _ ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE ((rev acc), xs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'', SomeE (t, xs'') ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: many_helper p (t::acc) steps' xs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Fixpoint many {T} (p : parser T) (steps : nat) : parser (list T) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: many_helper p [] steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition firstExpect {T} (t : token) (p : parser T)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': parser T :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: fun xs ⇒ match xs with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| x::xs'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if string_dec x t
+  prefs: []
+  type: TYPE_NORMAL
+- en: then p xs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: else NoneE ("expected '" ++ t ++ "'.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NoneE ("expected '" ++ t ++ "'.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition expect (t : token) : parser unit :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect t (fun xs ⇒ SomeE(tt, xs)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition parseIdentifier (xs : list token)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': optionE (id * list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match xs with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [] ⇒ NoneE "Expected identifier"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| x::xs'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if forallb isLowerAlpha (list_of_string x) then
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (Id x, xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: else
+  prefs: []
+  type: TYPE_NORMAL
+- en: NoneE ("Illegal identifier:'" ++ x ++ "'")
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Definition parseNumber (xs : list token)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': optionE (nat * list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match xs with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [] ⇒ NoneE "Expected number"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| x::xs'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if forallb isDigit (list_of_string x) then
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (fold_left
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fun n d ⇒
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10 * n + (nat_of_ascii d -
+  prefs: []
+  type: TYPE_NORMAL
+- en: nat_of_ascii "0"%char))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list_of_string x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 0,
+  prefs: []
+  type: TYPE_NORMAL
+- en: xs')
+  prefs: []
+  type: TYPE_NORMAL
+- en: else
+  prefs: []
+  type: TYPE_NORMAL
+- en: NoneE "Expected number"
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixpoint parsePrimaryExp (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': optionE (aexp * list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (i, rest) <-- parseIdentifier xs ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (AId i, rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (n, rest) <-- parseNumber xs ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (ANum n, rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR (DO (e, rest) <== firstExpect "("
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseSumExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (u, rest') <== expect ")" rest ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(e,rest'))
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: with parseProductExp (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (e, rest) <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: parsePrimaryExp steps' xs ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (es, rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: many (firstExpect "*" (parsePrimaryExp steps'))
+  prefs: []
+  type: TYPE_NORMAL
+- en: steps' rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (fold_left AMult es e, rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'with parseSumExp (steps:nat) (xs : list token)  :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (e, rest) <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseProductExp steps' xs ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (es, rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: many (fun xs ⇒
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (e,rest') <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "+"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseProductExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE ( (true, e), rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e,rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "-"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseProductExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE ( (false, e), rest'))
+  prefs: []
+  type: TYPE_NORMAL
+- en: steps' rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (fold_left (fun e[0] term ⇒
+  prefs: []
+  type: TYPE_NORMAL
+- en: match term with
+  prefs: []
+  type: TYPE_NORMAL
+- en: (true,  e) ⇒ APlus e[0] e
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (false, e) ⇒ AMinus e[0] e'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end)
+  prefs: []
+  type: TYPE_NORMAL
+- en: es e,
+  prefs: []
+  type: TYPE_NORMAL
+- en: rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition parseAExp := parseSumExp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixpoint parseAtomicExp (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token)  :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO    (u,rest) <-- expect "true" xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (BTrue,rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (u,rest) <-- expect "false" xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (BFalse,rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e,rest) <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "not"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseAtomicExp steps')
+  prefs: []
+  type: TYPE_NORMAL
+- en: xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (BNot e, rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e,rest) <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "("
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseConjunctionExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: (DO (u,rest') <== expect ")" rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (e, rest'))
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e, rest) <== parseProductExp steps' xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: (DO (e', rest') <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "=="
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseAExp steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (BEq e e', rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e', rest') <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "≤"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseAExp steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (BLe e e', rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR
+  prefs: []
+  type: TYPE_NORMAL
+- en: NoneE
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Expected ''=='' or ''≤'' after arithmetic expression")'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: with parseConjunctionExp (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (e, rest) <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseAtomicExp steps' xs ;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (es, rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: many (firstExpect "&&"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseAtomicExp steps'))
+  prefs: []
+  type: TYPE_NORMAL
+- en: steps' rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (fold_left BAnd es e, rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition parseBExp := parseConjunctionExp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check parseConjunctionExp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition testParsing {X : Type}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(p : nat →'
+  prefs: []
+  type: TYPE_NORMAL
+- en: list token →
+  prefs: []
+  type: TYPE_NORMAL
+- en: optionE (X * list token))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(s : string) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let t := tokenize s in
+  prefs: []
+  type: TYPE_NORMAL
+- en: p 100 t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Eval compute in    testParsing parseProductExp "x*y*(x*x)*x". Eval compute in 
+      testParsing parseConjunctionExp "not((x==x||x*x<=(x*x)*x)&&x==x".  *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixpoint parseSimpleCommand (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (u, rest) <-- expect "SKIP" xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE (SKIP, rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e,rest) <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "IF" (parseBExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (c,rest')  <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "THEN"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseSequencedCommand steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (c',rest'') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "ELSE"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseSequencedCommand steps') rest';
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (u,rest''') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: expect "END" rest'';
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(IFB e THEN c ELSE c' FI, rest''')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (e,rest) <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "WHILE"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseBExp steps') xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (c,rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect "DO"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseSequencedCommand steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (u,rest'') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: expect "END" rest';
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(WHILE e DO c END, rest'')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR DO (i, rest) <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseIdentifier xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (e, rest') <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect ":=" (parseAExp steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(i ::= e, rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: with parseSequencedCommand (steps:nat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(xs : list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match steps with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 0 ⇒ NoneE "Too many recursive calls"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S steps'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (c, rest) <==
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseSimpleCommand steps' xs;
+  prefs: []
+  type: TYPE_NORMAL
+- en: DO (c', rest') <--
+  prefs: []
+  type: TYPE_NORMAL
+- en: firstExpect ";"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parseSequencedCommand steps') rest;
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(c ;; c', rest')
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR
+  prefs: []
+  type: TYPE_NORMAL
+- en: SomeE(c, rest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition bignumber := 1000.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Definition parse (str : string) : optionE (com * list token) :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: let tokens := tokenize str in
+  prefs: []
+  type: TYPE_NORMAL
+- en: parseSequencedCommand bignumber tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* Compute parse "   IF x == y + 1 + 2 - y * 6 + 3 THEN     x := x * 1;;     y := 0
+      ELSE     SKIP   END  ". ====>   SomeE      (IFB BEq (AId (Id 0))               (APlus
+                     (AMinus (APlus (APlus (AId (Id 1)) (ANum 1)) (ANum 2))                     (AMult (AId (Id 1)) (ANum 6)))
+                     (ANum 3))       THEN Id 0 ::= AMult (AId (Id 0)) (ANum 1);; Id 1 ::= ANum 0
+          ELSE SKIP FI, ) *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Compute parse "   SKIP;;   z:=x*y*(x*x);;   WHILE x==x DO     IF z <= z*z && not x == 2 THEN
+          x := z;;       y := z     ELSE       SKIP     END;;     SKIP   END;;   x:=z  ".
+    ====>   SomeE      (SKIP;;       Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
+                         (AMult (AId (Id 1)) (AId (Id 1)));;       WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
+            IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))                   (BNot (BEq (AId (Id 1)) (ANum 2)))
+               THEN Id 1 ::= AId (Id 0);; Id 2 ::= AId (Id 0)            ELSE SKIP FI;;
+            SKIP       END;;       Id 1 ::= AId (Id 0),      ) *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Compute parse "   SKIP;;   z:=x*y*(x*x);;   WHILE x==x DO     IF z <= z*z && not x == 2 THEN
+          x := z;;       y := z     ELSE       SKIP     END;;     SKIP   END;;   x:=z  ".
+    =====>   SomeE      (SKIP;;       Id 0 ::= AMult (AMult (AId (Id 1)) (AId (Id 2)))
+                (AMult (AId (Id 1)) (AId (Id 1)));;       WHILE BEq (AId (Id 1)) (AId (Id 1)) DO
+            IFB BAnd (BLe (AId (Id 0)) (AMult (AId (Id 0)) (AId (Id 0))))                  (BNot (BEq (AId (Id 1)) (ANum 2)))
+              THEN Id 1 ::= AId (Id 0);;                Id 2 ::= AId (Id 0)           ELSE SKIP
+            FI;;         SKIP       END;;       Id 1 ::= AId (Id 0),      ). *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* /DROP *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,267 @@
+- en: 'Lecture 10: Functors'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous lecture we considered abstraction and modular design, primarily
+    through the use of the `module` mechanism in OCaml. Today we will consider another
+    means of abstraction called *functors*, a construct that enables modules to be
+    combined by parameterizing a module in terms of other modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the `SET` data abstraction that we have looked at during the past
+    few classes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: While this interface uses polymorphism to enable sets with different types of
+    elements to be created, any implementation of this signature needs to use the
+    built-in `=` function in testing whether an element is a member of such a set.
+    Thus we cannot for example have a set of strings where comparison of the elements
+    is done in a case-insensitive manner, or a set of integers where elements are
+    considered equal when their magnitudes (absolute values) are equal. We could write
+    two separate signatures, one for sets with string elements and one for sets with
+    integer elements, and then in the implementation of each signature use an appropriate
+    comparison function. However this would yield a lot of nearly duplicated code,
+    both in the signatures and in the implementation. Such nearly duplicated code
+    is more work to write and maintain and more importantly is often a source of bugs
+    when things are changed in one place and not another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A *functor* is a mapping from modules to modules. It allows the construction
+    of a module parameterized by one or more other modules. Functors allow us to create
+    a set module that is parameterized by another module that does the equality testing,
+    thereby allowing the same code to be used for different equality tests. To make
+    this concrete, we will consider an example using the following signatures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature `EQUAL` describes the input type for the functor. To implement
+    `EQUAL`, a module need only specify a type `t` and a comparison function `equal
+    : t -> t -> bool`, but these can be anything.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The signature `SETFUNCTOR` describes the type of the functor. This differs from
+    the `SET` interface in several respects. First, the keyword `functor` indicates
+    that it is a functor accepting a parameter, which in this case is any module of
+    type `EQUAL`. Note how the syntax is reminiscent of the notation for functions.
+    The parameter is referenced by the name `Equal` in the body of `SETFUNCTOR`, but
+    that does not have to be its actual name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The body of `SETFUNCTOR` describes the type of the module that will be produced.
+    In the body, instead of the polymorphic `'a` of `SET`, the type of the elements
+    is named `elt` and is defined to be the same as the type `t` of the module `Equal`,
+    whatever that is. There is also a fixed but unspecified type `set`, along with
+    some set operations of the appropriate types, specified in terms of `elt` and
+    `set`. (We have omitted a few of the operations for simplicity of the presentation,
+    although they could easily be added back in.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are ready to define a functor implementing the `SETFUNCTOR` signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, the header
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: indicates that we are defining an implementation named `MakeSet` of the functor
+    type `SETFUNCTOR`. The second line
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: indicates that we are defining a functor with parameter `Equal` of type `EQUAL`.
+    Again, the module implementing `EQUAL` is referenced by the name `Equal` in the
+    body of `MakeSet`, but that does not have to be its actual name. In general there
+    can be any number of parameter modules, each of which must be specified with a
+    name and signature. Note that these parameters can only be modules, including
+    other parameterized modules—they cannot be first-class objects of the language
+    such as functions or other types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the body of `MakeSet` between `struct` and `end` describes the implementation
+    of the output module. This module must satisfy the signature described in the
+    body of `SETFUNCTOR`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The body of `MakeSet` is like the body of any other module. In this example
+    the `open` directive is used so that the names `t` and `equal` can be used without
+    qualifying them as `Equal.t` and `Equal.equal`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is also worth noting the partial evaluation of both `equal` and `List.exists`
+    in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: To write it out in full, we might have written
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: but the shorter version is equivalent. In both cases, we are using the fact
+    that `fun z -> f z` is equivalent to just `f`. For example, both `fun y -> equal
+    x y` and `equal x` are functions that test whether a given element is equal to
+    the value of `x`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we show how to create modules using the functor `MakeSet`. To do this, we
+    need an implementation of the `EQUAL` signature. Say, for example, we want to
+    test equality of strings in a case-independent fashion. Here is a module that
+    does this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can use `MakeSet` to create a string set module with case-insensitive
+    equality by applying it to `StringNoCase`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Evaluating this expression, the interpreter prints out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: That is, the `SSet` module defines the types `set` and `elt` and the function
+    `mem`, `add`, and `size`, but the actual implementation is hidden.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can use this set abstraction to create and manipulate sets of strings
+    with case-insensitive comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After doing this, creating a module for sets of integers using absolute value
+    comparison involves almost no additional code. We only need to create another
+    module implementing `EQUAL` and use it as the parameter to `MakeSet`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can use this set abstraction to create and manipulate sets of integers
+    with absolute value comparison:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Caveats
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are a few subtleties with functors that are worth mentioning. First, note
+    that we did not specify the signature `EQUAL` when we defined `StringNoCase`.
+    We might have written
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but this would have been a bad idea:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The issue here is that the signature `EQUAL` does not expose the type definition
+    `type t = string` in the implementation `StringNoCase`, so the functor is not
+    free to use that information. It may only deal with the module `StringNoCase`
+    through its signature. This is consistent with the principle of information hiding
+    through the use of signatures. Thus the module that is produced does not know
+    that `StringNoCase.t` is really `string`. But if we omit the `EQUAL`, then the
+    signature of `StringNoCase` is inferred from the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: (formatting inserted by hand for clarity). You can see that here the type definition
+    `type t = string` is exposed, and the functor may now use that information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contravariance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another good reason for not specifying the signature is that modules can implement
+    lots of different signatures and can be used in different ways. For example, if
+    we had defined
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: then `StringNoCase` implements not only `EQUAL`, but also `Map.OrderedType`
+    and `Set.OrderedType` from the OCaml library, so it can also be used as an argument
+    to `Map.Make` and `Set.Make`. If we had specified `EQUAL`, then we would have
+    precluded those uses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can always restrict it if we like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The modules `StringNoCaseEq` and `StringNoCase` have the same implementation,
+    but their signatures are different. This is very much like a type upcast in Java.
+    It is an *upcast* because it is going from a more specific specification (fewer
+    instances) to a more general specification (more instances), which means it can
+    be used as the argument to fewer functors. This inverse relationship is known
+    as *contravariance*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...with type...'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For clarity, we may wish to define the result signature of a functor independently
+    from the signature of the functor itself. So instead of the definition of `SETFUNCTOR`
+    as given above, we may wish to write something like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: The difficulty here is that we need a way to equate the type `elt` of `SET`
+    with `Equal.t`. We could do that in the previous definition of `SETFUNCTOR` by
+    writing `type elt = Equal.t` in the body, but here there is no parameter module
+    `Equal` around when we define `SET`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To handle this, OCaml allows you to write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now it can link up the two types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE

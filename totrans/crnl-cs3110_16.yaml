@@ -1,0 +1,458 @@
+- en: 'Lecture 11: Abstraction Functions and Representation Invariants'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have observed that the most important use of the "comment" feature of programming
+    languages is to provide specifications of the behavior of declared functions,
+    so that program modules can be used without inspecting their code (*modular programming*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us now consider the use of comments in module *implementations*. The first
+    question we must ask ourselves is who is going to read the comments written in
+    module implementations. Because we are going to work hard to allow module users
+    to program against the module while reading only its interface, clearly users
+    are not the intended audience. Rather, the purpose of implementation comments
+    is to explain the implementation to other implementers or maintainers of the module.
+    This is done by writing comments that convince the reader that the implementation
+    correctly implements its interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is inappropriate to copy the specifications of functions found in the module
+    interface into the module implementation. Copying runs the risk of introducing
+    inconsistency as the program evolves, because programmers don't keep the copies
+    in sync. Copying code and specifications is a major source (if not *the* major
+    source) of program bugs.  In any case, implementers can always look at the interface
+    for the specification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation comments fall into two categories. The first category arises
+    because a module implementation may define new types and functions that are purely
+    internal to the module. If their significance is not obvious, these types and
+    functions should be documented in much the same style that we have suggested for
+    documenting interfaces. Often, as the code is written, it becomes apparent that
+    the new types and functions defined in the module form an internal data abstraction
+    or at least a collection of functionality that makes sense as a module in its
+    own right. This is a signal that the internal data abstraction might be moved
+    to a separate module and manipulated only through its operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second category of implementation comments is associated with the use of
+    *data abstraction*. Suppose we are implementing an abstraction for a set of items
+    of type `''a`. The interface might look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In a real signature for sets, we''d want operations such as `map` and `fold`
+    as well, but let''s omit these for now for simplicity. There are many ways to
+    implement this abstraction. One easy way is as a list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implementation has the advantage of simplicity. For small sets that tend
+    not to have duplicate elements, it will be a fine choice. Its performance will
+    be poor for large sets or applications with many duplicates but for some applications
+    that's not an issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the types of the functions do not need to be written down in the
+    implementation. They aren't needed because they're already present in the signature,
+    just like the specifications that are also in the signature don't need to be replicated
+    in the structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is another implementation of `SET` that also uses `'a list` but requires
+    the lists to contain no duplicates. This implementation is also correct (and also
+    slow for large sets). Notice that we are using the same representation type, yet
+    some important aspects of the implementation are quite different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another implementation might use some kind of tree structure (which we will
+    cover later in the semester). You may be able to think of more complicated ways
+    to implement sets that are (usually) better than any of these. We'll talk about
+    issues of selecting good implementations in lectures coming up soon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An important reason why we introduced the writing of function specifications
+    was to enable *local reasoning*: once a function has a spec, we can judge whether
+    the function does what it is supposed to without looking at the rest of the program.
+    We can also judge whether the rest of the program works without looking at the
+    code of the function. However, we cannot reason locally about the individual functions
+    in the three module implementations just given. The problem is that we don''t
+    have enough information about the relationship between the concrete types (e.g.,
+    `int list`, `bool vector`) and the corresponding abstract type (`set`). This lack
+    of information can be addressed by adding two new kinds of comments to the implementation:
+    the *abstraction function* and the *representation invariant* for the abstract
+    data type.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstraction Functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The user of any `SET` implementation should not be able to distinguish it from
+    any other implementation based on its functional behavior. As far as the user
+    can tell, the operations act like operations on the mathematical ideal of a set.
+    In the first implementation, the lists `[3; 1]`, `[1; 3]`, and `[1; 1; 3]` are
+    distinguishable to the implementer, but not to the user. To the user, they all
+    represent the abstract set {1, 3} and cannot be distinguished by any of the operations
+    of the `SET` signature. From the point of view of the user, the abstract data
+    type describes a set of abstract values and associated operations. The implementers
+    knows that these abstract values are represented by concrete values that may contain
+    additional information invisible from the user''s view. This loss of information
+    is described by the *abstraction function*, which is a mapping from the space
+    of concrete values to the abstract space. The abstraction function for the implementation
+    `Set1` looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fdf4ea3599c79f40473c51ab5ba3245b.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice that several concrete values may map to a single abstract value; that
+    is, the abstraction function may be *many-to-one*. It is also possible that some
+    concrete values do not map to any abstract value; the abstraction function may
+    be *partial*. That is not the case with `Set1`, but it might be with other implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The abstraction function is important for deciding whether an implementation
+    is correct, therefore it belongs as a comment in the implementation of any abstract
+    data type. For example, in the `Set1` module, we could document the abstraction
+    function as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This comment explicitly points out that the list may contain duplicates, which
+    is helpful as a reinforcement of the first sentence. Similarly, the case of an
+    empty list is mentioned explicitly for clarity, although it is redundant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The abstraction function for the second implementation, which does not allow
+    duplicates, hints at an important difference: we can write the abstraction function
+    for this second representation a bit more simply because we know that the elements
+    are distinct.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In practice the phrase "Abstraction function" is usually omitted. However, it
+    is not a bad idea to include it, because it is a useful reminder of what you are
+    doing when you are writing comments like the ones above. Whenever you write code
+    to implement what amounts to an abstract data type, you should write down the
+    abstraction function explicitly, and certainly keep it in mind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Commutative diagrams
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Using the abstraction function, we can now talk about what it means for an
+    implementation of an abstraction to be *correct*. It is correct exactly when every
+    operation that takes place in the concrete space makes sense when mapped by the
+    abstraction function into the abstract space. This can be visualized as a *commutative
+    diagram*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/01bc71c61bc2b2faa014e793f59f99a9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: A commutative diagram means that if we take the two paths around the diagram,
+    we have to get to the same place. Suppose that we start from a concrete value
+    and apply the actual implementation of some operation to it to obtain a new concrete
+    value or values. When viewed abstractly, a concrete result should be an abstract
+    value that is a possible result of applying the function *as described in its
+    specification* to the abstract view of the actual inputs. For example, consider
+    the union function from the implementation of sets as lists with repeated elements
+    covered last time. When this function is applied to the concrete pair [1; 3],
+    [2; 2], it corresponds to the lower-left corner of the diagram. The result of
+    this operation is the list [2; 2; 1; 3], whose corresponding abstract value is
+    the list {1, 2, 3}. Note that if we apply the abstraction function AF to the input
+    lists [1; 3] and [2; 2], we have the sets {1, 3} and {2}. The commutative diagram
+    requires that in this instance the union of {1, 3} and {2} is {1, 2, 3}, which
+    is of course true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Representation Invariants
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Some missing information
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The abstraction function explains how information within the module is viewed
+    abstractly by module clients. However, this is not all we need to know to ensure
+    correctness of the implementation. Consider the `size` function in each of the
+    two implementations. For `Set2`, in which the lists of integers have no duplicates,
+    the size is just the length of the list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But for `Set1`, which allows duplicates, we need to be sure not to double-count
+    duplicate elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How we know that we don't need to do this check in `Set2`? Since the code does
+    not explicitly say that there are no duplicates, implementers will not be able
+    to reason locally about whether functions like `size` are implemented correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The issue here is that in the `Set2` representation, not all concrete data
+    items represent abstract data items. That is, the *domain* of the abstraction
+    function does not include all possible lists. There are some lists, such as `[1;
+    1; 2]`, that contain duplicates and must never occur in the representation of
+    a set in the `Set2` implementation; the abstraction function is undefined on such
+    lists. We need to include a second piece of information, the *representation invariant*
+    (or *rep invariant*, or *RI*), to determine which concrete data items are valid
+    representations of abstract data items. For sets represented as lists without
+    duplicates, we write this as part of the comment together with the abstraction
+    function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we think about this issue in terms of the commutative diagram, we see that
+    there is a crucial property that is necessary to ensure correctness: namely, that
+    all concrete operations preserve the representation invariant. If this constraint
+    is broken, functions such as `size` will not return the correct answer. The relationship
+    between the representation invariant and the abstraction function is depicted
+    in this figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46d15175a415b650daa91a93f19ec97d.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can use the rep invariant and abstraction function to judge whether the
+    implementation of a single operation is correct *in isolation from the rest of
+    the module*. It is correct if, assuming that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the function's preconditions hold of the argument values
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: the concrete representations of the arguments satisfy the rep invariant
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: we can show that
+  prefs: []
+  type: TYPE_NORMAL
+- en: all new representation values created satisfy the rep invariant, and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: the commutative diagram holds.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The rep invariant makes it easier to write code that is provably correct, because
+    it means that we don't have to write code that works for all possible incoming
+    concrete representations—only those that satisfy the rep invariant. For example,
+    in the implementation `Set2`, we do not care what the code does on lists that
+    contain duplicate elements. However, we do need to be concerned that on return,
+    we only produce values that satisfy the rep invariant. As suggested in the figure
+    above, if the rep invariant holds for the input values, then it should hold for
+    the output values, which is why we call it an *invariant*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: repOK
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When implementing a complex abstract data type, it is often helpful to write
+    an internal function that can be used to check that the rep invariant holds of
+    a given data item. By convention we will call this function `repOK`. If the module
+    accepts values of the abstract type that are created outside the module, say by
+    exposing the implementation of the type in the signature, then `repOK` should
+    be applied to these to ensure the representation invariant is satisfied. In addition,
+    if the implementation creates any new values of the abstract type, `repOK` can
+    be applied to them as a sanity check. With this approach, bugs are caught early,
+    and a bug in one function is less likely to create the appearance of a bug in
+    another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: repOK as an identity function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A convenient way to write `repOK` is to make it an identity function that just
+    returns the input value if the rep invariant holds and raises an exception if
+    it fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is an implementation of `SET` that uses the same data representation as
+    `Set2`, but includes copious `repOK` checks. Note that `repOK` is applied to all
+    input sets and to any set that is ever created. This ensures that if a bad set
+    representation is created, it will be detected immediately. In case we somehow
+    missed a check on creation, we also apply `repOK` to incoming set arguments. If
+    there is a bug, these checks will help us quickly figure out where the rep invariant
+    is being broken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Production vs. development code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Calling `repOK` on every argument can be too expensive for the production version
+    of a program. The `repOK` above is quite expensive (though it could be implemented
+    more cheaply). For production code, it may be more appropriate to use a version
+    of `repOK` that only checks the parts of the rep invariant that are cheap to check.
+    When there is a requirement that there be no run-time cost, `repOK` can be changed
+    to an identity function (or macro) so the compiler optimizes away the calls to
+    it. However, it is a good idea to keep around the full code of `repOK` (perhaps
+    in a comment) so it can be easily reinstated during future debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some languages provide support for conditional compilation, such as the `assert`
+    statements in Java and OCaml. These constructs are ideal for checking representation
+    invariants and other types of sanity checks. There is a compiler option that allows
+    such assertions to be turned on during development and turned off for the final
+    production version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module Invariants
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Invariants on data are useful even when writing modules that are not easily
+    considered to be providing abstract data types. Sometimes it is difficult to identify
+    an abstract view of data that is provided by the module, and there may not be
+    any abstract type at all. Invariants are important even without an abstraction
+    function, because they document the legal states and representations that the
+    code is expected to handle correctly. In general we refer to **module invariants**
+    as invariants enforced by modules. In the case of an ADT, the rep invariant is
+    a module invariant. Module invariants are useful for understanding how the code
+    works, and also for maintenance, because the maintainer can avoid changes to the
+    code that violate the module invariant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module invariants and code evolution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A strong module invariant is not always the best choice, because it restricts
+    future changes to the module. We described interface specifications as a contract
+    between the implementer of a module and the user. A module invariant is a contract
+    among the various implementers of the module, present and future. Once an invariant
+    is established, ADT operations may be implemented assuming that the rep invariant
+    holds. If the rep invariant is ever weakened (made more permissive), some parts
+    of the implementation may break. Thus, *one of the most important purposes of
+    the rep invariant is to document exactly what may and what may not be safely changed
+    about a module implementation*. A weak invariant forces the implementer to work
+    harder to produce a correct implementation, because less can be assumed about
+    concrete representation values, but conversely it gives maximum flexibility for
+    future changes to the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modularity and module invariants
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A sign of good code design is that invariants on program data are enforced in
+    a localized way, within modules, so that programmers can reason about whether
+    the invariant is enforced without thinking about the rest of the program. To do
+    this it is necessary to figure out just the right operations to be exposed by
+    the various modules, so that useful functionality can be provided while also ensuring
+    that invariants are maintained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conversely, a common design error is to break up a program into a set of modules
+    that simply encapulate data and provide low-level accessor operations, while putting
+    all the interesting logic of the program in one main module. The problem with
+    this design is that all the interesting (and hard!) code still lives in one place,
+    and the main module is responsible for enforcing many complex invariants among
+    the data. This kind of design does not break the program into simpler parts that
+    can be reasoned about independently. It shows the big danger sign that the abstractions
+    aren''t right: all the code is either boring code, or overly complex code that
+    is hard to reason about.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, suppose we are implementing a graphical chess game. The game state
+    includes a board and a bunch of pieces. We might want to keep track of where each
+    piece is, as well as what is on each board square. And there may be a good deal
+    of state in the graphical display too. A good design would ensure that the board,
+    the pieces, and the graphical display stay in sync with each other in code that
+    is separate from that which handles the detailed rules of the game of chess.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Principles for modular design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Given a large programming task, we want to divide it into modules in an effective
+    way. There are several goals. To make the user of the software happy, we want
+    a program that is correct, secure, and has acceptable performance. But to keep
+    the cost of development and maintenance low, and to increase the likelihood that
+    the program is correct, we want a modular design that has loose coupling and permits
+    local reasoning. These goals are in tension. We can roughly characterize design
+    tradeoffs along an axis between loose and tight coupling:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Issue | Loose coupling | Tight coupling |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Size of interface | *narrow* interface: few operations | *wide* interface:
+    many operations |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Complexity | Simple specifications | Complex specifications |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Invariants | Local | Global |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Pre/post-conditions | Weak, nondeterministic | Strong, deterministic |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correctness | Easier to get right | Harder to get right |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Performance | May sacrifice performance | May expose optimizations |'
+  prefs: []
+  type: TYPE_TB
+- en: Thus, if we want software that is very modular and relatively easy to build
+    correctly, we should design modules that have simple, narrow interfaces with relatively
+    few operations with simple specifications. In some cases we may need more performance
+    than an aggressively modular design offers, and may need to make our specification
+    more complex or add new operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good rule of thumb is to start with as modular and simple a design as possible.
+    Interfaces should be narrow, exposing only as many operations as are necessary
+    for clients to carry out their tasks. Invariants should be simple and enforced
+    locally. Avoid premature optimization that results in complex, tightly coupled
+    programs, because very often the performance bottlenecks are not what is expected.
+    You don't want to pay the price for complexity that turns out to be unnecessary.
+    If performance becomes a problem, a simple, clean design is usually a good starting
+    point for refinements that improve performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, the right choice along this axis depends on the system being built,
+    and engineering judgment is required. Software designers must balance issues of
+    cost, performance, correctness, usability, and security. They are expected all
+    the time to make judgment calls that trade off among these issues. The key to
+    good software engineering is to realize when you need to make these judgments
+    and to know the consequences of your choices.
+  prefs: []
+  type: TYPE_NORMAL

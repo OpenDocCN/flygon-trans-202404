@@ -1,0 +1,123 @@
+- en: Lazy vs Eager EvaluationTuesday, January 24th
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As we have previously seen, there are two basic approaches for evaluation:
+    either eager or lazy. In lazy evaluation, bindings are used for sort of textual
+    references — it is only for avoiding writing an expression twice, but the associated
+    computation is done twice anyway. In eager evaluation, we eliminate not only the
+    textual redundancy, but also the computation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Which evaluation method did our evaluator use? The relevant piece of formalism
+    is the treatment of `with`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the matching piece of code is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How do we make this lazy?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the formal equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and in the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can verify the way this works by tracing `eval` (compare the trace you get
+    for the two versions):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ignoring the traces for now, the modified WAE interpreter works as before, specifically,
+    all tests pass. So the question is whether the language we get is actually different
+    than the one we had before. One difference is in execution speed, but we can’t
+    really notice a difference, and we care more about meaning. Is there any program
+    that will run differently in the two languages?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main feature of the lazy evaluator is that it is not evaluating the named
+    expression until it is actually needed. As we have seen, this leads to duplicating
+    computations if the bound identifier is used more than once — meaning that it
+    does not eliminate the dynamic redundancy. But what if the bound identifier is
+    not used at all? In that case the named expression simply evaporates. This is
+    a good hint at an expression that behaves differently in the two languages — if
+    we add division to both languages, we get a different result when we try running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The eager evaluator stops with an error when it tries evaluating the division
+    — and the lazy evaluator simply ignores it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even without division, we get a similar behavior for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: but it is questionable whether the fact that this evaluates to 7 is correct
+    behavior — we really want to forbid program that use free variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Furthermore, there is an issue with name capturing — we don’t want to substitute
+    an expression into a context that captures some of its free variables. But our
+    substitution allows just that, which is usually not a problem because by the time
+    we do the substitution, the named expression should not have free variables that
+    need to be replaced. However, consider evaluating this program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'under the two evaluation regimens: the eager version stops with an error, and
+    the lazy version succeed. This points at a bug in our substitution, or rather
+    not dealing with an issue that we do not encounter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So the summary is: as long as the initial program is correct, both evaluation
+    regimens produce the same results. If a program contains free variables, they
+    might get captured in a naive lazy evaluator implementation (but this is a bug
+    that should be fixed). Also, there are some cases where eager evaluation runs
+    into a run-time problem which does not happen in a lazy evaluator because the
+    expression is not used. It is possible to prove that when you evaluate an expression,
+    if there is an error that can be avoided, lazy evaluation will always avoid it,
+    whereas an eager evaluator will always run into it. On the other hand, lazy evaluators
+    are usually slower than eager evaluator, so it’s a speed vs. robustness trade-off.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that with lazy evaluation we say that an identifier is bound to an expression
+    rather than a value. (Again, this is why the eager version needed to wrap `eval`‘s
+    result in a `Num` and this one doesn’t.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (It is possible to change things and get a more well behaved substitution, we
+    basically will need to find if a capture might happen, and rename things to avoid
+    it. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But you can see that this is much more complicated (more code: requires a `free-in`
+    predicate, being able to invent new *fresh* names, etc). And it’s not even the
+    end of that story…)'
+  prefs: []
+  type: TYPE_NORMAL

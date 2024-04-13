@@ -1,0 +1,325 @@
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Machine learning is the hottest thing in software engineering today. There are
+    a lot of publications on machine learning appearing daily, and new machine learning
+    products are appearing all the time. [Amazon](http://bit.ly/what-is-amazon-ml),
+    [Microsoft](http://bit.ly/azure-ml-modules), [Google](http://bit.ly/google-cloud-ml),
+    [IBM](http://bit.ly/IBM-ml), and others have introduced machine learning as managed
+    cloud offerings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, one of the areas of machine learning that is not getting enough attention
+    is model serving—how to serve the models that have been trained using machine
+    learning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The complexity of this problem comes from the fact that typically model training
+    and model serving are responsibilities of two different groups in the enterprise
+    who have different functions, concerns, and tools. As a result, the transition
+    between these two activities is often nontrivial. In addition, as new machine
+    learning tools appear, it often forces developers to create new model serving
+    frameworks compatible with the new tooling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This book introduces a slightly different approach to model serving based on
+    the introduction of standardized document-based intermediate representation of
+    the trained machine learning models and using such representations for serving
+    in a stream-processing context. It proposes an overall architecture implementing
+    controlled streams of both data and models that enables not only the serving of
+    models in real time, as part of processing of the input streams, but also enables
+    updating models without restarting existing applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who This Book Is For
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This book is intended for people who are interested in approaches to real-time
+    serving of machine learning models supporting real-time model updates. It describes
+    step-by-step options for exporting models, what exactly to export, and how to
+    use these models for real-time serving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The book also is intended for people who are trying to implement such solutions
+    using modern stream processing engines and frameworks such as Apache Flink, Apache
+    Spark streaming, Apache Beam, Apache Kafka streams, and Akka streams. It provides
+    a set of working examples of usage of these technologies for model serving implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Is Model Serving Difficult?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When it comes to machine learning implementations, organizations typically
+    employ two very different groups of people: data scientists, who are typically
+    responsible for the creation and training models, and software engineers, who
+    concentrate on model scoring. These two groups typically use completely different
+    tools. Data scientists work with R, Python, notebooks, and so on, whereas software
+    engineers typically use Java, Scala, Go, and so forth. Their activities are driven
+    by different concerns: data scientists need to cope with the amount of data, data
+    cleaning issues, model design and comparison, and so on; software engineers are
+    concerned with production issues such as performance, maintainability, monitoring,
+    scalability, and failover.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These differences are currently fairly well [understood](http://bit.ly/spark-ml-lab-to-prod)
+    and result in many “proprietary” model scoring solutions, for example, [Tensorflow
+    model serving](https://tensorflow.github.io/serving/) and [Spark-based model serving](http://bit.ly/2xy47wV).
+    Additionally all of the managed machine learning implementations ([Amazon](http://bit.ly/what-is-amazon-ml),
+    [Microsoft](http://bit.ly/azure-ml-modules), [Google](http://bit.ly/google-cloud-ml),
+    [IBM](http://bit.ly/IBM-ml), etc.) provide model serving capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tools Proliferation Makes Things Worse
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In his recent [talk](http://bit.ly/ted-dunning-ffsf-2017), Ted Dunning describes
+    the fact that with multiple tools available to data scientists, they tend to use
+    different tools to solve different problems (because every tool has its own sweet
+    spot and the number of tools grows daily), and, as a result, they are not very
+    keen on tools standardization. This creates a problem for software engineers trying
+    to use “proprietary” model serving tools supporting specific machine learning
+    technologies. As data scientists evaluate and introduce new technologies for machine
+    learning, software engineers are forced to introduce new software packages supporting
+    model scoring for these additional technologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the approaches to deal with these problems is the introduction of an
+    [API gateway](https://github.com/ucbrise/clipper) on top of the proprietary systems.
+    Although this hides the disparity of the backend systems from the consumers behind
+    the unified APIs, for model serving it still requires installation and maintenance
+    of the actual model serving implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Standardization to the Rescue
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To overcome these complexities, the [Data Mining Group](http://dmg.org/) has
+    introduced two model representation standards: [Predictive Model Markup Language
+    (PMML)](http://dmg.org/pmml/v4-1/GeneralStructure.html) and [Portable Format for
+    Analytics (PFA)](http://dmg.org/pfa/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[The Data Mining Group Defines PMML](http://dmg.org/pmml/pmml-v4-3.html) as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is an [XML](http://www.w3.org/TR/REC-xml/)-based language that provides a way
+    for applications to define statistical and data-mining models as well as to share
+    models between PMML-compliant applications.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: PMML provides applications a vendor-independent method of defining models so
+    that proprietary issues and incompatibilities are no longer a barrier to the exchange
+    of models between applications. It allows users to develop models within one vendor’s
+    application, and use other vendors’ applications to visualize, analyze, evaluate
+    or otherwise use the models. Previously, this was very difficult, but with PMML,
+    the exchange of models between compliant applications is now straightforward.
+    Because PMML is an XML-based standard, the specification comes in the form of
+    an [XML Schema](http://dmg.org/pmml/v4-3/pmml-4-3.xsd).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[The Data Mining Group describes PFA](http://dmg.org/pfa/) as'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'an emerging standard for statistical models and data transformation engines.
+    PFA combines the ease of portability across systems with algorithmic flexibility:
+    models, pre-processing, and post processing are all functions that can be arbitrarily
+    composed, chained, or built into complex workflows. PFA may be as simple as a
+    raw data transformation or as sophisticated as a suite of concurrent data mining
+    models, all described as a JSON or YAML configuration file.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Another de facto standard in machine learning today is [TensorFlow](https://www.tensorflow.org/)--an
+    open-source software library for Machine Intelligence. Tensorflow can be defined
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At a high level, TensorFlow is a Python library that allows users to express
+    arbitrary computation as a graph of data flows. Nodes in this graph represent
+    mathematical operations, whereas edges represent data that is communicated from
+    one node to another. Data in TensorFlow are represented as tensors, which are
+    multidimensional arrays.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: TensorFlow was released by Google in 2015 to make it easier for developers to
+    design, build, and train deep learning models, and since then, it has become one
+    of the most used software libraries for machine learning. You also can use TensorFlow
+    as a backend for some of the other popular machine learning libraries, for example,
+    [Keras](https://keras.io/). TensorFlow allows for the exporting of trained models
+    in protocol buffer formats (both text and binary) that you can use for transferring
+    models between machine learning and model serving. In an attempt to make TensorFlow
+    more Java friendly, [TensorFlow Java APIs](http://bit.ly/tensorflow-java-apis)
+    were released in 2017, which enable scoring TensorFlow models using any Java Virtual
+    Machine (JVM)–based language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the aforementioned model export approaches are designed for platform-neutral
+    descriptions of the models that need to be served. Introduction of these model
+    export approaches led to the creation of several software products dedicated to
+    “generic” model serving, for example, [Openscoring](http://openscoring.io/) and
+    [Open Data Group](https://www.opendatagroup.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another result of this standardization is the creation of open source projects,
+    building generic “evaluators” based on these formats. [JPMML](https://github.com/jpmml/jpmml-evaluator)
+    and [Hadrian](https://github.com/opendatagroup/hadrian) are two examples that
+    are being adopted more and more for building model-serving implementations, such
+    as in these example projects: [ING](http://bit.ly/erik-de-noojj-ffsf-2017), [R
+    implementation](http://fastdatageek.blogspot.com/2014/03/), [SparkML support](https://github.com/jpmml/jpmml-evaluator-spark),
+    [Flink support](https://github.com/FlinkML/flink-jpmml), and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, because models are represented not as code but as data, usage
+    of such a model description allows manipulation of models as a special type of
+    data that is fundamental for our proposed solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why I Wrote This Book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This book describes the problem of serving models resulting from machine learning
+    in streaming applications. It shows how to export trained models in TensorFlow
+    and PMML formats and use them for model serving, using several popular streaming
+    engines and frameworks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I deliberately do not favor any specific solution. Instead, I outline options,
+    with some pros and cons. The choice of the best solution depends greatly on the
+    concrete use case that you are trying to solve, more precisely:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of models to serve. Increasing the number of models will skew your
+    preference toward the use of the key-based approach, like Flink key-based joins.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The amount of data to be scored by each model. Increasing the volume of data
+    suggests partition-based approaches, like Spark or Flink partition-based joins.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The number of models that will be used to score each data item. You’ll need
+    a solution that easily supports the use of composite keys to match each data item
+    to multiple models.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The complexity of the calculations during scoring and additional processing
+    of scored results. As the complexity grows, so will the load grow, which suggests
+    using streaming engines rather than streaming libraries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scalability requirements. If they are low, using streaming libraries like Akka
+    and Kafka Streams can be a better option due to their relative simplicity compared
+    to engines like Spark and Flink, their ease of adoption, and the relative ease
+    of maintaining these applications.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your organization’s existing expertise, which can suggest making choices that
+    might be suboptimal, all other considerations being equal, but are more comfortable
+    for your organization.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope this book provides the guidance you need for implementing your own solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How This Book Is Organized
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The book is organized as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 1](ch01.html#proposed_implementation) describes the overall proposed
+    architecture.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Chapter 2](ch02.html#exporting_models) talks about exporting models using
+    examples of TensorFlow and PMML.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Chapter 3](ch03.html#implementing_model_scoring) describes common components
+    used in all solutions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Chapter 4](ch04.html#apache_flink_implementation) through [Chapter 8](ch08.html#akka_streams_implementation)
+    describe model serving implementations for different stream processing engines
+    and frameworks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Chapter 9](ch09.html#monitoring) covers monitoring approaches for model serving
+    implementations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Note About Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The book contains a lot of code snippets. You can find the complete code in
+    the following Git repositories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Python examples](https://github.com/typesafehub/fdp-tensorflow-python-examples)
+    is the repository containing Python code for exporting TensorFlow models described
+    in [Chapter 2](ch02.html#exporting_models).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Beam model server](https://github.com/typesafehub/fdp-beam-modelServer) is
+    the repository containing code for the Beam solution described in [Chapter 5](ch05.html#apache_beam_implementation).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Model serving](https://github.com/typesafehub/fdp-modelserver) is the repository
+    containing the rest of the code described in the book.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Acknowledgments
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I would like to thank the people who helped me in writing this book and making
+    it better, especially:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Konrad Malawski, for his help with Akka implementation and overall review
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dean Wampler, who did a thorough review of the overall book and provided many
+    useful suggestions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Trevor Grant, for conducting a technical review
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The entire Lightbend Fast Data team, especially Stavros Kontopoulos, Debasish
+    Ghosh, and Jim Powers, for many useful comments and suggestions about the original
+    text and code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

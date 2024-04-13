@@ -1,0 +1,1513 @@
+- en: '27Reasoning about Programs: A First Look at Types'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [27.1 Types as a Static Discipline](#%28part._.Types_as_a_.Static_.Discipline%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.2 The Principle of Substitutability](#%28part._type-substitutability%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.3 A Type(d) Language and Type Errors](#%28part._.A_.Type_d__.Language_and_.Type_.Errors%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.3.1 Assume-Guarantee Reasoning](#%28part._assume-guarantee%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.4 A Type Checker for Expressions and Functions](#%28part._type-checker%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.4.1 A Pure Checker](#%28part._.A_.Pure_.Checker%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.4.2 A Calculator and Checker](#%28part._.A_.Calculator_and_.Checker%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.4.3 Type-Checking Versus Interpretation](#%28part._.Type-.Checking_.Versus_.Interpretation%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.5 Type-Checking, Testing, and Coverage](#%28part._types-v-tests%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.6 Recursion in Code](#%28part._.Recursion_in_.Code%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.6.1 A First Attempt at Typing Recursion](#%28part._.A_.First_.Attempt_at_.Typing_.Recursion%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.6.2 Program Termination](#%28part._strong-normalization%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.6.3 Typing Recursion](#%28part._.Typing_.Recursion%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [27.7 Recursion in Data](#%28part._.Recursion_in_.Data%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.7.1 Recursive Datatype Definitions](#%28part._.Recursive_.Datatype_.Definitions%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.7.2 Introduced Types](#%28part._.Introduced_.Types%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.7.3 Selectors](#%28part._.Selectors%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [27.7.4 Pattern-Matching and Desugaring](#%28part._.Pattern-.Matching_and_.Desugaring%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'One of the themes of this book is predictability ([Predictability as a Theme](Introduction.html#%28part._predictability%29)).
+    One of our key tools in reasoning about program behavior before we run it is the
+    static checking of types. For example, when we write x :: Number, we mean that
+    x will always hold a Number, and that all parts of the program that depend on
+    x can rely on this statement being enforced. As we will see, types are just one
+    point in a spectrum of invariants we might wish to state, and static type checking—<wbr>itself
+    a diverse family of techniques—<wbr>is also a point in a spectrum of methods we
+    can use to enforce the invariants.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.1Types as a Static Discipline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will focus especially on static type checking: that is,
+    checking (declared) types before the program even executes.This is an extremely
+    rich and active subject. For further study, I strongly recommend reading Pierce’s
+    Types and Programming Languages. We will explore some of the design space of types
+    and their trade-offs. Finally, though static typing is an especially powerful
+    and important form of invariant enforcement, we will also examine some other techniques
+    that we have available [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this Pyret program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We would like to receive a type error before the program begins execution.Pyret
+    does not currently perform static type checking, but this will soon change. The
+    same program (without the type annotations) can fail only at run-time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How would you test the assertions that one fails before the program executes
+    while the other fails during execution?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now consider the following Pyret program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This too fails before program execution begins, with a parse error. Though
+    we think of parsing as being somehow distinct from type-checking—<wbr>usually
+    because a type-checker assumes it has a parsed program to begin with—<wbr>it can
+    be useful to think of parsing as being simply the very simplest kind of type-checking:
+    determining (typically) whether the program obeys a context-free syntax. Type-checking
+    then asks whether it obeys a context-sensitive (or richer) syntax. In short, type-checking
+    is a generalization of parsing, in that both are concerned with syntactic methods
+    for enforcing disciplines on programs.This particular, and very influential, phrasing
+    is due to John Reynolds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will begin by introducing a traditional core language of types. Later, we
+    will explore both extensions [REF] and variations [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.2The Principle of Substitutability
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The essence of any typing mechanism is usually the principle of substitutability:
+    two types A and B “match” when values of one can be used in place of values of
+    the other. Therefore, the design of a type system implicitly forces us to consider
+    when such substitutions are safe (in the sense given by [The Central Theorem:
+    Type Soundness](safety-soundness.html#%28part._type-soundness%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Of course, the simplest notion of substitutability is simply identity: a type
+    can only be substituted with itself, and nothing else. For instance, if the declared
+    type of a function’s parameter is String, then you can only call it with String-typed
+    values, nothing else. This is known as invariance: the set of values that can
+    be passed into a type cannot “vary” from the set expected by that type. This is
+    so obvious that it might seem to hardly warrant a name! However, it is useful
+    to name because it sets up a contrast with later type systems when we will have
+    richer, non-trivial notions of substitutability (see [Subtyping](objects.html#%28part._subtyping%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.3A Type(d) Language and Type Errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we can define a type checker, we have to fix two things: the syntax
+    of our typed core language and, hand-in-hand with that, the syntax of types themselves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll begin with our language with functions-as-values ([Functions Anywhere](Interpreting_Functions.html#%28part._higher-order-functions%29)).
+    To this language we have to add type annotations. Conventionally, we don’t impose
+    type annotations on constants or on primitive operations such as addition, because
+    this would be unbearably tedious; instead, we impose them on the boundaries of
+    functions or methods. Over the course of this study we will explore why this is
+    a good locus for annotations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given this decision, our typed core language becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: That is, every procedure is annotated with the type of argument it expects and
+    type of argument it purports to produce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we have to decide on a language of types. To do so, we follow the tradition
+    that the types abstract over the set of values. In our language, we have [three
+    kinds of values](Interpreting_Functions.html#%28elem._hof-value%29). It follows
+    that we should have three kinds of types: one each for numbers, Booleans, and
+    functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What information does a number type need to record? In most languages, there
+    are actually many numeric types, and indeed there may not even be a single one
+    that represents “numbers”. However, we have ignored these gradations between numbers
+    ((part "change-rep")), so it’s sufficient for us to have just one. Having decided
+    that, do we record additional information about which number? We could in principle,
+    but that would mean for types to check, we would have to be able to decide whether
+    two expressions compute the same number—<wbr>a problem that reduces to the Halting
+    Problem [REF].In some specialized type systems, however, we do record some information
+    about the number. These systems either have some means of approximation that lets
+    them avoid the Halting Problem, or embrace it by not guaranteeing termination!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We treat Booleans just like numbers: we ignore which Boolean it is. Here, we
+    perhaps have more value in being precise, because there are only two values we
+    need to track, not an infinite number. That means in some cases, we even know
+    which branch of a conditional we will take, and can examine only that branch (though
+    that may miss a type-error lurking in the other branch: what should we do about
+    that?). However, even the problem of knowing precisely which Boolean we have reduces
+    to the Halting Problem [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct an argument for why determining which number or Boolean an arbitrary
+    expression evaluates to is equivalent to solving the Halting Problem.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'As for functions, we have more information: the type of expected argument,
+    and the type of claimed result. We might as well record this information we have
+    been given until and unless it has proven to not be useful. Combining these, we
+    obtain the following abstract language of types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we’ve fixed both the term and type structure of the language, let’s
+    make sure we agree on what constitute type errors in our language (and, by fiat,
+    everything not a type error must pass the type checker). There are three obvious
+    forms of type errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One or both arguments of + is not a number, i.e., does not have type numT.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One or both arguments of * is not a number.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The expression in the function position of an application is not a function,
+    i.e., does not have type funT.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Any more?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We’re actually missing one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expression in the function position of an application is a function but
+    the type of the actual argument does not match the type of the formal argument
+    expected by the function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Any more?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'What about:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expression in the function position of an application is a function but
+    its return type does not match the type expected by the expression that invokes
+    the function?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And we’re still not done!Instead of this kind of ad hoc enumeration, what we
+    really ought to do is systematically go over each of the syntactic forms of our
+    language and ask how each of them can produce a type error. That indicates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: A number on its own can never be a type error. For addition and multiplication,
+    both branches must have numeric type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Just as with numbers, Boolean constants on their own cannot be a type error.
+    In a conditional, however, we require:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The conditional expression must have type Boolean.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both branches must have the same type (whatever it may be).Implicit is the idea
+    that we can easily determine when two types are the “same”. We’ll return to this
+    in [Subtyping](objects.html#%28part._subtyping%29).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And finally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An identifier on its own is never type-erroneous. Applications expect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function position (f) must have a function type (funT).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type of the actual argument expression (a) must match the argument type
+    (.arg) of the function position.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And finally, a function definition expects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The type of the body—<wbr>assuming the formal argument (arg) has been given
+    a value of the declared type (at)—<wbr>matches the type declared (rt) as the return
+    type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 27.3.1Assume-Guarantee Reasoning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The last few cases we just saw had a very interesting structure. Did you spot
+    it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rules for function definition and declaration complement each other perfectly.
+    Let’s illustrate this with a program written in Pyret syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: When type-checking the definition of f, we assume that if and when f is eventually
+    applied, it will be applied to a value of String type. We do assume this because
+    the annotation on x is String. We can assume this because when checking the application,
+    we will first look up the type of f, observe that it expects a String-typed value,
+    and confirm that the actual argument indeed matches this type. That is, the type-checker’s
+    treatment of application guarantees that this assumption is safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, when type-checking the application, having looked up the type of
+    f, we assume that it will indeed return a value of type Number. We can assume
+    this because that is the return type annotation of f. We do assume it because
+    the type-checker will ensure that the body of f—<wbr>assuming the type of x—<wbr>will
+    indeed return a Number. That is, once again, the type-checker’s treatment of function
+    definitions guarantees that the assumption at function applications is safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In short, the treatment of function definition and application are complementary.
+    They are joined together by a method called assume-guarantee reasoning, whereby
+    each side’s assumptions are guaranteed by the other side, and the two stitch together
+    perfectly to give us the desired safe execution (which we elaborate on later:
+    [The Central Theorem: Type Soundness](safety-soundness.html#%28part._type-soundness%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.4A Type Checker for Expressions and Functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 27.4.1A Pure Checker
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Since the job of a type-checker is to pass judgment on programs—<wbr>in particular,
+    to indicate whether a program passes or fails type-checking—<wbr>a natural type
+    for a type-checker would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, because we know expressions contain identifiers, it soon becomes clear
+    that we will want a type environment, which maps names to types, analogous to
+    the value environment we have seen so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Define the types and functions associated with type environments.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Thus, we might begin our program as follows:<hof-tc-bool> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun tc(e :: TyExprC, tnv :: TyEnv) -> Boolean: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (TyExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-bool-numC>](#%28elem._hof-tc-bool-num.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-bool-idC>](#%28elem._hof-tc-bool-id.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-bool-appC>](#%28elem._hof-tc-bool-app.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'As the abbreviated set of cases above suggests, this approach will not work
+    out. We’ll soon see why.Let’s begin with the easy case: numbers. Does a number
+    type-check? Well, on its own, of course it does; it may be that the surrounding
+    context is not expecting a number, but that error would be signaled elsewhere.
+    Thus:<hof-tc-bool-numC> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; numC(_) => true |'
+  prefs: []
+  type: TYPE_TB
+- en: (Notice that we’re expressly ignoring which number it is.)Now let’s handle identifiers.
+    Is an identifier well-typed? Again, on its own it would appear to be, provided
+    it is actually a bound identifier; it may not be what the context desires, but
+    hopefully that too would be handled elsewhere. Thus we might write<hof-tc-bool-idC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; idC(s) => ty-lookup(s, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: where ty-lookup returns true if the identifier is bound, and false otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This should make you a little uncomfortable: we seem to be throwing away valuable
+    information about the type of the identifier. Of course, types do throw away information
+    (e.g., which specific number an expression computes). However, the kind of information
+    we’re throwing away here is much more significant: it’s not about a specific value
+    within a type, but the type itself. Nevertheless, let’s push on.It might also
+    bother you that, by only returning a Boolean, we have no means to express what
+    type error occurred. But you might assuage yourself by saying that’s only because
+    we have too weak a return type.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we tackle applications. We should type-check both the function part, to
+    make sure it’s a function, then ensure that the actual argument’s type is consistent
+    with what the function declares to be the type of its formal argument. How does
+    the code look?<hof-tc-bool-appC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     f-t = tc(f, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     a-t = tc(a, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ... |'
+  prefs: []
+  type: TYPE_TB
+- en: The two recursive calls to tc can only tell us whether the function and argument
+    expressions type-check or not. Critically, they cannot tell us whether the argument
+    expression’s type (what is it?) matches that of the function’s expected argument
+    type (what is it?). Though we might be able to fudge this in the case of simple
+    expressions, for complex ones we cannot just examine the expression; furthermore,
+    this violates our principle of wanting to avoid probing deep into expressions.
+    Put differently, we’d like to have written
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: but f-t is a Boolean and hence can never pass is-funT; similarly, comparing
+    a-t with f-t.arg is meaningless because both are Booleans (representing whether
+    or not the corresponding sub-expressions type-checked), not the actual types of
+    those expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, what we need is something that will calculate the type of an
+    expression, no matter how complex it is. Of course, such a procedure could only
+    succeed if the expression is well-typed; otherwise it would not be able to provide
+    a coherent answer. In other words, a type “calculator” has type “checking” as
+    a special case!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: That was subtle. Read it again.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We should therefore strengthen the inductive invariant on tc: that it not only
+    tells us whether an expression is typed, but also what its type is. Indeed, by
+    giving any type at all it confirms that the expression types, and otherwise it
+    signals an error.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.4.2A Calculator and Checker
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s now define this richer notion of a type “checker”.<hof-tc> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun tc(e :: TyExprC, tnv :: TyEnv) -> Type: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (TyExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-numC>](#%28elem._hof-tc-num.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-plusC>](#%28elem._hof-tc-plus.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-multC>](#%28elem._hof-tc-mult.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-bools>](#%28elem._hof-tc-bools%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-idC>](#%28elem._hof-tc-id.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-fdC>](#%28elem._hof-tc-fd.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<hof-tc-appC>](#%28elem._hof-tc-app.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now let’s fill in the pieces. Numbers are easy: they have the numeric type.<hof-tc-numC>
+    ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; numC(_) => numT |'
+  prefs: []
+  type: TYPE_TB
+- en: Similarly, identifiers have whatever type the environment says they do (and
+    if they aren’t bound, looking them up signals an error).<hof-tc-idC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; idC(s) => ty-lookup(s, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Observe, so far, the similarity to and difference from interpreting: in the
+    identifier case we did essentially the same thing (except we returned a type rather
+    than an actual value), whereas in the numeric case we returned the abstract “number”
+    (numT) rather than indicate which specific number it was.Let’s now examine addition.
+    We must make sure both sub-expressions have numeric type; only if they do will
+    the overall expression evaluate to a number itself. It will be useful to employ
+    a helper function:<hof-tc-plusC> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => tc-arith-binop(l, r, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s worth not glossing over multiplication:<hof-tc-multC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; multC(l, r) => tc-arith-binop(l, r, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Did you see what’s different?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'That’s right: nothing! That’s because, from the perspective of type-checking
+    (in this type language), there is no difference between addition and multiplication,
+    or indeed between any two operations that consume two numbers and return one.
+    Because we are ignoring the actual numbers, we don’t even need to bother passing
+    tc-arith-binop a function that reflects what to do with the pair of numbers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Observe another difference between interpreting and type-checking. Both care
+    that the arguments be numbers. The interpreter then returns a precise sum or product,
+    but the type-checker is indifferent to the differences between them: therefore
+    the expression that computes what it returns (numT) is a constant, and the same
+    constant in both cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s handle Boolean values and conditionals. We’re simply going to transcribe
+    into code what we earlier agreed to do:<hof-tc-bools> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; trueC => boolT |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   &#124; falseC => boolT |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   &#124; ifC(cnd, thn, els) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cnd-t = tc(cnd, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if cnd-t == boolT: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       thn-t = tc(thn, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       els-t = tc(els, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       if thn-t == els-t: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         thn-t |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         raise("conditional branches don''t match") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       raise("conditional isn''t Boolean") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: However, recall our discussion of [The Design Space of Conditionals](growing-lang.html#%28part._design-space-cond%29),
+    all of which have consequences for type-checking. Here we are applying the decisions
+    we made there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Consider each of the three earlier decisions. Change each one, and explain the
+    consequences it has for the type-checker.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Finally, the two hard cases: application and functions. We’ve already discussed
+    what application must do: compute the value of the function and argument expressions;
+    ensure the function expression has function type; and check that the argument
+    expression is of compatible type. If all this holds up, then the type of the overall
+    application is whatever type the function body would return (because the value
+    that eventually returns at run-time is the result of evaluating the function’s
+    body).Note that this subtly depends on evaluation and type-checking being in harmony.
+    We discuss this under [The Central Theorem: Type Soundness](safety-soundness.html#%28part._type-soundness%29).<hof-tc-appC>
+    ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     f-t = tc(f, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     a-t = tc(a, tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if is-funT(f-t): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       if a-t == f-t.arg: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         f-t.ret |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         raise("argument type doesn''t match declared type") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       raise("not a function in application position") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: That leaves function definitions. The function has a formal parameter; unless
+    this is bound in the type environment, any use of that parameter in body would
+    result in a type error. Thus we have to extend the type environment with the formal
+    name bound to its type, and in that extended environment type-check the body.
+    Whatever value this computes must be the same as the declared type of the body.
+    If that is so, then the function itself has a function type from the type of the
+    argument to the type of the body.<hof-tc-fdC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; fdC(a, at, rt, b) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     bt = tc(b, xtend-t-env(tbind(a, at), tnv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if bt == rt: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       funT(at, rt) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       raise("body type doesn''t match declared type") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: 27.4.3Type-Checking Versus Interpretation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When confronted with a first-class function, our interpreter created a closure.
+    However, we don’t seem to have any notion of a “closure” in our type-checker,
+    even though we’re using an (type) environment. Why not? In particular, recall
+    that the absence of closures resulted in violation of static scope. Is that happening
+    here? Write some tests to investigate.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Observe a curious difference between the interpreter and type-checker. In the
+    interpreter, application was responsible for evaluating the argument expression,
+    extending the environment, and evaluating the body. Here, the application case
+    does check the argument expression, but leaves the environment alone, and simply
+    returns the type of the body without traversing it. Instead, the body is actually
+    traversed by the checker when checking a function definition, so this is the point
+    at which the environment actually extends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why is the time of traversal different between interpretation and type-checking?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The consequences of this are worth understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the Pyret function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: When we simply define p, the interpreter does not traverse the interior of these
+    expressions, in particular the x + y. Instead, these are suspended waiting for
+    later use (a feature we actually exploit ((part "laziness"))). Furthermore, when
+    we apply p to some argument, this evaluates the outer function, resulting in a
+    closure (that closes over the binding of x).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Now instead consider the type-checker. As soon as we are given this definition,
+    it traverses the entire expression, including the innermost sub-expression. Because
+    it knows everything it needs to know about x and y—<wbr>their types—<wbr>it can
+    immediately type-check the entire expression. This is why it doesn’t not require
+    to create a closure: there is nothing to be put off until application time (indeed,
+    we don’t want to put type-checking off until execution).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Another way to think about it is that it behaves like substitution does—<wbr>and
+    substitution did not need closures to provide static scoping, either—<wbr>but
+    even more eagerly: it can perform substitution with just the program text without
+    any values at all, because it is substituting types, which are already given.
+    The fact that we use a type environment makes this harder to see, because we may
+    have come to associate environments with closures. However, what matters is when
+    the necessary value is available. Put differently, we used an environment primarily
+    out of convention: here, we could have used (type) substitution just as well.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Write examples to study this. Consider converting the above example as a starting
+    point. Also convert your examples from [earlier](Interpreting_Functions.html#%28elem._hof-interp%29).
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Consider the following expression:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: When evaluating the inner f(n), the interpreter has access to actual values
+    for f and n. In contrast, when type-checking it, it does not know which function
+    will be passed in as f. How, then, can it type-check the use?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The answer is that the annotation tells the type-checker everything it needs
+    to know. The annotation says that f must accept numbers; since n is annotated
+    to be a number, the application works. It also says that f will return strings;
+    because that is what the overall function returns, this also passes.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In other words, the annotation (Number -> String) represents not one but an
+    infinite family of all functions of that type, without committing to any one of
+    them. The type checker then checks that any such function will work in this setting.
+    Once it has done its job, it doesn’t matter which function we actually pass in,
+    provided it has this type. Checking that is, of course, the heart of [Assume-Guarantee
+    Reasoning](#%28part._assume-guarantee%29).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 27.5Type-Checking, Testing, and Coverage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A type-checker can be thought of as a very particular kind of testing framework:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of using concrete values, it uses only types. Therefore, it cannot check
+    fine gradations inside values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In return, it works statically: that is, it’s like running a lightweight testing
+    procedure before ever running the program. (We should not underestimate the value
+    of this: programs that depend on interactive or other external input, on specialized
+    hardware, on timing, and so on, can be quite difficult to test. For such programs,
+    especially, obtaining a lightweight form of testing that does not require being
+    able to run it at all is invaluable.)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Testing only covers the parts of a program that are exercised by test cases.
+    In contrast, the type-checker exercises the whole program. Therefore, it can catch
+    lurking errors. Of course, it also means that the entire program has to be type-conformant:
+    you can’t have some parts (e.g., conditional branches) that are not yet conformant,
+    the way they can fail to work correctly but can be ignored by tests that don’t
+    exercise them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, types provide another very important property: quantification. Recall
+    our [earlier example](#%28elem._hof-type-eg%29): the type checker has established
+    something about an infinite number of functions!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This last point gets to the heart of the tradeoff between types and testing:
+    types are “broad” while tests are “deep”. That is, because tests deal with very
+    specific values and their actual evaluation, they can ask arbitrarily deep questions
+    but about that one situation only. Types, in contast, lacking the specificity
+    provided by both values and evaluation, cannot ask deep questions; they compensate
+    by being able to talk about all possible values of some shape, providing their
+    breadth. As this discussion illustrates, neither attribute dominates the other:
+    a good software practice will use a judicious combination of both.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.6Recursion in Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we’ve obtained a basic programming language, let’s add recursion to
+    it. We saw earlier ([Recursion and Non-Termination](Interpreting_Functions.html#%28part._rec-non-term%29))
+    that this could be done quite easily. It’ll prove to be a more complex story here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.6.1A First Attempt at Typing Recursion
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s now try to express a simple recursive function. We’ve already seen how
+    to write infinite loops for first-order functions. Annotating them introduces
+    no complications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Confirm that adding types to recursive and non-terminating first-order functions
+    causes no additional problems.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now let’s move on to higher-order functions. We’ve already seen that this results
+    in an infinite loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have a typed language, we have to annotate it. (Conventionally,
+    we call this term Ω.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall that this program is formed by applying ω to itself. Of course, it is
+    not a given that identical terms must have precisely the same type, because it
+    depends on the context of use. However, the specific structure of ω means that
+    it is the same term that ends up in both contexts—<wbr>as function and argument—<wbr>so
+    the types of these had better be the same. In other words, typing one instance
+    of ω suffices to type them both.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, let’s try to type ω; let’s call this type T. It’s clearly a function
+    type, and the function takes one argument, so it must be of the form A -> B. Now
+    what is that argument? It’s ω itself. That is, the type of the value going into
+    A is itself T. Thus, the type of ω is T, which is A -> B, which is the same as
+    T -> B. This expands into (A -> B) -> B, which is the same as (T -> B) -> B. Therefore,
+    this further expands to ((A -> B) -> B) -> B, and so on. In other words, this
+    type cannot be written as any finite string!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Did you notice the subtle but important leap we just made?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We have just argued that we can’t type ω. But why does it follow that we can’t
+    type Ω?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 27.6.2Program Termination
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Because type-checking follows by recurring on sub-terms, to type Ω, we have
+    to be able to type ω and then combine its type to obtain one for Ω. But, as we’ve
+    seen, typing ω seems to run into serious problems. From that, however, we jumped
+    to the conclusion that ω’s type cannot be written as any finite string, for which
+    we’ve given only an intuition, not a proof. In fact, something even stranger is
+    true: in the type system we’ve defined so far, we cannot type Ω at all!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a strong statement, but it follows from something even stronger. The
+    typed language we have so far has a property called strong normalization: every
+    expression that has a type will terminate computation after a finite number of
+    steps. In other words, this special (and peculiar) infinite loop program isn’t
+    the only one we can’t type; we can’t type any infinite loop (or even potential
+    infinite loop). A rough intuition that might help is that any type—<wbr>which
+    must be a finite string—<wbr>can have only a finite number of ->’s in it, and
+    each application discharges one, so we can perform only a finite number of applications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why is this not true when we have named first-order functions?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If our language permitted only straight-line programs, this would be unsurprising.
+    However, we have conditionals and even functions being passed around as values,
+    and with those we can encode almost every program we’re written so far. Yet, we
+    still get this guarantee! That makes this a somewhat astonishing result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Try to encode lists using functions in the untyped and then in the typed language
+    (see [REF] if you aren’t sure how). What do you see? And what does that tell you
+    about the impact of this type system on the encoding?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This result also says something deeper. It shows that, contrary to what you
+    may believe—<wbr>that a type system only prevents a few buggy programs from running—<wbr>a
+    type system can change the semantics of a language. Whereas previously we could
+    write an infinite loop in just one to two lines, now we cannot write one at all.
+    It also shows that the type system can establish invariants not just about a particular
+    program, but about the language itself. If we want to absolutely ensure that a
+    program will terminate, we simply need to write it in this language and pass the
+    type checker, and the guarantee is ours!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What possible use is a language in which all programs terminate? For general-purpose
+    programming, none, of course. But in many specialized domains, it’s a tremendously
+    useful guarantee to have. Here are several examples of domains that could benefit
+    from it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A complex scheduling algorithm (the guarantee would ensure that the scheduler
+    completes and that the tasks being scheduled will actually run).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A packet-filter in a router. (Network elements that go into infinite loops put
+    a crimp on utility.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A compiler. (The program it generates may or may not terminate, but it ought
+    to at least finish generating the program.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A device initializer. (Modern electronics—<wbr>such as a smartphones and photocopiers—<wbr>have
+    complex initialization routines. These have to finish so that the device can actually
+    be put to use.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The callbacks in JavaScript. (Because the language is single-threaded, not relinquishing
+    control means the event loop starves. When this happens in a Web page, the browser
+    usually intervenes after a while and asks whether to kill the page—<wbr>because
+    otherwise the rest of the page (or even browser) becomes unresponsive.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A configuration system, such as a build system or a linker.In the Standard ML
+    language, the language for linking modules uses essentially this typed language
+    for writing module linking specifications. This means developers can write quite
+    sophisticated abstractions—<wbr>they have functions-as-values, after all!—<wbr>while
+    still being guaranteed that linking will always terminate, producing a program.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Notice also an important difference between types and tests ([Type-Checking,
+    Testing, and Coverage](#%28part._types-v-tests%29)): you can’t test for termination!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.6.3Typing Recursion
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What this says is, if we want potentially unbounded recursion, we must make
+    it an explicit part of the typed language. To illustrate this, we will add a simple
+    rec construct that recursively binds an identifier to a function. Thus, in the
+    surface syntax, one might writeFor convenience, we have also added a if0 construct
+    that compares the test expression’s value with 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (rec (S num (n num) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         (if0 n |'
+  prefs: []
+  type: TYPE_TB
+- en: '|              0 |'
+  prefs: []
+  type: TYPE_TB
+- en: '|              (n + (S (n + -1))))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (S 10)) |'
+  prefs: []
+  type: TYPE_TB
+- en: for a summation function, where S is the name of the function, n its argument,
+    the first num the type of n and the second num the type returned by the function.
+    The expression (S 10) represents the use of this function to sum the numbers from
+    10 until 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we type such an expression? Clearly, we must have n bound in the body
+    of the function as we type it (but not, of course, in the use of the function,
+    due to static scope); this much we know from typing functions. But what about
+    S? Obviously it must be xbound in the type environment when checking the use (S
+    10)), and its type must be num -> num. But it must also be bound, to the same
+    type, when checking the body of the function. (Observe, too, that the type returned
+    by the body must match its declared return type.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can see how to break the shackles of the finiteness of the type. It is
+    certainly true that we can write only a finite number of ->’s in types in the
+    program source. However, this rule for typing recursion duplicates the -> in the
+    body that refers to itself, thereby ensuring that there is an inexhaustible supply
+    of applications.It’s our infinite quiver of arrows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code to implement this rule would be as follows. Assuming f is bound to
+    the function’s name, v its parameter’s name, at is the function’s argument type
+    and rt is its return type, b is the function’s body, and c is the function’s use:<tc-recC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; recC(f, v, at, rt, b, c) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     extended-env = xtend-t-env(tbind(f, funT(at, rt)), tnv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     if not(rt == tc(b, xtend-t-env(tbind(v, at), extended-env))): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       raise("rec: function return type not correct") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       tc(c, extended-env); |'
+  prefs: []
+  type: TYPE_TB
+- en: 27.7Recursion in Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have seen how to type recursive programs, but this doesn’t yet enable us
+    to create recursive data. We already have one kind of recursive datum—<wbr>the
+    function type—<wbr>but this is built-in. We haven’t yet seen how developers can
+    create their own recursive datatypes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.7.1Recursive Datatype Definitions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When we speak of allowing programmers to create recursive data, we are actually
+    talking about three different facilities at once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a new type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Letting instances of the new type have one or more fields.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Letting some of these fields refer to instances of the same type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In fact, once we allow the third, we must allow one more:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allowing non-recursive base-cases for the type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This confluence of design criteria leads to what is commonly called an algebraic
+    datatype. For instance, consider the following definition of a binary tree of
+    numbers:Later [REF], we will discuss how types can be parameterized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Observe that without a name for the new datatype, BinTree, we would not have
+    been able to refer back ot it in node. Similarly, without the ability to have
+    more than one kind of BinTree, we would not have been able to define leaf, and
+    thus wouldn’t have been able to terminate the recursion. Finally, of course, we
+    need multiple fields (as in node) to construct useful and interesting data. In
+    other words, all three mechanisms are packaged together because they are most
+    useful in conjunction. (However, some langauges do permit the definition of stand-alone
+    structures. We will return to the impact of this design decision on the type system
+    later [REF].)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This style of data definition is sometimes also known as a sum of products.
+    At the outer level, the datatype offers a set of choices (a value can be a leaf
+    or a node). This corresponds to disjunction (“or”), which is sometimes written
+    as a sum (the truth table is suggestive). Inside each sum is a set of fields,
+    all of which must be present. These correspond to a conjunction (“and”), which
+    is sometimes written as a product (ditto).
+  prefs: []
+  type: TYPE_NORMAL
+- en: That covers the notation, but we have not explained where this new type, BinTree,
+    comes from. It is obviously impractical to pretend that it is baked into our type-checker,
+    because we can’t keep changing it for each new recursive type definition—<wbr>it
+    would be like modifying our interpreter each time the program contains a recursive
+    function! Instead, we need to find a way to make such definitions intrinsic to
+    the type language. We will return to this problem later [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.7.2Introduced Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now, what impact does a datatype definition have? First, it introduces a new
+    type; then it uses this to define several constructors, predicates, and selectors.
+    For instance, in the above example, it first introduces BinTree, then uses it
+    to ascribe the following types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In what two ways are the last three entries above fictitious?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Observe a few salient facts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both the constructors create instances of BinTree, not something more refined.
+    We will discuss this design tradeoff later [REF].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both predicates consume values of type BinTree, not “any” value. This is because
+    the type system can already tell us what type a value is. Thus, we only need to
+    distinguish between the variants of that one type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The selectors really only work on instances of the relevant variant—<wbr>e.g.,
+    .value can work only on instances of node, not on instances of leaf—<wbr>but we
+    don’t have a way to express this in the static type system for lack of a suitable
+    static type. Thus, applying these can only result in a dynamic error, not a static
+    one caught by the type system.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is more to say about recursive types, which we will return to shortly
+    [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.7.3Selectors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '.value, .left, and .right are selectors: they select parts of the record by
+    name. But here are the two ways in which they are fictitious. First, syntactically:
+    in most languages with “dotted field access”, there is no such stand-alone operator
+    as .value: e.g., you cannot write .value(...). But even setting aside this syntactic
+    matter (which could be addressed by arguing that writing v.value is just an obscure
+    syntax for applying this operator) the more interesting subtlety is the semantic
+    one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Above, we have given a very particular type to .value. Suppose, however, that
+    this datatype was also defined in the same program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This too appears to define a .value operator with the type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: or equivalently,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Will the real .value please stand up? How many .value operations are there?
+    Indeed, it would appear that this “operator” freely cross-cuts every datatype
+    definition, and even every module boundary!These issues are not really specific
+    to types: the cross-cutting nature of field access is independent of it. However,
+    ascribing types forces us to confront these issues, because we cannot ignore the
+    difficulty of typing the operation.To put this in perspective, consider two other
+    very different styles of handling selectors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A characteristic of scripting languages is that objects are merely hash tables,
+    and all field access is turned into a hash-table reference on the string representing
+    the field-name. Hence, o.f is just syntactic sugar for looking up the value indexed
+    by "f" in the dictionary associated with o.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In Racket, the structure definitions such as
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| (struct cash (value)) |'
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (struct card (number value)) |'
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'generate distinct selectors: in this case, cash-value and card-value, respectively.
+    Now there is no longer any potential for confusion, because they have different
+    names that can each have distinct types.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Compiling between these languages then highlights these distinctions. Compiling
+    from Pyret or Java to JavaScript is easy, because all field dereferences turn
+    into dictionary lookups. Compiling from (untyped) Pyret to Racket is especially
+    easy because the languages are so similar—<wbr>until we get to dotted access.
+    Then, assuming we wish to compile Pyret data definitions to Racket’s corresponding
+    structure definitions, the compiler would have to traverse the Pyret program to
+    gather up all fields with a common name, and turn them into a discriminating selector:
+    for instance, v.value might compile to Racket’s (->value v), where ->value is
+    defined as (given the above two data definitions):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (->value v) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (cond |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(node? v) (node-value v)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(cash? v) (cash-value v)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [(card? v) (card-value v)])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'In contrast, going in the other direction is easy: (node-value v) would check
+    that v is indeed a node, and then access v.value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 27.7.4Pattern-Matching and Desugaring
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once we have understood the names introduced by datatype definitions, and the
+    nature of selectors, the only thing left is to provide an account of pattern-matching.
+    For instance, we can write the expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This simply expands into uses of the above predicates, and binding the pieces:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: In short, this can be done by desugaring, so pattern-matching does not need
+    to be in the core language. This, in turn, means that one language can have many
+    different pattern-matching mechanisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Except, that’s not quite so easy. Somehow, the desugaring that generates the
+    code above in terms of if needs to know that the three positional selectors for
+    a node are value, left, and right, respectively. This information is explicit
+    in the type definition but only implicitly present in the use of the pattern-matcher
+    (that, indeed, being the point). Somehow this information must be communicated
+    from definition to use. Thus, the desugarer needs something akin to the type environment
+    to accomplish its task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe, furthermore, that expressions such as e1 and e2 cannot be type-checked—<wbr>indeed,
+    cannot even be reliable identified as expressions—<wbr>until desugaring expands
+    the use of cases. Thus, desugaring depends on the type environment, while type-checking
+    depends on the result of desugaring. In other words, the two are symbiotic and
+    need to happen, not quite in “parallel”, but rather in lock-step. What this implies
+    is that building desugaring for a typed language when the syntactic sugar makes
+    assumptions about types is more intricate than doing so for an untyped language.
+  prefs: []
+  type: TYPE_NORMAL

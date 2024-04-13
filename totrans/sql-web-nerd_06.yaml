@@ -1,0 +1,431 @@
+- en: '| [![The Saw.  Fulton Fish Market.  Manhattan 1994 (pre burning).](../Images/27f73bd7fa3383f6ef99cd42b80c0d5e.jpg)](/http://philip.greenspun.com/images/pcd0451/fulton-fish-market-65.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    | [![Handbills.  Manhattan 1995.](../Images/b6b10ad5dad53695b546bc2b274f6573.jpg)](/http://philip.greenspun.com/images/pcd1253/handbills-38.tcl)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the introduction we covered some examples of inserting data into a database
+    by typing at SQL*Plus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Generally, this is not how it is done. As a programmer, you write code that
+    gets executed every time a user submits a discussion forum posting or classified
+    ad. The structure of the SQL statement remains fixed but not the string literals
+    after the `values`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The simplest and most direct interface to a relational database involves a
+    procedural program in C, Java, Lisp, Perl, or Tcl putting together a string of
+    SQL that is then sent to to the RDBMS. Here''s how the ArsDigita Community System
+    constructs a new entry in the clickthrough log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The INSERT statement adds one row, filling in the four list columns. Two of
+    the values come from local variables set within the Web server, `$local_url` and
+    `$foreign_url`. Because these are strings, they must be surrounded by single quotes.
+    One of the values is dynamic and comes straight from Oracle: `trunc(sysdate)`.
+    Recall that the `date` data type in Oracle is precise to the second. We only want
+    one of these rows per day of the year and hence truncate the date to midnight.
+    Finally, as this is the first clickthrough of the day, we insert a constant value
+    of 1 for `click_count`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Atomicity
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Each SQL statement executes as an atomic transaction. For example, suppose that
+    you were to attempt to purge some old data with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: (delete clickthrough records more than 120 days old) and that 3500 rows in `clickthrough_log`
+    are older than 120 days. If your computer failed halfway through the execution
+    of this DELETE, i.e., before the transaction committed, you would find that none
+    of the rows had been deleted. Either all 3500 rows will disappear or none will.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More interestingly, you can wrap a transaction around multiple SQL statements.
+    For example, when a user is editing a comment, the ArsDigita Community System
+    keeps a record of what was there before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: This is generally referred to in the database industry as *auditing*. The database
+    itself is used to keep track of what has been changed and by whom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's look at these sections piece by piece. We're looking at a Tcl program
+    calling AOLserver API procedures when it wants to talk to Oracle. We've configured
+    the system to reverse the normal Oracle world order in which everything is within
+    a transaction unless otherwise committed. The `begin transaction` and `end transaction`
+    statements never get through to Oracle; they are merely instructions to our Oracle
+    driver to flip Oracle out and then back into autocommit mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transaction wrapper is imposed around two SQL statements. The first statement
+    inserts a row into `general_comments_audit`. We could simply query the `general_comments`
+    table from Tcl and then use the returned data to create a standard-looking INSERT.
+    However, if what you're actually doing is moving data from one place within the
+    RDBMS to another, it is extremely bad taste to drag it all the way out to an application
+    program and then stuff it back in. Much better to use the "INSERT ... SELECT"
+    form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that two of the columns we''re querying from `general_comments` don''t
+    exist in the table: `sysdate` and `''[ns_conn peeraddr]''`. It is legal in SQL
+    to put function calls or constants in your select list, just as you saw at the
+    beginning of [the Queries chapter](queries.html) where we discussed Oracle''s
+    one-row system table: `dual`. To refresh your memory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'You can compute multiple values in a single query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This approach is useful in the transaction above, where we combine information
+    from a table with constants and function calls. Here''s a simpler example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Let''s get back to our comment editing transaction and look at the basic structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: open a transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: insert into an audit table whatever comes back from a SELECT statement on the
+    comment table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: update the comment table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: close the transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Suppose that something goes wrong during the INSERT. The tablespace in which
+    the audit table resides is full and it isn't possible to add a row. Putting the
+    INSERT and UPDATE in the same RDBMS transactions ensures that if there is a problem
+    with one, the other won't be applied to the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consistency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose that we''ve looked at a message on the bulletin board and decide that
+    its content is so offensive we wish to delete the user from our system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Oracle has stopped us from deleting user 39685 because to do so would leave
+    the database in an inconsistent state. Here''s the definition of the bboard table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The `user_id` column is constrained to be not null. Furthermore, the value in
+    this column must correspond to some row in the `users` table (`references users`).
+    By asking Oracle to delete the author of msg_id 000KWj from the `users` table
+    before we deleted all of his or her postings from the `bboard` table, we were
+    asking Oracle to leave the RDBMS in an inconsistent state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mutual Exclusion
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[![Bachelor''s Walk.  Dublin, Ireland.](../Images/ba74d5ba720ede1cf514340381203653.jpg)](/http://philip.greenspun.com/images/pcd1120/dublin-bachelors-walk-11.tcl)
+    When you have multiple simultaneously executing copies of the same program, you
+    have to think about *mutual exclusion*. If a program has to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: read a value from the database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perform a computation based on that value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: update the value in the database based on the computation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then you want to make sure only one copy of the program is executing at a time
+    through this segment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The /bboard module of the ArsDigita Community System has to do this. The sequence
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: read the last message ID from the `msg_id_generator` table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: increment the message ID with a bizarre collection of Tcl scripts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: update the `last_msg_id` column in the `msg_id_generator` table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'First, anything having to do with locks only makes sense when the three operations
+    are grouped together in a transaction. Second, to avoid deadlocks a transaction
+    must acquire all the resources (including locks) that it needs at the start of
+    the transaction. A SELECT in Oracle does not acquire any locks but a SELECT ..
+    FOR UPDATE does. Here''s the beginning of the transaction that inserts a message
+    into the `bboard` table (from /bboard/insert-msg.tcl):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Mutual Exclusion (the Big Hammer)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `for update` clause isn't a panacea. For example, in the Action Network
+    (described in [Chapter 16 of Philip and Alex's Guide to Web Publishing](/panda/better-living)),
+    we need to make sure that a double-clicking user doesn't generate duplicate FAXes
+    to politicians. The test to see if the user has already responded is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: By default, Oracle locks one row at a time and doesn't want you to throw a FOR
+    UPDATE clause into a SELECT COUNT(*). The implication of that would be Oracle
+    recording locks on every row in the table. Much more efficient is simply to start
+    the transaction with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: This is a big hammer and you don't want to hold a table lock for more than an
+    instant. So the structure of a page that gets a table lock should be
+  prefs: []
+  type: TYPE_NORMAL
+- en: open a transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lock table
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: select count(*)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if the count was 0, insert a row to record the fact that the user has responded
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: commit the transaction (releases the table lock)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: proceed with the rest of the script
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if I just want some unique numbers?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Does it really have to be this hard? What if you just want some unique integers,
+    each of which will be used as a primary key? Consider a table to hold news items
+    for a Web site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'You might think you could use the `title` column as a key, but consider the
+    following articles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: It would seem that, at least as far as headlines are concerned, little of what
+    is reported is truly new. Could we add
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: at the end of our table definition? Absolutely. But keying by title and date
+    would result in some unwieldy URLs for editing or approving news articles. If
+    your site allows public suggestions, you might find submissions from multiple
+    users colliding. If you accept comments on news articles, a standard feature of
+    the ArsDigita Community System, each comment must reference a news article. You'd
+    have to be sure to update both the comments table and the news table if you needed
+    to correct a typo in the `title` column or changed the `release_date`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The traditional database design that gets around all of these problems is the
+    use of a generated key. If you''ve been annoyed by having to carry around your
+    student ID at MIT or your patient ID at a hospital, now you understand the reason
+    why: the programmers are using generated keys and making their lives a bit easier
+    by exposing this part of their software''s innards.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how the news module of the ArsDigita Community System works, in an
+    excerpt from [http://software.arsdigita.com/www/doc/sql/news.sql](http://software.arsdigita.com/www/doc/sql/news.sql):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We're taking advantage of the nonstandard but very useful Oracle *sequence*
+    facility. In almost any Oracle SQL statement, you can ask for a sequence's current
+    value or next value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Oops! Looks like we can't ask for the current value until we've asked for at
+    least one key in our current session with Oracle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: You can use the sequence generator directly in an insert, e.g.,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: '*Background on this story: [http://philip.greenspun.com/school/tuition-free-mit.html](http://philip.greenspun.com/school/tuition-free-mit.html)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the ArsDigita Community System implementation, the `news_id` is actually
+    generated in /news/post-new-2.tcl:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This way the page that actually does the database insert, /news/post-new-3.tcl,
+    can be sure when the user has inadvertently hit submit twice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: In our experience, the standard technique of generating the key at the same
+    time as the insert leads to a lot of duplicate information in the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sequence Caveats
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Oracle sequences are optimized for speed. Hence they offer the minimum guarantees
+    that Oracle thinks are required for primary key generation and no more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you ask for a few nextvals and roll back your transaction, the sequence will
+    not be rolled back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can't rely on sequence values to be, uh, sequential. They will be unique.
+    They will be monotonically increasing. But there might be gaps. The gaps arise
+    because Oracle pulls, by default, 20 sequence values into memory and records those
+    values as used on disk. This makes nextval very fast since the new value need
+    only be marked use in RAM and not on disk. But suppose that someone pulls the
+    plug on your database server after only two sequence values have been handed out.
+    If your database administrator and system administrator are working well together,
+    the computer will come back to life running Oracle. But there will be a gap of
+    18 values in the sequence (e.g., from 2023 to 2041). That's because Oracle recorded
+    20 values used on disk and only handed out 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Oracle8 Server Application Developer's Guide, [Controlling Transactions](http://www.oradoc.com/keyword/controlling_transactions)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Orace8 Server SQL Reference, [CREATE SEQUENCE section](http://www.oradoc.com/keyword/createsequence)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: [Triggers](triggers.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)[Add a comment](/comments/add?page_id=3462)'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,161 @@
+- en: Chapter 5\. Apache Beam Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Beam](https://beam.apache.org/) is an open source, unified model for defining
+    both batch and streaming processing pipelines. It is not a stream processing engine
+    (SPE), but rather an SDK with which you can build a pipeline definition that can
+    be executed by one of Beam’s supported distributed processing backends. Using
+    Beam, you can do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use a single programming model for both batch and streaming use cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Through separation of building and execution, you can use the same Beam pipelines
+    on multiple execution environments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write and share new SDKs, IO connectors, and transformation libraries, regardless
+    of the specific runner.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s take a look at how you can use Beam’s semantics to implement our solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Beam provides very rich [execution semantics](http://bit.ly/2gvXOzd) for stream
+    merging including [`CoGroupByKey`](http://bit.ly/2ychhwv) and [`Combine`](http://bit.ly/2zfOwPG).
+    It also supports [side inputs](http://bit.ly/2kGzv6w) for bringing calculations
+    on one stream as an input for processing in another stream. Unfortunately, all
+    of these APIs are designed for [windowed streams](http://bit.ly/2xznvoc) and do
+    not work for the global windows—this is the problem that I am trying to solve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only option that I have found is using [`Flatten`](http://bit.ly/2wPgkcg),
+    which allows you to merge multiple streams into one. Combining this with the [state](http://bit.ly/2xza5ZG)
+    feature used to store a model provides a reasonable approach for overall implementation,
+    as shown in [Figure 5-1](#the_beam_implementation_approach).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0501](assets/smlt_0501.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-1\. The Beam implementation approach
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: The caveat for using the `Flatten` operator is that all combined streams must
+    have the same data definition. To satisfy this requirement, I have introduced
+    the `DataWithModel` data structure (described momentarily), which can contain
+    either data or a model definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing Model Serving Using Beam
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Example 5-1](#beam_pipeline_for_model_serving) shows the overall pipeline
+    for model serving using Beam (Beam provides only Java and Python APIs; as a result,
+    code in this section is Java [[complete code available here](http://bit.ly/2hBvbAA)]):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 5-1\. Beam pipeline for model serving
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code begins by creating the pipeline and setting up a Kafka coder. Because
+    both streams contain only messages with no key, you must use `NullableCoder` for
+    the key. Then, it defines two input streams, a data stream and a model stream,
+    combining them together. Finally, the combined stream is used for model serving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For reading from Kafka, I am using the new Beam support for Kafka, [Kafka.IO](http://bit.ly/2g0Mgnd),
+    which reads byte arrays from Kafka and then applies transformation on this data
+    to create a `PCollection` of `DataWithModel`, is definied in [Example 5-2](#the_datawithmodel_class)
+    ([complete code available here](http://bit.ly/2yEX45V)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 5-2\. The DataWithModel class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here `ModelDescriptor` is a Java version of the previous `ModelToServe` class
+    ([Example 4-2](ch04.html#the_modeltoserve_class)) and `WineRecord` is a representation
+    of the data protobuf definition ([Example 3-4](ch03.html#model_factory_representation)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Example 5-3](#converting_data_stream_to_datawithmodel) shows you how to handle
+    the transformation of the data input to `DataWithModel` ([complete code available
+    here](http://bit.ly/2i62j7h)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 5-3\. Converting data stream to DataWithModel
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Transformation of the model input to `DataWithModel` is equall simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The actual model serving uses [state support](http://bit.ly/2xza5ZG) and is
+    implemented by the class shown in [Example 5-4](#implementation_of_the_model_scoring)
+    ([complete code available here](http://bit.ly/2yb0kF7)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 5-4\. Implementation of the model scoring
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This class gets the next element from the stream and checks its type. If this
+    is a model element, it updates the current model. If it is a data element, it
+    is scored (assuming a model is present). This code is very similar to the `DataProcessor`
+    class ([Example 4-1](ch04.html#the_dataprocessor_class)) from the Flink implementation,
+    with a significant difference: Flink’s `DataProcessor` class provides two different
+    methods that can be invoked on two different threads so that any extended processing
+    time for model loading does not affect scoring significantly. In the case of Beam,
+    it’s a single method, so any delay in model creation can affect scoring.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beam programs require a runner, and Flink is a popular choice. To be able to
+    run this implementation on the Flink runner, which supports checkpointing, it
+    is also necessary to implement a coder for the model object, as shown in [Example 5-5](#model_coder)
+    ([complete code available here](http://bit.ly/2i4T4Ey)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 5-5\. Model coder
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although this example uses a single model, you can expand it easily to support
+    multiple models by using a state in the form of a map of models keyed on the data
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beam allows you to build an execution pipeline implementing model serving, which
+    can be executed using multiple runners, including [Apache Apex](http://apex.apache.org/),
+    [Apache Flink](http://flink.apache.org/), [Apache Spark](http://spark.apache.org/),
+    and [Google Cloud Dataflow](https://cloud.google.com/dataflow). In [Chapter 6](ch06.html#apache_spark_implementation),
+    we look at how you can use Spark streaming to solve the same problem.
+  prefs: []
+  type: TYPE_NORMAL

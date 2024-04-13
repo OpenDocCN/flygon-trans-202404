@@ -1,0 +1,702 @@
+- en: '| [![](../Images/d03dc8ab9854158ad15ab0c1410b2f9f.jpg)](/http://philip.greenspun.com/images/pcd1587/17-17.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Foreign and Legacy Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) (this chapter written by [Michael Booth](mailto:mbooth@arsdigita.com)
+    and [Philip Greenspun](http://philip.greenspun.com/)) |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![](../Images/c81fd517eae17ed3d32975824febb5ca.jpg)](/http://philip.greenspun.com/images/pcd1587/1-1.tcl)
+    Most of the world''s useful data are either residing on a server beyond your control
+    or inside a database management system other than Oracle. Either way, we refer
+    to these data as *foreign* from the perspective of one''s local Oracle database.
+    Your objective is always the same: **Treat foreign data as though they were residing
+    in local SQL tables.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The benefits of physically or virtually dragging foreign data back to your
+    Oracle cave are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: New developers don't have to think about where data are coming from.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Developers can work with foreign data using the same query language that they
+    use every day: SQL.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Developers can work with the same programming tools and systems that they've
+    been using daily. They might use COBOL, they might use C, they might use Java,
+    they might use Common Lisp, they might use Perl or Tcl, but you can be sure that
+    they've learned how to send an SQL query to Oracle from these tools and therefore
+    that they will be able to use the foreign data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A good conceptual way to look at what we're trying to accomplish is the construction
+    of an SQL view of the foreign data. A standard SQL view may hide a 5-way join
+    from the novice programmer. A *foreign table* hides the fact that data are coming
+    from a foreign source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will refer to the system that makes foreign data available locally as an
+    *aggregation architecture*. In designing an individual aggregation architecture
+    you will need to address the following issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Coherency: Is it acceptable for your local version of the data to be out of
+    sync with the foreign data? If so, to what extent?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Updatability: Is your local view updatable? I.e., can a programmer perform
+    a transaction on the foreign database management system by updating the local
+    view?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Social: To what extent is the foreign data provider willing to let you into
+    his or her database?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Degenerate Aggregation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If the foreign data are stored in an Oracle database and the people who run
+    that database are cooperative, you can practice a degenerate form of aggregation:
+    Oracle to Oracle communication.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most degenerate form of degenerate aggregation is when the foreign data
+    are in the same Oracle installation but owned by a different user. To make it
+    concrete, let''s assume that you work for Eli Lilly in the data warehousing department,
+    which is part of marketing. Your Oracle user name is "marketing". The foreign
+    data in which you''re interested are in the `prozac_orders` table, owned by the
+    "sales" user. In this case your aggregation architecture is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect to Oracle as the foreign data owner (sales) and GRANT SELECT ON PROZAC_ORDERS
+    TO MARKETING
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: connect to Oracle as the local user (marketing) and type SELECT * FROM SALES.PROZAC_ORDERS
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Slightly Less Degenerate Aggregation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Imagine now that Prozac orders are processed on a dedicated on-line transaction
+    processing (OLTP) database installation and your data warehouse (DW) is running
+    on a physically separate computer. Both the OLTP and DW systems are running the
+    Oracle database server and they are connected via a network. You need to take
+    the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: set up SQL*Net (Net8) on the OLTP system
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: set up the DW Oracle server to be a client to the OLTP server. If you are not
+    using the Oracle naming services, you must edit $ORACLE_HOME/network/admin/tnsnames.ora
+    to reference the OLTP system.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: create a "marketing" user on the OLTP system
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: on the OLTP system, log in as "sales" and GRANT SELECT ON PROZAC_ORDERS TO MARKETING
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'on the DW system, create a database link to the OLTP system named "OLTP": CREATE
+    DATABASE LINK OLTP CONNECT TO MARKETING IDENTIFIED BY *password for marketing*
+    USING ''OLTP'';'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: on the DW system, log in as "marketing" and SELECT * FROM SALES.PROZAC_ORDERS@OLTP;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In both of these degenerate cases, there were no coherency issues. The foreign
+    data were queried in real-time from their canonical database. This was made possible
+    because of social agreement. The owners of the foreign data were willing to grant
+    you unlimited access. Similarly, social issues decided the issue of updatability.
+    With a GRANT only on SELECT, the foreign table would not be updatable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-Oracle-Oracle Aggregation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What if foreign data aren't stored in an Oracle database or they are but you
+    can't convince the owners to give you access? You will need some sort of computer
+    program that knows how to fetch some or all of the foreign data and stuff it into
+    an Oracle table locally. Let's start with a concrete example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose you work at Silicon Valley Blue Cross. The dimensional data warehouse
+    has revealed a strong correlation between stock market troubles and clinical depression.
+    People working for newly public companies with volatile stocks tend to get into
+    a funk when their paper wealth proves illusory. The suits at Blue Cross think
+    that they can save money and doctors'' visits by automatically issuing prescriptions
+    for Prozac whenever an insured''s employer''s stock drops more than 10% in a day.
+    To find candidates for happy pills, the following query should suffice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The `stock_quotes` table is the foreign table here. Blue Cross does not operate
+    a stock exchange. Therefore the authoritative price change data must necessarily
+    be pulled from an external source. Imagine that the external source is http://quote.yahoo.com/.
+    The mature engineering perspective on a Web site such as quote.yahoo.com is that
+    it is an object whose methods are its URLs and the arguments to those methods
+    are the form variables. To get a quotation for the software company Ariba (ticker
+    ARBA), for example, we need to visit [http://quote.yahoo.com/q?s=arba](http://quote.yahoo.com/q?s=arba)
+    in a Web browser. This is invoking the method "q" with an argument of "arba" for
+    the form variable "s". The results come back in a human-readable HTML page with
+    a lot of presentation markup and English text. It would be more convenient if
+    Yahoo gave us results in a machine-readable form, e.g., a comma-separated list
+    of values or an XML document. However, the HTML page may still be used as long
+    as its structure does not vary from quote to quote and the percent change number
+    can be pulled out with a regular expression or other computer program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the issues in designing an aggregation architecture for this problem?
+    First is coherency. It would be nice to have up-to-the-minute stock quotes but,
+    on the other hand, it seems kind of silly to repeatedly query quote.yahoo.com
+    for the same symbol. In fact, after 4:30 PM eastern time when the US stock market
+    closes, there really isn't any reason to ask for a new quote on a symbol until
+    9:30 AM the next day. Given some reasonable assumptions about caching, once the
+    `stock_quotes` table has been used a few times, queries will be able to execute
+    much much faster since quote data will be pulled from a local cache rather than
+    fetched over the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We don't have to think very hard about updatability. Blue Cross does not run
+    a stock exchange therefore Blue Cross cannot update a stock's price. Our local
+    view will not be updatable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The social issue seems straightforward at first. Yahoo is making quotes available
+    to any client on the public Internet. It looks at first glance as though our computer
+    program can only request one quote at a time. However, if we fetch [http://quote.yahoo.com/q?s=arba**+ibm**](http://quote.yahoo.com/q?s=arba+ibm),
+    we can get two quotes at the same time. It might even be possible to grab all
+    of our insureds' employers' stock prices in one big page. A potential fly in the
+    ointment is Yahoo's terms of service at [http://docs.yahoo.com/info/terms/](http://docs.yahoo.com/info/terms/)
+    where they stipulate
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Where and when to run our programs
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We need to write a computer program (the "fetcher") that can fetch the HTML
+    page from Yahoo, pull out the price change figures, and stuff them into the `stock_quotes`
+    table. We also need a more general computer program (the "checker") that can look
+    at the foreign data required, see how old the cached data in `stock_quotes` are,
+    and run the fetcher program if necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three Turing-complete computer languages built into Oracle: C, Java,
+    PL/SQL. "Turing-complete" means that any program that can be written for any computer
+    can be written to run inside Oracle. Since you eventually want the foreign data
+    to be combined with data inside Oracle, it makes sense to run all of your aggregation
+    code inside the database. Oracle includes built-in functions to facilitate the
+    retrieval of Web pages (see [http://oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100](http://oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In an ideal world you could define a database trigger that would fire every
+    time a query was about to SELECT from the `stock_quotes` table. This trigger would
+    somehow figure out which rows of the foreign table were going to be required.
+    It would run the checker program to make sure that none of the cached data were
+    too old, and the checker in turn might run the fetcher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why won't this work? As of Oracle version 8.1.6, it is impossible to define
+    a trigger on SELECT. Even if you could, there is no advertised way for the triggered
+    program to explore the SQL query that is being executed or to ask the SQL optimizer
+    which rows will be required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PostgreSQL RDBMS has a "rule system" (see [http://www.postgresql.org/docs/programmer/x968.htm](http://www.postgresql.org/docs/programmer/x968.htm))
+    which can intercept and transform a SELECT. It takes the output of the SQL parser,
+    applies one or more transformation rules, and produces a new set of queries to
+    be executed. For example, a rule may specify that any SELECT which targets the
+    table "foo" should be turned into a SELECT from the table "bar" instead; this
+    is how Postgres implements views. As it stands, the only transformation that can
+    be applied to a SELECT is to replace it with a single, alternative SELECT - but
+    PostgreSQL is open source software which anyone is free to enhance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The long term fix is to wait for the RDBMS vendors to augment their products.
+    Help is on the way. The good news is that a portion of the ANSI/ISO SQL-99 standard
+    mandates that RDBMS vendors, including Oracle, provide support for wrapping external
+    data sources. The bad news is that the SQL-99 standard is being released in chunks,
+    the wrapper extension won't be published until 2001, and it may be several years
+    before commercial RDBMSes implement the new standard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The short term fix is to run a procedure right before we send the query to
+    Oracle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Our checker is an Oracle stored procedure named `checker.stock_quotes`. It
+    checks every ticker symbol in `stock_quotes` and calls the fetcher if the quote
+    is older than the specified interval, measured in days. If we want to add a new
+    `ticker_symbol` to the table, we call a different version of `checker.stock_quotes`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: If there is no entry for IBM which is less than half a day old, the checker
+    will ask the fetcher to get a stock quote for IBM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Aggregation Example
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Blue Cross will dispense a lot of Prozac before Oracle implements the SQL-99
+    wrapper extension. So let''s build a `stock_quotes` foreign table which uses Java
+    stored procedures to do the checking and fetching. We''ll begin with a data model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: This is a stripped-down version, where we only store the most recent price quote
+    for each ticker symbol. In a real application we would certainly want to maintain
+    an archive of old quotes, perhaps by using [triggers](triggers.html) to populate
+    an audit table whenever `stock_quotes` is updated. Even if your external source
+    provides its own historical records, fetching them is bound to be slower, less
+    reliable, and more complicated than pulling data from your own audit tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll create a single source code file, `StockUpdater.java`. Oracle 8.1.6
+    includes a Java compiler as well as a virtual machine, so when this file is ready
+    we can load it into Oracle and compile it with a single command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Oops. The `-resolve` option tells Oracle's `loadjava` utility to compile and
+    link the class right away, but `StockUpdater` depends on classes that haven't
+    yet been loaded into Oracle. Most Java virtual machines are designed to automatically
+    locate and load classes at runtime by searching through the filesystem, but the
+    Oracle JVM requires every class to be loaded into the database in advance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to obtain the `Perl5Util` and `PatternMatcherInput` classes. These are
+    part of the Oro library, an open-source regular expression library that's available
+    from [http://jakarta.apache.org/oro/index.html](http://jakarta.apache.org/oro/index.html).
+    When we download and untar the distribution, we'll find a JAR file that contains
+    the classes we need. We'll load the entire JAR file into Oracle and then try to
+    load `StockUpdater` again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'These commands take a while to execute. When they''re done, we can check the
+    results by running this SQL query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Here''s a small portion of the output from this query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Our source code is marked `VALID`, and there's an associated class which is
+    also `VALID`. There are a bunch of `VALID` regexp classes. All is well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we wanted, we could have compiled the `StockUpdater` class using a free-standing
+    Java compiler and then loaded the resulting class files into Oracle. We aren't
+    required to use the built-in Oracle compiler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `-force` option forces `loadjava` to overwrite any existing class with the
+    same name, so if we change our class we don't necessarily have to drop the old
+    version before loading the new one. If we do want to drop one of Oracle's stored
+    Java classes, we can use the `dropjava` utility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling our Stored Procedures
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '![Diagram of the aggregation architecture](agg-arch.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 15-1**: The aggregation architecture. The client application obtains
+    data by querying Oracle tables using SQL. To keep the foreign tables up to date,
+    the application calls the Checker and the Fetcher, which are Java stored procedures
+    running inside Oracle. The Checker is called via two layers of PL/SQL: one layer
+    is a call spec which translates a PL/SQL call to a Java call, and the other is
+    a wrapper procedure which provides an autonomous transaction for the aggregation
+    code to run in.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In order to call Java stored procedures from SQL, we need to define *call specs*,
+    which are PL/SQL front ends to static Java methods. Here''s an example of a call
+    spec:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This code says: "when the programmer calls this PL/SQL procedure, call the
+    `checkAll` method of the Java class `StockUpdater`." The `checkAll` method must
+    be `static`: Oracle doesn''t automatically construct a new `StockUpdater` object.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We don''t allow developers to use the call spec directly. Instead we make them
+    call a separate PL/SQL procedure which initiates an *autonomous transaction*.
+    We need to do this because an application might call the checker in the middle
+    of a big transaction. The checker uses the fetcher to add fresh data to the `stock_quotes`
+    table. Now the question arises: when do we commit the changes to the `stock_quotes`
+    table? There are three options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have the fetcher issue a COMMIT. This will commit the changes to `stock_quotes`.
+    It will also commit any changes that were made before the checker was called.
+    This is a very bad idea.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Have the fetcher update `stock_quotes` without issuing a COMMIT. This is also
+    a bad idea: if the calling routine decides to abort the transaction, the new stock
+    quote data will be lost.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run the checker and the fetcher in an independent transaction of their own.
+    The fetcher can commit or roll back changes without affecting the main transaction.
+    Oracle provides the `AUTONOMOUS_TRANSACTION` pragma for this purpose, but the
+    pragma doesn't work in a call spec - it's only available for regular PL/SQL procedures.
+    So we need a separate layer of glue code just to initiate the autonomous transaction.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Here''s the SQL which defines all of our PL/SQL procedures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We've placed the routines in a *package* called `checker`. Packages allow us
+    to group procedures and datatypes together. We're using one here because packaged
+    procedure definitions can be *overloaded*. The `checker.stock_quotes` procedure
+    can be called with either one or two arguments and a different version will be
+    run in each case. The `stock_quotes_spec` procedure also comes in two versions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing a Checker in Java
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We''re ready to start looking at the `StockUpdater.java` file itself. It begins
+    in typical Java fashion:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Then we have the two checker routine, starting with the one that updates the
+    entire table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This routine uses JDBC to access the `stock_quotes` table. JDBC calls throw
+    exceptions of type `SQLException` which we don''t bother to catch; instead, we
+    propagate them back to the calling programmer to indicate that something went
+    wrong. We also print debugging information to standard output. When running this
+    class outside Oracle, the debug messages will appear on the screen. Inside Oracle,
+    we can view them by issuing some SQL*Plus commands in advance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Standard output will be echoed to the screen, 5000 characters at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second checker operates on one ticker symbol at a time, and is used to
+    add a new ticker symbol to the table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Writing a Fetcher in Java
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The fetcher is implemented as a long Java method called `fetchList`. It begins
+    by retrieving a Web page from Yahoo. For speed and simplicity, we extract all
+    of the stock quotes on a single page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The fetcher uses a helper routine called `getPage` to retrieve Yahoo''s HTML,
+    which we stuff into the `yahooPage` variable. Now we can use Perl 5 regular expressions
+    to extract the values we need. We create a new `Perl5Util` object and use the
+    `split()` and `match()` methods to extract the section of the page where the data
+    is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: We need to pick out today's date from the page. This is the date when the page
+    was retrieved, which we'll call the "fetch date". Each stock quote also has an
+    individual timestamp, which we'll call the "quote date". We use a little class
+    of our own (`OracleDate`) to represent dates, and a helper routine (`matchFetchDate`)
+    to do the regexp matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: If we can't match the fetch date, we throw an exception to tell the client programmer
+    that the fetcher didn't work. Perhaps the network is down, or Yahoo's server is
+    broken, or Yahoo's graphic designers decided to redesign the page layout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''re ready to extract the stock quotes themselves. They''re in an HTML table,
+    with one row for each quote. We set up a single JDBC statement which will be executed
+    over and over, using placeholders to represent the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Now we pick apart the HTML table one row at a time, using a huge regexp that
+    represents an entire table row. By using a `PatternMatcherInput` object, we can
+    make `regexp.match()` traverse the `dataSection` string and return one match after
+    another until it runs out of matches. For each stock quote we find, we clean up
+    the data and perform a database INSERT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Helper Routines for the Fetcher
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The fetcher loads HTML pages using the `getPage` method, which uses the `URL`
+    class from the Java standard library. For a simple HTTP GET, this routine is all
+    we need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Dates, along with their Oracle format strings, are stored inside `OracleDate`
+    objects. `OracleDate` is an "inner class", defined inside the StockUpdater class.
+    Because it is a private class, it can't be seen or used outside of StockUpdater.
+    Later, if we think `OracleDate` will be useful for other programmers, we can turn
+    it into a public class by moving the definition to a file of its own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'To extract the dates from the Web page, we have a couple of routines called
+    `matchFetchDate` and `matchQuoteDate`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'The stock prices coming back from Yahoo often contain fractions, which have
+    special HTML markup. The `parseFraction` method pulls the HTML apart and returns
+    the stock price as a Java `float`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Odds and Ends
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: All of our methods obtain their JDBC connections by calling `getConnection()`.
+    By routing all database connection requests through this method, our class will
+    be able to run either inside or outside the database - `getConnection` checks
+    its environment and sets up the connection accordingly. Loading Java into Oracle
+    is a tedious process, so it's nice to be able to debug your code from an external
+    JVM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'To call `StockUpdater` from the command line, we also need to provide a `main`
+    method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Finally, the fetcher needs a utility which can join strings together. It's similar
+    to the "join" command in Perl or Tcl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: A Foreign Table In Action
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Now that we''ve implemented all of this, we can take a look at our foreign
+    table in SQL*Plus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'This data is over three hours old. Let''s request data from within the last
+    hour:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: That's better. But I'm curious about the Intel Corporation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The pioneering work in this area was done in the mid-1990s by the Garlic project
+    at IBM Almaden Research Center. This is the same laboratory that developed System
+    R, the first relational database management system, which eventually became IBM's
+    DB2 product. To see how IBM's ideas unfolded in the area of wrapping legacy databases
+    and foreign Web sites, visit [http://www.almaden.ibm.com/cs/garlic/](http://www.almaden.ibm.com/cs/garlic/).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Java Stored Procedures Developer's Guide at [http://www.oradoc.com/keyword/java_stored_procedures](http://www.oradoc.com/keyword/java_stored_procedures).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PL/SQL User's Guide and Reference at [http://www.oradoc.com/keyword/plsql](http://www.oradoc.com/keyword/plsql).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sun's Java2 Documentation at [http://java.sun.com/j2se/1.3/docs/index.html](http://java.sun.com/j2se/1.3/docs/index.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: [Normalization](normalization)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[mbooth@arsdigita.com](mailto:mbooth@arsdigita.com)[philg@mit.edu](http://philip.greenspun.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader's Comments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Okay, I think the statute of limitations on this page has expired, so I'm free
+    to point out that (alas!) my email address is no longer mbooth@arsdigita.com.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You can find me at [michaelfbooth.com](http://michaelfbooth.com).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- [Michael Booth](/shared/community-member?user_id=286155), November 15, 2007
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Add a comment](/comments/add?page_id=7344) | [Add a link](/links/add?page_id=7344)'
+  prefs: []
+  type: TYPE_NORMAL

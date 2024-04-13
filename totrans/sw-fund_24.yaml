@@ -1,0 +1,1587 @@
+- en: StlcThe Simply Typed Lambda-Calculus
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Require Import Maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Smallstep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Overview
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The STLC is built on some collection of *base types*:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: booleans, numbers, strings, etc.  The exact choice of base types
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: doesn't matter much — the construction of the language and its
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: theoretical properties work out the same no matter what we
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: choose — so for the sake of brevity let's take just Bool for
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: the moment.  At the end of the chapter we'll see how to add more
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: base types, and in later chapters we'll enrich the pure STLC with
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: other useful constructs like pairs, records, subtyping, and
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: mutable state.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Starting from boolean constants and conditionals, we add three
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'things:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: variables
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: function abstractions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: application
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This gives us the following collection of abstract syntax
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: constructors (written out first in informal BNF notation — we'll
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: formalize it below).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: T ::= Bool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| T[1] → T[2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: \x:Bool. false has type Bool→Bool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \x:Bool. x has type Bool→Bool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (λx:Bool. x) true has type Bool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \x:Bool. \y:Bool. x has type Bool→Bool→Bool (i.e., Bool → (Bool→Bool))
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (λx:Bool. \y:Bool. x) false has type Bool→Bool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (λx:Bool. \y:Bool. x) false true has type Bool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Module STLC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inductive ty : Type :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TBool  : ty'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TArrow : ty → ty → ty.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inductive tm : Type :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tvar : id → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tapp : tm → tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tabs : id → ty → tm → tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ttrue : tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfalse : tm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tif : tm → tm → tm → tm.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Definition x := (Id "x").
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition y := (Id "y").
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition z := (Id "z").
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Unfold x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Unfold y.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hint Unfold z.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation idB :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tabs x TBool (tvar x)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation idBB :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tabs x (TArrow TBool TBool) (tvar x)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation idBBBB :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tabs x (TArrow (TArrow TBool TBool)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (TArrow TBool TBool))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tvar x)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation k := (tabs x TBool (tabs y TBool (tvar x))).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notation notB := (tabs x TBool (tif (tvar x) tfalse ttrue)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Operational Semantics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To define the small-step semantics of STLC terms, we begin,
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: as always, by defining the set of values.  Next, we define the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: critical notions of *free variables* and *substitution*, which are
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: used in the reduction rule for application expressions.  And
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: finally we give the small-step relation itself.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Compute (fun x:bool ⇒ 3 + 4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: yields fun x:bool ⇒ 7.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Most real-world functional programming languages make the second
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: choice — reduction of a function's body only begins when the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: function is actually applied to an argument.  We also make the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: second choice here.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we must consider what constitutes a *complete* program.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Intuitively, a "complete program" must not refer to any undefined
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: variables.  We'll see shortly how to define the *free* variables
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: in a STLC term.  A complete program is *closed* — that is, it
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: contains no free variables.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (Conversely, a term with free variables is often called an *open term*.)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Having made the choice not to reduce under abstractions, we don't
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: need to worry about whether variables are values, since we'll
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: always be reducing programs "from the outside in," and that means
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: the step relation will always be working with closed terms.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: (λx:Bool. if x then true else x) false
+  prefs: []
+  type: TYPE_NORMAL
+- en: to
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[x:=s]x               = s'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s]y               = y                      if x ≠ y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s](λx:T[11]. t[12])   = \x:T[11]. t[12]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s](λy:T[11]. t[12])   = \y:T[11]. [x:=s]t[12]      if x ≠ y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s](t[1] t[2])         = ([x:=s]t[1]) ([x:=s]t[2])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s]true            = true'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s]false           = false'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[x:=s](if t[1] then t[2] else t[3]) ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: if [x:=s]t[1] then [x:=s]t[2] else [x:=s]t[3]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '... and formally:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Technical note*: Substitution becomes trickier to define if we'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: consider the case where s, the term being substituted for a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: variable in some other term, may itself contain free variables.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Since we are only interested here in defining the step relation
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: on closed terms (i.e., terms like \x:Bool. x that include
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: binders for all of the variables they mention), we can avoid this
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: extra complexity here, but it must be dealt with when formalizing
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: richer languages.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: See, for example, [[Aydemir 2008]](Bib.html#Aydemir 2008) for further discussion
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: of this issue.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Exercise: 3 stars (substi)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The definition that we gave above uses Coq's Fixpoint facility
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: to define substitution as a *function*.  Suppose, instead, we
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: wanted to define substitution as an inductive *relation* substi.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We've begun the definition by providing the Inductive header and
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: one of the constructors; your job is to fill in the rest of the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: constructors and prove that the relation you've defined coincides
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: with the function given above.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: ☐
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: (λx:T.t12) v[2] ⇒ [x:=v[2]]t[12]
+  prefs: []
+  type: TYPE_NORMAL
+- en: is traditionally called "beta-reduction".
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: value v[2]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_AppAbs)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (λx:T.t12) v[2] ⇒ [x:=v[2]]t[12]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_App1)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: t[1] t[2] ⇒ t[1]' t[2]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: value v[1]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: t[2] ⇒ t[2]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_App2)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: v[1] t[2] ⇒ v[1] t[2]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '... plus the usual rules for booleans:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_IfTrue)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (if true then t[1] else t[2]) ⇒ t[1]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_IfFalse)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (if false then t[1] else t[2]) ⇒ t[2]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: t[1] ⇒ t[1]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (ST_If)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (if t[1] then t[2] else t[3]) ⇒ (if t[1]' then t[2] else t[3])
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Formally:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Examples
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: idBB idB ⇒* idB
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: (idBB (idBB idB)) ⇒* idB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: (idBB notB) ttrue ⇒* tfalse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: idBB (notB ttrue) ⇒* tfalse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use the normalize tactic defined in the [Types](Types.html) chapter
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: to simplify these proofs.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Exercise: 2 stars (step_example3)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Try to do this one both with and without normalize.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: ☐
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Contexts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Question*: What is the type of the term "x y"?'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*Answer*: It depends on the types of x and y!'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: I.e., in order to assign a type to a term, we need to know
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: what assumptions we should make about the types of its free
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: variables.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: This leads us to a three-place *typing judgment*, informally
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: written Γ ⊢ t ∈ T, where Γ is a
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"typing context" — a mapping from variables to their types.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Informally, we'll write Γ, x:T for "extend the partial
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: function Γ to also map x to T."  Formally, we use the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: function extend to add a binding to a partial map.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Typing Relation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Γ x = T
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_Var)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ x ∈ T
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ , x:T[11] ⊢ t[12] ∈ T[12]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_Abs)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ \x:T[11].t12 ∈ T[11]->T[12]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ t[1] ∈ T[11]->T[12]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ t[2] ∈ T[11]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_App)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ t[1] t[2] ∈ T[12]
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_True)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ true ∈ Bool
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_False)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ false ∈ Bool
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ t[1] ∈ Bool    Γ ⊢ t[2] ∈ T    Γ ⊢ t[3] ∈ T
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (T_If)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ ⊢ if t[1] then t[2] else t[3] ∈ T
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We can read the three-place relation Γ ⊢ t ∈ T as:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"to the term t we can assign the type T using as types for'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: the free variables of t the ones specified in the context
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Γ."
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Examples
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that since we added the has_type constructors to the hints
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: database, auto can actually solve this one immediately.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Another example:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example typing_example_2 :'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[empty](Maps.html#empty) ⊢'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tabs](Stlc.html#STLC.tabs) [x](Stlc.html#STLC.x) [TBool](Stlc.html#STLC.TBool)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tabs](Stlc.html#STLC.tabs) [y](Stlc.html#STLC.y) ([TArrow](Stlc.html#STLC.TArrow)
+    [TBool](Stlc.html#STLC.TBool) [TBool](Stlc.html#STLC.TBool))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y))
+    ([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y))
+    ([tvar](Stlc.html#STLC.tvar) [x](Stlc.html#STLC.x)))))) ∈
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([TArrow](Stlc.html#STLC.TArrow) [TBool](Stlc.html#STLC.TBool) ([TArrow](Stlc.html#STLC.TArrow)
+    ([TArrow](Stlc.html#STLC.TArrow) [TBool](Stlc.html#STLC.TBool) [TBool](Stlc.html#STLC.TBool))
+    [TBool](Stlc.html#STLC.TBool))).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with auto using [update_eq](Maps.html#update_eq).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: apply [T_Abs](Stlc.html#STLC.T_Abs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Abs](Stlc.html#STLC.T_Abs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [T_App](Stlc.html#STLC.T_App). apply [T_Var](Stlc.html#STLC.T_Var)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: eapply [T_App](Stlc.html#STLC.T_App). apply [T_Var](Stlc.html#STLC.T_Var)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [T_Var](Stlc.html#STLC.T_Var)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example typing_example_2_full :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: empty ⊢
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tabs x TBool
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tabs y (TArrow TBool TBool)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tapp (tvar y) (tapp (tvar y) (tvar x))))) ∈
+  prefs: []
+  type: TYPE_NORMAL
+- en: (TArrow TBool (TArrow (TArrow TBool TBool) TBool)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *) Admitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: empty ⊢ \x:Bool→B. λy:Bool→Bool. λz:Bool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: y (x z)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ∈ T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: ☐
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We can also show that terms are *not* typable.  For example, let's
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: formally check that there is no typing derivation assigning a type
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: to the term \x:Bool. \y:Bool, x y — i.e.,
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example typing_nonexample_1 :'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ¬ ∃T,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[empty](Maps.html#empty) ⊢'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tabs](Stlc.html#STLC.tabs) [x](Stlc.html#STLC.x) [TBool](Stlc.html#STLC.TBool)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tabs](Stlc.html#STLC.tabs) [y](Stlc.html#STLC.y) [TBool](Stlc.html#STLC.TBool)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [x](Stlc.html#STLC.x))
+    ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y))))) ∈
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[T](Stlc.html#T).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros Hc. inversion Hc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* The clear tactic is useful here for tidying away bits of      the context that we're not going to need again. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H. subst. clear H.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[5]. subst. clear H[5].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[4]. subst. clear H[4].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[2]. subst. clear H[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[5]. subst. clear H[5].
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[1]. Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: ¬ (∃S, ∃T,
+  prefs: []
+  type: TYPE_NORMAL
+- en: empty ⊢ \x:S. x x ∈ T).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: ☐
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE

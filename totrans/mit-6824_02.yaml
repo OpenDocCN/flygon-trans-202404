@@ -1,0 +1,809 @@
+- en: RPC and threads
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 2: Infrastructure: RPC and threads'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remote Procedure Call (RPC)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A key piece of distrib sys machinery; all the labs use RPC
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Goal:* easy-to-program network communication'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hides most details of client/server communication
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client call is much like ordinary procedure call
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: server handlers are much like ordinary procedures
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RPC is widely used!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'RPC ideally makes net communication look just like an ordinary *function call*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: RPC aims for this level of transparency
+  prefs: []
+  type: TYPE_NORMAL
+- en: RPC message diagram
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Software structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Stubs* are sort of the fake client-side functions that look like the real
+    `f(x, y)` but they just take care of packaging the arguments, sending them over
+    the network and ask the server to compute `f(x, y)`. The stub can then receive
+    the result over the network and return the value to the client code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Examples from lab 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`DoJob`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Register`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A few details of RPC
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Marshalling:* format data into packets'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tricky for arrays, pointers, objects, etc.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go's RPC library is pretty powerful!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'some things you cannot pass/marshall: e.g., channels, functions'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Binding:* how does client know who to talk to?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Might be a name service -- e.g. DNS
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Threads:*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client often has many threads, so `> 1` call outstanding, match up replies to
+    calls
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Handlers may be slow, so server often runs each in a thread
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*RPC problem:* what to do about failures?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: e.g. lost packets, broken network, crashed servers, slow servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What does a failure look like to the client's RPC library?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It never sees a response from the server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maybe packet was lost
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It does *not* know if the server saw the request!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maybe server/net failed just before sending reply
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Simplest scheme: *"at least once"* behavior'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: RPC client library waits for response for a while
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If none arrives, re-send the request
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do this a few times
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Still no response -- return an error to the application
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** is "at least once" easy for applications to cope with?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Simple problem w/ at least once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Occurs with requests that are **not** *side-effect free*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client sends *"deduct $10 from bank account"* twice because it did not hear
+    back for the first one
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'More subtle problem: what can go wrong with this client program?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Put("k", "v")` overwrites the value at `k` with `v`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Put("key", "value1")` -- an RPC to set key''s value in a DB server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Put("key", "value2")` -- client then does a 2nd Put to same key'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note:** This situation where client sends a request, server does some work
+    and replies, but the reply is lost occurs frequently and will come up a lot in
+    labs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is at-least-once ever OK?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yes: if it''s OK to repeat operations, e.g. read-only op'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Yes: if application has its own plan for detecting duplicates'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: which you will need for Lab 1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Better RPC behavior: *"at most once"*'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Idea:* server RPC code detects duplicate requests'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: returns previous reply instead of re-running handler
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client includes *unique ID (XID)* with each request
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: uses same XID for re-send
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Server checks if XID has been seen before
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some at-most-once complexities
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to ensure XID is unique?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: big random number?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'combine unique client ID (ip address?) with sequence #?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Server must eventually discard info about old RPCs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When is discard safe?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Idea:*'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: unique client IDs
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: per-client RPC sequence numbers
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'client includes *"seen all replies `<= X`"* with every RPC much like TCP sequence
+    #s and ACKs'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or only allow client one outstanding RPC at a time s.t. arrival of `seq+1` allows
+    server to discard all `<= seq`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or client agrees to keep retrying for `< 5` minutes server discards after 5+
+    minutes
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to handle duplicate request while original is still executing?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Server doesn't know reply yet; don't want to run twice
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Idea:* "pending" flag per executing RPC; wait or ignore'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if an at-most-once server crashes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: if at-most-once duplicate info in memory, server will forget
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and accept duplicate requests
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe it should write the duplicate info to disk?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe replica server should also replicate duplicate info?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about *"exactly once"*?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*at-most-once* semantics plus unbounded retries plus fault-tolerant service'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go RPC is "at-most-once"
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: open TCP connection
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: write request to TCP connection
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TCP may retransmit, but server's TCP will filter out duplicates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no retry in Go code (i.e. will NOT create 2nd TCP connection)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go RPC code returns an error if it doesn't get a reply
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perhaps after a timeout (from TCP)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perhaps server didn't see request
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perhaps server processed request but server/net failed before reply came back
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go's at-most-once RPC isn't enough for Lab 1
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: it only applies to a single RPC call
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if worker doesn't respond, the master re-sends to it to another worker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but original worker may have not failed, and is working on it too
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go RPC can't detect this kind of duplicate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No problem in lab 1, which handles at application level
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In lab 2 you will have to protect against these kinds of duplicates
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Threads
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: threads are a fundamental server structuring tool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you'll use them a lot in the labs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they can be tricky
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: useful with RPC
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: called goroutines in Go
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thread = "thread of control"
+  prefs: []
+  type: TYPE_NORMAL
+- en: threads allow one program to (logically) do many things at once
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the threads share memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'each thread includes some per-thread state:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: program counter, registers, stack
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Threading challenges:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: sharing data between thread
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if two threads modify same variable at same time?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what if one thread reads data another thread is changing?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: these problems are often called *races*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'need to protect invariants on shared data (Go: *mutex*)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*coordination* between threads (Go: *channels*)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. wait for all Map threads to finish
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*deadlocks*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thread 1 is waiting for thread 2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thread 2 is waiting for thread 1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: easy detectable (unlike races)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lock granularity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: goarse-grained `->` little concurrency/parallelism
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fine-grained `->` lots of concurrency, but race and deadlocks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: let's look at a toy RPC package to illustrate these problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Look at today's handout -- [l-rpc.go](code/l-rpc.go)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Get it [here](code/l-rpc.go).
+  prefs: []
+  type: TYPE_NORMAL
+- en: it's a toy RPC system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: illustrates threads, mutexes, channels
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it's a toy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: assumes connection already open
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: only supports an integer arg, integer reply
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: doesn't deal with errors
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`struct ToyClient`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: client RPC state
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mutex per `ToyClient`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: connection to server (e.g. TCP socket)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: xid -- unique ID per call, to match reply to caller
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`pending[]` -- multiple threads may call, need to find them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: channel on which caller is waiting
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Call()`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: application calls `reply := client.Call(procNum, arg)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`procNum` indicates what function to run on server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`WriteRequest` knows the format of an RPC msg'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: basically just the arguments turned into bits in a packet
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** why the mutex in `Call()`? what does `mu.Lock()` do?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** could we move `xid := tc.xid` outside the critical section?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: after all, we are not changing anything
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[See diagram below]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** do we need to `WriteRequest` inside the critical section?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'note: Go says you are responsible for preventing concurrent map ops'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: that's one reason the update to pending is locked
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Listener()`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: runs as a background thread
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what is `<-` doing?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not quite right that it may need to wait on chan for caller
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Back to `Call()`...
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '**Q:** what if reply comes back very quickly?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: could `Listener()` see reply before `pending[xid]` entry exists?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or before caller is waiting for channel?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** should we put `reply := <-done` inside the critical section?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: why is it OK outside? after all, two threads use it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** why mutex per `ToyClient`, rather than single mutex per whole RPC pkg?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Server's `Dispatcher()`
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: note that the Dispatcher echos the xid back to the client
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so that `Listener` knows which Call to wake up
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** why run the handler in a separate thread?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** is it a problem that the dispatcher can reply out of order?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`main()`'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: note registering handler in `handlers[]`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what will the program print?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When to use shared memory (and locks) vs when to use channels?
+  prefs: []
+  type: TYPE_NORMAL
+- en: here is my opinion
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: use channels when you want one thread to explicitly wait for another
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: often wait for a result, or wait for the next request
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. when client `Call()` waits for `Listener()`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: use shared memory and locks when the threads are not intentionally
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: directly interacting, but just happen to r/w the same data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. when `Call()` uses `tc.xid`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go's "memory model" requires explicit synchronization to communicate!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This code is not correct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's very tempting to write, but the Go spec says it's undefined use a channel
+    or `sync.WaitGroup` instead
+  prefs: []
+  type: TYPE_NORMAL
+- en: Study the Go tutorials on *goroutines* and *channels*.
+  prefs: []
+  type: TYPE_NORMAL

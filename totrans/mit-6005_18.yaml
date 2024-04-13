@@ -1,0 +1,488 @@
+- en: 'Reading 18: Parser Generators'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'After today’s class, you should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be able to use a grammar in combination with a parser generator, to parse a
+    character sequence into a parse tree
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be able to convert a parse tree into a useful data type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Parser Generators
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A *parser generator* is a good tool that you should make part of your toolbox.
+    A parser generator takes a grammar as input and automatically generates source
+    code that can parse streams of characters using the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The generated code is a *parser*, which takes a sequence of characters and tries
+    to match the sequence against the grammar. The parser typically produces a *parse
+    tree*, which shows how grammar productions are expanded into a sentence that matches
+    the character sequence. The root of the parse tree is the starting nonterminal
+    of the grammar. Each node of the parse tree expands into one production of the
+    grammar. We’ll see how a parse tree actually looks in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final step of parsing is to do something useful with this parse tree. We
+    are going to translate it into a value of a recursive data type. Recursive abstract
+    data types are often used to represent an expression in a language, like HTML,
+    or Markdown, or Java, or algebraic expressions. A recursive abstract data type
+    that represents a language expression is called an *abstract syntax tree* (AST).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this class, we are going to use “ParserLib”, a parser generator for Java
+    that we have developed specifically for 6.005\. The parser generator is similar
+    in spirit to more widely used parser generators like [Antlr](http://www.antlr.org/),
+    but it has a simpler interface and is generally easier to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A ParserLib Grammar
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The code for the examples that follow can be found on GitHub as [fa16-ex18-parser-generators](https://github.com/mit6005/fa16-ex18-parser-generators).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what our HTML grammar looks like as a ParserLib source file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s break it down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each ParserLib rule consists of a name, followed by a `::=`, followed by its
+    definition, terminated by a semicolon. The ParserLib grammar can also include
+    Java-style comments, both single line and multiline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By convention, we use lower-case for non-terminals: `root`, `html`, `normal`,
+    `italic`. (The ParserLib library is actually case insensitive with respect to
+    non-terminal names; internally, it canonicalizes names to all-lowercase, so even
+    if you don’t write all your names into lowercase, you will see them as lowercase
+    when you print your grammar). Terminals are either quoted strings, like `''<i>''`,
+    or names like `text` defined in terms of regular expressions over strings.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`root` is the entry point of the grammar. This is the nonterminal that the
+    whole input needs to match. We don’t have to call it `root`. When loading the
+    grammar into our program, we will tell the library which nonterminal to use as
+    the entry point.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This rule shows that ParserLib rules can have the alternation operator `|`,
+    the repetition operators `*` and `+`, and parentheses for grouping, in the same
+    way we’ve been using in the [grammars reading](../17-regex-grammars/#grammars).
+    Optional parts can be marked with `?`, just like we did earlier, but this particular
+    grammar doesn’t use `?`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the terminal `text` uses the notation `[^<>]` from before to represent
+    all characters except `<` and `>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In general, terminal symbols do not have to be a fixed string; they can be
+    a regular expression as in the example. For example, here are some other terminal
+    patterns we used in the URL grammar earlier in the reading, now written in ParserLib
+    syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Whitespace
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider the grammar shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This grammar will accept an expression like `42+2+5`, but will reject a similar
+    expression that has any spaces between the numbers and the `+` signs. We could
+    modify the grammar to allow white space around the plus sign by modifying the
+    production rule for `sum` like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, this can become cumbersome very quickly once the grammar becomes more
+    complicated. ParserLib allows a shorthand to indicate that certain kinds of characters
+    should be skipped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `@skip whitespace` notation indicates that any text matching the whitespace
+    nonterminal should be skipped in between the parts that make up the definitions
+    of `sum` `root` and `primitive`. Two things are important to note. First, there
+    is nothing special about `whitespace`. The `@skip` directive works with any nonterminal
+    or terminal defined in the grammar. Second, note how the definition of `number`
+    was intentionally left outside the `@skip` block. This is because we want to accept
+    expressions like `42 + 2 + 5`, but we want to reject expressions like `4 2 + 2
+    + 5`. In the rest of the text, we refer to this grammar as the *IntegerExpression*
+    grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating the parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The rest of this reading will use as a running example the *IntegerExpression*
+    grammar defined earlier, which we’ll store in a file called [`IntegerExpression.g`](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/IntegerExpression.g).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The ParserLib parser generator tool converts a grammar source file like `IntegerExpression.g`
+    into a parser. In order to do this, you need to follow three steps. First, you
+    need to import the ParserLib library, which resides in a package `lib6005.parser`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The second step is to define an `Enum` type that contains all the terminals
+    and non-terminals used by your grammar. This will tell the compiler which definitions
+    to expect in the grammar and will allow it to check for any missing ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that ParserLib itself is case insensitive, but by convention, the names
+    of `enum` values are all upper case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From within your code, you can create a parser by calling the `compile` static
+    method in `GrammarCompiler`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[The code](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/src/intexpr/Main.java#L34)
+    opens the file `IntegerExpression.g` and compiles it using the `GrammarCompiler`
+    into a `Parser` object. The `compile` method takes as a second argument the name
+    of the nonterminal to use as the entry point of the grammar; `root` in the case
+    of this example.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming you don’t have any syntax errors in your grammar file, the result will
+    be a `Parser` object that can be used to parse text in either a string or a file.
+    Notice that the Parser is a *generic* type that is parameterized by the `enum`
+    you defined earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling the parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that you’ve generated the parser object, you are ready to parse your own
+    text. The parser has a method called `parse` that takes in the text to be parsed
+    (in the form of either a `String`, an `InputStream`, a `File` or a `Reader`) and
+    returns a `ParseTree`. Calling it produces a parse tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the `ParseTree` is also a generic type that is parameterized by the
+    enum type `IntegerGrammar`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For debugging, we can then print this tree out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can also try calling the method `display()` which will attempt to open a
+    browser window that will show you a visualization of your parse tree. If for any
+    reason it is not able to open the browser window, the method will print a URL
+    to the terminal which you can copy and paste to your browser to view the visualization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the example code: [`Main.java` lines 34-35](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/src/intexpr/Main.java#L34-L35),
+    which use the enum in [lines 13-17](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/src/intexpr/Main.java#L13-L17).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Parse trees(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traversing the parse tree
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we’ve used the parser to turn a stream of characters into a parse tree, which
+    shows how the grammar matches the stream. Now we need to do something with this
+    parse tree. We’re going to translate it into a value of a recursive abstract data
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to learn how to traverse the parse tree. The `ParseTree` object
+    has four methods that you need to be most familiar with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, you can query the ParseTree for all children that match a particular
+    production rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that like the `Parser` itself, the `ParseTree` is also parameterized by
+    the type of the `Symbols`, which is expected to be an `enum` type that lists all
+    the symbols in the grammar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `ParseTree` implements the iterable inerface, so you can iterate over all
+    the children using a `for` loop. One way to visit all the nodes in a parse tree
+    is to write a recursive function. For example, the recursive function below prints
+    all nodes in the parse tree with proper indentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Constructing an abstract syntax tree
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We need to convert the parse tree into a recursive data type. Here’s the definition
+    of the recursive data type that we’re going to use to represent integer arithmetic
+    expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: If this syntax is mysterious, review [recursive data type definitions](../16-recursive-data-types/recursive/#recursive_datatype_definitions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a recursive data type represents a language this way, it is often called
+    an *abstract syntax tree*. An [`IntegerExpression`](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/src/intexpr/IntegerExpression.java)
+    value captures the important features of the expression – its grouping and the
+    integers in it – while omitting unnecessary details of the sequence of characters
+    that created it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By contrast, the parse tree that we just generated with the *IntegerExpression*
+    parser is a *concrete syntax tree*. It’s called concrete, rather than abstract,
+    because it contains more details about how the expression is represented in actual
+    characters. For example, the strings `2+2`, `((2)+(2))`, and `0002+0002` would
+    each produce a different concrete syntax tree, but these trees would all correspond
+    to the same abstract `IntegerExpression` value: `Plus(Number(2), Number(2))`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can create a simple recursive function that walks the `ParseTree` to
+    produce an `IntegerExpression` as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`Main.java` line 41](https://github.com/mit6005/fa16-ex18-parser-generators/blob/master/src/intexpr/Main.java#L41-L106)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function is quite simple, and very much follows the structure of the grammar.
+    An important thing to note is that there is a very strong assumption that the
+    code will process a `ParseTree` that corresponds to the grammar in `IntegerExpression.g`.
+    If you feed it a different kind of ParseTree, the code will likely fail with a
+    `RuntimeException`, but it will always terminate and will never return a null
+    reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: String to AST 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the input string is `"19+23+18"`, which abstract syntax tree would be produced
+    by `buildAST` above?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: String to AST 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Which of the following input strings would produce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handling errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Several things can go wrong when parsing a file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your grammar file may fail to open.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your grammar may be syntactically incorrect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The string you are trying to parse may not be parseable with your given grammar,
+    either because your grammar is incorrect, or because your string is incorrect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the first case, the `compile` method will throw an `IOException`. In the
+    second case, it will throw an `UnableToParseException`. In the third case, the
+    `UnableToParseException` will be thrown by the `parse` method. The `UnableToParseException`
+    exception will contain some information about the possible location of the error,
+    although parse errors are sometimes inherently difficult to localize, since the
+    parser cannot know what string you intended to write, so you may need to search
+    a little to find the true location of the error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Left recursion and other ParserLib limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: ParserLib works by generating a top-down [Recursive Descent Parser](https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-035-computer-language-engineering-spring-2010/lecture-notes/MIT6_035S10_lec04.pdf).
+    These kind of parsers have a few limitations in terms of the grammars that they
+    can parse. There are two in particular that are worth pointing out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Left recursion.** A recursive descent parser can go into an infinite loop
+    if the grammar involves [left recursion](https://en.wikipedia.org/wiki/Left_recursion).
+    This is a case where a definition for a non-terminal involves that non-terminal
+    as its leftmost symbol. For example, the grammar below includes left recursion
+    because one of the possible definitions of `sum` is `sum ''+'' number` which has
+    `sum` as its leftmost symbol.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Left recursion can also happen indirectly. For example, changing the grammar
+    above to the one below does not address the problem because the definition of
+    `sum` still indirectly involves a symbol that has `sum` as its first symbol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you give any of these grammars to ParserLib and then try to use them to parse
+    a symbol, ParserLib will fail with an `UnableToParse` exception listing the offending
+    non-terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are some [general techniques](https://en.wikipedia.org/wiki/Left_recursion)
+    to eliminate left recursion; for our purposes, the simplest approach will be to
+    replace left recursion with repetition (`*`), so the grammar above becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Greediness.** This is not an issue that you will run into in this class,
+    but it is a limitation of ParserLib you should be aware of. The ParserLib parsers
+    are greedy in that at every point they try to match a maximal string for any rule
+    they are currently considering. For example, consider the following grammar.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The string `'aaaabbb'` is clearly in the grammar, but a greedy parser cannot
+    parse it because it will try to parse a maximal substring that matches the `ab`
+    symbol, and then it will find that it cannot parse `threeb` because it has already
+    consumed the entire string. Unlike left recursion, which is easy to fix, this
+    is a more fundamental limitation of the type of parser implemented by ParserLib,
+    but as mentioned before, this is not something you should run into in this class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The topics of today’s reading connect to our three properties of good software
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safe from bugs.** A grammar is a declarative specification for strings and
+    streams, which can be implemented automatically by a parser generator. These specifications
+    are often simpler, more direct, and less likely to be buggy than parsing code
+    written by hand.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easy to understand.** A grammar captures the shape of a sequence in a form
+    that is compact and easier to understand than hand-written parsing code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ready for change.** A grammar can be easily edited, then run through a parser
+    generator to regenerate the parsing code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

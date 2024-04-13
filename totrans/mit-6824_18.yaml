@@ -1,0 +1,410 @@
+- en: Amazon's Dynamo keystore
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 18: Amazon''s Dynamo keystore'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamo
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: eventually consistent
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: considerably less consistent than PNUTS or Spanner
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: successful open source projects like Cassandra that have built upon the ideas
+    of Dynamo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: really worried about their service level agreements (SLA)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: internal SLAs, say between webserver and storage system
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: worried about *worst-case* perf., not average perf.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they want 99.9th percentile of delay `< 300ms`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not very clear how this requirement worked itself in the design
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what choices were made to satisfy this?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: supposed to deal w/ constant failures
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: entire data center offline
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they need the system to be always writeable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` no single master'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Guess: amazon has quite a lot of data centers and no one of them are primary
+    or backup, then even if a datacenter goes down only a small fraction of your system
+    is down'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: much more natural to, instead of replicating every record everywhere, to just
+    replicate it on 2 or 3 data centers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: design of Dynamo is not really data-center oriented
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: difference from PNUTS is that there's nothing about locality in their design
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'they don''t worry about it: no copy of data is made to be near every client'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they need the wide area network to work really well
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Details
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: always writeable `=>` no single master `=>` different puts on different servers
+    `=>` conflicting updates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where should puts go and where should gets go so that they are likely to see
+    data written by puts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Consistent hashing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: you hash the key and it tells you what server to put/get it from
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hash output space is a ring/circle
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: every key's hash is a point on this circle
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: every node's hash is also a point
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` a key will be between nodes or on a node in the circle'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: node closest to key on the circle (clockwise) is the key's *coordinator*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if key is replicated `N` times, then the `N` successor nodes (clockwise) after
+    the key store the key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even with random choice of node IDs, consistent hashing doesn't uniformly spread
+    the keys across nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the # of keys on a node is proportional to the gap between that node and its
+    predecessor'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the distribution of gaps is pretty wide
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to make up for this, virtual nodes are used
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'each physical node is made up of a certain # of virtual nodes, proportional
+    to the perf/capacity of the physical node'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Preference lists:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: suppose you have nodes A, B, C, D, E, F and key `k` that hashes before node
+    A
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this key `k` should have 3 copies stored at A, B and C, if `N = 3`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: request could go to the first node A, which could be down
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or it could go to the first node A, which would try to replicate it on node
+    B and C, which could be down
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` this first node would replicate on nodes D and E'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` more than `N` nodes that could have the data'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` remember all these nodes in a *preference list*'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: request for `k` goes to the first node in the preference list
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: that node acts as a coordinator for the request and reads/writes the key on
+    all other nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sloppy quorums,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`N` the # of nodes the coordinator sends the request to'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`R` the # of nodes the coordinator waits for data to come back on a get'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`W` the # of nodes the coordinator waits for data to write on on a put'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if there are no failures, the coordinator kind of acts like a master
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if there are failures the sloppy quorum makes sure data is persisted, but inconsistencies
+    can be created
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Trouble: because there aren''t any real quorums, gets can miss the most recent
+    puts'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you can have nodes A, B, C store some put on stale data, and nodes D, E, F store
+    another put on data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the coordinator among D, E, F knows the data is out-of-place and stores a flag
+    to indicate it should be passed to A, B, C (*hinted hand-off*)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conflicts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: figure 3 in the paper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when there are 2 conflicting versions, client code has to be able to reconcile
+    them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: dynamo uses version vectors just like [Ficus](l11-ficus.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[a: 1] -> [a: 1, b: 3]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[a: 1] -> [a: 1, c: 3]`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[a:1, b:3, c: 0]` and `[a:1, b:0, c:3]` conflicts'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dynamo is weaker than Bayou
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: both have a story for how to reconcile conflicted version
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In dynamo we just have the two conflicting pieces of data, but we don't have
+    the ops that were applied to the state (like remove/add smth from shopping cart)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bayou has the log of the ops
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PNUTS had atomic operation support like a `test-and-set-write` op
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: nothing like that in Dynamo
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the only way to do that in Dynamo is to be able to merge two conflicting versions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Question to always ask about version vectors:* What happens when the version
+    vectors get too large?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they delete entries for nodes that have been modified a long time ago
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v1 = [a:1, b:7] -> v1'' = [b:7]`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what can go wrong? if `[b:7]` is updated to `v2 = [b:8]` then `v2` will conflict
+    with `v1`, even though it was derived directly from it, so the application will
+    get some *false* merges
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they like that they can adjust `N, R, W` to get different trade-offs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: standard `3,2,2`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`3, 3, 1 ->` write quickly but not very durably, reads are rare'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`3, 1, 3 ->` writes are slow, but reads are quite fast'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the average delays are 5-10ms, much smaller than PNUTS or memcached
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: too small relative to speed-of-light across datacenters
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but not clear where the data centers were, and what the workloads were
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6.824 2015 original notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE

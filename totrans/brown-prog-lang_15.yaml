@@ -1,0 +1,1271 @@
+- en: 15Sets Appeal
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [15.1 Representing Sets by Lists](#%28part._rep-sets-as-lists%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.1.1 Representation Choices](#%28part._.Representation_.Choices%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.1.2 Time Complexity](#%28part._.Time_.Complexity%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.1.3 Choosing Between Representations](#%28part._choosing-set-reps%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.1.4 Other Operations](#%28part._.Other_.Operations%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [15.2 Making Sets Grow on Trees](#%28part._.Making_.Sets_.Grow_on_.Trees%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.2.1 Converting Values to Ordered Values](#%28part._hashing-values%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.2.2 Using Binary Trees](#%28part._.Using_.Binary_.Trees%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [15.2.3 A Fine Balance: Tree Surgery](#%28part._sets-from-balanced-trees%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [15.2.3.1 Left-Left Case](#%28part._.Left-.Left_.Case%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [15.2.3.2 Left-Right Case](#%28part._.Left-.Right_.Case%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [15.2.3.3 Any Other Cases?](#%28part._.Any_.Other_.Cases_%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: Earlier [[Sets as Collective Data](Collections_of_Structured_Data.html#%28part._sets-as-collections%29)]
+    we introduced sets. Recall that the elements of a set have no specific order,
+    and ignore duplicates.If these ideas are not familiar, please read [Sets as Collective
+    Data](Collections_of_Structured_Data.html#%28part._sets-as-collections%29), since
+    they will be important when discussing the representation of sets. At that time
+    we relied on Pyret’s built-in representation of sets. Now we will discuss how
+    to build sets for ourselves. In what follows, we will focus only on sets of numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will start by discussing how to represent sets using lists. Intuitively,
+    using lists to represent sets of data seems problematic, because lists respect
+    both order and duplication. For instance,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: fails.In principle, we want sets to obey the following interface:<set-operations>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   mt-set :: Set |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   is-in :: (T, Set<T> -> Bool) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   insert :: (T, Set<T> -> Set<T>) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   union :: (Set<T>, Set<T> -> Set<T>) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   size :: (Set<T> -> Number) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   to-list :: (Set<T> -> List<T>) |'
+  prefs: []
+  type: TYPE_TB
+- en: We may also find it also useful to have functions such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: which, combined with mt-set, easily gives us a to-set function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sets can contain many kinds of values, but not necessarily any kind: we need
+    to be able to check for two values being equal (which is a requirement for a set,
+    but not for a list!), which can’t be done with all values [REF]; and sometimes
+    we might even want the elements to obey an ordering [[Converting Values to Ordered
+    Values](#%28part._hashing-values%29)]. Numbers satisfy both characteristics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1Representing Sets by Lists
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In what follows we will see multiple different representations of sets, so we
+    will want names to tell them apart. We’ll use LSet to stand for “sets represented
+    as lists”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a starting point, let’s consider the implementation of sets using lists as
+    the underlying representation. After all, a set appears to merely be a list wherein
+    we ignore the order of elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.1Representation Choices
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The empty list can stand in for the empty set—<wbr>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: —<wbr>and we can presumably define size as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, this [☛ reduction](glossary.html#%28elem._glossary-reduction%29) (of
+    sets to lists) can be dangerous:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a subtle difference between lists and sets. The list
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: is not the same as
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'because the first list has length two whereas the second has length one. Treated
+    as a set, however, the two are the same: they both have size one. Thus, our implementation
+    of size above is incorrect if we don’t take into account duplicates (either during
+    insertion or while computing the size).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We might falsely make assumptions about the order in which elements are retrieved
+    from the set due to the ordering guaranteed provided by the underlying list representation.
+    This might hide bugs that we don’t discover until we change the representation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We might have chosen a set representation because we didn’t need to care about
+    order, and expected lots of duplicate items. A list representation might store
+    all the duplicates, resulting in significantly more memory use (and slower programs)
+    than we expected.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To avoid these perils, we have to be precise about how we’re going to use lists
+    to represent sets. One key question (but not the only one, as we’ll soon see [REF])
+    is what to do about duplicates. One possibility is for insert to check whether
+    an element is already in the set and, if so, leave the representation unchanged;
+    this incurs a cost during insertion but avoids unnecessary duplication and lets
+    us use length to implement size. The other option is to define insert as link—<wbr>literally,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: —<wbr>and have some other procedure perform the filtering of duplicates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.2Time Complexity
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'What is the complexity of this representation of sets? Let’s consider just
+    insert, check, and size. Suppose the size of the set is \(k\) (where, to avoid
+    ambiguity, we let \(k\) represent the number of distinct elements). The complexity
+    of these operations depends on whether or not we store duplicates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we don’t store duplicates, then size is simply length, which takes time linear
+    in \(k\). Similarly, check only needs to traverse the list once to determine whether
+    or not an element is present, which also takes time linear in \(k\). But insert
+    needs to check whether an element is already present, which takes time linear
+    in \(k\), followed by at most a constant-time operation (link).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If we do store duplicates, then insert is constant time: it simply links on
+    the new element without regard to whether it already is in the set representation.
+    check traverses the list once, but the number of elements it needs to visit could
+    be significantly greater than \(k\), depending on how many duplicates have been
+    added. Finally, size needs to check whether or not each element is duplicated
+    before counting it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What is the time complexity of size if the list has duplicates?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One implementation of size is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s now compute the complexity of the body of the function, assuming the number
+    of distinct elements in s is \(k\) but the actual number of elements in s is \(d\),
+    where \(d \geq k\). To compute the time to run size on \(d\) elements, \(T(d)\),
+    we should determine the number of operations in each question and answer. The
+    first question has a constant number of operations, and the first answer also
+    a constant. The second question also has a constant number of operations. Its
+    answer is a conditional, whose first question (r.member(f) needs to traverse the
+    entire list, and hence has \(O([k -> d])\) operations. If it succeeds, we recur
+    on something of size \(T(d-1)\); else we do the same but perform a constant more
+    operations. Thus \(T(0)\) is a constant, while the recurrence (in big-Oh terms)
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: \begin{equation*}T(d) = d + T(d-1)\end{equation*}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus \(T \in O([d \rightarrow d^2])\). Note that this is quadratic in the number
+    of elements in the list, which may be much bigger than the size of the set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.3Choosing Between Representations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now that we have two representations with different complexities, it’s worth
+    thinking about how to choose between them. To do so, let’s build up the following
+    table. The table distinguishes between the interface (the set) and the implementation
+    (the list), because—<wbr>owing to duplicates in the representation—<wbr>these
+    two may not be the same. In the table we’ll consider just two of the most common
+    operations, insertion and membership checking:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |  | With Duplicates |  | Without Duplicates |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |  | insert |  | is-in |  | insert |  | is-in |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Size of Set |  | constant |  | linear |  | linear |  | linear |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Size of List |  | constant |  | linear |  | linear |  | linear |'
+  prefs: []
+  type: TYPE_TB
+- en: 'A naive reading of this would suggest that the representation with duplicates
+    is better because it’s sometimes constant and sometimes linear, whereas the version
+    without duplicates is always linear. However, this masks a very important distinction:
+    what the linear means. When there are no duplicates, the size of the list is the
+    same as the size of the set. However, with duplicates, the size of the list can
+    be arbitrarily larger than that of the set!Based on this, we can draw several
+    lessons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which representation we choose is a matter of how much duplication we expect.
+    If there won’t be many duplicates, then the version that stores duplicates pays
+    a small extra price in return for some faster operations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Which representation we choose is also a matter of how often we expect each
+    operation to be performed. The representation without duplication is “in the middle”:
+    everything is roughly equally expensive (in the worst case). With duplicates is
+    “at the extremes”: very cheap insertion, potentially very expensive membership.
+    But if we will mostly only insert without checking membership, and especially
+    if we know membership checking will only occur in situations where we’re willing
+    to wait, then permitting duplicates may in fact be the smart choice. (When might
+    we ever be in such a situation? Suppose your set represents a backup data structure;
+    then we add lots of data but very rarely—<wbr>indeed, only in case of some catastrophe—<wbr>ever
+    need to look for things in it.)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Another way to cast these insights is that our form of analysis is too weak.
+    In situations where the complexity depends so heavily on a particular sequence
+    of operations, big-Oh is too loose and we should instead study the complexity
+    of specific sequences of operations. We will address precisely this question later
+    ([Halloween Analysis](amortized-analysis.html)).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Moreover, there is no reason a program should use only one representation. It
+    could well begin with one representation, then switch to another as it better
+    understands its workload. The only thing it would need to do to switch is to convert
+    all existing data between the representations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How might this play out above? Observe that data conversion is very cheap in
+    one direction: since every list without duplicates is automatically also a list
+    with (potential) duplicates, converting in that direction is trivial (the representation
+    stays unchanged, only its interpretation changes). The other direction is harder:
+    we have to filter duplicates (which takes time quadratic in the number of elements
+    in the list). Thus, a program can make an initial guess about its workload and
+    pick a representation accordingly, but maintain statistics as it runs and, when
+    it finds its assumption is wrong, switch representations—<wbr>and can do so as
+    many times as needed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.4Other Operations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement the remaining operations catalogued above ([<set-operations>](#%28elem._set-operations%29))
+    under each list representation.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement the operation
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: under each list representation. What difference do you see?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Suppose you’re asked to extend sets with these operations, as the set analog
+    of first and rest:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You should refuse to do so! Do you see why?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With lists the “first” element is well-defined, whereas sets are defined to
+    have no ordering. Indeed, just to make sure users of your sets don’t accidentally
+    assume anything about your implementation (e.g., if you implement one using first,
+    they may notice that one always returns the element most recently added to the
+    list), you really ought to return a random element of the set on each invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, returning a random element means the above interface is unusable.
+    Suppose s is bound to a set containing 1, 2, and 3. Say the first time one(s)
+    is invoked it returns 2, and the second time 1. (This already means one is not
+    a function—<wbr>an issue we’ll get to elsewhere [REF].) The third time it may
+    again return 2. Thus others has to remember which element was returned the last
+    time one was called, and return the set sans that element. Suppose we now invoke
+    one on the result of calling others. That means we might have a situation where
+    one(s) produces the same result as one(others(s)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why is it unreasonable for one(s) to produce the same result as one(others(s))?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Suppose you wanted to extend sets with a subset operation that partitioned the
+    set according to some condition. What would its type be? See [REF join lists]
+    for a similar operation.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The types we have written above are not as crisp as they could be. Define a
+    has-no-duplicates predicate, refine the relevant types with it, and check that
+    the functions really do satisfy this criterion.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 15.2Making Sets Grow on Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s start by noting that it seems better, if at all possible, to avoid storing
+    duplicates. Duplicates are only problematic during insertion due to the need for
+    a membership test. But if we can make membership testing cheap, then we would
+    be better off using it to check for duplicates and storing only one instance of
+    each value (which also saves us space). Thus, let’s try to improve the time complexity
+    of membership testing (and, hopefully, of other operations too).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It seems clear that with a (duplicate-free) list representation of a set, we
+    cannot really beat linear time for membership checking. This is because at each
+    step, we can eliminate only one element from contention which in the worst case
+    requires a linear amount of work to examine the whole set. Instead, we need to
+    eliminate many more elements with each comparison—<wbr>more than just a constant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our handy set of recurrences ([Solving Recurrences](predicting-growth.html#%28part._solving-recurrences%29)),
+    one stands out: \(T(k) = T(k/2) + c\). It says that if, with a constant amount
+    of work we can eliminate half the input, we can perform membership checking in
+    logarithmic time. This will be our goal.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we proceed, it’s worth putting logarithmic growth in perspective. Asymptotically,
+    logarithmic is obviously not as nice as constant. However, logarithmic growth
+    is very pleasant because it grows so slowly. For instance, if an input doubles
+    from size \(k\) to \(2k\), its logarithm—<wbr>and hence resource usage—<wbr>grows
+    only by \(\log 2k - \log k = \log 2\), which is a constant. Indeed, for just about
+    all problems, practically speaking the logarithm of the input size is bounded
+    by a constant (that isn’t even very large). Therefore, in practice, for many programs,
+    if we can shrink our resource consumption to logarithmic growth, it’s probably
+    time to move on and focus on improving some other part of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.1Converting Values to Ordered Values
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have actually just made an extremely subtle assumption. When we check one
+    element for membership and eliminate it, we have eliminated only one element.
+    To eliminate more than one element, we need one element to “speak for” several.
+    That is, eliminating that one value needs to have safely eliminated several others
+    as well without their having to be consulted. In particular, then, we can no longer
+    compare for mere equality, which compares one set element against another element;
+    we need a comparison that compares against an element against a set of elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this, we have to convert an arbitrary datum into a datatype that permits
+    such comparison. This is known as hashing. A hash function consumes an arbitrary
+    value and produces a comparable representation of it (its hash)—<wbr>most commonly
+    (but not strictly necessarily), a number. A hash function must naturally be deterministic:
+    a fixed value should always yield the same hash (otherwise, we might conclude
+    that an element in the set is not actually in it, etc.). Particular uses may need
+    additional properties: e.g., below we assume its output is partially ordered.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us now consider how one can compute hashes. If the input datatype is a number,
+    it can serve as its own hash. Comparison simply uses numeric comparison (e.g.,
+    <). Then, transitivity of < ensures that if an element \(A\) is less than another
+    element \(B\), then \(A\) is also less than all the other elements bigger than
+    \(B\). The same principle applies if the datatype is a string, using string inequality
+    comparison. But what if we are handed more complex datatypes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before we answer that, consider that in practice numbers are more efficient
+    to compare than strings (since comparing two numbers is very nearly constant time).
+    Thus, although we could use strings directly, it may be convenient to find a numeric
+    representation of strings. In both cases, we will convert each character of the
+    string into a number—<wbr>e.g., by considering its ASCII encoding. Based on that,
+    here are two hash functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider a list of primes as long as the string. Raise each prime by the corresponding
+    number, and multiply the result. For instance, if the string is represented by
+    the character codes [6, 4, 5] (the first character has code 6, the second one
+    4, and the third 5), we get the hash
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: or 16200000.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Simply add together all the character codes. For the above example, this would
+    correspond to the has
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: or 15.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The first representation is invertible, using the [Fundamental Theorem of Arithmetic](http://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic):
+    given the resulting number, we can reconstruct the input unambiguously (i.e.,
+    16200000 can only map to the input above, and none other). The second encoding
+    is, of course, not invertible (e.g., simply permute the characters and, by commutativity,
+    the sum will be the same).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let us consider more general datatypes. The principle of hashing will be
+    similar. If we have a datatype with several variants, we can use a numeric tag
+    to represent the variants: e.g., the primes will give us invertible tags. For
+    each field of a record, we need an ordering of the fields (e.g., lexicographic,
+    or “alphabetical” order), and must hash their contents recursively; having done
+    so, we get in effect a string of numbers, which we have shown how to handle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have understood how one can deterministically convert any arbitrary
+    datum into a number, in what follows, we will assume that the trees representing
+    sets are trees of numbers. However, it is worth considering what we really need
+    out of a hash. In [Set Membership by Hashing Redux](Algorithms_That_Exploit_State.html#%28part._hash-tables%29),
+    we will not need partial ordering. Invertibility is more tricky. In what follows
+    below, we have assumed that finding a hash is tantamount to finding the set element
+    itself, which is not true if multiple values can have the same hash. In that case,
+    the easiest thing to do is to store alongside the hash all the values that hashed
+    to it, and we must search through all of these values to find our desired element.
+    Unfortunately, this does mean that in an especially perverse situation, the desired
+    logarithmic complexity will actually be linear complexity after all!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In real systems, hashes of values are typically computed by the programming
+    language implementation. This has the virtue that they can often be made unique.
+    How does the system achieve this? Easy: it essentially uses the memory address
+    of a value as its hash. (Well, not so fast! Sometimes the memory system can and
+    does move values around ((part "garbage-collection")). In these cases computing
+    a hash value is more complicated.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.2Using Binary Trees
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Because logs come from trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clearly, a list representation does not let us eliminate half the elements
+    with a constant amount of work; instead, we need a tree. Thus we define a binary
+    tree of (for simplicity) numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Given this definition, let’s define the membership checker:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Oh, wait. If the element we’re looking for isn’t the root, what do we do? It
+    could be in the left child or it could be in the right; we won’t know for sure
+    until we’ve examined both. Thus, we can’t throw away half the elements; the only
+    one we can dispose of is the value at the root. Furthermore, this property holds
+    at every level of the tree. Thus, membership checking needs to examine the entire
+    tree, and we still have complexity linear in the size of the set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we improve on this? The comparison needs to help us eliminate not only
+    the root but also one whole sub-tree. We can only do this if the comparison “speaks
+    for” an entire sub-tree. It can do so if all elements in one sub-tree are less
+    than or equal to the root value, and all elements in the other sub-tree are greater
+    than or equal to it. Of course, we have to be consistent about which side contains
+    which subset; it is conventional to put the smaller elements to the left and the
+    bigger ones to the right. This refines our binary tree definition to give us a
+    binary search tree (BST).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here is a candiate predicate for recognizing when a binary tree is in fact
+    a binary search tree:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Is this definition correct?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'It’s not. To actually throw away half the tree, we need to be sure that everything
+    in the left sub-tree is less than the value in the root and similarly, everything
+    in the right sub-tree is greater than the root.We have used <= instead of < above
+    because even though we don’t want to permit duplicates when representing sets,
+    in other cases we might not want to be so stringent; this way we can reuse the
+    above implementation for other purposes. But the definition above performs only
+    a “shallow” comparison. Thus we could have a root a with a right child, b, such
+    that b > a; and the b node could have a left child c such that c < b; but this
+    does not guarantee that c > a. In fact, it is easy to construct a counter-example
+    that passes this check:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Fix the BST checker.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'With a corrected definition, we can now define a refined version of binary
+    trees that are search trees:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also remind ourselves that the purpose of this exercise was to define
+    sets, and define TSets to be tree sets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s implement our operations on the BST representation. First we’ll write
+    a template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Observe that the data definition of a BST gives us rich information about the
+    two children: they are each a BST, so we know their elements obey the ordering
+    property. We can use this to define the actual operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: In both functions we are strictly assuming the invariant of the BST, and in
+    the latter case also ensuring it. Make sure you identify where, why, and how.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should now be able to define the remaining operations. Of these, size clearly
+    requires linear time (since it has to count all the elements), but because is-in
+    and insert both throw away one of two children each time they recur, they take
+    logarithmic time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Suppose we frequently needed to compute the size of a set. We ought to be able
+    to reduce the time complexity of size by having each tree [☛ cache](glossary.html#%28elem._glossary-cache%29)
+    its size, so that size could complete in constant time (note that the size of
+    the tree clearly fits the criterion of a cache, since it can always be reconstructed).
+    Update the data definition and all affected functions to keep track of this information
+    correctly.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: But wait a minute. Are we actually done? Our recurrence takes the form \(T(k)
+    = T(k/2) + c\), but what in our data definition guaranteed that the size of the
+    child traversed by is-in will be half the size?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct an example—<wbr>consisting of a sequence of inserts to the empty tree—<wbr>such
+    that the resulting tree is not balanced. Show that searching for certain elements
+    in this tree will take linear, not logarithmic, time in its size.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Imagine starting with the empty tree and inserting the values 1, 2, 3, and 4,
+    in order. The resulting tree would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Searching for 4 in this tree would have to examine all the set elements in the
+    tree. In other words, this binary search tree is degenerate—<wbr>it is effectively
+    a list, and we are back to having the same complexity we had earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, using a binary tree, and even a BST, does not guarantee the complexity
+    we want: it does only if our inputs have arrived in just the right order. However,
+    we cannot assume any input ordering; instead, we would like an implementation
+    that works in all cases. Thus, we must find a way to ensure that the tree is always
+    balanced, so each recursive call in is-in really does throw away half the elements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '15.2.3A Fine Balance: Tree Surgery'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s define a balanced binary search tree (BBST). It must obviously be a search
+    tree, so let’s focus on the “balanced” part. We have to be careful about precisely
+    what this means: we can’t simply expect both sides to be of equal size because
+    this demands that the tree (and hence the set) have an even number of elements
+    and, even more stringently, to have a size that is a power of two.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Define a predicate for a BBST that consumes a BT and returns a Boolean indicating
+    whether or not it a balanced search tree.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Therefore, we relax the notion of balance to one that is both accommodating
+    and sufficient. We use the term balance factor for a node to refer to the height
+    of its left child minus the height of its right child (where the height is the
+    depth, in edges, of the deepest node). We allow every node of a BBST to have a
+    balance factor of \(-1\), \(0\), or \(1\) (but nothing else): that is, either
+    both have the same height, or the left or the right can be one taller. Note that
+    this is a recursive property, but it applies at all levels, so the imbalance cannot
+    accumulate making the whole tree arbitrarily imbalanced.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Given this definition of a BBST, show that the number of nodes is exponential
+    in the height. Thus, always recurring on one branch will terminate after a logarithmic
+    (in the number of nodes) number of steps.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here is an obvious but useful observation: every BBST is also a BST (this was
+    true by the very definition of a BBST). Why does this matter? It means that a
+    function that operates on a BST can just as well be applied to a BBST without
+    any loss of correctness.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, so easy. All that leaves is a means of creating a BBST, because it’s
+    responsible for ensuring balance. It’s easy to see that the constant empty-set
+    is a BBST value. So that leaves only insert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is our situation with insert. Assuming we start with a BBST, we can determine
+    in logarithmic time whether the element is already in the tree and, if so, ignore
+    it.To implement a bag we count how many of each element are in it, which does
+    not affect the tree’s height. When inserting an element, given balanced trees,
+    the insert for a BST takes only a logarithmic amount of time to perform the insertion.
+    Thus, if performing the insertion does not affect the tree’s balance, we’re done.
+    Therefore, we only need to consider cases where performing the insertion throws
+    off the balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Observe that because \(<\) and \(>\) are symmetric (likewise with \(<=\) and
+    \(>=\)), we can consider insertions into one half of the tree and a symmetric
+    argument handles insertions into the other half. Thus, suppose we have a tree
+    that is currently balanced into which we are inserting the element \(e\). Let’s
+    say \(e\) is going into the left sub-tree and, by virtue of being inserted, will
+    cause the entire tree to become imbalanced.Some trees, like family trees [REF],
+    represent real-world data. It makes no sense to “balance” a family tree: it must
+    accurately model whatever reality it represents. These set-representing trees,
+    in contrast, are chosen by us, not dictated by some external reality, so we are
+    free to rearrange them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two ways to proceed. One is to consider all the places where we might
+    insert \(e\) in a way that causes an imbalance and determine what to do in each
+    case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Enumerate all the cases where insertion might be problematic, and dictate what
+    to do in each case.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The number of cases is actually quite overwhelming (if you didn’t think so,
+    you missed a few...). Therefore, we instead attack the problem after it has occurred:
+    allow the existing BST insert to insert the element, assume that we have an imbalanced
+    tree, and show how to restore its balance.The insight that a tree can be made
+    “self-balancing” is quite remarkable, and there are now many solutions to this
+    problem. This particular one, one of the oldest, is due to G.M. Adelson-Velskii
+    and E.M. Landis. In honor of their initials it is called an AVL Tree, though the
+    tree itself is quite evident; their genius is in defining re-balancing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, in what follows, we begin with a tree that is balanced; insert causes
+    it to become imbalanced; we have assumed that the insertion happened in the left
+    sub-tree. In particular, suppose a (sub-)tree has a balance factor of \(2\) (positive
+    because we’re assuming the left is imbalanced by insertion). The procedure for
+    restoring balance depends critically on the following property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Show that if a tree is currently balanced, i.e., the balance factor at every
+    node is \(-1\), \(0\), or \(1\), then insert can at worst make the balance factor
+    \(\pm 2\).
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The algorithm that follows is applied as insert returns from its recursion,
+    i.e., on the path from the inserted value back to the root. Since this path is
+    of logarithmic length in the set’s size (due to the balancing property), and (as
+    we shall see) performs only a constant amount of work at each step, it ensures
+    that insertion also takes only logarithmic time, thus completing our challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To visualize the algorithm, let’s use this tree schematic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|     p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   q   C |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A   B |'
+  prefs: []
+  type: TYPE_TB
+- en: Here, \(p\) is the value of the element at the root (though we will also abuse
+    terminology and use the value at a root to refer to that whole tree), \(q\) is
+    the value at the root of the left sub-tree (so \(q < p\)), and \(A\), \(B\), and
+    \(C\) name the respective sub-trees. We have assumed that \(e\) is being inserted
+    into the left sub-tree, which means \(e < p\).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s say that \(C\) is of height \(k\). Before insertion, the tree rooted at
+    \(q\) must have had height \(k+1\) (or else one insertion cannot create imbalance).
+    In turn, this means \(A\) must have had height \(k\) or \(k-1\), and likewise
+    for \(B\).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that after insertion, the tree rooted at \(q\) has height \(k+2\). Thus,
+    either \(A\) or \(B\) has height \(k+1\) and the other must have height less than
+    that (either \(k\) or \(k-1\)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why can they both not have height \(k+1\) after insertion?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This gives us two cases to consider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.3.1Left-Left Case
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s say the imbalance is in \(A\), i.e., it has height \(k+1\). Let’s expand
+    that tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|       p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|      / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     q   C |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   r   B |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A1  A2 |'
+  prefs: []
+  type: TYPE_TB
+- en: We know the following about the data in the sub-trees. We’ll use the notation
+    \(T < a\) where \(T\) is a tree and \(a\) is a single value to mean every value
+    in \(T\) is less than \(a\).
+  prefs: []
+  type: TYPE_NORMAL
+- en: \(A_1 < r\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(r < A_2 < q\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(q < B < p\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(p < C\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s also remind ourselves of the sizes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The height of \(A_1\) or of \(A_2\) is \(k\) (the cause of imbalance).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The height of the other \(A_i\) is \(k-1\) (see exercise above [REF]).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The height of \(C\) is \(k\) (initial assumption; \(k\) is arbitrary).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The height of \(B\) must be \(k-1\) or \(k\) (argued above).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Imagine this tree is a mobile, which has gotten a little skewed to the left.
+    You would naturally think to suspend the mobile a little further to the left to
+    bring it back into balance. That is effectively what we will do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|      q |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   r     p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \   / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A1  A2 B  C |'
+  prefs: []
+  type: TYPE_TB
+- en: Observe that this preserves each of the ordering properties above. In addition,
+    the \(A\) subtree has been brought one level closer to the root than earlier relative
+    to \(B\) and \(C\). This restores the balance (as you can see if you work out
+    the heights of each of \(A_i\), \(B\), and \(C\)). Thus, we have also restored
+    balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.3.2Left-Right Case
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The imbalance might instead be in \(B\). Expanding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|     p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   q   C |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A   r |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   B1  B2 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Again, let’s record what we know about data order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: \(A < q\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(q < B_1 < r\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(r < B_2 < p\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: \(p < C\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'and sizes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose the height of \(C\) is \(k\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The height of \(A\) must be \(k-1\) or \(k\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The height of \(B_1\) or \(B_2\) must be \(k\), but not both (see exercise above
+    [REF]). The other must be \(k-1\).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We therefore have to somehow bring \(B_1\) and \(B_2\) one level closer to
+    the root of the tree. By using the above data ordering knowledge, we can construct
+    this tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|       p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|      / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     r   C |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   q   B2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A   B1 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Of course, if \(B_1\) is the problematic sub-tree, this still does not address
+    the problem. However, we are now back to the previous (left-left) case; rotating
+    gets us to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|       r |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    /    \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   q      p |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  / \    / \ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| A   B1 B2  C |'
+  prefs: []
+  type: TYPE_TB
+- en: Now observe that we have precisely maintained the data ordering constraints.
+    Furthermore, from the root, \(A\)’s lowest node is at height \(k+1\) or \(k+2\);
+    so is \(B_1\)’s; so is \(B_2\)’s; and \(C\)’s is at \(k+2\).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.3.3Any Other Cases?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Were we a little too glib before? In the left-right case we said that only one
+    of \(B_1\) or \(B_2\) could be of height \(k\) (after insertion); the other had
+    to be of height \(k-1\). Actually, all we can say for sure is that the other has
+    to be at most height \(k-2\).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Can the height of the other tree actually be \(k-2\) instead of \(k-1\)?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: If so, does the solution above hold? Is there not still an imbalance of two
+    in the resulting tree?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Is there actually a bug in the above algorithm?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL

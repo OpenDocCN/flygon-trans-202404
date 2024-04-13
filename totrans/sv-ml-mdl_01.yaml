@@ -1,0 +1,111 @@
+- en: Chapter 1\. Proposed Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The majority of model serving implementations today are based on representational
+    state transfer (REST), which might not be appropriate for high-volume data processing
+    or for use in streaming systems. Using REST requires streaming applications to
+    go “outside” of their execution environment and make an over-the-network call
+    for obtaining model serving results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “native” implementation of new streaming engines—for example, [Flink TensorFlow](http://bit.ly/eron-wright-ffsf-2017)
+    or [Flink JPPML](http://bit.ly/2wOgHUg)—do not have this problem but require that
+    you restart the implementation to update the model because the model itself is
+    part of the overall code implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we present an architecture for scoring models natively in a streaming system
+    that allows you to update models without interruption of execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Figure 1-1](#overall_architecture_of_model_serving) presents a high-level
+    view of the proposed model serving architecture (similar to a [dynamically controlled
+    stream](https://data-artisans.com/blog/bettercloud-dynamic-alerting-apache-flink)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0101](assets/smlt_0101.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1-1\. Overall architecture of model serving
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'This architecture assumes two data streams: one containing data that needs
+    to be scored, and one containing the model updates. The streaming engine contains
+    the current model used for the actual scoring in memory. The results of scoring
+    can be either delivered to the customer or used by the streaming engine internally
+    as a new stream—input for additional calculations. If there is no model currently
+    defined, the input data is dropped. When the new model is received, it is instantiated
+    in memory, and when instantiation is complete, scoring is switched to a new model.
+    The model stream can either contain the binary blob of the data itself or the
+    reference to the model data stored externally (pass by reference) in a database
+    or a filesystem, like Hadoop Distributed File System (HDFS) or Amazon Web Services
+    Simple Storage Service (S3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Such approaches effectively using model scoring as a new type of functional
+    transformation, which any other stream functional transformations can use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the aforementioned overall architecture is showing a single model,
+    a single streaming engine could score multiple models simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Learning Pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the longest period of time model building implementation was ad hoc—people
+    would transform source data any way they saw fit, do some feature extraction,
+    and then train their models based on these features. The problem with this approach
+    is that when someone wants to serve this model, he must discover all of those
+    intermediate transformations and reimplement them in the serving application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In an attempt to formalize this process, UC Berkeley AMPLab introduced the [machine
+    learning pipeline](https://www.slideshare.net/jeykottalam/pipelines-ampcamp) ([Figure 1-2](#the_machine_learning_pipeline)),
+    which is a graph defining the complete chain of data transformation steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0102](assets/smlt_0102.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1-2\. The machine learning pipeline
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'The advantage of this approach is twofold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It captures the entire processing pipeline, including data preparation transformations,
+    machine learning itself, and any required postprocessing of the machine learning
+    results. This means that the pipeline defines the complete transformation from
+    well-defined inputs to outputs, thus simplifying update of the model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The definition of the complete pipeline allows for optimization of the processing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A given pipeline can encapsulate more than one model (see, for example, [PMML
+    model composition](http://dmg.org/pmml/v4-1/MultipleModels.html)). In this case,
+    we consider such models internal—nonvisible for scoring. From a scoring point
+    of view, a single pipeline always represents a single unit, regardless of how
+    many models it encapsulates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This notion of machine learning pipelines has been adopted by many applications
+    including [SparkML](http://spark.apache.org/docs/latest/ml-guide.html), TensorFlow,
+    and [PMML](http://bit.ly/linuxfoundation-pmml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: From this point forward in this book, when I refer to model serving, I mean
+    serving the complete pipeline.
+  prefs: []
+  type: TYPE_NORMAL

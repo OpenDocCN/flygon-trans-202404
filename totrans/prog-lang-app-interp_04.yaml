@@ -1,0 +1,231 @@
+- en: 4A First Taste of Desugaring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ve begun with a very spartan arithmetic language. Let’s look at how we might
+    extend it with more arithmetic operations that can nevertheless be expressed in
+    terms of existing ones. We’ll add just two, because these will suffice to illustrate
+    the point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4.1Extension: Binary Subtraction'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, we’ll add subtraction. Because our language already has numbers, addition,
+    and multiplication, it’s easy to define subtraction: \(a - b = a + -1 \times b\).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Okay, that was easy! But now we should turn this into concrete code. To do
+    so, we face a decision: where does this new subtraction operator reside? It is
+    tempting, and perhaps seems natural, to just add one more rule to our existing
+    ArithC datatype.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the negative consequences of modifying ArithC?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This creates a few problems. The first, obvious, one is that we now have to
+    modify all programs that process ArithC. So far that’s only our interpreter, which
+    is pretty simple, but in a more complex implementation, that could already be
+    a concern. Second, we were trying to add new constructs that we can define in
+    terms of existing ones; it feels slightly self-defeating to do this in a way that
+    isn’t modular. Third, and most subtly, there’s something conceptually wrong about
+    modifying ArithC. That’s because ArithC represents our core language. In contrast,
+    subtraction and other additions represent our user-facing, surface language. It’s
+    wise to record conceptually different ideas in distinct datatypes, rather than
+    shoehorn them into one. The separation can look a little unwieldy sometimes, but
+    it makes the program much easier for future developers to read and maintain. Besides,
+    for different purposes you might want to layer on different extensions, and separating
+    the core from the surface enables that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, we’ll define a new datatype to reflect our intended surface syntax
+    terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type ArithS |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numS (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [plusS (l : ArithS) (r : ArithS)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [bminusS (l : ArithS) (r : ArithS)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [multS (l : ArithS) (r : ArithS)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: This looks almost exactly like ArithC, other than the added case, which follows
+    the familiar recursive pattern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given this datatype, we should do two things. First, we should modify our parser
+    to also parse - expressions, and always construct ArithS terms (rather than any
+    ArithC ones). Second, we should implement a desugar function that translates ArithS
+    values into ArithC ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s write the obvious part of desugar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[<desugar>](#(elem._(chunk._~3cdesugar~3e~3a1))) ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (desugar [as : ArithS]) : ArithC |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ArithS as |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numS (n) (numC n)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusS (l r) (plusC (desugar l) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                         (desugar r))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multS (l r) (multC (desugar l) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                         (desugar r))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [<bminusS-case>](#(elem._(chunk._~3cbminus.S-case~3e~3a1))))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Now let’s convert the mathematical description of subtraction above into code:[<bminusS-case>](#(elem._(chunk._~3cbminus.S-case~3e~3a1)))
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [bminusS (l r) (plusC (desugar l) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                       (multC (numC -1) (desugar r)))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s a common mistake to forget the recursive calls to desugar on l and r. What
+    happens when you forget them? Try for yourself and see.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '4.2Extension: Unary Negation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now let’s consider another extension, which is a little more interesting: unary
+    negation. This forces you to do a little more work in the parser because, depending
+    on your surface syntax, you may need to look ahead to determine whether you’re
+    in the unary or binary case. But that’s not even the interesting part!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are many ways we can desugar unary negation. We can define it naturally
+    as \(-b = 0 - b\), or we could abstract over the desugaring of binary subtraction
+    with this expansion: \(-b = 0 + -1 \times b\).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which one do you prefer? Why?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'It’s tempting to pick the first expansion, because it’s much simpler. Imagine
+    we’ve extended the ArithS datatype with a representation of unary negation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [uminusS (e : ArithS)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Now the implementation in desugar is straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| [uminusS (e) (desugar (bminusS (numS 0) e))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'Let’s make sure the types match up. Observe that e is a ArithS term, so it
+    is valid to use as an argument to bminusS, and the entire term can legally be
+    passed to desugar. It is therefore important to not desugar e but rather embed
+    it directly in the generated term. This embedding of an input term in another
+    one and recursively calling desugar is a common pattern in desugaring tools; it
+    is called a macro (specifically, the “macro” here is this definition of uminusS).However,
+    there are two problems with the definition above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first is that the recursion is generative, which forces us to take extra
+    care.If you haven’t heard of generative recursion before, read the section on
+    it in [How to Design Programs](http://www.htdp.org/). Essentially, in generative
+    recursion the sub-problem is a computed function of the input, rather than a structural
+    piece of it. This is an especially simple case of generative recursion, because
+    the “function” is simple: it’s just the bminusS constructor. We might be tempted
+    to fix this by using a different rewrite:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| [uminusS (e) (bminusS (numS 0) (desugar e))] |'
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_TB
+- en: which does indeed eliminate the generativity.Do Now!
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Unfortunately, this desguaring transformation won’t work at all! Do you see
+    why? If you don’t, try to run it.
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The second is that we are implicitly depending on exactly what bminusS means;
+    if its meaning changes, so will that of uminusS, even if we don’t want it to.
+    In contrast, defining a functional abstraction that consumes two terms and generates
+    one representing the addition of the first to -1 times the second, and using this
+    to define the desugaring of both uminusS and bminusS, is a little more fault-tolerant.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You might say that the meaning of subtraction is never going to change, so why
+    bother? Yes and no. Yes, it’s meaning is unlikely to change; but no, its implementation
+    might. For instance, the developer may decide to log all uses of binary subtraction.
+    In the macro expansion, all uses of unary negation would also get logged, but
+    they would not in the second expansion.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Fortunately, in this particular case we have a much simpler option, which is
+    to define \(-b = -1 \times b\). This expansion works with the primitives we have,
+    and follows structural recursion. The reason we took the above detour, however,
+    is to alert you to these problems, and warn that you might not always be so fortunate.
+  prefs: []
+  type: TYPE_NORMAL

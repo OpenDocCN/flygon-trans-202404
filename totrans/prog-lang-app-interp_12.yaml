@@ -1,0 +1,312 @@
+- en: 12Representation Decisions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Go back and look again at our interpreter for function as values [REF]. Do you
+    see something curiously non-uniform about it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: No, really, do. Do you?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Consider how we chose to represent our two different kinds of values: numbers
+    and functions. Ignoring the superficial numV and closV wrappers, focus on the
+    underlying data representations. We represented the interpreted language’s numbers
+    as Racket numbers, but we did not represent the interpreted language’s functions
+    (closures) as Racket functions (closures).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s our non-uniformity. It would have been more uniform to use Racket’s representations
+    for both, or also to not use Racket’s representation for either. So why did we
+    make this particular choice?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We were trying to illustrate and point, and that point is what we will explore
+    right now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12.1Changing Representations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For a moment, let’s explore numbers. Racket’s numbers make a good target for
+    reuse because they are so powerful: we get arbitrary-sized integers (bignums),
+    rationals (which benefit from the bignum representation of integers), complex
+    numbers, and so on. Therefore, they can represent most ordinary programming language
+    number systems. However, that doesn’t mean they are what we want: they could be
+    too little or too much.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They are too much if what we want is a more restricted number system. For instance,
+    Java prescribes a very specific set of fixed-size representations (e.g., int is
+    specified to be 32-bit). Numbers that fall outside these sets cannot be directly
+    represented as numbers, and arithmetic must respect these sets (e.g., overflowing
+    so that adding 1 to 2147483647 does not produce 2147483648).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They are too little if we want even richer numbers, whether quaternions or numbers
+    with associated probabilities.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Worse, we didn’t even stop and ask what we wanted, but blithely proceeded with
+    Racket numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason we did so is because we weren’t really interested in the study of
+    numbers; rather, we were interested in programming language features such as functions-as-values.
+    As language designers, however, you should be sure to ask these hard questions
+    up front.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s talk about our representation of closures. We could have instead represented
+    closures by exploiting Racket’s corresponding concept, and correspondingly, function
+    application with unvarnished Racket application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replace the closure data structure with Racket functions representing functions-as-values.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here we go:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [numV (n : number)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   [closV (f : (Value -> Value))]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| (define (interp [expr : ExprC] [env : Env]) : Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (type-case ExprC expr |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [numC (n) (numV n)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [idC (n) (lookup n env)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [appC (f a) (local ([define f-value (interp f env)] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                         [define a-value (interp a env)]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                   ((closV-f f-value) a-value))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [plusC (l r) (num+ (interp l env) (interp r env))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [multC (l r) (num* (interp l env) (interp r env))] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     [lamC (a b) (closV (lambda (arg-val) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                          (interp b |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                  (extend-env (bind a arg-val) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|                                              env))))])) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe a curious shift. In our previous implementation, the environment was
+    extended in the appC case. Here, it’s extended in the lamC case. Is one of these
+    incorrect? If not, why did this change occur?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This is certainly concise, but we’ve lost something very important: understanding.
+    Saying that a source language function corresponds to lambda tells us virtually
+    nothing: if we already knew precisely what lambda does we might not be studying
+    it, and if we didn’t, this mapping would teach us absolutely nothing (and might,
+    in fact, pile confusion on top of our ignorance). For the same reason, we did
+    not use Racket’s state to understand the varieties of stateful operators [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we’ve understood the feature, however, we should feel to use it as a representation.
+    Indeed, doing so might yield much more concise interpreters because we aren’t
+    doing everything manually. In fact, some later interpreters [REF] will become
+    virtually unreadable if we did not exploit these richer representations.It’s a
+    little like saying, “Now that we understand addition in terms of increment-by-one,
+    we can use addition to define multiplication: we don’t have to use only increment-by-one
+    to define it.” Nevertheless, exploiting host language features has perils that
+    we should safeguard against.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12.2Errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When programs go wrong, programmers need a careful presentation of errors. Using
+    host language features runs the risk that users will see host language errors,
+    which they will not understand. Therefore, we have to carefully translate error
+    conditions into terms that the user of our language will understand, without letting
+    the host language “leak through”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Worse, programs that should error might not! For instance, suppose we decide
+    that functions should only appear in top-level positions. If we fail to expressly
+    check for this, desugaring into the more permissive lambda may result in an interpreter
+    that produces answers where it should have halted with an error. Therefore, we
+    have to take great care to permit only the intended surface language to be mapped
+    to the host language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As another example, consider the different mutation operations. In our language,
+    attempting to mutate an unbound variable produces an error. In some languages,
+    doing so results in the variable being defined. Failing to pin down our intended
+    semantics is a common language designer error, saying instead, “It is whatever
+    the implementation does”. This attitude (a) is lazy and sloppy, (b) may yield
+    unexpected and negative consequences, and (c) makes it hard for you to move your
+    language from one implementation platform to another. Don’t ever make this mistake!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12.3Changing Meaning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Mapping functions-as-values to lambda works especially because we intend for
+    the two to have the same meaning. However, this makes it difficult to change the
+    meaning of what a function does. Lemme give ya’ a hypothetic: suppose we wanted
+    our language to implement dynamic scope.Don’t let this go past the hypothetical
+    stage, please. In our original interpreter, this was easy (almost too easy, as
+    history shows). But try to make the interpreter that uses lambda implement dynamic
+    scope. It can similarly be difficult or at least subtle to map eager evaluation
+    onto a language with lazy application [REF].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convert the above interpreter to use dynamic scope.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The point is that the raw data structure representation does not make anything
+    especially easy, but it usually doesn’t get in the way, either. In contrast, mapping
+    to host language features can make some intents—<wbr>mainly, those match what
+    the host language already does!—<wbr>especially easy, and others subtle or difficult.
+    There is the added danger that we may not be certain of what the host language’s
+    feature does (e.g., does its “lambda” actually implement static scope?).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The moral is that this is a good property to exploit only we want to “pass through”
+    the base language’s meaning—<wbr>-and then it is especially wise because it ensures
+    that we don’t accidentally change its meaning. If, however, we want to exploit
+    a significant part of the base language and only augment its meaning, perhaps
+    other implementation strategies [REF] will work just as well instead of writing
+    an interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12.4One More Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s consider one more representation change. What is an environment?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An environment is a map from names to values (or locations, once we have mutation).
+    We’ve chosen to implement the mapping through a data structure, but...do we have
+    another way to represent maps? As functions, of course! An environment, then,
+    is a function that takes a name as an argument and return its bound value (or
+    an error):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define-type-alias Env (symbol -> Value)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'What is the empty environment? It’s the one that returns an error no matter
+    what name you try to look up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (mt-env [name : symbol]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (error ''lookup "name not found")) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '(In principle we should put a type annotation on the return, and it should
+    be Value, except of course thiis is vacuous.) Extending an environment with a
+    binding creates a function that takes a name and checks whether it is the name
+    just extended; if so it returns the corresponding value, otherwise it punts to
+    the environment being extended:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (extend-env [b : Binding] [e : Env]) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (lambda ([name : symbol]) : Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (if (symbol=? name (bind-name b)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|         (bind-val b) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|         (lookup name e)))) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: Finally, how do we look up a name in an environment? We simply apply the environment!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (define (lookup [n : symbol] [e : Env]) : Value |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (e n)) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: And with that, we’re done!
+  prefs: []
+  type: TYPE_NORMAL

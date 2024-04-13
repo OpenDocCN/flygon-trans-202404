@@ -1,0 +1,105 @@
+- en: Tail callsTuesday, January 17th
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You should generally know what tail calls are, but here’s a quick review of
+    the subject. A function call is said to be in tail position if there is no context
+    to “remember” when you’re calling it. Very roughly, this means that function calls
+    that are not nested in argument expressions of another call are tail calls. This
+    definition is something that depends on a context, for example, in an expression
+    like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: both calls to `foo` are tail calls, but they’re tail calls of *this* expression
+    and therefore apply to *this* context. It might be that this code is inside another
+    call, as in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: and the `foo` calls are now not in tail position. The main feature of all Scheme
+    implementations including Racket wrt tail calls is that calls that are in tail
+    position of a function are said to be “eliminated”. That means that if we’re in
+    an `f` function, and we’re about to call `g` in tail position and therefore whatever
+    `g` returns would be the result of `f` too, then when Racket does the call to
+    `g` it doesn’t bother keeping the `f` context — it won’t remember that it needs
+    to “return” to `f` and will instead return straight to its caller. In other words,
+    when you think about a conventional implementation of function calls as frames
+    on a stack, Racket will get rid of a stack frame when it can.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another way to see this is to use DrRacket’s stepper to step through a function
+    call. The stepper is generally an alternative debugger, where instead of visualizing
+    stack frames it assembles an expression that represents these frames. Now, in
+    the case of tail calls, there is no room in such a representation to keep the
+    call — and the thing is that in Racket that’s perfectly fine since these calls
+    are not kept on the call stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that there are several names for this feature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Tail recursion”. This is a common way to refer to the more limited optimization
+    of *only* tail-recursive functions into loops. In languages that have tail calls
+    as a feature, this is too limited, since they also optimize cases of mutual recursion,
+    or any case of a tail call.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '“Tail call optimization”. In some languages, or more specifically in some compilers,
+    you’ll hear this term. This is fine when tail calls are considered only an “optimization”
+    — but in Racket’s case (as well as Scheme), it’s more than just an optimization:
+    it’s a *language feature* that you can rely on. For example, a tail-recursive
+    function like `(define (loop) (loop))` *must* run as an infinite loop, not just
+    optimized to one when the compiler feels like it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '“Tail call elimination”. This is the so far the most common proper name for
+    the feature: it’s not just recursion, and it’s not an optimization.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When should you use tail calls?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Often, people who are aware of tail calls will try to use them *always*. That’s
+    not always a good idea. You should generally be aware of the tradeoffs when you
+    consider what style to use. The main thing to remember is that tail-call elimination
+    is a property that helps reducing *space* use (stack space) — often reducing it
+    from linear space to constant space. This can obviously make things faster, but
+    usually the speedup is just a constant factor since you need to do the same number
+    of iterations anyway, so you just reduce the time spent on space allocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is one such example that we’ve seen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case the first (recursive) version version consumes space linear to
+    the length of the list, whereas the second version needs only constant space.
+    But if you consider only the asymptotic runtime, they are both O(length(l)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A second example is a simple implementation of `map`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, both the asymptotic space and the runtime consumption are the
+    same. In the recursive case we have a constant factor for the stack space, and
+    in the iterative one (the tail-call version) we also have a similar factor for
+    accumulating the reversed list. In this case, it is probably better to keep the
+    first version since the code is simpler. In fact, Racket’s stack space management
+    can make the first version run faster than the second — so optimizing it into
+    the second version is useless.
+  prefs: []
+  type: TYPE_NORMAL

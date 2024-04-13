@@ -1,0 +1,360 @@
+- en: Separating Analysis from Execution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Analyzing Evaluator
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To work with the ideas in this section, get the analyzing metacircular evaluator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Metacircular Evaluator implementation in Lesson 12 is simple, but it is
+    very inefficient because of how the syntactic analysis of expressions is interleaved
+    with their execution. Thus, if a program is executed many times, its syntax is
+    analyzed many times. Let's consider an example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose we’ve defined the `factorial` function as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: What happens when we compute `(fact 3)`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Four separate times, the evaluator has to examine the procedure body, decide
+    that it’s an if expression, pull out its component parts, and evaluate those parts
+    (which in turn involves deciding what type of expression each part is).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is one reason why interpreted languages are so much slower than [compiled
+    languages](https://en.wikipedia.org/wiki/Compiled_language): The interpreter does
+    the syntactic analysis of the program over and over again. The compiler does the
+    analysis once, and the compiled program can just do the part of the computation
+    that depends on the actual values of variables. In this section, we will study
+    the analyzing evaluator to see how to prevent the repetitive analysis of a program''s
+    syntax.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Separation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`eval` takes two arguments, an expression and an environment. Of those, the
+    expression argument is the same every time we revisit the same expression, whereas
+    the environment will be different each time. For example, when we compute `(fact
+    3)`, we evaluate the body of `fact` in an environment in which `num` has the value
+    `3`. That body includes a recursive call to compute `(fact 2)`, in which we evaluate
+    the same body, but now in an environment with `num` bound to `2`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our plan is to look at the evaluation process, find those parts which depend
+    only on `exp` and not on `env`, and do those only once. The procedure that does
+    this work is called `analyze`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `analyze`? It has to be something that can be combined
+    somehow with an environment in order to return a value. The solution is that `analyze`
+    returns a procedure that takes only `env` as an argument, and does the rest of
+    the evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: we now have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Test Your Understanding**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What type of argument(s) does the procedure returned by analyze accept?
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we evaluate the same expression again, we only have to repeat step 2\.
+    What we’re doing is akin to memoization, in that we remember the result of a computation
+    to avoid having to repeat it. The difference is that now we’re remembering something
+    that’s only part of the solution to the overall problem, instead of a complete
+    solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can duplicate the effect of the original `eval` this way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`analyze`'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`analyze` has a structure similar to that of the original `eval`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The difference is that the procedures such as `eval-if` that take an expression
+    and an environment as arguments have been replaced by procedures such as `analyze-if`
+    that take only the expression as argument. How do these analysis procedures work?
+    As an intermediate step in our understanding, here is a version of `analyze-if`
+    that exactly follows the structure of `eval-if` and doesn’t save any time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`eval-if`:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**`analyze-if`:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This version of `analyze-if` returns a procedure with `env` as its argument,
+    whose body is exactly the same as the body of the original `eval-if`. Therefore,
+    if we do
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: the result will be the same as if we’d said
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: in the original metacircular evaluator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But we’d like to improve on this first version of `analyze-if` because it doesn’t
+    really avoid any work. Each time we call the procedure that `analyze- if` returns,
+    it will do all of the work that the original `eval-if` did.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first version of `analyze-if` contains three calls to `eval`. Each of those
+    calls does an analysis of an expression and then a computation of the value in
+    the given environment. What we’d like to do is split each of those `eval` calls
+    into its two separate parts, and do the first part only once, not every time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this final version, the procedure returned by `analyze-if` doesn’t contain
+    any analysis steps. All of the components were already analyzed before we call
+    that procedure, so no further analysis is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The biggest gain in efficiency comes from the way in which `lambda` expressions
+    are handled. In the original metacircular evaluator, leaving out some of the data
+    abstraction for clarity here, we have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The evaluator does essentially nothing for a `lambda` expression except to remember
+    the procedure’s text and the environment in which it was created. But in the analyzing
+    evaluator we analyze the body of the procedure (using the `analyze-sequence` procedure);
+    what is stored as the representation of the procedure does not include its text!
+    Instead, the evaluator represents a procedure in the metacircular Scheme as a
+    procedure in the underlying Scheme, along with the formal parameters and the defining
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Be sure to read [Section 4.1.7](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)
+    from SICP to see how all of the syntactic analysis procedures are implemented).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Level Confusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The analyzing evaluator turns an expression such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: into a procedure
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This may seem like a step backward; we’re trying to implement `if` and we end
+    up with a procedure that does an `if`. Isn’t this an infinite regress?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No, it isn’t. The `if` in the execution procedure is handled by the underlying
+    Scheme, not by the metacircular Scheme. Therefore, there’s no regress; we don’t
+    call `analyze-if` for that one. Also, the `if` in the underlying Scheme is much
+    faster than having to do the syntactic analysis for the `if` in the meta-Scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So What?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The syntactic analysis of expressions is a large part of what a compiler does.
+    In a sense, this analyzing evaluator is a compiler! It compiles Scheme into Scheme,
+    so it’s not a very useful compiler, but it’s really not that much harder to compile
+    into something else, such as the machine language of a particular computer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A compiler whose structure is similar to this one is called a *recursive descent*
+    compiler. Today, in practice, most compilers use a different technique (called
+    a stack machine) because it’s possible to automate the writing of a parser that
+    way. (I mentioned this earlier as an example of data- directed programming.) But
+    if you’re writing a parser by hand, it’s easiest to use recursive descent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Be sure to read section [4.1.7](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%_sec_4.1.7)
+    of SICP before proceeding).
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here is a nice example of evaluating `factorial` using the analyzing evaluator.
+    Let''s consider the following Scheme code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are two statements here: one definition and one application.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start with the definition, which we will call `d` here (where `d` stands
+    for ''(define (factorial n) ...)''):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`analyze-definition` will first analyze the `definition-value` and then create
+    an execution procedure that, when executed, will `define` the variable name to
+    the analyzed `definition-value`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This point is crucial. We are not just assigning a `lambda` to `factorial`,
+    we are assigning an *analyzed* `lambda` to `factorial`. This will provide a performance
+    boon later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, to figure out the value of `factorial`, we analyze the `lambda`, with...
+    `analyze-lambda`, of course (through the dispatch in analyze).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The boon that `analyze-lambda` provides is really from analyzing the body *once*,
+    and then making a procedure Abstract Data Type with an `analyzed` body (a scheme
+    procedure), instead of a simple list of instructions, like in the old `eval`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The point is that, on invocations of our `lambda`, we won't have to deal with
+    parsing. Parsing will *only* be done upon creating the `lambda`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's see this in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(NOTE: I''ll be using `:=` as a way to denote storing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This isn't really scheme, but I think it's easier than having a bunch of `let`
+    statements.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we need to `analyze` the body, then store it for later, so that we don't
+    redundantly `analyze` the body again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`analyze-if` analyzes everything it''s given, stores it, and then creates a
+    new execution procedure with those stored values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now that we know that result, let's go back to `analyze-lambda`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We store the last expression into the `factorial` variable, and we''re done
+    defining `factorial`. Note that we only analyze the body *ONCE*: during the analysis
+    stage. We never `analyze` during the evaluation stage! This means that during
+    evaluation, every time we call this `factorial` function, we know its body contains
+    an `if` statement, and that the `if` statement checks if `n` equals `0` (and what
+    to do if the predicate is true or false).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, on to evaluating factorial. This is where you'll see all the cryptic analyzing
+    work pay off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, `n = 2 != 0`, so we''ll end up calling executing `(if-false env2)`. `if-false`
+    will do an application of `*` to `(factorial (- n 1))` and `n`, but these arguments
+    have already been `analyzed` (when we did `analyze-lambda`). So we evaluate the
+    analyzed `(factorial (- n 1))`, which is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We recurse again, in the same fashion:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, `n` actually equals `0`, so we call `(if-true env4).` `if-true` disregards
+    `env4` and returns the number `1`. Then, we go back to all the execute-application
+    primitive applications and multiply everything together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And we get... `2`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, we're done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that during the evaluation phase, we never check the syntax of a statement.
+    The syntax has already been looked at, and `analyzed`. We simply carry out what
+    these `analyzed` statements tell us to do. Think about the gain in efficiency
+    here when computing something like `(factorial 100)`.
+  prefs: []
+  type: TYPE_NORMAL

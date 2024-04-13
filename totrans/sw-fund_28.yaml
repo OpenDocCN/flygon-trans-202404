@@ -1,0 +1,903 @@
+- en: TypecheckingA Typechecker for STLC
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: (* This short chapter constructs such a function and proves it    correct. *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Coq.Bool.Bool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Smallstep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import Stlc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module STLCChecker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import STLC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Fixpoint beq_ty (T[1] T[2]:ty) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match T[1],T[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TBool, TBool ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'true'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TArrow T[11] T[12], TArrow T[21] T[22] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (beq_ty T[11] T[21]) (beq_ty T[12] T[22])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'false'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lemma beq_ty_refl : ∀T[1],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: beq_ty T[1] T[1] = true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros T[1]. induction T[1]; simpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite IHT1_1. rewrite IHT1_2. reflexivity. Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma beq_ty__eq : ∀T[1] T[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: beq_ty T[1] T[2] = true → T[1] = T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with auto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros T[1]. induction T[1]; intros T[2] Hbeq; destruct T[2]; inversion Hbeq.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T[1]=TBool *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: reflexivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T[1]=TArrow T1_1 T1_2 *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite [andb_true_iff](http://coq.inria.fr/library/Coq.Bool.Bool.html#andb_true_iff)
+    in H[0]. inversion H[0] as [Hbeq1 Hbeq2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHT1_1 in Hbeq1. apply IHT1_2 in Hbeq2. subst... Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Fixpoint type_check (Γ:context) (t:tm) : option ty :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match t with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tvar x ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Γ x
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tabs x T[11] t[12] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check (update Γ x T[11]) t[12] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some T[12] ⇒ Some (TArrow T[11] T[12])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tapp t[1] t[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1], type_check Γ t[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some (TArrow T[11] T[12]),Some T[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if beq_ty T[11] T[2] then Some T[12] else None
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ttrue ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some TBool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tfalse ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some TBool
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tif guard t f ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ guard with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some TBool ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t, type_check Γ f with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some T[1], Some T[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if beq_ty T[1] T[2] then Some T[1] else None
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Theorem type_checking_sound : ∀Γ t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: type_check Γ t = Some T → has_type Γ t T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros Γ t. generalize dependent Γ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction t; intros Γ T Htc; inversion Htc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tvar *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tapp *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[1]) as
+    TO[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[2]) as
+    TO[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO[1] as [T[1]|]; try solve_by_invert;
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct T[1] as [|T[11] T[12]]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO[2] as [T[2]|]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'destruct ([beq_ty](Typechecking.html#STLCChecker.beq_ty) T[11] T[2]) eqn: Heqb;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [beq_ty__eq](Typechecking.html#STLCChecker.beq_ty__eq) in Heqb.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[0]; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tabs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename i into y. rename t into T[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([update](Maps.html#update) Γ y T[1]) as G'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) G' t[0]) as
+    TO[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO[2]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[0]; subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* ttrue *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tfalse *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tif *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[1]) as
+    TOc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[2]) as
+    TO[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[3]) as
+    TO[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TOc as [Tc|]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct Tc; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO[1] as [T[1]|]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO[2] as [T[2]|]; try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct ([beq_ty](Typechecking.html#STLCChecker.beq_ty) T[1] T[2]) eqn:Heqb;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try solve_by_invert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply [beq_ty__eq](Typechecking.html#STLCChecker.beq_ty__eq) in Heqb.
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[0]. subst. subst...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Theorem type_checking_complete : ∀Γ t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t T → type_check Γ t = Some T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with auto.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: intros Γ t T Hty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction Hty; simpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Var *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_Abs *) rewrite IHHty...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_App *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite IHHty1. rewrite IHHty2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite ([beq_ty_refl](Typechecking.html#STLCChecker.beq_ty_refl) T[11])...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_True *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_False *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* T_If *) rewrite IHHty1. rewrite IHHty2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewrite IHHty3. rewrite ([beq_ty_refl](Typechecking.html#STLCChecker.beq_ty_refl)
+    T)...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: End STLCChecker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Module TypecheckerExtensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Require Import MoreStlc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import STLCExtended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint beq_ty (T[1] T[2]: ty) : bool :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match T[1],T[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TNat, TNat ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'true'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TUnit, TUnit ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'true'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TArrow T[11] T[12], TArrow T[21] T[22] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (beq_ty T[11] T[21]) (beq_ty T[12] T[22])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TProd T[11] T[12], TProd T[21] T[22] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (beq_ty T[11] T[21]) (beq_ty T[12] T[22])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TSum T[11] T[12], TSum T[21] T[22] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: andb (beq_ty T[11] T[21]) (beq_ty T[12] T[22])
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| TList T[11], TList T[21] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: beq_ty T[11] T[21]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'false'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma beq_ty_refl : ∀T[1],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: beq_ty T[1] T[1] = true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros T[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction T[1]; simpl;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try reflexivity;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHT1_1; rewrite IHT1_2; reflexivity);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHT1; reflexivity). Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lemma beq_ty__eq : ∀T[1] T[2],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: beq_ty T[1] T[2] = true → T[1] = T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros T[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction T[1]; intros T[2] Hbeq; destruct T[2]; inversion Hbeq;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try reflexivity;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite andb_true_iff in H[0]; inversion H[0] as [Hbeq1 Hbeq2];
+  prefs: []
+  type: TYPE_NORMAL
+- en: apply IHT1_1 in Hbeq1; apply IHT1_2 in Hbeq2; subst; auto);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (apply IHT1 in Hbeq; subst; auto).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fixpoint type_check (Γ:context) (t:tm) : option ty :='
+  prefs: []
+  type: TYPE_NORMAL
+- en: match t with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tvar x ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Γ x
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tabs x T[11] t[12] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check (update Γ x T[11]) t[12] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some T[12] ⇒ Some (TArrow T[11] T[12])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tapp t[1] t[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1], type_check Γ t[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some (TArrow T[11] T[12]),Some T[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if beq_ty T[11] T[2] then Some T[12] else None
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tnat _ ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some TNat
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tsucc t[1] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some TNat ⇒ Some TNat'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tpred t[1] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some TNat ⇒ Some TNat'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tmult t[1] t[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1], type_check Γ t[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some TNat, Some TNat ⇒ Some TNat'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tif0 guard t f ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ guard with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some TNat ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t, type_check Γ f with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some T[1], Some T[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if beq_ty T[1] T[2] then Some T[1] else None
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| tlcase t[0] t[1] x[21] x[22] t[2] ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[0] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some (TList T) ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: match type_check Γ t[1],
+  prefs: []
+  type: TYPE_NORMAL
+- en: type_check (update (update Γ x[22] (TList T)) x[21] T) t[2] with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Some T[1]'', Some T[2]'' ⇒'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if beq_ty T[1]' T[2]' then Some T[1]' else None
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _,_ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| _ ⇒ None  (* ... and delete this line *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* Just for fun, we'll do the soundness proof with just a bit more    automation than above, using these "mega-tactics": *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ltac invert_typecheck Γ t T :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember (type_check Γ t) as TO;
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO as [T|];
+  prefs: []
+  type: TYPE_NORMAL
+- en: try solve_by_invert; try (inversion H[0]; eauto); try (subst; eauto).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ltac fully_invert_typecheck Γ t T T[1] T[2] :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: let TX := fresh T in
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember (type_check Γ t) as TO;
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TO as [TX|]; try solve_by_invert;
+  prefs: []
+  type: TYPE_NORMAL
+- en: destruct TX as [T[1] T[2]| | | T[1] T[2]| T[1] T[2]| T[1]];
+  prefs: []
+  type: TYPE_NORMAL
+- en: try solve_by_invert; try (inversion H[0]; eauto); try (subst; eauto).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ltac case_equality S T :=
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'destruct (beq_ty S T) eqn: Heqb;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inversion H[0]; apply beq_ty__eq in Heqb; subst; subst; eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Theorem type_checking_sound : ∀Γ t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: type_check Γ t = Some T → has_type Γ t T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof with eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros Γ t. generalize dependent Γ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction t; intros Γ T Htc; inversion Htc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tvar *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tapp *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Γ t[2] T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: case_equality T[11] T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tabs *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename i into x. rename t into T[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember (update Γ x T[1]) as Γ'.
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Γ' t[0] T[0].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tnat *) eauto.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tsucc *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename t into t[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tpred *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename t into t[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tmult *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[2] T[2] T[21] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tif0 *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Γ t[2] T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Γ t[3] T[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: case_equality T[2] T[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- (* tlcase *)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rename i into x[31]. rename i[0] into x[32].
+  prefs: []
+  type: TYPE_NORMAL
+- en: fully_invert_typecheck Γ t[1] T[1] T[11] T[12].
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Γ t[2] T[2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: remember (update (update Γ x[32] (TList T[11])) x[31] T[11]) as Gamma'2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: invert_typecheck Gamma'2 t[3] T[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: case_equality T[2] T[3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Theorem type_checking_complete : ∀Γ t T,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: has_type Γ t T → type_check Γ t = Some T.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof.
+  prefs: []
+  type: TYPE_NORMAL
+- en: intros Γ t T Hty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: induction Hty; simpl;
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHHty);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHHty1);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHHty2);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite IHHty3);
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite (beq_ty_refl T));
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite (beq_ty_refl T[1]));
+  prefs: []
+  type: TYPE_NORMAL
+- en: try (rewrite (beq_ty_refl T[2]));
+  prefs: []
+  type: TYPE_NORMAL
+- en: eauto.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Admitted. (* ... and delete this line *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (*  Qed. (* ... and uncomment this one *) *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: End TypecheckerExtensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Module StepFunction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import TypecheckerExtensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: End StepFunction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Module StlcImpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import StepFunction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* FILL IN HERE *)
+  prefs: []
+  type: TYPE_NORMAL
+- en: End StlcImpl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE

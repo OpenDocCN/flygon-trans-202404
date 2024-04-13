@@ -1,0 +1,1039 @@
+- en: 'Reading 12: Abstraction Functions & Rep Invariants'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Today’s reading introduces several ideas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: invariants
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: representation exposure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: abstraction functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: representation invariants
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this reading, we study a more formal mathematical idea of what it means for
+    a class to implement an ADT, via the notions of *abstraction functions* and *rep
+    invariants*. These mathematical notions are eminently practical in software design.
+    The abstraction function will give us a way to cleanly define the equality operation
+    on an abstract data type (which we’ll discuss in more depth in a future class).
+    The rep invariant will make it easier to catch bugs caused by a corrupted data
+    structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invariants
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,invariants/P_1Tz_FyYn0)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Resuming our discussion of what makes a good abstract data type, the final,
+    and perhaps most important, property of a good abstract data type is that it **preserves
+    its own invariants**. An *invariant* is a property of a program that is always
+    true, for every possible runtime state of the program. Immutability is one crucial
+    invariant that we’ve already encountered: once created, an immutable object should
+    always represent the same value, for its entire lifetime. Saying that the ADT
+    *preserves its own invariants* means that the ADT is responsible for ensuring
+    that its own invariants hold. It doesn’t depend on good behavior from its clients.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When an ADT preserves its own invariants, reasoning about the code becomes much
+    easier. If you can count on the fact that Strings never change, you can rule out
+    that possibility when you’re debugging code that uses Strings – or when you’re
+    trying to establish an invariant for another ADT that uses Strings. Contrast that
+    with a string type that guarantees that it will be immutable only if its clients
+    promise not to change it. Then you’d have to check all the places in the code
+    where the string might be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Immutability
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Later in this reading, we’ll see many interesting invariants. Let’s focus on
+    immutability for now. Here’s a specific example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How do we guarantee that these Tweet objects are immutable – that, once a tweet
+    is created, its author, message, and date can never be changed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first threat to immutability comes from the fact that clients can — in
+    fact must — directly access its fields. So nothing’s stopping us from writing
+    code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a trivial example of **representation exposure**, meaning that code
+    outside the class can modify the representation directly. Rep exposure like this
+    threatens not only invariants, but also representation independence. We can’t
+    change the implementation of Tweet without affecting all the clients who are directly
+    accessing those fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fortunately, Java gives us language mechanisms to deal with this kind of rep
+    exposure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `private` and `public` keywords indicate which fields and methods are accessible
+    only within the class and which can be accessed from outside the class. The `final`
+    keyword also helps by guaranteeing that the fields of this immutable type won’t
+    be reassigned after the object is constructed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![retweetLater breaking Tweet''s immutability](../Images/d411b72d2f11f7d79fbe3b35c30cf4cb.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'But that’s not the end of the story: the rep is still exposed! Consider this
+    perfectly reasonable client code that uses `Tweet`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`retweetLater` takes a tweet and should return another tweet with the same
+    message (called a *retweet*) but sent an hour later. The `retweetLater` method
+    might be part of a system that automatically echoes funny things that Twitter
+    celebrities say.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s the problem here? The `getTimestamp` call returns a reference to the
+    same `Date` object referenced by tweet `t`. `t.timestamp` and `d` are aliases
+    to the same mutable object. So when that date object is mutated by `d.setHours()`,
+    this affects the date in `t` as well, as shown in the snapshot diagram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Tweet`’s immutability invariant has been broken. The problem is that `Tweet`
+    leaked out a reference to a mutable object that its immutability depended on.
+    We exposed the rep, in such a way that `Tweet` can no longer guarantee that its
+    objects are immutable. Perfectly reasonable client code created a subtle bug.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can patch this kind of rep exposure by using defensive copying: making a
+    copy of a mutable object to avoid leaking out references to the rep. Here’s the
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Mutable types often have a copy constructor that allows you to make a new instance
+    that duplicates the value of an existing instance. In this case, `Date`’s copy
+    constructor uses the timestamp value, measured in milliseconds since January 1,
+    1970\. As another example, `StringBuilder`’s copy constructor takes a `String`.
+    Another way to copy a mutable object is `clone()`, which is supported by some
+    types but not all. There are unfortunate problems with the way `clone()` works
+    in Java. For more, see Josh Bloch, [*Effective Java*](http://library.mit.edu/item/001484188),
+    item 11\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![tweetEveryHourToday breaking Tweet''s immutability](../Images/ab178e007a13b5713eb43bca08ba5d2a.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So we’ve done some defensive copying in the return value of `getTimestamp`.
+    But we’re not done yet! There’s still rep exposure. Consider this (again perfectly
+    reasonable) client code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code intends to advance a single `Date` object through the 24 hours of
+    a day, creating a tweet for every hour. But notice that the constructor of Tweet
+    saves the reference that was passed in, so all 24 Tweet objects end up with the
+    same time, as shown in this snapshot diagram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, the immutability of Tweet has been violated. We can fix this problem
+    too by using judicious defensive copying, this time in the constructor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In general, you should carefully inspect the argument types and return types
+    of all your ADT operations. If any of the types are mutable, make sure your implementation
+    doesn’t return direct references to its representation. Doing that creates rep
+    exposure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may object that this seems wasteful. Why make all these copies of dates?
+    Why can’t we just solve this problem by a carefully written specification, like
+    this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This approach is sometimes taken when there isn’t any other reasonable alternative
+    – for example, when the mutable object is too large to copy efficiently. But the
+    cost in your ability to reason about the program, and your ability to avoid bugs,
+    is enormous. In the absence of compelling arguments to the contrary, it’s almost
+    always worth it for an abstract data type to guarantee its own invariants, and
+    preventing rep exposure is essential to that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An even better solution is to prefer immutable types. If – as recommended in
+    [*Mutability & Immutability*’s Groundhog Day example](../09-immutability/#risky_example_2_returning_mutable_values)
+    – we had used an immutable date object, like `java.time.ZonedDateTime`, instead
+    of the mutable `java.util.Date`, then we would have ended this section after talking
+    about `public` and `private`. No further rep exposure would have been possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Immutable Wrappers Around Mutable Data Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The Java collections classes offer an interesting compromise: immutable wrappers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Collections.unmodifiableList()` takes a (mutable) `List` and wraps it with
+    an object that looks like a `List`, but whose mutators are disabled – `set()`,
+    `add()`, `remove()`, etc. throw exceptions. So you can construct a list using
+    mutators, then seal it up in an unmodifiable wrapper (and throw away your reference
+    to the original mutable list, as discussed in [*Mutability & Immutability*](../09-immutability/#useful_immutable_types)),
+    and get an immutable list.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The downside here is that you get immutability at runtime, but not at compile
+    time. Java won’t warn you at compile time if you try to `sort()` this unmodifiable
+    list. You’ll just get an exception at runtime. But that’s still better than nothing,
+    so using unmodifiable lists, maps, and sets can be a very good way to reduce the
+    risk of bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Rep exposure
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following problematic datatype:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rep Invariant and Abstraction Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,rep_invariant_and_abstraction_function/59458ynxYPk)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now take a deeper look at the theory underlying abstract data types. This
+    theory is not only elegant and interesting in its own right; it also has immediate
+    practical application to the design and implementation of abstract types. If you
+    understand the theory deeply, you’ll be able to build better abstract types, and
+    will be less likely to fall into subtle traps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In thinking about an abstract type, it helps to consider the relationship between
+    two spaces of values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The space of representation values (or rep values for short) consists of the
+    values of the actual implementation entities. In simple cases, an abstract type
+    will be implemented as a single object, but more commonly a small network of objects
+    is needed, so this value is actually often something rather complicated. For now,
+    though, it will suffice to view it simply as a mathematical value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The space of abstract values consists of the values that the type is designed
+    to support. These are a figment of our imaginations. They’re platonic entities
+    that don’t exist as described, but they are the way we want to view the elements
+    of the abstract type, as clients of the type. For example, an abstract type for
+    unbounded integers might have the mathematical integers as its abstract value
+    space; the fact that it might be implemented as an array of primitive (bounded)
+    integers, say, is not relevant to the user of the type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now of course the implementor of the abstract type must be interested in the
+    representation values, since it is the implementor’s job to achieve the illusion
+    of the abstract value space using the rep value space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose, for example, that we choose to use a string to represent a set of
+    characters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![the abstract space and rep space of CharSet](../Images/abdc98d9c81246803b0c92c04fb57f19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Then the rep space R contains Strings, and the abstract space A is mathematical
+    sets of characters. We can show the two value spaces graphically, with an arc
+    from a rep value to the abstract value it represents. There are several things
+    to note about this picture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Every abstract value is mapped to by some rep value**. The purpose of implementing
+    the abstract type is to support operations on abstract values. Presumably, then,
+    we will need to be able to create and manipulate all possible abstract values,
+    and they must therefore be representable.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Some abstract values are mapped to by more than one rep value**. This happens
+    because the representation isn’t a tight encoding. There’s more than one way to
+    represent an unordered set of characters as a string.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Not all rep values are mapped**. In this case, the string “abbc” is not mapped.
+    In this case, we have decided that the string should not contain duplicates. This
+    will allow us to terminate the remove method when we hit the first instance of
+    a particular character, since we know there can be at most one.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In practice, we can only illustrate a few elements of the two spaces and their
+    relationships; the graph as a whole is infinite. So we describe it by giving two
+    things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1\. An *abstraction function* that maps rep values to the abstract values they
+    represent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'AF : R → A'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The arcs in the diagram show the abstraction function. In the terminology of
+    functions, the properties we discussed above can be expressed by saying that the
+    function is surjective (also called *onto*), not necessarily injective (*one-to-one*)
+    and therefore not necessarily bijective, and often partial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. A *rep invariant* that maps rep values to booleans:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'RI : R → boolean'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'For a rep value *r*, *RI(r)* is true if and only if *r* is mapped by *AF*.
+    In other words, *RI* tells us whether a given rep value is well-formed. Alternatively,
+    you can think of *RI* as a set: it’s the subset of rep values on which *AF* is
+    defined.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![the abstract space and rep space of CharSet using the NoRepeatsRep](../Images/1f30c7e11f8274498c20616e542ce4d0.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Both the rep invariant and the abstraction function should be documented in
+    the code, right next to the declaration of the rep itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: A common confusion about abstraction functions and rep invariants is that they
+    are determined by the choice of rep and abstract value spaces, or even by the
+    abstract value space alone. If this were the case, they would be of little use,
+    since they would be saying something redundant that’s already available elsewhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The abstract value space alone doesn’t determine AF or RI: there can be several
+    representations for the same abstract type. A set of characters could equally
+    be represented as a string, as above, or as a bit vector, with one bit for each
+    possible character. Clearly we need two different abstraction functions to map
+    these two different rep value spaces.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s less obvious why the choice of both spaces doesn’t determine AF and RI.
+    The key point is that defining a type for the rep, and thus choosing the values
+    for the space of rep values, does not determine which of the rep values will be
+    deemed to be legal, and of those that are legal, how they will be interpreted.
+    Rather than deciding, as we did above, that the strings have no duplicates, we
+    could instead allow duplicates, but at the same time require that the characters
+    be sorted, appearing in nondecreasing order. This would allow us to perform a
+    binary search on the string and thus check membership in logarithmic rather than
+    linear time. Same rep value space – different rep invariant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![the abstract space and rep space of CharSet using the SortedRep](../Images/987941ed6b9a03c7ddcccf94f9b97fec.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: What rep values map to abstract value {a,b,c} in this representation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Even with the same type for the rep value space and the same rep invariant
+    RI, we might still interpret the rep differently, with different abstraction functions
+    AF. Suppose RI admits any string of characters. Then we could define AF, as above,
+    to interpret the array’s elements as the elements of the set. But there’s no *a
+    priori* reason to let the rep decide the interpretation. Perhaps we’ll interpret
+    consecutive pairs of characters as subranges, so that the string rep `"acgg"`
+    is interpreted as two range pairs, [a-c] and [g-g], and therefore represents the
+    set {a,b,c,g}. Here’s what the AF and RI would look like for that representation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![the abstract space and rep space of CharSet using the SortedRangeRep](../Images/e3a128337bcd2fd1cf4e1d3dc51d20bc.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: What rep value maps to abstract value {a,c} in this representation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The essential point is that designing an abstract type means **not only choosing
+    the two spaces** – the abstract value space for the specification and the rep
+    value space for the implementation – **but also deciding what rep values to use
+    and how to interpret them**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s critically important to write down these assumptions in your code, as we’ve
+    done above, so that future programmers (and your future self) are aware of what
+    the representation actually means. Why? What happens if different implementers
+    disagree about the meaning of the rep?
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find example code for [three different `CharSet` implementations](https://github.com/mit6005/fa16-ex12-adt-examples/tree/master/src/charset)
+    on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Who knows what?(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rep invariant pieces
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose `C` is an abstract data type whose representation has two `String`
+    fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trying to implement without an AF/RI
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose Louis Reasoner has created `CharSet` with the following rep:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: But Louis unfortunately neglects to write down the abstraction function (AF)
+    and rep invariant (RI). Here are four possible AF/RI pairs that *might* have been
+    what Louis had in mind. All of them were also mentioned in the reading above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SortedRep:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'SortedRangeRep:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'NoRepeatsRep:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'AnyRep:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Louis has three teammates helping him implement `CharSet`, each working on
+    a different operation: `add()`, `remove()`, and `contains()`. Their implementations
+    are below. Which of the possible AF/RI pairs are consistent with each programmer’s
+    implementation?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Trying to implement without an AF/RI #2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Trying to implement without an AF/RI #3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Rational Numbers'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here’s an example of an abstract data type for rational numbers. Look closely
+    at its rep invariant and abstraction function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![the abstraction function and rep invariant of RatNum](../Images/71f890c25c7e2183358d5ef443cf98c7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Here is a picture of the abstraction function and rep invariant for this code.
+    The RI requires that numerator/denominator pairs be in reduced form (i.e., lowest
+    terms), so pairs like (2,4) and (18,12) above should be drawn as outside the RI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be completely reasonable to design another implementation of this same
+    ADT with a more permissive RI. With such a change, some operations might become
+    more expensive to perform, and others cheaper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking the Rep Invariant
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,rep_invariant_and_abstraction_function,checking_the_rep_invariant/Od0Jtnoz6fI)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rep invariant isn’t just a neat mathematical idea. If your implementation
+    asserts the rep invariant at run time, then you can catch bugs early. Here’s a
+    method for `RatNum` that tests its rep invariant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should certainly call `checkRep()` to assert the rep invariant at the end
+    of every operation that creates or mutates the rep – in other words, creators,
+    producers, and mutators. Look back at the `RatNum` code above, and you’ll see
+    that it calls `checkRep()` at the end of both constructors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observer methods don’t normally need to call `checkRep()`, but it’s good defensive
+    practice to do so anyway. Why? Calling `checkRep()` in every method, including
+    observers, means you’ll be more likely to catch rep invariant violations caused
+    by rep exposure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is `checkRep` private? Who should be responsible for checking and enforcing
+    a rep invariant – clients, or the implementation itself?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No Null Values in the Rep
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Recall from the [*Specifications* reading](../06-specifications/specs) that
+    null values are troublesome and unsafe, so much so that we try to remove them
+    from our programming entirely. In 6.005, the preconditions and postconditions
+    of our methods implicitly require that objects and arrays be non-null.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We extend that prohibition to the reps of abstract data types. By default,
+    in 6.005, the rep invariant implicitly includes `x != null` for every reference
+    `x` in the rep that has object type (including references inside arrays or lists).
+    So if your rep is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: then its rep invariant automatically includes `s != null`, and you don’t need
+    to state it in a rep invariant comment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When it’s time to implement that rep invariant in a `checkRep()` method, however,
+    you still must *implement* the `s != null` check, and make sure that your `checkRep()`
+    correctly fails when `s` is `null`. Often that check comes for free from Java,
+    because checking other parts of your rep invariant will throw an exception if
+    `s` is null. For example, if your `checkRep()` looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: then you don’t need `assert s!= null`, because the call to `s.length()` will
+    fail just as effectively on a null reference. But if `s` is not otherwise checked
+    by your rep invariant, then assert `s != null` explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Checking the rep invariant(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Documenting the AF, RI, and Safety from Rep Exposure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,documenting_the_af_ri_and_safety_from_rep_exposure/O0y4ZJdOr5I)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s good practice to document the abstraction function and rep invariant in
+    the class, using comments right where the private fields of the rep are declared.
+    We’ve been doing that above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When you describe the rep invariant and abstraction function, you must be precise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is not enough for the RI to be a generic statement like “all fields are valid.”
+    The job of the rep invariant is to explain precisely what makes the field values
+    valid or not.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is not enough for the AF to offer a generic explanation like “represents
+    a set of characters.” The job of the abstraction function is to define precisely
+    how the concrete field values are interpreted. As a *function*, if we take the
+    documented AF and substitute in actual (legal) field values, we should obtain
+    out a complete description of the single abstract value they represent.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another piece of documentation that 6.005 asks you to write is a **rep exposure
+    safety argument**. This is a comment that examines each part of the rep, looks
+    at the code that handles that part of the rep (particularly with respect to parameters
+    and return values from clients, because that is where rep exposure occurs), and
+    presents a reason why the code doesn’t expose the rep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example of `Tweet` with its rep invariant, abstraction function,
+    and safety from rep exposure fully documented:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that we don’t have any explicit rep invariant conditions on `timestamp`
+    (aside from the conventional assumption that `timestamp!=null`, which we have
+    for all object references). But we still need to include `timestamp` in the rep
+    exposure safety argument, because the immutability property of the whole type
+    depends on all the fields remaining unchanged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compare the argument above with [an example of a broken argument involving mutable
+    `Date` objects](https://github.com/mit6005/fa16-ex12-adt-examples/blob/master/src/Timespan.java).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are the arguments for `RatNum`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that an immutable rep is particularly easy to argue for safety from rep
+    exposure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find [the full code for `RatNum`](https://github.com/mit6005/fa16-ex12-adt-examples/blob/master/src/RatNum.java)
+    on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Arguing against rep exposure
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following ADT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For each statement below: assuming the omitted method bodies are consistent
+    with the statement, can we use the statement in place of `..???..` to make a persuasive
+    safety-from-rep-exposure comment?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1.** “Strings are immutable.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2.** “`followersOf` is a mutable `Map` containing mutable `Set` objects,
+    but `getFollowers()` makes a defensive copy of the `Set` it returns, and all other
+    parameters and return values are immutable `String` or `void`.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3.** “This class is mutable, so rep exposure isn’t an issue.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4.** “`followersOf` is a mutable Map, but it is never passed or returned
+    from an operation.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**5.** “`FollowGraph()` does not expose the rep; `addFollower()` does not expose
+    the rep; `removeFollower()` does not expose the rep; `getFollowers()` does not
+    expose the rep.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**6.** “`String` is immutable, and the `Set` objects in the rep are made immutable
+    by unmodifiable wrappers. The `Map` type is mutable, but that type is never passed
+    or returned from an operation.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Establish Invariants
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,documenting_the_af_ri_and_safety_from_rep_exposure,how_to_establish_invariants/53io8ah2eFI)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An invariant is a property that is true for the entire program – which in the
+    case of an invariant about an object, reduces to the entire lifetime of the object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make an invariant hold, we need to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make the invariant true in the initial state of the object; and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ensure that all changes to the object keep the invariant true.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Translating this in terms of the types of ADT operations, this means:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: creators and producers must establish the invariant for new object instances;
+    and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mutators and observers must preserve the invariant.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The risk of rep exposure makes the situation more complicated. If the rep is
+    exposed, then the object might be changed anywhere in the program, not just in
+    the ADT’s operations, and we can’t guarantee that the invariant still holds after
+    those arbitrary changes. So the full rule for proving invariants is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Structural induction**. If an invariant of an abstract data type is'
+  prefs: []
+  type: TYPE_NORMAL
+- en: established by creators and producers;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: preserved by mutators, and observers; and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: no representation exposure occurs,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: then the invariant is true of all instances of the abstract data type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Structural induction
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recall this data type from the first exercise in this reading:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This datatype has an important invariant: the relationship between the legs
+    and hypotenuse, as stated in the Pythagorean theorem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ADT invariants replace preconditions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**▶ Play MITx video**](https://courses.csail.mit.edu/6.005/video/reading_12_abstraction_functions_rep_invariants,adt_invariants_replace_preconditions/gsGzuN9JMCA)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s bring a lot of pieces together. An enormous advantage of a well-designed
+    abstract data type is that it encapsulates and enforces properties that we would
+    otherwise have to stipulate in a precondition. For example, instead of a spec
+    like this, with an elaborate precondition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can instead use an ADT that captures the desired property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is easier to understand, because the name of the ADT conveys all the programmer
+    needs to know. It’s also safer from bugs, because Java static checking comes into
+    play, and the required condition (sorted with no repeats) can be enforced in exactly
+    one place, the [`SortedSet`](http://docs.oracle.com/javase/8/docs/api/?java/util/SortedSet.html)
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of the places where we used preconditions on the problem sets would have
+    benefited from a custom ADT instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Encapsulating preconditions in ADTs
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An invariant is a property that is always true of an ADT object instance, for
+    the lifetime of the object.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A good ADT preserves its own invariants. Invariants must be established by creators
+    and producers, and preserved by observers and mutators.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The rep invariant specifies legal values of the representation, and should be
+    checked at runtime with `checkRep()`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The abstraction function maps a concrete representation to the abstract value
+    it represents.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Representation exposure threatens both representation independence and invariant
+    preservation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The topics of today’s reading connect to our three properties of good software
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safe from bugs.** A good ADT preserves its own invariants, so that those
+    invariants are less vulnerable to bugs in the ADT’s clients, and violations of
+    the invariants can be more easily isolated within the implementation of the ADT
+    itself. Stating the rep invariant explicitly, and checking it at runtime with
+    checkRep(), catches misunderstandings and bugs earlier, rather than continuing
+    on with a corrupt data structure.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easy to understand.** Rep invariants and abstraction functions explicate
+    the meaning of a data type’s representation, and how it relates to its abstraction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ready for change.** Abstract data types separate the abstraction from the
+    concrete representation, which makes it possible to change the representation
+    without having to change client code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,740 @@
+- en: Lecture 6 - Context Switch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Pubilc Service Annoucements
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Due date for assignment 1
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Partners
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kernel Structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The kernel is just a function like any other, but which runs forever.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Where is the OS?
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests come from running user tasks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in essence system calls
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: one type of request creates a task
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There needs to be a first task that gets everything going
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the interesting stuff inside done by the kernel is hidden inside `getNextRequest`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's inside `activate( active )`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: transfer of control to the active task
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: execution to completion of the active task
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`to completion'' means until the active task sends a request to the kernel'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: transfer of control back to the kernel
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: getting the request
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The hard part to get right is `transfer of control'
+  prefs: []
+  type: TYPE_NORMAL
+- en: which we call a context switch
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Programming a context switch requires you to know the processor architecture
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ARM 920T
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Features
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 16 32-bit registers
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Processor modes. In the table below `special' means that the mode has ia separate
+    copy of the registers.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| M[4:0] | Mode | Registers accessible |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 10000 | User | `r0-r15 cpsr` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 10001 | FIQ (Fast interrupt processing) | `r0-r7, r15` `r8_fiq-r14_fiq``cpsr`,
+    spsr_fiq |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 10010 | IRQ (Interrupt processing) | `r0-r12, r15` `r13_`irq`,r14_`irq`cpsr`,
+    `spsr_`irq |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 10011 | Supervisor | `r0-r12, r15` `r13_`svc`,r14_`svc`cpsr`, `sprs_`svc
+    |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 10111 | Abort | `r0-r12, r15` `r13_`abt`,r14_`abt`cpsr`, `spsr`_abt |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 11011 | Undefined | `r0-r12, r15` `r13_`und`,r14_`und`cpsr`, `spsr_`und |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 11111 | System | `r0-r15``cpsr` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: Program status register, **PSR**, which you will find in two places CPSR and
+    SPSR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| Bit | Mnemonic | Meaning |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 31 | N | Negative |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 30 | Z | Zero |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 29 | C | Carry |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 28 | V | Overflow |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 8-27 | DNM | Does not matter in v4 |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 7 | I | Interrupts disabled |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 6 | F | Fast interrupts disabled |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 5 | T | Thumb execution |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 4 | M4 | Five processor mode bits |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 3 | M3 |  |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 2 | M2 |  |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 1 | M1 |  |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| 0 | M0 |  |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: Exceptions
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| ExceptionType | ModesCalled from | Mode atCompletion | InstructionAddress
+    |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Reset | hardware | supervisor | `0x00` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Undefined instruction | any | undefined | `0x04` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Software interrupt | any | supervisor | `0x08` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Prefetch abort | any | abort | `0x0c` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Data abort | any | abort | `0x10` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Ordinary interrupt | any | IRQ | `0x18` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| Fast interrupt | any | FIQ | `0x1c` |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: You are concerned right now with Reset and Software Interrupt.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first instruction executed by the CPU after reset is the one at location
+    `0x00000000`. Usually it is
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: which you will normally find in addresses `0x00` to `0x1c`. Just executing an
+    instruction, rather than having an address that is specially processed saves transistors,
+    which is good.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The indirect jump allows the CPU to jump anywhere in the address space.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: RedBoot puts entry points of RedBoot into addresses `0x20` to `0x3c.`
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Note endianness of RedBoot output when examining these locations.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Three data types
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'word: 32 bits, word-aligned'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'half-word: 16 bits, half-word-aligned'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'byte: 8 bits'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Context Switch
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Function Call (gcc calling conventions)
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the role of the index pointer (ip), link register (lr) and stack pointer
+    (sp).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final instruction could be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: is a `NOP`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Software Interrupt
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The software interrupt instruction ( SWI{cond} <immed_24> ). What happens when
+    it is executed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: r14_svc <- address of the following instruction. This is where the kernel will
+    return to.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SPSR_svc <- CPSR. This saves the mode, condition codes, etc.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: CPSR[0:4] <- 0b10011\. Supervisor mode.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: CPSR[5] <- 0\. ARM (not Thumb) state.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: CPSR[7] <- 1\. Normal interrupts disabled.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: PC <- 0x08
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The CPU ignores the 24-bit immediate value, which can be used by the programmer
+    as an argument identifying the system call, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: is a `NOP`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This NOP depends on a bunch of things being correctly set up, especially the
+    low memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Later in the course
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Responding to SWI treats the scratch registers in a special way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The calling code does not expect them to be preserved.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They are likely to contain arguments on entry, and the return value on exit.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the third part of the kernel you will implement hardware interrupts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will go to IRQ mode, not SVC mode
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have to restore the scratch registers exactly as you restore all the other
+    registers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It seems desirable to have as much code as possible common to hardware and software
+    interrupts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Questions:'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: What is above `kernel entry`?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If you put swi in a wrapper or stub what happens before and after it?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the request had arguments, how would you get them into the kernel?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hint. How does `gcc` pass arguments into a function?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: It might be important that there are two link registers. Which two link registers?
+    Why?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In practice it is important only for hardware interrupts. Why?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Suggestions:'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Try this first on paper drawing the stack, registers, etc after each instruction
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Try coding in baby steps, which is usually a good idea in assembly language.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Try reading [this](../../pdf/context.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the Software Interrupt
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the kernel
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The order matters
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: State on entry
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: supervisor mode
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: interrupts off
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: spsr_svc = cpsr_usr
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: arguments in r0-r3
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: caller context in registers r4-r12
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: caller local variables indexed off fp
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: kernel stack pointer (sp_svc) in r13
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: address of instruction following swi in r14, i.e., lr_svc = return address =
+    pc_usr
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: kernel entry in r15
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change to system state
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Save the user state
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: on its stack
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This might include scratch registers (arguments), which you may or may not need
+    later.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Put `sp_usr` in a scratch register, say r2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Return to supervisor mode
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Get the request into a scratch register
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Retrieve the kernel state, which should not include the scratch registers
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You now have the kernel frame pointer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use it to put stuff in kernel memory
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Put what you need to in the active task's TD
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`active` is indexed off the kernel''s frame pointer'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`active` is a pointer to the TD of the requester'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some where above you must have picked up the arguments
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: must be done after 5\. Why?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: must be done before 9\. Why?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Return from `getNextRequest( active )` and get to work
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Don't forget to store the return value when you're finished handling the request
+    and before scheduling.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is more than one way to do almost everything in this list, and I have
+    chosen this way of describing what is to be done because it's simplest to describe,
+    not because it's necessarily best!.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before the Software Interrupt
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After a while it's time to leave the kernel
+  prefs: []
+  type: TYPE_NORMAL
+- en: Schedule the next task to run
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: i.e. get the value of `active`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call `GetNextRequest( active )`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Inside GetNextRequest
+  prefs: []
+  type: TYPE_NORMAL
+- en: From TD, or the user stack
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: get sp_usr
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: set spsr_svc = cpsr_usr
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You should understand how this takes us back to user mode.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: set lr_svc = pc for return to user mode
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Save kernel state on kernel stack
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Combined with 6, above this should be a NOP
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Set return value by overwriting r0 on user stack
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Switch to system mode
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Load registers from user stack
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Combined wi 3 above this should be a NOP
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Return to supervisor mode
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let it go
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The instruction after this one is normally the kernel entry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s lecture notes for CS452 in s12](index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s Spring 2012 CS452 page](../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s CS452 page](../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s teaching page](../../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s home page](../../../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

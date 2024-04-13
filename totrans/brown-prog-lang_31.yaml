@@ -1,0 +1,1979 @@
+- en: '31Mutation: Structures and Variables'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [31.1 Separating Meaning from Notation](#%28part._mutation-notation%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [31.2 Mutation and Closures](#%28part._.Mutation_and_.Closures%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [31.3 Mutable Structures](#%28part._.Mutable_.Structures%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.1 Extending the Language Representation](#%28part._.Extending_the_.Language_.Representation%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.2 The Interpretation of Boxes](#%28part._.The_.Interpretation_of_.Boxes%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.3 Can the Environment Help?](#%28part._.Can_the_.Environment_.Help_%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.4 Welcome to the Store](#%28part._.Welcome_to_the_.Store%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.5 Interpreting Boxes](#%28part._store-passing-style%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.3.6 Implementing Mutation: Subtleties and Variations](#%28part._.Implementing_.Mutation__.Subtleties_and_.Variations%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [31.4 Variables](#%28part._mut-vars%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.4.1 The Syntax of Variable Assignment](#%28part._.The_.Syntax_of_.Variable_.Assignment%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.4.2 Interpreting Variables](#%28part._interp-vars%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.4.3 Reference Parameter Passing](#%28part._reference-param%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [31.5 The Design of Stateful Language Operations](#%28part._design-of-state-ops%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [31.6 Typing State](#%28part._typing-state%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.6.1 Mutation and Polymorphism](#%28part._.Mutation_and_.Polymorphism%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [31.6.2 Typing the Initial Value](#%28part._.Typing_the_.Initial_.Value%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 31.1Separating Meaning from Notation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Which of these is the same?
+  prefs: []
+  type: TYPE_NORMAL
+- en: f = 3
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: o.f = 3
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: f = 3
+  prefs:
+  - PREF_BQ
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Assuming all three are in Java, the first and third could behave exactly like
+    each other or exactly like the second: it all depends on whether f is a local
+    identifier (such as a parameter) or a field of the object (i.e., the code is really
+    this.f = 3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In either case, we are asking the evaluator to permanently change the value
+    bound to f. This has important implications for other observers. Until now, for
+    a given set of inputs, a computation always returned the same value. Now, the
+    answer depends on when it was invoked: above, it depends on whether it was invoked
+    before or after the value of f was changed. The introduction of time has profound
+    effects on predicting the behavior of programs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are really two quite different notions of change buried in the
+    uniform syntax above. Changing the value of a field (o.f = 3 or this.f = 3) is
+    extremely different from changing that of an identifier (f = 3 where f is bound
+    as a parameter or a local inside the method, not by the object). We will explore
+    these in turn. We’ll tackle fields below, and return to identifiers in [Variables](#%28part._mut-vars%29).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To study both these features, we will as usual write interpreters. However,
+    to make sure we expose their essence, we will write these interpreters without
+    the use of state. That is, we will do something quite remarkable: write mutation-free
+    interpreters that faithfully mimic languages with mutation. The key to this will
+    be a special pattern of passing information around in a computation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.2Mutation and Closures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we proceed, make sure you’ve understood boxes ([A Canonical Mutable
+    Structure](State__Change__and_More_Equality.html#%28part._mutable-structures%29)),
+    and especially the interaction between mutation and closures ([Interaction of
+    Mutation with Closures: Counters](State__Change__and_More_Equality.html#%28part._state-closures-counter%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interaction with closures (and their first-cousin, objects [REF]) is particularly
+    subtle. Consider the following situation:This example was described to me by Corky
+    Cartwright. you are writing a GUI program to implement a calculator. The GUI element
+    corresponding to each calculator button needs a callback—<wbr>essentially a closure—<wbr>that,
+    when invoked, will report that that particular button was pressed. Therefore,
+    it is tempting to initialize this as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| for(var i = 0; i < 10; i++) { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   button[i] = function() { return i; } |'
+  prefs: []
+  type: TYPE_TB
+- en: '| } |'
+  prefs: []
+  type: TYPE_TB
+- en: 'This pseudo-code translates with minimal change to any number of languages,
+    with and without static types, ranging from Python to Swift. (Assume button has
+    been initialized appropriately.)Notice that the closures created above all have
+    i in their environment. Now let us try to inspect the behavior of these closures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| for(var i = 0; i < 10; i++) { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   println(button[i]()) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| } |'
+  prefs: []
+  type: TYPE_TB
+- en: That is, we extract the ith closure from button and apply it to no arguments.
+    This evaluates the return i statement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We might have liked this to produce the sequence of values 0, 1, 2, and so
+    on through to 9. In fact, however, it produces ten outputs, all the same: 10.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do you see why? How would you fix this?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The problem is that i in the for loop is allocated only once. Therefore, all
+    the closures share the same i. Because that value had to become 10 for the for
+    loop to terminate, all the closures report the value 10.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With traditional for loops, there is no obvious way out of this problem. This
+    seemingly confusing behavior often confounds programmers new to languages that
+    make extensive use of closures. Because they cannot change the behavior of for
+    loops, many languages have introduced new versions of for (or new keywords inside
+    for) to address this problem. The solution is always to allocate a fresh i on
+    each iteration, so that each closure is over a different variable; the looping
+    construct copies the previous value of i as the initial value of the new one before
+    applying the updater (in this case, i++) and then performing the comparison and
+    loop body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Observe that when programming functionally, the desired behavior comes for
+    free. For instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is easier to see why the definition of funs works by writing the use of
+    map more explicitly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Thus, we can see that on each iteration the outer lam(i): ... is applied, allocating
+    a new i, which is the one closed over by the inner lam(): ....'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.3Mutable Structures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Equipped with these examples, let us now return to adding mutation to the language
+    in the form of mutable structures (which are also a good basis for mutable objects
+    [REF]). Besides mutable structures themselves, note that we must sometimes perform
+    mutation in groups (e.g., removing money from one bank account and depositing
+    it in another). Therefore, it is useful to be able to sequence a group of mutable
+    operations. We will call this begin: it evaluates its sub-terms terms in order
+    and returns the value of the last one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why does it matter whether begin evaluates its sub-terms in some particular,
+    specified order?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Does it matter what this order is?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Define begin by desugaring into let (and hence into anonymous functions).
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This is an excellent illustration of the non-canonical nature of desguaring.
+    We’ve chosen to add to the core a construct that is certainly not necessary. If
+    our goal was to shrink the size of the interpreter—<wbr>perhaps at some cost to
+    the size of the input program—<wbr>we would not make this choice. But our goal
+    here is to understand key ideas in languages, so we choose the combination of
+    features that will be most instructive. Even though it is possible to eliminate
+    begin as syntactic sugar, it will prove extremely useful for understanding how
+    mutation works. Therefore, we will add a simple, two-term version of sequencing
+    (seqC) to the core. In turn, because our core language is becoming unwieldy, we
+    will drop Boolean values and conditional values except where their presence makes
+    things more interesting: and it does not here.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.3.1Extending the Language Representation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'First, let’s extend our core language datatype:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Observe that in a setboxC expression, both the box position and its new value
+    are expressions. The latter is unsurprising, but the former might be. It means
+    we can write programs such as this in corresponding Pyret:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| fun make-box-list(): |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   b0 = box(0) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   b1 = box(1) |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   l = [list: b0, b1] |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   index(l, 0)!{v : 1} |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   index(l, 1)!{v : 2} |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   l |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| where: |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   l = make-box-list() |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   index(l, 0)!v is 1 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   index(l, 1)!v is 2 |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: '| end |'
+  prefs:
+  - PREF_BQ
+  type: TYPE_TB
+- en: 'This evaluates to a list of boxes, the first containing 1 and the second 2.
+    Observe that in each of the mutation statements, we are using a complex expression—<wbr>e.g.,
+    index(l, 0)—<wbr>rather than a literal or an identifier to obtain the box before
+    mutating it (!{v : 1}). the first argument to the This is precisely analogous
+    to languages like Java, where one can (taking some type liberties) write'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| public static void main (String[] args) { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     Box<Integer> b0 = new Box<Integer>(0); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     Box<Integer> b1 = new Box<Integer>(1); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ArrayList<Box<Integer>> l = new ArrayList<Box<Integer>>(); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     l.add(b0); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     l.add(b1); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     l.get(0).set(1); |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     l.get(1).set(2); |'
+  prefs: []
+  type: TYPE_TB
+- en: '| } |'
+  prefs: []
+  type: TYPE_TB
+- en: Notice that l.get(0) is a compound expression being used to find the appropriate
+    box, and evaluates to the box object on which set is invoked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For convenience, we will assume that we have implemented desguaring to provide
+    us with (a) let and (b) if necessary, more than two terms in a sequence (which
+    can be desugared into nested sequences). We will also sometimes write expressions
+    in the original Pyret syntax, both for brevity (because the core language terms
+    can grow quite large and unwieldy) and so that you can run these same terms in
+    Pyret and observe what answers they produce. As this implies, we are taking the
+    behavior in Pyret—<wbr>which mutable structures are similar in behavior to those
+    of just about every mainstream language with mutable objects and structures—<wbr>as
+    the reference behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.3.2The Interpretation of Boxes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, because we’ve introduced a new kind of value, the box, we have to update
+    the set of values:<mut-str-value/1> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   data Value: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; numV(n :: Number) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; closV(f :: ExprC%(is-fdC), e :: Env) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; boxV(v :: Value) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: Now let’s begin by reproducing our current interpreter:<mut-str-interp/1> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun interp(e :: ExprC, nv :: Env) -> Value: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (ExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; numC(n) => numV(n) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; plusC(l, r) => plus-v(interp(l, nv), interp(r, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; multC(l, r) => mult-v(interp(l, nv), interp(r, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; idC(s) => lookup(s, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; fdC(_, _) => closV(e, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         clos = interp(f, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         arg-val = interp(a, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         interp(clos.f.body, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           xtnd-env(bind(clos.f.arg, arg-val), clos.e)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/1-boxC>](#%28elem._mut-str-interp%2F1-box.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/1-unboxC>](#%28elem._mut-str-interp%2F1-unbox.C%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/1-seqC>](#%28elem._mut-str-interp%2F1-seq.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: (You’ll soon see why the setboxC case is missing.)Two of these cases should
+    be easy. When we’re given a box expression, we simply evaluate the content and
+    return it wrapped in a boxV:<mut-str-interp/1-boxC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; boxC(v) => boxV(interp(v, nv)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Similarly, extracting a value from a box is easy:<mut-str-interp/1-unboxC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; unboxC(b) => interp(b, nv).v |'
+  prefs: []
+  type: TYPE_TB
+- en: By now, you should be constructing a healthy set of test cases to make sure
+    these behave as you’d expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we haven’t done any hard work yet. All the interesting behavior is,
+    presumably, hidden in the treatment of setboxC. It may therefore surprise you
+    that we’re going to look at seqC first instead (and you’ll see why we included
+    it in the core).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take the most natural implementation of a sequence of two instructions:<mut-str-interp/1-seqC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; seqC(b1, b2) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     b1-value = interp(b1, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     b2-value = interp(b2, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     b2-value |'
+  prefs: []
+  type: TYPE_TB
+- en: 'That is, we evaluate the first term, then the second, and return the result
+    of the second.You should immediately spot something troubling. We bound the result
+    of evaluating the first term, but didn’t subsequently do anything with it. That’s
+    okay: presumably the first term contained a mutation expression of some sort,
+    and its value is uninteresting. Thus, an equivalent implementation might be this:<mut-str-interp/1-seqC/2>
+    ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; seqC(b1, b2) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(b1, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(b2, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: Not only is this slightly dissatisfying in that it just uses Pyret’s sequential
+    behavior, it can’t possibly be right! This can only work only if the result of
+    the mutation is being stored somewhere. But because our interpreter only computes
+    values and does not perform any mutation itself—<wbr>because that would be cheating—<wbr>any
+    mutations in interp(b1, nv) are completely lost. This is obviously not what we
+    want. (And therefore, we’re not going to even attempt to define what to do in
+    the setbox case.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.3.3Can the Environment Help?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here is an input example that can help:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([b (box 0)]) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (begin (begin (set-box! b (+ 1 (unbox b))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|                 (set-box! b (+ 1 (unbox b)))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|          (unbox b))) |'
+  prefs: []
+  type: TYPE_TB
+- en: In Racket, this evaluates to 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Represent this expression in ExprC.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s consider the evaluation of the inner sequence. In both cases, the expression
+    (the representation of (set-box! ...)) is exactly identical. Yet something is
+    changing underneath, because this causes the value of the box to go from 0 to
+    2! We can “see” this even more clearly if instead we evaluate
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let ([b (box 0)]) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (+ (begin (set-box! b (+ 1 (unbox b))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             (unbox b)) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|      (begin (set-box! b (+ 1 (unbox b))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             (unbox b)))) |'
+  prefs: []
+  type: TYPE_TB
+- en: which evaluates to 3. Here, the two calls to interp in the rule for addition
+    are evaluating exactly the same textual expression in both cases. Yet somehow
+    the effects from the left branch of the addition are being felt in the right branch.Spukhafte
+    Fernwirkung.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the interpreter is being given precisely the same expression, how can it
+    possibly avoid producing precisely the same answer? The most obvious way is if
+    the interpreter’s other parameter, the environment, were somehow different. As
+    of now the exact same environment is sent to both both branches of the sequence
+    and both arms of the addition, so our interpreter—<wbr>which produces the same
+    output every time on a given input—<wbr>cannot possibly produce the answers we
+    want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what we know so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We must somehow make sure the interpreter is fed different arguments on calls
+    that are expected to potentially produce different results.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We must return from the interpreter some record of the mutations made when evaluating
+    its argument expression.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Because the expression is what it is, the first point suggests that we might
+    try to use the environment to reflect the differences between invocations. In
+    turn, the second point suggests that each invocation of the interpreter should
+    also return the environment, so it can be passed to the next invocation. So the
+    interpreter should presumably be modified to return both the value and an updated
+    environment. That is, the interpreter consumes an expression and environment;
+    it evaluates in that environment, updating it as it proceeds; when the expression
+    is done evaluating, the interpreter returns the answer (as it did before), along
+    with an updated environment, which in turn is sent to the next invocation of the
+    interpreter. And the treatment of setboxC would somehow impact the environment
+    to reflect the mutation.Before we dive into the implementation, however, we should
+    consider the consequences of such a change. The environment already serves an
+    important purpose: it holds deferred substitutions. In that respect, it already
+    has a precise semantics—<wbr>given by substitution—<wbr>and we must be careful
+    to not alter that. One consequence of its tie to substitution is that it is also
+    the repository of lexical scope information. If we were to allow the extended
+    environment escape from one branch of addition and be used in the other, for instance,
+    consider the impact on the equivalent of the following program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (+ (let ([b (box 0)]) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|      1) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    b) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'It should be evident that this program has an error: b in the right branch
+    of the addition is unbound (the scope of the b in the left branch ends with the
+    closing of the let—<wbr>if this is not evident, desugar the above expression to
+    use functions). But the extended environment at the end of interpreting the let
+    clearly has b bound in it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Work out the above problem in detail and make sure you understand it.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You could try various other related proposals, but they are likely to all have
+    similar failings. For instance, you may decide that, because the problem has to
+    do with additional bindings in the environment, you will instead remove all added
+    bindings in the returned environment. Sounds attractive? Did you remember we have
+    closures?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Consider the representation of the following program:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '| (let ([a (box 1)]) |'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|   (let ([f (fun x (+ x (unbox a)))]) |'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|     (begin |'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (set-box! a 2) |'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_TB
+- en: '|       (f 10)))) |'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_TB
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What problems does this example cause?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Rather, we should note that while the constraints described above are all valid,
+    the solution we proposed is not the only one. Observe that neither condition actually
+    requires the environment to be the responsible agent. Indeed, it is quite evident
+    that the environment cannot be the principal agent. We need something else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.3.4Welcome to the Store
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The preceding discussion tells us that we need two repositories to accompany
+    the expression, not one. One of them, the environment, continues to be responsible
+    for maintaining lexical scope. But the environment cannot directly map identifiers
+    to their value, because the value might change. Instead, something else needs
+    to be responsible for maintaining the dynamic state of mutated boxes. This latter
+    data structure is called the store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Like the environment, the store is a partial map. Its domain could be any abstract
+    set of names, but it is natural to think of these as numbers, meant to stand for
+    memory locations. This is because the store in the semantics maps directly onto
+    (abstracted) physical memory in the machine, which is traditionally addressed
+    by numbers. Thus the environment maps names to locations, and the store maps locations
+    to values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ll also equip ourselves with a function to look up values in the store,
+    just as we already have one for the environment (which now returns locations instead):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Fill in the bodies of lookup and fetch.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With this, we can refine our notion of values to the correct one:<mut-str-value>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   data Value: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; numV(n :: Number) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; closV(f :: ExprC, e :: Env) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     &#124; boxV(l :: Number) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: 31.3.5Interpreting Boxes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now we have something that the interpreter can return, updated, reflecting
+    mutations during the evaluation of the expression, without having to change the
+    environment in any way. Because a function can return only one value, we will
+    use an ad hoc object with two fields: v for the value (which will (effectively)
+    be the same as the one the interpreter originally returned), and st for the (potentially)
+    updated store. We will use the following helper function to assemble the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why do we say “effectively” and “potentially” above?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Hint for “effectively”: look at closures.'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Thus our interpreter becomes:<mut-str-interp> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   fun interp(e :: ExprC, nv :: Env, st :: Store): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     cases (ExprC) e: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/numC>](#%28elem._mut-str-interp%2Fnum.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/plusC>](#%28elem._mut-str-interp%2Fplus.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/idC>](#%28elem._mut-str-interp%2Fid.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/fdC>](#%28elem._mut-str-interp%2Ffd.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/appC>](#%28elem._mut-str-interp%2Fapp.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/boxC>](#%28elem._mut-str-interp%2Fbox.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/unboxC>](#%28elem._mut-str-interp%2Funbox.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/setboxC>](#%28elem._mut-str-interp%2Fsetbox.C%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [<mut-str-interp/seqC>](#%28elem._mut-str-interp%2Fseq.C%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   end |'
+  prefs: []
+  type: TYPE_TB
+- en: The easiest one to dispatch is numbers. Remember that we have to return the
+    store reflecting all mutations that happened while evaluating the given expression.
+    Because a number is a constant, no mutations could have happened, so the returned
+    store is the same as the one passed in:<mut-str-interp/numC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; numC(n) => ret(numV(n), st) |'
+  prefs: []
+  type: TYPE_TB
+- en: A similar argument applies to closure creation; observe that we are speaking
+    of the creation, not use, of closures:<mut-str-interp/fdC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; fdC(_, _) => ret(closV(e, nv), st) |'
+  prefs: []
+  type: TYPE_TB
+- en: Identifiers are almost as straightforward, though if you are simplistic, you’ll
+    get a type error that will alert you that to obtain a value, you must now look
+    up both in the environment and in the store:<mut-str-interp/idC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; idC(s) => ret(fetch(lookup(s, nv), st), st) |'
+  prefs: []
+  type: TYPE_TB
+- en: Notice how lookup and fetch compose to produce the same result that lookup alone
+    produced before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now things get interesting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take sequencing. Clearly, we need to interpret the two terms.<mut-str-interp/seqC/alt>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; seqC(b1, b2) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(b1, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(b2, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: Oh, but wait. The whole point was to evaluate the second term in the store returned
+    by the first one—<wbr>otherwise there would have been no point to all these changes.
+    Therefore, instead we must evaluate the first term, capture the resulting store,
+    and use it to evaluate the second. (Evaluating the first term also yields its
+    value, but sequencing ignores this value and assumes the first term was run purely
+    for its potential mutations.) Thus:<mut-str-interp/seqC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; seqC(b1, b2) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     b1-value = interp(b1, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     interp(b2, nv, b1-value.st) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'This says to interpret the first term: interp(b1, nv, st); name the resulting
+    value, which contains v and st fields, b1-value; and evaluate the second term
+    in the store from the first: interp(b2, nv, b1-value.st). The result will be the
+    value and store returned by the second term, which is what we expect. The fact
+    that the first term’s effect is only on the store can be read from the code because
+    we never use b1-value.v.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Spend a moment contemplating the code above. You’ll soon need to adjust your
+    eyes to read this pattern fluently.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now let’s move on to the binary arithmetic primitives. These are similar to
+    sequencing in that they have two sub-terms, but in this case we really do care
+    about the value from each branch. As usual, we’ll look at only plusC since multC
+    is virtually identical.<mut-str-interp/plusC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     lv = interp(l, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     rv = interp(r, nv, lv.st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ret(plus-v(lv.v, rv.v), rv.st) |'
+  prefs: []
+  type: TYPE_TB
+- en: Observe that we’ve repeated the pattern because we have two sub-expressions
+    to evaluate whose values we want to use. Thus the first store (lv.st) is used
+    to interpret the second expression, and the overall result returns that of the
+    second (rv.st).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an important distinction. When we evaluate a term, we usually use the
+    same environment for all its sub-terms in accordance with the scoping rules of
+    the language. The environment thus flows in a recursive-descent pattern. In contrast,
+    the store is threaded: rather than using the same store in all branches, we take
+    the store from one branch and pass it on to the next, and take the result and
+    send it back out. This pattern is called store-passing style.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now the penny drops. We see that store-passing style is our secret ingredient:
+    it enables the environment to preserve lexical scope while still giving a binding
+    structure that can reflect changes. Our intution told us that the environment
+    had to somehow participate in obtaining different results for the same syntactic
+    expression, and we can now see how it does: not directly, by itself changing,
+    but indirectly, by referring to the store, which updates. Now we only need to
+    see how the store itself “changes”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s begin with boxing. To store a value in a box, we have to first allocate
+    a new place in the store where its value will reside. The value corresponding
+    to a box will then remember this location, for use in box mutation. To obtain
+    a fresh value each time, we will use the stateful counter example we have seen
+    earlier ([Interaction of Mutation with Closures: Counters](State__Change__and_More_Equality.html#%28part._state-closures-counter%29)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given this, we can now define the interpretation of box creation:<mut-str-interp/boxC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; boxC(v) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     val = interp(v, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     loc = new-loc() |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ret(boxV(loc), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       xtnd-sto(cell(loc, val.v), st)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Observe that we have relied above on new-loc, which is itself implemented in
+    terms of boxes! This is outright cheating. How would you modify the interpreter
+    so that we no longer need mutation for this little bit of state?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To eliminate new-loc, the simplest option would be to add another parameter
+    to and return value from the interpreter, representing the largest address used
+    so far. Every operation that allocates in the store would return an incremented
+    address, while all others would return it unchanged. In other words, this is precisely
+    another application of the store-passing pattern. Writing the interpreter this
+    way would make it extremely unwieldy and might obscure the more important use
+    of store-passing for the store itself, which is why we have not done so. However,
+    it is important to make sure that we can: that’s what tells us that we are not
+    reliant on state to add state to the language.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that boxes are recording the location in memory, getting the value corresponding
+    to them is easy.<mut-str-interp/unboxC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; unboxC(b) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     val = interp(b, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ret(fetch(val.v.l, val.st), val.st) |'
+  prefs: []
+  type: TYPE_TB
+- en: It’s the same pattern we saw before, where we have to use fetch to obtain the
+    actual value residing at that location. Note that we are relying on Racket to
+    halt with an error if the underlying value isn’t actually a boxV; otherwise it
+    would be dangerous to not check, since this would be tantamount to dereferencing
+    arbitrary memory [REF memory safety].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now see how to update the value held in a box. First we have to evaluate
+    the box expression to obtain a box, and the value expression to obtain the new
+    value to store in it. The box’s value is going to be a boxV holding a location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In principle we want to “change”, or override, the value at that location in
+    the store. We can do this in two ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One is to traverse the store, find the old binding for that location, and replace
+    it with the new one, copying all the other store bindings unchanged.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The other, lazier, option is to simply extend the store with a new binding for
+    that location, which works provided we always obtain the most recent binding for
+    a location (which is how lookup works in the environment, so fetch can do the
+    same in the store).Observe that this latter option forces us to commit to lists
+    rather than to sets.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The code below is written to be independent of these options:<mut-str-interp/setboxC>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; setboxC(b, v) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     b-val = interp(b, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     v-val = interp(v, nv, b-val.st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     ret(v-val.v, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       xtnd-sto(cell(b-val.v.l, v-val.v), v-val.st)) |'
+  prefs: []
+  type: TYPE_TB
+- en: If we’ve implemented xtnd-sto as link above, we’ve actually taken the lazier
+    (and slightly riskier, because of its dependence on the implementation of fetch)
+    option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement the other version of store alteration, whereby we update an existing
+    binding and thereby avoid multiple bindings for a location in the store.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When we look for a location to override the value stored at it, can the location
+    fail to be present? If so, write a program that demonstrates this. If not, explain
+    what invariant of the interpreter prevents this from happening.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Alright, we’re now done with everything other than application! Most of application
+    should already be familiar: evaluate the function position, evaluate the argument
+    position, interpret the closure body in an extension of the closure’s environment...but
+    how do stores interact with this?<mut-str-interp/appC> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; appC(f, a) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     clos = interp(f, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     clos-v :: Value = clos.v |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     clos-st :: Store = clos.st |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     arg-val = interp(a, nv, clos-st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [<mut-str-interp/appC/core>](#%28elem._mut-str-interp%2Fapp.C%2Fcore%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Let’s start by thinking about extending the closure environment. The name we’re
+    extending it with is obviously the name of the function’s formal parameter. But
+    what location do we bind it to? To avoid any confusion with already-used locations
+    (a confusion we will explicitly introduce later!—<wbr>[Reference Parameter Passing](#%28part._reference-param%29)),
+    let’s just allocate a new location. This location is used in the environment,
+    and the value of the argument resides at this location in the store:<mut-str-interp/appC/core>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   new-loc = new-loc() |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   interp(clos-v.f.body, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     xtnd-env(bind(clos-v.f.arg, new-loc), clos-v.e), |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     xtnd-sto(cell(new-loc, arg-val.v), arg-val.st)) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Because we have not said the function parameter is mutable, there is no real
+    need to have implemented procedure calls this way. We could instead have followed
+    the same strategy as before. Indeed, observe that the mutability of this location
+    will never be used: only setboxC changes what’s in an existing store location
+    (the xtnd-sto above is technically a store initialization), and then only when
+    they are referred to by boxVs, but no box is being allocated above.You could call
+    this the useless app store. However, we have chosen to implement application this
+    way for uniformity, and to reduce the number of cases we’d have to handle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s a useful exercise to try to limit the use of store locations only to boxes.
+    How many changes would you need to make?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '31.3.6Implementing Mutation: Subtleties and Variations'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Even though we’ve finished the implementation, there are still many subtleties
+    and insights to discuss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implicit in our implementation is a subtle and important decision: the order
+    of evaluation. For instance, why did we not implement addition thus?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: <mut-str-interp/plusC/alt> ::=
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '|   &#124; plusC(l, r) => |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     rv = interp(r, nv, st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     lv = interp(l, nv, rv.st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     ret(plus-v(lv.v, rv.v), lv.st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: 'It would have been perfectly consistent to do so. Similarly, embodied in the
+    pattern of store-passing is the decision to evaluate the function position before
+    the argument. Observe that:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Previously, we delegated such decisions to the underlying language implementation.
+    Now, store-passing has forced us to sequentialize the computation, and hence make
+    this decision ourselves (whether we realized it or not).
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Even more importantly, this decision is now a semantic one. Before there were
+    mutations, one branch of an addition, for instance, could not affect the value
+    produced by the other branch.The only effect they could have was halting with
+    an error or failing to terminate—<wbr>which, to be sure, are certainly observable
+    effects, but at a much more gross level. A program would not terminate with two
+    different answers depending on the order of evaluation. Because each branch can
+    have mutations that impact the value of the other, we must choose some order so
+    that programmers can predict what their program is going to do! Being forced to
+    write a store-passing interpreter has made this clear.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Observe that in the application rule, we are passing along the dynamic store,
+    i.e., the one resulting from evaluating both function and argument. This is precisely
+    the opposite of what we said to do with the environment. This distinction is critical.
+    The store is, in effect, “dynamically scoped”, in that it reflects the history
+    of the computation, not its lexical shape. Because we are already using the term
+    “scope” to refer to the bindings of identifiers, however, it would be confusing
+    to say “dynamically scoped” to refer to the store. Instead, we simply say that
+    it is persistent.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Languages sometimes dangerously conflate these two. In C, for instance, values
+    bound to local identifiers are allocated (by default) on the stack. However, the
+    stack matches the environment, and hence disappears upon completion of the call.
+    If the call, however, returned references to any of these values, these references
+    are now pointing to unused or even overridden memory: a genuine source of serious
+    errors in C programs. The problem is that programmers want the values themselves
+    to persist; but the storage for those values has been conflated with that for
+    identifiers, who come and go with lexical scope.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We have already discussed how there are two strategies for overriding the store:
+    to simply extend it (and rely on fetch to extract the newest one) or to “search-and-replace”.
+    The latter strategy has the virtue of not holding on to useless store bindings
+    that will can never be obtained again.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'However, this does not cover all the wasted memory. Over time, we cease to
+    be able to access some boxes entirely: e.g., if they are bound to only one identifier,
+    and that identifier is no longer in scope. These locations are called garbage.
+    Thinking more conceptually, garbage locations are those whose elimination does
+    not have any impact on the value produced by a program. There are many strategies
+    for automatically identifying and reclaiming garbage locations, usually called
+    garbage collection [REF].'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: It’s very important to evaluate every expression position and thread the store
+    that results from it. Consider, for instance, this alternate implementation of
+    unboxC (compare with [<mut-str-interp/unboxC>](#%28elem._mut-str-interp%2Funbox.C%29)):<mut-str-interp/unboxC/alt-1>
+    ::=
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '|   &#124; unboxC(b) => |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     val = interp(b, nv, st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     ret(fetch(val.v.l, st), val.st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: Did you notice? We fetched the location from st, not val.st. But st reflects
+    mutations up to but before the evaluation of the unboxC expression, not any within
+    it. Could there possibly be any? Mais oui!
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| (let ([b (box 0)]) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|   (unbox (begin (set-box! b 1) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|                 b))) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: With the incorrect code above, this would evaluate to 0 rather than 1.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Here’s another, similar, error (again compare with [<mut-str-interp/unboxC>](#%28elem._mut-str-interp%2Funbox.C%29)):<mut-str-interp/unboxC/alt-2>
+    ::=
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '|   &#124; unboxC(b) => |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     val = interp(b, nv, st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|     ret(fetch(val.v.l, val.st), st) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: How do we break this? In the end we’re returning the old store, the one before
+    any mutations in the unboxC happened. Thus, we just need the outside context to
+    depend on one of them.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| (let ([b (box 0)]) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|   (+ (unbox (begin (set-box! b 1) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|                    b)) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '|      (unbox b))) |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: This should evaluate to 2, but because the store being returned is one where
+    b’s location is bound to the representation of 0, the result is 1.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: If we combined both bugs above—<wbr>i.e., using st twice in the last line instead
+    of s-a twice—<wbr>this expression would evaluate to 0 rather than 2.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Go through the interpreter; replace every reference to an updated store with
+    a reference to one before update; make sure your test cases catch all the introduced
+    errors!
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Observe that these uses of “old” stores enable us to perform a kind of time
+    travel: because mutation introduces a notion of time, these enable us to go back
+    in time to when the mutation had not yet occurred. This sounds both interesting
+    and perverse; does it have any use?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'It does! Imagine that instead of directly mutating the store, we introduce
+    the idea of a journal of intended updates to the store. The journal flows in a
+    threaded manner just like the real store itself. Some instruction creates a new
+    journal; after that, all lookups first check the journal, and only if the journal
+    cannot find a binding for a location is it looked for in the actual store. There
+    are two other new instructions: one to discard the journal (i.e., travel back
+    in time), and the other to commit it (i.e., all of its edits get applied to the
+    real store).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: This is the essence of software transactional memory. Each thread maintains
+    its own journal. Thus, one thread does not see the edits made by the other before
+    committing (because each thread sees only its own journal and the global store,
+    but not the journals of other threads). At the same time, each thread gets its
+    own consistent view of the world (it sees edits it made, because these are recorded
+    in the journal). If the transaction ends successfully, all threads atomically
+    see the updated global store. If the transaction aborts, the discarded journal
+    takes with it all changes and the state of the thread reverts (modulo global changes
+    committed by other threads).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Software transactional memory offers one of the most sensible approaches to
+    tackling the difficulties of multi-threaded programming, if we insist on programming
+    with shared mutable state. Because most computers have only one global store,
+    however, maintaining the journals can be expensive, and much effort goes into
+    optimizing them. As an alternative, some hardware architectures have begun to
+    provide direct support for transactional memory by making the creation, maintenance,
+    and commitment of journals as efficient as using the global store, removing one
+    important barrier to the adoption of this idea.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Augment the language with the journal features of software transactional memory.
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'An alternate implementation strategy is to have the environment map names to
+    boxed Values. We don’t do it here because it: (a) would be cheating, (b) wouldn’t
+    tell us how to implement the same feature in a language without boxes, (c) doesn’t
+    necessarily carry over to other mutation operations, and (d) most of all, doesn’t
+    really give us insight into what is happening here.'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It is nevertheless useful to understand, not least because you may find it a
+    useful strategy to adopt when implementing your own language. Therefore, alter
+    the implementation to obey this strategy. Do you still need store-passing style?
+    Why or why not?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 31.4Variables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that we’ve got structure mutation worked out, let’s consider the other
+    case: variable mutation. We have already discussed ([From Identifiers to Variables](State__Change__and_More_Equality.html#%28part._mutable-variables%29))
+    our choice of terminology, and seen examplse of their use in Pyret. In particular,
+    Whereas other languages overload the mutation syntax, as we have seen ([Separating
+    Meaning from Notation](#%28part._mutation-notation%29)), in Pyret they are kept
+    distinct: ! mutates fields of objects while := mutates variables. This forces
+    Pyret programmers to confront the distinction we introduced at the beginning of
+    [Separating Meaning from Notation](#%28part._mutation-notation%29). We will, of
+    course, sidestep these syntactic issues in our core language by using different
+    constructs for boxes and for variables.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.4.1The Syntax of Variable Assignment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The first thing to note about variable mutation is that, although it too has
+    two sub-terms like box mutation (setboxC), its syntax is fundamentally different.
+    To understand why, let’s return to our Java fragment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| x = 3; |'
+  prefs: []
+  type: TYPE_TB
+- en: 'In this setting, we cannot write an arbitrary expression in place of x: we
+    must literally write the name of the identifier itself. That is because, if it
+    were an expression position, then we could evaluate it, yielding a value: for
+    instance, if x were previously bound to 1, this would be tantamout to writing
+    the following statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 1 = 3; |'
+  prefs: []
+  type: TYPE_TB
+- en: 'But this is, of course, nonsensical! We can’t assign a new value to 1, and
+    indeed 1 is pretty much the definition of immutable. What we instead want is to
+    find where x is in the store, and change the value held over there.Here’s another
+    way to see this. Suppose, in Java, the local variable o is already bound to some
+    String object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| o = new String("an initial string"); |'
+  prefs: []
+  type: TYPE_TB
+- en: Say the program now executes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| o = new String("a new string"); |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Is it trying to change the content of the original string ("an initial string")?
+    Certainly not: the second assignment intends to leave that original string alone;
+    it only wants to change the value that o is referring to, so that subsequent references
+    evaluate to this new string ("a new string") object instead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.4.2Interpreting Variables
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We’ll start by reflecting this in our syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Observe that we’ve jettisoned the box operations, but kept sequencing because
+    it’s handy around mutation. Importantly, we’ve now added the setC case, and its
+    first sub-term is not an expression but the literal name of a variable. We’ve
+    also renamed idC to varC.Because we’ve gotten rid of boxes, we can also get rid
+    of the special box values. When the only kind of mutation you have is variables,
+    you don’t need new kinds of values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you might imagine, to support variables we need the same store-passing style
+    that we’ve seen before ([Interpreting Boxes](#%28part._store-passing-style%29)),
+    and for the same reasons. What differs is in precisely how we use it. Because
+    sequencing is interpreted in just the same way (observe that the verb for it does
+    not depend on boxes versus variables), that leaves us just the variable mutation
+    case to handle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we might as well evaluate the value expression and obtain the updated
+    store:<mut-var-interp/setC> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; setC(v, b) => |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     new-val = interp(b, nv, st) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [<mut-var-interp/setC/core>](#%28elem._mut-var-interp%2Fset.C%2Fcore%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: What now? Remember we just said that we don’t want to fully evaluate the variable,
+    because that would just give the value it is bound to. Instead, we want to know
+    which memory location it corresponds to, and update what is stored at that memory
+    location; this latter part is just the same thing we did when mutating boxes:<mut-var-interp/setC/core>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   var-loc = lookup(v, nv) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   ret(new-val.v, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     xtnd-sto(cell(var-loc, new-val.v), new-val.st)) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The very interesting new pattern we have here is this. When we added boxes,
+    in the idC case ([<mut-str-interp/idC>](#%28elem._mut-str-interp%2Fid.C%29)),
+    we looked up an identifier in the environment (just as above), and then immediately
+    fetched the value at that location from the store; the composition yielded a value,
+    just as it used to before we added stores. Now, however, we have a new pattern:
+    looking up an identifier in the environment without subsequently fetching its
+    value from the store, i.e., we have “half” of a variable’s evaluation. The result
+    of invoking just lookup is traditionally called an l-value, for “left-hand-side
+    (of an assignment) value”. This is a fancy way of saying “memory address”, and
+    stands in contast to the actual values that the store yields: observe that it
+    does not directly correspond to anything in the type Value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And we’re done! We did all the hard work when we implemented store-passing style
+    (and also in that application allocated new locations for variables).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.4.3Reference Parameter Passing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s return to the parenthetical statement above: that every application allocates
+    a fresh location in the store for the parameter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Why does this matter? Consider the following Pyret program:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: After this runs, what do we expect to be the value of y?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the example above, y evaluates to 5, not 3. That is because the value of
+    the formal parameter x is held at a different location than that of the actual
+    parameter y, so the mutation affects the location of x, leaving y unscathed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now suppose, instead, that application behaved as follows. When the actual
+    parameter is a variable, and hence has a location in memory, instead of allocating
+    a new location for the value, it simply passes along the existing one for the
+    variable. Now the formal parameter is referring to the same store location as
+    the actual: i.e., they are variable aliases. Thus any mutation on the formal will
+    leak back out into the calling context; the above program would evaluate to 3
+    rather than 5. These is called a call-by-reference parameter-passing strategy.Instead,
+    our interpreter implements call-by-value, and this is the same strategy followed
+    by languages like Java. This causes confusion because when the value is itself
+    mutable, changes made to the value in the callee are observed by the caller. However,
+    that is simply an artifact of mutable values, not of the calling strategy. Please
+    avoid this confusion!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For some years, this power was considered a good idea. It was useful because
+    programmers could write abstractions such as swap, which swaps the value of two
+    variables in the caller. However, the disadvantages greatly outweigh the advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A careless programmer can alias a variable in the caller and modify it without
+    realizing they have done so, and the caller may not even realize this has happened
+    until some obscure condition triggers it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Some people thought this was necessary for efficiency: they assumed the alternative
+    was to copy large data structures. However, call-by-value is compatible with passing
+    just the address of the data structure. You only need make a copy if (a) the data
+    structure is mutable, (b) you do not want the caller to be able to mutate it,
+    and (c) the language does not itself provide immutability annotations or other
+    mechanisms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'It can force non-local and hence non-modular reasoning. For instance, suppose
+    we have the procedure:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: If the language were to permit by-reference parameter passing, then the programmer
+    cannot locally—<wbr>i.e., just from the above code—<wbr>determine what the value
+    of x will be in the ellipses, because it depends on precisely who the callee (which
+    is being passed in as a parameter) will be, and what it might do, which in turn
+    may depend on dynamic conditions (including the phase of the moon).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: At the very least, then, if the language is going to permit by-reference parameters,
+    it should let the caller determine whether to pass the reference—<wbr>i.e., let
+    the callee share the memory address of the caller’s variable—<wbr>or not. However,
+    even this option is not quite as attractive as it may sound, because now the callee
+    faces a symmetric problem, not knowing whether its parameters are aliased or not.
+    In traditional, sequential programs this is less of a concern, but if the procedure
+    is reentrant, the callee faces precisely the same predicaments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At some point, therefore, we should consider whether any of this fuss is worthwhile.
+    Instead, callers who want the callee to perform a mutation could simply send a
+    boxed value to the callee. The box signals that the caller accepts—<wbr>indeed,
+    invites—<wbr>the callee to perform a mutation, and the caller can extract the
+    value when it’s done. This does obviate the ability to write a simple swapper,
+    but that’s a small price to pay for genuine software engineering concerns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.5The Design of Stateful Language Operations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Though most programming languages include one or both kinds of state we have
+    studied, their admission should not be regarded as a trivial or foregone matter.
+    On the one hand, state brings some vital benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'State provides a form of modularity. As our very interpreter demonstrates,
+    without explicit stateful operations, to achieve the same effect:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We would need to add explicit parameters and return values that pass the equivalent
+    of the store around.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These changes would have to be made to all procedures that may be involved in
+    a communication path between producers and consumers of state.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thus, a different way to think of state in a programming language is that it
+    is an implicit parameter already passed to and returned from all procedures, without
+    imposing that burden on the programmer. This enables procedures to communicate
+    “at a distance” without all the intermediaries having to be aware of the communication.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: State makes it possible to construct dynamic, cyclic data structures, or at
+    least to do so in a relatively straightforward manner ([Graphs](graphs.html)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: State gives procedures memory, such as new-loc above. If a procedure could not
+    remember things for itself, the callers would need to perform the remembering
+    on its behalf, employing the moral equivalent of (at least local) store-passing.
+    This is not only unwieldy, it creates the potential for a caller to interfere
+    with the memory for its own nefarious purposes (e.g., a caller might purposely
+    send back an old store, thereby obtaining a reference already granted to some
+    other party, through which it might launch a correctness or security attack).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On the other hand, state imposes real costs on programmers as well as on programs
+    that process programs (such as compilers). One is “aliasing”, which we discuss
+    later [REF]. Another is “referential transparency”, which too I hope to return
+    to [REF]. Finally, we have described above how state provides a form of modularity.
+    However, this same description could be viewed as that of a back-channel of communication
+    that the intermediaries did not know and could not monitor. In some (especially
+    security and distributed system) settings, such back-channels can lead to collusion,
+    and can hence be extremely dangerous and undesirable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because there is no optimal answer, it is probably wise to include mutation
+    operators but to carefully delinate them. In Standard ML, for instance, there
+    is no variable mutation, because it is considered unnecessary. Instead, the language
+    has the equivalent of boxes (called refs). One can easily simulate variables using
+    boxes, so no expressive power is lost, though it does create more potential for
+    aliasing than variables alone would have ([REF aliasing]) if the boxes are not
+    used carefully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In return, however, developers obtain expressive types: every data structure
+    is considered immutable unless it contains a ref, and the presence of a ref is
+    a warning to both developers and programs (such as compilers) that the underlying
+    value may keep changing.This same argument applies to Pyret, where the absence
+    of a ref declaration means that a field is immutable, and the absence of a var
+    declaration means an identifier is immutable, i.e., not a variable. Thus, for
+    instance, suppose b is a box and v is bound to the unboxing of b. A developer
+    should be aware that replacing all instances of the unboxing b with references
+    to v is not safe, because the former always fetches the current value in the box
+    while the latter holds the value only at the instant when v was computed, and
+    may now be inconsistent. The declaration that a field is mutable provides this
+    information to both the developer and to programming tools (such as compilers);
+    in particular, the absence of such a declaration permits caching of values, thereby
+    trading computation time for space.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.6Typing State
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Adding stateful operations to a type-checker is easy: the only safe thing to
+    do is make sure the type of the new value is exactly the same as that of the old
+    one. If that is true, the behavior of the program will be indistinguishable to
+    the type system before and after the mutation. That is, it is safest to follow
+    invariance ([The Principle of Substitutability](types.html#%28part._type-substitutability%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.6.1Mutation and Polymorphism
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Later, once we encounter subtyping ([Subtyping](objects.html#%28part._subtyping%29)),
+    we will find it is no longer trivial to type mutation. Already, however, mutation
+    is complex in the presence of polymorphism. Let us first give polymorphic types
+    to boxes, where Box is a type constructor for boxes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: (assuming that the mutation operation, set-box, returns the box as its result).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement the above three functions.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now let us consider a simple example that uses these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Initially, the type of f is Box((A -> A)) where (A -> A) represents the type
+    of the polymorphic identity function. When performing inference, a copy of this
+    type certainly unifies with Number -> Number, the type of lam(x): x + 5 end. Another
+    copy is used at the application site; the argument type unifies with that of true,
+    giving the whole expression the type Boolean. However, when the actual function
+    is applied, it attempts to add true to 5, resulting in a run-time error. If the
+    compiler had assumed the type-system was sound and had not compiled in checks,
+    this program could even result in a segmentation fault.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many ways to try to understand this problem, which is beyond the scope
+    of this study. The simplest way is that polymorphism and mutation do not work
+    together well. The essence of polymorphism is to imagine a quantified type is
+    instantiated at each use; however, the essence of mutation is to silently transmit
+    values from one part of the program to the other. Thus, the values being unified
+    at two different sites are only guaranteed to be compatible with the let-bound
+    identifier—<wbr>not with each other. This is normally not a problem because the
+    two do not communicate directly, except where mutation is involved. Therefore,
+    a simple solution in this case is to prevent polymorphic generalization for mutable
+    let-bound identifiers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 31.6.2Typing the Initial Value
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There is one last issue we should address where mutation is concerned: the
+    typing of cycle creation, and in particular dealing with the problem of [Premature
+    Evaluation](State__Change__and_More_Equality.html#%28part._premature-eval%29).
+    We have discussed several approaches to handling the initial value; each of these
+    has consequences for typing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a fixed initial value of a standard type means the value subsequently
+    mutated into place may not be type-compatible, thereby failing invariance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using a different initial value of the type that will eventually be put into
+    the mutable has the problem that prematurely observing it is even more deadly,
+    because it may not be distinguishable from the eventual value.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using a new value just for this case works provided there is one of each type.
+    Otherwise, again, we violate invariance. But having one of each type is a problem
+    in itself, because now the run-time system has to check for all of them.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Syntactically restricting recursion to functions is the safest, because the
+    initial value is never seen. As a result, there is no need to provide any meaningful
+    type for it.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In short, this is a place where we have to confront unsurmountable trade-offs.
+    The first option sacrifices typability; the second option sacrifices program reliability
+    (because the dummy values are of the right type, and may hence be inadvertently
+    used without noticing they are wrong); the third sacrifices run-time simplicity;
+    and the fourth sacrifices programmer flexibility.
+  prefs: []
+  type: TYPE_NORMAL

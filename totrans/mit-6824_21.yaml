@@ -1,0 +1,293 @@
+- en: Optimistic concurrency control, Thor
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 21: Optimistic concurrency control, Thor'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimistic concurrency control
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: want to build stable storage systems with high-speed, large-scale, and good
+    semantics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: struggle to get them all
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thor is another tool that might help us build such a system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you step back a little, this looks a lot like the Facebook/memcache paper
+    where data is sharded and caches are used on the client side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: want to be able to support concurrent transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'caching makes transactions tricky: could be reading stale data from cache'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: locking can solve all of our problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but application would have to chat to server every time it wants an item `=>`
+    defeats the purpose of a cache
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Thor uses optimistic concurrency control: the application goes ahead, doing
+    its reads and writes on whatever data happens to be available in the cache. When
+    the transaction wants to commit, it has to talk to some validation service, who
+    will look at the order in which writes and reads happened.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: optimistic in the sense that transactions are executing, ignoring other tx's
+    and hoping it didn't conflict with anything, later checking if it did
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Validation scheme 1
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: assuming a single valdiation server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the read set and the write set that clients send for validation are actual values
+    that the transactions read/wrote
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the scheme takes the descriptions of the transactions, try all possible orders
+    and see if any order results in a sequentially-consistent order
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: validator doesn't know what the transaction did internally
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For instance T3, T1 not possible:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But `T4 (Rx0 Wy1), T1 (Rx0 Wx1), T3 (Ry1 Rx1), T2(Rz0 Wz9)` is possible: the
+    order is consistent with the values read by the transactions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: if transactions came from different machines (which obviously don''t
+    share caches/communicate), then the question arises of how T3 read the value 1
+    for x, when the DB was initialized to 0? The answer is "this is just a made up
+    example: imagine they did actually share a cache. the point is to see that the
+    validator orders the transactions so that they are consistent"'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that T2 only read/wrote `z =>` did not conflict with any of `T1, T3, T4`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in situations like these, OCC performs very well
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This scheme is great because it allows us to execute transactions without locking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This 3 transactions cannot be serialized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: T1 --- before --> T3 (t3 read x1, t1 wrote x1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: T3 --- before --> T2 (t3 read y0, t2 wrote y1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: T2 --- before --> T1 (t2 read x0, t1 wrote x1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cycle! `=>` cannot serialize
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another thing to ask of any OCC scheme is whether it can cleverly handle *read-only
+    transactions* (some schemes can).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thor and the schemes talked about today do have to validate read only tx's
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example 3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we version records, and make sure that read-only tx's only read the same
+    version of records => we can place it anywhere in the sequence of serialized transactions
+    after that version => can be serialized
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not use read-write locks?
+  prefs: []
+  type: TYPE_NORMAL
+- en: simple transactions like `x=x+1` first acquire a read lock and then need to
+    upgrade it to a write lock
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if you have two such transactions `=>` deadlock because none will release its
+    read lock until it upgrades to the write lock
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Distributed validation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If we have data sharded on more than one server, then server 1 (A-M) can just
+    validate part of the transaction that affects records A-M and server 2 can look
+    at the part that affects records N-Z. Then the clients can make sure using two-phase
+    commit (2PC) that the two servers both okayed the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A naive implementation like this will not work though:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2 (from before):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: But, the result is incorrect because the validators are saying "yes" to different
+    orders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve this, see validation scheme 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation scheme 2
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Use timestamps to build a working distributed validation scheme
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every time a client would like to commit a transaction, the server choses a
+    timestamp for this transaction based on its local clock (*loosely* synchronized
+    to the real time).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation simply checks that the order implied by the timestamps is consistent
+    with the reads and writes that the transactions performed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2 (again)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Loosely synchronized clocks `=>` Have to be prepared to deal with T2 running
+    before T3 even though timestamp says it runs later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only thing that the timestamps give the servers is the ability to agree
+    on an order for the transactions amongst themselves so that they don't say yes
+    to different orders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=>` forced to use the timestamp order (cannot search for better order, even
+    though it might be possible)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but the distributed algorithm for validation is very straightforward
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This could have committed in the previous scheme (there is a valid order T1,
+    T2) but this current scheme restricts the order to be `T2, T1` due to the timestamps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: this is just a performance problem of course
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Trouble: The read sets and write sets look at values, to check for conflicting
+    transactions. That gives the validator some power (ability to commit more tx''s)
+    but is impractical when the values are big.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=>` use a version number instead of values'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: So now version numbers need to be stored next to every record. Thor doesn't
+    want to do this. Instead Thor shoots down transactions that read stale records
+    by sending invalidate messages when those records are written. Clients who cached
+    those records can then discard them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,347 @@
+- en: Chapter 2\. Exporting Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before delving into model serving, it is necessary to discuss the topic of exporting
+    models. As discussed previously, data scientists define models, and engineers
+    implement model serving. Hence, the ability to export models from data science
+    tools is now important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this book, I will use two different examples: Predictive Model Markup Language
+    (PMML) and TensorFlow. Let’s look at the ways in which you can export models using
+    these tools.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorFlow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To facilitate easier implementation of model scoring, TensorFlow supports export
+    of the trained models, which Java APIs can use to implement scoring. TensorFlow
+    Java APIs are not doing the actual processing; they are just thin [Java Native
+    Interface (JNI)](https://en.wikipedia.org/wiki/Java_Native_Interface) wrappers
+    on top of the actual TensorFlow C++ code. Consequently, their usage requires “linking”
+    the TensorFlow C++ executable to your Java application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TensorFlow currently supports two types of model export: [export of the execution
+    graph](https://www.tensorflow.org/api_docs/python/tf/train/Saver), which can be
+    optimized for inference, and a new [SavedModel](http://bit.ly/tensorflow-savedmodel-github)
+    format, introduced this year.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exporting the Execution Graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Exporting the execution graph is a “standard” TensorFlow approach to save the
+    model. Let’s take a look at an example of adding an execution graph export to
+    a multiclass classification problem implementation using [Keras](http://bit.ly/keras-tutorial)
+    with a TensorFlow backend applied to an open source [wine quality dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality)
+    ([complete code](http://bit.ly/keras-complete)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-1\. Exporting an execution graph from a Keras model
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Example 2-1](#exporting_an_execution_graph_from_a_kera) is adapted from a
+    [Keras machine learning example](http://bit.ly/keras-tutorial) to demonstrate
+    how to export a TensorFlow graph. To do this, it is necessary to explicitly set
+    the TensorFlow session for Keras execution. The TensorFlow execution graph is
+    tied to the execution session, so the session is required to gain access to the
+    graph.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The actual graph export implementation involves the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Save initial graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Freeze the graph (this means merging the graph definition with parameters).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Optimize the graph for serving (remove elements that do not affect serving).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Save the optimized graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The saved graph is an optimized graph stored using the binary Google protocol
+    buffer (protobuf) format, which contains only portions of the overall graph and
+    data relevant for model serving (the portions of the graph implementing learning
+    and intermediate calculations are dropped).
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the model is exported, you can use it for scoring. [Example 2-2](#serving_the_model_created_from_the_execu)
+    uses the TensorFlow Java APIs to load and score the model ([full code available
+    here](http://bit.ly/winemodelserving-scala)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-2\. Serving the model created from the execution graph of the Keras
+    model
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this simple code, the constructor uses the `readGraph` method to read the
+    execution graph and create a TensorFlow session with this graph attached to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The score method takes an input record containing wine quality observations
+    and converts it to a tensor format, which is used as an input to the running graph.
+    Because the exported graph does not provide any information about names and shapes
+    of either inputs or outputs (the execution signature), when using this approach,
+    it is necessary to know which variable(s) (i.e., input parameter) your flow accepts
+    (feed) and which tensor(s) (and their shape) to fetch as a result. After the result
+    is received (in the form of a tensor), its value is extracted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The execution is orchestrated by the main method in the `WineModelServing` object.
+    This method first creates an instance of the `WineModelServing` class and then
+    reads the list of input records and for each record invokes a serve method on
+    the `WineModelServing` class instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To run this code, in addition to the TensorFlow Java library, you must also
+    have the TensorFlow C++ implementation library (*.dll* or *.so*) installed on
+    the machine that will run the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Advantages of execution graph export include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the optimizations, the exported graph has a relatively small size.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The model is self-contained in a single file, which makes it easy to transport
+    it as a binary blob, for instance, using a Kafka topic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A disadvantage is that the user of the model must know explicitly both input
+    and output (and their shape and type) of the model to use the graph correctly;
+    however, this is typically not a serious problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exporting the Saved Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'TensorFlow *SavedModel* is a new export format, introduced in 2017, in which
+    the model is exported as a directory with the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`assets` is a subfolder containing auxiliary files such as vocabularies, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`assets.extra` is a subfolder where higher-level libraries and users can add
+    their own assets that coexist with the model but are not loaded by the graph.
+    It is not managed by the SavedModel libraries.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`variables` is a subfolder containing output from the [TensorFlow Saver](http://bit.ly/tensorflow-saver):
+    both variables index and data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`saved_model.pb` contains graph and MetaGraph definitions in binary protocol
+    buffer format.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The advantages of the [SavedModel](https://www.tensorflow.org/api_docs/python/tf/saved_model)
+    format are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can add multiple graphs sharing a single set of variables and assets to
+    a single SavedModel. Each graph is associated with a specific set of tags to allow
+    identification during a load or restore operation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Support for SignatureDefs. The definition of graph inputs and outputs (including
+    shape and type for each of them) is called a Signature. SavedModel uses [SignatureDefs](http://bit.ly/tensorflow-signature-defs)
+    to allow generic support for signatures that might need to be saved with the graphs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Support for assets. In some cases, TensorFlow operations depend on external
+    files for initialization, for example, vocabularies. SavedModel exports these
+    additional files in the assets directory.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is a Python code snippet ([complete code available here](http://bit.ly/tensorflow-winequalityclass-savedmodel))
+    that shows you how to save a trained model in a saved model format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-3\. Exporting saved model from a Keras model
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: By replacing the export execution graph in [Example 2-1](#exporting_an_execution_graph_from_a_kera)
+    with this code, it is possible to get a saved model from your multiclass classification
+    problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After you export the model into a directory, you can use it for serving. [Example 2-4](#serving_a_model_based_on_the_saved_model)
+    ([complete code available here](http://bit.ly/lightbend-ts-wine)) takes advantage
+    of the TensorFlow Java APIs to load and score with the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-4\. Serving a model based on the saved model from a Keras model
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Compare this code with the code in [Example 2-2](#serving_the_model_created_from_the_execu).
+    Although the main structure is the same, there are two significant differences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading the graph is more involved. The saved model contains not just the graph
+    itself, but the entire bundle (directory), and then obtains the graph from the
+    bundle. Additionally, it is possible to extract the method signature (as a protobuf
+    definition) and parse it to get inputs and output for your method of execution.
+    Keep in mind that, in general, the graph read from the bundle can contain multiple
+    signatures, so it is necessary to pick the appropriate signature by name. This
+    name is defined during model saving (*winedata*, defined in [Example 2-3](#exporting_saved_model_from_a_keras_model)).
+    In the code, because I know that there is only one signature, I just took the
+    first element of the array.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the implementation method, instead of hardcoding names of inputs and outputs,
+    I rely on the signature definition.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: When saving parameter names, TensorFlow uses the convention *name:column*. For
+    example, in our case the inputs name, *dense_1_input*, with a single column (0)
+    is represented as *dense_1_input:0*. The Java APIs do not support this notation,
+    so the code splits the name at “:” and returns only the first substring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, there is currently [work underway](https://github.com/jpmml/jpmml-tensorflow)
+    to convert TensorFlow exported models (in the saved models format) to PMML. When
+    this work is complete, developers will have additional choices for building scoring
+    solutions for models exported from TensorFlow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PMML
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our next example, [Random Forest Classifier](https://en.wikipedia.org/wiki/Random_forest),
+    using the same wine quality dataset that was used in the multiclass classification
+    with the TensorFlow example, we show how to use [JPMML/SparkML](https://github.com/jpmml/jpmml-sparkml)
+    for exporting models from SparkML machine learning. The code looks as shown in
+    [Example 2-5](#random_forest_classifier_using_sparkml) ([complete code available
+    here](http://bit.ly/wine-quality-random-forest)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-5\. Random Forest Classifier using SparkML with PMML export
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The bulk of the code defines the machine learning pipeline, which contains
+    the following components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Vector assembler](http://bit.ly/2gcnBQq)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transformer that combines a given list of columns into a single vector column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Label indexer](http://bit.ly/2yFAxpr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This encodes a string column of labels to a column of label indices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Classifier](http://bit.ly/2zgdGh2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Random Forest classifier is used here, which belongs to a popular family of
+    classification and regression methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Label converter](http://bit.ly/2xzgkl6)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This maps a column of label indices back to a column containing the original
+    labels as strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the pipeline is built, it is trained, and then the PMML exporter uses
+    a data frame schema and the pipeline definition to export the complete pipeline,
+    with parameters, in PMML format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After you export the model, you can use it for scoring. [Example 2-6](#serving_pmml_model)
+    uses the [JPMML evaluator library](https://github.com/jpmml/jpmml-evaluator) to
+    load and score the model ([complete code available here](http://bit.ly/randomforest-wine-complete-example)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2-6\. Serving PMML model
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this simple example, the constructor calls the `readPMML` method to read
+    the PMML model and then invokes the optimize method. We use the optimized PMML
+    ([optimizers](http://bit.ly/optimizers-gl-topic) change default generation to
+    allow for more efficient execution) representation that is returned to create
+    the evaluator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The score method takes an input record containing quality observations and converts
+    them to the format acceptable by evaluator. Then, data is passed to the evaluator
+    to produce a score. Finally, an actual value is extracted from the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The execution is orchestrated by the main method in the `WineQualityRandomForestClassifier`
+    object. This method first creates an instance of the `WineQualityRandomForestClassifier`
+    class and then reads the list of input records and invokes the serve method in
+    the `WineQualityRandomForestClassifier` class instance on each record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we know how to export models, let’s discuss how you can use these models
+    for actual model scoring.
+  prefs: []
+  type: TYPE_NORMAL

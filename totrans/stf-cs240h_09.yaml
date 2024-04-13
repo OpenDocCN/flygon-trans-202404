@@ -1,0 +1,1241 @@
+- en: Untrusted code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Say you want to incorporate untrusted code in a Haskell application
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Some third-party translation software'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You built a web server
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Want to add a “translate to Pig Latin” button to each web page
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Download some random code with this function
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: If you could trust the type (no `IO`), this would be safe to run
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Worst case, users get garbled text on web page
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However, what if you have?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '[Safe Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Starting with GHC 7.2, `-XSafe` option enables [Safe Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Courtesy of our very own CA, David Terei
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Safe Haskell disallows import of any unsafe modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: E.g., can’t import `System.IO.Unsafe`, so can’t call `unsafePerformIO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Safe imports (enabled by `-XUnsafe`) require an import to be safe
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The above should guarantee that `toPigLatin` doesn’t call unsafe functions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But wait… doesn’t `toPigLatin` use ByteString?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Safe vs. Trustworthy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A module compiled `-XSafe` can only import safe modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As if all imports implicitly have `safe` keyword
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But there are *two* kinds of safe module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Modules verified to be safe by the compiler, compiled `-XSafe`
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Modules asserted to be safe by the author, compiled `-XTrustworthy`
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: So a module like `Data.ByteString` can be compiled `-XTrustworthy`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Put unsafe functions in separate `Data.ByteString.Unsafe` module
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Assert `Data.ByteString`’s exported symbols cannot be used unsafely, even if
+    the module internally makes use of unsafe functions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of course, might or might not trust module author
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can specify on a per-package basis whether to honor `-XTrustworthy`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Flag `-fpackage-trust` enables such per-package trust
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use flags, `-trust` *Pkg*, `-distrust` *Pkg*, `-distrust-all-packages`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can also set default for a package with `ghc-pkg`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if untrusted code needs to do IO?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Suppose you want to translate to a real language
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generally requires massive data sets
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Untrusted code would at minimum need to do file IO
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or maybe easiest to send text over network to, e.g., Google translate
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Idea: use a *restricted* IO monad, `RIO`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Untrusted third party implements `googleTranslate` function
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: But uses the `RIO` monad, instead of `IO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implement `RIO` functions to access network, file system
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Have functions reject *dangerous* operations
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can use same names and port `IO` code to `RIO` by manipulating imports
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: hypothetical `RIO` monad'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note use of `newtype` – `RIO` is same as `IO` at runtime
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Anyone can turn an `RIO` action into an `IO` one with `runRIO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But can’t create `RIO` action from `IO` without `UnsafeRIO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Exercise: implement RIO Monad instance'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Starter code: `wget` [`cs240h.stanford.edu/RIO.hs`](http://cs240h.scs.stanford.edu/RIO.hs)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Bonus: what’s wrong with the following, alternate definition of `runRIO`?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Solutions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Monad solution:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Bonus solution:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The problem is selectors can be used to *update* state
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exporting `runRIO` is tantamount to exporting `UnsafeRIO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Can execute arbitrary `IO` actions from within `RIO`:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Example policies for RIO
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Only read and write files under some sandbox subdirectory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Protect most of file system from untrusted code
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do not allow execution of other programs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Would escape from `RIO` restrictions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only allow connections to port 80, and only to known servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Don’t want untrusted code sending spam, attacking mysql, etc.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do not allow access to devices
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Microphone, camera, speaker, etc.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Similar to policies that apply to Java/JavaScript in browser
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why RIO isn’t enough
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if the web site contains private data, such as email?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'An attack by malicious `googleTranslate` function:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Save a copy of private email under `/sandbox` (allowed)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When asked to translate a special string, return stored email
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Attacker sends himself an email with special string to read stored email
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another attack
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Send query to attacker’s own website instead of Google
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Problem: really need to keep track of what information is sensitive'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Okay to send public data over network
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not okay to send email (or maybe only okay to send to specific Google URL)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Okay to write files, but have to keep track of which files contain whose email
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution: Decentralized Information Flow Control (DIFC)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is DIFC?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/ad1e1773cef100102de4a3a739f361b3.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: IFC originated with military applications and classified data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every piece of data in the system has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every process/thread has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are partially ordered by  ⊑  (“can flow to”)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Emacs (labeled *L*[*E*]) accesses file (labeled *L*[*F*])'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is DIFC?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/1168dc21d8ca9952785120a071c0d7c7.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: IFC originated with military applications and classified data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every piece of data in the system has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every process/thread has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are partially ordered by  ⊑  (“can flow to”)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Emacs (labeled *L*[*E*]) accesses file (labeled *L*[*F*])'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File read? Information flows from file to emacs. System requires *L*[*F*] ⊑ *L*[*E*].
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is DIFC?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/cdb7914482cf2a7c61400465fed901ea.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: IFC originated with military applications and classified data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every piece of data in the system has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every process/thread has a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are partially ordered by  ⊑  (“can flow to”)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Emacs (labeled *L*[*E*]) accesses file (labeled *L*[*F*])'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File read? Information flows from file to emacs. System requires *L*[*F*] ⊑ *L*[*E*].
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File write? Information flows in both directions. System enforces that *L*[*F*] ⊑ *L*[*E*]
+    and *L*[*E*] ⊑ *L*[*F*].
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are transitive
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/ef84f21d5e0772695c5d8eda134eef3d.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: ⊑  is a transitive relation - makes it easier to reason about security
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Label file so it cannot flow to Internet'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Policy holds regardless of what other software does
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are transitive
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/01d0932bc50fb966db5e25b83f374b86.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: ⊑  is a transitive relation - makes it easier to reason about security
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Label file so it cannot flow to Internet'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Policy holds regardless of what other software does
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Suppose a buggy app reads file (e.g., desktop search)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are transitive
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/7150dfc3cf6f90f19c745653c18a6750.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: ⊑  is a transitive relation - makes it easier to reason about security
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Label file so it cannot flow to Internet'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Policy holds regardless of what other software does
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Suppose a buggy app reads file (e.g., desktop search)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Process labeled *L*[bug] reads file, so must have *L*[*F*] ⊑ *L*[bug]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But *L*[*F*] ⊑ *L*[bug] ∧ *L*[bug] ⊑ *L*[net] ⇒ *L*[*F*] ⊑ *L*[net], thus *L*[bug] ! ⊑ *L*[net]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels are transitive
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/544e58fc4babb7c476cba2451cc067dc.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: ⊑  is a transitive relation - makes it easier to reason about security
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Label file so it cannot flow to Internet'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Policy holds regardless of what other software does
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conversely, any app that can write to network cannot read file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels form a lattice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/840793414a406d132eb1f748d430bcd6.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Consider two users, *A* and *B*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Label public data *L*[∅], *A*’s private data *L*[*A*], *B*’s private data *L*[*B*]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens if you mix *A*’s and *B*’s private data in a single document?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both *A* and *B* should be concerned about the release of such a document
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Need a label at least as restrictive as both *L*[*A*] and *L*[*B*]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use the least upper bound (a.k.a. *join*) of *L*[*A*] and *L*[*B*], written
+    *L*[*A*] ⊔ *L*[*B*]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**D**IFC is **D**ecentralized'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/739182ceb37ed21f38e22fda02c3b251.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Every process has a set of privileges
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exercising privilege *p* changes label requirements
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*L*[*F*] ⊑ [*p*] *L*[proc] to read, and additionally *L*[proc] ⊑ [*p*] *L*[*F*]
+    to write file'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ⊑ [*p*] (``can flow under privileges *p*’’) is more permissive than  ⊑
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Idea: Set labels so you know who has relevant privs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Example privileges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/840793414a406d132eb1f748d430bcd6.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Consider again simple two user lattice
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let *a* be user *A*’s privileges, *b* be user *B*’s privileges
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clearly *L*[*A*] ⊑ [*a*] *L*[∅] and *L*[*B*] ⊑ [*b*] *L*[∅]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users should be able to make public or *declassify* their own private data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users should also be able to *partially declassify* data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I.e., *L*[*A**B*] ⊑ [*a*] *L*[*B*] and *L*[*A**B*] ⊑ [*b*] *L*[*A*]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Example privileges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/df68c9755f9b3f5cc8accd7fe19ccc88.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Exercising privileges *a* effectively means:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*L*[*A*] becomes equivalent to *L*[∅]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*L*[*A*]*B* becomes equivalent to *L*[*B*]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Sec` monad [[Russo]](http://www.cse.chalmers.se/~russo/seclib.htm), [[Russo]](http://www.cse.chalmers.se/~russo/eci11/lectures/index.shtml)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s encode a really simple two-point lattice in Haskell’s type system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let type `H` represent secret (“high”) data, and `L` public (“low”) data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Type represents secrecy level, constructor represents privileges
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Let’s also (in module `Sec`) represent the lattice (*L* ⊑ *H*) in the type system
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The `Sec` monad (continued)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s protect secret values with monads by adding to module `Sec`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Define two monads, `Sec H` for high data, and `Sec L` for low data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Allow anyone to label a value, but require privileges to unlabel
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Notice `seq` call, ensures “`unlabel undefined secval`” will crash
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allow data to be re-labeled according to  ⊑  relation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Applying the `Sec` monad
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Untrusted code gets access to sensitive data only in `Sec` monads
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Possible policy:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data labeled `Sec L` can be sent over network
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data labeled `Sec H` can only be sent to Google
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implement by providing specific trusted functions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This isn’t a very satisfying solution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decision to query google can’t depend on data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So we aren’t really getting the full benefit of monads (more like `Applicative`)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`IO` and `Sec`'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if instead we combined `Sec` and `IO`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Safe to run this computation?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`IO` and `Sec`'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if instead we combined `Sec` and `IO`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Safe to run this computation? **No!**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Let’s combine ideas of `RIO` and `Sec` in a `SecIO` monad
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The `SecIO` monad
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Allow `Sec` value to be accessed within `SecIO` monad:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Can return high values from `SecIO L` by wrapping in `Sec`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How to represent files (similar for `IORef`s, etc.)?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`SecIO` translator'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Still need privileged function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Represents the fact that Google is trusted with high data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Makes sense you need to implement this to encode policy
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now implement untrusted code as follows
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Function can invoke `queryGoogle`, but not send data to other places
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`SecIO` does most enforcement at compile time'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Problem: for email, really want separate labels for every *user*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users added dynamically, so hard to encode this with `Flows`…
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LIO monad [[Stefan]](http://www.cse.chalmers.se/~russo/publications_files/haskell11.pdf)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`cabal install` [`lio`](http://hackage.haskell.org/package/lio)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Idea: Let’s keep track of labels *dynamically*, at run time'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Track both *current label* and maximum label or *clearance*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Associate an `LIOState` with each thread:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now make `RIO`-like monad that disallows raw `IO`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: So initially, we can’t do *any* IO within `RIO` monad
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Backdoors for privileged code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Idea: Trustworthy code wraps IO actions with label checks'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Need some back doors into IO just for Trustworthy code:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Also handy to have access to state:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Note important convention: symbols ending …`TCB` never available to safe modules'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implementing labels in Haskell
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Implementing labels as values is straight-forward:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: What about privileges?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Want to know when one privilege subsumes another
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: And how privileges affect the ``canFlowTo`` relation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Exercise: Implement a `Label` instance'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/36b94bc817dfe70e9165613092e42f6b.svg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`wget` [`cs240h.stanford.edu/millattice.hs`](http://cs240h.scs.stanford.edu/millattice.hs)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bonus: write some quickcheck properties'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Label instance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Some quickcheck instances
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Adjusting and checking labels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before reading any data labeled `newl`, adjust/check `LIOState`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Before writing any data labeled `newl`, adjust/check `LIOState`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Privileges vs. privilege descriptions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Want to be able to name/examine privileges in any context
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Embody* the privileges by wrapping them with in protected `newtype`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Given a `Priv`, can get a description with `privDesc`, but not vice versa
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to create privileges in the first place?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generate them in `IO` at start of program, before invoking `LIO`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Remember, if bad guy can execute arbitrary `IO` code, game over anyway
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using `Priv` Objects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many LIO functions have …`P` variants taking privilege
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'E.g., replace calls to `taint` with ones to `taintP`:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Can also delegate privileges, wrap them in closures, or check them by “gating”
+    closures
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Wrapping IO abstractions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many LIO abstractions just LIO ones plus a label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`blessTCB` helper makes constructing LIO functions easy'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: through the magic of functional dependencies
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: LIO applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Main application is [Hails](http://hails.scs.stanford.edu/) web framework
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Really a framework for creating web *platforms* hosting mutually distrustful
+    apps
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: [GitStar](http://gitstar.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Host potentially private git repositories
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functionality for, say, syntax-highlighting code cannot exfiltrate private sources
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ongoing research here at Stanford
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

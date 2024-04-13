@@ -1,0 +1,534 @@
+- en: Peer to peer system
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 22: Peer to peer system'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P2P systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Today: look at peer-to-peer (P2P) systems like Bittorrent and Chord'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'classic implementation of file sharing services: users talk to a centralized
+    server to download file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it should be possible for users to talk to each other to get files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the peer-to-peer dream: no centralized components, just built out of people''s
+    computers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why P2P?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**(+)** spreads the work of serving the files over a huge # of PCs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(+)** might be easier to deploy than a centralized system'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no one has to buy a centralized server with a lot of bandwidth and storage
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(+)** if you play your card rights, the # of resources should scale naturally
+    with the # of users => less chance of overload'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(+)** no centralized server => less chance to fail (harder to attack with
+    DoS)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` so many advantages! Why does anyone build non-P2P systems?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(-)** it takes a sophisticated design to lookup a file in a system of a million
+    users `<=>` finding stuff is hard (can''t just ask a DB)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(-)** user computers are not as reliable as servers in a datacenter. users
+    take their computers offline, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(-)** some P2P systems are open (BitTorrent) but some are closed, where only
+    say Amazon''s computer are participating in this scheme (sort of like Dynamo).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` in open systems, there will be malicious users `=>` easy to attack'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The result is that P2P software has certain niches that you find it in
+  prefs: []
+  type: TYPE_NORMAL
+- en: systems where there's a lot of data, like online video services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: chat systems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in settings where having a central server is not *natural* like Bitcoin
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it would be nice for DNS to be decentralized for instance
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*seems* like the dominant use has been to serve illegal files'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BitTorrent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Pre-DHT BitTorrent
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: client goes to a webserver and downloads a .torrent file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: torrent file stores the hash of the data and the address of a tracker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the tracker keeps a record of all the clients who have downloaded this file
+    and maybe still have it and maybe would be willing to serve it to other clients
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client contacts tracker, asks about other clients
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the huge gain here is that the file is transfered between the clients directly,
+    and the webserver and tracker aren't incurring too much cost
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DHT-based BitTorrent (Trackerless torrents)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: tracker is a single point of failure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can fix this by replicating them or having extra trackers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the users who download the file also form a giant distributed key value store
+    (a DHT)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: clients still have to talk to the original web server to get the `infohash`
+    of the file it wants to download
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it uses it as a key to do a lookup in the DHT
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the values are IP addresses of other clients who have the files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this really replaces the tracker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how to find an entry node in the DHT? Maybe the client has some well known nodes
+    hardcoded
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*maybe* the DHT is more reliable and less vulnerable to legal (subpoena) and
+    technical attacks'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'BitTorrent is fantastically popular: tens of millions of users `=>` giant DHT,
+    however, most torrents are backed by real trackers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How did DHTs start?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: a bunch of research 15 years ago on how to build DHTs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: point was to harness the millions of computers on the Internet to provide something
+    that was close to a database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the interface is very simple: `Put(k, v), Get(k)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hope is that puts are reflected in gets (after a while)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in practice it is hard to build consistent systems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: little guarantees about availability of data and consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: system does not guarantee to keep your data when you do a `Put()`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: still difficult to build, even with these weak guarantees
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DHT designs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Flood everyone with Get's when you want to get a key
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`=>` system can''t handle too much load'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Suppose everyone agreed to the whole list of nodes in the DHT.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Then you can have some hashing convention that hashes a key to an exact node
+    and lookups are efficient.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Critical that all agree otherwise A sends put to X and B sends get to Y for
+    the same key `k`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The real problem is that it's hard to keep tables up to date and accurate.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What we want:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We're looking for a system where each node only has to know about a few other
+    nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We don't want the node to send too many messages to do a lookup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the rough approach that all DHT take is to define a global data structure that
+    is layered across nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bad idea: organize all nodes as a binary tree, data is stored in leaf nodes
+    such that lower keys are in the left most nodes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: all traffic goes through root (bad) => if root goes down, partition
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how can we replace nodes that go down?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chord
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: numbers in a circular ID space (like integers modulo p) from 0 to 2^160 - 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each node picks a random ID in this space as its node ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the keys have identifiers in this space, and we want the identifiers to have
+    a uniform distribution, because we use it to map the key to a node identifier
+    `=>` use a hash on the actual keys to get their identifier
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the node responsible for a key is the first *closest* node to that key in a
+    clockwise direction: known as its **successor**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: closeness `= |node ID - key ID|`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Slow but correct scheme:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: through some sort of hocus-pocus, every node just has to know about its own
+    successor (say, node 2's successor is node 18, etc)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can always do a lookup starting at every node simply by following these successor
+    pointers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is called *routing*
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: all about forwarding a lookup message to a node further one the ring
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is slow, with millions of nodes could be sending millions of messages for
+    a single lookup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'need time logarithmic in the total # of nodes in the DHT `=>` each hop has
+    to be able to compute the distance between it and any target key'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in Chord, every node has a *finger table* of 160 entries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the finger table of node `n` has entry `i`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`f[i] = successor(n + 2^i)`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` the 159th entry will point to some node `n + 2^159` roughly halfway across
+    the ID space'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each hop is on the order of 50 milliseconds, if the hops are halfway around
+    the world
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` around 1 second to go through 20 nodes `=>` some applications might not
+    take this well (BitTorrent is okay, because it only stores IPs in the DHT)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when nodes join, they get a copy of the entry node's fingerprint
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not accurate for the new node, but good enough
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`=>` have to correct the table `=>` for the `i`th entry do a lookup for `n+2^i`
+    and set `f[i]` to the address of the node that replied'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: every lookup is likely to encounter a dead node and timeouts take a long time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the churn in BitTorrent is quite high
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 10 million people participate this hour, the next hour there will be other 10
+    million people `=>` hard to keep finger table updated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log n` lookup time is not that great'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: finger tables are only used to speed up lookups
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each node must correctly know its successor for Chord to be correct
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so that Gets by one node see the Puts by another node
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: when a node first joins, it does a lookup on its own identifier to find its
+    successor
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--> 10 -- [new node 15] --> 20 -->`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 15 sets its successor pointer to 20
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so far no one is doing lookups
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 15 isn't really part of the system until 10 knows about it
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: every node periodically asks its successor who they think their predecessor
+    is
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`10: hey 20, who''s your predecessor?`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`20: my predecessor is 15`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`10: oh, thought it was me, so let me set 15 as my successor then`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`15: oh, hi 10, thanks for adding me as your sucessor, let me add you as my
+    predecessor`'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is called stabilization
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: when a node gets a closer predecessor, it transfers keys that would be closer
+    to its predecessor there
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If nodes fail, can we do lookups correctly?
+  prefs: []
+  type: TYPE_NORMAL
+- en: suppose an intermediate node fails in the lookup procedure, then the initiating
+    node can simply pick another
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: towards the end of the lookup process, finger tables are not used anymore. instead
+    successor pointers are followed `=>` if a node fails then the lookup cannot proceed
+    `=>` nodes must remember successors of their successors to be able to proceed
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the probability of a partition occurring is low on the Internet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6.824 2015 original notes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE

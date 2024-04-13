@@ -1,0 +1,4451 @@
+- en: Chapter 12\. Extended Examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter presents a series of programs that perform more complicated tasks
+    than most of the examples found throughout the earlier chapters of the book. They
+    illustrate a variety of programming techniques and demonstrate a particular programming
+    style.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each section of this chapter describes one program in detail and gives examples
+    of its use. This is followed by a listing of the code. At the end of each section
+    are exercises intended to stimulate thought about the program and to suggest possible
+    extensions. These exercises are generally more difficult than those found in Chapters [2](start.html#g4)
+    and [3](further.html#g49), and a few are major projects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section [12.1](examples.html#g152) presents a simple matrix multiplication package.
+    It demonstrates a set of procedures that could be written in almost any language.
+    Its most interesting features are that all multiplication operations are performed
+    by calling a single *generic* procedure, `mul`, which calls the appropriate help
+    procedure depending upon the dimensions of its arguments, and that it dynamically
+    allocates results of the proper size. Section [12.2](examples.html#g158) presents
+    a merge sorting algorithm for ordering lists according to arbitrary predicates.
+    Section [12.3](examples.html#g162) describes a syntactic form that is used to
+    construct sets. It demonstrates a simple but efficient syntactic transformation
+    from set notation to Scheme code. Section [12.4](examples.html#g169) presents
+    a word-counting program borrowed from *The C Programming Language* [[19](bibliography.html#g237)],
+    translated from C into Scheme. It shows character and string manipulation, data
+    structure creation and manipulation, and basic file input and output. Section
+    [12.5](examples.html#g176) presents a Scheme printer that implements basic versions
+    of `put-datum`, `write`, and `display`. Section [12.6](examples.html#g180) presents
+    a simple formatted output facility similar to those found in many Scheme systems
+    and in other languages. Section [12.7](examples.html#g187) presents a simple interpreter
+    for Scheme that illustrates Scheme as a language implementation vehicle while
+    giving an informal operational semantics for Scheme as well as a useful basis
+    for investigating extensions to Scheme. Section [12.8](examples.html#g193) presents
+    a small, extensible abstract object facility that could serve as the basis for
+    an entire object-oriented subsystem. Section [12.9](examples.html#g198) presents
+    a recursive algorithm for computing the Fourier transform of a sequence of input
+    values. It highlights the use of Scheme's complex arithmetic. Section [12.10](examples.html#g204)
+    presents a concise unification algorithm that shows how procedures can be used
+    as continuations and as substitutions (unifiers) in Scheme. Section [12.11](examples.html#g208)
+    describes a multitasking facility and its implementation in terms of continuations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.1\. Matrix and Vector Multiplication
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This example program involves mostly basic programming techniques. It demonstrates
+    simple arithmetic and vector operations, looping with the `do` syntactic form,
+    dispatching based on object type, and raising exceptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiplication of scalar to scalar, scalar to matrix, or matrix to matrix is
+    performed by a single *generic* procedure, called `mul`. `mul` is called with
+    two arguments, and it decides based on the types of its arguments what operation
+    to perform. Because scalar operations use Scheme's multiplication procedure, `*`,
+    `mul` scalars can be any built-in numeric type (exact or inexact complex, real,
+    rational, or integer).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The product of an *m* × *n* matrix *A* and an *n* × *p* matrix *B* is the *m*
+    × *p* matrix *C* whose entries are defined by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](26.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: The product of a scalar *x* and an *m* × *n* matrix *A* is the *m* × *n* matrix
+    *C* whose entries are defined by the equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*C*[*ij*] = *xA*[*ij*].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, each element of *C* is the product of *x* and the corresponding element
+    of *A*. Vector-vector, vector-matrix, and matrix-vector multiplication may be
+    considered special cases of matrix-matrix multiplication, where a vector is represented
+    as a 1 × *n* or *n* × 1 matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are a few examples, each preceded by the equivalent operation in standard
+    mathematical notation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Scalar times scalar:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3 × 4 = 12
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`(mul 3 4) ![<graphic>](ch2_0.gif) 12`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Scalar times vector (1 × 3 matrix):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![<graphic>](27.gif)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '`(mul 1/2 ''#(#(1 2 3))) ![<graphic>](ch2_0.gif) #(#(1/2 1 3/2))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Scalar times matrix:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![<graphic>](28.gif)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '`(mul -2'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''#(#(3 -2 -1)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(-3 0 -5)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(7 -1 -1))) ![<graphic>](ch2_0.gif) #(#(-6 4 2)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![](ch3_ghostRightarrow.gif)   #(6 0 10)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '![](ch3_ghostRightarrow.gif)   #(-14 2 2))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Vector times matrix:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![<graphic>](29.gif)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '`(mul ''#(#(1 2 3))'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''#(#(2 3)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(3 4)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(4 5))) ![<graphic>](ch2_0.gif) #(#(20 26))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Matrix times vector:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![<graphic>](30.gif)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '`(mul ''#(#(2 3 4)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(3 4 5))'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''#(#(1) #(2) #(3))) ![<graphic>](ch2_0.gif) #(#(20) #(26))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Matrix times matrix:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![<graphic>](31.gif)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: '`(mul ''#(#(1 2 3)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(4 5 6))'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''#(#(1 2 3 4)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(2 3 4 5)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '#(3 4 5 6))) ![<graphic>](ch2_0.gif) #(#(14 20 26 32)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![](ch3_ghostRightarrow.gif)   #(32 47 62 77))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The code for `mul` and its helpers, which is structured as a library, appears
+    below. The first few definitions establish a set of procedures that support the
+    matrix data type. A matrix is a vector of vectors. Included are a procedure to
+    create matrices, procedures to access and assign matrix elements, and a matrix
+    predicate. Following these definitions is the definition of `mul` itself. Inside
+    the `lambda` expression for `mul` are a set of definitions for help procedures
+    that support `mul`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mul` checks the types of its arguments and chooses the appropriate help procedure
+    to do the work. Each helper operates on arguments of specific types. For example,
+    `mat-sca-mul` multiplies a matrix by a scalar. If the type of either argument
+    is invalid or the arguments are incompatible, e.g., rows or columns do not match
+    up, `mul` or one of its helpers raises an exception.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl matrix)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export make-matrix matrix? matrix-rows matrix-columns
+  prefs: []
+  type: TYPE_NORMAL
+- en: matrix-ref matrix-set! mul)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; make-matrix creates a matrix (a vector of vectors).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define make-matrix
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (rows columns)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([m (make-vector rows)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[i 0 (+ i 1)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i rows) m)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector-set! m i (make-vector columns)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix? checks to see if its argument is a matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; It isn't foolproof, but it's generally good enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define matrix?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (and (vector? x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (> (vector-length x) 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector? (vector-ref x 0)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix-rows returns the number of rows in a matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define matrix-rows
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector-length x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix-columns returns the number of columns in a matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define matrix-columns
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector-length (vector-ref x 0))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix-ref returns the jth element of the ith row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define matrix-ref
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (m i j)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector-ref (vector-ref m i) j)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix-set! changes the jth element of the ith row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define matrix-set!
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (m i j x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector-set! (vector-ref m i) j x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; mat-sca-mul multiplies a matrix by a scalar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define mat-sca-mul
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (m x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let* ([nr (matrix-rows m)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[nc (matrix-columns m)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[r (make-matrix nr nc)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([i 0 (+ i 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i nr) r)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([j 0 (+ j 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= j nc))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (matrix-set! r i j (* x (matrix-ref m i j))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; mat-mat-mul multiplies one matrix by another, after verifying
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; that the first matrix has as many columns as the second
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; matrix has rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define mat-mat-mul
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (m1 m2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let* ([nr1 (matrix-rows m1)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[nr2 (matrix-rows m2)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[nc2 (matrix-columns m2)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[r (make-matrix nr1 nc2)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unless (= (matrix-columns m1) nr2) (match-error m1 m2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([i 0 (+ i 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i nr1) r)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([j 0 (+ j 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= j nc2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([k 0 (+ k 1)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[a 0 (+ a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (* (matrix-ref m1 i k)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (matrix-ref m2 k j)))])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= k nr2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (matrix-set! r i j a))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; type-error is called to complain when mul receives an invalid
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; type of argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define type-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (what)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (assertion-violation 'mul
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"not a number or matrix"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: what)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; match-error is called to complain when mul receives a pair of
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; incompatible arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define match-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (what1 what2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (assertion-violation 'mul
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"incompatible operands" what1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: what2)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; mul is the generic matrix/scalar multiplication procedure
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define mul
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(number? x)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(number? y) (* x y)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(matrix? y) (mat-sca-mul y x)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (type-error y)])]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(matrix? x)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(number? y) (mat-sca-mul x y)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(matrix? y) (mat-mat-mul x y)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (type-error y)])]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (type-error x)]))))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.1.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Make the necessary changes to rename `mul` to `*`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.1.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The predicate `matrix?` is usually sufficient but not completely reliable, since
+    it may return `#t` for objects that are not matrices. In particular, it does not
+    verify that all of the matrix rows are vectors, that each row has the same number
+    of elements, or that the elements themselves are numbers. Modify `matrix?` to
+    perform each of these additional checks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.1.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Another solution to Exercise [12.1.2](examples.html#g154) is to define a matrix
+    record type encapsulating the vectors of the matrix. If the matrix creation routine
+    never allows a malformed matrix record to be created, a matrix record check is
+    the only check needed to ensure that the input is well formed. Define a matrix
+    record type and recode the library to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.1.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Write similar generic procedures for addition and subtraction. Devise a generic
+    `dispatch` procedure or syntactic form so that the type dispatching code need
+    not be rewritten for each new operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.1.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This version of `mul` uses vectors of vectors to represent matrices. Rewrite
+    the system, using nested lists to represent matrices. What efficiency is gained
+    or lost by this change?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.2\. Sorting
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This section illustrates a list sorting algorithm based on a simple technique
+    known as merge sorting. The procedure `sort` defined here accepts two arguments:
+    a predicate and a list, just like the built-in `list-sort`. It returns a list
+    containing the elements of the old list sorted according to the predicate. As
+    with `list-sort`, the predicate should be a procedure that expects two arguments
+    and returns `#t` if its first argument must precede its second in the sorted list
+    and false otherwise. That is, if the predicate is applied to two elements `*x*`
+    and `*y*`, where `*x*` appears after `*y*` in the input list, it should return
+    true only if `*x*` should appear before `*y*` in the output list. If this constraint
+    is met, `sort` will perform a *stable sort*; with a stable sort, two elements
+    that are already sorted with respect to each other will appear in the output in
+    the same order in which they appeared in the input. Thus, sorting a list that
+    is already sorted will result in no reordering, even if there are equivalent elements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(sort < ''(3 4 2 1 2 5)) ![<graphic>](ch2_0.gif) (1 2 2 3 4 5)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (sort > '(0.5 1/2)) ![<graphic>](ch2_0.gif) (0.5 1/2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (sort > '(1/2 0.5)) ![<graphic>](ch2_0.gif) (1/2 0.5)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list->string
+  prefs: []
+  type: TYPE_NORMAL
+- en: (sort char>?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (string->list "coins"))) ![<graphic>](ch2_0.gif) "sonic"`
+  prefs: []
+  type: TYPE_NORMAL
+- en: A companion procedure, `merge`, is also defined by the code. `merge` accepts
+    a predicate and two sorted lists and returns a merged list in sorted order of
+    the elements of the two lists. With a properly defined predicate, `merge` is also
+    stable in the sense that an item from the first list will appear before an item
+    from the second list unless it is necessary that the item from the second list
+    appear first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(merge char<?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(#\a #\c)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(#\b #\c #\d)) ![<graphic>](ch2_0.gif) (#\a #\b #\c #\c #\d)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (merge <
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(1/2 2/3 3/4)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(0.5 0.6 0.7)) ![<graphic>](ch2_0.gif) (1/2 0.5 0.6 2/3 0.7 3/4)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list->string
+  prefs: []
+  type: TYPE_NORMAL
+- en: (merge char>?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (string->list "old")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (string->list "toe"))) ![<graphic>](ch2_0.gif) "tooled"`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The merge sorting algorithm is simple and elegant. The input list is split into
+    two approximately equal sublists. These sublists are sorted recursively, yielding
+    two sorted lists. The sorted lists are then merged to form a single sorted list.
+    The base case for the recursion is a list of one element, which is already sorted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To reduce overhead, the implementation computes the length of the input list
+    once, in `sort`, rather than at each step of the recursion, in `dosort`. This
+    also allows `dosort` to isolate the first half of the list merely by halving the
+    length, saving the cost of allocating a new list containing half of the elements.
+    As a result, `ls` may contain more than `n` elements, but only the first `n` elements
+    are considered part of the list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl sort)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export sort merge)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define dosort
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (pred? ls n)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (= n 1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list (car ls))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([i (div n 2)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (domerge pred?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (dosort pred? ls i)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (dosort pred? (list-tail ls i) (- n i)))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define domerge
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (pred? l1 l2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? l1) l2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? l2) l1]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(pred? (car l2) (car l1))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (car l2) (domerge pred? l1 (cdr l2)))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (cons (car l1) (domerge pred? (cdr l1) l2))])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define sort
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (pred? l)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? l) l (dosort pred? l (length l)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define merge
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (pred? l1 l2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (domerge pred? l1 l2))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.2.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In `dosort`, when `n` is 1, why is `(list (car ls))` returned instead of just
+    `ls`? How much allocation would be saved overall by replacing `(list (car ls))`
+    with `(if (null? (cdr ls)) ls (list (car ls)))`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.2.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: How much work is actually saved by not copying the first part of the input list
+    when splitting it in `dosort`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.2.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: All or nearly all allocation could be saved if the algorithm were to work destructively,
+    using `set-cdr!` to separate and join lists. Write destructive versions `sort!`
+    and `merge!` of the `sort` and `merge`. Determine the difference between the two
+    sets of procedures in terms of allocation and run time for various inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.3\. A Set Constructor
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This example describes a syntactic extension, `set-of`, that allows the construction
+    of sets represented as lists with no repeated elements [[22](bibliography.html#g240)].
+    It uses `define-syntax` and `syntax-rules` to compile set expressions into recursion
+    expressions. The expanded code is often as efficient as that which can be produced
+    by hand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `set-of` expression takes the following form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of *expr* *clause* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*expr*` describes the elements of the set in terms of the bindings established
+    by the `set-of` clauses `*clause* ...`. Each `*clause*` can take one of three
+    forms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A clause of the form `(*x* in *s*)` establishes a binding for `*x*` to each
+    element of the set `*s*` in turn. This binding is visible within the remaining
+    clauses and the expression `*expr*`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A clause of the form `(*x* is *e*)` establishes a binding for `*x*` to `*e*`.
+    This binding is visible within the remaining clauses and the expression `*expr*`.
+    This form is essentially an abbreviation for `(*x* in (list *e*))`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A clause taking any other form is treated as a predicate; this is used to force
+    refusal of certain elements as in the second of the examples below.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`(set-of x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (x in '(a b c))) ![<graphic>](ch2_0.gif) (a b c)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-of x
+  prefs: []
+  type: TYPE_NORMAL
+- en: (x in '(1 2 3 4))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (even? x)) ![<graphic>](ch2_0.gif) (2 4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-of (cons x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (x in '(1 2 3))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (y is (* x x))) ![<graphic>](ch2_0.gif) ((1 . 1) (2 . 4) (3 . 9))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of (cons x y)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (x in '(a b))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (y in '(1 2))) ![<graphic>](ch2_0.gif) ((a . 1) (a . 2) (b . 1) (b . 2))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `set-of` expression is transformed into nested `let`, named `let`, and `if`
+    expressions, corresponding to each `is`, `in`, or predicate subexpression. For
+    example, the simple expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of x (x in ''(a b c)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is transformed into
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let loop ([set ''(a b c)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x (car set)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cons x (loop (cdr set))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of x (x in ''(1 2 3 4)) (even? x))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is transformed into
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let loop ([set ''(1 2 3 4)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x (car set)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (even? x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cons x (loop (cdr set)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (cdr set))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The more complicated expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of (cons x y) (x in ''(1 2 3)) (y is (* x x)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is transformed into
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let loop ([set ''(1 2 3)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x (car set)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([y (* x x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cons (cons x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (cdr set)))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the expression
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(set-of (cons x y) (x in ''(a b)) (y in ''(1 2)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'is transformed into nested named `let` expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let loop1 ([set1 ''(a b)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x (car set1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop2 ([set2 '(1 2)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop1 (cdr set1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([y (car set2)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cons (cons x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop2 (cdr set2)))))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are fairly straightforward transformations, except that the base case
+    for the recursion on nested named `let` expressions varies depending upon the
+    level. The base case for the outermost named `let` is always the empty list `()`,
+    while the base case for an internal named `let` is the recursion step for the
+    next outer named `let`. In order to handle this, the definition of `set-of` employs
+    a help syntactic extension `set-of-help`. `set-of-help` takes an additional expression,
+    `base`, which is the base case for recursion at the current level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl sets)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export set-of set-cons in is)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; set-of uses helper syntactic extension set-of-help, passing it
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; an initial base expression of '()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax set-of
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e m ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-of-help e '() m ...)]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; set-of-help recognizes in, is, and predicate expressions and
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; changes them into nested named let, let, and if expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax set-of-help
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules (in is)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e base) (set-cons e base)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e base (x in s) m ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([set s])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? set)
+  prefs: []
+  type: TYPE_NORMAL
+- en: base
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x (car set)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-of-help e (loop (cdr set)) m ...))))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e base (x is y) m ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x y]) (set-of-help e base m ...))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e base p m ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if p (set-of-help e base m ...) base)]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; since in and is are used as auxiliary keywords by set-of, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; library must export definitions for them as well
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax in
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-violation 'in "misplaced auxiliary keyword" x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax is
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-violation 'is "misplaced auxiliary keyword" x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; set-cons returns the original set y if x is already in y.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define set-cons
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (memv x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: y
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons x y)))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.3.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Write a procedure, `union`, that takes an arbitrary number of sets (lists)
+    as arguments and returns the union of the sets, using only the `set-of` syntactic
+    form. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(union) ![<graphic>](ch2_0.gif) ()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (union '(a b c)) ![<graphic>](ch2_0.gif) (a b c)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (union '(2 5 4) '(9 4 3)) ![<graphic>](ch2_0.gif) (2 5 9 4 3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (union '(1 2) '(2 4) '(4 8)) ![<graphic>](ch2_0.gif) (1 2 4 8)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.3.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A single-list version of `map` can (almost) be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define map1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (f ls)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-of (f x) (x in ls))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (map1 - '(1 2 3 2)) ![<graphic>](ch2_0.gif) (-1 -3 -2)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does this not work? What could be changed to make it work?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.3.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Devise a different definition of `set-cons` that maintains sets in some sorted
+    order, making the test for set membership, and hence `set-cons` itself, potentially
+    more efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.4\. Word Frequency Counting
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This program demonstrates several basic programming techniques, including string
+    and character manipulation, file input/output, data structure manipulation, and
+    recursion. The program is adapted from Chapter 6 of *The C Programming Language* [[19](bibliography.html#g237)].
+    One reason for using this particular example is to show how a C program might
+    look when converted almost literally into Scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A few differences between the Scheme program and the original C program are
+    worth noting. First, the Scheme version employs a different protocol for file
+    input and output. Rather than implicitly using the standard input and output ports,
+    it requires that filenames be passed in, thus demonstrating the opening and closing
+    of files. Second, the procedure `get-word` returns one of three values: a string
+    (the word), a nonalphabetic character, or an eof value. The original C version
+    returned a flag for letter (to say that a word was read) or a nonalphabetic character.
+    Furthermore, the C version passed in a string to fill and a limit on the number
+    of characters in the string; the Scheme version builds a new string of whatever
+    length is required (the characters in the word are held in a list until the end
+    of the word has been found, then converted into a string with `list->string`).
+    Finally, `char-type` uses the primitive Scheme character predicates `char-alphabetic?`
+    and `char-numeric?` to determine whether a character is a letter or digit.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main program, `frequency`, takes an input filename and an output filename
+    as arguments, e.g., `(frequency "pickle" "freq.out")` prints the frequency count
+    for each word in the file "pickle" to the file "freq.out." As `frequency` reads
+    words from the input file, it inserts them into a binary tree structure (using
+    a binary sorting algorithm). Duplicate entries are recorded by incrementing the
+    count associated with each word. Once end of file is reached, the program traverses
+    the tree, printing each word with its count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assume that the file "pickle" contains the following text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Peter Piper picked a peck of pickled peppers;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A peck of pickled peppers Peter Piper picked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If Peter Piper picked a peck of pickled peppers,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where's the peck of pickled peppers Peter Piper picked?`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, after typing `(frequency "pickle" "freq.out")`, the file "freq.out" should
+    contain the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1 A'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 If
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 Peter
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 Piper
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 Where
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 a
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 of
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 peck
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 peppers
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 picked
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 pickled
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 s
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 the`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code for the word-counting program is structured as a top-level program,
+    with the script header recommended in the scripts chapter of the nonnormative
+    appendices to the Revised⁶ Report [[25](bibliography.html#g243)]. It takes the
+    names of input and output files from the command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#! /usr/bin/env scheme-script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; If the next character on p is a letter, get-word reads a word
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; from p and returns it in a string.  If the character is not a
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; letter, get-word returns the character (on eof, the eof-object).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define get-word
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([c (get-char p)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (eq? (char-type c) 'letter)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list->string
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([c c])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons
+  prefs: []
+  type: TYPE_NORMAL
+- en: c
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (memq (char-type (lookahead-char p))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(letter digit))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (get-char p))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()))))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: c))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; char-type tests for the eof-object first, since the eof-object
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; may not be a valid argument to char-alphabetic? or char-numeric?
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; It returns the eof-object, the symbol letter, the symbol digit,
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; or the argument itself if it is not a letter or digit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define char-type
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (c)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(eof-object? c) c]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(char-alphabetic? c) ''letter]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(char-numeric? c) ''digit]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else c])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; Tree nodes are represented as a record type with four fields: word,
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; left, right, and count.  Only one field, word, is initialized by an
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; argument to the constructor procedure make-tnode.  The remaining
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; fields are initialized by the constructor and changed by subsequent
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-record-type tnode
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fields (immutable word)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mutable left)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mutable right)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mutable count))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (protocol
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (word)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (new word '() '() 1)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; If the word already exists in the tree, tree increments its
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; count.  Otherwise, a new tree node is created and put into the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; tree.  In any case, the new or modified tree is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define tree
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (node word)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? node) (make-tnode word)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(string=? word (tnode-word node))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tnode-count-set! node (+ (tnode-count node) 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: node]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(string<? word (tnode-word node))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tnode-left-set! node (tree (tnode-left node) word))
+  prefs: []
+  type: TYPE_NORMAL
+- en: node]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tnode-right-set! node (tree (tnode-right node) word))
+  prefs: []
+  type: TYPE_NORMAL
+- en: node])))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; tree-print prints the tree in "in-order," i.e., left subtree,
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; then node, then right subtree.  For each word, the count and the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; word are printed on a single line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define tree-print
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (node p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unless (null? node)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tree-print (tnode-left node) p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-datum p (tnode-count node))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\space)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string p (tnode-word node))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (newline p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (tree-print (tnode-right node) p))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; frequency is the driver routine.  It opens the files, reads the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; words, and enters them into the tree.  When the input port
+  prefs: []
+  type: TYPE_NORMAL
+- en: ;;; reaches end-of-file, it prints the tree and closes the ports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define frequency
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (infn outfn)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([ip (open-file-input-port infn (file-options)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (buffer-mode block) (native-transcoder))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[op (open-file-output-port outfn (file-options)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (buffer-mode block) (native-transcoder))])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([root '()])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([w (get-word ip)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(eof-object? w) (tree-print root op)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(string? w) (loop (tree root w))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (loop root)])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (close-port ip)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (close-port op))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unless (= (length (command-line)) 3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string (current-error-port) "usage: ")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string (current-error-port) (car (command-line)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string (current-error-port) " input-filename output-filename\n")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exit #f))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (frequency (cadr (command-line)) (caddr (command-line)))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the output file shown earlier, the capitalized words appeared before the
+    others in the output file, and the capital `A` was not recognized as the same
+    word as the lower-case `a`. Modify `tree` to use the case-insensitive versions
+    of the string comparisons so that this does not happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The "word" `s` appears in the file "freq.out," although it is really just a
+    part of the contraction `Where's`. Adjust `get-word` to allow embedded single
+    quote marks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Modify this program to "weed out" certain common words such as `a`, `an`, `the`,
+    `is`, `of`, etc., in order to reduce the amount of output for long input files.
+    Try to devise other ways to cut down on useless output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '`get-word` buffers characters in a list, allocating a new pair (with `cons`)
+    for each character. Make it more efficient by using a string to buffer the characters.
+    Devise a way to allow the string to grow if necessary. [*Hint*: Use `string-append`
+    or a string output port.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `tree` implementation works by creating trees and later filling in their
+    `left` and `right` fields. This requires many unnecessary assignments. Rewrite
+    the `tree` procedure to avoid `tree-left-set!` and `tree-right-set!` entirely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.4.6
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Recode the program to use a hashtable (Section [6.13](objects.html#g119)) in
+    place of a binary tree, and compare the running times of the new and old programs
+    on large input files. Are hashtables always faster or always slower? Is there
+    a break-even point? Does the break-even point depend on the size of the file or
+    on some other characteristic of the file?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.5\. Scheme Printer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Printing Scheme objects may seem like a complicated process, but in fact a rudimentary
+    printer is straightforward, as this example demonstrates. `put-datum`, `write`,
+    and `display` are all implemented by the same code. Sophisticated printers often
+    support various printer controls and handle printing of cyclic objects, but the
+    one given here is completely basic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main driver for the program is a procedure `wr`, which takes an object to
+    print `x`, a flag `d?`, and a port `p`. The flag `d?` (for display) is `#t` if
+    the code is to *display* the object, `#f` otherwise. The `d?` flag is important
+    only for characters and strings. Recall from Section [7.8](io.html#g129) that
+    `display` prints strings without the enclosing quote marks and characters without
+    the `#\` syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The entry points for `write` and `display` handle the optionality of the second
+    (port) argument, passing the value of `current-output-port` when no port argument
+    is provided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Procedures, ports, and the end-of-file object are printed as `#<procedure>`,
+    `#<port>`, and `#<eof>`. Unrecognized types of values are printed as `#<unknown>`.
+    So, for example, a hashtable, enumeration set, and object of some implementation-specific
+    type will all print as `#<unknown>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl printer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export put-datum write display)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (except (rnrs) put-datum write display))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; define these here to avoid confusing paren-balancers
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define lparen #\()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define rparen #\))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; wr is the driver, dispatching on the type of x
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wr
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(symbol? x) (put-string p (symbol->string x))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(pair? x) (wrpair x d? p)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(number? x) (put-string p (number->string x))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? x) (put-string p "()")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(boolean? x) (put-string p (if x "#t" "#f"))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(char? x) (if d? (put-char p x) (wrchar x p))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(string? x) (if d? (put-string p x) (wrstring x p))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(vector? x) (wrvector x d? p)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(bytevector? x) (wrbytevector x d? p)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(eof-object? x) (put-string p "#<eof>")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(port? x) (put-string p "#<port>")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(procedure? x) (put-string p "#<procedure>")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (put-string p "#<unknown>")])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; wrpair handles pairs and nonempty lists
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wrpair
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p lparen)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([x x])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (wr (car x) d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(pair? (cdr x)) (put-char p #\space) (loop (cdr x))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? (cdr x))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (put-string p " . ") (wr (cdr x) d? p)]))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p rparen)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; wrchar handles characters.  Used only when d? is #f.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wrchar
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string p "#\\")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(assq x ''((#\alarm . "alarm") (#\backspace . "backspace")'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (#\delete . "delete") (#\esc . "esc")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (#\newline . "newline") (#\nul . "nul")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (#\page . "page") (#\return . "return")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (#\space . "space") (#\tab . "tab")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (#\vtab . "vtab"))) =>
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (a) (put-string p (cdr a)))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (put-char p x)])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; wrstring handles strings.  Used only when d? is #f.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wrstring
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([n (string-length x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([i 0 (+ i 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i n))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([c (string-ref x i)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case c
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\alarm) (put-string p "\\a")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\backspace) (put-string p "\\b")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\newline) (put-string p "\\n")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\page) (put-string p "\\f")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\return) (put-string p "\\r")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\tab) (put-string p "\\t")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\vtab) (put-string p "\\v")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\") (put-string p "\\\"")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\\) (put-string p "\\\\")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (put-char p c)]))))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\")))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wrvector
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\#)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([n (vector-length x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([i 0 (+ i 1)] [sep lparen #\space])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i n))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p sep)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (wr (vector-ref x i) d? p)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p rparen)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define wrbytevector
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string p "#vu8")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([n (bytevector-length x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do ([i 0 (+ i 1)] [sep lparen #\space])
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((= i n))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p sep)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (wr (bytevector-u8-ref x i) d? p)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p rparen)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; check-and-wr is called when the port is supplied
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define check-and-wr
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (who x d? p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unless (and (output-port? p) (textual-port? p))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (assertion-violation who "invalid argument" p))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (wr x d? p)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; put-datum calls wr with d? set to #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define put-datum
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (p x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (check-and-wr 'put-datum x #f p)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; write calls wr with d? set to #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define write
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case-lambda
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(x) (wr x #f (current-output-port))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(x p) (check-and-wr ''write x #f p)]))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; display calls wr with d? set to #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define display
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case-lambda
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(x) (wr x #t (current-output-port))]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(x p) (check-and-wr ''display x #t p)])))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.5.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Numbers are printed with the help of `number->string`. Correct printing of all
+    Scheme numeric types, especially inexact numbers, is a complicated task. Handling
+    exact integers and ratios is fairly straightforward, however. Modify the code
+    to print exact integers and ratios numbers directly (without `number->string`),
+    but continue to use `number->string` for inexact and complex numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.5.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Modify `wr` and its helpers to direct their output to an internal buffer rather
+    than to a port. Use the modified versions to implement a procedure `object->string`
+    that, like `number->string`, returns a string containing a printed representation
+    of its input. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(object->string ''(a b c)) ![<graphic>](ch2_0.gif) "(a b c)"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (object->string "hello") ![<graphic>](ch2_0.gif) "\"hello\""`
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may be surprised just how easy this change is to make.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.5.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Some symbols are not printed properly by `wr`, including those that start with
+    digits or contain whitespace. Modify `wr` to call a `wrsymbol` helper that uses
+    hex scalar escapes as necessary to handle such symbols. A hex scalar escape takes
+    the form `#\x*n*;`, where `*n*` is the Unicode scalar value of a character expressed
+    in hexadecimal notation. Consult the grammar for symbols on page [458](grammar.html#grammar:symbols)
+    to determine when hex scalar escapes are necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.6\. Formatted Output
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'It is often necessary to print strings containing the printed representations
+    of Scheme objects, especially numbers. Doing so with Scheme''s standard output
+    routines can be tedious. For example, the `tree-print` procedure of Section [12.4](examples.html#g169)
+    requires a sequence of four calls to output routines to print a simple one-line
+    message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(put-datum p (tnode-count node))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\space)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-string p (tnode-word node))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (newline p)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The formatted output facility defined in this section allows these four calls
+    to be replaced by the single call to `fprintf` below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(fprintf p "~s ~a~%" (tnode-count node) (tnode-word node))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fprintf` expects a port argument, a *control string*, and an indefinite number
+    of additional arguments that are inserted into the output as specified by the
+    control string. In the example, the value of `(tnode-count node)` is written first,
+    in place of `~s`. This is followed by a space and the displayed value of `(tnode-word node)`,
+    in place of `~a`. The `~%` is replaced in the output with a newline.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The procedure `printf`, also defined in this section, is like `fprintf` except
+    that no port argument is expected and output is sent to the current output port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`~s`, `~a`, and `~%` are *format directives*; `~s` causes the first unused
+    argument after the control string to be printed to the output via `write`, `~a`
+    causes the first unused argument to be printed via `display`, and `~%` simply
+    causes a newline character to be printed. The simple implementation of `fprintf`
+    below recognizes only one other format directive, `~~`, which inserts a tilde
+    into the output. For example,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(printf "The string ~s displays as ~~.~%" "~")`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: prints
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`The string "~" displays as ~.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl formatted-output)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export printf fprintf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; dofmt does all of the work.  It loops through the control string
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; recognizing format directives and printing all other characters
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; without interpretation.  A tilde at the end of a control string is
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; treated as an ordinary character.  No checks are made for proper
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; inputs.  Directives may be given in either lower or upper case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define dofmt
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (p cntl args)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([nmax (- (string-length cntl) 1)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([n 0] [a args])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (<= n nmax)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([c (string-ref cntl n)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (and (char=? c #\~) (< n nmax))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case (string-ref cntl (+ n 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\a #\A)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (display (car a) p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (+ n 2) (cdr a))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\s #\S)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (write (car a) p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (+ n 2) (cdr a))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\%)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (newline p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (+ n 2) a)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(#\~)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p #\~) (loop (+ n 2) a)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p c) (loop (+ n 1) a)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (begin
+  prefs: []
+  type: TYPE_NORMAL
+- en: (put-char p c)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (+ n 1) a)))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; printf and fprintf differ only in that fprintf passes its
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; port argument to dofmt while printf passes the current output
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define printf
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (control . args)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (dofmt (current-output-port) control args)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define fprintf
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (p control . args)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (dofmt p control args))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add error checking to the code for invalid port arguments (`fprintf`), invalid
+    tilde escapes, and extra or missing arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Using the optional radix argument to `number->string`, augment `printf` and
+    `fprintf` with support for the following new format directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| *  a*. | `~b` or `~B`: print the next unused argument, which must be a number,
+    in binary; |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *  b*. | `~o` or `~O`: print the next unused argument, which must be a number,
+    in octal; and |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *  c*. | `~x` or `~X`: print the next unused argument, which must be a number,
+    in hexadecimal. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(printf "#x~x #o~o #b~b~%" 16 8 2)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: would print
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#x10 #o10 #b10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Add an "indirect" format directive, `~@`, that treats the next unused argument,
+    which must be a string, as if it were spliced into the current format string.
+    For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(printf "--- ~@ ---" "> ~s <" ''(a b c))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: would print
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`---> (a b c) <---`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Implement `format`, a version of `fprintf` that places its output into a string
+    instead of writing to a port. Make use of `object->string` from Exercise [12.5.2](examples.html#g178)
+    to support the `~s` and `~a` directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let ([x 3] [y 4])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (format "~s + ~s = ~s" x y (+ x y))) ![<graphic>](ch2_0.gif) "3 + 4 = 7"`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Instead of using `object->string`, define `format` using a string output port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.6.6
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Modify `format`, `fprintf`, and `printf` to allow a field size to be specified
+    after the tilde in the `~a` and `~s` format directives. For example, the directive
+    `~10s` would cause the next unused argument to be inserted into the output left-justified
+    in a field of size 10. If the object requires more spaces than the amount specified,
+    allow it to extend beyond the field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let ([x ''abc] [y ''(def)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (format "(cons '~5s '~5s) = ~5s"
+  prefs: []
+  type: TYPE_NORMAL
+- en: x y (cons x y))) ![<graphic>](ch2_0.gif) "(cons 'abc   '(def)) = (abc def)"`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Hint*: Use `format` recursively.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.7\. A Meta-Circular Interpreter for Scheme
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The program described in this section is a *meta-circular* interpreter for Scheme,
+    i.e., it is an interpreter *for* Scheme written *in* Scheme. The interpreter shows
+    how small Scheme is when the core structure is considered independently from its
+    syntactic extensions and primitives. It also illustrates interpretation techniques
+    that can be applied equally well to languages other than Scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The relative simplicity of the interpreter is somewhat misleading. An interpreter
+    for Scheme written in Scheme can be quite a bit simpler than one written in most
+    other languages. Here are a few reasons why this one is simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tail calls are handled properly only because tail calls in the interpreter are
+    handled properly by the host implementation. All that is required is that the
+    interpreter itself be tail-recursive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: First-class procedures in interpreted code are implemented by first-class procedures
+    in the interpreter, which in turn are supported by the host implementation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: First-class continuations created with `call/cc` are provided by the host implementation's
+    `call/cc`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primitive procedures such as `cons` and `assq` and services such as storage
+    management are provided by the host implementation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Converting the interpreter to run in a language other than Scheme may require
+    explicit support for some or all of these items.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interpreter stores lexical bindings in an *environment*, which is simply
+    an *association list* (see page [165](objects.html#page:assq)). Evaluation of
+    a `lambda` expression results in the creation of a procedure within the scope
+    of variables holding the environment and the `lambda` body. Subsequent application
+    of the procedure combines the new bindings (the actual parameters) with the saved
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interpreter handles only the core syntactic forms described in Section [3.1](further.html#g50),
+    and it recognizes bindings for only a handful of primitive procedures. It performs
+    no error checking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(interpret 3) ![<graphic>](ch2_0.gif) 3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interpret '(cons 3 4)) ![<graphic>](ch2_0.gif) (3 . 4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interpret
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''((lambda (x . y)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list x y))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''a ''b ''c ''d)) ![<graphic>](ch2_0.gif) (a (b c d))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interpret
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(((call/cc (lambda (k) k))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) x))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"HEY!")) ![<graphic>](ch2_0.gif) "HEY!"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interpret
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''((lambda (memq)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (memq memq 'a '(b c a d e)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (memq x ls)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? ls) #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (eq? (car ls) x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ls
+  prefs: []
+  type: TYPE_NORMAL
+- en: (memq memq x (cdr ls))))))) ![<graphic>](ch2_0.gif) (a d e)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interpret
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''((lambda (reverse)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! reverse
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ls new)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? ls)
+  prefs: []
+  type: TYPE_NORMAL
+- en: new
+  prefs: []
+  type: TYPE_NORMAL
+- en: (reverse (cdr ls) (cons (car ls) new)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (reverse '(a b c d e) '()))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#f)) ![<graphic>](ch2_0.gif) (e d c b a)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl interpreter)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export interpret)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs) (rnrs mutable-pairs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; primitive-environment contains a small number of primitive
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; procedures; it can be extended easily with additional primitives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define primitive-environment
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`((apply . ,apply) (assq . ,assq) (call/cc . ,call/cc)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (car . ,car) (cadr . ,cadr) (caddr . ,caddr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cadddr . ,cadddr) (cddr . ,cddr) (cdr . ,cdr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons . ,cons) (eq? . ,eq?) (list . ,list) (map . ,map)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (memv . ,memv) (null? . ,null?) (pair? . ,pair?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (read . ,read) (set-car! . ,set-car!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cdr! . ,set-cdr!) (symbol? . ,symbol?)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; new-env returns a new environment from a formal parameter
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; specification, a list of actual parameters, and an outer
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; environment.  The symbol? test identifies "improper"
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; argument lists.  Environments are association lists,
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; associating variables with values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define new-env
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (formals actuals env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(null? formals) env]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(symbol? formals) (cons (cons formals actuals) env)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (car formals) (car actuals))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (new-env (cdr formals) (cdr actuals) env))])))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; lookup finds the value of the variable var in the environment
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; env, using assq.  Assumes var is bound in env.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define lookup
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (var env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cdr (assq var env))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; assign is similar to lookup but alters the binding of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; variable var by changing the cdr of the association pair
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define assign
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (var val env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cdr! (assq var env) val)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; exec evaluates the expression, recognizing a small set of core forms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define exec
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (expr env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(symbol? expr) (lookup expr env)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(pair? expr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case (car expr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(quote) (cadr expr)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(lambda)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda vals
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([env (new-env (cadr expr) vals env)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([exprs (cddr expr)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? (cdr exprs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec (car exprs) env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (begin
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec (car exprs) env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (cdr exprs)))))))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(if)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (exec (cadr expr) env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec (caddr expr) env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec (cadddr expr) env))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(set!) (assign (cadr expr) (exec (caddr expr) env) env)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (apply
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec (car expr) env)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (map (lambda (x) (exec x env)) (cdr expr)))])]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else expr])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; interpret starts execution with the primitive environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define interpret
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (expr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (exec expr  primitive-environment))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.7.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'As written, the interpreter cannot interpret itself because it does not support
+    several of the syntactic forms used in its implementation: `let` (named and unnamed),
+    internal `define`, `case`, `cond`, and `begin`. Rewrite the code for the interpreter,
+    using only the syntactic forms it supports.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.7.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: After completing the preceding exercise, use the interpreter to run a copy of
+    the interpreter, and use the copy to run another copy of the interpreter. Repeat
+    this process to see how many levels deep it will go before the system grinds to
+    a halt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.7.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: At first glance, it might seem that the `lambda` case could be written more
+    simply as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[(lambda)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda vals
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([env (new-env (cadr expr) vals env)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([exprs (cddr expr)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([val (exec (car exprs) env)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? (cdr exprs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: val
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (cdr exprs)))))))]`
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why would this be incorrect? [*Hint*: What property of Scheme would be violated?]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.7.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Try to make the interpreter more efficient by looking for ways to ask fewer
+    questions or to allocate less storage space. [*Hint*: Before evaluation, convert
+    lexical variable references into `(access *n*)`, where `*n*` represents the number
+    of values in the environment association list in front of the value in question.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.7.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Scheme evaluates arguments to a procedure before applying the procedure and
+    applies the procedure to the values of these arguments (*call-by-value*). Modify
+    the interpreter to pass arguments unevaluated and arrange to evaluate them upon
+    reference (*call-by-name*). [*Hint*: Use `lambda` to delay evaluation.] You will
+    need to create versions of the primitive procedures (`car`, `null?`, etc.) that
+    take their arguments unevaluated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.8\. Defining Abstract Objects
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This example demonstrates a syntactic extension that facilitates the definition
+    of simple abstract objects (see Section [2.9](start.html#g40)). This facility
+    has unlimited potential as the basis for a complete object-oriented subsystem
+    in Scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstract objects are similar to basic data structures such as pairs and vectors.
+    Rather than being manipulated via access and assignment operators, however, abstract
+    objects respond to *messages*. The valid messages and the actions to be taken
+    for each message are defined by code within the object itself rather than by code
+    outside the object, resulting in more modular and potentially more secure programming
+    systems. The data local to an abstract object is accessible only through the actions
+    performed by the object in response to the messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A particular type of abstract object is defined with `define-object`, which
+    has the general form
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-object (*name* *var[1]* ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((*var[2]* *expr*) ...)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((*msg* *action*) ...))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first set of bindings `((*var[2]* *expr*) ...)` may be omitted. `define-object`
+    defines a procedure that is called to create new abstract objects of the given
+    type. This procedure is called `*name*`, and the arguments to this procedure become
+    the values of the local variables `*var[1]* ...`. After the procedure is invoked,
+    the variables `*var[2]* ...` are bound to the values `*expr* ...` in sequence
+    (as with `let*`) and the messages `*msg* ...` are bound to the procedure values
+    `*action* ...` in a mutually recursive fashion (as with `letrec`). Within these
+    bindings, the new abstract object is created; this object is the value of the
+    creation procedure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The syntactic form `send-message` is used to send messages to abstract objects.
+    `(send-message *object* *msg* *arg* ...)` sends `*object*` the message `*msg*`
+    with arguments `*arg* ...`. When an object receives a message, the `*arg* ...`
+    become the parameters to the action procedure associated with the message, and
+    the value returned by this procedure is returned by `send-message`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following examples should help to clarify how abstract objects are defined
+    and used. The first example is a simple `kons` object that is similar to Scheme's
+    built-in pair object type, except that to access or assign its fields requires
+    sending it messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-object (kons kar kdr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((get-car (lambda () kar))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (get-cdr (lambda () kdr))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-car! (lambda (x) (set! kar x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cdr! (lambda (x) (set! kdr x)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define p (kons 'a 'b))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-car) ![<graphic>](ch2_0.gif) a
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-cdr) ![<graphic>](ch2_0.gif) b
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p set-cdr! 'c)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-cdr) ![<graphic>](ch2_0.gif) c`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple `kons` object does nothing but return or assign one of the fields
+    as requested. What makes abstract objects interesting is that they can be used
+    to restrict access or perform additional services. The following version of `kons`
+    requires that a password be given with any request to assign one of the fields.
+    This password is a parameter to the `kons` procedure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-object (kons kar kdr pwd)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((get-car (lambda () kar))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (get-cdr (lambda () kar))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-car!
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (string=? p pwd)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! kar x))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set-cdr!
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x p)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (string=? p pwd)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! kar x))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define p1 (kons 'a 'b "magnificent"))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p1 set-car! 'c "magnificent")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p1 get-car) ![<graphic>](ch2_0.gif) c
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p1 set-car! 'd "please")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p1 get-car) ![<graphic>](ch2_0.gif) c
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define p2 (kons 'x 'y "please"))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p2 set-car! 'z "please")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p2 get-car) ![<graphic>](ch2_0.gif) z`
+  prefs: []
+  type: TYPE_NORMAL
+- en: One important ability of an abstract object is that it can keep statistics on
+    messages sent to it. The following version of `kons` counts accesses to the two
+    fields. This version also demonstrates the use of explicitly initialized local
+    bindings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-object (kons kar kdr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((count 0))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((get-car
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: kar))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (get-cdr
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: kdr))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (accesses
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () count))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define p (kons 'a 'b))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-car) ![<graphic>](ch2_0.gif) a
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-cdr) ![<graphic>](ch2_0.gif) b
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p accesses) ![<graphic>](ch2_0.gif) 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p get-cdr) ![<graphic>](ch2_0.gif) b
+  prefs: []
+  type: TYPE_NORMAL
+- en: (send-message p accesses) ![<graphic>](ch2_0.gif) 3`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of `define-object` is straightforward. The object definition
+    is transformed into a definition of the object creation procedure. This procedure
+    is the value of a `lambda` expression whose arguments are those specified in the
+    definition. The body of the `lambda` consists of a `let*` expression to bind the
+    local variables and a `letrec` expression to bind the message names to the action
+    procedures. The body of the `letrec` is another `lambda` expression whose value
+    represents the new object. The body of this `lambda` expression compares the messages
+    passed in with the expected messages using a `case` expression and applies the
+    corresponding action procedure to the remaining arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the definition
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-object (kons kar kdr)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((count 0))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((get-car
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: kar))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (get-cdr
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: kdr))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (accesses
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () count))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: is transformed into
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define kons'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (kar kdr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let* ([count 0])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (letrec ([get-car
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1)) kar)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[get-cdr'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! count (+ count 1)) kdr)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[accesses (lambda () count)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (msg . args)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case msg
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(get-car) (apply get-car args)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(get-cdr) (apply get-cdr args)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(accesses) (apply accesses args)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (assertion-violation ''kons'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"invalid message"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons msg args))]))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl oop)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export define-object send-message)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; define-object creates an object constructor that uses let* to bind
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; local fields and letrec to define the exported procedures.  An
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; object is itself a procedure that accepts messages corresponding
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; to the names of the exported procedures.  The second pattern is
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; used to allow the set of local fields to be omitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax define-object
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ (name . varlist)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((var1 val1) ...)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((var2 val2) ...))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define name
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda varlist
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let* ([var1 val1] ...)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (letrec ([var2 val2] ...)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (msg . args)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (case msg
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(var2) (apply var2 args)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (assertion-violation 'name
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"invalid message"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons msg args))]))))))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ (name . varlist) ((var2 val2) ...))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-object (name . varlist)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((var2 val2) ...))]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; send-message abstracts the act of sending a message from the act
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; of applying a procedure and allows the message to be unquoted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax send-message
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ obj msg arg ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (obj 'msg arg ...)])))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.8.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Use `define-object` to define the `stack` object type from Section [2.9](start.html#g40).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.8.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Use `define-object` to define a `queue` object type with operations similar
+    to those described in Section [2.9](start.html#g40).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.8.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: It is often useful to describe one object in terms of another. For example,
+    the second `kons` object type could be described as the same as the first but
+    with a password argument and different actions associated with the `set-car!`
+    and `set-cdr!` messages. This is called *inheritance*; the new type of object
+    is said to *inherit* attributes from the first. Modify `define-object` to support
+    inheritance by allowing the optional declaration `(inherit object-name)` to appear
+    after the message/action pairs. This will require saving some information about
+    each object definition for possible use in subsequent object definitions. Conflicting
+    argument names should be disallowed, but other conflicts should be resolved by
+    using the initialization or action specified in the new object definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.8.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Based on the definition of `method` on page [317](syntax.html#defn:method),
+    define a complete object system, but use records rather than vectors to represent
+    object instances. If done well, the resulting object system should be more efficient
+    and easier to use than the system given above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.9\. Fast Fourier Transform
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The procedure described in this section uses Scheme's complex arithmetic to
+    compute the discrete *Fourier transform* (DFT) of a sequence of values [[4](bibliography.html#g222)].
+    Discrete Fourier transforms are used to analyze and process sampled signal sequences
+    in a wide variety of digital electronics applications such as pattern recognition,
+    bandwidth compression, radar target detection, and weather surveillance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The DFT of a sequence of *N* input values,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{*x*(*n*)}[*n*=0]^(*N*-1),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is the sequence of *N* output values,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{*X*(*m*)}[*m*=0]^(*N*-1),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: each defined by the equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](32.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: It is convenient to abstract away the constant amount (for given *N*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](33.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: in order to obtain the more concise but equivalent equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](34.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: A straightforward computation of the *N* output values, each as a sum of *N*
+    intermediate values, requires on the order of *N*² operations. A *fast* Fourier
+    transform (FFT), applicable when *N* is a power of 2, requires only on the order
+    of *N*log[2]*N* operations. Although usually presented as a rather complicated
+    iterative algorithm, the fast Fourier transform is most concisely and elegantly
+    expressed as a recursive algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recursive algorithm, which is due to Sam Daniel [[7](bibliography.html#g225)],
+    can be derived by manipulating the preceding summation as follows. We first split
+    the summation into two summations and recombine them into one summation from 0
+    to *N*/2 - 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](35.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: We then pull out the common factor ![<graphic>](36.gif).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](37.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can reduce ![<graphic>](38.gif) to 1 when *m* is even and -1 when *m* is
+    odd, since
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](39.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: This allows us to specialize the summation for the even and odd cases of *m*
+    = 2*k* and *m* = 2*k* + 1, 0 ≤ *k* ≤ *N*/2 - 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](40.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: The resulting summations are DFTs of the *N*/2-element sequences
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{*x*(*n*) + *x*(*n* + *N*/2)}[*n*=0]^(*N*/2-1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](41.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: Thus, the DFT of an N-element sequence can be computed recursively by interlacing
+    the DFTs of two *N*/2-element sequences. If we select a base case of two elements,
+    we can describe a recursive fast Fourier transformation (RFFT) algorithm as follows.
+    For *N* = 2,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](42.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: since ![<graphic>](43.gif). For *N* > 2,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](44.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: with the attendant interlacing of even and odd components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](45.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: The diagram above is adapted from one by Sam Daniel [[7](bibliography.html#g225)]
+    and shows the computational structure of the RFFT algorithm. The first stage computes
+    pairwise sums and differences of the first and second halves of the input; this
+    stage is labeled the *butterfly* stage. The second stage recurs on the resulting
+    subsequences. The third stage interlaces the output of the two recursive calls
+    to RFFT, thus yielding the properly ordered sequence {*X*(*m*)}[*m*=0]^(*N*-1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The procedure `dft` accepts a sequence (list) of values, `x`, the length of
+    which is assumed to be a power of 2. `dft` precomputes a sequence of powers of
+    ![<graphic>](46.gif), ![<graphic>](47.gif), and calls `rfft` to initiate the recursion.
+    `rfft` follows the algorithm outlined above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define (dft x)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (w-powers n)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([pi (* (acos 0.0) 2)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([delta (/ (* -2.0i pi) n)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let f ([n n] [x 0.0])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (= n 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (exp x) (f (- n 2) (+ x delta))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (evens w)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? w)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (car w) (evens (cddr w)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (interlace x y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (car x) (cons (car y) (interlace (cdr x) (cdr y))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (split ls)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let split ([fast ls] [slow ls])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? fast)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (values '() slow)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let-values ([(front back) (split (cddr fast) (cdr slow))])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (values (cons (car slow) front) back)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (butterfly x w)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let-values ([(front back) (split x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (values
+  prefs: []
+  type: TYPE_NORMAL
+- en: (map + front back)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (map * (map - front back) w))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define (rfft x w)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? (cddr x))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([x0 (car x)] [x1 (cadr x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list (+ x0 x1) (- x0 x1)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let-values ([(front back) (butterfly x w)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([w (evens w)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (interlace (rfft front w) (rfft back w))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (rfft x (w-powers (length x))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.9.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Alter the algorithm to employ a base case of four points. What simplifications
+    can be made to avoid multiplying any of the base case outputs by elements of `w`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.9.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Recode `dft` to accept a vector rather than a list as input, and have it produce
+    a vector as output. Use lists internally if necessary, but do not simply convert
+    the input to a list on entry and the output to a vector on exit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.9.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Rather than recomputing the powers of `w` on each step for a new number of points,
+    the code simply uses the even-numbered elements of the preceding list of powers.
+    Show that doing so yields the proper list of powers. That is, show that `(evens (w-powers n))`
+    is equal to `(w-powers (/ n 2))`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.9.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The recursion step creates several intermediate lists that are immediately discarded.
+    Recode the recursion step to avoid any unnecessary allocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.9.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Each element of a sequence of input values may be regenerated from the discrete
+    Fourier transform of the sequence via the equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![<graphic>](48.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: Noting the similarity between this equation and the original equation defining
+    *X*(*m*), create a modified version of `dft`, `inverse-dft`, that performs the
+    inverse transformation. Verify that `(inverse-dft (dft *seq*))` returns `*seq*`
+    for several input sequences `*seq*`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.10\. A Unification Algorithm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Unification* [[23](bibliography.html#g241)] is a pattern-matching technique
+    used in automated theorem proving, type-inference systems, computer algebra, and
+    logic programming, e.g., Prolog [[6](bibliography.html#g224)].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A unification algorithm attempts to make two symbolic expressions equal by computing
+    a unifying substitution for the expressions. A *substitution* is a function that
+    replaces variables with other expressions. A substitution must treat all occurrences
+    of a variable the same way, e.g., if it replaces one occurrence of the variable
+    *x* by *a*, it must replace all occurrences of *x* by *a*. A unifying substitution,
+    or *unifier*, for two expressions *e*[1] and *e*[2] is a substitution, ![<graphic>](22.gif),
+    such that ![<graphic>](49.gif).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the two expressions *f*(*x*) and *f*(*y*) can be unified by substituting
+    *x* for *y* (or *y* for *x*). In this case, the unifier ![<graphic>](22.gif) could
+    be described as the function that replaces *y* with *x* and leaves other variables
+    unchanged. On the other hand, the two expressions *x* + 1 and *y* + 2 cannot be
+    unified. It might appear that substituting 3 for *x* and 2 for *y* would make
+    both expressions equal to 4 and hence equal to each other. The symbolic expressions,
+    3 + 1 and 2 + 2, however, still differ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two expressions may have more than one unifier. For example, the expressions
+    *f*(*x*,*y*) and *f*(1,*y*) can be unified to *f*(1,*y*) with the substitution
+    of 1 for *x*. They may also be unified to *f*(1,5) with the substitution of 1
+    for *x* and 5 for *y*. The first substitution is preferable, since it does not
+    commit to the unnecessary replacement of *y*. Unification algorithms typically
+    produce the *most general unifier*, or *mgu*, for two expressions. The mgu for
+    two expressions makes no unnecessary substitutions; all other unifiers for the
+    expressions are special cases of the mgu. In the example above, the first substitution
+    is the mgu and the second is a special case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the purposes of this program, a symbolic expression can be a variable, a
+    constant, or a function application. Variables are represented by Scheme symbols,
+    e.g., `x`; a function application is represented by a list with the function name
+    in the first position and its arguments in the remaining positions, e.g., `(f x)`;
+    and constants are represented by zero-argument functions, e.g., `(a)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The algorithm presented here finds the mgu for two terms, if it exists, using
+    a continuation-passing style, or CPS (see Section [3.4](further.html#g75)), approach
+    to recursion on subterms. The procedure `unify` takes two terms and passes them
+    to a help procedure, `uni`, along with an initial (identity) substitution, a success
+    continuation, and a failure continuation. The success continuation returns the
+    result of applying its argument, a substitution, to one of the terms, i.e., the
+    unified result. The failure continuation simply returns its argument, a message.
+    Because control passes by explicit continuation within `unify` (always with tail
+    calls), a return from the success or failure continuation is a return from `unify`
+    itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Substitutions are procedures. Whenever a variable is to be replaced by another
+    term, a new substitution is formed from the variable, the term, and the existing
+    substitution. Given a term as an argument, the new substitution replaces occurrences
+    of its saved variable with its saved term in the result of invoking the saved
+    substitution on the argument expression. Intuitively, a substitution is a chain
+    of procedures, one for each variable in the substitution. The chain is terminated
+    by the initial, identity substitution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(unify ''x ''y) ![<graphic>](ch2_0.gif) y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unify '(f x y) '(g x y)) ![<graphic>](ch2_0.gif) "clash"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unify '(f x (h)) '(f (h) y)) ![<graphic>](ch2_0.gif) (f (h) (h))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unify '(f (g x) y) '(f y x)) ![<graphic>](ch2_0.gif) "cycle"
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unify '(f (g x) y) '(f y (g x))) ![<graphic>](ch2_0.gif) (f (g x) (g x))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (unify '(f (g x) y) '(f y z)) ![<graphic>](ch2_0.gif) (f (g x) (g x))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl unification)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export unify)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; occurs? returns true if and only if u occurs in v
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define occurs?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (u v)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (and (pair? v)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let f ([l (cdr v)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (and (pair? l)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (or (eq? u (car l))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (occurs? u (car l))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (f (cdr l))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; sigma returns a new substitution procedure extending s by
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; the substitution of u with v
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define sigma
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (u v s)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let f ([x (s x)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (symbol? x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (eq? x u) v x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons (car x) (map f (cdr x))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; try-subst tries to substitute u for v but may require a
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; full unification if (s u) is not a variable, and it may
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; fail if it sees that u occurs in v.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define try-subst
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (u v s ks kf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([u (s u)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (not (symbol? u))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (uni u v s ks kf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([v (s v)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(eq? u v) (ks s)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(occurs? u v) (kf "cycle")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (ks (sigma u v s))]))))))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; uni attempts to unify u and v with a continuation-passing
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; style that returns a substitution to the success argument
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; ks or an error message to the failure argument kf.  The
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; substitution itself is represented by a procedure from
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; variables to terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define uni
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (u v s ks kf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cond
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(symbol? u) (try-subst u v s ks kf)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(symbol? v) (try-subst v u s ks kf)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(and (eq? (car u) (car v))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (= (length u) (length v)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let f ([u (cdr u)] [v (cdr v)] [s s])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? u)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (ks s)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (uni (car u)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (car v)
+  prefs: []
+  type: TYPE_NORMAL
+- en: s
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (s) (f (cdr u) (cdr v) s))
+  prefs: []
+  type: TYPE_NORMAL
+- en: kf)))]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[else (kf "clash")])))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; unify shows one possible interface to uni, where the initial
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; substitution is the identity procedure, the initial success
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; continuation returns the unified term, and the initial failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; continuation returns the error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define unify
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (u v)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (uni u
+  prefs: []
+  type: TYPE_NORMAL
+- en: v
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (s) (s u))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (msg) msg)))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.10.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Modify `unify` so that it returns its substitution rather than the unified term.
+    Apply this substitution to both input terms to verify that it returns the same
+    result for each.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.10.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As mentioned above, substitutions on a term are performed sequentially, requiring
+    one entire pass through the input expression for each substituted variable. Represent
+    the substitution differently so that only one pass through the expression need
+    be made. Make sure that substitutions are performed not only on the input expression
+    but also on any expressions you insert during substitution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.10.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Extend the continuation-passing style unification algorithm into an entire continuation-passing
+    style logic programming system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 12.11\. Multitasking with Engines
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Engines are a high-level process abstraction supporting *timed preemption* [[10](bibliography.html#g228),[15](bibliography.html#g233)].
+    Engines may be used to simulate multiprocessing, implement light-weight threads,
+    implement operating system kernels, and perform nondeterministic computations.
+    The engine implementation is one of the more interesting applications of continuations
+    in Scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An engine is created by passing a thunk (procedure of no arguments) to the
+    procedure `make-engine`. The body of the thunk is the computation to be performed
+    by the engine. An engine itself is a procedure of three arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*ticks*`, a positive integer that specifies the amount of *fuel* to be given
+    to the engine. An engine executes until this fuel runs out or until its computation
+    finishes.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`*complete*`, a procedure of two arguments that specifies what to do if the
+    computation finishes. Its arguments will be the amount of fuel left over and the
+    result of the computation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`*expire*`, a procedure of one argument that specifies what to do if the fuel
+    runs out before the computation finishes. Its argument will be a new engine capable
+    of continuing the computation from the point of interruption.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When an engine is applied to its arguments, it sets up a timer to fire in `*ticks*`
+    time units. If the engine computation completes before the timer goes off, the
+    system invokes `*complete*`, passing it the number of `*ticks*` left over and
+    the value of the computation. If, on the other hand, the timer goes off before
+    the engine computation completes, the system creates a new engine from the continuation
+    of the interrupted computation and passes this engine to `*expire*`. `*complete*`
+    and `*expire*` are invoked in the continuation of the engine invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following example creates an engine from a trivial computation, 3, and gives
+    the engine 10 ticks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define eng'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () 3)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 10
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks value) value)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) x)) ![<graphic>](ch2_0.gif) 3`
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is often useful to pass `list` as the `*complete*` procedure to an engine,
+    causing the engine to return a list of the ticks remaining and the value if the
+    computation completes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(eng 10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) x)) ![<graphic>](ch2_0.gif) (9 3)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the example above, the value was 3 and there were 9 ticks left over, i.e.,
+    it took only one unit of fuel to evaluate 3. (The fuel amounts given here are
+    for illustration only. The actual amount may differ.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically, the engine computation does not finish in one try. The following
+    example displays the use of an engine to compute the 10th Fibonacci number (see
+    Section [3.2](further.html#g55)) in steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define fibonacci'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (n)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (< n 2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: n
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+ (fibonacci (- n 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fibonacci (- n 2))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define eng
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fibonacci 10))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 50
+  prefs: []
+  type: TYPE_NORMAL
+- en: list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! eng new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"expired")) ![<graphic>](ch2_0.gif) "expired"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 50
+  prefs: []
+  type: TYPE_NORMAL
+- en: list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! eng new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"expired")) ![<graphic>](ch2_0.gif) "expired"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 50
+  prefs: []
+  type: TYPE_NORMAL
+- en: list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! eng new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"expired")) ![<graphic>](ch2_0.gif) "expired"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 50
+  prefs: []
+  type: TYPE_NORMAL
+- en: list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! eng new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"expired")) ![<graphic>](ch2_0.gif) (22 55)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each time the engine's fuel ran out, the `*expire*` procedure assigned `eng`
+    to the new engine. The entire computation required four allotments of 50 ticks
+    to complete; of the last 50 it used all but 23. Thus, the total amount of fuel
+    used was 177 ticks. This leads us to the following procedure, `mileage`, which
+    uses engines to "time" a computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define mileage'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (thunk)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([eng (make-engine thunk)] [total-ticks 0])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (eng 50
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks value)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+ total-ticks (- 50 ticks)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (new-eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop new-eng (+ total-ticks 50)))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mileage (lambda () (fibonacci 10))) ![<graphic>](ch2_0.gif) 178`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The choice of 50 for the number of ticks to use each time is arbitrary, of course.
+    It might make more sense to pass a much larger number, say 10000, in order to
+    reduce the number of times the computation is interrupted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next procedure, `round-robin`, could be the basis for a simple time-sharing
+    operating system. `round-robin` maintains a queue of processes (a list of engines)
+    and cycles through the queue in a *round-robin* fashion, allowing each process
+    to run for a set amount of time. `round-robin` returns a list of the values returned
+    by the engine computations in the order that the computations complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define round-robin'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (engs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? engs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((car engs) 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks value)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cons value (round-robin (cdr engs))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (round-robin
+  prefs: []
+  type: TYPE_NORMAL
+- en: (append (cdr engs) (list eng))))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming the amount of computation corresponding to one tick is constant, the
+    effect of `round-robin` is to return a list of the values sorted from the quickest
+    to complete to the slowest to complete. Thus, when we call `round-robin` on a
+    list of engines, each computing one of the Fibonacci numbers, the output list
+    is sorted with the earlier Fibonacci numbers first, regardless of the order of
+    the input list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(round-robin'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (map (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fibonacci x))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '''(4 5 2 8 3 7 6 2))) ![<graphic>](ch2_0.gif) (1 1 2 3 5 8 13 21)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: More interesting things could happen if the amount of fuel varied each time
+    through the loop. In this case, the computation would be nondeterministic, i.e.,
+    the results would vary from call to call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following syntactic form, `por` (parallel-or), returns the first of its
+    expressions to complete with a true value. `por` is implemented with the procedure
+    `first-true`, which is similar to `round-robin` but quits when any of the engines
+    completes with a true value. If all of the engines complete, but none with a true
+    value, `first-true` (and hence `por`) returns `#f`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-syntax por'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ x ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (first-true
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list (make-engine (lambda () x)) ...))]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define first-true
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (engs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? engs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#f'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((car engs) 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks value)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (or value (first-true (cdr engs))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (eng)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (first-true
+  prefs: []
+  type: TYPE_NORMAL
+- en: (append (cdr engs) (list eng))))))))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even if one of the expressions is an infinite loop, `por` can still finish (as
+    long as one of the other expressions completes and returns a true value).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(por 1 2) ![<graphic>](ch2_0.gif) 1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (por ((lambda (x) (x x)) (lambda (x) (x x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fibonacci 10)) ![<graphic>](ch2_0.gif) 55`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first subexpression of the second `por` expression is nonterminating, so
+    the answer is the value of the second subexpression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's turn to the implementation of engines. Any preemptive multitasking primitive
+    must have the ability to interrupt a running process after a given amount of computation.
+    This ability is provided by a primitive timer interrupt mechanism in some Scheme
+    implementations. We will construct a suitable one here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our timer system defines three procedures: `start-timer`, `stop-timer`, and
+    `decrement-timer`, which can be described operationally as follows.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(start-timer *ticks* *handler*)` sets the timer to `*ticks*` and installs
+    `*handler*` as the procedure to be invoked (without arguments) when the timer
+    expires, i.e., reaches zero.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`(stop-timer)` resets the timer and returns the number of ticks remaining.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`(decrement-timer)` decrements the timer by one tick if the timer is on, i.e.,
+    if it is not zero. When the timer reaches zero, `decrement-timer` invokes the
+    saved handler. If the timer has already reached zero, `decrement-timer` returns
+    without changing the timer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Code to implement these procedures is given along with the engine implementation
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the timer system requires inserting calls to `decrement-timer` in appropriate
+    places. Consuming a timer tick on entry to a procedure usually provides a sufficient
+    level of granularity. This can be accomplished by using `timed-lambda` as defined
+    below in place of `lambda`. `timed-lambda` simply invokes `decrement-timer` before
+    executing the expressions in its body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-syntax timed-lambda'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ formals exp1 exp2 ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda formals (decrement-timer) exp1 exp2 ...)]))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: It may be useful to redefine named `let` and `do` to use `timed-lambda` as well,
+    so that recursions expressed with these constructs are timed. If you use this
+    mechanism, do not forget to use the timed versions of `lambda` and other forms
+    in code run within an engine, or no ticks will be consumed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we have a suitable timer, we can implement engines in terms of the
+    timer and continuations. We use `call/cc` in two places in the engine implementation:
+    (1) to obtain the continuation of the computation that invokes the engine so that
+    we can return to that continuation when the engine computation completes or the
+    timer expires, and (2) to obtain the continuation of the engine computation when
+    the timer expires so that we can return to this computation if the newly created
+    engine is subsequently run.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The state of the engine system is contained in two variables local to the engine
+    system: `do-complete` and `do-expire`. When an engine is started, the engine assigns
+    to `do-complete` and `do-expire` procedures that, when invoked, return to the
+    continuation of the engine''s caller to invoke `*complete*` or `*expire*`. The
+    engine starts (or restarts) the computation by invoking the procedure passed as
+    an argument to `make-engine` with the specified number of ticks. The ticks and
+    the local procedure `timer-handler` are then used to start the timer.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that the timer expires before the engine computation completes. The
+    procedure `timer-handler` is then invoked. It initiates a call to `start-timer`
+    but obtains the ticks by calling `call/cc` with `do-expire`. Consequently, `do-expire`
+    is called with a continuation that, if invoked, will restart the timer and continue
+    the interrupted computation. `do-expire` creates a new engine from this continuation
+    and arranges for the engine's `*expire*` procedure to be invoked with the new
+    engine in the correct continuation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If, on the other hand, the engine computation completes before the timer expires,
+    the timer is stopped and the number of ticks remaining is passed along with the
+    value to `do-complete`; `do-complete` arranges for the engine's `*complete*` procedure
+    to be invoked with the ticks and value in the correct continuation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's discuss a couple of subtle aspects to this code. The first concerns the
+    method used to start the timer when an engine is invoked. The code would apparently
+    be simplified by letting `new-engine` start the timer before it initiates or resumes
+    the engine computation, instead of passing the ticks to the computation and letting
+    it start the timer. Starting the timer within the computation, however, prevents
+    ticks from being consumed prematurely. If the engine system itself consumes fuel,
+    then an engine provided with a small amount of fuel may not progress toward completion.
+    (It may, in fact, make negative progress.) If the software timer described above
+    is used, this problem is actually avoided by compiling the engine-making code
+    with the untimed version of `lambda`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second subtlety concerns the procedures created by `do-complete` and `do-expire`
+    and subsequently applied by the continuation of the `call/cc` application. It
+    may appear that `do-complete` could first invoke the engine's `*complete*` procedure,
+    then pass the result to the continuation (and similarly for `do-expire`) as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(escape (complete value ticks))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This would result in improper treatment of tail recursion, however. The problem
+    is that the current continuation would not be replaced with the continuation stored
+    in `escape` until the call to the `complete` procedure returns. Consequently,
+    both the continuation of the running engine and the continuation of the engine
+    invocation could be retained for an indefinite period of time, when in fact the
+    actual engine invocation may appear to be tail-recursive. This is especially inappropriate
+    because the engine interface encourages use of continuation-passing style and
+    hence tail recursion. The round-robin scheduler and `first-true` provide good
+    examples of this, since the `*expire*` procedure in each invokes engines tail-recursively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We maintain proper treatment of tail recursion by arranging for `do-complete`
+    and `do-expire` to escape from the continuation of the running engine before invoking
+    the `complete` or `expire` procedures. Since the continuation of the engine invocation
+    is a procedure application, passing it a procedure of no arguments results in
+    application of the procedure in the continuation of the engine invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(library (tspl timer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export start-timer stop-timer decrement-timer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define clock 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define handler #f)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define start-timer
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks new-handler)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! handler new-handler)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! clock ticks)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define stop-timer
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([time-left clock])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! clock 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: time-left)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define decrement-timer
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (when (> clock 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! clock (- clock 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (when (= clock 0) (handler)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax timed-lambda
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ formals exp1 exp2 ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda formals (decrement-timer) exp1 exp2 ...)])))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (library (tspl engines)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (export make-engine timed-lambda)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (import (rnrs) (tspl timer))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define make-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([do-complete #f] [do-expire #f])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define timer-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (start-timer (call/cc do-expire) timer-handler)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define new-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (resume)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks complete expire)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ((call/cc
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (escape)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! do-complete
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks value)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (escape (lambda () (complete ticks value)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (set! do-expire
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (resume)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (escape (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (expire (new-engine resume))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (resume ticks)))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (proc)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (new-engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (ticks)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (start-timer ticks timer-handler)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([value (proc)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([ticks (stop-timer)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do-complete ticks value))))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax timed-lambda
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ formals exp1 exp2 ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda formals (decrement-timer) exp1 exp2 ...)])))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.1
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If your Scheme implementation allows definition and import of libraries in the
+    interactive top level, try defining the libraries above, then type
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(import (rename (tspl engines) (timed-lambda lambda)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: to define `make-engine` and redefine `lambda`. Then try out the examples given
+    earlier in this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.2
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'It may appear that the nested `let` expressions in the body of `make-engine`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let ([value (proc)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([ticks (stop-timer)])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do-complete ticks value)))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: could be replaced with the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let ([value (proc)] [ticks (stop-timer)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do-complete value ticks))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is this not correct?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: It would also be incorrect to replace the nested `let` expressions discussed
+    in the preceding exercise with the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(let ([value (proc)])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (do-complete value (stop-timer)))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.4
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Modify the engine implementation to provide a procedure, `engine-return`, that
+    returns immediately from an engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.5
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Implement the kernel of a small operating system using engines for processes.
+    Processes should request services (such as reading input from the user) by evaluating
+    an expression of the form `(trap 'request)`. Use `call/cc` and `engine-return`
+    from the preceding exercise to implement `trap`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.6
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Write the same operating-system kernel without using engines, building instead
+    from continuations and timer interrupts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise 12.11.7
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This implementation of engines does not allow one engine to call another, i.e.,
+    nested engines [[10](bibliography.html#g228)]. Modify the implementation to allow
+    nested engines.
+  prefs: []
+  type: TYPE_NORMAL

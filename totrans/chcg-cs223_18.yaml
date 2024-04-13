@@ -1,0 +1,296 @@
+- en: Lazy Queues
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Recall the [`FastQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Queues/FastQueue.elm)
+    implementation (referred to in the textbook as the "batched queue" implementation)
+    that has *O(1)* amortized cost for each of the operations, including `dequeue`,
+    which has an *O(n)* worst-case cost. The amortized analysis, however, assumes
+    that no `Queue` object is used as the input for more than one `Queue` operation.
+    We will now see queue implementations that employ laziness in order to achieve
+    *O(1)* amortized bounds despite the possibility that each queue is used persistently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the following example from the textbook, where `q_0` is a queue whose
+    `front` and `back` lists have equal length `m`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the `FastQueue` implementation, the operation `dequeue q_m_minus_1` triggers
+    a call to `List.reverse`, which runs in *O(`m`)* time; all other calls to `dequeue`
+    run in *O(1)* time. In the absence of persistence, the amortized analysis is able
+    to reason that this *expensive* operation happens infrequently compared to the
+    *cheap* ones and that any sequence of *n* `FastQueue` operations takes *O(n)*
+    time overall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Naive Approach — [`LazyBatchedQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyBatchedQueue.elm)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As a first attempt, we might port the `FastQueue` implementation so that it
+    uses [`LazyList`s](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyList.elm)
+    (a.k.a streams) and memoizes the computation that involves the expensive call
+    to `List.reverse`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by defining `front` and `back` to be `LazyList`s rather than `List`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `empty` queue contains two empty `LazyList`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Just like in `FastQueue`, we will maintain the invariant that `front` is empty
+    only if `back` is. As a result, we check whether a `Queue` is empty by forcing
+    `front` to evaluate to a `LazyListCell` and then checking whether it is `Nil`
+    or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: Why is it not a good idea to define `isEmpty = (==) empty`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementations of `enqueue`, `dequeue`, and `peek` are similar to before,
+    except that `LazyListCell`s are created and pattern matched rather than typical
+    `List` cells.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recall that the `checkFront` function enforces and reestablishes, if necessary,
+    the invariant that `front` is empty only if `back` is. A first option is the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, this version forces the (monolithic) `reverse` function to process
+    the entire `LazyList` right away, even if there are no more `dequeue` or `peek`
+    operations that require this result. Even worse, the expensive `reverse` operation
+    will be performed every time the expensive operation `dequeue q_m_minus_1` is
+    evaluated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be better to suspend the `reverse` computation as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This delays the `reverse` until the resulting `LazyList` is actually needed
+    and memoizes the result in case the expensive operation is evaluated again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nonetheless, if the operation `dequeue q_m_minus_2` is evaluated again, a completely
+    different `reverse` suspension is created, so laziness and memoization cannot
+    help amortize the cost. So this naive translation of `FastQueue` does not address
+    the challenge of using arbitrary versions of a `Queue` persistently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: You may want to `diff` or `vimdiff` [`FastQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Queues/FastQueue.elm)
+    and [`LazyBatchedQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyBatchedQueue.elm)
+    to see the changes required for adding laziness.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Clever Approach — [`BankersQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/BankersQueue.elm)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A more clever approach is based on the idea of having `dequeue q_0` create a
+    suspension involving the `reverse` that is not forced until the `dequeue q_m`
+    operation. Separating the creation and evaluation of the suspension allows *O(m)*
+    time to pay for the expensive *O(m)* cost of the `reverse`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To realize this strategy, we do not wait until the `front` list is about to
+    become empty before reversing the `back` list. Instead, the `back` list is `reverse`d
+    as soon as it becomes longer than the `front` and is then `append`ed to the `front`
+    in order to maintain the correct order of elements in the `Queue`. The key is
+    that the `LazyList` defined by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: does not immediately perform the monolithic call to `reverse` because `append`
+    is an incremental function. Only after sufficient calls to `dequeue` exhaust the
+    `front` list is `back` reversed. Let's go through the implementation of this strategy,
+    and then discuss how it fares with respect to the problematic sequence of operations
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The representation maintains the explict `Int`eger sizes of the `front` and
+    `back` streams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Describing the `empty` queue is straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: When the size of the `front` stream is greater than `0`, `peek` calls the [`LazyList`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyList.elm)
+    `head` operation, which `force`s the evaluation of the `LazyListCell` and returns
+    the first element of the resulting `Cons` value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the `back` stream is strictly smaller than the `front`, then `enqueue` (lazily)
+    adds the new element `x` to the `back`. Otherwise, the `back` is `reverse`d and
+    (lazily) `append`ed to the `front`, updating the size counts appropriately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly, `dequeue` checks whether the operation results in the `back` stream
+    being longer than the new `front`, in which case the `back` is `reverse`d and
+    appended to the new `front`. Recall that the [`LazyList`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyList.elm)
+    `tail` operation `force`s its argument and returns the second element of the resulting
+    `Cons` value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: These two operations can be refactored to use a common `check` function that
+    enforces the invariant that the `rear` is never longer than the `front`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: To see how this approach fares well even with persistent data structures, consider
+    the sequence of *m* `dequeue` operations from before. The first one, `dequeue
+    q_0`, creates a suspension involving `reverse` that is forced by the `dequeue
+    q_m` operation. No other operation in the sequence creates a suspension. Therefore,
+    to force another expensive call to `reverse` requires another call to `dequeue
+    q_0` followed by *m-1* calls to `dequeue`. So, the *O(m)* cost of the `reverse`
+    can be amortized over the sequence of *O(m)* operations that must precede it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sections 6.1, 6.2, and 6.3 of the textbook show how to make this formalize this
+    argument by adapting the banker's method to account for lazy evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another Clever Approach — [`PhysicistsQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/PhysicistsQueue.elm)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The textbook describes another way to implement a strategy similar to the one
+    employed by `BankersQueue`. In that version, the (incremental) `append` function
+    waits until `front` becomes empty before applying the (monolithic) `reverse` function
+    to `back`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because the `back` list is only ever processed by monolithic functions, there
+    is no need for it to be represented using a `LazyList`. Thus, one change to the
+    representation is to use an ordinary `List` for `back`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using this representation, the key operation from before becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: assuming that
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: is an incremental function. (**Exercise** — Implement `append'`.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because this `append'` function, like `append`, is incremental, the resulting
+    list is not entirely evaluated right away. As it turns out, the amortized analysis
+    can be made to work even if this concatenation is performed eagerly. Thus, a second
+    change to the representation is to store `front` as a `Lazy List` (an ordinary
+    `List` that is suspended) rather than a `LazyList` (a stream).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this representation, the key operation from before becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: A consequence of this representation is that `peek` and `dequeue` must `force`
+    the entire suspended `front` list. To reduce the costs of these operations, the
+    final change to the representation is to keep an additional (evaluated) `List`
+    called `pre` that is a prefix of (the suspended `List`) `front` to facilitate
+    fast access to the front of `front`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Like in the `BankersQueue`, the size of the `back` is never allowed to become
+    larger than the `front`. In addition, `pre` is allowed to be empty only if `front`
+    is empty. The `check` and `checkPre` functions enforce these invariants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Emptiness:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `enqueue` operation adds to the `back` and `peek` pulls from `pre`, the
+    partially evaluated front of the `front`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that `dequeue` uses `List.tail` to update both `pre` and `front`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Section 6.4 of the textbook shows how to adapt the physicist's method to account
+    for lazy evaluation and use to argue that this implementation, like the `BankersQueue`,
+    has *O(1)* amortized costs even in the face of persistent access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recommended
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Okasaki, Chapter 6.1—6.4\. Although we will not cover the accounting techniques
+    in this class, you are encouraged to read through this material a few times to
+    help understand the basic mechanisms.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

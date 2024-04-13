@@ -1,0 +1,1642 @@
+- en: '32Objects: Interpretation and Types'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [32.1 Interpreting Objects](#%28part._.Interpreting_.Objects%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [32.2 Objects by Desugaring](#%28part._.Objects_by_.Desugaring%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.1 Objects as Named Collections](#%28part._.Objects_as_.Named_.Collections%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.2 Constructors](#%28part._.Constructors%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.3 State](#%28part._.State%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.4 Private Members](#%28part._.Private_.Members%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.5 Static Members](#%28part._.Static_.Members%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.6 Objects with Self-Reference](#%28part._obj-with-self%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [32.2.6.1 Self-Reference Using Mutation](#%28part._.Self-.Reference_.Using_.Mutation%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [32.2.6.2 Self-Reference Without Mutation](#%28part._self-ref-wout-mut%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.2.7 Dynamic Dispatch](#%28part._.Dynamic_.Dispatch%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [32.3 Member Access Design Space](#%28part._member-access-design-space%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [32.4 What (Goes In) Else?](#%28part._.What__.Goes_.In__.Else_%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.4.1 Classes](#%28part._.Classes%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.4.2 Prototypes](#%28part._.Prototypes%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.4.3 Multiple Inheritance](#%28part._.Multiple_.Inheritance%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.4.4 Super-Duper!](#%28part._.Super-.Duper_%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.4.5 Mixins and Traits](#%28part._.Mixins_and_.Traits%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [32.5 Object Classification and Object Equality](#%28part._nominal-equality%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [32.6 Types for Objects](#%28part._types-for-objects%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.6.1 Subtyping](#%28part._subtyping%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [32.6.1.1 Subtyping Functions](#%28part._.Subtyping_.Functions%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [32.6.1.2 Subtyping and Information Hiding](#%28part._.Subtyping_and_.Information_.Hiding%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         [32.6.1.3 Implementing Subtyping](#%28part._.Implementing_.Subtyping%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.6.2 Types for Self-Reference](#%28part._.Types_for_.Self-.Reference%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [32.6.3 Nominal Types](#%28part._nominal-types%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'When a language admits functions as values, it provides developers the most
+    natural way to represent a unit of computation. Suppose a developer wants to parameterize
+    some function f. Any language lets f be parameterized by passive data, such as
+    numbers and strings. But it is often attractive to parameterize it over active
+    data: a datum that can compute an answer, perhaps in response to some information.
+    Furthermore, the function passed to f can—<wbr>assuming lexically-scoped functions—<wbr>refer
+    to data from the caller without those data having to be revealed to f, thus providing
+    a foundation for security and privacy. Thus, lexically-scoped functions are central
+    to the design of many secure programming techniques.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While a function is a splendid thing, it suffers from excessive terseness.
+    Sometimes we might want multiple functions to all close over to the same shared
+    data; the sharing especially matters if some of the functions mutate it and expect
+    the others to see the result of those mutations. In such cases, it becomes unwieldly
+    to send just a single function as a parameter; it is more useful to send a group
+    of functions. The recipient then needs a way to choose between the different functions
+    in the group. This grouping of functions, and the means to select one from the
+    group, is the essence of an object. We are therefore perfectly placed to study
+    objects having covered functions ([Functions Anywhere](Interpreting_Functions.html#%28part._higher-order-functions%29)),
+    mutation ([Mutation: Structures and Variables](implementing-mutation.html)), and
+    recursion ([Recursion and Cycles from Mutation](State__Change__and_More_Equality.html#%28part._rec-from-mut%29)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I cannot hope to do justice to the enormous space of object systems. Please
+    read [Object-Oriented Programming Languages: Application and Interpretation](http://users.dcc.uchile.cl/~etanter/ooplai/)
+    by Éric Tanter, which goes into more detail and covers topics ignored here. Let’s
+    add this notion of objects to our language. Then we’ll flesh it out and grow it,
+    and explore the many dimensions in the design space of objects. We’ll first show
+    how to add objects to the core language, but because we’ll want to prototype many
+    different ideas quickly, we’ll soon shift to a desguaring-based strategy. Which
+    one you use depends on whether you think understanding them is critical to understanding
+    the essence of your language. One way to measure this is how complex your desguaring
+    strategy becomes, and whether by adding some key core language enhancements, you
+    can greatly reduce the complexity of desugaring.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.1Interpreting Objects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The simplest notion of an object—<wbr>pretty much the only thing everyone who
+    talks about objects agrees about—<wbr>is that an object is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a value, that
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maps names to
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'stuff: either other values or “methods”.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'From a minimalist perspective, methods seem to be just functions, and since
+    we already have those in the language, we can put aside this distinction.We’re
+    about to find out that “methods” are awfully close to functions but differ in
+    important ways in how they’re called and/or what’s bound in them.Starting from
+    the language with variables, let’s define this very simple notion of objects by
+    adding it to the core language. We clearly have to extend our notion of values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ll extend the expression grammar to support literal object construction
+    expressions:Observe that this is already a design decision. In some languages,
+    like JavaScript, a developer can write literal objects: a notion so popular that
+    a subset of the syntax for it in JavaScript has become a Web standard, JSON. In
+    other languages, like older versions of Java, objects can only be created by invoking
+    a constructor on a class. We can simulate both by assuming that to model the latter
+    kind of language, we must write object literals only in special positions following
+    a stylized convention, as we do when desugaring below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Evaluating such an object expression is easy: we just evaluate each of its
+    expression positions. In the presence of state, however, we have to be careful
+    to thread the store:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Write eval-obj-vs, which evaluates each expression in vs while threading the
+    store. Assume it returns an object with two fields: exprs is the list of evaluated
+    expressions, while final-store is the final store ensuing from these evaluations.'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Unfortunately, we can’t actually use an object, because we have no way of obtaining
+    its content. For that reason, we should add an operation to extract members:<msgC-def>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   &#124; msgC(o :: ExprC, n :: String) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'whose behavior is intuitive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implement lookup-msg.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In principle, msgC can be used to obtain any kind of member but for simplicity,
+    we need only assume that we have functions. To use them, we must apply them to
+    values. This is cumbersome to write directly, so let’s assume desugaring has taken
+    care of it for us: that is, the user can write (msg o m v)—<wbr>where o evaluates
+    to an object, m names a method, and v evaluates to an argument value—<wbr>and
+    this desugars into using msgC to obtain the method and regular application to
+    apply it.For illustration, we’ll assume methods take only one argument. This is
+    easy to relax. Note that in a Lispy language we could have instead written (define (msg o m . a) (apply (o m) a)),
+    which would have let msg take any number of arguments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this we have a full first language with objects. For instance, here is
+    an object definition and invocation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (let o (obj (add1 (lambda x (+ x 1))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             (sub1 (lambda x (+ x -1)))) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   (msg o sub1 2)) |'
+  prefs: []
+  type: TYPE_TB
+- en: and this evaluates to (numV 1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2Objects by Desugaring
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While defining objects in the core language is good to really understand their
+    essence, it’s an unwieldy way to go about studying them. Instead, we’ll use Pyret
+    to represent objects, sticking to the parts of the language we already know how
+    to implement in our interpreter. That is, we’ll assume that we are looking at
+    the output of desugaring. (For this reason, we’ll also stick to stylized code,
+    potentially writing unnecessary expressions on the grounds that this is what a
+    simple program generator would produce.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The code that follows largely drops type annotations. Go back in and add these
+    annotations wherever possible; where you can’t, explain what problems you encounter.
+    See [Types for Objects](#%28part._types-for-objects%29).
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 32.2.1Objects as Named Collections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s begin by reproducing the object language we had above. An object is just
+    a value that dispatches on a given name. For simplicity, we’ll use anonymous functions
+    to represent the object and conditionals to implement the dispatching.Observe
+    that basic objects are a generalization of anonymous functions to have multiple
+    “entry-points”. Conversely, an anonymous functions is an object with just one
+    entry-point, so it doesn’t need a “method name” to disambiguate.<obj-o-1> ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   o-1 = |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     lam(m): |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       if m == "add1": |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         lam(x): x + 1 end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       else if m == "sub1": |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         lam(x): x - 1 end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       else: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         raise("message not found: " + m) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       end |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     end |'
+  prefs: []
+  type: TYPE_TB
+- en: 'This is the same object we defined earlier, and we use its method in the same
+    way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Of course, writing method invocations with these nested function calls is unwieldy
+    (and is about to become even more so), so we’d be best off equipping ourselves
+    with a convenient syntax for invoking methods, which we can define here as a function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This enables us to rewrite our test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Something very important changed when we switched to the desguaring strategy.
+    Do you see what it is?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Recall the syntax definition we had earlier: [<msgC-def>](#%28elem._msg.C-def%29).
+    The “name” position of a message was very explicitly a syntactic string. That
+    is, the user had to write the literal name of the method there. In our desugared
+    version, the name position is just an expression that must evaluate to a string;
+    this permits the user to write the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: which may very much not be intended ([Member Access Design Space](#%28part._member-access-design-space%29)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a general problem with desugaring: the target language may allow computations
+    that have no counterpart in the source, and hence cannot be mapped back to it.
+    Fortunately we don’t often need to perform this inverse mapping, though it does
+    arise in some debugging and program comprehension tools. More subtly, however,
+    we must ensure that the target language does not produce values that have no corresponding
+    equivalent in the source.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have basic objects, let’s start adding the kinds of features we’ve
+    come to expect from most object systems. But before we proceed, it’s unwieldy
+    to define an object as an explicit conditional; we would rather write a more declarative
+    mapping from names to methods, and leave the implementation of the lookup to the
+    language. This, after all, is one of the key primitives provided by every definition
+    of object-orientation. That is, we wish to write the previous object ([<obj-o-1>](#%28elem._obj-o-1%29))
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: and to support this, we define the datatype
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: and the corresponding function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this much simpler notation—<wbr>which does not even require desugaring
+    to implement—<wbr>we are now better equipped to handle the study of object system
+    features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2.2Constructors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A constructor is simply a function that is invoked at object construction time.
+    We currently lack such a function. By turning an object from a literal into a
+    function that takes constructor parameters, we achieve this effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the first example, we pass 5 as the constructor’s argument, so adding 3 yields
+    8. The second is similar, and shows that the two invocations of the constructors
+    don’t interfere with one another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2.3State
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Many people believe that objects primarily exist to encapsulate state.Alan
+    Kay, who won a Turing Award for inventing Smalltalk and modern object technology,
+    disagrees. In [The Early History of Smalltalk](http://www.smalltalk.org/smalltalk/TheEarlyHistoryOfSmalltalk_Abstract.html),
+    he says, “[t]he small scale [motivation for OOP] was to find a more flexible version
+    of assignment, and then to try to eliminate it altogether”. He adds, “It is unfortunate
+    that much of what is called ‘object-oriented programming’ today is simply old
+    style programming with fancier constructs. Many programs are loaded with ‘assignment-style’
+    operations now done by more expensive attached procedures.” We certainly haven’t
+    lost that ability. If we desugar to a language with variables (we could equivalently
+    use boxes, in return for a slight desugaring overhead), we can easily have multiple
+    methods mutate common state, such as a constructor argument:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For instance, we can test a sequence of operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and also notice that mutating one object doesn’t affect another:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 32.2.4Private Members
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Another common object language feature is private members: ones that are visible
+    only inside the object, not outside it.Except that, in Java, instances of other
+    classes of the same type are privy to “private” members. Otherwise, you would
+    simply never be able to implement an approximation to an Abstract Data Type. These
+    may seem like an additional feature we need to implement, but we already have
+    the necessary mechanism in the form of locally-scoped, lexically-bound variables,
+    such as mut-count above: there is no way for surrounding code to access mut-count
+    directly, because lexical scoping ensures that it remains hidden to the world.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2.5Static Members
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Another feature often valuable to users of objects is static members: those
+    that are common to all instances of the “same” type of object.We use quotes because
+    there are many notions of sameness for objects. And then some. This, however,
+    is merely a lexically-scoped identifier (making it private) that lives outside
+    the constructor (making it common to all uses of the constructor), such as counter
+    below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ve written the counter increment where the “constructor” for this object
+    would go, though it could just as well be manipulated inside the methods. This
+    obeys the following tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the different objects each affect the result seen by the other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2.6Objects with Self-Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Until now, our objects have simply been packages of named functions grouped
+    together and hence given different, named entry-points. We’ve seen that many of
+    the features considered important in object systems are actually simple patterns
+    over functions and scope, and have indeed been used—<wbr>without names assigned
+    to them—<wbr>for decades by programmers armed with anonymous functions (with lexical
+    scope).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One characteristic that actually distinguishes object systems is that each object
+    is automatically equipped with a reference to the same object, often called self
+    or this.I prefer this slightly dry way of putting it to the anthropomorphic “knows
+    about itself” terminology often adopted by object advocates. Indeed, note that
+    we have gotten this far into object system properties without ever needing to
+    resort to anthropomorphism. Can we implement this easily?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.2.6.1Self-Reference Using Mutation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Yes, we can, because we have seen just this very pattern when we implemented
+    recursion; we’ll just adapt it to refer not to the same box or function but to
+    the same object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Observe that this is precisely the recursion pattern ([Recursion and Cycles
+    from Mutation](State__Change__and_More_Equality.html#%28part._rec-from-mut%29)),
+    adapted slightly. We’ve tested it having "first" invoke its own "second" method.
+    Sure enough, this produces the expected answer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 32.2.6.2Self-Reference Without Mutation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you know how to implement recursion without mutation [REF], you’ll notice
+    that the same solution applies here, too. Observe:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Each method now takes self as an argument. That means method invocation must
+    be modified to pass along the object as part of the invocation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That is, when invoking a method on o, we must pass o as a parameter to the
+    method. Obviously, this approach is dangerous because we can potentially pass
+    a different object as the “self”. Exposing this to the developer is therefore
+    probably a bad idea; if this implementation technique is used, it should only
+    be done in desugaring. Nevertheless, Python exposes just this in its surface syntax.Just
+    to be sure, we can check this using essentially the same code as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 32.2.7Dynamic Dispatch
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, we should make sure our objects can handle a characteristic attribute
+    of object systems, which is the ability to invoke a method without the caller
+    having to know or decide which object will handle the invocation. Suppose we have
+    a binary tree data structure, where a tree consists of either empty nodes or leaves
+    that hold a value. In traditional functions, we are forced to implement the equivalent
+    some form of conditional that exhaustively lists and selects between the different
+    kinds of trees. If the definition of a tree grows to include new kinds of trees,
+    each of these code fragments must be modified. Dynamic dispatch solves this problem
+    by eliminating this conditional branch from the user’s program and instead handling
+    it by the method selection code built into the language. The key feature that
+    this provides is an extensible conditional. This is one dimension of the extensibility
+    that objects provide.This property—<wbr>which appears to make systems more black-box
+    extensible because one part of the system can grow without the other part needing
+    to be modified to accommodate those changes—<wbr>is often hailed as a key benefit
+    of object-orientation. While this is indeed an advantage objects have over functions,
+    there is a dual advantage that functions have over objects, and indeed many object
+    programmers end up contorting their code—<wbr>using the Visitor pattern—<wbr>to
+    make it look more like a function-based organization. Read [Synthesizing Object-Oriented
+    and Functional Design to Promote Re-Use](http://www.cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/)
+    for a running example that will lay out the problem in its full glory. Try to
+    solve it in your favorite language, and see the [Racket solution](http://www.cs.utah.edu/plt/publications/icfp98-ff/paper.shtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now defined our two kinds of tree objects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these, we can make a concrete tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Observe that both in the test and in the "add" method of node, there is a reference
+    to "add" without checking whether the recipient is a mt or a node. Instead, the
+    run-time system extracts the recipient’s "add" method and invokes it. This missing
+    conditional in the user’s source program provided automatically by the system
+    is the essence of dynamic dispatch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.3Member Access Design Space
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We already have two orthogonal dimensions when it comes to the treatment of
+    member names. One dimension is whether the name is provided statically or computed,
+    and the other is whether the set of names is fixed or variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  | Name is Static | Name is Computed |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Fixed Set of Members | As in base Java. | As in Java with reflection to compute
+    the name. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Variable Set of Members | Difficult to envision (what use would it be?).
+    | Most scripting languages. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Only one case does not quite make sense: if we force the developer to specify
+    the member name in the source file explicitly, then no new members would be accessible
+    (and some accesses to previously-existing, but deleted, members would fail). All
+    other points in this design space have, however, been explored by languages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lower-right quadrant corresponds closely with languages that use hash-tables
+    to represent objects. Then the name is simply the index into the hash-table. Some
+    languages carry this to an extreme and use the same representation even for numeric
+    indices, thereby (for instance) conflating objects with dictionaries and even
+    arrays. Even when the object only handles “member names”, this style of object
+    creates significant difficulty for type-checking [REF] and is hence not automatically
+    desirable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, in the rest of this section, we will stick with “traditional” objects
+    that have a fixed set of names and even static member name references (the top-left
+    quadrant). Even then, we will find there is much, much more to study.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.4What (Goes In) Else?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, the “else clause” of method lookup (which is currently implemented by
+    mk-object)—<wbr>namely, what to do when the list of methods is empty—<wbr>has
+    signaled a “method not found” error. What else might happen instead? One possibility,
+    adopted by many programming languages, is to “chain” control to one or more parent
+    object(s). This is called inheritance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s return to our model of desugared objects above. To implement inheritance,
+    the object must be given “something” to which it can delegate method invocations
+    that it does not recognize. A great deal will depend on what that “something”
+    is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One answer could be that it is simply another object: where currently we have'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: we could instead have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Due to our representation of objects, this application effectively searches
+    for the method in the parent object (and, presumably, recursively in its parents).
+    If a method matching the name is found, it returns through this chain to the original
+    call that sought the method. If none is found, the final parent object presumably
+    signals the same “message not found” error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Observe that the application parent-object(m) is like “half a msg”, just like
+    an l-value was “half” a variable’s evaluation ([Interpreting Variables](implementing-mutation.html#%28part._interp-vars%29)).
+    Is there any connection?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Let’s try this by extending our trees to implement another method, "size".
+    We’ll write an “extension” (you may be tempted to say “sub-class”, but hold off
+    for now!) for each node and mt to implement the size method. We intend these to
+    extend the existing definitions of node and mt, so we’ll use the extension pattern
+    described above.We’re not editing the existing definitions because that is supposed
+    to be the whole point of object inheritance: to reuse code in a black-box fashion.
+    This also means different parties, who do not know one another, can each extend
+    the same base code. If they had to edit the base, first they have to find out
+    about each other, and in addition, one might dislike the edits of the other. Inheritance
+    is meant to sidestep these issues entirely.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.4.1Classes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Immediately we see a design choice. Is this the constructor pattern?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That is, we pass the parent object to node-size-ext along with the constructor
+    parameters. Since the parent object will be an instance of node, and the two objects
+    should presumably have the same values for the parameters, this means we would
+    have had to specify those values twice (which violates the DRY principle). As
+    an alternative, we can simply pass the constructor of the parent to node-size-ext
+    and let it construct the parent object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this, we can make a more user-friendly interface to nodes with the size
+    method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Did you notice that instead of mk-object we’ve used mk-ext-object above? Do
+    you see that it takes one extra parameter? Try to define it for yourself.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The entire difference in mk-ext-object is that, if it cannot find a method
+    in the current object, it chains to the parent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this, we can similarly create an extension of empty tree nodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can use these objects to construct a tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When testing, we should make sure both old and new behavior work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Earlier, we commented that chaining method-lookup to parents presumably bottoms
+    out at some sort of “empty object”, which might look like this:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: However, we haven’t needed to define or use this despite the use of mk-ext-object.
+    Why is that, and how would you fix that?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'What we have done is capture the essence of a class. Each function parameterized
+    over a parent is...well, it’s a bit tricky, really. Let’s call it a blob for now.
+    A blob corresponds to what a Java programmer defines when they write a class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So why are we going out of the way to not call it a “class”?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When a developer invokes a Java class’s constructor, it in effect constructs
+    objects all the way up the inheritance chain (in practice, a compiler might optimize
+    this to require only one constructor invocation and one object allocation). These
+    are private copies of the objects corresponding to the parent classes (private,
+    that is, up to the presence of static members). There is, however, a question
+    of how much of these objects is visible. Java chooses that—<wbr>unlike in our
+    implementation above—<wbr>only one method of a given name (and signature) remains,
+    no matter how many there might have been on the inheritance chain, whereas every
+    field remains in the result, and can be accessed by casting. The latter makes
+    some sense because each field presumably has invariants governing it, so keeping
+    them separate (and hence all present) is wise. In contrast, it is easy to imagine
+    an implementation that also makes all the methods available, not only the ones
+    lowest (i.e., most refined) in the inheritance hierarchy. Many scripting languages
+    take the latter approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the implementation above, we have relied on the self-application semantics
+    for recursive access to an object, rather than using state. The reason is because
+    the behavior of inheritance would be subtly wrong if we used state naively, as
+    we have shown above. Can you construct an example that illustrates this?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'By examining values carefully, you will notice that the self reference is to
+    the most refined object at all times. This demonstrates the other form of extensibility
+    we get from traditional objects: extensible recursion. The extensible conditional
+    can be viewed as free extension across “space”, namely, the different variants
+    of data, whereas extensible recursion can be viewed as free extension across “time”,
+    namely, the different extensions to the code. Nevertheless, as [this paper](http://www.cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/)
+    points out, there’s no free lunch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.4.2Prototypes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In our description above, we’ve supplied each class with a description of its
+    parent class. Object construction then makes instances of each as it goes up the
+    inheritance chain. There is another way to think of the parent: not as a class
+    to be instantiated but, instead, directly as an object itself. Then all children
+    with the same parent would observe the very same object, which means changes to
+    it from one child object would be visible to another child. The shared parent
+    object is known as a prototype.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The archetypal prototype-based language is [Self](http://selflanguage.org/).
+    Though you may have read that languages like JavaScript are “based on” Self, there
+    is value to studying the idea from its source, especially because Self presents
+    these ideas in their purest form. Some language designers have argued that prototypes
+    are more primitive than classes in that, with other basic mechanisms such as functions,
+    one can recover classes from prototypes—<wbr>but not the other way around. That
+    is essentially what we have done above: each “class” function contains inside
+    it an object description, so a class is an object-returning-function. Had we exposed
+    these are two different operations and chosen to inherit directly from an object,
+    we would have something akin to prototypes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Modify the inheritance pattern above to implement a Self-like, prototype-based
+    language, instead of a class-based language. Because classes provide each object
+    with distinct copies of their parent objects, a prototype-language might provide
+    a clone operation to simplify creation of the operation that simulates classes
+    atop prototypes.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 32.4.3Multiple Inheritance
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now you might ask, why is there only one fall-through option? It’s easy to
+    generalize this to there being many, which leads naturally to multiple inheritance.
+    In effect, we have multiple objects to which we can chain the lookup, which of
+    course raises the question of what order in which we should do so. It would be
+    bad enough if the ascendants were arranged in a tree, because even a tree does
+    not have a canonical order of traversal: take just breadth-first and depth-first
+    traversal, for instance (each of which has compelling uses). Worse, suppose a
+    blob A extends B and C; but now suppose B and C each extend D.This infamous situation
+    is called diamond inheritance. If you choose to include multiple inheritance in
+    your language you can lose yourself for days in design decisions on this. Because
+    it is highly unlikely you will find a canonical answer, your pain will have only
+    begun. Now we have to confront this question: will there be one or two D objects
+    in the instance of A? Having only one saves space and might interact better with
+    our expectations, but then, will we visit this object once or twice? Visiting
+    it twice should not make any difference, so it seems unnecessary. But visiting
+    it once means the behavior of one of B or C might change. And so on. As a result,
+    virtually every multiple-inheritance language is accompanied by a subtle algorithm
+    merely to define the lookup order—<wbr>and each language’s designer argues why
+    their algorithm is more intuitive.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple inheritance is only attractive until you’ve thought it through.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.4.4Super-Duper!
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Many languages have a notion of super-invocations, i.e., the ability to invoke
+    a method or access a field higher up in the inheritance chain.Note that I say
+    “the” and “chain”. When we switch to multiple inheritance, these concepts are
+    replaced with something much more complex. This includes doing so at the point
+    of object construction, where there is often a requirement that all constructors
+    be invoked, to make sure the object is properly defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have become so accustomed to thinking of these calls as going “up” the chain
+    that we may have forgotten to ask whether this is the most natural direction.
+    Keep in mind that constructors and methods are expected to enforce invariants.
+    Whom should we trust more: the super-class or the sub-class? One argument would
+    say that the sub-class is most refined, so it has the most global view of the
+    object. Conversely, each super-class has a vested interest in protecting its invariants
+    against violation by ignorant sub-classes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are two fundamentally opposed views of what inheritance means. Going up
+    the chain means we view the extension as replacing the parent. Going down the
+    chain means we view the extension as refining the parent. Because we normally
+    associate sub-classing with refinement, why do our languages choose the “wrong”
+    order of calling? Some languages have, therefore, explored invocation in the downward
+    direction by default.[gbeta](http://www.daimi.au.dk/~eernst/gbeta/) is a modern
+    programming language that supports inner, as well as many other interesting features.
+    It is also interesting to consider [combining both directions](http://www.cs.utah.edu/plt/publications/oopsla04-gff.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.4.5Mixins and Traits
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s return to our “blobs”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we write a class in Java, what are we really defining between the opening
+    and closing braces? It is not the entire class: that depends on the parent that
+    it extends, and so on recursively. Rather, what we define inside the braces is
+    a class extension. It only becomes a full-blown class because we also identify
+    the parent class in the same place.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Naturally, we should ask: Why? Why not separate the act of defining an extension
+    from applying the extension to a base class? That is, suppose instead of'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| class C extends B { ... } |'
+  prefs: []
+  type: TYPE_TB
+- en: 'we instead write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| classext E { ... } |'
+  prefs: []
+  type: TYPE_TB
+- en: and separately
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| class C = E(B); |'
+  prefs: []
+  type: TYPE_TB
+- en: 'where B is some already-defined class.This recovers what we had before, but
+    the function-application-like syntax is meant to be suggestive: we can “apply”
+    this extension to several different base classes. Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| class C1 = E(B1); |'
+  prefs: []
+  type: TYPE_TB
+- en: '| class C2 = E(B2); |'
+  prefs: []
+  type: TYPE_TB
+- en: 'and so on. What we have done by separating the definition of E from that of
+    the class it extends is to liberate class extensions from the tyranny of the fixed
+    base class. We have a name for these extensions: they’re called mixins.The term
+    “mixin” originated in Common Lisp, where it was a particular pattern of using
+    multiple inheritance. Lipstick on a pig.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mixins make class definition more compositional. They provide many of the benefits
+    of multiple-inheritance (reusing multiple fragments of functionality) but within
+    the aegis of a single-inheritance language (i.e., no complicated rules about lookup
+    order). Observe that when desugaring, it’s actually quite easy to add mixins to
+    the language. A mixin is primarily a “function over classes”; because we have
+    already determined how to desugar classes, and our target language for desugaring
+    also has functions, and classes desugar to expressions that can be nested inside
+    functions, it becomes almost trivial to implement a simple model of mixins.This
+    is a case where the greater generality of the target language of desugaring can
+    lead us to a better construct, if we reflect it back into the source language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a typed language, a good design for mixins can actually improve object-oriented
+    programming practice. Suppose we’re defining a mixin-based version of Java. If
+    a mixin is effectively a class-to-class function, what is the “type” of this “function”?
+    Clearly, a mixin ought to use interfaces to describe what it expects and provides.
+    Java already enables (but does not require) the latter, but it does not enable
+    the former: a class (extension) extends another class—<wbr>with all its members
+    visible to the extension—<wbr>not its interface. That means it obtains all of
+    the parent’s behavior, not a specification thereof. In turn, if the parent changes,
+    the class might break.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a typed mixin language, we can instead write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| mixin M extends I { ... } |'
+  prefs: []
+  type: TYPE_TB
+- en: where I is an interface. Then M can only be applied to a class that satisfies
+    the interface I, and in turn the language can ensure that only members specified
+    in I are visible in M. This follows one of the important principles of good software
+    design.“Program to an interface, not an implementation.” —<wbr>Design Patterns
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A good design for mixins can go even further. A class can only be used once
+    in an inheritance chain, by definition (if a class eventually referred back to
+    itself, there would be a cycle in the inheritance chain, causing potential infinite
+    loops). In contrast, when we compose functions, we have no qualms about using
+    the same function twice (e.g.: (map ... (filter ... (map ...)))). Is there value
+    to using a mixin twice?There certainly is! See sections 3 and 4 of [Classes and
+    Mixins](http://www.cs.brown.edu/~sk/Publications/Papers/Published/fkf-classes-mixins/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mixins solve an important problem that arises in the design of libraries. Suppose
+    we have a dozen features that can be combined in different ways. How many classes
+    should we provide? It is obviously impractical to generate the entire combinatorial
+    explosion of classes. It would be better if the devleoper could pick and choose
+    the features they care about. This is precisely the problem that mixins solve:
+    they provide class extensions that the developers can combine, in an interface-preserving
+    way, to create just the classes they need.Mixins are used extensively in the Racket
+    GUI library. For instance, color:text-mixin consumes basic text editor interfaces
+    and implements the colored text editor interface. The latter is iself a basic
+    text editor interface, so additional basic text mixins can be applied to the result.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How does your favorite object-oriented library solve this problem?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Mixins do have one limitation: they enforce a linearity of composition. This
+    strictness is sometimes misplaced, because it puts a burden on programmers that
+    may not be necessary. A generalization of mixins called traits says that instead
+    of extending a single mixin, we can extend a set of them. Of course, the moment
+    we extend more than one, we must again contend with potential name-clashes. Thus
+    traits must be equipped with mechanisms for resolving name clashes, often in the
+    form of some name-combination algebra. Traits thus offer a nice complement to
+    mixins, enabling programmers to choose the mechanism that best fits their needs.
+    A handful of languages, such as Racket, therefore provide [both traits and mixins](http://www.eecs.northwestern.edu/~robby/pubs/papers/aplas2006-fff.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.5Object Classification and Object Equality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Previously [[A Family of Equality Predicates](State__Change__and_More_Equality.html#%28part._equality-operations%29)],
+    we have seen three different kinds of equality operations. For the purpose of
+    this discussion, we will ignore the distinction between equal-now and equal-always,
+    focusing on the fact that both are primarily structural (equal-now being purely
+    so). Extended to objects, this would check each member recursively, perhaps ignoring
+    methods in languages that cannot compare them for equality, or comparing them
+    using reference equality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This leaves us with the very fine-grained and unforgiving identical, and the
+    very coarse-grained and perhaps overly forgiving equal-now. Why is structural
+    equality overly forgiving? Because two completely unrelated objects that just
+    happened to have the same member names and types could end up being regarded equal:
+    as a famous example in the objects community has it, draw is a meaningful method
+    of both user interfaces and cowhands.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, some systems provide an equality predicate “in the middle”: it is
+    still fundamentally structural, but it discriminates between objects that were
+    not “made the same way”. The typical notion of construction is associated with
+    a class: all objects made from a certain class are considered to be candidates
+    for (structural) equality, but objects made from different classes (for some notion
+    of “different”) are immediately ruled unequal independent of their structure (which
+    may in fact be identical).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the special case where classes are named, first-order entities, this is
+    called nominal equality: an equality based on names. However, it does not have
+    to depend on names, nor even on first-order classes. Some languages have dynamic
+    tag creators—<wbr>known to the language—<wbr>called brands.In keeping with the
+    cowhand theme. Each branding operation places a tag on an object. The built-in
+    equality primitives then check for brands being identical; when this condition
+    is met, they revert to structural equality (which may involve additional brand-checking
+    during recursion).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6Types for Objects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Having studied various programming mechanisms, we now turn our focus to types
+    for them. First ([Subtyping](#%28part._subtyping%29)) we will relax the notion
+    of invariance for substitutability ([The Principle of Substitutability](types.html#%28part._type-substitutability%29)).
+    Then, we will discuss how new notions of equality ([Object Classification and
+    Object Equality](#%28part._nominal-equality%29)) can impact subtyping to create
+    a new class of types ([Nominal Types](#%28part._nominal-types%29)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.1Subtyping
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Consider two object types. The first we will call Add1Sub1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is a type for objects that have two members, add1 and sub1, of the given
+    types. The question we need to answer is, precisely what objects can be given
+    this type?To understand this, let us consider another, related type, which we
+    will call Arith:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notice that two members have the same name and the same type, but there are
+    two more members (plus and mult).Consider a function designed to work with Arith
+    values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Is it okay to pass a value of type Add1Sub1 to f? Of course not: the function
+    invokes the member plus, which the type annotation on a says it can expect to
+    find; but if the value passed in does not have this member, this would result
+    in a run-time member not found error, which is precisely what the type system
+    was trying to avoid. Therefore, we cannot substitute a value of type Add1Sub1
+    in a context expecting a Arith.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But how about in the other direction? This is entirely reasonable: the context
+    is expecting a Add1Sub—<wbr>and hence not using any more than what that type promises.
+    Because Arith supplies everything expected by Add1Sub1, it is okay to provide
+    a Arith value for a Add1Sub1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is our first example of subtyping. We say that Arith is a subtype of Add1Sub1
+    because we can supply an Arith value in any context that expected a Add1Sub1 value.
+    Specifically, because this involves dropping some members—<wbr>i.e., making the
+    object “less wide”—<wbr>this is called width subtyping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The essence of subtyping is a relation, conventionally written as <:, between
+    pairs of types. We say S <: T if a value of type S can be given where a value
+    of type T is expected, and call S the subtype and T the supertype. Therefore,
+    in the above example, Arith <: Add1Sub1 and Arith is a subtype of Add1Sub1.Later
+    [[Nominal Types](#%28part._nominal-types%29)], we will talk about how subtypes
+    correspond to subclasses. But for now observe that we’re talking only about objects,
+    without any reference to the existence of classes. It is useful (and usually accurate)
+    to take a subset interpretation: if the values of S are a subset of T, then an
+    expression expecting T values will not be unpleasantly surprised to receive only
+    S values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why is subtyping a relation and not a function?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In other words:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This may momentarily look confusing: we’ve said that subtyping follows set
+    inclusion, so we would expect the smaller set on the left and the larger set on
+    the right. Yet, it looks like we have a “larger type” (certainly in terms of character
+    count) on the left and a “smaller type” on the right.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand why this is sound, it helps to develop the intuition that the
+    “larger” the type, the fewer values it can have. Every object that has the four
+    members on the left clearly also has the two members on the right. However, there
+    are many objects that have the two members on the right that fail to have all
+    four on the left. If we think of a type as a constraint on acceptable value shapes,
+    the “bigger” type imposes more constraints and hence admits fewer values. Thus,
+    though the types may appear to be of the wrong sizes, everything is well because
+    the sets of values they subscribe are of the expected sizes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you might expect, there is another important form of subtyping, which is
+    within a given member. This simply says that any particular member can be subsumed
+    to a supertype in its corresponding position. For obvious reasons, this form is
+    called depth subtyping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct two examples of depth subtyping. In one, give the field itself an
+    object type, and use width subtyping to subtype that field. In the other, give
+    the field a function type.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The combination of width and depth subtyping cover the most interesting cases
+    of object subtyping. A type system that implemented only these two would, however,
+    needlessly annoy programmers. Other convenient rules include the ability to permute
+    names, reflexivity (every type is a subtype of itself, which gives us invariance
+    for free, and lets us interpret the subtype relationship as subset), and transitivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Subtyping has a pervasive effect on the type system. We have to reexamine every
+    kind of type and understand its interaction with subtyping. For base types, this
+    is usually quite obvious: disjoint types like Number, String, etc., are all unrelated
+    to each other. (In languages where one base type is used to represent another—<wbr>for
+    instance, in some scripting languages numbers are merely strings written with
+    a special syntax, and in other languages, Booleans are merely numbers—<wbr>there
+    might be subtyping relationships even between base types, but these are not common.)
+    However, we do have to consider how subtyping interacts with every single compound
+    type constructor.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, even our very diction about types has to change. Suppose we have an
+    expression of type T. Normally, we would say that it produces values of type T.
+    Now, we should be careful to say that it produces values of up to or at most T,
+    because it may only produce values of a subtype of T. Thus every reference to
+    a type should implicitly be cloaked in a reference to the potential for subtyping.
+    To avoid pestering you I will refrain from doing this, but be wary that it is
+    possible to make reasoning errors by not keeping this implicit interpretation
+    in mind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.1.1Subtyping Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Our examples above have been carefully chosen to mask an important detail:
+    the subtyping of functions. To understand this, we will build up an example.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider a hypothetical language with a new type called Boolean01, where true
+    is just an alias for 1 and false is an alias for 0. Thus, in this language, Boolean01
+    <: Number; all Boolean01 values are of type Number, but not all Number values
+    are Boolean01 (indeed, most are not). In this language, we can write some functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us also define four types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can now ask the following question: which of these types are subtypes of
+    the other? In more concrete terms, which of these functions can be safely substituted
+    for which others?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We might expect a rule as follows. Because Boolean01 <: Number (in our imaginary
+    system), a (Boolean01 -> Boolean01) function is a subtype of a (Number -> Number)
+    function. This is a natural conclusion to arrive at...but wrong, as we will soon
+    see.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make this concrete, assume we have a function p that consumes and uses one
+    of these functions. The function could be a member in an object, though for the
+    purposes of understanding the basic problem, we don’t need that: we can focus
+    just on the function types. Thus, we have something like'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: where A and B are going to be all the combinations of Number and Boolean01,
+    and assume that a-value has whatever the A type is. For each type for op (column
+    headers), we will ask which of the above functions (row headers) we can safely
+    pass to p.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Stop and try to fill out this table first.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '|  |  | N2N |  | N2B |  | B2N |  | B2B |'
+  prefs: []
+  type: TYPE_TB
+- en: '| n2n |  | yes (identical) |  | no (range) |  | yes (domain) |  | no (range)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| n2b |  | yes (range) |  | yes (identical) |  | yes (domain and range) |  |
+    yes (domain) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| b2n |  | no (domain) |  | no (domain and range) |  | yes (identical) |  |
+    no (range) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| b2b |  | no (domain) |  | no (domain) |  | yes (range) |  | yes (identical)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'In each cell, “yes” means the function on the left can be passed in when the
+    type at the top is expected, while “no” means it cannot. Parentheses give the
+    reason: “identical” means they are the same type (so of course they can be passed
+    in); in the “yes” case it says where subtyping needed to apply, while in the “no”
+    case where the type error is.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us consider trying to pass n2n to a N2B annotation (for op). Because the
+    return type of p is Boolean01, whatever uses p(n2n) assumes that it gets only
+    Boolean01 values back. However, the function n2n is free to return any numeric
+    value it wants: in particular, given 1 it returns 2, which does not correspond
+    to either Boolean01. Therefore, allowing this parameter can result in an unsound
+    program execution. To prevent that, we must flag this as a type error.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More generally, if the type of the emph formal parameter promises Boolean01,
+    the actual function passed had better return only Boolean01; but if the type of
+    the formal is Number, the actual can safely return Boolean01 without causing trouble.
+    Thus, in general, for (A -> B) <: (C -> D), we must have that B <: D. In other
+    words, the subtyping of the range parallels the subtyping of the function itself,
+    so we say the range position is covariant (“co-” meaning “together”).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we get to the more interesting case: the domain. Consider why we can pass
+    n2n where a B2N is expected. Inside the body of op, a-value can only be a Boolean01,
+    because that is all the type permits. Because every Boolean01 is a Number, the
+    function n2n has no trouble accepting it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, consider passing b2n where an N2N is expected. Inside op, a-value
+    can evaluate to any number, because op is expected (by the type annotation on
+    p) to be able to accept it. However, b2n can accept only two numbers; everything
+    else results in an error. Hence, if the type-checker were to allow this, we could
+    get a run-time error even though the program passed the type-checker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From this, the moral we derive is that for the domain position, the formal
+    must be a subtype of the actual. The formal parameter bounds what values op can
+    expect; so long as the actual can take a set of values at least as large, there
+    will be no problem. Thus, for (A -> B) <: (C -> D), we must have that C <: A.
+    The subtyping of the domain goes in the direction opposite to that of the subtyping
+    of the function itself, so we say the range position is contravariant (“contra-”
+    meaning “opposite”).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting together these two rules, (A -> B) <: (C -> D) when C <: A and B <:
+    D.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.1.2Subtyping and Information Hiding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Consider an object o that implements the Add1Sub1 type. By the nature of width
+    subtyping, there is absolutely nothing preventing the object from also having
+    members named plus and mult of the right type. This raises a question: if we write'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: where ... is an object with plus and mult, and then we attempt to pass o to
+    f, what should happen?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a strictly dynamic interpretation—<wbr>e.g., if this program were written
+    without any annotations at all—<wbr>it would work perfectly fine. Doing so statically,
+    however, means that we have violated our intuition about what these annotations
+    mean. In general, it is going to be undecidable whether an object of type Add1Sub1
+    actually has the additional Arith members in it, so it is safest to reject programs
+    that attempt to use Add1Sub1-annotated values as Arith ones. The natural type
+    system will prevent us from passing o to f.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In short, the static type system becomes a mechanism for information hiding.
+    By leaving out some members in type descriptions, we effectively hide the fact
+    that they exist. For instance, one could create an object
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: and ascribe it the type
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then all references to for-dist can only use the public interface and have
+    no way to access the private-key or decrypt members, but those that have access
+    to the crypto object can use those members. Provided access to crypto is provisioned
+    carefully, the language will ensure the privacy of these two sensitive members.However,
+    this becomes more tricky in a system that is not purely statically typed, including
+    ones where a typed language can interoperate with an untyped one. In an untyped
+    language there are no annotations, so there is nothing preventing the plus member
+    of o or the decrypt member of for-dist from being accessed: after all, those members
+    really are present in the underlying object. Thus, it is common when “exporting”
+    a typed object to any kind of untrusted or unannotated context to create a proxy
+    object; it would be as if the developer wrote the following by hand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is proxy-dist that is then provided to dangerous contexts. Since the resulting
+    object really contains only two fields, and the underlying object is only visible
+    in lexical scope (c), so long as the language does not provide a means to inspect
+    or traverse the scope (an assumption not guaranteed by all languages!), the untyped
+    or dangerous context cannot get access to the private content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.1.3Implementing Subtyping
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Of course, these rules assume that we have modified the type-checker to respect
+    subtyping. The essence of subtyping is a rule that says, if an expression e is
+    of type S, and S <: T, then e also has type T. While this sounds intuitive, it
+    is also immediately problematic for two reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Until now all of our type rules have been syntax-driven, which is what enabled
+    us to write a recursive-descent type-checker. Now, however, we have a rule that
+    applies to all expressions, so we can no longer be sure when to apply it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There could be many levels of subtyping. As a result, it is no longer obvious
+    when to “stop” subtyping. In particular, whereas before type-checking was able
+    to calculate the type of an expression, now we have many possible types for each
+    expression; if we return the “wrong” one, we might get a type error (due to that
+    not being the type expected by the context) even though there exists some other
+    type that was the one expected by the context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What these two issues point to is that the description of subtyping we are
+    giving here is fundamentally declarative: we are saying what must be true, but
+    not showing how to turn it into an algorithm. For each actual type language, there
+    is a less or more interesting problem in turning this into algorithmic subtyping:
+    an actual algorithm that realizes a type-checker (ideally one that types exactly
+    those programs that would have typed under the declarative regime, i.e., one that
+    is both sound and complete).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.2Types for Self-Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Remember that one of the essential features of many object systems is having
+    a reference, inside a method, to the object on which it was invoked: i.e., a self-reference
+    [[Objects with Self-Reference](#%28part._obj-with-self%29)]. What is the type
+    of this self identifier?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the type Add1Sub1 we described earlier. To be entirely honest, the
+    implementation of add1 and sub1—<wbr>to be methods—<wbr>must take an extra parameter
+    that will be a self-reference. What is the nature of this self-referential parameter?
+    It is clearly an object; it clearly has two methods, add1 and sub1 (at least up
+    to subtyping); and each of those methods takes two parameters, one a number and...
+  prefs: []
+  type: TYPE_NORMAL
+- en: You see where this is going.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Object types are therefore typically recursive types: the type world’s equivalent
+    of rec [REF]. Typically, they are written μ (“mu”) instead of rec; thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: Read the right-hand side as “construct a recursive type T such that it (a) is
+    an object, (b) has two members add1 and sub1, and (c) each member has two parameters,
+    the first of which is the type being defined” (and so on).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, recursive types are not as simple as they look. Note that the
+    above type does not have a “base case”; thus, it is a finite representation of
+    an infinite type (which is exactly what we want, because we can write an infinite
+    number of self applications). Therefore, when it comes to checking for the equality
+    of two recursive types, we encounter complications, which are beyond the scope
+    of this study.See Pierce’s Types and Programming Languages for details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32.6.3Nominal Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Earlier [[Object Classification and Object Equality](#%28part._nominal-equality%29)]
+    we read about nominal equality, where classes are made to aid in equality comparisons.
+    In some typed languages—<wbr>Java being a poster-child—<wbr>classes carry an even
+    heavier load: they are also used as the basis for the type system, rather than
+    structural types.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The basic idea is that each class (or other nominal entity) defines an entirely
+    new type, even if the type-structure of its members is exactly the same as that
+    of some other type. Then, type equality mirrors nominal equality, but trivially:
+    if two values have the same type they must have the same structure, and if they
+    have different types then their structure doesn’t matter (even if it’s identical).
+    Thus, type equality reduces to a constant-time check of whether the classes are
+    the same.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nominal types have one more advantage. They effectively make it straightforward
+    to write recursive types without wrestling with μ. Consider the following Java
+    class definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| class Add1Sub1 { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   public int add1(int n) { ... } |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   public int sub1(int n) { ... } |'
+  prefs: []
+  type: TYPE_TB
+- en: '| } |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Implicit in these two method definitions are this parameters. But what is the
+    type of this? It’s just Add1Sub1: the keyword class not only introduces a new
+    name but automatically makes it a recursive binding. Thus, programmers can comfortably
+    refer to and use nominal types without having to dwell on their true meaning (as
+    recursive types) or their equality (because it’s by name rather than structure).
+    Thus, nominal types, for all their inflexibility, do offer an elegant solution
+    to a particular set of language design constraints.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is worth noting that in Java, inheritance (unfortunately) corresponds to
+    subtyping. As we go up the inheritance chain a class has fewer and fewer members
+    (width subtyping), until we reach Object, the supertype of all classes, which
+    has the fewest. Thus for all class types C in Java, C <: Object.Somewhat confusingly,
+    the terms narrowing and widening are sometimes used, but with what some might
+    consider the opposite meaning. To widen is to go from subtype to supertype, because
+    it goes from a “narrower” (smaller) to a “wider” (bigger) set. These terms evolved
+    independently, but unfortunately not consistently. The interpretation of subtyping
+    as subsets holds: every object that has a type lower in an inheritance hierarchy
+    also has a type higher in the hierarchy, but not vice versa. When it comes to
+    depth subtyping, however, Java prefers types to be invariant down the object hierarchy
+    because this is a safe option for conventional mutation.'
+  prefs: []
+  type: TYPE_NORMAL

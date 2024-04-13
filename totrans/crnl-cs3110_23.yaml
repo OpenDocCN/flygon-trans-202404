@@ -1,0 +1,263 @@
+- en: 'Lectures 16: Advanced Async'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Last time we saw how to describe concurrent computations using `bind` (often
+    written `>>=`) and `return` primitives. The `return` function takes a value and
+    returns a deferred computation that is determined immediately, while `d >>= f`
+    waits for `d` to become determined, and then passes the resulting value to `f`,
+    which also computes a deferred value. In general, there may be many deferred computations
+    executing concurrently, and we will need to coordinate and synchronize their behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These notes build on material and code examples originally developed in [Real
+    World OCaml Chapter 18](https://realworldocaml.org/v1/en/html/concurrent-programming-with-async.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: An echo server
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val both : ''a Deferred.t -> ''b Deferred.t -> (''a * ''b) Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'let both (d1:''a Deferred.t) (d2:''b Deferred.t) : (''a * ''b) Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: d1 >>= (fun v1 ->
+  prefs: []
+  type: TYPE_NORMAL
+- en: d2 >>= (fun v2 ->
+  prefs: []
+  type: TYPE_NORMAL
+- en: return (v1,v2)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val all : (''a Deferred.t) list -> (''a list) Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'let rec all (l:(''a Deferred.t) list) : (''a list) Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: List.fold_right
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fun x acc ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: x >>= (fun h ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: acc >>= (fun t ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: return (h::t))))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: l (return [])
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val any : (''a Deferred.t) list -> ''a Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val after : Core.Span.t -> unit Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val sec : float -> Core.Span.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: after (sec 5.3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: let timeout (thunk:unit -> 'a Deferred.t) (n:float)
+  prefs: []
+  type: TYPE_NORMAL
+- en: ': (''a option) Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: = Deferred.any
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[ after (sec n) >>| (fun () -> None) ;'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: thunk () >>| (fun x -> Some x) ]
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'module IVar : sig'
+  prefs: []
+  type: TYPE_NORMAL
+- en: type 'a t
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val create : unit -> ''a t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val fill : ''a t -> ''a -> unit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val fill_if_empty : ''a t -> ''a -> unit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val is_empty : ''a t -> bool'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val is_full : ''a t -> bool'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val read : ''a t -> ''a Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end =
+  prefs: []
+  type: TYPE_NORMAL
+- en: struct
+  prefs: []
+  type: TYPE_NORMAL
+- en: '...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'upon : ''a Deferred.t -> (''a -> unit) -> unit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: module type DELAYER = sig
+  prefs: []
+  type: TYPE_NORMAL
+- en: type t
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val create : float -> t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'val schedule : t -> (unit -> ''a Deferred.t) -> ''a Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'module Delayer : DELAYER = struct'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'type t = { delay: Core.Span.t;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'jobs: (unit -> unit) Core.Std.Queue.t }'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: let create n =
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{ delay = Core.Time.Span.of_sec n;'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: jobs = Core.Std.Queue.create () }
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: let schedule t thunk =
+  prefs: []
+  type: TYPE_NORMAL
+- en: let ivar = Ivar.create () in
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Core.Std.Queue.enqueue t.jobs (fun () ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: upon (thunk ()) (fun x -> Ivar.fill ivar x));
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: upon (after t.delay) (fun () ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (Core.Std.Queue.dequeue_exn t.jobs) ());
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Ivar.read ivar
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: end
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: type Deferred.choice
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val choice : ''a Deferred.t -> (''a -> ''b) -> ''b Deferred.choice'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val choose : (''a Deferred.choice) list -> ''a Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE

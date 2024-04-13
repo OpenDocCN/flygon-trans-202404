@@ -1,0 +1,470 @@
+- en: 'Reading 22: Queues and Message-Passing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: After reading the notes and examining the code for this class, you should be
+    able to use message passing (with synchronous queues) instead of shared memory
+    for communication between threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two models for concurrency
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In our introduction to concurrency, we saw [two models for concurrent programming](../19-concurrency/#two_models_for_concurrent_programming):
+    *shared memory* and *message passing*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![multiprocessor shared memory](../Images/af60d69115ee7ed53c010e71759de601.jpg)'
+  prefs:
+  - PREF_UL
+  type: TYPE_IMG
+- en: In the **shared memory** model, concurrent modules interact by reading and writing
+    shared mutable objects in memory. Creating multiple threads inside a single Java
+    process is our primary example of shared-memory concurrency.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'In the **message passing** model, concurrent modules interact by sending immutable
+    messages to one another over a communication channel. We’ve had one example of
+    message passing so far: the [client/server pattern](../21-sockets-networking/#clientserver_design_pattern),
+    in which clients and servers are concurrent processes, often on different machines,
+    and the communication channel is a [network socket](../21-sockets-networking/#network_sockets).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![network message passing](../Images/33b34e62a8cf01ce8863eb1ac8e9f06c.jpg)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: The message passing model has several advantages over the shared memory model,
+    which boil down to greater safety from bugs. In message-passing, concurrent modules
+    interact *explicitly*, by passing messages through the communication channel,
+    rather than *implicitly* through mutation of shared data. The implicit interaction
+    of shared memory can too easily lead to *inadvertent* interaction, sharing and
+    manipulating data in parts of the program that don’t know they’re concurrent and
+    aren’t cooperating properly in the thread safety strategy. Message passing also
+    shares only immutable objects (the messages) between modules, whereas shared memory
+    *requires* sharing mutable objects, which we have already seen can be [a source
+    of bugs](../09-immutability/#risks_of_mutation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll discuss in this reading how to implement message passing within a single
+    process, as opposed to between processes over the network. We’ll use **blocking
+    queues** (an existing threadsafe type) to implement message passing between threads
+    within a process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Message passing with threads
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We’ve previously talked about message passing between processes: [clients and
+    servers communicating over network sockets](../21-sockets-networking/#network_sockets).
+    We can also use message passing between threads within the same process, and this
+    design is often preferable to a shared memory design with locks, which we’ll talk
+    about in the next reading.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use a synchronized queue for message passing between threads. The queue serves
+    the same function as the buffered network communication channel in client/server
+    message passing. Java provides the [`BlockingQueue`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/BlockingQueue.html)
+    interface for queues with blocking operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In an ordinary [`Queue`](http://docs.oracle.com/javase/8/docs/api/?java/util/Queue.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`add(e)` adds element `e` to the end of the queue.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`remove()` removes and returns the element at the head of the queue, or throws
+    an exception if the queue is empty.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A [`BlockingQueue`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/BlockingQueue.html)
+    extends this interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: additionally supports operations that wait for the queue to become non-empty
+    when retrieving an element, and wait for space to become available in the queue
+    when storing an element.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**`put(e)`** *blocks* until it can add element `e` to the end of the queue
+    (if the queue does not have a size bound, `put` will not block).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**`take()`** *blocks* until it can remove and return the element at the head
+    of the queue, waiting until the queue is non-empty.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When you are using a `BlockingQueue` for message passing between threads, make
+    sure to use the `put()` and `take()` operations, not ~~`add()` and `remove()`~~.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![producer-consumer message passing](../Images/056fd631b9eadd61ee411efad1be4879.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Analogous to the client/server pattern for message passing over a network is
+    the **producer-consumer design pattern** for message passing between threads.
+    Producer threads and consumer threads share a synchronized queue. Producers put
+    data or requests onto the queue, and consumers remove and process them. One or
+    more producers and one or more consumers might all be adding and removing items
+    from the same queue. This queue must be safe for concurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Java provides two implementations of `BlockingQueue`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`ArrayBlockingQueue`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/ArrayBlockingQueue.html)
+    is a fixed-size queue that uses an array representation. `put`ting a new item
+    on the queue will block if the queue is full.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[`LinkedBlockingQueue`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/LinkedBlockingQueue.html)
+    is a growable queue using a linked-list representation. If no maximum capacity
+    is specified, the queue will never fill up, so `put` will never block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unlike the streams of bytes sent and received by sockets, these synchronized
+    queues (like normal collections classes in Java) can hold objects of an arbitrary
+    type. Instead of designing a wire protocol, we must choose or design a type for
+    messages in the queue. **It must be an immutable type.** And just as we did with
+    operations on a threadsafe ADT or messages in a wire protocol, we must design
+    our messages here to prevent race conditions and enable clients to perform the
+    atomic operations they need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bank account example
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![message passing model for bank accounts](../Images/0637abcca2bf9caaa9c7af280b8c1c88.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our first example of message passing was the [bank account example](../19-concurrency/#message_passing_example).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each cash machine and each account is its own module, and modules interact by
+    sending messages to one another. Incoming messages arrive on a queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We designed messages for `get-balance` and `withdraw`, and said that each cash
+    machine checks the account balance before withdrawing to prevent overdrafts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: But it is still possible to interleave messages from two cash machines so they
+    are both fooled into thinking they can safely withdraw the last dollar from an
+    account with only $1 in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to choose a better atomic operation: `withdraw-if-sufficient-funds`
+    would be a better operation than just `withdraw`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing message passing with queues
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can see all the code for this example on GitHub: [**squarer example**](https://github.com/mit6005/fa16-ex22-square).
+    All the relevant parts are excerpted below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a message passing module for squaring integers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`SquareQueue.java` line 6](https://github.com/mit6005/fa16-ex22-square/blob/master/src/square/SquareQueue.java#L6-L46)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Incoming messages to the `Squarer` are integers; the squarer knows that its
+    job is to square those numbers, so no further details are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Outgoing messages are instances of `SquareResult`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`SquareQueue.java` line 48](https://github.com/mit6005/fa16-ex22-square/blob/master/src/square/SquareQueue.java#L48-L70)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We would probably add additional observers to `SquareResult` so clients can
+    retrieve the input number and output result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, here’s a main method that uses the squarer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`SquareQueue.java` line 77](https://github.com/mit6005/fa16-ex22-square/blob/master/src/square/SquareQueue.java#L77-L96)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It should not surprise us that this code has a very similar flavor to the code
+    for implementing message passing with sockets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Rep invariant
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write the rep invariant of `SquareResult`, as an expression that could be used
+    in `checkRep()` below. Use the minimum number of characters you can without any
+    method calls in your answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)Code review
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code above undergoes a code review and produces the following comments.
+    Evaluate the comments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stopping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if we want to shut down the `Squarer` so it is no longer waiting for new
+    inputs? In the client/server model, if we want the client or server to stop listening
+    for our messages, we close the socket. And if we want the client or server to
+    stop altogether, we can quit that process. But here, the squarer is just another
+    thread in the *same* process, and we can’t “close” a queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One strategy is a *poison pill*: a special message on the queue that signals
+    the consumer of that message to end its work. To shut down the squarer, since
+    its input messages are merely integers, we would have to choose a magic poison
+    integer (everyone knows the square of 0 is 0 right? no one will need to ask for
+    the square of 0…) or use null (don’t use null). Instead, we might change the type
+    of elements on the requests queue to an ADT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'with operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: and when we want to stop the squarer, we enqueue a `StopRequest` where `shouldStop`
+    returns `true`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, in `Squarer.start()`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is also possible to *interrupt* a thread by calling its `interrupt()` method.
+    If the thread is blocked waiting, the method it’s blocked in will throw an `InterruptedException`
+    (that’s why we have to try-catch that exception almost any time we call a blocking
+    method). If the thread was not blocked, an *interrupted* flag will be set. The
+    thread must check for this flag to see whether it should stop working. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Implementing poison pills
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the data type definition above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For each option below: is the snippet of code a correct outline for how you
+    would implement this in Java that takes maximum advantage of static checking?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thread safety arguments with message passing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A thread safety argument with message passing might rely on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Existing threadsafe data types** for the synchronized queue. This queue is
+    definitely shared and definitely mutable, so we must ensure it is safe for concurrency.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Immutability** of messages or data that might be accessible to multiple threads
+    at the same time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Confinement** of data to individual producer/consumer threads. Local variables
+    used by one producer or consumer are not visible to other threads, which only
+    communicate with one another using messages in the queue.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Confinement** of mutable messages or data that are sent over the queue but
+    will only be accessible to one thread at a time. This argument must be carefully
+    articulated and implemented. But if one module drops all references to some mutable
+    data like a hot potato as soon as it puts them onto a queue to be delivered to
+    another thread, only one thread will have access to those data at a time, precluding
+    concurrent access.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In comparison to synchronization, message passing can make it easier for each
+    module in a concurrent system to maintain its own thread safety invariants. We
+    don’t have to reason about multiple threads accessing shared data if the data
+    are instead transferred between modules using a threadsafe communication channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Message passing
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Leif Noad just started a new job working for a stock trading company:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: What are `TradeWorker`s?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mistakes were made
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[data:text/html,](data:text/html,)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose we have several `TradeWorker`s processing trades off the same shared
+    queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that we are *not using `BlockingQueue`!* Workers call `poll` to retrieve
+    items from the queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Javadoc for `Queue.poll()`](http://docs.oracle.com/javase/8/docs/api/java/util/Queue.html#poll--)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following can happen?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rather than synchronize with locks, message passing systems synchronize on a
+    shared communication channel, e.g. a stream or a queue.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Threads communicating with blocking queues is a useful pattern for message passing
+    within a single process.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

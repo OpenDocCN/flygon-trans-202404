@@ -1,0 +1,270 @@
+- en: Error Handling and Tasks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Error Handling and Tasks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the guarantees of Elm is that you will not see runtime errors in practice.
+    NoRedInk has been using Elm in production for about a year now, and they still
+    have not had one! Like all guarantees in Elm, this comes down to fundamental language
+    design choices. In this case, we are helped by the fact that **Elm treats errors
+    as data.** (Have you noticed we make things data a lot here?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This section is going to walk through three data structures that help you handle
+    errors in a couple different ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Maybe`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Result`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Task`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now some of you probably want to jump right to tasks, but trust me that going
+    in order will help here! You can think of these three data structures as a progression
+    that slowly address crazier and crazier situations. So if you jump in at the end,
+    it will be a lot to figure out all at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some Historical Context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are two popular language features that consistently cause unexpected problems.
+    If you have used Java or C or JavaScript or Python or Ruby, you have almost certainly
+    had your code crash because of `null` values or surprise exceptions from someone
+    else's code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now these things are extremely familiar to folks, but that does not mean they
+    are good!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Null'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Any time you think you have a `String` you just might have a `null` instead.
+    Should you check? Did the person giving you the value check? Maybe it will be
+    fine? Maybe it will crash your servers? I guess we will find out later!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The inventor, Tony Hoare, has this to say about it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I call it my billion-dollar mistake. It was the invention of the null reference
+    in 1965\. At that time, I was designing the first comprehensive type system for
+    references in an object oriented language (ALGOL W). My goal was to ensure that
+    all use of references should be absolutely safe, with checking performed automatically
+    by the compiler. But I couldn't resist the temptation to put in a null reference,
+    simply because it was so easy to implement. This has led to innumerable errors,
+    vulnerabilities, and system crashes, which have probably caused a billion dollars
+    of pain and damage in the last forty years.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As we will see soon, the point of `Maybe` is to avoid this problem in a pleasant
+    way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exceptions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Joel Spolsky outlined the issues with exceptions pretty nicely [in the year
+    2003](http://www.joelonsoftware.com/items/2003/10/13.html). Essentially, code
+    that *looks* fine may actually crash at runtime. Surprise!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The point of `Result` is to make the possibility of failure clear and make sure
+    it is handled appropriately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The point of `Task` is pretty much the same, but it also works when we have
+    code that runs asynchronously. Your error handling mechanism shouldn't totally
+    fall apart just because you make an HTTP request!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maybe
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Maybe
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'It is best to just start with the definition of `Maybe`. It is a union type
+    just like in all the examples [here](union_types.html). It is defined like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you want to have a `Maybe` value, you have to use the `Nothing` or `Just`
+    constructors to create it. This means that to deal with the data, you have to
+    use a `case` expression. This means the compiler can ensure that you have definitely
+    covered both possibilities!
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two major cases where you will see `Maybe` values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optional Fields
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Say we are running a social networking website. Connecting people, friendship,
+    etc. You know the spiel. The Onion outlined our real goals best: [mine as much
+    data as possible for the CIA](http://www.theonion.com/video/cias-facebook-program-dramatically-cut-agencys-cos-19753).
+    And if we want *all* the data, we need to ease people into it. Let them add it
+    later. Add features that encourage them to share more and more information over
+    time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's start with a simple model of a user. They must have a name, but we
+    are going to make the age optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now say Sue logs in and decides not to provide her birthday:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now her friends cannot wish her a happy birthday. Sad! Later Tom creates a
+    profile and *does* give his age:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Great, that will be nice on his birthday. But more importantly, Tom is part
+    of a valuable demographic! The advertisers will be pleased.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Alright, so now that we have some users, how can we market alcohol to them
+    without breaking any laws? People would probably be mad if we market to people
+    under 21, so let''s check for that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now the cool thing is that we are forced to use a `case` to pattern match on
+    the users age. It is actually impossible to write code where you forget that users
+    may not have an age. Elm can make sure of it. Now we can advertise alcohol confident
+    that we are not influencing minors directly! Only their older peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Partial Functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes you want a function that gives an answer sometimes, but just does
+    not in other cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's say Mountain Dew wants to do some ad buys for people ages 13 to 18\. Honestly,
+    it is better to start kids on Mountain Dew younger than that, but it is illegal
+    for kids under 13 to be on our site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s say we want to write a function that will tell us a user''s age,
+    but only if they are between 13 and 18:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we are reminded that users may not have an age, but if they do, we only
+    want to return it if it is between 13 and 18\. Now Elm can guarantee that anyone
+    who calls `getTeenAge` will have to handle the possibility that the age is out
+    of range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gets pretty cool when you start combining it with library functions like
+    [`List.filterMap`](http://package.elm-lang.org/packages/elm-lang/core/latest/List#filterMap)
+    that help you process more data. For example, maybe we want to figure out the
+    distribution of ages between 13 and 18\. We could do it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We end up with only the ages we care about. Now we can feed our `List Int` into
+    a function that figures out the distributions of each number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Result
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Result
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A `Result` is useful when you have logic that may "fail". For example, parsing
+    a `String` into an `Int` may fail. What if the string is filled with the letter
+    B? In cases like this, we want a function with this type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means that `String.toInt` will take in a string value and start processing
+    the string. If it cannot be turned into an integer, we provide a `String` error
+    message. If it can be turned into an integer, we return that `Int`. So the `Result
+    String Int` type is saying, "my errors are strings and my successes are integers."
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make this as concrete as possible, let''s see the actual definition of `Result`.
+    It is actually pretty similar to the `Maybe` type, but it has *two* type variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You have two constructors: `Err` to tag errors and `Ok` to tag successes. Let''s
+    see what happens when we actually use `String.toInt` in the REPL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So instead of throwing an exception like in most languages, we return data
+    that indicates whether things have gone well or not. Let''s imagine someone is
+    typing their age into a text field and we want to show a validation message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we have to use `case` so we are guaranteed to handle the special case
+    where the number is bad.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Task
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Tasks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: These docs are getting updated for 0.18\. They will be back soon! Until then,
+    the [docs](http://package.elm-lang.org/packages/elm-lang/core/4.0.0/Task) will
+    give a partial overview.
+  prefs: []
+  type: TYPE_NORMAL

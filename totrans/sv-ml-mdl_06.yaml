@@ -1,0 +1,128 @@
+- en: Chapter 6\. Apache Spark Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Spark](https://spark.apache.org/) is a powerful open source processing engine
+    built around speed, ease of use, and sophisticated analytics. It is currently
+    the largest open source community in big data, with more than 1,000 contributors
+    representing more than 250 organizations. The main characteristics of Spark are
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is engineered from the bottom up for performance and can be very fast by
+    exploiting in-memory computing and other optimizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ease of use
+  prefs: []
+  type: TYPE_NORMAL
+- en: It provides easy-to-use APIs for operating on large datasets including a collection
+    of more than 100 operators for transforming data and data frame APIs for manipulating
+    semi-structured data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unified engine
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is packaged with higher-level libraries, including support for SQL queries,
+    streaming data, machine learning, and graph processing. These standard libraries
+    increase developer productivity and can be seamlessly combined to create complex
+    workflows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark Streaming is an extension of core Spark API, which makes it easy to build
+    fault-tolerant processing of real-time data streams. In the next section, we discuss
+    how to use Spark Streaming for implementing our solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Spark Streaming currently uses a minibatch approach to streaming, although a
+    true streaming implementation is under way (discussed shortly). Because our problem
+    requires state, the only option for our implementation is to use the [`mapWithState`](http://bit.ly/2xzhNCM)
+    [operator](http://bit.ly/2xzhNCM), where state is a Resilient Distributed Dataset
+    core data collection abstraction in Spark. Each record in this RDD is a key–value
+    pair, in which the key is the data type (see [Example 3-2](ch03.html#protobuf_definition_for_the_model_update))
+    and the value is the current model object. This approach effectively uses the
+    state RDD as a memory for the model, which is saved between minibatch executions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second issue for this implementation is the necessity to merge both input
+    streams: the data and the model streams. Similar to the Beam case, the only option
+    to merge nonwindowed streams in Spark is the [`union`](http://bit.ly/2xzyoeG)
+    operator, which requires both streams to have the same data definition. [Figure 6-1](#spark_implementation_approach)
+    presents the overall architecture for the Spark implementation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0601](assets/smlt_0601.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6-1\. Spark implementation approach
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Implementing Model Serving Using Spark Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Example 6-1](#model_serving_with_spark) shows the overall pipeline implementation
+    for model serving using Spark adhering to this architecture ([complete code available
+    here](http://bit.ly/2gbSpk9)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 6-1\. Model serving with Spark
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The actual model serving is done in `mappingFunc` (its functionality is similar
+    to the model serving implementation in Flink [[Example 4-1](ch04.html#the_dataprocessor_class)]),
+    which is invoked on the combined stream for every minibatch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another important point here is setting `KryoSerializer` as the default serializer
+    and implementing Kryo serializers for the models. To register these serializers,
+    you need to implement a special `KryoRegistrator` class, as shown in [Example 6-2](#model_kryo_serializer_and_registrator)
+    ([complete code available here](http://bit.ly/2ygTii6)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 6-2\. Model Kryo serializer and registrator
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although this example uses a single model, you can expand it easily to support
+    multiple models by using a map of models keyed on the data type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using this Spark implementation, it is necessary to keep in mind that it
+    is not a true streaming system, meaning that there will be delay of up to the
+    “batch time size,” typically 500 milliseconds or more. If this is acceptable,
+    this solution is very scalable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Spark provides a new streaming API, called [Structured Streaming](http://bit.ly/2gEAFwG),
+    but you can’t use it for the problem that we are solving here because some required
+    operations are not yet [supported](http://bit.ly/2yFLOWy) (as of version 2.2);
+    for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any kind of joins between two streaming Datasets are not yet supported.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Spark Streaming is the last stream-processing engine that I will discuss. In
+    Chapters [7](ch07.html#apache_kafka_streams_implementation) and [8](ch08.html#akka_streams_implementation),
+    we look at using streaming frameworks, starting with Kafka Streams, for solving
+    the same problem.
+  prefs: []
+  type: TYPE_NORMAL

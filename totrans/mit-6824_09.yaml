@@ -1,0 +1,1181 @@
+- en: DSM and Sequential Consistency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 9: DSM and Sequential Consistency'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Topic:** Distributed computing'
+  prefs: []
+  type: TYPE_NORMAL
+- en: parallel computing on distributed machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 4 papers on how to use a collection of machines to solve big computational problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'we already read one of them: MapReduce'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3 other papers (IVY, TreadMarks, and Spark)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: two provide a general-purpose memory model
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spark is in MapReduce style
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Distributed Shared Memory (DSM) programming model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Adopt the same programming model that multiprocessors offer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Programmers can use locks and shared memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Programmers are familiar with this model
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g., like goroutines sharing memory
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: General purpose
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g., no restrictions like with MapReduce
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applications that run on a multiprocessor can run on IVY/TreadMarks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Challenge:** distributed systems don''t have physical shared memory'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On a network of cheap machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[diagram: LAN, machines w/ RAM, MGR]'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Approach:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simulate shared memory using hardware support for virtual memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'General idea illustrated with 2 machines:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Part of the address space maps a part of M0's physical memory
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On M0 it maps to the M0's physical page
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On M1 it maps to not present
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Part of the address space maps a part of M1's physical memory
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On M0 it maps to not present
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On M1 it maps to its physical memory
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A thread of the application on M1 may refer to an address that lives on M0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If thread LD/ST to that "shared" address, M1's hardware will take a page fault
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because page is mapped as not present
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OS propagates page fault to DSM runtime
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DSM runtime can fetch page from M0
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DSM on M0, maps page not present, and sends page to M1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DSM on M1 receives it from M0, copies it somewhere in memory (say address 4096)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DSM on M1 maps the shared address to physical address 4096
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DSM returns from page fault handler
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hardware retries LD/ST
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Runs threaded code w/o modification
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. matrix multiply, physical simulation, sort
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Challenges:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to implement it efficiently?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IVY and Treadmarks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to provide fault tolerance?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many DSMs [punt](https://www.google.com/search?q=punt&oq=punt) on this
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some DSM checkpoint the whole memory periodically
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will return to this when talking about Spark
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Correctness: coherence**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to articulate what is correctness before optimizing performance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimizations should preserve correctness
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Less obvious than it may seem!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Choice trades off between performance and programmer-friendliness
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Huge factor in many designs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More in next lecture
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Today's paper assumes a simple model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The distributed memory should behave like a single memory
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Load/stores much like put/gets in labs 2-4
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example 1:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Naive distributed shared memory
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Diagram 1:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: M0, M1, M2, LAN
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each machine has a local copy of all of memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'read: from local memory'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'write: send update msg to each other host (but don''t wait)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'fast: never waits for communication'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does this naive memory work well?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What will it do with [Example 1](#example-1)?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can fail because M0 and M1 could not see the writes by the time their `if`
+    statements are reached so they will both print *yes*.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Naive distributed memory is fast but incorrect
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram (broken scheme):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: M0 does write locally and tells other machines about the write after it has
+    done it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: imagine what output you would get instead of 9, if each machine was running
+    a program that incremented the value at address A 3 times
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Coherence = *sequential consistency*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Read sees *most recent* write" is not clear enough when you have multiple
+    processes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Need to nail down correctness a bit more precisely
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Sequential consistency means:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The result of any execution is the same as if
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the operations of all the processors were executed in some sequential order
+    (total order)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and the operations of each individual processor appear in this sequence in the
+    order specified by its program
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (if P says A before B, you can't have B; A; show up in that seq. order)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and read sees last write in total order
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There must be some total order of operations such that
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each machine's instructions appear in-order in the order
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All machines see results consistent with that order
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: i.e. reads see most recent write in the order
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Behavior of a single shared memory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Would sequential consistency cause our example to get the intuitive result?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The system is required to merge these into one order, and to maintain the order
+    of each machine's operations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So there are a few possibilities:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Wx1 Ry0 Wy1 Rx1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Wx1 Wy1 Ry1 Rx1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Wx1 Wy1 Rx1 Ry1`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: others too, but all symmetric?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is forbidden?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Wx1 Ry0 Wy1 Rx0` -- Rx0 read didn''t see preceding Wx1 write (naive system
+    did this)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Ry0 Wy1 Rx0 Wx1` -- M0''s instructions out of order (some CPUs do this)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go's memory consistency model
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Go's semantics for the example?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go would allow both goroutines to print "yes"!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go race detector wouldn't like the example program anyway
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Programmer is *required* to use locks/channels to get sensible semantics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go doesn't require the hardware/DSM to implement strict consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More about weaker consistency on Thursday
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Go's memory model tells you if thread A will see the write to x if it has seen
+    the write to y
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In Go, there's no guarantee x's write will be seen if y was written
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A simple implementation of sequential consistency
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A straightforward way to get sequential consistency: Just have a manager in
+    between the two or three machines that interleaves their instructions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Diagram 2:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: single memory server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each machine sends r/w ops to server, in order, waiting for reply
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: server picks order among waiting ops
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: server executes one by one, sending replies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'big ideas:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if people just read some data, we can replicate it on all of them
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if someone writes data, we need to prevent other people from writing it
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so we take the page out of those other people's memory
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This simple implementation will be slow
+  prefs: []
+  type: TYPE_NORMAL
+- en: single server will get overloaded
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no local cache, so all operations wait for server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Which brings us to **IVY**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'IVY: Integrated shared Virtual memory at Yale'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Memory Coherence in Shared Virtual Memory Systems, Li and Hudak, PODC 1986
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IVY big picture
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Operates on pages of memory, stored in machine DRAM (no mem server)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each page present in each machine's virtual address space
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On each a machine, a page might be invalid, read-only, or read-write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Uses VM hardware to intercept reads/writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Invariant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A page is either:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Read/write on one machine, invalid on all others; or
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Read/only on $\geq 1$ machines, read/write on none
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Read fault on an invalid page:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Demote R/W (if any) to R/O
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Copy page
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mark local copy R/O
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Write fault on an R/O page:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Invalidate all copies
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mark local copy R/W
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IVY allows multiple reader copies between writes
+  prefs: []
+  type: TYPE_NORMAL
+- en: For speed -- local reads are fast
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No need to force an order for reads that occur between two writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let them occur concurrently -- a copy of the page at each reader
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why crucial to invalidate all copies before write?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a write completes, all subsequent reads *must* see new data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise we break our example, and don't get sequential consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does IVY do on the example?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I.e. could both M0 and M1 print "yes"?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If M0 sees y == 0,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M1 hasn't done ites write to y (no stale data == reads see prior writes),
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M1 hasn't read x (each machine in order),
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M1 must see x == 1 (no stale data == reads see prior writes).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Message types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[don''t list these on board, just for reference]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RQ read query (reader to manager (MGR))
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RF read forward (MGR to owner)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RD read data (owner to reader)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RC read confirm (reader to MGR)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '&c'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (see [ivy-code.txt](code/ivy-code.txt) on web site)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Scenario 1: M0 has writeable copy, M1 wants to read'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Diagram 3:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: M1 tries to read gets a page fault
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: b.c. page must have been marked invalid since M0 has it for R/W (see invariant
+    described earlier)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M1 sends RQ to MGR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MGR sends RF to M0, MGR adds M1 to `copy_set`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What is `copy_set`?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"The `copy_set` field lists all processors that have copies of the page. This
+    allows an invalidation operation to be performed without using broadcast."'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: M0 marks page as $access = read$, sends RD to M1
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: M1 marks $access = read$, sends RC to MGR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Scenario 2: now M2 wants to write'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Diagram 4:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Page fault on M2
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: M2 sends WQ to MGR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MGR sends IV to copy_set (i.e. M1)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: M1 sends IC msg to MGR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MGR sends WF to M0, sets owner=M2, copy_set={}
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: M0 sends WD to M2, access=none
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: M2 marks r/w, sends WC to MGR
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Q:** What if two machines want to write the same page at the same time?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** What if one machine reads just as ownership is changing hands?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does IVY provide strict consistency?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'no: MGR might process two STs in order opposite to issue time'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'no: ST may take a long time to revoke read access on other machines'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so LDs may get old data long after the ST issues
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if there were no IC message?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO:** What is IC?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (this is the new Question)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. MGR didn't wait for holders of copies to ACK?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No WC?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO:** What is WC?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (this used to be The Question)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. MGR unlocked after sending WF to M0?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MGR would send subsequent RF, WF to M2 (new owner)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if such a WF/RF arrived at M2 before WD?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No problem! M2 has `ptable[p].lock` locked until it gets WD
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RC + `info[p].lock` prevents RF from being overtaken by a WF
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so it's not clear why WC is needed!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but I am not confident in this conclusion
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if there were no RC message?
+  prefs: []
+  type: TYPE_NORMAL
+- en: i.e. MGR unlocked after sending RF?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: could RF be overtaken by subsequent WF?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or by a subsequent IV?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In what situations will IVY perform well?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Page read by many machines, written by none
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Page written by just one machine at a time, not used at all by others
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Cool that IVY moves pages around in response to changing use patterns
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will page size of e.g. 4096 bytes be good or bad?
+  prefs: []
+  type: TYPE_NORMAL
+- en: good if spatial locality, i.e. program looks at large blocks of data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: bad if program writes just a few bytes in a page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: subsequent readers copy whole page just to get a few new bytes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: bad if false sharing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. two unrelated variables on the same page
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and at least one is frequently written
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: page will bounce between different machines
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even read-only users of a non-changing variable will get invalidations
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even though those computers never use the same location
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about IVY's performance?
+  prefs: []
+  type: TYPE_NORMAL
+- en: after all, the point was speedup via parallelism
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What's the best we could hope for in terms of performance?
+  prefs: []
+  type: TYPE_NORMAL
+- en: $N \times$ faster on N machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What might prevent us from getting $N \times$ speedup?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application is inherently non-scalable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can't be split into parallel activities
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Application communicates too many bytes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So network prevents more machines yielding more performance
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Too many small reads/writes to shared pages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Even if # bytes is small, IVY makes this expensive'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How well do they do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Figure 4: near-linear for PDE (partial derivative equations)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Figure 6: very sub-linear for sort'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sorting a huge array involves moving a lot of data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: almost certain to move all data over the network at least once
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Figure 7: near-linear for matrix multiply'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in general, you end up being limited by network throughput for instance when
+    reading a lot of pages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why did sort do poorly?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's my guess
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: N machines, data in 2*N partitions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Phase 1: Local sort of 2*N partitions for N machines'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Phase 2: 2N-1 merge-splits; each round sends all data over network'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Phase 1 probably gets linear speedup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Phase 2 probably does not -- limited by LAN speed
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: also more machines may mean more rounds
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So for small # machines, local sort dominates, more machines helps'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For large # machines, communication dominates, more machines don''t help'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, more machines shifts from n*log(n) local sort to n^2 bubble-ish short
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How could one speed up IVY?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'next lecture: relax the consistency model'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: allow multiple writers to same page!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paper intro says DSM subsumes RPC -- is that true?
+  prefs: []
+  type: TYPE_NORMAL
+- en: When would DSM be better than RPC?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More transparent. Easier to program.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When would RPC be better?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Isolation. Control over communication. Tolerate latency.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Portability. Define your own semantics.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Abstraction?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Might you still want RPC in your DSM system? For efficient sleep/wakeup?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Known problems in Section 3.1 pseudo-code
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fault handlers must wait for owner to send `p` before confirming to manager
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deadlock if owner has page R/O and takes write fault
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Worrisome that no clear order `ptable[p].lock` vs `info[p].lock`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'TODO: Whaaaat?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write server / manager must set `owner = request_node`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Manager parts of fault handlers don't ask owner for the page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does processing of the invalidate request hold `ptable[p].lock?`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: probably can't -- deadlock
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL

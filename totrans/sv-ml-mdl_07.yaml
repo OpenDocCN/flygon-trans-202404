@@ -1,0 +1,241 @@
+- en: Chapter 7\. Apache Kafka Streams Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As described earlier, unlike Flink, Beam, and Spark, [Kafka Streams](https://kafka.apache.org/documentation/streams/)
+    is a client library for processing and analyzing data stored in Kafka. It builds
+    upon important stream-processing concepts, such as properly distinguishing between
+    event time and processing time, windowing support, and simple yet efficient management
+    of application state. Because Kafka Streams is a Java Virtual Machine (JVM) framework,
+    implementation of our architecture is fairly simple and straightforward. Because
+    it runs in a single JVM, it is possible to implement state as a static Java object
+    in memory, which can be shared by both streams. This in turn means that it is
+    not necessary to merge streams—they can both execute independently while sharing
+    the same state, which is the current model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Although this solution will work, it has a serious drawback: unlike engines
+    such as Spark or Flink, it does not provide automated recovery. Fortunately, Kafka
+    Streams allows for implementation of state using [custom state stores](http://bit.ly/2xz7or5),
+    which are backed up by a special Kafka topic. I will start this chapter by showing
+    you how you can implement such a state store. Technically it is possible to use
+    the key–value store provided by Kafka Streams, but I decided to create a custom
+    state server to show implementation details.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the Custom State Store
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing the custom state store begins with deciding on the data that it
+    needs to hold. For our implementation, the only thing that needs to be stored
+    is the current and new version of our models ([complete code available here](http://bit.ly/2gbUCvJ);
+    currently Kafka Stream provides only Java APIs so as a result, all code in this
+    section is Java):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-1\. StoreState class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Kafka Streams supports several [state store types](http://bit.ly/2yYCgSU) including
+    persistent and in-memory types that can further be set up as custom (user can
+    define operations available on the store), key-value, or window stores (a window
+    store differs from a key-value store in that it can store many values for any
+    given key because the key can be present in multiple windows). For this application,
+    shown in [Example 7-2](#model_state_store_class), I use an in-memory, custom store
+    implementing the interface `org.apache.kafka.streams.processor.StateStore` ([complete
+    code available here](http://bit.ly/2xyoyK8)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-2\. ModelStateStore class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implementation uses `ModelStateStoreChangeLogger` for periodically writing
+    the current state of the store to a special Kafka topic and to restore the store
+    state on startup. Because `ModelStateStoreChangeLogger` uses a Kafka topic for
+    storing the state, it requires a key. In our implementation, we can either use
+    data type as a key or introduce a fake key to satisfy this requirement I used
+    a fake key. It also uses `ModelStateSerde` for serializing/deserializing the content
+    of the store to the binary blob, which can be stored in Kafka.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The two main methods in this class are `flush`, which is responsible for flushing
+    the current state to Kafka, and `init`, which is responsible for restoring state
+    from Kafka. [Example 7-3](#model_change_logger_class) shows what the `ModelStateStoreChangeLogger`
+    implementation looks like ([complete code available here](http://bit.ly/2xzFEaF)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-3\. ModelStateStoreChangeLogger class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a fairly simple class with one executable method, `logChange`, which
+    sends the current state of the store to the topic assigned by the Kafka Streams
+    runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second class used by `ModelStateStore` is `ModelStateSerde`, which you can
+    see in [Example 7-4](#state_serializer_solidus_deserializer) ([complete code available
+    here](http://bit.ly/2zgeXVy)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-4\. State serializer/deserializer class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This listing contains three classes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ModelStateSerializer` is responsible for serialization of state to a byte
+    array.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ModelStateDeserializer` is responsible for restoring of state from a byte
+    array.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ModelStateSerde` is responsible for interfacing with the Kafka Streams runtime
+    and providing classes for serialization/deserialization of state data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The final class that is required for the model state store is `ModelStateStoreSupplier`
+    to create store instances, which you can see in [Example 7-5](#model_state_store_supplier)
+    ([complete code available here](http://bit.ly/2yGVC2A)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-5\. ModelStateStoreSupplier class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing Model Serving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the store in place, implementing model serving using Kafka Streams becomes
+    very simple; it’s basically two independent streams coordinated via a shared store
+    (somewhat similar to a Flink [[Figure 4-1](ch04.html#using_flinkas_low-evel_join)],
+    with the state being implemented as a state store).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0701](assets/smlt_0701.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7-1\. Kafka Streams implementation approach
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: '[Example 7-6](#implementation_of_model_serving) presents the overall implementation
+    of this architecture ([complete code available here](http://bit.ly/2xzyYEs)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-6\. Implementation of model serving
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The main method of this class configures Kafka Streams, builds the streams topology,
+    and then runs them. The execution topology configuration is implemented in the
+    `CreateStreams` method. It first creates the store provider. Next it creates two
+    effectively independent stream-processing pipelines. Finally, it creates a state
+    store and attaches it to both pipelines (processors).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each pipeline reads data from its dedicated stream and then invokes a dedicated
+    processor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Example 7-7](#model_processor) shows what the model processor looks like ([complete
+    code available here](http://bit.ly/2kHT9yH)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-7\. Model processor
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This class has two important methods: `init`, which is responsible for connecting
+    to the data store, and `process`, which is responsible for the actual execution
+    of the processor’s functionality. The process method unmarshals the incoming model
+    message, converts it to the internal representation, and then deposits it (as
+    a new model) to the data store.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data stream processor is equally simple, as demonstrated in [Example 7-8](#data_processor)
+    ([complete code available here](http://bit.ly/2kHT9yH)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 7-8\. Data processor
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similar to the model processor, this class has two methods with the same responsibilities.
+    The `process` method unmarshals an incoming data message and converts it to the
+    internal representation. It then checks whether there is a new model and updates
+    the content of the state store if necessary. Finally, if the model is present,
+    it scores input data and prints out the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the implementation presented here scores a single model, you can expand
+    it easily to support multiple models using the data type for routing, as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scaling the Kafka Streams Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With all the simplicity of this implementation, the question remains about the
+    scalability of this solution, given that the Kafka Streams implementation runs
+    within a single Java Virtual Machine (JVM). Fortunately, the Kafka Streams implementation
+    is easily scalable based on [Kafka data partitioning](http://bit.ly/2ya6BB5).
+    In effect Kafka Streams scaling is very similar to Flink’s partition-based join
+    approach ([Figure 4-3](ch04.html#partition-based_join)). Keep in mind that for
+    this to work, every instance must have a different consumer group for the model
+    topic (to ensure that all instances are reading the same sets of models) and a
+    same consumer group for the data topic (to ensure that every instance gets only
+    part of data messages). [Figure 7-2](#scaling_kafka_streams_implementation) illustrates
+    Kafka Streams scaling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0702](assets/smlt_0702.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7-2\. Scaling Kafka Streams implementation
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Similar to Flink’s partition-based joins implementation, a multi-JVM implementation
+    of a Kafka Streams–based model server is prone to potential race conditions, as
+    it does not guarantee that models are updated in all JVMs at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [Chapter 8](ch08.html#akka_streams_implementation), we will see how we can
+    use another popular streaming framework—Akka Streams—to build model serving solutions.
+  prefs: []
+  type: TYPE_NORMAL

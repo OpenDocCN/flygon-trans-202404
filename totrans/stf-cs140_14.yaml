@@ -1,0 +1,475 @@
+- en: File System Crash Recovery
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Lecture Notes for CS 140
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spring 2014
+  prefs: []
+  type: TYPE_NORMAL
+- en: John Ousterhout
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Readings for this topic from *Operating Systems: Principles and Practice*:
+    Chapter 14 up through Section 14.1.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The problem: crashes can happen anywhere, even in the middle of critical sections:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Lost data: information cached in main memory may not have been written to disk
+    yet.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'E.g. original Unix: up to 30 seconds worth of changes'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Inconsistency:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a modification affects multiple blocks, a crash could occur when some of
+    the blocks have been written to disk but not the others.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Examples:'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Adding block to file: free list was updated to indicate block in use, but file
+    descriptor wasn''t yet written to point to block.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Creating link to a file: new directory entry refers to file descriptor, but
+    reference count wasn''t updated in file descriptor.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ideally, we'd like something like an atomic operation where multi-block operations
+    happen either in their entirety or not at all.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Approach #1: check consistency during reboot, repair problems'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Example: Unix fsck ("file system check")'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: During every system boot fsck is executed.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Checks to see if disk was shut down cleanly; if so, no more work to do.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If disk didn't shut down cleanly (e.g., system crash, power failure, etc.),
+    then scan disk contents, identify inconsistencies, repair them.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: block in file and also in free list'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: reference count for a file descriptor doesn''t match the number of
+    links in directories'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: block in two different files'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: file descriptor has a reference count > 0 but is not referenced in
+    any directory.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Limitations of fsck:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Restores disk to consistency, but doesn't prevent loss of information; system
+    could end up unusable.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Security issues: a block could migrate from the password file to some other
+    random file.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Can take a long time: 1.5 hours to read every block in a medium-size disk today.
+    Can''t restart system until fsck completes. As disks get larger, recovery time
+    increases.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Approach #2: ordered writes'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Prevent certain kinds of inconsistencies by making updates in a particular order.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For example, when adding a block to a file, first write back the free list so
+    that it no longer contains the file's new block.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then write the file descriptor, referring to the new block.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What can we say about the system state after a crash?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In general:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Never write a pointer before initializing the block it points to (e.g., indirect
+    block).
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Never reuse a resource (inode, disk block, etc.) before nullifying all existing
+    pointers to it.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Never clear last pointer to a live resource before setting new pointer (e.g.
+    mv).
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Result: no need to wait for fsck when rebooting'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Problems:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can leak resources (run fsck in background to reclaim leaked resources).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Requires lots of synchronous metadata writes, which slows down file operations.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Improvement:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Don't actually write the blocks synchronously, but record dependencies in the
+    buffer cache.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For example, after adding a block to a file add dependency between file descriptor
+    block and free list block.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When it's time to write the file descriptor back to disk, make sure that the
+    free list block has been written first.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Tricky to get right: potentially end up with circular dependencies between
+    blocks.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Approach #3: write-ahead logging'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Also called *journaling file systems*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implemented in Linux ext3 and NTFS (Windows).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Similar in function to logs in database systems; allows inconsistencies to be
+    corrected quickly during reboots
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before performing an operation, record information about the operation in a
+    special append-only log file; flush this info to disk before modifying any other
+    blocks.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: adding a block to a file'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Log entry: "I''m about to add block 99421 to file descriptor 862 at block index
+    93"'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then the actual block updates can be carried out later.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a crash occurs, replay the log to make sure all updates are completed on
+    disk.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Guarantees that once an operation is started, it will eventually complete.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Problem: log grows over time, so recovery could be slow.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution: checkpoint'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Occasionally stop and flush all dirty blocks to disk.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once this is done, the log can be cleared.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Typically the log is used only for metadata (free list, file descriptors, indirect
+    blocks), not for actual file data.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Logging advantages:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recovery much faster.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Eliminate inconsistencies such as blocks confused between files.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Log can be localized in one area of disk, so writes are faster (no seeks).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Metadata writes can be delayed a long time, for better performance.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Logging disadvantages:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synchronous disk write before every metadata operation.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Remaining problems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Can still lose recently-written data after crash
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution: apps can use fsync to force data to disk.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disks fail
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One of the greatest causes of problems in large datacenters
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution: replication or backup copies (e.g., on tape)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Disk writes are not atomic:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a block is being written at the time of the crash, it may be left in inconsistent
+    state (neither old contents nor new).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At the level of sectors, inconsistencies are detectable; after crash, sector
+    will be either
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Old contents
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New contents
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unreadable trash
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'But, blocks are typically multiple sectors. After crash:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sectors 0-5 of block may have new contents.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sectors 6-7 of block may have old contents.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: appending to log'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If adding new log entries to an existing log block, crash could cause old info
+    in the block to be lost.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replicated log writes (if crash corrupts one of the logs, the other will still
+    be safe).
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add checksums and/or versions to detect incomplete writes.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Conclusions:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To get highest performance, must give up some crash recovery capability.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Must decide what kinds of failures you want to recover from.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL

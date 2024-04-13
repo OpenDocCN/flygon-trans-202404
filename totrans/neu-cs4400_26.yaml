@@ -1,0 +1,196 @@
+- en: The FLANG LanguageTuesday, January 31st
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now for the implementation — we call this new language FLANG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the BNF:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the matching type definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The parser for this grammar is, as usual, straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We also need to patch up the substitution function to deal with these things.
+    The scoping rule for the new function form is, unsurprisingly, similar to the
+    rule of `with`, except that there is no extra expression now, and the scoping
+    rule for `call` is the same as for the arithmetic operators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the matching code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, before we start working on an evaluator, we need to decide on what exactly
+    do we use to represent values of this language. Before we had functions, we had
+    only number values and we used Racket numbers to represent them. Now we have two
+    kinds of values — numbers and functions. It seems easy enough to continue using
+    Racket numbers to represent numbers, but what about functions? What should be
+    the result of evaluating
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '? Well, this is the new toy we have: it should be a function value, which is
+    something that can be used just like numbers, but instead of arithmetic operations,
+    we can `call` these things. What we need is a way to avoid evaluating the body
+    expression of the function — *delay* it — and instead use some value that will
+    contain this delayed expression in a way that can be used later.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To accommodate this, we will change our implementation strategy a little: we
+    will use our syntax objects for numbers (`(Num n)` instead of just `n`), which
+    will be a little inconvenient when we do the arithmetic operations, but it will
+    simplify life by making it possible to evaluate functions in a similar way: simply
+    return their own syntax object as their values. The syntax object has what we
+    need: the body expression that needs to be evaluated later when the function is
+    called, and it also has the identifier name that should be replaced with the actual
+    input to the function call. This means that evaluating:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: now yields
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: and a number `(Num 5)` evaluates to `(Num 5)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a similar way, `(Fun 'x (Num 2))` evaluates to `(Fun 'x (Num 2))`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why would this work? Well, because `call` will be very similar to `with` — the
+    only difference is that its arguments are ordered a little differently, being
+    retrieved from the function that is applied and the argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The formal evaluation rules are therefore treating functions like numbers,
+    and use the syntax object to represent both values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that the last rule could be written using a translation to a `with` expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And alternatively, we could specify `with` using `call` and `fun`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There is a small problem in these rules which is intuitively seen by the fact
+    that the evaluation rule for a `call` is expected to be very similar to the one
+    for arithmetic operations. We now have two kinds of values, so we need to check
+    the arithmetic operation’s arguments too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The corresponding code is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that the `Call` case is doing the same thing we do in the `With` case.
+    In fact, we could have just *generated* a `With` expression and evaluate that
+    instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `arith-op` function is in charge of checking that the input values are numbers
+    (represented as FLANG numbers), translating them to plain numbers, performing
+    the Racket operation, then re-wrapping the result in a `Num`. Note how its type
+    indicates that it is a higher-order function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: It uses the following function to convert FLANG numbers to Racket numbers. (Note
+    that `else` is almost always a bad idea since it can prevent the compiler from
+    showing you places to edit code — but this case is an exception since we never
+    want to deal with anything other than `Num`s.) The reason that this function is
+    relatively trivial is that we chose the easy way and represented numbers using
+    Racket numbers, but we could have used strings or anything else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also make things a little easier to use if we make `run` convert the
+    result to a number:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Adding few simple tests we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is still a problem with this version. First a question — if `call` is
+    similar to arithmetic operations (and to `with` in what it actually does), then
+    how come the code is different enough that it doesn’t even need an auxiliary function?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second question: what *should* happen if we evaluate these code snippets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Third question, what *will* happen if we do the above?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we’re missing is an evaluation of the function expression, in case it’s
+    not a literal `fun` form. The following fixes this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The complete code is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,381 @@
+- en: Memcache at Facebook
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 16: Memcache at Facebook'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Facebook Memcached paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: an experience paper, not a research results paper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you can read it as a triumph paper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'you can read it as a caution paper: what happens when you don''t think about
+    scalability'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you can read it as a trade-offs paper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scaling a webapp
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Initial design for any webapp is a single webserver machine with a DB server
+    running on it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Diagram (single machine: webserver and DB server)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: eventually they find out they use 100% of the CPU on this machine
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`top` will tell them the CPU time is going to the web-app'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram (multiple webserver machines, single DB machine):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: next problem they will face is the database will be the bottleneck
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DB CPU is 100% or disk is 100%
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: say they decide to buy a bunch of DB servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: now they gotta figure out how to *shard* the data on the database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: application software now has to know which DB server to talk to
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can no longer have transactions across the whole DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can no longer have single queries on the entire dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: need to send separate queries to each server
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you can't push this too far because after a while the shards get very small
+    and you get database servers that become hotspots
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, you notice that most of the operations in the DB are reads (if that's
+    the case. It is at Facebook.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: it turns out you can build a very simple memory cache that can serve half a
+    million requests per second
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then you can remove 90% of the load on the database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: the next bottleneck will be database writes, if you keep growing your service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Observation: you could use DB read-only replicas, instead of your own customized
+    memcache (MC) nodes. Facebook did not do this because they wanted to separate
+    their caching logic from their DB deployment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It was the best choice given limited engineering resources and time. Additionally,
+    separating our caching layer from our persistence layer allows us to adjust each
+    layer independently as our workload changes
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Facebook's use case
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Very crucial:** they do not care too much about all their users getting a
+    consistent view of their system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only case when the paper cares about freshness and consistency is when webapp
+    clients read their own writes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Their high level picture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The reason for having multiple data centers: parallelism across the globe'
+  prefs: []
+  type: TYPE_NORMAL
+- en: maybe also for backup purposes (paper doesn't detail too much)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Big lessons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Look-aside caching can be tricky
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This style of look-aside caching, where the application looks in the cache to
+    see what's there, is extremely easy to add to an existing system
+  prefs: []
+  type: TYPE_NORMAL
+- en: but there are some nasty consistency problems that appear when the caching layer
+    is oblivious to what happens in the DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Caching is about throughput not latency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It wasn't about reducing latency for the users. They were using the cache to
+    increase throughput and take the load off the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: no way the DB could've handled the load, which is 10x or 100x more than what
+    the DB can access
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They can tolerate stale data
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: They want to be able to read their own writes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You'd think this can be easily fixed in the application. Slightly surprised
+    that this was not fixed by just having the application remembering the writes.
+    Not clear why they solved it differently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventual consistency is good enough
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: They have enormous fan-out
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Each webpage they serve might generate hundreds and hundreds of reads. A little
+    bit surprising. So they have to do a bunch of tricks. Issue the reads in parallel.
+    When a single server does this, it gets a bunch of responses back, and the amount
+    of buffering in the switches and webservers is limited, so if they're not careful
+    they can lose packets and thus performance when retrying.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: a lot of content about consistency in the paper
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but really they were desperate to get performance which led to doing tricks,
+    which led to consistency problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: performance comes from being able to serve a lot of `Get`'s in parallel
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Really only two strategies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: partition data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: replicate data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: they use both
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Partitioning works if keys are roughly all as popular. Otherwise, certain partitions
+    would be more popular and lead to hotspots. Replication helps with handling demand
+    for popular keys. Also, replication helps with requests from remote places in
+    the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can't simply cache keys in the web app servers, because they would all fill
+    their memories quickly and you would double-store a lot of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specific problem they dealt with
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Each cluster has a full set of memcache servers and a full set of web servers.
+    Each web server talks to memcache servers in its own cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding a new cluster
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Sometimes, they want to add a new cluster, which will obviously have empty memcache
+    servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: all webservers in new cluster will always miss on every request and will have
+    to go down and contact the DB, which cannot handle the increased load
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: instead of contacting the DB, the new cluster will contact memcache servers
+    from other clusters until the new cluster's cache is warmed up
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** what benefit do they get from adding new clusters? instead of increasing
+    size of existing cluster?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: one possibility is there are some very popular keys so over-partitioning a cluster
+    won't help with that
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: another possibility could be that it's easier to add more memcache servers by
+    adding a new cluster, because of the data movement problem
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Memcache server goes down
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If a memcache server goes down, requests are redirected to a gutter server.
+    The gutter machines will miss a lot initially, but at least it will be caching
+    the results for the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Homework question:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Q:** Why aren''t gutters invalidated on writes?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On a write, DB typically sends an invalidate to all the MC servers that might
+    have that key. So there's a lot of deletes being sent around to a lot of MC servers.
+    Maybe they don't want to overflow the gutter servers with all the deletes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that gutter keys expire after a certain time, to deal with the fact that
+    the keys never change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not clear what happens if gutter servers go down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Wouldn''t it better if the DB server sent the out the new value instead
+    of invalidate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: what's cached in MC, might not be the DB value, but it might be some function
+    of the DB value, that the DB layer is not aware of
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: think of how a friend list is stored in a DB versus how it would be stored in
+    MC
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Leases for thundering herds
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One client sends an update to the DB and that gets a popular key invalidated.
+    So now lots of lots of clients generate Get's into MC, but the key was deleted,
+    which would lead to lots of DB queries and then lots of caching of the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If memcache receives a get for a key that's not present, it will set a lease
+    on that key and say "you're allowed to go ask the DB for this key, but please
+    finish doing this in 10 seconds." When subsequent Get's come in, they are told
+    "no such key, but another guy is getting it, so please wait for him instead of
+    querying the DB"
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lease is cancelled after 10s or when the owner sets the key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each cluster will generate a separate lease.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE

@@ -1,0 +1,184 @@
+- en: 'Recitation 5: Folding and tail recursion'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Folding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Suppose we want to write a function to sum a list of integers.  By now you
+    should be able to write the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now suppose we want to concatenate a list of strings.  We can write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that both functions look almost identical.  With the exception of the
+    different types and different operation (^ vs +), both functions are equivalent. 
+    In both cases, we walk down a list performing some operation with the data at
+    each step.  Since we love to reuse code in this class, is there some easier way
+    to encode this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out we can abstract all of the details of traversing a list.  The idea
+    is simple.  As we walk across a list, we store an *accumulator*, a value that
+    stores some data that is important to us.  For example, if we want to walk across
+    a list of integers and sum them, we could store the current sum in the accumulator. 
+    We start with the accumulator set to 0.  As we come across each new element, we
+    add the element to the accumulator.  When we reach the end, we return the value
+    stored in the accumulator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try to rewrite the sum function to introduce the idea of an accumulator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of course, to get the sum, we must call `sum'` with `0` for the initial `acc`
+    value.  Similarly, we can rewrite concat with this concept of the accumulator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: To use this function, we pass in the empty string for the initial accumulator. 
+    Now we see even more similarity between the two functions.  We are in a position
+    to eliminate any differences between the two by passing in the operator that acts
+    on the head of the list and the accumulator.  The result is the most powerful
+    list function in the list library:  `List.fold_left`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can rewrite `sum` and `concat` as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given a function `f` of type `'a -> 'b -> 'a`, the expression `List.fold_left
+    f b [x1; x2; ...; xn]` evaluates to `f (... (f (f b x1) x2) ...) xn`. The 'left'
+    in `List.fold_left` comes from the fact that it walks the list from left to right. 
+    Thus, we have to be careful sometimes in applying functions in the right order
+    (hence `acc ^ x` and not `x ^ acc` in `concat` above).  There is also a library
+    function `List.fold_right` which traverses the list from right to left. Note that
+    `List.fold_right` uses a different argument order than `List.fold_left`. The list
+    and the accumulator arguments are switched, and the function takes in the accumulator
+    as its second curried argument, not its first. So, `List.fold_right f [x1; x2;
+    ...; xn] b` evaluates to `f x1 (f x2 (... (f xn b)...))`. The code for `List.fold_right`
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use `List.fold_right` to write `concat` in the more natural manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: But we can still do better.  Remember, both `List.fold_left` and `List.fold_right`
+    are curried, so that we can leave out the list argument and write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can do even better.  OCaml provides a convenient notation to use infix binary
+    operators as curried functions by enclosing them in parentheses. So `(+)` is a
+    curried function that takes two integers and add them, `(^)` is a curried function
+    that takes two strings and concatenates them.  We can write sum and concat one
+    last time as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now you see the true power of functional programming.  Try rewriting functions
+    that sum a list of ints and concatenate a list of strings in 2 short lines of
+    Java.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Folding is so powerful, that we can write almost every other general list function
+    in terms of `List.fold_left` or `List.fold_right`.  For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: When writing code with fold, OCaml's type system can be tremendously helpful. 
+    The type of `List.fold_left` is `('a -> 'b -> 'a) -> 'a -> 'b list -> 'a`.  Suppose
+    we know we are applying `List.fold_left` to an `int list` and we want to return
+    a `string`.  Then `'b` is of type `int` and `'a` is of type `string`.  So right
+    away, we know that the function we have to pass into `List.fold_left` is of type
+    `string -> int -> string`.  Remember to use your type system to help you in writing
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should try writing some functions with `List.fold_left` to get a feel for
+    it.  It can be incredibly useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tail recursion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A function is *tail recursive* if it calls itself recursively but does not perform
+    any computation after the recursive call returns, and immediately returns to its
+    caller the value of its recursive call.  Observe the following difference between
+    the `sum` and `sum'` functions above:  In the first `sum` function, which is not
+    tail recursive, after the recursive call returned its value, we add `x` to it. 
+    In the tail recursive `sum'`, after the recursive call returns, we immediately
+    return the value without further computation. Notice also that `List.fold_left`
+    is tail recursive, whereas `List.fold_right` is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why do we care about tail recursion? Performance. Conceptually, there is a
+    *call stack*, which is a stack (the data structure with push and pop operations)
+    with one element for each function call that has been started but has not yet
+    completed. Each element stores things like the value of local variables and what
+    part of the function has not been evaluated yet. When the evaluation of one function
+    body calls another function, a new element is pushed on the call stack and it
+    is popped off when the called function completes. When a function makes a recursive
+    call to itself and there is *nothing more for the caller to do* after the callee
+    returns (except return the callee''s result), this situation is called a *tail
+    call*. Functional languages like OCaml (and even imperative languages like C++)
+    typically include an hugely useful optimization: when a call is a tail call, the
+    caller''s stack-frame is popped *before* the call—the callee''s stack-frame just
+    replaces the caller''s. This makes sense: the caller was just going to return
+    the callee''s result anyway. With this optimization, recursion can sometimes be
+    as efficient as a `while` loop in imperative languages (such loops don''t make
+    the call-stack bigger.) The "sometimes" is exactly when calls are tail calls—something
+    both you and the compiler can (often) figure out. With tail-call optimization,
+    the space performance of a recursive algorithm can be reduced from O(n) to O(1),
+    that is, from one stack frame per call to a single stack frame for all calls.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So when you have a choice between using `List.fold_left` and `List.fold_right`,
+    you are likely better off using `List.fold_left` on really long lists. Nonetheless,
+    it is sometimes easier to express a computation using `List.fold_right` (notice
+    that we wrote `map` in terms of `fold_right` in lecture on map and fold), so there
+    is a tradeoff between performance and code clarity. If you want to use `List.fold_right`
+    on a very lengthy list, you might instead choose to reverse the list first, then
+    use `List.fold_left`. For example, we could have written map as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: That results in a tail recursive hence space efficient implementation. But that
+    doesn't mean that a tail-recursive implementation is strictly better. On small
+    to medium sized lists, the overhead of reversing the list (both in time and in
+    allocating memory for the reversed list) can make the tail-recursive version less
+    *time* efficient.
+  prefs: []
+  type: TYPE_NORMAL

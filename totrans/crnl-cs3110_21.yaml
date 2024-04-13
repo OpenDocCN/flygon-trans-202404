@@ -1,0 +1,268 @@
+- en: 'Lecture 15: Concurrency'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So far in this class we have only considered sequential programs. Execution
+    of a sequential program proceeds one step at a time, with no choice about which
+    step to take next. Sequential programs are limited in that they are not very good
+    at dealing with multiple sources of simultaneous input and they can only execute
+    on a single processor. For these reasons, many modern applications are concurrent.
+    There are many different approaches to concurrent programming, but they all share
+    the fact that a program is split into multiple independent threads of execution.
+    Each thread runs a sequential program, but the overall collection of threads no
+    longer produces a single overall predictable sequence of execution steps. Instead,
+    execution proceeds *concurrently*, resulting in potentially unpredictable order
+    of execution for steps in one thread with respect to steps in other threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The granularity of concurrent programming varies widely, from coarse-grained
+    techniques that loosely coordinate the execution of separate programs, such as
+    *pipes* in Unix (or even the HTTP protocol between Web servers and clients), to
+    fine-grained techniques where the concurrent threads share the same memory, such
+    as *lightweight threads*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this lecture we will introduce concurrent progarmming through the simple
+    mechanisms provided in Jane Street's [async](https://github.com/janestreet/async)
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As examples to motivate concurrent programming, consider implementing a graphical
+    user interface that handles interactive input, a web crawler that builds up a
+    database of web pages, and a typical server. A graphical user interface that did
+    not have a separate execution thread for user interaction would be frustrating
+    to use because it would not "lock up" until the current action is completed. For
+    example, web browsers simultaneously handle input from the graphical user interface,
+    read and render web pages incrementally as new data comes in over the network,
+    and also run JavaScript programs embedded in web pages. All these activities happen
+    at once, so typically separate threads are used to handle each of them. Another
+    example of a naturally concurrent application is a web crawler, which traverses
+    the web collecting information about the structure and content of pages. It doesn''t
+    make sense for the web crawler to access each site sequentially, because most
+    of the time would be spent waiting for the remote server and network to respond
+    to each request. Therefore, web crawlers are typically highly concurrent, simultaneously
+    accessing thousands of different web sites. This design uses the processor and
+    network efficiently. Lastly, naive sequential servers would not behave as expected,
+    as it would only process requests from clients one at a time. There are two commonly-used
+    approaches to implementing servers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handle requests from each client using a separate thread,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Handle requests from all clients using an event loop.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both of these approaches have advantages and disadvantages. Using threads requires
+    complex synchronization or communication to ensure that system-wide resources
+    such as shared memory are used correctly. Using event loops complicates the control
+    flow of the program, since multiple sequential steps of execution must be threaded
+    through several iterations of the loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Concurrency is powerful and it enables new kinds of applications, but it also
+    makes writing correct programs more difficult, because execution of a concurrent
+    program is *nondeterministic*: the order in which operations occur is not always
+    known ahead of time. As a result, the programmer must think about all possible
+    orders in which the different threads might execute, and make sure that in all
+    of them the program works correctly. If the program is purely functional, nondeterminism
+    is easier because evaluation of an expression always returns the same value no
+    matter what. For example, in the expression `(2*4)+(3*5)`, the operations can
+    be executed concurrently (e.g., with the left and right products evaluated simultaneously)
+    without changing the answer. Imperative programming is more problematic. For example,
+    the expressions `(!x)` and `(x := !x+1)`, if executed by two different threads,
+    could give different results depending on which thread executes first.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `async` library attempts to combine the best features of lightweight threads
+    and event loops. The simplest way to use `async` is through `utop`. To start,
+    invoke `utop` and load `async`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The library is organized around a collection of primitives organized around
+    the notion of a *deferred* computation. You can find documentation for `async`[here](https://ocaml.janestreet.com/ocaml-core/111.28.00/doc/async/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `async` Library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A partial signature for the [Async.Std](https://ocaml.janestreet.com/ocaml-core/111.03.00/doc/async/#Std)
+    module is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: A value of type `'a Deferred.t` represents a deferred computation. The value
+    encapsulated within a deferred computation is typically not available initially.
+    Such a deferred computation is called *indeterminate*. However when the value
+    becomes *determined*, it can be accessed and used by the rest of the computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As an example to warm up, consider the following program, which defines an internal
+    function `f` that prints out an integer and then returns a deferred unit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `Deferred.List.iter` iterates a function that produces a deferred
+    value and combines the resulting list of deferred units into a single deferred
+    unit. The `both` function combines a pair of deferred values into a single deferred
+    pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If executed sequentially, this program would simply print the integers from
+    `1` to `5` twice. However, if executed concurrently, as in `async`, the calls
+    to `printf` can be interleaved. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The reason for this behavior is that the deferred values are executed concurrently,
+    as determined by the scheduler. Hence, the values printed to the console may appear
+    in a different order than would be specified using the normal sequential control
+    flow of the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Programming in `async`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The simplest way to create a deferred computation is to use the `return` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It produces a deferred value that is determined immediately, as can be verified
+    using the `peek` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A more interesting way to create a deferred computation is to combine two smaller
+    deferred computations sequentially. The `bind` operator, written infix as `>>=`
+    takes the result of one deferred computation and feeds it to a function that produces
+    another deferred computation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Execution of an expression that uses `bind` proceeds as follows: when the first
+    computation becomes determined, the value is supplied to the function, which schedules
+    another deferred computation. The overall computation is determined when this
+    second deferred is determined. The idiom used in the above code snippet can be
+    used as the implementation of the `both` function described previously:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function waits until `d1` is determined and passes the resulting value
+    to `v1` the first function, waits until `d2` is determined and passes the resulting
+    value to `v2` the second function, which returns the pair `(v1,v2)` in a new deferred
+    computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A more interesting example of composing deferreds arises with programs that
+    read and write from the file system. I/O is a particularly good match for concurrent
+    programming using deferreds, because I/O operations can often block, depending
+    on the behavior of the operating system and underlying devices. For example, a
+    read may block waiting for the disk to become available, or for the disk controller
+    to move the read head to the appropriate place on the physical disk itself. The
+    `async` library includes variants of the standard functions for opening and manipulating
+    files. For example, here is a small snippet of the [Reader](https://ocaml.janestreet.com/ocaml-core/111.28.00/doc/async/#Std.Reader)
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The type used to define `'a Read_result.t` is known as *polymorphic variant*,
+    and uses some new notation we have not seen before. For the purposes of this course,
+    it can be treated as an ordinary datatype whose constructors happen to be prefixed
+    with the backtick symbol, "[PRE9]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'let file_contents (fn:string) : string Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'let rec loop (r:Reader.t) (acc:string) : string Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader.read_line r >>= fun res ->
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: match res with
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| `Eof -> return acc'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| `Ok s -> loop r (acc ^ s) in'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Reader.open_file fn >>= fun r ->
+  prefs: []
+  type: TYPE_NORMAL
+- en: loop r ""
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'let file_length (fn:string) : int Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: contents fn >>= fun s ->
+  prefs: []
+  type: TYPE_NORMAL
+- en: return (String.length s)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'val map : ''a Deferred.t -> (''a -> ''b) -> ''b Deferred.t'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'let file_length (fn:string) : int Deferred.t ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: contents fn >>| String.length
+  prefs: []
+  type: TYPE_NORMAL
+- en: '```'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note the use of partial application in `String.length`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next lecture, we will see further examples of creating and programming
+    with deferred computations using `async`.
+  prefs: []
+  type: TYPE_NORMAL

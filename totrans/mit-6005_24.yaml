@@ -1,0 +1,1381 @@
+- en: 'Reading 24: Map, Filter, Reduce'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Software in 6.005
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '| Safe from bugs | Easy to understand | Ready for change |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Correct today and correct in the unknown future. | Communicating clearly
+    with future programmers, including future you. | Designed to accommodate change
+    without rewriting. |'
+  prefs: []
+  type: TYPE_TB
+- en: Objectives
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In this reading you’ll learn a design pattern for implementing functions that
+    operate on sequences of elements, and you’ll see how treating functions themselves
+    as *first-class values* that we can pass around and manipulate in our programs
+    is an especially powerful idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map/filter/reduce
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lambda expressions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functional objects
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Higher-order functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Introduction: an example'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Suppose we’re given the following problem: write a method that finds the words
+    in the Java files in your project.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Following good practice, we break it down into several simpler steps and write
+    a method for each one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: find all the files in the project, by scanning recursively from the project’s
+    root folder
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: restrict them to files with a particular suffix, in this case `.java`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: open each file and read it in line-by-line
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: break each line into words
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Writing the individual methods for these substeps, we’ll find ourselves writing
+    a lot of low-level iteration code. For example, here’s what the recursive traversal
+    of the project folder might look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here’s what the filtering method might look like, which restricts that
+    file list down to just the Java files (imagine calling this like `onlyFilesWithSuffix(files,
+    ".java")`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[**→ full Java code for the example**](https://github.com/mit6005/fa16-ex24-words/blob/master/src/words/Words1.java)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this reading we discuss *map/filter/reduce*, a design pattern that substantially
+    simplifies the implementation of functions that operate over sequences of elements.
+    In this example, we’ll have lots of sequences — lists of files; input streams
+    that are sequences of lines; lines that are sequences of words; frequency tables
+    that are sequences of (word, count) pairs. Map/filter/reduce will enable us to
+    operate on those sequences with no explicit control flow — not a single `for`
+    loop or `if` statement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Along the way, we’ll also see an important Big Idea: functions as “first-class”
+    data values, meaning that they can be stored in variables, passed as arguments
+    to functions, and created dynamically like other values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using first-class functions in Java is more verbose, uses some unfamiliar syntax,
+    and the interaction with static typing adds some complexity. So to get started
+    with map/filter/reduce, we’ll switch back to Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstracting out control flow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We’ve already seen one design pattern that abstracts away from the details
+    of iterating over a data structure: Iterator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Iterator abstraction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Iterator gives you a sequence of elements from a data structure, without you
+    having to worry about whether the data structure is a set or a token stream or
+    a list or an array — the [`Iterator`](http://docs.oracle.com/javase/8/docs/api/?java/util/Iterator.html)
+    looks the same no matter what the data structure is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, given a `List<File> files`, we can iterate using indices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But this code depends on the `size` and `get` methods of `List`, which might
+    be different in another data structure. Using an iterator abstracts away the details:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now the loop will be identical for any type that provides an `Iterator`. There
+    is, in fact, an interface for such types: [`Iterable`](http://docs.oracle.com/javase/8/docs/api/?java/lang/Iterable.html).
+    Any `Iterable` can be used with Java’s [enhanced for statement](https://docs.oracle.com/javase/tutorial/java/nutsandbolts/for.html)
+    — `for (File f : files)` — and under the hood, it uses an iterator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map/filter/reduce abstraction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The map/filter/reduce patterns in this reading do something similar to Iterator,
+    but at an even higher level: they treat the entire sequence of elements as a unit,
+    so that the programmer doesn’t have to name and work with the elements individually.
+    In this paradigm, the control statements disappear: specifically, the `for` statements,
+    the `if` statements, and the `return` statements in the code from our introductory
+    example will be gone. We’ll also be able to get rid of most of the temporary names
+    (i.e., the local variables `files`, `f`, and `result`).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sequences
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s imagine an abstract datatype `Seq<E>` that represents a *sequence* of
+    elements of type `E`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, `[1, 2, 3, 4]` ∈ `Seq<Integer>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Any datatype that has an iterator can qualify as a sequence: array, list, set,
+    etc. A string is also a sequence (of characters), although Java’s strings don’t
+    offer an iterator. Python is more consistent in this respect: not only are lists
+    iterable, but so are strings, tuples (which are immutable lists), and even input
+    streams (which produce a sequence of lines). We’ll see these examples in Python
+    first, since the syntax is very readable and familiar to you, and then we’ll see
+    how it works in Java.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ll have three operations for sequences: map, filter, and reduce. Let’s look
+    at each one in turn, and then look at how they work together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Map** applies a unary function to each element in the sequence and returns
+    a new sequence containing the results, in the same order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**map : (E → F) × Seq<‍E> → Seq<‍F>**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, in Python:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`map` is built-in, but it is also straightforward to implement in Python:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This operation captures a common pattern for operating over sequences: doing
+    the same thing to each element of the sequence.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions as values
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s pause here for a second, because we’re doing something unusual with functions.
+    The `map` function takes a reference to a *function* as its first argument — not
+    to the result of that function. When we wrote
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we didn’t *call* `sqrt` (like `sqrt(25)` is a call), instead we just used its
+    name. In Python, the name of a function is a reference to an object representing
+    that function. You can assign that object to another variable if you like, and
+    it still behaves like `sqrt`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can also pass a reference to the function object as a parameter to another
+    function, and that’s what we’re doing here with `map`. You can use function objects
+    the same way you would use any other data value in Python (like numbers or strings
+    or objects).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions are **first-class** in Python, meaning that they can be assigned to
+    variables, passed as parameters, used as return values, and stored in data structures.
+    First-class functions are a very powerful programming idea. The first practical
+    programming language that used them was Lisp, invented by John McCarthy at MIT.
+    But the idea of programming with functions as first-class values actually predates
+    computers, tracing back to Alonzo Church’s lambda calculus. The lambda calculus
+    used the Greek letter λ to define new functions; this term stuck, and you’ll see
+    it as a keyword not only in Lisp and its descendants, but also in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ve seen how to use built-in library functions as first-class values; how
+    do we make our own? One way is using a familiar function definition, which gives
+    the function a name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When you only need the function in one place, however — which often comes up
+    in programming with functions — it’s more convenient to use a **lambda expression**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This expression represents a function of one argument (called `k`) that returns
+    the value 2^k. You can use it anywhere you would have used `powerOfTwo`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Python lambda expressions are unfortunately syntactically limited, to functions
+    that can be written with just a `return` statement and nothing else (no `if` statements,
+    no `for` loops, no local variables). But remember that’s our goal with map/filter/reduce
+    anyway, so it won’t be a serious obstacle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Guido Von Rossum, the creator of Python, wrote a blog post about the design
+    principle that led not only to first-class functions in Python, but first-class
+    methods as well: [First-class Everything](http://python-history.blogspot.com/2009/02/first-class-everything.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: More ways to use map
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Map is useful even if you don’t care about the return value of the function.
+    When you have a sequence of mutable objects, for example, you can map a mutator
+    operation over them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some versions of map (including Python’s built-in `map`) also support mapping
+    functions with multiple arguments. For example, you can add two lists of numbers
+    element-wise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: map 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try these in the Python interpreter if you’re not sure!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `map(len, [ [1], [2], [3] ])`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: map 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `map(len, [1, 2, 3])`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: map 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `map(len, ['1', '2', '3'])`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: map 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is the result of `map(lambda x: x.split('' ''), ''a b c'')`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: map 5
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is the result of `map(lambda x: x.split('' ''), [''a b c''])`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our next important sequence operation is **filter**, which tests each element
+    with a unary predicate. Elements that satisfy the predicate are kept; those that
+    don’t are removed. A new list is returned; filter doesn’t modify its input list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**filter : (E → boolean) × Seq<‍E> → Seq<‍E>**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Python examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can define filter in a straightforward way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: filter 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try these in the Python interpreter if you’re not sure!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What is the result of `filter(lambda d: ''x'' in d.keys(), [ x1, y2, x3_y4
+    ])`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: filter 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What is the result of `filter(lambda d: 0 in d.values(), [ x1, y2, x3_y4 ])`?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: filter 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `filter(str.isalpha, [ 'a', '1', 'b', '2' ])`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: filter 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the result of `filter(str.swapcase, [ 'a', '1', 'b', '2' ])`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reduce
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our final operator, **reduce**, combines the elements of the sequence together,
+    using a binary function. In addition to the function and the list, it also takes
+    an *initial value* that initializes the reduction, and that ends up being the
+    return value if the list is empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**reduce : (F × E → F) × Seq<‍E> × F → F**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`reduce(f, list, init)` combines the elements of the list from left to right,
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result[0] = init
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[1] = f(result[0], list[0])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[2] = f(result[1], list[1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '...'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[n] = f(result[n-1], list[n-1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[n] is the final result for an n-element list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Adding numbers is probably the most straightforward example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are two design choices in the reduce operation. First is whether to require
+    an initial value. In Python’s reduce function, the initial value is optional,
+    and if you omit it, reduce uses the first element of the list as its initial value.
+    So you get behavior like this instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result[0] = undefined (reduce throws an exception if the list is empty)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[1] = list[0]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[2] = f(result[1], list[1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '...'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[n] = f(result[n-1], list[n-1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This makes it easier to use reducers like `max`, which have no well-defined
+    initial value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The second design choice is the order in which the elements are accumulated.
+    For associative operators like `add` and `max` it makes no difference, but for
+    other operators it can. Python’s reduce is also called **fold-left** in other
+    programming languages, because it combines the sequence starting from the left
+    (the first element). **Fold-right** goes in the other direction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**fold-right : (E × F → F) × Seq<‍E> × F → F**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'where `fold-right(f, list, init)` of an n-element list follows this pattern:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result[0] = init
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[1] = f(list[n-1], result[0])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[2] = f(list[n-2], result[1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '...'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: result[n] = f(list[0], result[n-1])
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: to produce result[n] as the final result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a diagram of two ways to reduce: from the left or from the right:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| ![](http://web.mit.edu/6.005/www/fa16/classes/24-map-filter-reducefold-left.svg)
+    | fold-left : (F × E → F) × Seq<‍E> × F → F **fold-left(-, [1, 2, 3], 0) = -6**
+    | ![](http://web.mit.edu/6.005/www/fa16/classes/24-map-filter-reducefold-right.svg)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| fold-right : (E × F → F) × Seq<‍E> × F → F **fold-right(-, [1, 2, 3], 0)
+    = 2** |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The return type of the reduce operation doesn’t have to match the type of the
+    list elements. For example, we can use reduce to glue together a sequence into
+    a string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or to flatten out nested sublists into a single list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is a useful enough sequence operation that we’ll define it as **flatten**,
+    although it’s just a reduce step inside:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: More examples
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Suppose we have a polynomial represented as a list of coefficients, a[0], a[1],
+    ..., a[n-1], where a[i] is the coefficient of x^i. Then we can evaluate it using
+    map and reduce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code uses the convenient Python generator method `range(a,b)`, which generates
+    a list of integers from a to b-1. In map/filter/reduce programming, this kind
+    of method replaces a `for` loop that indexes from a to b.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s look at a typical database query example. Suppose we have a database
+    about digital cameras, in which each object is of type `Camera` with observer
+    methods for its properties (`brand()`, `pixels()`, `cost()`, etc.). The whole
+    database is in a list called `cameras`. Then we can describe queries on this database
+    using map/filter/reduce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Relational databases use the map/filter/reduce paradigm (where it’s called
+    project/select/aggregate). [SQL](https://en.wikipedia.org/wiki/SQL) (Structured
+    Query Language) is the *de facto* standard language for querying relational databases.
+    A typical SQL query looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`cameras` is a **sequence** (a list of rows, where each row has the data for
+    one camera)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '`where brand = "Nikon"` is a **filter**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '`pixels` is a **map** (extracting just the pixels field from the row)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '`max` is a **reduce**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: reduce 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which is the best description of this reduction?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
+    answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: reduce 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try these in the Python interpreter if you’re not sure!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is the result of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is the result of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back to the intro example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Going back to the example we started with, where we want to find all the words
+    in the Java files in our project, let’s try creating a useful abstraction for
+    filtering files by suffix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`fileEndsWith` returns *functions* that are useful as filters: it takes a filename
+    suffix like `.java` and dynamically generates a function that we can use with
+    filter to test for that suffix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`fileEndsWith` is a different kind of beast than our usual functions. It’s
+    a **higher-order function**, meaning that it’s a function that takes another function
+    as an argument, or returns another function as its result. Higher-order functions
+    are operations on the datatype of functions; in this case, `fileEndsWith` is a
+    *creator* of functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s use map, filter, and flatten (which we defined above using reduce)
+    to recursively traverse the folder tree:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first line gets all the children of the folder, which might look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The second line is the key bit: it filters the children for just the subfolders,
+    and then recursively maps `allFilesIn` against this list of subfolders! The result
+    might look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: So we have to flatten it to remove the nested structure. Then we add the immediate
+    children that are plain files (not folders), and that’s our result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also do the other pieces of the problem with map/filter/reduce. Once
+    we have the list of files we want to extract words from, we’re ready to load their
+    contents. We can use map to get their pathnames as strings, open them, and then
+    read in each file as a list of files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This actually looks like a single map operation where we want to apply three
+    functions to the elements, so let’s pause to create another useful higher-order
+    function: composing functions together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can use a single map:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Better, since we already have three functions to apply, let’s design a way
+    to compose an arbitrary chain of functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So that the map operation becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we see more of the power of first-class functions. We can put functions
+    into data structures and use operations on those data structures, like map, reduce,
+    and filter, on the functions themselves!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since this map will produce a list of lists of lines (one list of lines for
+    each file), let’s flatten it to get a single line list, ignoring file boundaries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we split each line into words similarly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we’re done, we have our list of all words in the project’s Java files! As
+    promised, the control statements have disappeared.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**→ full Python code for the example**](https://github.com/mit6005/fa16-ex24-words/blob/master/src/words/Words2.py)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Benefits of abstracting out control
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Map/filter/reduce can often make code shorter and simpler, and allow the programmer
+    to focus on the heart of the computation rather than on the details of loops,
+    branches, and control flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By arranging our program in terms of map, filter, and reduce, and in particular
+    using immutable datatypes and pure functions (functions that do not mutate data)
+    as much as possible, we’ve created more opportunities for safe concurrency. Maps
+    and filters using pure functions over immutable datatypes are instantly parallelizable
+    — invocations of the function on different elements of the sequence can be run
+    in different threads, on different processors, even on different machines, and
+    the result will still be the same. [MapReduce](https://en.wikipedia.org/wiki/MapReduce)
+    is a pattern for parallelizing large computations in this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: map/filter/reduce
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This Python function accepts a list of numbers and computes the product of
+    all the odd numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Rewrite the Python code using map, filter, and reduce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Where `m_func`, `f_func`, and `r_func` are each one of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **A.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **H.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **B.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **I.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **C.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **J.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **D.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **K.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **E.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **L.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **F.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **M.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **G.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|  | **N.** |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each of the choices below, is it a correct implementation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**D + H + L**: `reduce(product, filter(is_odd, map(identity_function, list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**E + F + L**: `reduce(product, filter(always_true, map(identity, list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**E + G + L**: `reduce(product, filter(modulus_tester, map(identity, list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**B + J + L**: `reduce(product, filter(odd_or_identity, map(x, list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**J + F + M**: `reduce(operator.mul, filter(always_true, map(odd_or_identity,
+    list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**D + I + N**: `reduce(x * y, filter(x_is_odd, map(identity_function, list)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: First-class functions in Java
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ve seen what first-class functions look like in Python; how does this all
+    work in Java?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Java, the only first-class values are primitive values (ints, booleans, characters,
+    etc.) and object references. But objects can carry functions with them, in the
+    form of methods. So it turns out that the way to implement a first-class function,
+    in an object-oriented programming language like Java that doesn’t support first-class
+    functions directly, is to use an object with a method representing the function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ve actually seen this before several times already:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Runnable` object that you pass to a `Thread` constructor is a first-class
+    function, `void run()`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Comparator<T>` object that you pass to a sorted collection (e.g. `SortedSet`)
+    is a first-class function, `int compare(T o1, T o2)`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In a future class, we’ll see `KeyListener` objects that you register with the
+    graphical user interface toolkit to get keyboard events. They act as a bundle
+    of several functions, `keyPressed(KeyEvent)`, `keyReleased(KeyEvent)`, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This design pattern is called a **functional object** or **functor**, an object
+    whose purpose is to represent a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lambda expressions in Java
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Java’s lambda expression syntax provides a succinct way to create instances
+    of functional objects. For example, instead of writing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we can use a lambda expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: On the Java Tutorials page for Lambda Expressions, read [Syntax of Lambda Expressions](https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html#syntax).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There’s no magic here: Java still doesn’t have first-class functions. So you
+    can only use a lambda when the Java compiler can verify two things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It must be able to determine the type of the functional object the lambda will
+    create. In this example, the compiler sees that the `Thread` constructor takes
+    a `Runnable`, so it will infer that the type must be `Runnable`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This inferred type must be *functional interface*: an interface with only one
+    (abstract) method. In this example, `Runnable` indeed only has a single method
+    — `void run()` — so the compiler knows the code in the body of the lambda belongs
+    in the body of a `run` method of a new `Runnable` object.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Java provides some [standard functional interfaces](http://docs.oracle.com/javase/8/docs/api/?java/util/function/package-summary.html)
+    we can use to write code in the map/filter/reduce pattern, e.g.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[`Function<T,R>`](http://docs.oracle.com/javase/8/docs/api/?java/util/function/Function.html)
+    represents unary functions from `T` to `R`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[`BiFunction<T,U,R>`](http://docs.oracle.com/javase/8/docs/api/?java/util/function/BiFunction.html)
+    represents binary functions from `T`×`U` to `R`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[`Predicate<T>`](http://docs.oracle.com/javase/8/docs/api/?java/util/function/Predicate.html)
+    represents functions from `T` to boolean'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So we could implement map in Java like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here’s an example of using map; first we’ll write it using the familiar
+    syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And with a lambda expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this example, the lambda expression is just wrapping a call to `String`’s
+    `toLowerCase`. We can use a *method reference* to avoid writing the lambda, with
+    the syntax `::`. The signature of the method we refer to must match the signature
+    required by the functional interface for static typing to be satisfied:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the Java Tutorials, you can read more about [**method references**](https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html)
+    if you want the details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a method reference (vs. calling it) in Java serves the same purpose as
+    referring to a function by name (vs. calling it) in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map/filter/reduce in Java
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The [abstract sequence type](#sequences) we defined above exists in Java as
+    [`Stream`](http://docs.oracle.com/javase/8/docs/api/?java/util/stream/Stream.html),
+    which defines `map`, `filter`, `reduce`, and many other operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Collection types like `List` and `Set` provide a `stream()` operation that returns
+    a `Stream` for the collection, and there’s an `Arrays.stream` function for creating
+    a `Stream` from an array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s one implementation of `allFilesIn` in Java with map and filter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: The map-and-flatten pattern is so common that Java provides a `flatMap` operation
+    to do just that, and we’ve used it instead of defining `flatten`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s `endsWith`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given a `Stream<File> files`, we can now write e.g. `files.filter(endsWith(".java"))`
+    to obtain a new filtered stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look at the [revised Java code for this example](https://github.com/mit6005/fa16-ex24-words/blob/master/src/words/Words3.java).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can compare [all three versions](https://github.com/mit6005/fa16-ex24-words/tree/master/src/words):
+    the familiar Java implementation, Python with map/filter/reduce, and Java with
+    map/filter/reduce.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Higher-order functions in Java
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Map/filter/reduce are of course higher-order functions; so is `endsWith` above.
+    Let’s look at two more that we saw before: `compose` and `chain`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `Function` interface provides `compose` — but the implementation is very
+    straightforward. In particular, once you get the types of the arguments and return
+    values correct, Java’s static typing makes it pretty much impossible to get the
+    method body wrong:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: It turns out that we *can’t* write `chain` in strongly-typed Java, because `List`s
+    (and other collections) must be homogeneous — we can specify a list whose elements
+    are all of type `Function<A,B>`, but not one whose first element is a `Function<A,B>`,
+    second is a `Function<B,C>`, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But here’s `chain` for functions of the same input/output type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our Python version didn’t use an initial value in the `reduce`, it required
+    a non-empty list of functions. In Java, we’ve provided the identity function (that
+    is, *f(t) = t*) as the identity value for the reduction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading exercises
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Comparator<‌Dog>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Java, suppose we have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have several `Dog` objects, and we’d like to keep a collection of them, sorted
+    by how loud they bark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Java provides an interface `SortedSet` for sorted sets of objects. `TreeSet`
+    implements `SortedSet`, so we’ll use that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `TreeSet` constructor takes as an argument a `Comparator` that tells it
+    how to compare two objects in the set; in this case, two `Dog`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Comparator` is a functional interface: it has a single unimplemented method:
+    [`int compare(...)`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html#compare-T-T-).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So our code will look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An instance of `Comparator` is an example of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Barking up the wrong TreeSet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of these would create a `TreeSet` to sort our dogs from quietest bark
+    to loudest?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read the documentation for [`Comparator.compare(...)`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html#compare-T-T-)
+    to understand what it needs to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: (missing answer)(missing answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (missing explanation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This reading is about modeling problems and implementing systems with *immutable
+    data* and operations that implement *pure functions*, as opposed to *mutable data*
+    and operations with *side effects*. *Functional programming* is the name for this
+    style of programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functional programming is much easier to do when you have *first-class functions*
+    in your language and you can build *higher-order functions* that abstract away
+    control flow code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some languages — [Haskell](http://www.haskell.org/), [Scala](http://www.scala-lang.org/),
+    [OCaml](http://ocaml.org/) — are strongly associated with functional programming.
+    Many other languages — [JavaScript](https://developer.mozilla.org/en-US/docs/JavaScript),
+    [Swift](https://developer.apple.com/swift/), [several](http://msdn.microsoft.com/en-us/library/67ef8sbd.aspx)
+    [.NET](http://fsharp.org) [languages](http://msdn.microsoft.com/en-us/vstudio/hh388573.aspx),
+    [Ruby](http://www.ruby-lang.org/), and so on — use functional programming to a
+    greater or lesser extent. With Java’s recently-added functional language features,
+    if you continue programming in Java you should expect to see more functional programming
+    there, too.
+  prefs: []
+  type: TYPE_NORMAL

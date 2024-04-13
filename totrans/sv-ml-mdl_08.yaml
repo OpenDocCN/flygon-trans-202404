@@ -1,0 +1,216 @@
+- en: Chapter 8\. Akka Streams Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Akka Streams, part of the Akka project, is a library focused on in-process back-pressured
+    reactive streaming. It is similar to Kafka Streams, but it is not strictly bound
+    to Kafka; it provides a broad ecosystem of connectors to various technologies
+    (datastores, message queues, file stores, streaming services, etc).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This connectors ecosystem is collectively referred to as the [Alpakka ecosystem](http://developer.lightbend.com/docs/alpakka/current/)
+    and builds on the [Reactive Streams](http://www.reactive-streams.org/) standard
+    (which Akka Streams has been coleading since its inception). And with Reactive
+    Streams having become part of Java in version 9, via the [JEP-266 (More Concurrency
+    Updates)](http://openjdk.java.net/jeps/266) process, even more connectors and
+    exponential growth in this connectors ecosystem are bound to happen, with major
+    players like Amazon already having [adopted it in the new AWS 2.0 SDK](http://amzn.to/2yERvnP).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Akka Streams computations are written in graph-resembling domain-specific
+    lanauge (DSL), which aims to make translating graph drawings to and from code
+    simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Graphs in Akka Streams are built from the following base elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Source is a partial graph with exactly one output.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sink is a partial graph with exactly one input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stage is an implementation of a transformation from input(s) to output(s).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Flow is a partial graph (stage) with exactly one input and exactly one output.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fan-in is a partial graph (stage) that takes multiple streams as an input and
+    provides a single output combining the elements from all of the inputs in user-defined
+    ways.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fan-out is a partial graph (stage) that takes one input and produces multiple
+    outputs. They might route the elements between different outputs, or emit elements
+    on multiple outputs at the same time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Custom stage is a partial graph can take an arbitrary number of inputs, apply
+    custom logic, and produce an arbitrary number of outputs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Out of the box, Akka Streams provides [quite a few](http://bit.ly/2yhbOGA) built-in
+    stages that you can use for building custom applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For model serving implementation, I decided to use a custom stage, which is
+    a fully type-safe way to encapsulate required functionality. Our stage will provide
+    functionality somewhat similar to a Flink low-level join ([Figure 4-1](ch04.html#using_flinkas_low-evel_join)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: With such a component in place, the overall implementation is going to look
+    that shown in [Figure 8-1](#akka_streams_implementation_approach).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0801](assets/smlt_0801.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8-1\. Akka Streams implementation approach
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Implementing Model Serving Using Akka Streams
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Implementing a custom `GraphStage` is an advanced topic in Akka, so you might
+    want to check the [documentation](http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html).
+    Implementation begins by defining the stage’s shape, as shown in [Example 8-1](#defining_a_stageas_shape)
+    ([complete code available here](http://bit.ly/2zeLEm9)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 8-1\. Defining a stage’s shape
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[Example 8-1](#defining_a_stageas_shape) defines a shape with two inputs, data
+    records and model records, and one output, the scoring results. Shape also defines
+    the types associated with the inputs and output (Akka Streams is strongly typed).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this in place, the stage implementation is presented in [Example 8-2](#stage_implementation)
+    ([complete code available here](http://bit.ly/2zeLEm9)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 8-2\. Stage implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The bulk of the implementation is the `createLogic` method, which defines the
+    main processing logic of the stage. This is done by defining handlers for inputs
+    and outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The handler for model input creates a new model and stores it in a local variable
+    for further usage. Because the handler supports [backpressure](https://en.wikipedia.org/wiki/Back_pressure),
+    it controls the rate of records coming from the source (it ensures that processing
+    of the current message is complete) before it tries to read the next record. This
+    is achieved by explicitly polling for a new record at the end of the handler execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The handler for the data input checks whether there is a new model and, if so,
+    it updates the model that it is serving. Then, it checks whether it has a model
+    and, if so, it scores the data. Similar to the model handler, after the record
+    processing is complete, the handler polls for the next record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the output handler does nothing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other important method in this class is `preStart`, which initiates polling
+    for data and model records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the stage implementation in place, the implementation of the server looks
+    like [Example 8-3](#akka_model_server_implementation) ([complete code available
+    here](http://bit.ly/2zfyrtf)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 8-3\. Akka model server implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, `ActorSystem` and `Materializer` are created, which is necessary for running
+    any Akka Stream application. After that both data and model streams are created,
+    each reading from a corresponding Kafka topic and transforming data from binary
+    format to the internal representation. Finally, both streams are connected to
+    our stage and the resulting graph is started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scaling Akka Streams Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Similar to Kafka Streams, the Akka Streams implementation runs within a single
+    Java Virtual Machine (JVM). Scaling this solution might require running multiple
+    instances of our implementation on multiple machines (similar to Kafka Streams
+    application scaling [see [Figure 7-2](ch07.html#scaling_kafka_streams_implementation)]).
+    Because the implementation is using specific consumer groups for reading data
+    records, Kafka will realize that they belong to the [same application](http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html)
+    and send different partitions to different instances, thus implementing partition-based
+    load balancing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Saving Execution State
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An additional deficiency of our simple implementation is the fact that our implementation
+    of the stage is not persistent, which means that a crash could lose state. Akka
+    Streams by itself does not provide a persistency model. [Akka Persistence](http://doc.akka.io/docs/akka/current/scala/persistence.html),
+    a separate module of Akka, does provide an [event source](https://github.com/eligosource/eventsourced)–based
+    library for persistence. Akka Streams provides support for [usage of stage actors](http://charithe.github.io/dynamic-akka-streams-using-stage-actors.html),
+    where a stage can encapsulate a custom actor. This allows usage of [persistent
+    actors](http://doc.akka.io/docs/akka/current/scala/persistence.html), Akka’s standard
+    way of persisting state in the system, thus solving persistence problems for such
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Chapters [4](ch04.html#apache_flink_implementation) through [8](#akka_streams_implementation),
+    you have seen how you can implement model serving by using different streaming
+    engines and frameworks, but as with any streaming application it is necessary
+    to provide a well-defined monitoring solution. An example of information that
+    you might want to see for a model serving application includes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which model is currently used?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When was it installed?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How many times have models been served?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the average and minimum/maximum model serving times?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We look at such solutions in [Chapter 9](ch09.html#monitoring).
+  prefs: []
+  type: TYPE_NORMAL

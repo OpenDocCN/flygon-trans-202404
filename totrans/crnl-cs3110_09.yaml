@@ -1,0 +1,281 @@
+- en: 'Lecture 5: Mapping, Folding, and the Map-Reduce Paradigm'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Map-Reduce Paradigm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Map-reduce* is a programming model that has its roots in functional programming. 
+    In addition to often producing short, elegant code for problems involving lists
+    or collections, this model has proven very useful for large-scale highly parallel
+    data processing.  Here we will think of map and reduce as operating on lists for
+    concreteness, but they are appropriate to any collection (sets, etc.).  *Map*
+    operates on a list of values in order to produce a new list of values, by applying
+    the same computation to each value.  *Reduce* operates on a list of values to
+    collapse or combine those values into a single value (or some number of values),
+    again by applying the same computation to each value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For large datasets, it has proven particularly valuable to think about processing
+    in terms of the same operation being applied independently to each item in the
+    dataset, either to produce a new dataset, or to produce summary result for the
+    entire dataset. This way of thinking often works well on parallel hardware, where
+    each of many processors can handle one or more data items at the same time.  The
+    Connection Machine, a massively parallel computer developed in the late 1980's,
+    made heavy use of this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More recently, Google, with their large server farms, have made very effective
+    use of the map-reduce paradigm.  Two Google fellows, Dean and Ghemawat, have reported
+    some of these uses in a 2004 paper at OSDI (the Operating System Design and Implementation
+    Conference) and a 2008 paper in CACM (the monthly magazine of the main Computer
+    Science professional society).  Much of the focus in those papers is on separating
+    the fault tolerance and distributed processing issues of operating on large clusters
+    of machines from the programming language abstractions.  They found map-reduce
+    to be a successful way of separating out the conceptual model of large-scale computations
+    on big collections of data, using mapping and reducing operations, from the issue
+    of how that computation is implemented in a reliable manner on a large cluster
+    of machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the introduction of their 2008 paper, Dean and Ghemawat write, "Our abstraction
+    is inspired by the map and reduce primitives present in Lisp and many other functional
+    languages. We realized that most of our computations involved applying a map operation
+    to each logical record in our input in order to compute a set of intermediate
+    key/value pairs, and then applying a reduce operation to all the values that shared
+    the same key in order to combine the derived data appropriately."  In the paper
+    they discuss a number of applications that are simplified by this view of massive
+    parallelism. To give a sense of the scale of the processing done by these programs,
+    they note that over ten thousand programs using map-reduce have been implemented
+    at Google since 2004, and that in September 2007 over 130,000 machine-months of
+    processing time at Google were used by map-reduce, processing over 450 PB (450,000
+    TB) of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For our purposes here in this programming course, it is illustrative to see
+    what kinds of problems Google found useful to express in the map-reduce paradigm.
+    Counting the number of occurrences of each word in a large collection of documents
+    is a central computational issue for indexing large document collections.  This
+    can be expressed as mapping a function that returns the count of a given word
+    in each document across a document collection.  The result is then reduced by
+    summing the counts. So if we have a list of strings, the map returns a list of
+    integers with the count for each string, and the reduce then sums up those integers. 
+    Many other counting problems can be implemented similarly.  For instance, counting
+    the number of occurrences of some pattern in log files, such as the number of
+    occurrences of a given user query or a particular url.  There may be many log
+    files on different hosts, and this can be viewed as a large collection of strings,
+    with the same map and reduce operations as for document word counts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reversing the links of the web graph is another problem that can be viewed this
+    way.  The web is a set of out-links, from a given page to the pages that it links
+    to.  A map function can output target-source pairs for each source page, and a
+    reduce function can collapse these into a list of source pages corresponding to
+    each target page (i.e., links in to pages).
+  prefs: []
+  type: TYPE_NORMAL
+- en: An inverted index is a map from a term to all the documents containing that
+    term.  It is an important part of a search engine, as the engine must be able
+    to quickly map a term to relevant pages.  In this case a map function returns
+    pairs of terms and document identifiers for each document. The reduce collapses
+    the result into the list of document ID's for a given term.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the Google papers, they report that re-implementing the production indexing
+    system resulted in code that was simpler, smaller, and easier to understand and
+    modify. This in turn led to a service that was easier to operate, because failure
+    diagnosis and recovery were correspondingly easier.  Nevertheless, the approach
+    resulted in fast enough code that there was no degradation in performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mapping and Folding (Reducing) in OCaml
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First let''s look in more detail at the map operation.  This operation applies
+    a specified function *f* to each element of a list to produce a resulting list.
+    Each element of the resulting list is obtained by applying *f* to the corresponding
+    element of the input list. The OCaml library function `List.map` is curried to
+    take the function first and the list second.  It produces the following value
+    for a list of three elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Recall in the last lecture we introduced our own polymorphic `list_` type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The map operation for this type can be written:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The type of `map` is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The parameter `f` is a function from the element type of the input list `'a`
+    to the element type of the output list `'b`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using map with an anonymous function, we can define a function to make a copy
+    of a list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: (This is the same as saying
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: but we don't really need to include the second argument in the definition; the
+    `copy` function is of type `'a list_ -> 'a list_` and is already well defined
+    without it.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Similarly, we can create a `string list_` from an `int list_`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let's consider the reduce operation, which like map applies a function to
+    every element of a list, but in doing so accumulates a result rather than just
+    producing another list.  In comparison with map, the reduce operator takes an
+    additional argument of an accumulator. As with map, we will consider the curried
+    form of reduce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two versions of reduce, based on the nesting of the applications
+    of the function *f* in creating the resulting value. In OCaml there are built-in
+    reduce functions that operate on lists are called `List.fold_right` and `List.fold_left`.
+    These functions produce the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'From the forms of the two results, it can be seen why the functions are called
+    `fold_right`, which uses a right-parenthesization of the applications of `f`,
+    and `fold_left`, which uses a left-parenthesization.  Note that the formal parameters
+    of the two functions are in different orders: in `fold_right` the accumulator
+    is to the right of the list and in `fold_left` the accumulator is to the left.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again using the `list_` type, we can define these two functions as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The types of `fold_right` and `fold_left` are
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The parameter `f` in both functions is a function from the element type of the
+    input list and the type of the accumulator to the type of the accumulator. The
+    types of the input list and the accumulator do not have to be the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given these definitions, operations such as summing all of the elements of a
+    list of integers can be defined naturally using either `fold_right` or `fold_left`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here `(+)` is the same as `fun x y -> x + y`.  Note that we don't need the `il`
+    in the second case because of the ordering of the arguments in `fold_left`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The power of fold
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Folding is a very powerful operation.  We can write many other list functions
+    in terms of fold.  In fact `map`, while it initially sounded quite different from
+    fold, can be defined naturally using `fold_right` by accumulating a result that
+    is a list.   Continuing with our `list_` type,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The accumulator function simply applies `f` to each element and builds up the
+    resulting list, starting from the empty list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The entire map-reduce paradigm can thus be implemented using `fold_left` and
+    `fold_right`.  However, it is often conceptually useful to think of map as producing
+    a list and of reduce as producing a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about using `fold_left` instead of `fold_right` to define `map`?  In this
+    case we get a function that does the map, but produces an output that is in reverse
+    order, because `fold_left` processes the elements of the input list left-to-right,
+    whereas `fold_right` works right-to-left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: (Again, we can leave off the second argument `lst` because of the ordering of
+    the arguments.)  This resulting function can also be quite useful, particularly
+    as it is tail recursive.  If we want the elements of the result list to be ordered
+    in the same direction as the input list, we can just reverse the list when we
+    are done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another useful variation on mapping is filtering, which selects a subset of
+    a list according to some Boolean criterion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The function `f` is a test for membership in the output list.  It takes just
+    one argument and returns a Boolean value.  For example, we can filter a list of
+    integers for the even ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the type of the argument to `select_evens` and its result are restricted
+    to be `int list_` rather than the more general `'a list` of the underlying `filter`
+    because the anonymous function takes an integer parameter and returns an integer
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining the length of a list is another operation that can easily be defined
+    in terms of folding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: What about using `fold_right` for this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should try writing some functions using `map`, `fold_left` and `fold_right`. 
+    These primitives can be incredibly useful.  Even in languages that do not have
+    these operations built in, they are useful ways of thinking about structuring
+    many computations.
+  prefs: []
+  type: TYPE_NORMAL

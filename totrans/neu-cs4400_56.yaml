@@ -1,0 +1,214 @@
+- en: Implementing Recursion using `letrec`Tuesday, February 21st
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will see how to add a similar construct to our language — for simplicity,
+    we will add a `rec` form that handles a single binding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this, things can get a little tricky. What should we get if we do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '? Currently, it seems like there is no point in using any expression except
+    for a *function* expression in a `rec` expression, so we will handle only these
+    cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (BTW, under what circumstances would non-function values be useful in a letrec?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One way to achieve this is to use the same trick that we have recently seen:
+    instead of re-implementing language features, we can use existing features in
+    our own language, which hopefully has the right functionality in a form that can
+    be re-used to in our evaluator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Previously, we have seen a way to implement environments using Racket closures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use this implementation, and create circular environments using Racket’s
+    `letrec`. The code for handling a `with` expressions is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It looks like we should be able to handle `rec` in a similar way (the AST constructor
+    name is `WRec` (“with-rec”) so it doesn’t collide with TR’s `Rec` constructor
+    for recursive types):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'but this won’t work because the named expression is evaluated prematurely,
+    in the previous environment. Instead, we will move everything that needs to be
+    done, including evaluation, to a separate `extend-rec` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, the `extend-rec` function needs to provide the new, “magically circular”
+    environment. Following what we know about the arguments to `extend-rec`, and the
+    fact that it returns a new environment (= a lookup function), we can sketch a
+    rough definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What should the missing expression be? It can simply evaluate the object given
+    itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But how do we get *this environment*, before it is defined? Well, the environment
+    is itself a Racket *function*, so we can use Racket’s `letrec` to make the function
+    refer to itself recursively:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It’s a little more convenient to use an internal definition, and add a type
+    for clarity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This works, but there are several problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we no longer do a simple lookup in the new environment. Instead, we evaluate
+    the expression on *every* such lookup. This seems like a technical point, because
+    we do not have side-effects in our language (also because we said that we want
+    to handle only function expressions). Still, it wastes space since each evaluation
+    will allocate a new closure.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Second, a related problem — what happens if we try to run this:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '? Well, we do that stuff to extend the current environment, then evaluate the
+    body in the new environment, this body is a single variable reference:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'so we look up the value:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'which is:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'which goes into the function which implements this environment, there we see
+    that `name` is the same as `name1`, so we return:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: but the `expr` here is the original named-expression which is itself `(Id 'x)`,
+    and we’re in an infinite loop.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We can try to get over these problems using another binding. Racket allows
+    several bindings in a single `letrec` expression or multiple internal function
+    definitions, so we change `extend-rec` to use the newly-created environment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This runs into an interesting type error, which complains about possibly getting
+    some `Undefined` value. It does work if we switch to the untyped language for
+    now (using `#lang pl untyped`) — and it seems to run fine too. But it raises more
+    questions, beginning with: what is the meaning of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: or equivalently, an internal block of
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '? Well, DrRacket seems to do the “right thing” in this case, but what about:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '? As a hint, see what happens when we now try to evaluate the problematic'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: expression, and compare that with the result that you’d get from Racket. This
+    also clarifies the type error that we received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should be clear now why we want to restrict usage to just binding recursive
+    functions. There are no problems with such definitions because when we evaluate
+    a `fun` expression, there is no evaluation of the body, which is the only place
+    where there are potential references to the same function that is defined — a
+    function’s body is *delayed*, and executed only when the function is applied later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the biggest question that is still open: we just implemented a circular
+    environment using Racket’s own circular environment implementation, and that does
+    not explain how they are actually implemented. The cycle of pointers that we’ve
+    implemented depends on the cycle of pointers that Racket uses, and that is a black
+    box we want to open up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For reference, the complete code is below. Note that it doesn’t work because
+    of the type error — to try it, you need to switch to the untyped language, or
+    avoid the extra internal binding of `val` and stick to the evaluate-when-referenced
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE

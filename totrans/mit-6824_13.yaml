@@ -1,0 +1,406 @@
+- en: MapReduce
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '6.824 2015 Lecture 13: MapReduce'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 2nd trip to this paper, talk more about fault tolerance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See [first lecture](l01-intro.html)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a real triumph of simplicity for the programmer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: clever design tricks to get good performance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: Building an inverted index'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: you need an inverted index for a search index
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maps keywords to documents they are found in
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output that we want, is an index: for each word in the input, we want a
+    list of every place that word occurred (document + offset):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The actual map/reduce functions for building an inverted index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Input files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In MapReduce, the input is stored in GFS (Google's file system)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: What happens if the column of data for a reduce worker not fitting in memory?
+    Seems like it would go to disk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that a single reduce call happens for every unique keyword. So, in our
+    inverted index example, this would mean a single reduce call for the keyword "the"
+    which would appear probably a billion times in a large collection of documents.
+    Thus, this will take a while. MapReduce cannot parallelize the work in a reduce
+    call (lost opportunity for certain reduce functions that are composable, like
+    f(reduce(k, l1), reduce(k, l2)) = reduce(k, l1+l2) ).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I think *combiner functions* mentioned in the paper, can alleviate this issue
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: it's all about data movement
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pushing terrabytes of data across a cluster
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1000 machines
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can maybe push data to RAM (1GB/s) at 1000 GB/s
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can maybe push data to disk (100MB/s) at 100 GB/s
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: network can run at 1Gbit/s = 100MB/s on a machine
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for 1000 machine, the wiring is expensive and costs you speed
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: network is usually a tree with servers at the leaves and bigger switches in
+    the internal nodes
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: bottleneck is root switch, which runs at 18GB/s at Google
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: thus, network can only push data at 18GB/s `=>` *bottleneck*
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Design insights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Need to cope with the network problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Shared Memory (DSM) is very flexible in that any machine can write
+    memory on any location in (distributed) memory. The problem is that you end up
+    w/ very bandwidth inefficient and latency sensitive systems. If you allow arbitrary
+    reads/writes to data you end up with a bunch of latency-sensitive small data movements
+    across the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DSM makes fault tolerance quite difficult, when a single machine dies, because
+    each machine can do whatever it wants (read or write any mem. loc.), so it's hard
+    to checkpoint the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Key ideas:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Map()` and `Reduce()` work on local data only.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Map()` and `Reduce()` only operate on big pieces of data'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to amortize network cost of sending
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: very little interaction between parts of the system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maps cannot talk to each other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reduces cannot talk to each other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maps and reduces cannot talk to each other
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other than the implicit communication of sending the mapped data to the reduce
+    functions
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: give programmer abstract control over the network communication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: some control over how keys are mapped into the reduce partitions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Input is typically stored striped (64MB chunks) in GFS, over a lot of disks
+    and machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: gotta be clever, because this would imply that Map tasks are limited by network
+    bandwidth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MapReduce takes advantage of GFS knowledge, to actually run the map tasks locally
+    on the GFS machines where the file chunks are stored. `=>` increase bandwitdh
+    to maps from 18GB/s to 100GB/s
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intermediate map files generated by map are also stored locally. Downside is
+    that there's a single copy of the data on that one machine and the reduce worker
+    has to talk to it only `=>` limited bandwidth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: if the machine stops or crashes, the data is lost, have to restart map
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data in GFS is actually replicated (2 or 3 copies), and this gives MapReduce
+    a choice of 2-3 servers that it can run every map task on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: good for load/balancing (MR master can move slow map tasks to other machines)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: don't get this benefit for reduce tasks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Output of reduce is stored in GFS `=>` reduce output is written across the network.
+    `=>` total output of MapReduce system is 18GB/s, if that's your cross-section
+    bandwidth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: QOTD
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: How soon can reduce start after map emitted some data?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Morris: As soon as a column is filled with data `<=>` as soon as all the maps
+    are finished.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apparently, you could do it as soon as a map task emits a keyword, by feeding
+    values as they are generated in the reduce task's iterator, but performance can
+    be tricky to achieve in that case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does MapReduce scale well?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the big benefit of a distributed system, is that you *might* be able
+    to speed it up by just buying more machines. Cheaper to buy machines than to pay
+    programmers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nx` hardware => `nx` performance?, `n > 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we grow # of machines (10 fold), and input size stays constant `=>` input
+    size has to be decreased (10 fold). Smaller splits (10x smaller).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we have millions of machines, the splits can be kilobytes in size `=>` network
+    latency will kill our performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can't have more reduce workers than you have keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scalability is limited by
+  prefs: []
+  type: TYPE_NORMAL
+- en: map split size
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'number of keys `>=` # of reduce workers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: network bandwidth (need to buy more "network" too, as we buy more machines)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a really important problem
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The answer: certainly get some scaling, but not infinite (limited by network)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fault tolerance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Challenge: if you run big jobs on 1000s of computers, you are sure to get some
+    failures. So cannot simply restart whole computation. Must just redo failed machine''s
+    work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Difficult to achieve for DSM, easier for MapReduce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming independent failures (also because maps/reduces are independent)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If worker failed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: can just restart
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can save intermediate output and resume after failure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If maps fail, we have to rerun it, because it stores its output on the same
+    machine, which is done. Master knows what the map was working on, so it can just
+    restart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a reduce worker crashes, because they store their output on GFS, on replicated
+    different servers. We have a good chance of not having to recompute, if the reduce
+    worker finished.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paper's performance eval
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Figure 2 in paper. Why does the bandwidth take 60 seconds to achieve 30GB/s?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The MR job has 1800 mappers, and some *poor* master that has to give work to
+    each one. So maybe the master takes a while to contact everyone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why only 30GB/s? These are map tasks so no network overhead. Maybe the CPU is
+    the limit? Unlikely. Seems like this is a disk bandwidth issue. 30GB/s / 1800
+    machines `=>` 17MB/s per disk
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3 in paper. 800 secs for sorting 1TB of data `=>` 1.25GB/s sort throughput
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to notice is that the terrabyte of data fits in the memory of the
+    1800 machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On a single machine with enough memory, Morris extrapolated that it would take
+    around 30,000 seconds to sort 1TB of data (takes 2500secs to sort 100GB)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Middle graph says they are only able to move data across the network at 5GB/s.
+    Simply moving 1TB of data will take 200 seconds. And MapReduces moves it more
+    than once: from maps to reduce, from reduce to GFS (multiple times for replication)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Important insight:* Computation involves moving data. Not just CPU cycles.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.824 original notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE

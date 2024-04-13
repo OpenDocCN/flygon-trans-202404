@@ -1,0 +1,403 @@
+- en: '23Processing Programs: Parsing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [23.1 Understanding Languages by Writing Programs About Them](#%28part._.Understanding_.Languages_by_.Writing_.Programs_.About_.Them%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [23.2 Everything (We Will Say) About Parsing](#%28part._.Everything__.We_.Will_.Say__.About_.Parsing%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [23.2.1 A Lightweight, Built-In First Half of a Parser](#%28part._.A_.Lightweight__.Built-.In_.First_.Half_of_a_.Parser%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [23.2.2 Completing the Parser](#%28part._first-parser%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [23.2.3 Coda](#%28part._.Coda%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 23.1Understanding Languages by Writing Programs About Them
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will understand the nature of languages by writing programs about them.
+    These programs will implement many interesting features of languages from different
+    perspectives, embodied in different actions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interpreter will consume programs in a language and produce the answers they
+    are expected to produce.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A type checker will consume programs in a language and produce either true or
+    false, depending on whether the program has consistent type annotations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A pretty-printer will consume programs in a language and print them, prettified
+    in some way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A verifier will consume programs in a language and check whether they satisfy
+    some stated property.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A transformer will consume programs in a language and produce related but different
+    programs in the same language.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A transformer’s first cousin, a compiler, will consume programs in a language
+    and produce related programs in a different language (which in turn can be interpreted,
+    type-checked, pretty-printed, verified, transformed, even compiled...).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Observe that in each of these cases, we have to begin by consuming (the representation
+    of) a program. We will briefly discuss how we do this quickly and easily, so that
+    in the rest of our study we can focus on the remainder of each of these actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 23.2Everything (We Will Say) About Parsing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[☛ Parsing](glossary.html#%28elem._glossary-parsing%29) is a very general actvity
+    whose difficulty depends both on how complex or ambiguous the input might be,
+    and how much stucture we expect of the parser’s output. For our purposes, we would
+    like the parser to be maximally helpful by providing later stages as much structure
+    as possible. This forces us to either write a very complex parser or limit the
+    forms of legal input. We will choose the latter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A key problem of parsing is the management of ambiguity: when a given expression
+    can be parsed in multiple different ways. For instance, the input'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 23 + 5 * 6 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'could parse in two different ways: either the multiplication should be done
+    first followed by addition, or vice versa. Though simple disambiguation rules
+    (that you probably remember from middle school) disambigiuate arithmetic, the
+    problem is much harder for full-fledged programming languages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ultimately, we would like to get rid of ambiguity once-and-for-all at the very
+    beginning of processing the program, rather than deal with it repeatedly in each
+    of the ways we might want to process it. Thus, if we follow the standard rules
+    of arithmetic, we would want the above program to turn into a tree that has a
+    (representation of) addition at its root, a (representation of) 23 as its left
+    child, multiplication as its right child, and so on. This is called an abstract
+    syntax tree: it is “abstract” because it represents the intent of the program
+    rather than its literal syntactic structure (spaces, indentation, etc.); it is
+    “syntax” because it represents the program that was given; and it is usually a
+    “tree” but not always.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we have said, we could push the problem of disambiguation onto a parser.
+    This is what most real languages do. Because parsing is not our concern, we are
+    instead going to ask the program’s author to use an unambiguous syntax. Indeed,
+    we can exploit the decades of work that has been invested into [☛ wire format](glossary.html#%28elem._glossary-wire._format%29)
+    to represent programs. For instance, the above expression might be written—<wbr>avoiding
+    the ambiguity induced by not properly parenthesizing the program—<wbr>as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| <plus> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   <args> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     <arg position="1"> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       <number value="23"/> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     </arg> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     <arg position="2"> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       <mult> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         <args> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           <arg position="1"> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             <number value="5"/> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           </arg> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           <arg position="2"> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|             <number value="6"/> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|           </arg> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         </args> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       </mult> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     </arg> |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   <args> |'
+  prefs: []
+  type: TYPE_TB
+- en: '| </plus> |'
+  prefs: []
+  type: TYPE_TB
+- en: in XML, or as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| {plus: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   [{number: "23"}, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|    {mult: |'
+  prefs: []
+  type: TYPE_TB
+- en: '|      [{number: "5"}, |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       {number: "6"}]}]} |'
+  prefs: []
+  type: TYPE_TB
+- en: in JSON.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 23.2.1A Lightweight, Built-In First Half of a Parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These are both worthy notations. Instead, we will use a related, and arguably
+    even simpler, wire format known as the s-expression:The name comes from Lisp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| (+ 23 (* 5 6)) |'
+  prefs: []
+  type: TYPE_TB
+- en: Pyret has built-in support for processing s-expressions, so you can use this
+    syntax and get support from the language to process it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Load the s-expression library with
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'and then try the following:'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Make sure you understand the output it produced and why it produced that.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'You should have seen the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this book we will use s-expressions to represent concrete syntax. This is
+    helpful because the syntax is so different from that of Pyret, we will virtually
+    never be confused as to what language we are reading. Since we will be writing
+    programs to process programs, it is especially helpful to keep apart the program
+    being processed and that doing the processing. For us, the former will be written
+    in s-expressions and the latter in Pyret.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 23.2.2Completing the Parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In principle, we can think of read-s-exp as a complete parser. However, its
+    output is generic: it represents the token structure without offering any comment
+    on its intent. We would instead prefer to have a representation that tells us
+    something about the intended meaning of the terms in our language, just as we
+    wrote at the very beginning: “(representation of) multiplication”, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this, first let’s import the necessary libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now down to business. We must first introduce a datatype that captures this
+    representation. We will separately discuss ([Representing Arithmetic](first-interp.html#%28part._dt-for-arith%29))
+    how and why we obtained this datatype, but for now let’s say it’s given to us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then need a function that will convert s-expressions into instances of this
+    datatype. This is the other half of our parser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This obeys the following tests:Note the use of a helper function inside the
+    block of tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Congratulations! You have just completed your first representation of a program.
+    From now on we can focus entirely on programs represented as recursive trees,
+    ignoring the vagaries of surface syntax and how to get them into the tree form
+    (though in practice, we will continue to use the s-expression notation because
+    it’s easier to type than all those constructors). We’re finally ready to start
+    studying programming languages!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If the test
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: is instead written as
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: what happens? Why?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 23.2.3Coda
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The s-expression syntax dates back to 1960.“Recursive functions of symbolic
+    expressions and their computation by machine, Part I” by John McCarthy in Communications
+    of the ACM. This syntax is often controversial amongst programmers. Observe, however,
+    something deeply valuable that it gives us. While parsing traditional languages
+    can be very complex, parsing this syntax is virtually trivial. Given a sequence
+    of tokens corresponding to the input, it is absolutely straightforward to turn
+    parenthesized sequences into s-expressions; it is equally straightforward (as
+    we see above) to turn s-expressions into proper syntax trees. I like to call such
+    two-level languages bicameral, in loose analogy to government legislative houses:
+    the lower-level does rudimentary well-formedness checking, while the upper-level
+    does deeper validity checking. (We haven’t done any of the latter yet, but we
+    will [REF].)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The virtues of this syntax are thus manifold. The amount of code it requires
+    is small, and can easily be embedded in many contexts. By integrating the syntax
+    into the language, it becomes easy for programs to manipulate representations
+    of programs (as we will see more of in [REF]). It’s therefore no surprise that
+    even though many Lisp-based languages—<wbr>from Lisp 1.5 to Common Lisp to Scheme
+    to Racket to Clojure and more—<wbr>have had wildly different semantics, they all
+    share this syntactic legacy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we could just use XML instead. That might be much nicer. Or JSON.
+    Because that wouldn’t be anything like an s-expression at all.
+  prefs: []
+  type: TYPE_NORMAL

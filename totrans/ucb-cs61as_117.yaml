@@ -1,0 +1,264 @@
+- en: Streams Are Delayed Lists
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Stream Constructor and Selectors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'On the surface, streams are just lists with different names for the procedures
+    that manipulate them. They have a constructor `cons-stream` , and two selectors,
+    `stream-car` and `stream-cdr`, which satisfies these constraints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(stream-car (cons-stream x y))` returns `x`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`(stream-cdr (cons-stream x y))` returns `y`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In order to construct the stream as we use it, we will arrange for the cdr of
+    a stream to be evaluated when it is accessed by the `stream-cdr` procedure rather
+    than when the stream is constructed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a data abstraction, streams are the same as lists. The difference is the
+    time at which the elements are evaluated. With ordinary lists, both the `car`
+    and the `cdr` are evaluated at construction time. With streams, the cdr isn't
+    evaluated until selection time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our implementation of streams will be based on a special form called `delay`.
+    Evaluating `(delay [exp])` does not evaluate the expression [exp], but rather
+    returns a so-called delayed object, which we can think of as a "promise" to evaluate
+    [exp] at some future time. As a companion to `delay`, there is a procedure called
+    `force` that takes a delayed object as argument and performs the evaluation --
+    in effect, forcing the delay to fulfill its promise. We will see below how `delay`
+    and `force` can be implemented, but first let us use these to construct streams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cons-stream` is a special form such that `(cons-stream [a] [b])` is equivalent
+    to `(cons [a] (delay [b]))`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means that we will construct using pairs of `cars` and delayed `cdrs`.
+    These will be our `stream-car` and `stream-cdr` procedures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that `cons-stream` is a special form. If it weren't, calling `(cons-stream
+    a b)` would evaluate `b`, meaning `b` wouldn't be delayed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`the-empty-stream`'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is a distinguishable object, `the-empty-stream`, which cannot be the result
+    of any `cons-stream` operation, and which can be identified with the predicate
+    `stream-null?`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stream Analogs of List Procedures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can make and use streams, in just the same way as we can make and use lists,
+    to represent aggregate data arranged in a sequence. In particular, we can build
+    stream analogs of `list-ref`, `map`, `for-each`, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stream-ref`'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we define x as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: then `(stream-ref x 0)` returns 0 and `(stream-ref x 2)` returns 2. (Note that
+    n starts counting from 0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stream-map`'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If x is the same as above, then `(stream-map square x)` returns a stream with
+    `(0 1 4)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stream-for-each`'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`stream-for-each` is useful for viewing streams. The following may be helpful
+    for checking what''s going on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Computation Using Streams
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s take another look at the second prime computation we saw earlier, reformulated
+    in terms of streams:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: So we begin by calling `stream-enumerate-interval` with the arguments 10,000
+    and 1,000,000\. This creates a stream of the numbers from 10,000 to 1,000,000.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result returned is `(cons 10000 (delay (stream-enumerate-interval 10001
+    1000000)))` This is a stream represented as a pair whose `car` is 10,000 and whose
+    `cdr` is a promise to enumerate more of the interval if it becomes necessary.
+    Now we filter it using `stream-filter`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`stream-filter` tests the `stream-car` of the stream (the car of the pair,
+    which is 10,000). Since this is not prime, `stream-filter` examines the `stream-cdr`
+    of its input stream. The call to `stream-cdr` forces evaluation of the delayed
+    `stream-enumerate-interval`, which now returns'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`stream-filter` now looks at the `stream-car` of this stream, 10,001, sees
+    that this is not prime either, forces another `stream-cdr`, and so on, until `stream-enumerate-interval`
+    yields the prime 10,007, whereupon `stream- filter`, according to its definition,
+    returns'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: which is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: This result is now passed to `stream-cdr` in our original expression. This forces
+    the delayed `stream-filter`, which in turn keeps forcing the delayed `stream-enumerate-interval`
+    until it finds the next prime, which is 10,009. Finally, the result passed to
+    `stream-car` in our original expression is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`Stream-car` returns 10,009, and the computation is complete. Only as many
+    integers were tested for primality as were necessary to find the second prime,
+    and the interval was enumerated only as far as was necessary to feed the prime
+    filter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing `delay` and `force`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although `delay` and `force` may seem like mysterious operations, their implementation
+    is really quite straightforward. `delay` must package an expression so that it
+    can be evaluated later on demand, and we can accomplish this simply by treating
+    the expression as the body of a procedure. `delay` can be a special form such
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: is syntactic sugar for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`force` simply calls the procedure (of no arguments) produced by `delay`, so
+    we can implement `force` as a procedure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, note the importance of `delay` being a special form. If it is not, then
+    when we call `(delay b)`, `b` will be evaluated before we evaluate the body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implementation suffices for `delay` and `force` to work as advertised,
+    but there is an important optimization that we can include. In many applications,
+    we end up forcing the same delayed object many times. This can lead to serious
+    inefficiency in recursive programs involving streams. The solution is to build
+    delayed objects so that the first time they are forced, they store the value that
+    is computed. Subsequent forcings will simply return the stored value without repeating
+    the computation. In other words, we implement `delay` as a special-purpose memoized
+    procedure. One way to accomplish this is to use the following procedure, which
+    takes as argument a procedure (of no arguments) and returns a memoized version
+    of the procedure. The first time the memoized procedure is run, it saves the computed
+    result. On subsequent evaluations, it simply returns the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`Delay` is then defined so that (delay [exp]) is equivalent to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: and `force` is unchanged
+  prefs: []
+  type: TYPE_NORMAL
+- en: Takeaways
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this section, you learned:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What a stream is
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Some useful applications of streams
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How to implement `delay` and `force`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What's Next?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's go to the next subsection and learn about infinite lists!
+  prefs: []
+  type: TYPE_NORMAL

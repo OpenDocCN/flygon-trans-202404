@@ -1,0 +1,433 @@
+- en: More Animations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We'll work through a couple more examples that deal with time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Stopwatch'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Previously, we implemented a counter controlled by increment and reset buttons.
+    Now let's implement a "stopwatch" counter that increments every so often (say,
+    every second), along with buttons that pause and resume the counter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by identifying that, in addition to the count itself, the `State` of
+    our application needs to keep track of whether the stopwatch is currently `Paused`
+    or `Playing`. In the latter case, we also keep track of the next `Time` at which
+    to update the count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define the type `Msg` to describe the messages sent as a result of button
+    clicks. We will want to merge the signal of button `Msg`s with a signal of `Time`
+    values, so we define an `Event` time to describe the union of these two types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Merging Time and Other Signals
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Both kinds of `Event`s carry along the time at which an updated value is produced,
+    but extracting this value is slightly annoying because we would have use pattern
+    matching to obtain the first component. Furthermore, we have previously seen this
+    pattern of merging a signal with a ticker (in the fading dots example). So, instead
+    of the `Event` type definition above, we can factor this pattern more generally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how we use the type variable `msg` as an indication that we are going
+    to instantiate it with the `Msg` type. But, of course, we could have chosen to
+    use any type variable we wish (except `number` or `comparable`, which would be
+    unnecessarily restrictive).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now define the following function to merge an arbitrary signal together
+    with a ticker that takes an arbitrary signal
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: After defining the channel `ch` to pass along `Start` and `Stop` messages originating
+    from the buttons we will draw, we merge its values with a ticker that updates
+    ten times per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finite State Machines
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Next, we'll look at how to update our stopwatch in response to `Event`s. There
+    are two kinds of `RunState` states (`Paused` and `Playing`) and three kinds of
+    `TickOr Msg` messages (`Tick`, `Start`, and `Stop`). So, we can think of the execution
+    of our application in terms of a transition graph, where nodes are `RunState`s
+    and edges of `TickOr Msg`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0662a156872909aaf52240f45907b005.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Notice that our diagram omits two transitions: there is no edge labeled `Stop`
+    from node `Paused` and no edge labeled `Start` from node `Playing`. As a result,
+    we will take care to make sure that our application does not enter one of these
+    undefined configurations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define the `upstate` function to handle each of the transitions above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: When processing the `Start` message at time `now`, the updated `Playing` state
+    records the time `now + delay` at which the counter should be incremented. If
+    a `Tick` message is received while the stopwatch is `Playing`, then the count
+    is incremented if the current time is larger than the previously computed time
+    at which to increment. Furthermore, the updated state includes the next time at
+    which to updated the counter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As informed by our transition diagram, our patterns are not exhaustive. Because
+    we'll be running our application in the browser, rather than `elm-repl`, a run-time
+    pattern match exception will be raised silently. If you suspect that your Elm
+    program is crashing silently, open up the Web Console in your browser to take
+    a look at any JavaScript errors raised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's now draw our UI such that we never enter into one of the undefined configurations.
+    We'll reuse the `myButton` function we developed in previous lectures that uses
+    the `Collage` library to draw a nice, bordered button that changes colors. We'll
+    draw a single button, and we'll set its message to send (either `Start` or `Stop`)
+    depending on the current `RunState`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: notice how we choose to display only a single button at a time, which issues
+    only the signals that are allowed by the finite state machine above. rather than
+    drawing multiple buttons, we draw a single one and choose the event appropriately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have been careful to convince ourselves, if not the language, that we will
+    never attempt to follow an undefined transition at run-time. Alternatively, we
+    could have chosen to define a single `Msg` value called `Toggle` or `()`, where
+    `upstate` toggles between the two `RunState`s as above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rest of the drawing code is similar to ones we have seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch1.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch1.html)
+    for this version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refactoring Events
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: There's a cute way of reorganizing our setup that avoids the need to define
+    new `Msg` and `TickOr` types. We keep the `State` representation the same...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... but define `Msg`s to be functions that given the current `time` and `State`
+    produces an updated `State`. Notice that `Msg` is now simply a type `alias`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then break up the previous `upstate` implementation into separate functions
+    for each kind of message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that `start`, `stop`, and `tick` each have type `Msg`. Wherever we used
+    `Start` and `Stop` before, now we use `start` and `stop`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we redefine `mergeWithTicker` to use `tick` instead of `Tick`, to eliminate
+    the wrapper `M` data constructor from before, and to change its type signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[![](../Images/507f2f0f7f581bbd117f0e424de0f362.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.html)
+    for this version, which implements the same functionality as before. You may prefer
+    this organization of this version to the previous, because it avoids the need
+    to define new types `Msg` and `TickOr`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Drawing Stacks'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our next example will be an animation of a stack data structure. We'll make
+    the simplifying assumption that our stack may contain at most five elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will start by getting the basic functionality to work. Then we will allow
+    the user to specify what element to push using a text box. Finally, we will animate
+    the push and pop operations so that the element being added or removed, respectively,
+    will fade in or out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic Functionality
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will restrict our stack to `String` values, which will be represented as
+    a `List`. In addition, our `State` will track whether the stack is in a `Steady`
+    state, or whether we are in the processing of `Pushing` or `Popping`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the latter two cases, we keep track of three `Time` values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a `now` time, which is the most recent `Time` value reported by the ticker;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a `start` time, which is the `Time` when the given operation was initiated;
+    and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: an `end` time, which is the `Time` at which the given operation will be completed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will start with an initially empty stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will use the `TickOr` approach introduced earlier to help manage timed messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: For brevity later in the code, we define wrappers for the different kinds of
+    `Msg`s that will be sent over our channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: And, as before, we will define our application to update based on `Msg`s sent
+    over `ch` as well as updates to the current `Time`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finite State Machines
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '![](../Images/45341b91db00c2c7bbd2dd98a1ecf9f2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's start to tackle the transitions between states in response to `Event`s.
+    We'll start out by always using the `Steady` state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: As with the stopwatch example, our pattern match is not exhaustive, so we must
+    take care to prevent undefined transitions from being attempted at run-time. In
+    that example, we rendered a single button and set up its message to be in sync
+    with the current `State`. In contrast, in this example, we will always render
+    both push and pop buttons, but we will disable them when appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To distinguish between enabled and disabled buttons, we first define a version
+    of `myButton` that colors the resulting button `white` when the `enabled` argument
+    is `False`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we conditionally enable a button based on a predicate `b`. To disable
+    a button, we set its `Msg` to `Noop` so that it has no effect on the `State`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here's a bunch of code that renders the stack and buttons to manipulate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack1.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack1.html)
+    for this version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input Fields
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Now, instead of only pushing `"BLAH"` values, let's add a text box so that the
+    user can enter values. The [`Graphics.Input.Field`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Graphics-Input-Field)
+    library provides the following function for creating text input fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Values of type `Content` store the contents of a textbook in a `String`, along
+    with information about what text is highlighted;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the second argument to `field` must be a function that takes a single
+    argument and returns a `Signal.message`. Recall the following function from the
+    [`Signal`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Signal) library
+    that is used to create `Message`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we call `send` with a single argument of type `Channel Content`, the resulting
+    (function) is the type of value we need to pass as the second argument to `field`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let's create a channel for communicating `Content` values from a text box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will `subscribe` to this channel, and add its current value as a parameter
+    to `view`, because that's where we decide what value to `Push` when the push button
+    is clicked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the `view` function, we define our field to `send` updates to the `textbox`
+    channel, and we display `con`, the current `Content`, in the field. We set up
+    the push button to `send` the `String` value currently in the field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack2.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack2.html)
+    for this version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fading
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Our final task is to animate the `Push` and `Pop` operations. We update the
+    `upstate` function to make use of `Pushing` and `Popping` constructors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the `Pop` message does not immediately pop the stack, because the
+    value `s` on top of the stack will faded out slowly until time `now + delay`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When processing a new `Tick` at time `now`, we check to see whether `now` is
+    passed the `end` of the given animation phase. If it is, we return to the `Steady`
+    state; otherwise, continue in the same animating state and track the new `now`
+    time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with the `FadingDots` example from a previous lecture, we will use the alpha
+    component of colors to smoothly fade objects in and out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Inside the "loop" (the `indexedMap` call) in `view`, we check to see if the
+    current state is `Popping` or `Pushing` and, if so, set the alpha component of
+    the top element of the stack (which is represented in three parts: a solid rectangle,
+    an outlined rectangle, and the text value of the element).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[![](../Images/c3bcb408524125077452de73e50550f7.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check out the [source](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.elm)
+    and [demo](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.html)
+    for this final version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optional Exercises**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our solution can be improved in many ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prevent `Push`ing when the field is empty.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generalize to stacks of arbitrary size.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The approach we have been taking is rather low-level, explicitly manipulating
+    current, start, and finish times for animations. Build higher-level abstractions
+    that allow smoothly interpolating between two shapes, and use them to refactor
+    the examples.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

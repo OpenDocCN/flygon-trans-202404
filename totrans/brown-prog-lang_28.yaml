@@ -1,0 +1,440 @@
+- en: 28Safety and Soundness
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [28.1 Safety](#%28part._safety%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [28.2 “Untyped” Languages](#%28part.__.Untyped__.Languages%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [28.3 The Central Theorem: Type Soundness](#%28part._type-soundness%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [28.4 Types, Time, and Space](#%28part._types-time-space%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [28.5 Types Versus Safety](#%28part._.Types_.Versus_.Safety%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now that we’ve had a first look at a type system,A type system usually has
+    three components: a language of types, a set of type rules, and an algorithm that
+    enforces these rules. By presenting types via a checking function we have blurred
+    the distinction between the second and third of these, but they should still be
+    thought of as intellectually distinct: the former provides a declarative description
+    while the latter an executable one. The distinction becomes relevant in (part
+    "impl-subtyp"). we’re ready to talk about the way in which types offer some notion
+    of predictability, a notion called type soundness. Intertwined with this are terms
+    you have probably heard like safety (or type safety) as well as others such as
+    strong typing (and conversely weak typing) and memory safety. We should understand
+    all of them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 28.1Safety
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Many operations in a language are partial: given some domain over which they
+    are defined, they accept some but not all elements of the domain. For instance,
+    while addition—<wbr>defined over numbers—<wbr>is usually total, division is usually
+    partial, because division by zero is considered an error. In just about every
+    language, the function application operator is limited to applying only function
+    values, i.e., an application like 3(5)—<wbr>the number 3 applied to one argument,
+    5—<wbr>is illegal.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, exactly whether an operator is partial or total is a matter of how
+    we define the domain. For instance, if we define the domain of division’s second
+    argument as non-zero numbers, it becomes total; whereas if we consider the domain
+    of addition’s arguments as all values, it becomes partial. Also, some operations
+    are treated quite differently across different languages. For instance, the square-root
+    function, when applied to -1, can variously
+  prefs: []
+  type: TYPE_NORMAL
+- en: halt with an error,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: return a special value called “not-a-number” (NaN), or
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: return an imaginary number (e.g., 0+1i in Scheme).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Furthermore, it might be surprising to consider that an operation can work over
+    all values, but that is precisely what parameteric polymorphism enables ([REF]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: What matters, then, is whether an operation precludes any values at all or not.
+    If it does, then we can ask whether the language prevents it from being used with
+    any precluded values. If the language does prevent it, then we call the language
+    safe. If it does not, we call it unsafe. Of course, a language may be safe for
+    some operations and unsafe for others; usually we apply the term “safe” to a language
+    as a whole if all of its operations are safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A safe language offers a very important guarantee to programmers: that no operation
+    will be performed on meaningless data. Sticking with numeric addition, in an unsafe
+    language we might be permitted to add a number to a string, which will produce
+    some value dependent on the precise representation of strings and might change
+    if the representation of strings changes. (For instance, the string might be zero-terminated
+    or might record its length, which alters what the first word of the string will
+    be.) We might even be able to add a string to a function, a result that is certainly
+    nonsensical (what meaningful number does the first word of the machine representation
+    of a function represent?). Therefore, though safety does not at all ensure that
+    computations will be correct, at least it ensures they will be meaningful: no
+    nonsensical operations will have been performed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Observe that we have not imposed any requirement whatsoever on how a language
+    achieves safety. Usually, safety can be achieved dynamically through run-time
+    checks: for instance, addition would check that its arguments are numeric, division
+    would also ensure its second argument is not zero, and so on. In addition, a static
+    type system can also ensure safety. Because this is a common source of confusion,
+    we should be clear: safety only means that operations are not applied to meaningless
+    values. It does not fix any particular implementation strategy for ensuring the
+    property.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will return to the issue of implementations below ([Types, Time, and Space](#%28part._types-time-space%29)).
+    But first, we have some important foundational material to address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 28.2“Untyped” Languages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It is common in popular writing to use the phrase “untyped” language. This
+    is a source of considerable confusion, so we should tease apart its meanings.
+    There are two different things it might mean, and these meanings are non-overlapping:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A language with no types at all. Of course all data have some representation
+    that gives them meaning, but it means there is only one type in the language,
+    and all data belong to that type. Furthermore, this datatype has no variants,
+    because that would introduce type-based discrimination. For instance, all data
+    might be a byte, or a number, or a string, or some other single, distinctive value.
+    Typically, no operation can fail to take a particular kind of value, because that
+    might imply some kind of type distinction, which by definition can’t exist. Note
+    that this is a semantic notion of untypedness.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A language with a partitioning of its run-time values—<wbr>e.g., numbers are
+    distinct from functions—<wbr>but without static annotations or checking. Note
+    that this is a syntactic notion of untypedness.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Virtually no contemporary language other than machine code—<wbr>where the single
+    type is usually a “word”—<wbr>exists. In contrast, there are many languages of
+    the latter kind (e.g., Python and Racket).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because the two meanings are mutually contradictory, it would be useful to have
+    two different names for these. Some people use the terms latently typed or dynamically
+    typed for the latter category, to tell these apart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Following modern convention, we will use the latter term, while recognizing
+    that some others consider the term typed to only apply to languages that have
+    static disciplines, so the phrase “dynamically typed” is regarded as an oxymoron.
+    Note that our preceding discussion gives us a way out of this linguistic mess.
+    A dynamically typed language that does not check types at run-time is not very
+    interesting (the “types” may as well not exist). In contrast, one that does check
+    at run-time already has a perfectly good name: safe ([Safety](#%28part._safety%29)).
+    Therefore, it makes more sense to use the name dynamically safe for a language
+    where all safety-checks are performed at run-time, and (with a little loss of
+    precision) statically safe for one where as many safety-checks as possible are
+    performed statically, with only the undecidable ones relegated to run-time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '28.3The Central Theorem: Type Soundness'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have seen earlier ([Program Termination](types.html#%28part._strong-normalization%29))
+    that certain type languages can offer very strong theorems about their programs:
+    for instance, that all programs in the language terminate. In general, of course,
+    we cannot obtain such a guarantee (indeed, we added general recursion precisely
+    to let ourselves write unbounded loops). However, a meaningful type system—<wbr>indeed,
+    anything to which we wish to bestow the noble title of a type system—<wbr>ought
+    to provide some kind of meaningful guarantee that all typed programs enjoy. This
+    is the payoff for the programmer: by typing this program, she can be certain that
+    certain bad things will certainly not happen. Short of this, we have just a bug-finder;
+    while it may be useful, it is not a sufficient basis for building any higher-level
+    tools (e.g., for obtaining security or privacy or robustness guarantees).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What theorem might we want of a type system? Remember that the type checker
+    runs over the static program, before execution. In doing so, it is essentially
+    making a prediction about the program’s behavior: for instance, when it states
+    that a particular complex term has type Number, it is predicting that when run,
+    that term will produce a numeric value. How do we know this prediction is sound,
+    i.e., that the type checker never lies? Every type system should be accompanied
+    by a theorem that proves this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is a good reason to be suspicious of a type system, beyond general skepticism.
+    There are many differences between the way a type checker and an interpreter work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The type checker sees only program text, whereas the interpreter runs over actual
+    data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type environment binds identifiers to types, whereas the interpreter’s environment
+    binds identifiers to values or locations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type checker compresses (even infinite) sets of values into types, whereas
+    the interpreter treats the elements of these sets distinctly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type checker always terminates, whereas the interpreter might not.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type checker passes over the body of each expression only once, whereas
+    the interpreter might pass over each body anywhere from zero to infinite times.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Therefore, it is unwise to assume that these two will correspond, and historically,
+    they have often failed to do so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The central result we wish to have for a given type-system is called soundness.
+    It says this. Suppose we are given an expression (or program) e. We type-check
+    it and conclude that its type is t. When we run e, let us say we obtain the value
+    v. Then v will also have type t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The standard way of proving this theorem is to divide it in two parts, known
+    as progress and preservation. Progress says that if a term passes the type-checker,
+    it will be able to make a step of evaluation (unless it is already a value); preservation
+    says that the result of this step will have the same type as the original. If
+    we interleave these steps (first progress, then preservation; rinse and repeat),
+    we can conclude that the final answer will indeed have the same type as the original,
+    so the type system is indeed sound.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For instance, consider this expression: 5 + (2 * 3). It has the type Number.
+    In a sound type system, progress offers a proof that, because this term types,
+    and is not already a value, it can take a step of execution—<wbr>which it clearly
+    can. After one step the program reduces to 5 + 6. Sure enough, as preservation
+    proves, this has the same type as the original: Number. Progress again says this
+    can take a step, producing 11. Preservation again shows that this has the same
+    type as the previous expressions representing the program: Number. Now progress
+    finds that we are at an answer, so there are no steps left to be taken, and our
+    answer is of the same type as that given for the original expression.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, this isn’t the entire story. There are two caveats:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The program may not produce an answer at all; it might loop forever. In this
+    case, the theorem strictly speaking does not apply. However, we can still observe
+    that every intermediate representation of the program has the same type as the
+    whole expression, so the program is computing meaningfully even if it isn’t producing
+    a value.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Any rich enough language has properties that cannot be decided statically (and
+    others that perhaps could be, but the language designer chose to put off until
+    run-time to reduce the burden on the programmer to make programs pass the type-checker).
+    When one of these properties fails—<wbr>e.g., the array index being within bounds—<wbr>there
+    is no meaningful type for the program. Thus, implicit in every type soundness
+    theorem is some set of published, permitted exceptions or error conditions that
+    may occur. The developer who uses a type system implicitly signs on to accepting
+    this set.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As an example of the latter set, the user of a typical typed language acknowledges
+    that vector dereference, list indexing, and so on may all yield exceptions.A different
+    type system design might make this set a [parameter](http://cs.brown.edu/~sk/Publications/Papers/Published/pqk-progressive-types/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The latter caveat looks like a cop-out. However, it is actually a strongly positive
+    statement, in that says any exception not in this set will provably not be raised.
+    Of course, in languages designed with static types in the first place, it is not
+    clear (except by loose analogy) what these exceptions might be, because there
+    would be no need to define them. But when we retrofit a type system onto an existing
+    programming language—<wbr>especially languages with only dynamic enforcement,
+    such as Racket or Python—<wbr>then there is already a well-defined set of exceptions,
+    and the type-checker is explicitly stating that some set of those exceptions (such
+    as “non-function found in application position” or “method not found”) will simply
+    never occur. This is therefore the payoff that the programmer receives in return
+    for accepting the type system’s syntactic restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 28.4Types, Time, and Space
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even in a typed language, it is common to have several run-time checks. To explain
+    this, we will begin with an dynamically-typed account. Consider the following
+    data definition
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and a function that uses it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In an dynamically-typed language, every value t needs to hold a type tag that
+    indicates its type. When a value is passed to size, the implementation will check
+    that this is actually a Tree. Such a value will have additional variant tags that
+    indicate whether it is a base or node kind of Tree. This secondary tag will be
+    used to choose a branch of the cases expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assume instead we are in a typed language. The type-checker will have ensured
+    that there no non-Tree value could have been substituted for a Tree-typed identifier.
+    Therefore, there is no need for the type tag at all.Type tags would, however,
+    still be needed by the garbage collector, though other representations such as
+    BIBOP [REF] can greatly reduce their space impact. However, the variant tags are
+    still needed, and will be used to dispatch between the branches. In the example,
+    only one bit is needed to tell apart base and node values. This same bit position
+    can be reused to tell apart variants in some other type without causing any confusion,
+    because the type checker is responsible for keeping the types from mixing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, if there are two different datatypes that each have two variants,
+    in the dynamically-typed world all these four variants require distinct representations.
+    In contrast, in the typed world their representations can overlap across types,
+    because the static type system will ensure one type’s variants are never confused
+    for that the another. Thus, types have a genuine space (saving representation)
+    and time (eliminating run-time checks) performance benefit for programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It is conventional in computer science to have a [☛ space-time tradeoff](glossary.html#%28elem._glossary-space-time._tradeoff%29).
+    Instead, here we have a situation where we improve both space and time. This seems
+    almost paradoxical! How is this possible?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This dual benefit comes at some cost to the developer, who must convince the
+    static type system that their program does not induce type errors; due to the
+    limitations of decidability, even programs that might have run without error might
+    run afoul of the type system. Nevertheless, for programs for which this can be
+    done, types provide a notable saving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 28.5Types Versus Safety
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To conclude, we have now identified two classifications for language:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether or not a language is typed, i.e., has static type checks.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Whether or not a language’s run-time system is safe, i.e., performs residual
+    checks not done by a static system—<wbr>of which there might not even be one).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Given two phenomena with two options each, this suggests there are four different
+    kinds of languages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |  | Safe |  | Unsafe |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Typed |  | ML, Java |  | C, C++ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Not Typed |  | Python, Racket |  | machine code |'
+  prefs: []
+  type: TYPE_TB
+- en: The entry for machine code is a little questionable because the language isn’t
+    even typed, so there’s no classification to check statically. Similarly, there
+    is arguably nothing to check for in the run-time system, so it must best be described
+    as “not even unsafe”. However, in practice we do end up with genuine problems,
+    such as security vulnerabilities that arise from being able to jump and execute
+    from arbitrary locations that hold data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That leaves the truly insidious corner, which languages like C and C++ inhabit.
+    Here, the static type system gives the impression that values are actually segregated
+    by type and checked for membership. And indeed they are, in the static world.
+    However, once a programmer passes the type-checker there are no run-time checks.
+    To compound the problem, the language offers primitives like arbitrary pointer
+    arithmetic, making it possible to interpret data of one kind as data of another.
+    As a result, we should have a special place of shame for languages that actively
+    mislead programmers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct examples of C or C++ interpreting data of one kind as data of another
+    kind.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Historically, people have sometimes used the phrase strong typing to reflect
+    the kind of type-checking that ML and Java use, and weak typing for the other
+    kinds. However, these phrases are at best poorly defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If you have ever used the phrases “strong typing” or “weak typing”, define them.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: That’s what I thought. But thank you for playing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, the phrases are not only poorly defined, they are also wrong, because
+    the problem is not with the “strength” of the type checker but rather with the
+    nature of the run-time system that backs them. The phrases are even more wrong
+    because they fail to account for whether or not a theorem backs the type system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is therefore better to express our intent by sticking to these concepts:
+    safety, typedness, and soundness. Indeed, we should think of this as a continuum.
+    With rare exceptions, we want a language that is safe. Often, we want a language
+    that is also typed. If it is typed, we would like it to be sound, so that we know
+    that the types are not lying. In all these cases, “strong” and “weak” typing do
+    not have any useful meaning.'
+  prefs: []
+  type: TYPE_NORMAL

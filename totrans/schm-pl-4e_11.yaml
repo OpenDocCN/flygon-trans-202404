@@ -1,0 +1,1673 @@
+- en: Chapter 11\. Exceptions and Conditions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*Exceptions* and *conditions* provide the means for system and user code to
+    signal, detect, and recover from errors that occur when a program is run.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exceptions are raised by the standard syntactic forms and procedures under a
+    variety of circumstances, e.g., when the wrong number of arguments is passed to
+    a procedure, when the syntax of an expression passed to `eval` is incorrect, or
+    when a file cannot be opened by one of the file open procedures. In these situations,
+    the exception is raised with a standard condition type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exceptions may also be raised by user code via the `raise` or `raise-continuable`
+    procedures. In this case, the exception may be raised with one of the standard
+    condition types, a user-defined subtype of one of the standard condition types
+    (possibly defined using `define-condition-type`), or an arbitrary Scheme value
+    that is not a condition type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At any point during a program's execution, a single exception handler, called
+    the *current exception handler*, is charged with handling all exceptions that
+    are raised. By default, the current exception handler is one provided by the implementation.
+    The default exception handler typically prints a message that describes the condition
+    or other value with which the exception was raised and, for any serious condition,
+    terminates the running program. In interactive systems, this typically means a
+    reset to the read-eval-print loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: User code may establish a new current exception handler via the `guard` syntax
+    or the `with-exception-handler` procedure. In either case, the user code may handle
+    all exceptions or, based on the condition or other value with which the exception
+    was raised, just some of the exceptions while reraising the others for the old
+    current exception handler to handle. When `guard` forms and `with-exception-handler`
+    calls are nested dynamically, a chain of exception handlers is established, and
+    each may defer to the next in the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 11.1\. Raising and Handling Exceptions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**procedure**: `(raise *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(raise-continuable *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** see below'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs exceptions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both of these procedures raise an exception, effectively invoking the current
+    exception handler, passing `*obj*` as the only argument. For `raise`, the exception
+    is *non-continuable*, while for `raise-continuable`, the exception is *continuable*.
+    An exception handler may return (with zero or more values) to the continuation
+    of a continuable exception. If an exception handler attempts to return to the
+    continuation of a non-continuable exception, however, a new exception with condition
+    type `&non-continuable` is raised. Thus, `raise` never returns, while `raise-continuable`
+    may return zero or more values, depending upon the exception handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the current exception handler, `*p*`, was established via a `guard` form
+    or call to `with-exception-handler`, the current exception handler is reset to
+    the handler that was current when `*p*` was established before `raise` or `raise-continuable`
+    invokes `*p*`. This allows `*p*` to defer to the preexisting exception handler
+    simply by reraising the exception, and it helps prevent infinite regression when
+    an exception handler inadvertently causes a different exception to be raised.
+    If `*p*` returns and the exception is continuable, `*p*` is reinstated as the
+    current exception handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(raise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-error)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition "no go"))) ![<graphic>](ch2_0.gif) *error: no go*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (raise-continuable
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-violation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition "oops"))) ![<graphic>](ch2_0.gif) *violation: oops*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (call/cc
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (k)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector
+  prefs: []
+  type: TYPE_NORMAL
+- en: (with-exception-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) (k (+ x 5)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () (+ (raise 17) 8))))))) ![<graphic>](ch2_0.gif) (22)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector
+  prefs: []
+  type: TYPE_NORMAL
+- en: (with-exception-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) (+ x 5))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () (+ (raise-continuable 17) 8))))) ![<graphic>](ch2_0.gif) (#(30))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector
+  prefs: []
+  type: TYPE_NORMAL
+- en: (with-exception-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) (+ x 5))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda () (+ (raise 17) 8))))) ![<graphic>](ch2_0.gif) *violation: non-continuable*`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(error *who* *msg* *irritant* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(assertion-violation *who* *msg* *irritant* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs base)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error` raises a non-continuable exception with condition type `&error` and
+    should be used to describe situations for which the `&error` condition type is
+    appropriate, typically a situation involving the program''s interaction with something
+    outside of the program. `assertion-violation` raises a non-continuable exception
+    with condition type `&assertion` and should be used to describe situations for
+    which the `&assertion` condition type is appropriate, typically an invalid argument
+    to a procedure or invalid value of a subexpression of a syntactic form.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The continuation object with which the exception is raised also includes a `&who`
+    condition whose who field is `*who*` if `*who*` is not `#f`, a `&message` condition
+    whose message field is `*msg*`, and an `&irritants` condition whose irritants
+    field is `(*irritant* ...)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*who*` must be a string, a symbol, or `#f` identifying the procedure or syntactic
+    form reporting the error upon whose behalf the error is being reported. It is
+    usually best to identify a procedure the programmer has called rather than some
+    other procedure the programmer may not be aware is involved in carrying out the
+    operation. `*msg*` must be a string and should describe the exceptional situation.
+    The irritants may be any Scheme objects and should include values that may have
+    caused or been materially involved in the exceptional situation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `(assert *expression*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** see below'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs base)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`assert` evaluates `*expression*` and returns the value of `*expression*` if
+    the value is not `#f`. If the value of `*expression*` is `#f`, `assert` raises
+    a non-continuable exception with condition types `&assertion` and `&message`,
+    with an implementation-dependent value in its message field. Implementations are
+    encouraged to provide information about the location of the `assert` call within
+    the condition whenever possible.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(syntax-violation *who* *msg* *form*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(syntax-violation *who* *msg* *form* *subform*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** does not return'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs syntax-case)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This procedure raises a non-continuable exception with a condition of type `&syntax`.
+    It should be used to report a syntax error detected by the transformer of a syntactic
+    extension. The value of the condition's form field is `*form*`, and the value
+    of its subform field is `*subform*`, or `#f` if `*subform*` is not provided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The continuation object with which the exception is raised also includes a `&who`
+    condition whose who field is `*who*`, if `*who*` is not `#f` or is inferred from
+    `*form*`, and a `&message` condition whose message field is `*msg*`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*who*` must be a string, a symbol, or `#f`. If `*who*` is `#f`, it is inferred
+    to be the symbolic name of `*form*` if `*form*` is an identifier or the symbolic
+    name of the first subform of `*form*` if `*form*` is a list-structured form whose
+    first subform is an identifier. `*message*` must be a string. `*form*` should
+    be the syntax object or datum representation of the syntactic form within which
+    the syntax violation occurred, and `*subform*`, if not `#f`, should be a syntax
+    object or datum representation of a subform more specifically involved in the
+    violation. For example, if a duplicate formal parameter is found in a `lambda`
+    expression, `*form*` might be the `lambda` expression and `*subform*` might be
+    the duplicated parameter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some implementations attach source information to syntax objects, e.g., line,
+    character, and filename for forms originating in a file, in which case this information
+    might also be present as some implementation-dependent condition type within the
+    condition object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(with-exception-handler *procedure* *thunk*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** see below'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs exceptions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This procedure establishes `*procedure*`, which should accept one argument,
+    as the current exception handler in place of the old current exception handler,
+    `*old-proc*`, and invokes `*thunk*` without arguments. If the call to `*thunk*`
+    returns, `*old-proc*` is reestablished as the current exception handler and the
+    values returned by `*thunk*` are returned. If control leaves or subsequently reenters
+    the call to `*thunk*` via the invocation of a continuation obtained via `call/cc`,
+    the procedure that was the current exception handler when the continuation was
+    captured is reinstated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define (try thunk)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (call/cc
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (k)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (with-exception-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x) (if (error? x) (k #f) (raise x)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: thunk))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (try (lambda () 17)) ![<graphic>](ch2_0.gif) 17
+  prefs: []
+  type: TYPE_NORMAL
+- en: (try (lambda () (raise (make-error)))) ![<graphic>](ch2_0.gif) #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (try (lambda () (raise (make-violation)))) ![<graphic>](ch2_0.gif) *violation*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (with-exception-handler
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda (x)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (raise
+  prefs: []
+  type: TYPE_NORMAL
+- en: (apply condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition "oops")
+  prefs: []
+  type: TYPE_NORMAL
+- en: (simple-conditions x))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: (try (lambda () (raise (make-violation)))))) ![<graphic>](ch2_0.gif) *violation: oops*`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `(guard (*var* *clause[1]* *clause[2]* ...) *b1* *b2* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** see below'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs exceptions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `guard` expression establishes a new current exception handler, `*procedure*`
+    (described below), in place of the old current exception handler, `*old-proc*`,
+    and evaluates the body `*b1* *b2* ...`. If the body returns, `guard` reestablishes
+    `*old-proc*` as the current exception handler. If control leaves or subsequently
+    reenters the body via the invocation of a continuation obtained via `call/cc`,
+    the procedure that was the current exception handler when the continuation was
+    captured is reinstated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The procedure `*procedure*` established by `guard` binds `*var*` to the value
+    it receives and, within the scope of that binding, processes the clauses `*clause[1]* *clause[2]* ...`
+    in turn, as if contained within an implicit `cond` expression. This implicit `cond`
+    expression is evaluated in the continuation of the `guard` expression, with `*old-proc*`
+    as the current exception handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If no `else` clause is provided, `guard` supplies one that reraises the exception
+    with the same value, as if with `raise-continuable`, in the continuation of the
+    call to `*procedure*`, with `*old-proc*` as the current exception handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(guard (x [else x]) (raise "oops")) ![<graphic>](ch2_0.gif) "oops"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (guard (x [#f #f]) (raise (make-error))) ![<graphic>](ch2_0.gif)  *error*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-syntax try
+  prefs: []
+  type: TYPE_NORMAL
+- en: (syntax-rules ()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[(_ e1 e2 ...)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (guard (x [(error? x) #f]) e1 e2 ...)]))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define open-one
+  prefs: []
+  type: TYPE_NORMAL
+- en: (lambda fn*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let loop ([ls fn*])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (if (null? ls)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (error 'open-one "all open attempts failed" fn*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (or (try (open-input-file (car ls)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (loop (cdr ls)))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '; say bar.ss exists but not foo.ss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (open-one "foo.ss" "bar.ss") ![<graphic>](ch2_0.gif) #<input port bar.ss>`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 11.2\. Defining Condition Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While a program may pass `raise` or `raise-continuable` any Scheme value, the
+    best way to describe an exceptional situation is usually to create and pass a
+    *condition object*. Where the Revised⁶ Report requires the implementation to raise
+    exceptions, the value passed to the current exception handler is always a condition
+    object of one or more of the standard *condition types* described in Section [11.3](exceptions.html#g150).
+    User code may create a condition object that is an instance of one or more standard
+    condition types or it may create an extended condition type and create a condition
+    object of that type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Condition types are similar to record types but are more flexible in that a
+    condition object may be an instance of two or more condition types, even if neither
+    is a subtype of the other. When a condition is an instance of multiple types,
+    it is referred to as a *compound condition*. Compound conditions are useful for
+    communicating multiple pieces of information about an exception to the exception
+    handler. A condition that is not a compound condition is referred to as a *simple
+    condition*. In most cases, the distinction between the two is unimportant, and
+    a simple condition is treated as if it were a compound condition with itself as
+    its only simple condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&condition`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`&condition` is a record-type name (Chapter [9](records.html#g138)) and the
+    root of the condition-type hierarchy. All simple condition types are extensions
+    of this type, and all conditions, whether simple or compound, are considered instances
+    of this type.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition object, otherwise `#f`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition object is an instance of a subtype of `&condition` or a compound
+    condition, possibly created by user code with `condition`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(condition? ''stable) ![<graphic>](ch2_0.gif) #f'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition? (make-error)) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition? (make-message-condition "oops")) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-error)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition "no such element"))) ![<graphic>](ch2_0.gif) #t`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition *condition* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition, possibly compound'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`condition` is used to create condition objects that may consist of multiple
+    simple conditions. Each argument `*condition*` may be simple or complex; if simple,
+    it is treated as a compound condition with itself as its only simple condition.
+    The simple conditions of the result condition are the simple conditions of the
+    `*condition*` arguments, flattened into a single list and appearing in order,
+    with the simple conditions of the first `*condition*` followed by the simple conditions
+    of the second, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the list has exactly one element, the result condition may be simple or compound;
+    otherwise it is compound. The distinction between simple and compound conditions
+    is not usually important but can be detected, if `define-record-type` rather than
+    `define-condition-type` is used to extend an existing condition type, via the
+    predicate defined by `define-record-type`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(condition) ![<graphic>](ch2_0.gif) #<condition>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-error)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition "oops")) ![<graphic>](ch2_0.gif) #<condition>
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define-record-type (&xcond make-xcond xcond?) (parent &condition))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (xcond? (make-xcond)) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (xcond? (condition (make-xcond))) ![<graphic>](ch2_0.gif) #t *or* #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (xcond? (condition)) ![<graphic>](ch2_0.gif) #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (xcond? (condition (make-error) (make-xcond))) ![<graphic>](ch2_0.gif) #f`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(simple-conditions *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a list of the simple conditions of `*condition*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(simple-conditions (condition)) ![<graphic>](ch2_0.gif) ''()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (simple-conditions (make-error)) ![<graphic>](ch2_0.gif) (#<condition &error>)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (simple-conditions (condition (make-error))) ![<graphic>](ch2_0.gif) (#<condition &error>)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (simple-conditions
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-error)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (make-message-condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"oops"))) ![<graphic>](ch2_0.gif) (#<condition &error> #<condition &message>)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (let ([c1 (make-error)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[c2 (make-who-condition "f")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[c3 (make-message-condition "invalid argument")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[c4 (make-message-condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"error occurred while reading from file")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[c5 (make-irritants-condition ''("a.ss"))])'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (equal?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (simple-conditions
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition (condition c1 c2) c3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition c4 (condition c5))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list c1 c2 c3 c4 c5))) ![<graphic>](ch2_0.gif) #t`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `(define-condition-type *name* *parent* *constructor* *pred* *field* ...)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `define-condition-type` form is a definition and may appear anywhere other
+    definitions may appear. It is used to define new simple condition types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The subforms `*name*`, `*parent*`, `*constructor*`, and `*pred*` must be identifiers.
+    Each `*field*` must be of the form `(*field-name* *accessor-name*)`, where `*field-name*`
+    and `*accessor-name*` are identifiers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`define-condition-type` defines `*name*` as a new record type whose parent
+    record type is `*parent*`, whose constructor name is `*constructor*`, whose predicate
+    name is `*pred*`, whose fields are `*field-name* ...`, and whose field accessors
+    are named by `*accessor-name* ...`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the exception of the predicate and field accessors, `define-condition-type`
+    is essentially an ordinary record definition equivalent to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-record-type (*name* *constructor* *pred*)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parent *parent*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fields ((immutable *field-name* *accessor-name*) ...)))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The predicate differs from one that would be generated by a `define-record-type`
+    form in that it returns `#t` not only for an instance of the new type but also
+    for compound conditions whose simple conditions include an instance of the new
+    type. Similarly, field accessors accept instances of the new type as well as compound
+    conditions whose simple conditions include at least one instance of the new record
+    type. If an accessor receives a compound condition whose simple conditions list
+    includes one or more instances of the new type, the accessor operates on the first
+    instance in the list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &mistake &condition make-mistake mistake?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (type mistake-type))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake? 'booboo) ![<graphic>](ch2_0.gif) #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define c1 (make-mistake 'spelling))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake? c1) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake-type c1) ![<graphic>](ch2_0.gif) spelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define c2 (condition c1 (make-irritants-condition '(eggregius))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake? c2) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake-type c2) ![<graphic>](ch2_0.gif) spelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: (irritants-condition? c2) ![<graphic>](ch2_0.gif) #t
+  prefs: []
+  type: TYPE_NORMAL
+- en: (condition-irritants c2) ![<graphic>](ch2_0.gif) (eggregius)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition-predicate *rtd*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition predicate'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition-accessor *rtd* *procedure*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition accessor'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These procedures may be used to create the same kind of special predicates and
+    accessors that are created by `define-record-type` from a record-type descriptor,
+    `*rtd*`, of a simple condition type or other type derived from a simple condition
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For both procedures, `*rtd*` must be a record-type descriptor of a subtype of
+    `&condition`, and for `condition-accessor`, `*procedure*` should accept one argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The predicate returned by `condition-predicate` accepts one argument, which
+    may be any Scheme value. The predicate returns `#t` if the value is a condition
+    of the type described by `*rtd*`, i.e., an instance of the type described by `*rtd*`
+    (or one of its subtypes) or a compound condition whose simple conditions include
+    an instance of the type described by `*rtd*`. Otherwise, the predicate returns
+    `#f`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The accessor returned by `condition-accessor` accepts one argument, `*c*`, which
+    must be a condition of the type described by `*rtd*`. The accessor applies `*procedure*`
+    to a single argument, the first element of `*c*`'s simple condition list that
+    is an instance of the type described by `*rtd*` (this is `*c*` itself if `*c*`
+    is a simple condition), and returns the result of this application. In most situations,
+    `*procedure*` is a record accessor for a field of the type described by `*rtd*`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-record-type (&mistake make-mistake $mistake?)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (parent &condition)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (fields (immutable type $mistake-type)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: ; define predicate and accessor as if we'd used define-condition-type
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define rtd (record-type-descriptor &mistake))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define mistake? (condition-predicate rtd))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define mistake-type (condition-accessor rtd $mistake-type))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define c1 (make-mistake 'spelling))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (define c2 (condition c1 (make-irritants-condition '(eggregius))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list (mistake? c1) (mistake? c2)) ![<graphic>](ch2_0.gif) (#t #t)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (list ($mistake? c1) ($mistake? c2)) ![<graphic>](ch2_0.gif) (#t #f)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake-type c1) ![<graphic>](ch2_0.gif) spelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: ($mistake-type c1) ![<graphic>](ch2_0.gif) spelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: (mistake-type c2) ![<graphic>](ch2_0.gif) spelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: ($mistake-type c2) ![<graphic>](ch2_0.gif) *violation*`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Section 11.3\. Standard Condition Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**syntax**: `&serious`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-serious-condition)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&serious`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(serious-condition? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&serious`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate situations of a serious nature that, if uncaught,
+    generally result in termination of the program's execution. Conditions of this
+    type typically occur as one of the more specific subtypes `&error` or `&violation`.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &serious &condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-serious-condition serious-condition?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&violation`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&violation`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&violation`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate that the program has violated some requirement,
+    usually due to a bug in the program. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &violation &serious'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-violation violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&assertion`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-assertion-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&assertion`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(assertion-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&assertion`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition type indicates a specific violation in which the program has
+    passed the wrong number or types of arguments to a procedure. This condition type
+    might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &assertion &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-assertion-violation assertion-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&error`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-error)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&error`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&error`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate that an error has occurred with the program's
+    interaction with its operating environment, such as the failure of an attempt
+    to open a file. It is not used to describe situations in which an error in the
+    program has been detected. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &error &serious'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-error error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&warning`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-warning)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&warning`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(warning? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&warning`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning conditions indicate situations that do not prevent the program from
+    continuing its execution but, in some cases, might result in a more serious problem
+    at some later point. For example, a compiler might use a condition of this type
+    to indicate that it has processed a call to a standard procedure with the wrong
+    number of arguments; this will not become a serious problem unless the call is
+    actually evaluated at some later point. This condition type might be defined as
+    follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &warning &condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-warning warning?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-message-condition *message*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(message-condition? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&message`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition-message *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `message` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type are usually included with a `&warning` condition or
+    one of the `&serious` condition subtypes to provide a more specific description
+    of the exceptional situation. The `*message*` argument to the constructor may
+    be any Scheme value but is typically a string. This condition type might be defined
+    as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &message &condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-message-condition message-condition?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (message condition-message))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&irritants`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-irritants-condition *irritants*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&irritants`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(irritants-condition? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&irritants`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition-irritants *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `irritants` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type are usually included with a `&message` condition to
+    provide information about Scheme values that may have caused or been materially
+    involved in the exceptional situation. For example, if a procedure receives the
+    wrong type of argument, it may raise an exception with a compound condition consisting
+    of an assertion condition, a who condition naming the procedure, a message condition
+    stating that the wrong type of argument was received, and an irritants condition
+    listing the argument. The `*irritants*` argument to the constructor should be
+    a list. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &irritants &condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-irritants-condition irritants-condition?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (irritants condition-irritants))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&who`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-who-condition *who*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&who`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(who-condition? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&who`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(condition-who *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `who` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type are often included with a `&message` condition to identify
+    the syntactic form or procedure that detected the error. The `*who*` argument
+    to the constructor should be a symbol or string. This condition type might be
+    defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &who &condition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-who-condition who-condition?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (who condition-who))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&non-continuable`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-non-continuable-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&non-continuable`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(non-continuable-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&non-continuable`, `#f`
+    otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate that a non-continuable violation has occurred.
+    `raise` raises an exception with this type if the current exception handler returns.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &non-continuable &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-non-continuable-violation
+  prefs: []
+  type: TYPE_NORMAL
+- en: non-continuable-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&implementation-restriction`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-implementation-restriction-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&implementation-restriction`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(implementation-restriction-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&implementation-restriction`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An implementation-restriction condition indicates that the program has attempted
+    to exceed some limitation in the implementation, such as when the value of a fixnum
+    addition operation would result in a number that exceeds the implementation's
+    fixnum range. It does not normally indicate a deficiency in the implementation
+    but rather a mismatch between what the program is attempting to do and what the
+    implementation can support. In many cases, implementation restrictions are dictated
+    by the underlying hardware. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &implementation-restriction &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-implementation-restriction-violation
+  prefs: []
+  type: TYPE_NORMAL
+- en: implementation-restriction-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&lexical`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-lexical-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&lexical`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(lexical-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&lexical`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate that a lexical error has occurred in the parsing
+    of a Scheme program or datum, such as mismatched parentheses or an invalid character
+    appearing within a numeric constant. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &lexical &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-lexical-violation lexical-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&syntax`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-syntax-violation *form* *subform*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&syntax`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(syntax-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&syntax`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(syntax-violation-form *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `form` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(syntax-violation-subform *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `subform` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditions of this type indicate that a syntax error has occurred in the parsing
+    of a Scheme program. In most implementations, syntax errors are detected by the
+    macro expander. Each of the `*form*` and `*subform*` arguments to `make-syntax-violation`
+    should be a syntax object (Section [8.3](syntax.html#g136)) or datum, the former
+    indicating the containing form and the latter indicating the specific subform.
+    For example, if a duplicate formal parameter is found in a `lambda` expression,
+    `*form*` might be the `lambda` expression and `*subform*` might be the duplicated
+    parameter. If there is no need to identify a subform, `*subform*` should be `#f`.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &syntax &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-syntax-violation syntax-violation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (form syntax-violation-form)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (subform syntax-violation-subform))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&undefined`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-undefined-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&undefined`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(undefined-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&undefined`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs conditions)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An undefined condition indicates an attempt to reference an unbound variable.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &undefined &violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-undefined-violation undefined-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next several condition types describe conditions that occur when input or
+    output operations fail in some manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-error)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of type `&i/o` indicates that an input/output error of some sort
+    has occurred. Conditions of this type typically occur as one of the more specific
+    subtypes described below. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o &error'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-error i/o-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-read`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-read-error)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-read`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-read-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-read`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition type indicates that an error has occurred while reading from
+    a port. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-read &i/o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-read-error i/o-read-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-write`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-write-error)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-write`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-write-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-write`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition type indicates that an error has occurred while writing to a
+    port. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-write &i/o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-write-error i/o-write-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-invalid-position`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-invalid-position-error *position*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-invalid-position`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-invalid-position-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-invalid-position`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-error-position *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `position` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition type indicates an attempt to set a port's position to a position
+    that is out of range for the underlying file or other object. The `*position*`
+    argument to the constructor should be the invalid position. This condition type
+    might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-invalid-position &i/o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-invalid-position-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: i/o-invalid-position-error?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (position i/o-error-position))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-filename`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-filename-error *filename*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-filename`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-filename-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-filename`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-error-filename *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `filename` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition type indicates an input/output error that occurred while operating
+    on a file. The `*filename*` argument to the constructor should be the name of
+    the file. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-filename &i/o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-filename-error i/o-filename-error?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (filename i/o-error-filename))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-file-protection`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-file-protection-error *filename*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-file-protection`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-file-protection-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-file-protection`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates that an attempt has been made to perform
+    some input/output operation on a file for which the program does not have the
+    proper permission. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-file-protection &i/o-filename'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-file-protection-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: i/o-file-protection-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-file-is-read-only`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-file-is-read-only-error *filename*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-file-is-read-only`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-file-is-read-only-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-file-is-read-only`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates an attempt to treat as writeable a read-only
+    file. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-file-is-read-only &i/o-file-protection'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-file-is-read-only-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: i/o-file-is-read-only-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-file-already-exists`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-file-already-exists-error *filename*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-file-already-exists`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-file-already-exists-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-file-already-exists`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates a situation in which an operation on a file
+    failed because the file already exists, e.g., an attempt is made to open an existing
+    file for output without the `no-fail` file option. This condition type might be
+    defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-file-already-exists &i/o-filename'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-file-already-exists-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: i/o-file-already-exists-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-file-does-not-exist`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-file-does-not-exist-error *filename*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-file-does-not-exist`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-file-does-not-exist-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-file-does-not-exist`,
+    `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates a situation in which an operation on a file
+    failed because the file does not exist, e.g., an attempt is made to open a nonexistent
+    file for input only. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-file-does-not-exist &i/o-filename'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-file-does-not-exist-error
+  prefs: []
+  type: TYPE_NORMAL
+- en: i/o-file-does-not-exist-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-port`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-port-error *pobj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-port`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-port-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-port`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-error-port *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `pobj` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs files)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type is usually included with a condition of one of the
+    other `&i/o` subtypes to indicate the port involved in the exceptional situation,
+    if a port is involved. The `*pobj*` argument to the constructor should be the
+    port. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-port &i/o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-port-error i/o-port-error?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (pobj i/o-error-port))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-decoding`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-decoding-error *pobj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-decoding`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-decoding-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-decoding`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates that a decoding error has occurred during
+    the transcoding of bytes to characters. The `*pobj*` argument to the constructor
+    should be the port involved, if any. The port should be positioned past the invalid
+    encoding. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-decoding &i/o-port'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-decoding-error i/o-decoding-error?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&i/o-encoding`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-i/o-encoding-error *pobj* *cobj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&i/o-encoding`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-encoding-error? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&i/o-encoding`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(i/o-encoding-error-char *condition*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** the contents of `*condition*`''s `cobj` field'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs io ports)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A condition of this type indicates that an encoding error has occurred during
+    the transcoding of characters to bytes. The `*pobj*` argument to the constructor
+    should be the port involved, if any, and the `*cobj*` argument should be the character
+    for which the encoding failed. This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &i/o-encoding &i/o-port'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-i/o-encoding-error i/o-encoding-error?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (cobj i/o-encoding-error-char))`
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final two condition types describe conditions that occur when implementations
+    are required to produce a NaN or infinity but have no representations for these
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&no-infinities`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-no-infinities-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&no-infinities`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(no-infinities-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&no-infinities`, `#f`
+    otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition indicates that the implementation has no representation for infinity.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &no-infinities &implementation-restriction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-no-infinities-violation
+  prefs: []
+  type: TYPE_NORMAL
+- en: no-infinities-violation?)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**syntax**: `&no-nans`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(make-no-nans-violation)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** a condition of type `&no-nans`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**procedure**: `(no-nans-violation? *obj*)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**returns:** `#t` if `*obj*` is a condition of type `&no-nans`, `#f` otherwise'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This condition indicates that the implementation has no representation for NaN.
+    This condition type might be defined as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`(define-condition-type &no-nans &implementation-restriction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: make-no-nans-violation no-nans-violation?)`
+  prefs: []
+  type: TYPE_NORMAL

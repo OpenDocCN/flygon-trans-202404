@@ -1,0 +1,382 @@
+- en: Chapter 4\. Apache Flink Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Flink](https://flink.apache.org/) is an open source stream-processing engine
+    (SPE) that does the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scales well, running on thousands of nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Provides powerful checkpointing and save pointing facilities that enable fault
+    tolerance and restartability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Provides state support for streaming applications, which allows minimization
+    of usage of external databases for streaming applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Provides powerful window semantics, allowing you to produce accurate results,
+    even in the case of out-of-order or late-arriving data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s take a look how we can use Flink’s capabilities to implement the proposed
+    architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Flink provides a [low-level stream processing operation](http://bit.ly/apache-steam-process),
+    `ProcessFunction`, which provides access to the basic building blocks of any streaming
+    application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Events (individual records within a stream)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: State (fault-tolerant, consistent)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Timers (event time and processing time)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Implementation of low-level operations on two input streams is provided by
+    Flink’s [low-level join](http://bit.ly/apache-steam-process) operation, which
+    is bound to two different inputs (if we need to merge more than two streams it
+    is possible to cascade multiple low-level joins; additionally [side inputs](http://bit.ly/flink-side-inputs),
+    scheduled for the upcoming versions of Flink, would allow additional approaches
+    to stream merging) and provides individual methods for processing records from
+    each input. Implementing a low-level join typically follows the following [pattern](http://bit.ly/apache-steam-process):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create and maintain a state object reflecting the current state of execution.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update the state upon receiving elements from one (or both) input(s).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Upon receiving elements from one or both input(s) use the current state to transform
+    data and produce the result.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Figure 4-1](#using_flinkas_low-evel_join) illustrates this operation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0401](assets/smlt_0401.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4-1\. Using Flink’s low-level join
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: This pattern fits well into the overall architecture ([Figure 1-1](ch01.html#overall_architecture_of_model_serving)),
+    which is what I want to implement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flink provides two ways of implementing low-level joins, key-based joins implemented
+    by `CoProcessFunction`, and partition-based joins implemented by `RichCoFlatMapFunction`.
+    Although you can use both for this implementation, they provide different service-level
+    agreements (SLAs) and are applicable for slightly different use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Key-Based Joins
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Flink’s `CoProcessFunction` allows key-based merging of two streams. When using
+    this API, data is partitioned by key across multiple Flink executors. Records
+    from both streams are routed (based on key) to an appropriate executor that is
+    responsible for the actual processing, as illustrated in [Figure 4-2](#key-based_join).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0402](assets/smlt_0402.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4-2\. Key-based join
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'Here are the main characteristics of this approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distribution of execution is based on key (`dataType`, see Examples [3-2](ch03.html#protobuf_definition_for_the_model_update)
+    and [3-3](ch03.html#protobuf_definition_for_the_data_feed)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Individual models’ scoring (for a given `dataType`) is implemented by a separate
+    executor (a single executor can score multiple models), which means that scaling
+    Flink leads to a better distribution of individual models and consequently better
+    parallelization of scorings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A given model is always scored by a given executor, which means that depending
+    on the data type distribution of input records, this approach can lead to “hot”
+    executors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Based on this, key-based joins are an appropriate approach for the situations
+    when it is necessary to score multiple data types with relatively even distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the heart of this implementation is a `DataProcessor` class ([complete code
+    available here](http://bit.ly/DataProcessorKeyed)), which you can see in [Example 4-1](#the_dataprocessor_class).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-1\. The DataProcessor class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This class has two main methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`processElement2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method is invoked when a new `Model` record (`ModelToServe` class, described
+    later) arrives. This method just builds a new model to serve, as in [Example 2-2](ch02.html#serving_the_model_created_from_the_execu)
+    for TensorFlow models or [Example 2-6](ch02.html#serving_pmml_model) for PMML
+    models, and stores it in a `newModel` state variable. Because model creation can
+    be a lengthy operation, I am separating a `newModel` state from a `currentModel`
+    state, so that model creation does not affect current model serving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`processElement1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is invoked when a new `Data` record (`WineRecord` class) arrives. Here,
+    the availability of a new model is first checked, and if it is available, the
+    `currentModel` is updated with the value of `newModel`. This ensures that the
+    model update will never occur while scoring a record. We then check whether there
+    is currently a model to score and invoke the actual scoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In addition to these main methods, the class also implements support for checkpointing
+    of [managed state](http://bit.ly/flink-umos). We do this by adding two additional
+    interfaces to the class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CheckpointedFunction`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core interface for stateful transformation functions that maintain state
+    across individual stream records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CheckpointedRestoring`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interface providing methods for restoring state from the checkpointing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These two interfaces are implemented by the following three methods: `initializeState`,
+    `snapshotState`, and `restoreState`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Example 4-2](#the_modeltoserve_class) shows what the `ModelToServe` class
+    used by the `DataProcessor` class looks like.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-2\. The ModelToServe class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This class unmarshals incoming protobufs of the model definition ([Example 3-2](ch03.html#protobuf_definition_for_the_model_update))
+    and converts it into the internal format used in the rest of the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, we use the `DataRecord` class to unmarshal the incoming data definition
+    ([Example 3-1](ch03.html#model_representation-id1)), as demonstrated in [Example 4-3](#the_datarecord_class).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-3\. The DataRecord class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementation of checkpointing also requires serialization support for the
+    `Model` class, shown in [Example 4-4](#the_modeltypeserializer_class) ([complete
+    code available here](http://bit.ly/2gwB16C)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-4\. The ModelTypeSerializer class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This class leverages utility methods on the model and model factory traits to
+    generically implement serialization/deserialization regardless of the actual model
+    implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serialization implementation also requires implementation of configuration support,
+    which you can see in [Example 4-5](#the_modelserializerconfigsnapshot_class) ([complete
+    code available here](http://bit.ly/2gwB16C)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-5\. The ModelSerializerConfigSnapshot class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Overall orchestration of the execution is done using a Flink driver, shown in
+    [Example 4-6](#flink_driver_for_key-based_joins) ([complete code available here](http://bit.ly/2yE1B8o)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-6\. Flink driver for key-based joins
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The workhorse of this implementation is the `buildGraph` method. It first configures
+    and creates two Kafka consumers, for models and data, and then builds two input
+    data streams from these consumers. It then reads data from both streams and merges
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `FlinkKafkaConsumer010` class requires the definition of the [deserialization
+    schema](http://bit.ly/2gvPIqi). Because our messages are protobuf encoded, I treat
+    Kafka messages as binary blobs. To do this, it is necessary to implement the `ByteArraySchema`
+    class, as shown in [Example 4-7](#the_bytearrayschema_class), defining encoding
+    and decoding of Kafka data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-7\. The ByteArraySchema class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using Partition-Based Joins
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Flink’s `RichCoFlatMapFunction` allows merging of two streams in parallel. A
+    task is split into several parallel instances for execution with each instance
+    processing a subset of the task’s input data. The number of parallel instances
+    of a task is called its [parallelism](http://bit.ly/2i51BaF).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using this API on the partitioned stream, data from each partition is processed
+    by a dedicated Flink executor. Records from the model stream are broadcast to
+    all executors. As [Figure 4-3](#partition-based_join) demonstrates, each partition
+    of the input stream is routed to the corresponding instance of the model server.
+    If the number of partitions of the input stream is less than Flink parallelism,
+    only some of the model server instances will be utilized. Otherwise, some of the
+    model server instances will serve more than one partition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![smlt 0403](assets/smlt_0403.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4-3\. Partition-based join
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'Here are the main characteristics of this approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The same model can be scored in one of several executors based on the partitioning
+    of the data streams, which means that scaling of Flink (and input data partitioning)
+    leads to better scoring throughput.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because the model stream is broadcast to all model server instances, which operate
+    independently, some race conditions in the model update can exist, meaning that
+    at the point of the model switch, some model jitter (models can be updated at
+    different times in different instances, so for some short period of time different
+    input records can be served by different models) can occur.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Based on these considerations, using global joins is an appropriate approach
+    for the situations when it is necessary to score with one or a few models under
+    heavy data load.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the heart of this implementation is the `DataProcessorMap` class, which you
+    can see in action in [Example 4-8](#the_dataprocessmap_class) ([complete code
+    available here](http://bit.ly/2gcOLpYa)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-8\. The DataProcessMap class
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This implementation is very similar to the `DataProcessor` class ([Example 4-1](#the_dataprocessor_class)).
+    Following are the main differences between the two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `DataProcessMap` class extends `RichCoFlatMapFunction`, whereas the `DataProcessor`
+    class extends the `CoProcessFunction` class.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The method names are different: `flatMap1` and `flatMap2` versus `processElement1`
+    and `processElement2`. But the actual code within the methods is virtually identical.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Similar to the `DataProcessor` class, this class also implements support for
+    checkpointing of state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall orchestration of the execution is done using a Flink driver, which differs
+    from the previous Flink driver for key-based joins ([Example 4-6](#flink_driver_for_key-based_joins))
+    only in how streams are delivered to the executors (`keyBy` versus `broadcast`)
+    and processed (`process` versus `flatMap`) and joined, as shown in [Example 4-9](#flink_driver_for_global_joins)
+    ([complete code available here](http://bit.ly/2ydjA2y)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4-9\. Flink driver for global joins
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although this example uses a single model, you can easily expand it to support
+    multiple models by using a map of models keyed on the data type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A rich streaming semantic provided by Flink low-level process APIs provides
+    a very powerful platform for manipulating data streams, including their transformation
+    and merging. In this chapter, you have looked at different approaches for implementing
+    proposed architecture using Flink. In [Chapter 5](ch05.html#apache_beam_implementation),
+    we look at how you can use Beam for solving the same problem.
+  prefs: []
+  type: TYPE_NORMAL

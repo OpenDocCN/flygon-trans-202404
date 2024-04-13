@@ -1,0 +1,262 @@
+- en: 'Lecture 18: Verification'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will use the term **verification** to refer to a process that generates high
+    assurance code that works on all inputs and in all environments. Testing is a
+    good, cost-effective way of getting assurance, but it is not a verification process
+    in this sense because there is no guarantee that the coverage of the tests is
+    sufficient for all uses of the code. Verification generates a proof (sometimes
+    only implicitly) that all inputs will result in outputs that conform to the specification.
+    In this lecture, we look at verification based on explicitly but somewhat informally
+    proving correctness of the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verification tends to be expensive and to require thinking carefully about and
+    deeply understanding the code to be verified. In practice, it tends to be applied
+    to code that is important and relatively short. Verification is particularly valuable
+    for critical systems where testing is less effective. Because their execution
+    is not deterministic, concurrent programs are hard to test, and sometimes subtle
+    bugs can only be found by attempting to verify the code formally. In fact, tools
+    to help prove programs correct have been getting increasingly effective and some
+    large systems have been fully verified, including compilers, processors and processor
+    emulators, and key pieces of operating systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another benefit to studying verification is that when you understand what it
+    takes to prove code correct, it will help you reason about your own code (or others')
+    and to write code that is correct more likely to be correct, based on specs that
+    are more precise and useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In recent years, techniques have been developed that combine ideas from verification
+    and testing have been developed that can sometimes give the best of both worlds.
+    These ideas, **model checking** and **abstract interpretation**, can give the
+    same level of assurance as formal verification at lower cost, or more assurance
+    than testing at similar cost. However, in this lecture, we'll look at verification
+    in the classic sense.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Simple Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s prove a short piece of code correct in a slightly informal but hopefully
+    convincing way. Here is a slightly odd implementation of the `max` function on
+    integers, using `abs`, whose spec is also given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because this implementation doesn't use `if` (assuming `abs` doesn't), it's
+    conceivable that this could be faster than the obvious implementation!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To verify a function like this `max`, we'll use two ideas. First, we'll consider
+    the possible executions of the code starting from an arbitrary call satisfying
+    the precondition. As execution proceeds, we'll accumulate facts we know about
+    the current execution. Second, at some points during execution we won't know enough
+    about what is supposed to happen, and we'll have to consider some possible cases.
+    We have to argue that the postcondition of the function is satisfied no matter
+    which case is taken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start by considering an evaluation of `max x y`, where `x` and `y` represent
+    are integers satisfying the precondition. We record the precondition as an assumption
+    in the right column. As a shorthand, we''ll use PRE to represent the precondition,
+    (min_int ≤ x ≤ max_int and min_int ≤ y ≤ max_int). One thing we need to know is
+    that the OCaml operators `+` and `−` act like mathematical addition and subtraction
+    as long as the mathematical result is within the range `min_int` to `max_int`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we proceed with the proof, which is organized as a table in which each row
+    represents another evaluation step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Expression | Assumptions | Justification |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `max x y` | PRE | We consider an arbitary legal application of `max`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `(x+y+abs(y-x))/2` | PRE | Substitute the actuals for the formals in the
+    function body. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `(n1+abs(y-x))/2` | PRE n1 = x + y | x+y evaluates to some number n1\. PRE
+    says that x and y are both less than half of min_int or max_int, so their sum
+    must be a valid integer; therefore there can''t be overflow when they are added.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `(n1+abs(n2))/2` | PRE n1 = x + y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: n2 = y − x | y−x evaluates to some number n2\. Again, we can't have an overflow
+    doing this subtraction. But now we don't know the result of `abs`. We use the
+    spec of `abs`, but separately consider the cases where y ≥ x and where y < x.
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Case: y ≥ x |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `(n1+n2)/2` | PRE n1 = x + y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: n2 = y − x
+  prefs: []
+  type: TYPE_NORMAL
+- en: y≥x | Since y≥x, abs(n2) = n2. |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `n3/2` | PRE n1 = x + y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: n2 = y − x
+  prefs: []
+  type: TYPE_NORMAL
+- en: y≥x
+  prefs: []
+  type: TYPE_NORMAL
+- en: n3 = n1+n2 = 2y | n1+n2 = x+y + (y−x) = 2y. Because y ≤ max_int/2, we can't
+    get an overflow here either. |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `y` | PRE y≥x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| n1+n2 = x+y + (y−x) = 2y. Since y≥x, the answer we got (y) is the correct
+    one according to the spec. Now we consider the other case, which is symmetrical.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Case: y < x |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `(n1+n2)/2` | PRE n1 = x + y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: n2 = y − x
+  prefs: []
+  type: TYPE_NORMAL
+- en: y<x | Since y<x, abs(n2) = −n2 = x−y |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `n3/2` | PRE n1 = x + y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: n2 = y − x
+  prefs: []
+  type: TYPE_NORMAL
+- en: y<x
+  prefs: []
+  type: TYPE_NORMAL
+- en: n3 = n1−n2 = 2x | n1+n2 = x+y - (y−x) = 2x. Since x ≤ max_int/2, we can't get
+    an overflow here either. |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `x` | PRE y<x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| n1+n2 = x+y - (y−x) = 2x. Because y<x, the answer we got (x) is the correct
+    one according to the spec. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| QED |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The rule of the game here is that we can make an evaluation step on the left
+    column as long as we have enough information in our assumptions to know what evaluation
+    step is taken. And we can introduce fresh variables like n1, n2, n3 to represent
+    unknown values that are computed. We can apply functions, such as `abs`, if their
+    preconditions are satisfied. If we don''t have enough information in our current
+    set of assumptions (the middle column), then we can break our analysis into a
+    set of cases as long as the cases are exhaustive. An analysis by cases acts like
+    a stack: each case is a separate assumption or assumptions that create a hypothetical
+    world that we must reason about. The indenting in the table above indicates when
+    we are in such a hypothetical world. Once we arrive at a result, we need to be
+    able to show that result satisfies the postcondition, using information available
+    in the current set of assumptions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modular Verification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In our proof that `max` met its spec, we assumed that the `abs` met *its* spec.
+    This was good because we didn't have to look at the code of `abs`. This was an
+    example of **modular verification**, in which we were able to verify one small
+    unit of code at a time. Function specifications, abstraction functions, and rep
+    invariants make it possible to verify modules one function at a time, without
+    looking at the code of other functions. If modules have no cyclic dependencies,
+    which OCaml enforces, then the proof of each module can be constructed assuming
+    that every other module satisfies the specs in its interface. The proof of the
+    entire software system is then built from the bottom up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refinement
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Sometimes one specification is stronger than another specification. For example,
+    consider two possible specifications for `find`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here specification B is strictly **stronger** than specification A: given a
+    particular input to function as specified by B, the set of possible results or
+    outcomes is smaller than it is for A. Compared to A, specification B reduces the
+    amount of nondeterminism. In this case we say that specification B **refines**
+    specification A. In general, specification B refines specification A if any implementation
+    of B is a valid implementation of A.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interaction between refinement and preconditions can be confusing at first.
+    Suppose that specifications A and B have the same postcondition (results clause),
+    but specification A has a stronger precondition. In the example A above, we might
+    require not only that x is in lst, but that it is in the list exactly once. In
+    this case B still refines A: it has a stronger (more restrictive) postcondition
+    and a *weaker* (less restrictive) precondition, which means that an implementation
+    of B satisfies the spec of A. Thinking about this from the viewpoint of a client
+    who expects A but actually gets B may be helpful. The client makes calls that
+    satisfy A''s precondition, and therefore satisfy B''s precondition to. The client
+    gets back results that satisfy B''s postcondition, and therefore satisfy A''s
+    postcondition too.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are other ways to refine a specification. For example, if specification
+    A contains a requires clause, and specification B is identical but changes the
+    requires clause to a checks clause, B refines A: it more precisely describes the
+    behavior of the specified function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can think of the actual code implementing the function as another specification
+    of the computation to be performed. This implementation-derived specification
+    must be at least as strong as the specification written in the comment; otherwise,
+    the implementation may do things that the specification forbids. In other words,
+    *any correct implementation must refine its specification*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automatic verification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've been looking at how to write human-readable specifications. It is possible
+    to write specifications in a formal language that permits the computer to read
+    them. These machine-readable specifications can be used to perform **formal verification**
+    of the program. Using a formal specification, an automatic theorem prover can
+    *prove* that the program as a whole actually does what it says it does. Formal
+    program verification is an attractive technology because it can be used to guarantee
+    that programs do not contain bugs!
+  prefs: []
+  type: TYPE_NORMAL

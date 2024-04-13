@@ -1,0 +1,831 @@
+- en: Lecture 13 - Hardware Interrupts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Public Service Annoucements
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Assignment 3
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hardware Interrupts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Vectored Operation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: General Idea
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The standard way of programming the ICU requires the kernel to query the ICU.
+    Sometimes (!), this is unacceptably inefficient. Then, you have another alternative,
+    vectored interrupts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Relevant registers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: there are 16 pairs that you write
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| Register Name | Offset | R/W | Description | Comments |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| VICxVectAddry | 0x100+4y | R/W | Vector address for interrupt y | Entry point
+    of ISR for interrupt y |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| VICxVectCntly | 0x200+4y | R/W | Control register for interrupt y | Bit[0-4]:
+    interrupt source for interrupt y Bit[5]: enable vectored interrupt y |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: There is one pair used by the program
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '| Register Name | Offset | R/W | Description |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| VICxVectAddr | 0x030 | R/W | Read: address of vector for highest priority
+    interruptWrite: service complete, enable priority hardware |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: '| VICxDefVectAddr | 0x034 | R/W | Default vector address |'
+  prefs:
+  - PREF_IND
+  type: TYPE_TB
+- en: The first is the address (ISR entry point) of the highest priority interrupt.
+    Write it during interrupt processing to get the current highest priority interrupt.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second would normally be 0x34, the entry point of the kernel.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Procedure
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Initialization
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write kernel entry point into VICxDefVectAddr
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If desired write special entry point into VICxVectAddry
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When ready to accept interrupts write source and enable into VICxVectCntly
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When an interrupt occurs
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read VICxVectAddr to find address
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Move result to PC
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: (Note that this is similar to the instruction in 0x014\. Could we do it all
+    in one?)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Before interrupts are re-enabled write VICxVectAddr to start priority hardware
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Answer to question.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Look carefully at what's in 0x18
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Usually, `ldr pc, [pc, #offset]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Can you make `[pc, #offset]` calculate `<VicVectAddr>`?'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: How is the instruction encoded
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 31:28 - condition codes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 27:20 - op code and flags, 0101<offset sign>001
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 19:16 - base register
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 15:12 - destination register
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 11:00 - 12-bit offset
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With a 12 bit offset and pc=0x18 you can address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: from `0x18 + 0x8 - 0xffc = -0xfdc =``0xfffff020`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to `0x18 + 0x8 + 0xffc = 0x1020`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You could have the kernel entry point in
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: either `0x800b0030`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or `0x800c0030`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both are out of range. What could you do?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Map the ICU into the range by placing it at, for example, `0xfffff000`.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clock Server
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Primitives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Clock server starts at zero when it initializes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unit of time is tick
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note error returns
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You might want to add an error for negative arguments
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ticks is usually calculated, and a negative value is an early warning of falling
+    behind.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Can be constructed from the above two primitives.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Comments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need a common request type, or possibly a union.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You should notice a typical server pattern.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Notifier updates data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client who can be serviced now is serviced
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client who needs service in the future is suspended
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: List of suspended tasks is checked regularly
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It's normal to sort the list of suspended tasks. Why?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HALT versus an Idle Task
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What do you do when there are no tasks to run?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Idle task
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lowest priority
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: diagnose system
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Philosophical problem. It's easy to detect an error; but what do you do when
+    you detect an error.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Extreme example: incomplete transaction versus explosion'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Practical solution is to divide errors into two categories
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Recover without stopping. Extreme example is Magellan spacecraft:'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In behind Venus, silence; out from behind Venus, talking again
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'During orbit insertion: out from behind Venus, nothing'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wait six weeks, "I'm here."
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wait three weeks, nothing
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wait six weeks, "I'm here."
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wait three weeks, "I'm stabilized."
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What was going on?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stop, diagnose, re-program, re-run
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Extreme example is Magellan spacecraft:'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In behind Venus, silence; out from behind Venus, talking again
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'During orbit insertion: out from behind Venus, nothing'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Wait six weeks, "I'm here." Wait three weeks, nothing
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Wait six weeks, "I'm here."
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Wait three weeks, "I'm stabilized."
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What was going on?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Now enter second category in the standard two box development model.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: search for ETI
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: STANDBY/HALT
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: turns off CPU clock
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: save power (battery)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: provided two ways
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: through System Controller Co-processor
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use MCR instruction, to access co-processor 15.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: can only be executed in privileged modes
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: through EP9302
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: write location `0x80930008` (HALT) or `0x8093000c` (STANDBY)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: bit must be set in `0x80930080`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IRQ path is asynchronous, so it works when the clock is off
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but interrupts must be enabled
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: therefore you want to be in user mode
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See [pdf](../../pdf/halt.pdf) for some details.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serial I/O
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: See [pdf](../../s10/pdf/sio.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: FIFO
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do FIFOs exist in UARTS?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Big Blunder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To use the FIFO effectively you must be able to turn off the transmitter & receiver
+    independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But look at UARTE in UARTxCtrl
+  prefs: []
+  type: TYPE_NORMAL
+- en: UART Enable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If this bit is set to 1, the UART is enabled.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data transmission and reception occurs for UART signals.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Little Blunder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`It is assumed that various configuration registers for the UART are not written
+    more than once in quick succession, in order to insure proper synchronization
+    of configuration information across the implementation. Such registers include
+    UART1Ctrl and UART1LinCtrlHigh. ... In between the two writes, at least two UARTCLK
+    periods must occur. Under worst case conditions, at least 55 HCLK periods must
+    separate the two writes. The simplest way to due [sic] this is separate the two
+    writes by 55 NOPs.'''
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does this occur?
+  prefs: []
+  type: TYPE_NORMAL
+- en: CPU clocked by CPU clock
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: System buses clocked by several different clocks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: UART clocked by its own clock
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The clocks were not suitably synchronized
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why doesn't anybody care?
+  prefs: []
+  type: TYPE_NORMAL
+- en: UARTs are used at the beginning of the development process
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once other I/O (ethernet, USB, etc.) is working, UARTs are no longer used, except
+    by the boot loader
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interrupts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Five interrupts in the device
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: These interrupts are separately enabled and disabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transmit
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: FIFO enabled
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Asserted when transmit FIFO is less than half full.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when transmit FIFO is more than half full.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FIFO disabled
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Asserted when holding register is empty
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared on write to the holding register
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not conditioned by enable.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receive
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: FIFO enabled
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Asserted when receive FIFO is half full
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when receive FIFO is read to less than half full.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FIFO disabled
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Asserted when receive buffer is full
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when receive buffer is read
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Modem status
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Asserted when hardware flow control bits change
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when the modem status register is written
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receive timeout
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Asserted when receive FIFO is not empty and 32 bit periods pass with no new
+    data
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when all data has been read from FIFO
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Combined
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: OR of the four above interrupts
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Asserted when at least one of the above interrupts is asserted
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cleared when all the above interrupts are not asserted.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Three inputs to the PIC
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Transmit
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Receive
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Combined
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Easy way to use interrupts
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Enable only combined; read UART registers to decide what to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Think of the receive and transmit parts of the UART as separate state machines
+  prefs: []
+  type: TYPE_NORMAL
+- en: Base the state machine on bits in the status registers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Make a separate state machine for flow control
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Return to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s lecture notes for CS452 in s12](index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s Spring 2012 CS452 page](../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s CS452 page](../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s teaching page](../../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bill Cowan''s home page](../../../../index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

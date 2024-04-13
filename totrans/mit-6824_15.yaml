@@ -1,0 +1,1633 @@
+- en: Spanner
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 6.824 2015 Lecture 15 Spanner
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Note:** These lecture notes were slightly modified from the ones posted on
+    the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    from Spring 2015.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Spanner paper, OSDI 2012](http://research.google.com/archive/spanner.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Shattered old assumption: cannot assume that clocks are tightly synchronized'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'tightly synchronized clocks are now feasible in a global scale distributed
+    system: GPS and atomic clocks as independent sources'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Data model:* immutable versioned data'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: built and deployed system in multiple data centers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos helps you determine order of events. Why do we still need time?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: used synchronized time to allow local reads without locks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: transactions on top of replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: two-phase commit across groups of replicas
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: concurrency control
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: strict two phase locking with timestamps
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Paxos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: long-lived leader (timed leases)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pipelined (multiple proposals in flight)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: out-of-order commit, in-order apply
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner and 'research'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: team is chock-full of PhDs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we write research papers when we feel the urge and we have something to say
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cutting edge development, unbelievable scale, but we are not researchers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Historical context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Bigtable paper, OSDI 2006](http://research.google.com/archive/bigtable.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: started development at end of 2003 (6 PhDs)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: first customer launched on Bigtable mid 2005
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: distributed key-value store
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: single-row transactions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: later added lazy replication
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: value proposition
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: scale to large numbers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: automatic resharding
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bigtable was one of the progenitors of "NoSQL" or more precisely "of how do
+    you store a lot of data without building a database"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'basic tenets at the time (design assumptions for Bigtable):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: who needs a database? key-value store suffices
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: who needs SQL? unnecessary for most applications
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: who needs transactions? two-phase commit is too expensive
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why Spanner?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: found that Bigtable is too hard to use
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: users like the power that SQL database give them
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: engineers shouldn't have to code around
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the lack of transactions
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the bugs that manifest due to weak semantics provided by lazy replication
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: programmer productivity matters
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Megastore, started ca. 2006, built on top of Bigtable
+  prefs: []
+  type: TYPE_NORMAL
+- en: optimistic concurrency control
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paxos-based replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no long-lived leader (paxos "election" on every write)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: every paxos message was written to bigtable
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: broader class of transactions than bigtable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SQL-like schema and query languages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: had consistent replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dremel, data analysis at Google, started ca. 2008
+  prefs: []
+  type: TYPE_NORMAL
+- en: column-oriented storage and query engine
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://research.google.com/pubs/pub36632.html](http://research.google.com/pubs/pub36632.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: popular because it allowed SQL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Percolator, general purpose transactions](http://research.google.com/pubs/pub36726.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'snapshot isolation: a normal transaction has one commit point (logically when
+    you commit, everything happened then)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'TODO: lookup what this means, because I couldn''t write down his explanation'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: built on top of Bigtable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: users demanded transactions, but we weren't ready to build that into bigtable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: we knew we needed
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a database
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SQL
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: consistent replication across data centers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: general purpose transactions
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the rest was "merely engineering"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TrueTime came along... (story about how they found out about a guy in NY who
+    was working on distributed clocks and they realized it could be useful for their
+    concurrency control)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Globally synchronized clocks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: spanner behaves like a single-machine database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'consistent replication: replicas all report the same state'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'external consistency: replicas all report the same order of events'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: nice semantics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Were we wrong with bigtable
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Yes, and no:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'yes for the long-term: didn''t know in 2003 what they knew in 2009, didn''t
+    have the people or the technology'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: no, because lots of people use bigtable at Google
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Imagine you are running a startup. What long-term issues can be postponed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Startup dilemma:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: too much time spent on scalable storage => wasted effort => not done in time
+    => fail
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: too little time spent on scalable storage => when they get popular can't scale
+    => fail
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What do you have the skill/ability/will/vision to do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'we could not have built Spanner 10 years ago: or even 5 years ago'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: someone told them they should build transactions in, but they didn't do it because
+    they couldn't at the time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interesting questions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Why has the Bigtable paper had arguably a bigger impact on both the research
+    communities and technology communities?
+  prefs: []
+  type: TYPE_NORMAL
+- en: research vs. practice
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why do system-researchers insist on building scalable key-value stores (and
+    not databases)?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lessons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lesson 0
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Timing is everything. Except luck trumps timing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can''t plan timing when the world is changing: design the best you can
+    for the problems you have in front of you'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TrueTime happened due to fortuitous confluence of events and people (i.e. luck).
+    Same with Bigtable. Spanner''s initial design (before 2008) was nowhere near what
+    Google has now: they had anti-luck until the project was restarted in 2008.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lesson 1
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Build what you need, and don't overdesign. Don't underdesign either, because
+    you'll pay for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lesson 2
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Sometimes ignorance really is bliss. Or maybe luck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have blinders on, you can't overreach. If we had known we needed a distributed
+    replicated database with external consistency in 2004, we would have failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lesson 3
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Your userbase matters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: bigtable was started when Google `< 2000` employees
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'limited # of products'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: not that many engineers
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: spanner was started when Google was `10K` employees
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: more products
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: many more engineers, many more junior engineers, many more acquired companies
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: productivity of your employees matters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrap up
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You can't buy luck. You can't plan for luck. But you can't ignore luck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can increase your chances to be lucky:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: have strong technical skills
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: work on your design sense (find opportunities to learn!)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: build a strong network of colleagues and friends
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: learn how to work on a team
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: learn what you are good at, and what you are *not* good at
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: be brutally honest with yourself
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: be willing to ask for help
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: admit when you are wrong
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: people don't like working with people that constantly tell them they are wrong
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What Spanner lacks?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Maybe disconnected access: Can we build apps that use DBs and can operate offline?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Disconnected operation in Coda file system](https://www.cs.berkeley.edu/~brewer/cs262b/Coda-TOCS.pdf)
+    work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.824 notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Spanner: Google''s Globally-Distributed Database](papers/spanner.pdf), Corbett
+    et al, OSDI 2012'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why this paper?
+  prefs: []
+  type: TYPE_NORMAL
+- en: modern, high performance, driven by real-world needs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sophisticated use of paxos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tackles consistency + performance (will be a big theme)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lab 4 a (hugely) simplified version of Spanner
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the big ideas?
+  prefs: []
+  type: TYPE_NORMAL
+- en: shard management w/ paxos replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: high performance despite synchronous WAN replication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fast reads by **asking only the nearest replica**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: consistency despite sharding (this is the real focus)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**clever use of time** for consistency'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: distributed transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is a dense paper! I've tried to boil down some of the ideas to simpler
+    form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sharding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Idea: sharding'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we've seen this before in FDS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the real problem is managing configuration changes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner has a more convincing design for this than FDS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Simplified sharding outline (lab 4):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica groups, paxos-replicated
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paxos log in each replica group
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: master, paxos-replicated
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: assigns shards to groups
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: numbered configurations
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if master moves a shard, groups eventually see new config
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`"start handoff Num=7"` op in both groups'' paxos logs'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: though perhaps not at the same time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`dst` can''t finish handoff until it has copies of shard data at majority'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and can't wait long for possibly-dead minority
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: minority must catch up, so perhaps put shard data in paxos log (!)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`"end handoff Num=7"` op in both groups'' logs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if a Put is concurrent w/ handoff?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client sees new config, sends Put to new group before handoff starts?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client has stale view and sends it to old group after handoff?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: arrives at either during handoff?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What if a failure during handoff?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: e.g. old group thinks shard is handed off
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but new group fails before it thinks so
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Can *two* groups think they are serving a shard?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Could old group still serve shard if can''t hear master?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Idea:** wide-area synchronous replication'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Goal:* survive single-site disasters'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Goal:* replica near customers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Goal:* don''t lose any updates'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Considered impractical until a few years ago
+  prefs: []
+  type: TYPE_NORMAL
+- en: paxos too expensive, so maybe primary/backup?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if primary waits for ACK from backup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 50ms network will limit throughput and cause palpable delay
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: esp if app has to do multiple reads at 50ms each
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if primary does not wait, it will reply to client before durable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: danger of split brain; can't make network reliable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What's changed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: other site may be only 5 ms away -- San Francisco / Los Angeles
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: faster/cheaper WAN
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: apps written to tolerate delays
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: may make many slow read requests
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but issue them in parallel
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe time out quickly and try elsewhere, or redundant gets
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'huge # of concurrent clients lets you get hi thruput despite high delay'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: run their requests in parallel
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: people appreciate paxos more and have streamlined variants
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fewer msgs
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'page 9 of paxos paper: 1 round per op w/ leader + bulk preprepare'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: paper's scheme a little more involved b/c they must ensure there's at most one
+    leader
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: read at any replica
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Actual performance?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 3
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pretend just measuring paxos for writes, read at any replica for reads latency
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why doesn't write latency go up w/ more replicas?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why does std dev of latency go down w/ more replicas?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: r/o a *lot* faster since not a paxos agreement + use closest replica throughput
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'why does read throughput go up w/ # replicas?'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why doesn't write throughput go up?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: does write thruput seem to be going down?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what can we conclude from Table 3?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: is the system fast? slow?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how fast do your paxoses run?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mine takes 10 ms per agreement
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: with purely local communication and no disk
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner paxos might wait for disk write
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Figure 5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`npaxos=5`, all leaders in same zone'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why does killing a non-leader in each group have no effect? for killing all
+    the leaders ("leader-hard")
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why flat for a few seconds?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what causes it to start going up?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why does it take 5 to 10 seconds to recover?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: why is slope *higher* until it rejoins?
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner reads from any paxos replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: read does *not* involve a paxos agreement
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: just reads the data directly from replica's k/v DB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: maybe 100x faster -- same room rather than cross-country
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Could we *write* to just one replica?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Is reading from any replica correct?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example of problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: photo sharing site
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i have photos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i have an ACL (access control list) saying who can see my photos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i take my mom out of my ACL, then upload new photo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: really it's web front ends doing these client reads/writes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Order of events:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'W1: I write ACL on group G1 (bare majority), then'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'W2: I add image on G2 (bare majority), then'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: mom reads image -- may get old data from lagging G2 replica
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: mom reads ACL -- may get new data from G1
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This system is not acting like a single server!
+  prefs: []
+  type: TYPE_NORMAL
+- en: there was not really any point at which the image was
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: present but the ACL hadn't been updated
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This problem is caused by a combination of
+  prefs: []
+  type: TYPE_NORMAL
+- en: partitioning -- replica groups operate independently
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cutting corners for performance -- read from any replica
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How can we fix this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make reads see latest data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: e.g. full paxos for reads expensive!
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Make reads see *consistent* data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: data as it existed at *some* previous point in time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'i.e. before #1, between #1 and #2, or after #2'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this turns out to be much cheaper
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: spanner does this
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here's a super-simplification of spanner's consistency story for r/o clients
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"snapshot" or "lock-free" reads'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: assume for now that all the clocks agree
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: server (paxos leader) tags each write with the time at which it occurred
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: k/v DB stores *multiple* values for each key,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: each with a different time
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reading client picks a time `t`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for each read
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ask relevant replica to do the read at time `t`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: how does a replica read a key at time `t`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: return the stored value with highest time `<= t`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but wait, the replica may be behind
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: that is, there may be a write at time `< t`, but replica hasn't seen it
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so replica must somehow be sure it has seen all writes `<= t`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'idea: has it seen *any* operation from time `> t`?'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if yes, and paxos group always agrees on ops in time order, it's enough to check/wait
+    for an op with time `> t`
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: that is what spanner does on reads (4.1.3)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: what time should a reading client pick?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: using current time may force lagging replicas to wait
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so perhaps a little in the past
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: client may miss latest updates
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but at least it will see consistent snapshot
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in our example, won't see new image w/o also seeing ACL update
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does that fix our ACL/image example?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'W1: I write ACL, G1 assigns it time=10, then'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'W2: I add image, G2 assigns it time=15 (> 10 since clocks agree)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: mom picks a time, for example t=14
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: mom reads ACL t=14 from lagging G1 replica
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: if it hasn't seen paxos agreements up through t=14, it knows to wait so it will
+    return G1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mom reads image from G2 at t=14
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: image may have been written on that replica
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but it will know to *not* return it since image's time is 15
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: other choices of `t` work too.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Is it reasonable to assume that different computers'' clocks agree?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why might they not agree?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** What may go wrong if servers'' clocks don''t agree?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A performance problem: reading client may pick time in the future, forcing
+    reading replicas to wait to "catch up"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A correctness problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: again, the ACL/image example
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: G1 and G2 disagree about what time it is
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Sequence of events:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'W1: I write ACL on G1 -- stamped with time=15'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'W2: I add image on G2 -- stamped with time=10'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Now a client read at t=14 will see image but not ACL update
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Why doesn''t spanner just ensure that the clocks are all correct?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: after all, it has all those master GPS / atomic clocks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TrueTime (section 3)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: there is an actual "absolute" time `t_abs`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but server clocks are typically off by some unknown amount
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TrueTime can bound the error
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'so `now()` yields an interval: [earliest,latest]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: earliest and latest are ordinary scalar times
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: perhaps microseconds since Jan 1 1970
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`t_abs` is highly likely to be between earliest and latest'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How does TrueTime choose the interval?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q:** Why are GPS time receivers able to avoid this problem?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do they actually avoid it?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What about the "atomic clocks"?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner assigns each write a scalar time
+  prefs: []
+  type: TYPE_NORMAL
+- en: might not be the actual absolute time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: but is chosen to ensure consistency
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The danger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: W1 at G1, G1's interval is [20,30]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: is any time in that interval OK?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then W2 at G2, G2's interval is [11,21]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: is any time in that interval OK?
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if they are not careful, might get s1=25 s2=15
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So what we want is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if W2 starts after W1 finishes, then `s2 > s1`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: simplified *"external consistency invariant"* from 4.1.2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: causes snapshot reads to see data consistent w/ true order of W1, W2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does spanner assign times to writes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: (again, this is much simplified, see 4.1.2)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a write request arrives at paxos leader
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`s` will be the write''s time-stamp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: leader sets `s` to `TrueTime now().latest`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is "Start" in 4.1.2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then leader *delays* until `s < now().earliest`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: i.e. until `s` is guaranteed to be in the past (compared to absolute time)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: this is "commit wait" in 4.1.2
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then leader runs paxos to cause the write to happen
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then leader replies to client
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does this work for our example?
+  prefs: []
+  type: TYPE_NORMAL
+- en: W1 at G1, TrueTime says [20,30]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`s1 = 30`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: commit wait until TrueTime says [31,41]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reply to client
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: W2 at G2, TrueTime *must* now say `>= [21,31]`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (otherwise TrueTime is broken)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: s2 = 31
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: commit wait until TrueTime says [32,43]
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: reply to client
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'it does work for this example:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the client observed that W1 finished before S2 started,
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and indeed `s2 > s1`
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: even though G2's TrueTime clock was slow by the most it could be
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so if my mom sees S2, she is guaranteed to also see W1
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why the "Start" rule?
+  prefs: []
+  type: TYPE_NORMAL
+- en: i.e. why choose the time at the end of the TrueTime interval?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: previous writers waited only until their timestamps were barely `< t_abs`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: new writer must choose `s` greater than any completed write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`t_abs` might be as high as `now().latest`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: so s = now().latest
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why the "Commit Wait" rule?
+  prefs: []
+  type: TYPE_NORMAL
+- en: ensures that `s < t_abs`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise write might complete with an s in the future
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and would let Start rule give too low an `s` to a subsequent write
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** Why commit *wait*; why not immediately write value with chosen time?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: indirectly forces subsequent write to have high enough s
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the system has no other way to communicate minimum acceptable next s for writes
+    in different replica groups
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: waiting forces writes that some external agent is serializing to have monotonically
+    increasing timestamps
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: w/o wait, our example goes back to s1=30 s2=21
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: you could imagine explicit schemes to communicate last write's TS to the next
+    write
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q:** How long is the commit wait?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This answers today''s Question: a large TrueTime uncertainty requires a long
+    commit wait so Spanner authors are interested in accurate low-uncertainty time'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's step back
+  prefs: []
+  type: TYPE_NORMAL
+- en: why did we get into all this timestamp stuff?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: our replicas were 100s or 1000s of miles apart (for locality/fault tol)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we wanted fast reads from a local replica (no full paxos)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: our data was partitioned over many replica groups w/ separate clocks
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'we wanted consistency for reads:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if W1 then W2, reads don't see W2 but not W1
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it's complex but it makes sense as a
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: high-performance evolution of Lab 3 / Lab 4
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why is this timestamp technique interesting?
+  prefs: []
+  type: TYPE_NORMAL
+- en: we want to enforce order -- things that happened in some order in real time
+    are ordered the same way by the distributed system -- "external consistency"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the naive approach requires a central agent, or lots of communication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spanner does the synchronization implicitly via time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: time can be a form of communication
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: e.g. we agree in advance to meet for dinner at 6:00pm
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There's a lot of additional complexity in the paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions, two phase commit, two phase locking,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: schema change, query language, &c
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: some of this we'll see more of later
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in particular, the problem of ordering events in a distributed system will come
+    up a lot, soon
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

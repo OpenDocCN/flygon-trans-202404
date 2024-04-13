@@ -1,0 +1,862 @@
+- en: 20State, Change, and More Equality
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '|     [20.1 A Canonical Mutable Structure](#%28part._mutable-structures%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [20.2 What it Means to be Identical](#%28part._sem-identical%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [20.3 Recursion and Cycles from Mutation](#%28part._rec-from-mut%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.3.1 Partial Definitions](#%28part._.Partial_.Definitions%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.3.2 Recursive Functions](#%28part._rec-for-recursive%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.3.3 Premature Evaluation](#%28part._premature-eval%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.3.4 Cyclic Lists Versus Streams](#%28part._.Cyclic_.Lists_.Versus_.Streams%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [20.4 From Identifiers to Variables](#%28part._mutable-variables%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [20.5 Interaction of Mutation with Closures: Counters](#%28part._state-closures-counter%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.5.1 Implementation Using Boxes](#%28part._.Implementation_.Using_.Boxes%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.5.2 Implementation Using Variables](#%28part._.Implementation_.Using_.Variables%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     [20.6 A Family of Equality Predicates](#%28part._equality-operations%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.6.1 A Hierarchy of Equality](#%28part._equality-hierarchy%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.6.2 Space and Time Complexity](#%28part._.Space_and_.Time_.Complexity%29)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|       [20.6.3 Comparing Functions](#%28part._.Comparing_.Functions%29) |'
+  prefs: []
+  type: TYPE_TB
+- en: 20.1A Canonical Mutable Structure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we have motivated ([Checking Component Connectedness](graphs.html#%28part._union-find-functional%29)),
+    sometimes it’s nice to be able to change the value of a datum rather than merely
+    construct a new one with an updated value. The main advantage to changing it is
+    that every value that refers to it can now see this change. The main disadvantage
+    to changing it is that every value that refers to it can now see this change.
+    Using this power responsibly is therefore an important programming challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To put this idea in the simplest light, let us consider the simplest kind of
+    mutable datum: one that has only one field. We call this a box, and treat it as
+    a fresh container type. Boxes will support just three operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: box consumes a value and creates a mutable box containing that value.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: unbox consumes a box and returns the value contained in the box.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: set-box consumes a box, a new value, and changes the box to contain the value.
+    All subsequent unboxes of that box will now return the new value.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In a typed language, we would require that the new value put in the box by
+    set-box be type-consistent with what was there before. (Even in a language that
+    isn’t statically typed, we would presumably expect the same to keep the programming
+    process sane.) You can thus think of a box as equivalent to a Java container class
+    with parameterized type, which has a single member field with a getter and setter:
+    box is the constructor, unbox is the getter, and set-box is the setter. (Because
+    there is only one field, its name is irrelevant.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| class Box<T> { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     private T the_value; |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     Box(T v) { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         this.the_value = v; |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     } |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     T get() { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         return this.the_value; |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     } |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     void set(T v) { |'
+  prefs: []
+  type: TYPE_TB
+- en: '|         this.the_value = v; |'
+  prefs: []
+  type: TYPE_TB
+- en: '|     } |'
+  prefs: []
+  type: TYPE_TB
+- en: '| } |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Correspondingly, here is a definition of a box in Pyret:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that in Pyret, because values are immutable by default, we have to explicitly
+    declare the v field to be mutable using ref; mutable fields must be accessed using
+    ! rather than ., the dot operator.The reason for using a different syntax is to
+    warn the programmer that the value obtained from this field may change over time,
+    so they should not make assumptions about its longevity. Because Pyret is single-threaded,
+    however, they can assume the value will stay unchanged until either the next mutation
+    in the same procedure, or until the next call to another procedure or return from
+    this procedure—<wbr>whichever comes soonest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why do we say “type-consistent” above, rather than “the same type”?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The values could be related by subtyping ([Subtyping](objects.html#%28part._subtyping%29)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What does the comment about longevity mean? How does this apply to reusing values
+    extracted from fields?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 20.2What it Means to be Identical
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have seen mutation, we’re in a position to understand the meaning
+    of Pyret’s identical operation ([Re-Examining Equality](Sharing_and_Equality.html#%28part._identical-eq%29)).
+    Consider a check of these two boxes and three references to them:<three-boxes>
+    ::=
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   b0 = box("a value") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   b1 = box("a value") |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   b2 = b1 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Observe that b1 and b2 are referring to the same box, while b0 is referring
+    to a different one. We can see this because the following tests pass:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In other words, b1 and b2 are aliases for each other: they are two different
+    names for one and the same value. In contrast, neither name is an alias for the
+    value referred to by b0.Since identical is transitive, it follows from the above
+    two checks that b0 is not identical to b2.Until now, this distinction had limited
+    relevance. However, mutation introduces a wrinkle: if we change one value, all
+    aliases to that value detect the change. We will perform this mutation in a slightly
+    elaborate way, which we’ll explain in a moment:<modify-b1> ::='
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   hold-b1-value = b1!v |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   b1!{v: "a different value"} |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Observe that if you just copy these definitions and tests one after the other
+    in your editor, tests that should succeed will fail. This is because Pyret moves
+    all test blocks to the end of the program, so the checks are not running in the
+    source location where they are written. Until now, this made not a whit of difference.
+    Now that we have mutation, it makes a world of difference. Therefore, you will
+    need to erase old tests as you add new code that modifies state. Because that
+    is the point of state: statements that were previously true no longer are. With
+    this, we now have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'after which we can restore the value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Continuing in this vein, symmetrically, we can also modify the value bound
+    to b2 and make sure the change is visible via b1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In contrast, if we modify the content of the box referred to by b0, the only
+    fact that held previously that no longer holds is this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Thus, whereas previously the two boxes were structurally the same but not identical,
+    now the are not even the former (while still not being the latter).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, why did we bother holding on to and restoring the value? It’s because at
+    the end of each of these sequences, the values have all been restored, but by
+    making the change, we have been able to observe which other names detect the change
+    and which ones do not—<wbr>in other words, which names are aliases and which are
+    not—<wbr>in still other words, we have implemented the essence of identical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In practice, identical does not behave this way: it would be too disruptive—<wbr>e.g.,
+    if this fake value was saved to persistent storage and then the system crashed—<wbr>and
+    it would anyway be observable if the system had multiple threads. It is also not
+    the most efficient implementation possible. Nevertheless, it does demonstrate
+    the basic idea behind identical: two values are identical precisely when, when
+    you make changes to one, you see the changes manifest on the “other” (i.e., there
+    is really only one value).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.3Recursion and Cycles from Mutation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Mutation can also help us make sense of recursion. Let us return to the example
+    we tried to write earlier ([From Acyclicity to Cycles](Sharing_and_Equality.html#%28part._acyc-to-cyc%29)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which, as we noted, does not pass muster because web-colors is not bound on
+    the right of the =. (Why not? Because otherwise, if we try to substitute web-colors
+    on the right, we would end up in an infinite regress.)Something about this should
+    make you a little suspicious: we have been able to write recursive functions all
+    the time, without difficulty. Why are they different? For two reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first reason is the fact that we’re defining a function. A function’s body
+    is not evaluated right away—<wbr>only when we apply it—<wbr>so the language can
+    wait for the body to finish being defined. (We’ll see what this might mean in
+    a moment.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The second reason isn’t actually a reason: function definitions actually are
+    special. But we are about to expose what’s so special about them—<wbr>it’s the
+    use of a box!—<wbr>so that any definition can avail of it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Returning to our example above, recall that we can’t make up our list using
+    links, because we want the list to never terminate. Therefore, let us first define
+    a new datatype to hold an cyclig list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Observe that we have carefully avoided writing type definitions for the fields;
+    we will instead try to figure them out as we go along. Also, however, this definition
+    as written cannot work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do Now!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do you see why not?
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Let’s decompose the intended infinite list into two pieces: lists that begin
+    with white and ones that begin with grey. What follows white? A grey list. What
+    follows grey? A white list. It is clear we can’t write down these two definitions
+    because one of them must precede the other, but each one depends on the other.
+    (This is the same problem as trying to write a single definition above.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.3.1Partial Definitions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'What we need to instead do is to partially define each list, and then complete
+    the definition using the other one. However, that is impossible using the above
+    definition, because we cannot change anything once it is constructed. Instead,
+    therefore, we need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that this datatype lacks a base case, which should remind you of definitions
+    we saw in [Streams From Functions](func-as-data.html#%28part._streams-from-funs%29).Using
+    this, we can define:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Each of these definitions is quite useless by itself, but they each represent
+    what we want, and they have a mutable field for the rest, currently holding a
+    dummy value. Therefore, it’s clear what we must do next: update the mutable field.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Because we have ordained that our colors must alternate beginning with white,
+    this rounds up our definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we ask Pyret to inspect the value of web-colors, we notice that it employs
+    an algorithm to prevent traversing infinite objects. We can define a helper function,
+    take, a variation of which we saw earlier ([Streams From Functions](func-as-data.html#%28part._streams-from-funs%29)),
+    to inspect a finite prefix of an infinite list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'such that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 20.3.2Recursive Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Based on this, we can now understand recursive functions. Consider a very simple
+    example, such as this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We might like to think this is equivalent to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: but if you enter this, Pyret will complain that sum is not bound. We must instead
+    write
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: What do you think rec does? It binds sum to a box initially containing a dummy
+    value; it then defines the function in an environment where the name is bound,
+    unboxing the use of the name; and finally, it replaces the box’s content with
+    the defined function, following the same pattern we saw earlier for web-colors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.3.3Premature Evaluation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Observe that the above description reveals that there is a time between the
+    creation of the name and the assignment of a value to it. Can this intermediate
+    state be observed? It sure can!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are generally three solutions to this problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure the value is sufficiently obscure so that it can never be used in
+    a meaningful context. This means values like 0 are especially bad, and indeed
+    most common datatypes should be shunned. Indeed, there is no value already in
+    use that can be used here that might not be confusing in some context.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The language might create a new type of value just for use here. For instance,
+    imagine this definition of CList:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'undef appears to be a “base case”, thus making CList very similar to List.
+    In truth, however, the undef is present only until the first mutation happens,
+    after which it will never again be present: the intent is that r only contain
+    a reference to other clinks.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The undef value can now be used by the language to check for premature uses
+    of a cyclic list. However, while this is technically feasible, it imposes a run-time
+    penalty. Therefore, this check is usually only performed by languages focused
+    on teaching; professional programmers are assumed to be able to manage the consequences
+    of such premature use by themselves.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Allow the recursion constructor to be used only in the case of binding functions,
+    and then make sure that the right-hand side of the binding is syntactically a
+    function. This solution precludes some reasonable programs, but is certainly safe.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 20.3.4Cyclic Lists Versus Streams
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The color list example above is, as we have noted, very reminiscent of stream
+    examples. What is the relationship between the two ways of defining infinite data?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Cyclic lists have on their side simplicity. The pattern of definition used
+    above can actually be encapsulated into a language construct using desugaring
+    ([Desugaring: Growing the Language Without Enlarging It](first-interp.html#%28part._first-desugar%29)),
+    so programmers do not need to wrestle with mutable fields (as above) or thunks
+    (as streams demand). This simplicity, however, comes at a price: cyclic lists
+    can only represent strictly repeating data, i.e., you cannot define nats or fibs
+    as cyclic lists. In contrast, the function abstraction in a stream makes it generative:
+    each invocation can create a truly novel datum (such as the next natural or Fibonacci
+    number). Therefore, it is straightforward to implement cyclic lists as streams,
+    but not vice versa.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.4From Identifiers to Variables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we have seen, mutable values can be aliased, which means references can inadvertently
+    have their values changed. Because these values can be passed around, it can be
+    difficult to track all the aliases that might exist (because it would be infeasible
+    for a value to retain “backward references”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, in Pyret as in most languages, there is another form of mutable,
+    called a variable. A variable is an identifier whose binding can be changed (as
+    opposed to re-bound in a new scope); in Pyret, the syntax for changing the value
+    of a variable is :=. Furthermore, variables must be declared explicitly by preceding
+    their declaration with var:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The var keyword forces you to understand that the = is not a true equality:
+    it’s equal for now, but may not be in the future.We’ve insisted on using the word
+    “identifier” before because we wanted to reserve “variable” for what we’re about
+    to study. In Java, when we say (assuming x is locally bound, e.g., as a method
+    parameter)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| x = 1; |'
+  prefs: []
+  type: TYPE_TB
+- en: '| x = 3; |'
+  prefs: []
+  type: TYPE_TB
+- en: we’re asking to change the value of x. After the first assignment, the value
+    of x is 1; after the second one, it’s 3. Thus, the value of x varies over the
+    course of the execution of the method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we also use the term “variable” in mathematics to refer to function parameters.
+    For instance, in f(y) = y+3 we say that y is a “variable”. That is called a variable
+    because it varies across invocations; however, within each invocation, it has
+    the same value in its scope. Our identifiers until now have corresponded to this
+    mathematical notion of a variable.If the identifier was bound to a box, then it
+    remained bound to the same box value. It’s the content of the box that changed,
+    not which box the identifier was bound to. In contrast, programming variables
+    can vary even within each invocation, like the Java x above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Henceforth, we will use variable when we mean an identifier whose value can
+    change within its scope, and identifier when this cannot happen. If in doubt,
+    we might play it safe and use “variable”; if the difference doesn’t really matter,
+    we might use either one. It is less important to get caught up in these specific
+    terms than to understand that they represent a distinction that matters ([Mutation:
+    Structures and Variables](implementing-mutation.html)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '20.5Interaction of Mutation with Closures: Counters'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Suppose we want to create a function that counts how many times it has been
+    invoked. Further, let us assume we can create new counters on need. Thus, mk-counter
+    creates a fresh counter each time, each of which maintains its own count history.
+    A sample use might look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that each invocation of mk-counter makes a fresh counter, so the counters
+    created by two separate invocations do not interfere with one another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now see how we can implement this using both mutable structures (specifically,
+    boxes) and variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.5.1Implementation Using Boxes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here is the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Why does this work? It’s because each invocation of mk-counter creates a box
+    only once, which it binds to ctr. The closure closes over this one box. All subsequent
+    mutations affect the same box. In contrast, swapping two lines makes a big difference:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, a new box is allocated on every invocation, not of mk-broken-counter
+    but of the function that it returns, so the answer each time is the same (despite
+    the mutation inside the procedure). Our implementation of boxes should be certain
+    to preserve this distinction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The examples above hint at an implementation necessity. Clearly, whatever the
+    environment closes over in the procedure returned by mk-counter must refer to
+    the same box each time. Yet something also needs to make sure that the value in
+    that box is different each time! Look at it more carefully: it must be lexically
+    the same, but dynamically different. This distinction will be at the heart of
+    a strategy for implementing state ([Mutation: Structures and Variables](implementing-mutation.html)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.5.2Implementation Using Variables
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The implementation using variables is virtually identical:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And sure enough, if we swap the same critical two lines, we get the wrong behavior:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 20.6A Family of Equality Predicates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Until now we have seen two notions of equality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The binary operator ==, which is also used as the equality comparison by in
+    when testing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: identical, also written as <=>.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'However, we haven’t discussed exactly what == means, and it turns out there
+    are two things it could mean, leaving us with three different notions of equality.
+    To see this, refresh your memory with our [three boxes](#%28elem._three-boxes%29).We
+    have already covered the meaning of identical. However, there is an intuitive
+    level where it is unsatisfying: when our notion of equality is, “When printed
+    (as output) or written (as input), would these two values look the same?”, where
+    box("a value") and box("a value") are the “same”. That is, it would be nice to
+    have an equality operator—<wbr>call it E1—<wbr>such that'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'because all three look the same when written out as values.However, as we just
+    saw ([What it Means to be Identical](#%28part._sem-identical%29)), these equivalences
+    can be ephemeral. When we modify b1 ([see above](#%28elem._modify-b1%29)), clearly
+    these no longer print identically:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| > b0 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| box("a value") |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > b1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| box("a different value") |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > b2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| box("a different value") |'
+  prefs: []
+  type: TYPE_TB
+- en: so we would expect
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There is in fact such an operator in Pyret: it is called equal-now, and written
+    as a binary operator as =~ (the ~ is meant to be suggestive of hand-waving, because
+    the value is equal now, but you shouldn’t assume it will be in the future). As
+    the name and visual suggest, this is a fragile operator: you should not write
+    programs that assume anything about the long-term equality of values that are
+    equal at this moment, in case the values are mutable. However, it can still be
+    useful to know whether, at this instant, two values will, in effect, “print the
+    same”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Confirm that equal-now does indeed have the properties ascribed to E1 above.
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'However, this still does not enable us to distinguish between == and identical:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For that, it helps to have a slightly richer structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that we are allocating three different lists, though two of them share
+    the same mutable box. Now we find something interesting. Unsurprisingly, the following
+    is true:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: while
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What might == represent that is interestingly different from both identical
+    and equal-now? When it returns true, it is that the two values will “print the
+    same” now and forever. How is this possible? It is because == recursively checks
+    that the two arguments are structural until it gets to a mutable field; at that
+    point, it checks that they are identical. If they are identical, then any change
+    made to one will be reflected in the other (because they are in fact the same
+    mutable field). That means their content, too, will always “print the same”. Therefore,
+    we can now reveal the name given to ==: it is equal-always.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.6.1A Hierarchy of Equality
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Observe that if two values v1 and v2 are equal-now, they are not necessarily
+    equal-always; if they are equal-always, they are not necessarily identical. We
+    have seen examples of both these cases above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, if two values are identical, then they are certainly going to be
+    equal-always. That is because their mutable fields reduce to identical, while
+    the immutable parts—<wbr>which will be traversed structurally—<wbr>are guaranteed
+    to yield equality, being in fact the same value. In turn, if they satisfy equal-always
+    they are guaranteed to be equal-now, because the only difference is that equal-now
+    structurally traverses the content of mutable fields, but if these are identical
+    (as they must be, to be equal-always), they are certain to be structurally equal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In most languages, it is common to have two equality operators, corresponding
+    to identical (known as reference equality) and equal-now (known as structural
+    equality). Pyret is rare in having a third operator, equal-always. For most programs,
+    this is in fact the most useful equality operator: it is not overly bothered with
+    details of aliasing, which can be difficult to predict; at the same time it makes
+    decisions that stand the test of time, thereby forming a useful basis for various
+    optimizations (which may not even be conscious of their temporal assumptions).
+    This is why is in testing uses equal-always by default, and forces users to explicitly
+    pick a different primitive if they want it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.6.2Space and Time Complexity
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: identical always takes constant time. Indeed, some programs use identical precisely
+    because they want constant-time equality, carefully structuring their program
+    so that values that should be considered equal are aliases to the same value.
+    Of course, maintaining this programming discipline is tricky.
+  prefs: []
+  type: TYPE_NORMAL
+- en: equal-always and equal-now both must traverse at least the immutable part of
+    data. Therefore, they take time proportional to the smaller datum (because if
+    the two data are of different size, they must not be equal anyway, so there is
+    no need to visit the extra data). The difference is that equal-always reduces
+    to identical at references, thereby performing less computation than equal-now
+    would.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For some programs, the cost of checking equality may be considerable. There
+    are two common strategies such a program can employ:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use a quick check followed by a slower check only if necessary. For instance,
+    suppose we want to speed up equal-always, and have reason to believe we will often
+    compare identical elements and/or that the values being compared are very large.
+    Then we might define:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'which has the following behavior:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This is exactly the same as the behavior of equal-always, but faster when it
+    can discharge the equality using identical without having to traverse the data.
+    (Observe that this is a safe optimization because identical implies equal-always.)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Use a different equality strategy entirely, if possible: see [Set Membership
+    by Hashing Redux](Algorithms_That_Exploit_State.html#%28part._hash-tables%29).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 20.6.3Comparing Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We haven’t actually provided the full truth about equality because we haven’t
+    discussed functions. Defining equality for functions—<wbr>especially extensional
+    equality, namely whether two functions have the same graph, i.e., for each input
+    produce the same output—<wbr>is complicated (a euphemism for impossible) due to
+    the Halting Problem [REF].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because of this, most languages have tended to use approximations for function
+    equality, most commonly reference equality. This is, however, a very weak approximation:
+    even if the exact same function text in the same environment is allocated as two
+    different closures, these would not be reference-equal. At least when this is
+    done as part of the definition of identical, it makes sense; if other operators
+    do this, however, they are actively lying, which is something the equality operators
+    do not usually do.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is one other approach we can take: simply disallow function comparison.
+    This is what Pyret does: all three equality operators above will result in an
+    error if you try to compare two functions. (You can compare against just one function,
+    however, and you will get the answer false.) This ensures that the language’s
+    comparison operators are never trusted falsely.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pyret did have the choice of allowing reference equality for functions inside
+    identical and erroring only in the other two cases. Had it done so, however, it
+    would have violated the chain of implication above ([A Hierarchy of Equality](#%28part._equality-hierarchy%29)).
+    The present design is arguably more elegant. Programmers who do want to use reference
+    equality on functions can simply embed the functions inside a mutable structure
+    like boxes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is one problem with erroring when comparing two functions: a completely
+    generic procedure that compares two arbitrary values has to be written defensively.
+    Because this is annoying, Pyret offers a three-valued version of each of the above
+    three operators (identical3, equal-always3 and equal-now3), all of which return
+    EqualityResult values that correspond to truth, falsity, and ignorance (returned
+    in the case when both arguments are functions). Programmers can use this in place
+    of the Boolean-valued comparison operators if they are uncertain about the types
+    of the parameters.'
+  prefs: []
+  type: TYPE_NORMAL

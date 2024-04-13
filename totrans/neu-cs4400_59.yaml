@@ -1,0 +1,108 @@
+- en: Types for BoxesTuesday, February 21st
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Obviously, `Any` is not too great — it is the most generic type, so it provides
+    the least information. For example, notice that
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'returns the right list, which is equal to `foo` itself — but if we try to grab
+    some part of the resulting list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we get a type error, because the result of the `unbox` is `Any`, so Typed Racket
+    knows nothing about it, and won’t allow you to treat it as a list. It is not too
+    surprising that the type constructor that can help in this case is `Rec` which
+    we have already seen — it allows a type that can refer to itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that either `foo` or the value in the box are both printed with a `Rec`
+    type — the value in the box can’t just have a `(U #f this)` type, since `this`
+    doesn’t mean anything in there, so the whole type needs to still be present.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is another issue to be aware of with `Boxof` types. For most type constructors
+    (like `Listof`), if `T1` is a subtype of `T2`, then we also know that`(Listof
+    T1)` is a subtype of `(Listof T2)`. This makes the following code typecheck:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since the `(Listof Integer)` is a subtype of the `(Listof Number)` input for
+    `foo`, the application typechecks. But this is *not* the same for the output type,
+    for example — if we change the `bar` type to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we get a type error since `Number` is not a subtype of `Integer`. So subtypes
+    are required to “go up” on the input side and “down” on the other. So, in a sense,
+    the fact that boxes are mutable means that their contents can be considered to
+    be on the other side of the arrow, which is why for such `T1` subtype of `T2`,
+    it is `(Boxof T2)` that is a subtype of `(Boxof T1)`, instead of the usual. For
+    example, this doesn’t work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: And you can see why this is the case — the marked line is fine given a `Number`
+    contents, so if the type checker allows passing in a box holding an integer, then
+    that expression would mutate the contents and make it an invalid value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, boxes are not only mutable, they hold a value that can be read too,
+    which means that they’re on *both* sides of the arrow, and this means that `(Boxof
+    T1)` is a subtype of `(Boxof T2)` if `T2` is a subtype of `T1` *and* `T1` is a
+    subtype of `T2` — in other words, this happens only when `T1` and `T2` are the
+    same type. (See below for an extended demonstration of all of this.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note also that this demonstration requires that extra `b` definition, if it’s
+    skipped:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: then this will typecheck again — typed racket will just consider the context
+    that requires a box holding a `Number`, and it is still fine to initialize such
+    a box with an `Integer` value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a side comment, this didn’t always work. Earlier in its existence, typed
+    racket would always choose a specific type for values, which would lead to confusing
+    errors with boxes. For example, the above would need to be written as
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: to prevent typed racket from inferring a specific type. This is no longer the
+    case, but there can still be some surprises. A similar annotation was needed in
+    the case of a list holding a self-referential box, to avoid the initial `#f` from
+    getting a specific-but-wrong type.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

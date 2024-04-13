@@ -1,0 +1,577 @@
+- en: 'Recitation 2: Testing and debugging'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Debugging is the last resort
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many programmers, especially in introductory classes, might think of programming
+    as a task largely involving debugging. So it's worthwhile to take a step back
+    and think about everything that comes *before* debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The first defense against bugs is to make them impossible.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Entire classes of bugs can be eradicated by choosing to program in languages
+    that guarantee *[memory safety](http://www.pl-enthusiast.net/2014/07/21/memory-safety/)*
+    (that no part of memory can be accessed except through a *pointer* (or reference)
+    that is valid for that region of memory) and *[type safety](http://www.pl-enthusiast.net/2014/08/05/type-safety/)*
+    (that no value can be used in a way inconsistent with its type). The OCaml type
+    system, for example, prevents programs from buffer overflows and meaningless operations
+    (like adding a boolean to a float), whereas the C type system does not.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**The second defense against bugs is to use tools that find them.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There are automated source-code analysis tools, like [FindBugs](http://findbugs.sourceforge.net/),
+    which can find many common kinds of bugs in Java programs, and [SLAM](http://research.microsoft.com/en-us/projects/slam/),
+    which is used to find bugs in device drivers. The subfield of CS known as *formal
+    methods* studies how to use mathematics to specify and verify programs, that is,
+    how to prove that programs have no bugs. We'll study verification later in this
+    course. *Social methods* such as code reviews and pair-programming are also useful
+    at finding bugs. Studies at IBM in the 1970s-1990s suggested that code reviews
+    were the most effective tools at finding bugs; see the Appendix below.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**The third defense against bugs is to make them immediately visible.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The earlier a bug appears, the easier it is to diagnose and fix. If computation
+    instead proceeds past the point of the bug, then that further computation might
+    obscure where the failure really occurred. *Assertions* in the source code make
+    programs "fail fast" and "fail loudly", so that bugs appear immediately, and the
+    programmer knows exactly where in the source code to look.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**The fourth defense against bugs is extensive testing.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How can you know whether a piece of code has a particular bug? Write tests that
+    would expose the bug, then confirm that your code doesn't fail those tests. *Unit
+    test* for a relatively small piece of code, such as an individual function or
+    module, are especially important to write at the same time as you develop that
+    code. Running of those tests should be automated, so that if you ever break the
+    code, you find out as soon as possible. (That's really Defense 3 again.)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**The fifth and final defense against bugs is debugging as you know it.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Debugging is really the last resort of a programmer.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In the rest of this recitation, we'll look at defenses 3 through 5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defense 3: Assertions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `Assertions` module contains a function `assert_true : bool -> unit`, which
+    returns unit if passed `true` as an argument, and raises an exception if passed
+    `false`. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: (The `open Assertions` line makes it possible to refer to any function `f` declared
+    inside `Assertions` simply as `f`, rather than `Assertions.f`.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we save this code in a file `test.ml` then run `cs3110 compile test.ml;
+    cs3110 run test.ml` we see the exception being raised:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We'll see later in the course how to declare, raise, and handle exceptions ourselves.
+    For now, it's enough to know that `Assertions` uses them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Assertions` module contains many other functions we can use to write assertions.
+    You can read the [documentation](https://github.com/cs3110/tools/blob/master/cs3110-cli/assertions/assertions.mli)
+    at the GitHub repo for the module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defense 4: Unit tests in OCaml'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This course has developed its own unit-testing framework, which is part of the
+    `cs3110` tool distributed on the VM. Our framework is quite similar to (and in
+    fact is built on) an open-source library `Pa_ounit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose you''re writing a function to determine whether a number is prime:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(Obviously, you''re not yet done writing the function...) And suppose you''ve
+    saved this function in a file named `prime.ml`. To write unit tests, create a
+    new file `prime_test.ml`. (The choice of filename is a convention, not a strict
+    requirement.) Inside `prime_test.ml`, you can write unit tests such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first two lines open the modules for the code being tested and for the assertions
+    module. Note that the first letter of the module name is capitalized, regardless
+    of whether or not it was capitalized in the actual filename. The strings associated
+    with each unit test are simply descriptive names. The last line (the call to `summarize`)
+    should remain the final line of the file if you add any new tests. This function
+    call exits with an error and a summary of the tests that failed. If all tests
+    pass, it will exit normally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run your unit tests, do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As output, you will see:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Example: Unit tests'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following file contains some buggy code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is a unit test file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do the above test cases pass? If not, which tests fail? If so, does this guarantee
+    correctness of the above functions? Can you think of some more cases that we did
+    not test? Add some cases of your own to the test file, and fix the implementation
+    of the functions so that your tests pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test-driven development
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Testing doesn't have to happen strictly after you write code. In *test-driven
+    development*, testing comes first!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose we are working with a datatype for days:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we want to write a function `next_weekday : day -> day` that returns the
+    next weekday after a given day. We start by writing the most basic, broken version
+    of that function we can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we begin writing tests. For example, we know that the next weekday after
+    Monday is Tuesday. So we add a test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compile and run the test; it fails. That''s good! Now we know that we have
+    some functionality to add. Let''s go back and make this test pass:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compile and run the test; it passes. Time to add some more tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compile and run the tests; many fail. That''s good! We add new functionality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compile and run the tests; they pass. Perhaps overly emboldened by our success
+    in adding functionality, we notice the pattern that has evolved, and we decide
+    to finish writing the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '(Of course we got it wrong.) We add some new tests to finish testing all the
+    possible cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We compile and run the tests; tests 5 and 6 fail! Surprised, we look at test
+    5, notice that the code for `next_weekday(Friday)` must be wrong, and fix the
+    bug. After fixing the same bug for test 6, we end up with the following complete
+    piece of code and unit tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Test-driven development is related to *extreme programming* (XP), is a collection
+    of ideas about how to structure team programming projects. It emphasizes *incremental*
+    development of code: there is always something that can be tested. Testing is
+    not something that happens after implementation; instead, *continuous testing*
+    is used to catch errors early. Thus, it is important to develop unit tests immediately
+    when the code is written. Automating test suites is crucial so that continuous
+    testing requires essentially no effort.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extreme programming emphasizes bottom-up development of code modules for which
+    units tests can be developed. Extreme programming also emphasizes social process
+    on programming teams. Programmers work closely, communicating more verbally than
+    with formal design documents. Specifications are short and programmers rely on
+    common knowledge among the development team. Extreme programming is a good way
+    to quickly development software, but it has been criticized for not producing
+    high-level design documents. In the long run a project developed this way might
+    be hard to manage, because the code is wedded to the engineers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Guidelines for writing unit tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When writing tests, keep in mind the acronym FIRST:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fast: tests should run and complete quickly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Independent: no tests should depend on each other.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Repeatable: tests should work in any environment—i.e. they should not depend
+    on any external factor such as the current time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Self-verifying: tests should be able to report success/failure without manual
+    inspection on the part of a human.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Timely: tests should be written before or along with code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In addition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep each unit test small. A test should be designed to diagnose whether one
+    particular piece of functionality does or does not work.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Name tests in a way that suggests what they test. If nothing else, the pattern
+    of `*funcname*_test*i*` works fairly well.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Test continuously. Every time you add new functionality, rerun all the unit
+    tests to ensure you haven't broken anything.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Black-box testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the `next_weekday` example, it''s relatively obvious which unit tests to
+    write. But for more complicated functions, it can be difficult to decide what
+    tests and how many to write. A good strategy for developing unit tests is to write
+    them by looking only at the *specification* for the function being tested. The
+    function''s specification actually gives us a lot of information about what to
+    test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any *preconditions* might give us ideas about values to test.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *postcondition* might have structure that suggests values to test.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing based solely on the function's specification, as opposed to its implementation,
+    is called *black-box testing*. The idea is that the function is a box that we
+    cannot see into.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example of black-box testing, consider writing a function to compute
+    the amount of income tax owed in the US''s progressive income tax brackets. The
+    postcondition for this function might stipulate that the tax rate is determined
+    by the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Income | Tax rate |'
+  prefs: []
+  type: TYPE_TB
+- en: '| $0–$8,925 | 10% |'
+  prefs: []
+  type: TYPE_TB
+- en: '| $8,926–$35,250 | 15% |'
+  prefs: []
+  type: TYPE_TB
+- en: '| $35,251–$87,850 | 25% |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ... | ... |'
+  prefs: []
+  type: TYPE_TB
+- en: 'There is structure in this postcondition that suggests values to test. Rather
+    than test every dollar amount from $0 to $87,850, we could test the *partitions*
+    suggested by the postcondition: one test for the partition $0–$8,925, another
+    test for $8,926–$35,250, etc. This testing strategy is called *equivalence-class
+    partitioning*. The values that fall at the extreme end of each partition are often
+    particularly fruitful test cases. For example, we might write a test for $0, for
+    $8,925, for $8,926, for $35,250, etc. This testing strategy is called *boundary-value
+    analysis*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: White-box testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The specification for a function does not necessarily give us all the information
+    we need to write a good test suite. By looking at the function's implementation,
+    we might be inspired to write additional tests. Testing based on the function's
+    implementation is called *white-box testing* (or perhaps better, *glass-box testing*).
+    The idea is that the function is a box that we can see into.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example of white-box testing, consider writing a function to determine
+    the real roots (if any) of a quadratic equation *ax² + bx + c = 0*. The specification
+    for the function might read as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In which case, we might be inspired by the precondition and equivalence-class
+    partitioning to generate 27 test cases for when each of the coefficients is negative,
+    zero, or positive. (And that''s not a bad idea!) But if we go on to read the function''s
+    implementation, we get new inspiration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the body, we see that the value of `d` is relevant as to whether the `then`
+    branch or the `else` branch of an `if` expression is evaluated. So it makes sense
+    to write test cases that explore both branches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Code coverage* is a metric for how much of the code is being tested by a test
+    suite. There are various ways to measure coverage: by the number of functions
+    being tested, by whether every branch of an `if` or `match` expression is tested,
+    by whether enough tests exist to cause every Boolean subexpression to take on
+    both `true` and `false`, etc. By writing both tests above, we are increasing code
+    coverage as measured by branches.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defense 5: Debugging'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So you've discovered a bug. What next?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Distill the bug into a small test case.** Debugging is hard work, but the
+    smaller the test case, the more likely you are to focus your attention of the
+    piece of code where the bug lurks. Time spent on this distillation can therefore
+    be time saved, because you won''t have to re-read lots of code. Don''t continue
+    debugging until you have a small test case!'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Employ the scientific method.** Formulate a hypothesis as to why the bug
+    is occurring. You might even write down that hypothesis in a notebook, as if you
+    were in a Chemistry lab, to clarify it in your own mind and keep track of what
+    hypotheses you''ve already considered. Next, design an experiment to affirm or
+    deny that hypothesis. Run your experiment and record the result. Based on what
+    you''ve learned, reformulate your hypothesis. Continue until you have rationally,
+    scientifically determined the cause of the bug.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Fix the bug.** The fix might be a simple correction of a typo. Or it might
+    reveal a design flaw that causes you to make major changes. Consider whether you
+    might need to apply the fix to other locations in your code based—for example,
+    was it a copy and paste error? If so, do you need to refactor your code?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Permanently add the small test case to your test suite.** You wouldn''t want
+    the bug to creep back into your code base. So keep track of that small test case
+    by keeping it as part of your unit tests. That way, any time you make future changes,
+    you will automatically be guarding against that same bug. Repeatedly running tests
+    distilled from previous bugs is called *regression testing*.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The mechanics of OCaml debugging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here are a couple tips on how to debug—if you are forced into it—in OCaml.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Print statements.** Insert a *print statement* to ascertain the value of
+    a variable. Suppose you want to know what the value of `x` is in the following
+    function:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Just add the line below to print that value:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The [Pervasives](http://caml.inria.fr/pub/docs/manual-ocaml/libref/Pervasives.html)
+    module contains many other printing statements you can use.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Function traces.** Suppose you want to see the *trace* of recursive calls
+    and returns for a function. Use the `#trace` directive:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'If you evaluate `fib 2`, you will now see the following output:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: To stop tracing, use the `#untrace` directive.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Acknowledgment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Some of the material in these notes is based on [slides on debugging](https://stellar.mit.edu/S/course/6/fa08/6.005/courseMaterial/topics/topic3/lectureNotes/Debugging/Debugging.pdf)
+    by Rob Miller from MIT 6.005.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Appendix: Code reviews'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An extremely effective way to find faults in software systems is **code review**,
+    in which the programmer goes through the code and documentation to explain how
+    it works and why it is correct. It is the programmer's job to convince an expert
+    review team (usually 1–3 people) who act as skeptical devil's advocates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are different ways to use code review effectively:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Code walkthrough.** In the walkthrough approach, the programmer presents
+    the documentation and code to the reviewing team, and the team gives comments.
+    This is an informal process. The focus is on the code rather than the coder, so
+    hurt feelings are easier to avoid. However, the team may not get as much assurance
+    that the code is correct.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Code inspection.** Here, the review team drives the code review process.
+    Some, though not necessarily very much, team preparation beforehand is useful.
+    They define goals for the review process and interact with the coder(s) to understand
+    where there may be quality problems. Again, making the process as blameless as
+    possible is important.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Pair programming.** The most informal approach to code review is through
+    **pair programming**, in which code is developed by a pair of engineers: the **driver**
+    who writes the code, and the **observer** who watches. The role of the observer
+    is be a critic, to think about potential errors, and to help navigate larger design
+    issues. It''s usually better to have the observer be the engineer with the greater
+    experience with the coding task at hand. The observer reviews the code, serving
+    as the devil''s advocate that the driver must convince. When the pair is developing
+    specifications, the observer thinks about how to make specs clearer or shorter.
+    Pair programming has other benefits. It is often more fun and educational to work
+    with a partner, and it helps focus both partners on the task. If you are just
+    starting to work with another programmer, pair programming is a good way to understand
+    how your partner thinks and to establish common vocabulary. It is a good idea
+    for partners to trade off roles, too. Pair programming is an excellent approach
+    for CS 3110, and we recommend trying it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Code review can be remarkably effective. In one study conducted at IBM (Jones,
+    1991), code inspection found 65% of the known coding errors and 25% of the known
+    documentation errors, whereas testing found only 20% of the coding errors and
+    none of the documentation errors. The more formal inspection process may be more
+    effective than walkthroughs. One study (Fagan, 1976) found that code inspections
+    resulted in code with 38% fewer failures, compared to code walkthroughs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through code review can be expensive, however. Jones found that preparing for
+    code inspection took one hour per 150 lines of code, and the actual inspection
+    covered 75 lines of code per hour. Having up to three people on the inspection
+    team improves the quality of inspection; beyond that, more inspectors doesn't
+    seem to help. Spending a lot of time preparing for inspection did not seem to
+    be useful, either. Perhaps this is because much of the value of inspection lies
+    in the interaction with the coders.
+  prefs: []
+  type: TYPE_NORMAL

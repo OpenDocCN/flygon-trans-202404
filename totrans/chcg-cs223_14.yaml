@@ -1,0 +1,318 @@
+- en: Tail Recursion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Last time, we ran into issues when trying to generate lists of random numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`10000` isn''t very large, and yet we still ran out of "call stack" space.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following demonstrates that the size of the list of numbers itself isn't
+    the problem...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Okay, well eventually it is. But not for small numbers like `10000`. It is reasonable
+    that at some point (between the last two sample interactions) that the list of
+    numbers may require more memory (also known as "heap" space, though unrelated
+    to the heap data structures we have studied) than we can, or are allowed to, use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the call stack error is something very different than this heap error. The
+    call stack is used to track, well, the stack of currently executing functions.
+    The call stack grows and shrinks as the program executes. The relative size memory
+    dedicated to the call stack is, in general, much less than that dedicated to the
+    heap. This makes sense because the code for a computation is typically far smaller
+    than the data it operates on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So a call stack error means that we have too many "outstanding" function calls,
+    which are waiting for their callee functions to return before continuing. Recursively
+    defined functions, naturally, pile up a lot of "stack frames," so running out
+    of stack space is a serious concern, especially in functional languages that encourage
+    (or force, in the case of purely functional languages) programmers to use recursion
+    heavily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's take a closer look at some examples, defined in [`TailRecursion.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/TailRecursion.elm)
+    for reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recursion on Numbers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider a simple recursive function that `sum`s the first `n` positive integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we run into this pesky call stack space error even for pretty small inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The way that languages (especially functional ones) deal with this issue is
+    to make the following pact: if the programmer writes a recursive function that
+    is *tail recursive*, then the language compiler promises to evaluate the function
+    in constant stack space (rather than linear in the number of recursive calls).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Programmer''s Obligation: Defining Tail Recursive Functions'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A function `f` is tail recursive if all recursve calls to `f` (if any) appear
+    in tail position, meaning the last thing that the current function invocation
+    does is simply to return the result of the recursive invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many recursive functions, but not all, can be re-written to be tail recursive
+    by defining a helper function to take an extra argument that will store the "accumulated"
+    or "running" result, to be updated in each recursive call. The value of this extra
+    argument is then returned as the final result when no more recursive calls are
+    required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, consider the following tail recursive helper function to sum the
+    first `n` positive numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The last thing to do is implement a function that kicks off the recursion by
+    supplying the initial value of the accumulating result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Compiler''s Obligation: Translating Tail Recursion to Loops'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Languages that enter into such pacts do so because a tail recursive function
+    can be translated into a loop in a target language with imperative features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, assuming a target language that contains support for mutable variables
+    or references (created by `var`), dereferencing variables (denoted by the `!`
+    operator), updating mutable variables (denoted by the `:=` operator), and loops,
+    the `sum_tr_` function above might be translated to something that resembles the
+    following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the mutable variables `i` and `res` are initialized with the (immutable)
+    values `n` and `acc`, respectively, and the `while` loop iteratively updates these
+    variables as long as the current value of `i` is non-negative. Executing a loop
+    does not add any frames to the call stack, so the translated version does not
+    suffer the possibility of running out of stack space to keep track of outstanding
+    recursive calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tail call elimination is crucial to most functional programming languages. Elm
+    does not provide this optimization, however. In fact, our tail recursive function
+    seems to run out of stack space even earlier than our original version!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Elm does not enter into the tail call elimination pact with the user, in part
+    because the target language, JavaScript, does not support it. However, Elm does
+    provide a couple of very reasonable workarounds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trampolines
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The [`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)
+    library provides an API that allows programmers to explicitly "request" tail call
+    optimization for a function. To do so, rather than writing a function like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: from above, the programmer would write a very similar function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: where the return value of the intended function is wrapped inside the `Trampoline`
+    datatype. Values of this type are constructed either by the `Done` constructor,
+    which signals the end of a recursive computation, or `Continue`, which contains
+    a function of type `() -> Trampoline a` that specifies how to compute the next
+    step in the recursive computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concretely, the changes required to rewrite `sum_tr_` to `sum_tramp_` are simply
+    to wrap the return expressions in each of the branches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Trampoline` library provides the function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'to run the wrapped recursive function in constant space. Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now observe how `sum_tramp` scales much better than our unwrapped tail
+    recursive version `sum_tr`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you may have guessed, the implementation of `trampoline` in [`Trampoline.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Trampoline.elm)
+    uses a native JavaScript function, defined in [`Trampoline.js`](https://github.com/elm-lang/core/blob/1.1.0/src/Native/Trampoline.js),
+    that uses a loop to evaluate the computation. Cool!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the last call to `sum_tramp` above is still very slow — due to the
+    relative expense of creating so many thunks in JavaScript — but at least it finishes
+    successfully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One last thing to note about our definition of `sum_tramp_` is that it is tempting
+    to rewrite the thunk as a call to `always`, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Going one step further results in the following tidy definition, which is even
+    closer to the "ideal" definition `sum_tr_`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, our eagerness to simplify the definition is not a good idea.
+    Why not?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recursion on Lists
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following is a canonical definition for defining folding from the left in
+    many functional programming languages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because `foldl` is tail recursive, languages that perform tail call elimination
+    would rewrite it to something that resembles the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: But, again, Elm and JavaScript do not provide us with automatic tail call elimination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is simple to define a version using `Trampoline`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ah, that's much better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, does the library version [`List.foldl`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/List)
+    use `Trampoline`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: It turns out that it doesn't. Instead, it is defined (in [`List.elm`](https://github.com/elm-lang/core/blob/1.0.0/src/List.elm))
+    to use a native JavaScript function (defined in [`List.js`](https://github.com/elm-lang/core/blob/1.0.0/src/Native/List.js))
+    that, not surprisingly, uses a loop! This is morally the same as the `Trampoline`
+    approach except that it's special-cased to work with the `List` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Folding from the Right
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The following canonical definition of the `foldr` function is not tail recursive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Optional Exercise** — Write a version of `foldr` such that any recursion
+    within runs in constant stack space, either by making use of `List.foldl` or `foldl_tramp`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back to Random Lists
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Okay, now back to our problematic `randomInts` function. Why does that blow
+    the stack?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Taking a look at [`Random.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Random.elm)
+    reveals the problem: `list` is implemented in terms of a tail recursive function
+    called `listHelp` but does not use either `Trampoline` or `List.foldl`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optional Exercise** — Write a version of'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: such that recursive calls within the definition run in constant stack space.
+    Note that because the [`Random`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Random)
+    module does not expose the `Generator` data constructor, you will have to implement
+    your version within the module. So, start by grabbing the [`Random.elm` source](https://github.com/elm-lang/core/blob/1.1.0/src/Random.elm)
+    and then defining your function within it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming that you have called your version of the module `RandomList`, define
+    the following test driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should then be able to demonstrate the improvement as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE

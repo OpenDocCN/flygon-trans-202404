@@ -1,0 +1,201 @@
+- en: '| [![Secret Service guys checking out the press.  MIT Graduation 1998.](../Images/1be6e31e2361ba25ee7102ef0360621b.jpg)](/http://philip.greenspun.com/images/pcd4599/press-check-2.tcl)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Escaping to the procedural world
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: part of [SQL for Web Nerds](index.html) by [Philip Greenspun](http://philip.greenspun.com/)
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![MIT Graduation 1998](../Images/3a2f2779dcbe4d6b08899e8e89e735d1.jpg)](/http://philip.greenspun.com/images/pcd4599/mit-graduation-stand-on-line-50.tcl)
+    Declarative languages can be very powerful and reliable, but sometimes it is easier
+    to think about things procedurally. One way to do this is by using a procedural
+    language in the database client. For example, with AOLserver we generally program
+    in Tcl, a procedural language, and read the results of SQL queries. For example,
+    in the /news module of the ArsDigita Community System, we want to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: query for the current news
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: loop through the rows that come back and display one line for each row (with
+    a link to a page that will show the full story)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: for the first three rows, see if the news story is very short. If so, just display
+    it on this page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The words above that should give a SQL programmer pause are in the last bullet
+    item: *if* and *for the first three rows*. There are no clean ways in standard
+    SQL to say "do this just for the first N rows" or "do something special for a
+    particular row if its data match a certain pattern".'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the AOLserver Tcl program. Note that depending on the contents of an
+    item in the `news` table, the Tcl program may execute an SQL query (to figure
+    out if there are user comments on a short news item).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Suppose that you have a million rows in your news table, you want five, but
+    you can only figure out which five with a bit of procedural logic. Does it really
+    make sense to drag those million rows of data all the way across the network from
+    the database server to your client application and then throw out 999,995 rows?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or suppose that you're querying a million-row table and want the results back
+    in a strange order. Does it make sense to build a million-row data structure in
+    your client application, sort them in the client program, then return the sorted
+    rows to the user?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Visit [http://www.scorecard.org/chemical-profiles/](http://www.scorecard.org/chemical-profiles/)
+    and search for "benzene". Note that there are 328 chemicals whose names contain
+    the string "benzene":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The way we want to display them is
+  prefs: []
+  type: TYPE_NORMAL
+- en: exact matches on top
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: line break
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: chemicals that start with the query string
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: line break
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: chemicals that contain the query string
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Within each category of chemicals, we want to sort alphabetically. However,
+    if there are numbers or special characters in front of a chemical name, we want
+    to ignore those for the purposes of sorting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can you do all of that with one query? And have them come back from the database
+    in the desired order?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You could if you could make a procedure that would run inside the database.
+    For each row, the procedure would compute a score reflecting goodness of match.
+    To get the order correct, you need only ORDER BY this score. To get the line breaks
+    right, you need only have your application program watch for changes in score.
+    For the fine tuning of sorting equally scored matches alphabetically, just write
+    another procedure that will return a chemical name stripped of leading special
+    characters, then sort by the result. Here''s how it looks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'We specify the procedure `score_chem_name_match_score` to take two arguments:
+    one the chemical name from the current row, and one the query string from the
+    user. It returns 0 for an exact match, 1 for a chemical whose name begins with
+    the query string, and 2 in all other cases (remember that this is only used in
+    queries where a LIKE clause ensures that every chemical name at least contains
+    the query string. Once we defined this procedure, we''d be able to call it from
+    a SQL query, the same way that we can call built-in SQL functions such as `upper`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So is this possible? Yes, in all "enterprise-class" relational database management
+    systems. Historically, each DBMS has had a proprietary language for these *stored
+    procedures*. Starting in 1997, DBMS companies began to put Java byte-code interpreters
+    into the database server. Oracle added Java-in-the-server capability with its
+    8.1 release in February 1999\. If you''re looking at old systems such as Scorecard,
+    though, you''ll be looking at procedures in Oracle''s venerable PL/SQL language:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: 'Notice that PL/SQL is a strongly typed language. We say what arguments we expect,
+    whether they are IN or OUT, and what types they must be. We say that `score_chem_name_match_score`
+    will return an integer. We can say that a PL/SQL variable should be of the same
+    type as a column in a table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: The local variable `stripped_chem_name` is going to be the same type as the
+    `edf_chem_name` column in the `chem_hazid_ref` table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are using the Oracle application SQL*Plus to define PL/SQL functions,
+    you have to terminate each definition with a line containing only the character
+    "/". If SQL*Plus reports that there were errors in evaluating your definition,
+    you then have to type "show errors" if you want more explanation. Unless you expect
+    to write perfect code all the time, it can be convenient to leave these SQL*Plus
+    incantations in your .sql files. Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_PRE
+- en: Choosing between PL/SQL and Java
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'How to choose between PL/SQL and Java? Easy: you don''t get to choose. In lots
+    of important places, e.g., triggers, Oracle forces you to specify blocks of PL/SQL.
+    So you have to learn at least the rudiments of PL/SQL. If you''re going to build
+    major packages, Java is probably a better long-term choice.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Overview: Oracle8 Server Application Developer''s Guide, "Using Procedures
+    and Packages" at [http://www.oradoc.com/keyword/using_procedures_and_packages](http://www.oradoc.com/keyword/using_procedures_and_packages)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PL/SQL User's Guide and Reference at [http://www.oradoc.com/keyword/plsql](http://www.oradoc.com/keyword/plsql)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Java Stored Procedures Developer's Guide at [http://www.oradoc.com/keyword/java_stored_procedures](http://www.oradoc.com/keyword/java_stored_procedures)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next: [trees](trees.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[philg@mit.edu](http://philip.greenspun.com/)[Add a comment](/comments/add?page_id=3464)'
+  prefs: []
+  type: TYPE_NORMAL
