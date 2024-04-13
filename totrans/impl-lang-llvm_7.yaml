@@ -1,55 +1,80 @@
 - en: Mutable Variables
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可变变量
 - en: Mutable Variables
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可变变量
 - en: 7.1 Chapter 7 Introduction
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 7.1 章介绍
 - en: Welcome to Chapter 7 of the “Implementing a language with LLVM” tutorial. In
     chapters 1 through 6, we’ve built a very respectable, albeit simple, functional
     programming language. In our journey, we learned some parsing techniques, how
     to build and represent an AST, how to build LLVM IR, and how to optimize the resultant
     code as well as JIT compile it.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 欢迎来到“使用 LLVM 实现语言”教程的第 7 章。在第 1 到第 6 章中，我们构建了一种非常体面但简单的函数式编程语言。在我们的旅程中，我们学习了一些解析技巧，如何构建和表示
+    AST，如何构建 LLVM IR，以及如何优化结果代码以及 JIT 编译它。
 - en: While Kaleidoscope is interesting as a functional language, the fact that it
     is functional makes it “too easy” to generate LLVM IR for it. In particular, a
     functional language makes it very easy to build LLVM IR directly in SSA form.
     Since LLVM requires that the input code be in SSA form, this is a very nice property
     and it is often unclear to newcomers how to generate code for an imperative language
     with mutable variables.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管万花筒作为一种功能性语言很有趣，但它的功能性使得为其生成 LLVM IR“太容易”了。特别是，功能性语言使得直接在 SSA 形式中构建 LLVM IR
+    非常容易。由于 LLVM 要求输入代码处于 SSA 形式，这是一个非常好的特性，对于新手来说，如何为带有可变变量的命令式语言生成代码通常是不清楚的。
 - en: 'The short (and happy) summary of this chapter is that there is no need for
     your front-end to build SSA form: LLVM provides highly tuned and well tested support
     for this, though the way it works is a bit unexpected for some.'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的简短（和快乐）总结是，你的前端不需要构建 SSA 形式：LLVM 提供了高度调优和经过充分测试的支持，尽管它的工作方式对于一些人来说有点出乎意料。
 - en: 7.2 Why is this a hard problem?
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 7.2 章 为什么这是一个困难的问题？
 - en: 'To understand why mutable variables cause complexities in SSA construction,
     consider this extremely simple C example:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解为什么可变变量会导致 SSA 构造复杂性，请考虑这个极其简单的 C 示例：
 - en: '[PRE0]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'In this case, we have the variable “X”, whose value depends on the path executed
     in the program. Because there are two different possible values for X before the
     return instruction, a PHI node is inserted to merge the two values. The LLVM IR
     that we want for this example looks like this:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我们有变量 “X”，其值取决于程序中执行的路径。由于在返回指令之前 X 有两个不同的可能值，因此插入一个 PHI 节点来合并这两个值。我们希望这个示例的
+    LLVM IR 看起来像这样：
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'In this example, the loads from the G and H global variables are explicit in
     the LLVM IR, and they live in the then/else branches of the if statement (cond_true/cond_false).
     In order to merge the incoming values, the `X.2` phi node in the `cond_next` block
@@ -58,19 +83,28 @@
     Alternatively, if control flow comes from cond_true, it gets the value of `X.0`.
     The intent of this chapter is not to explain the details of SSA form. For more
     information, see one of the many online references.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，LLVM IR 中的 G 和 H 全局变量的负载是明确的，并且它们存在于 if 语句（cond_true/cond_false）的 then/else
+    分支中。为了合并传入的值，在 `cond_next` 块中的 `X.2` phi 节点根据控制流来选择要使用的正确值：如果控制流来自 `cond_false`
+    块，则 `X.2` 得到 `X.1` 的值。或者，如果控制流来自 cond_true，则它得到 `X.0` 的值。本章的目的不是解释 SSA 形式的细节。有关更多信息，请参阅众多在线参考资料之一。
 - en: 'The question for this article is “who places the phi nodes when lowering assignments
     to mutable variables?”. The issue here is that LLVM requires that its IR be in
     SSA form: there is no “non-ssa” mode for it. However, SSA construction requires
     non-trivial algorithms and data structures, so it is inconvenient and wasteful
     for every front-end to have to reproduce this logic.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的问题是“在将可变变量降级为 phi 节点时，谁放置 phi 节点？” 这里的问题是 LLVM 要求其 IR 处于 SSA 形式：没有“非 SSA”模式。然而，SSA
+    构造需要非平凡的算法和数据结构，因此每个前端都必须重现这个逻辑是不方便和浪费的。
 - en: 7.3 Memory in LLVM
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 7.3 章 LLVM 中的内存
 - en: 'The ‘trick’ here is that while LLVM does require all register values to be
     in SSA form, it does not require (or permit) memory objects to be in SSA form.
     In the example above, note that the loads from G and H are direct accesses to
@@ -78,14 +112,19 @@
     systems, which do try to version memory objects. In LLVM, instead of encoding
     dataflow analysis of memory into the LLVM IR, it is handled with Analysis Passes
     which are computed on demand.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的“技巧”是，虽然LLVM确实要求所有的寄存器值都以SSA形式存在，但它不要求（或允许）内存对象以SSA形式存在。在上面的示例中，请注意，从G和H加载的是直接访问G和H：它们没有重命名或版本化。这与一些其他编译器系统不同，它们尝试对内存对象进行版本控制。在LLVM中，不是将内存的数据流分析编码到LLVM
+    IR中，而是通过按需计算的分析通道来处理。
 - en: With this in mind, the high-level idea is that we want to make a stack variable
     (which lives in memory, because it is on the stack) for each mutable object in
     a function. To take advantage of this trick, we need to talk about how LLVM represents
     stack variables.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个想法，高层次的想法是，我们想要为函数中的每个可变对象创建一个堆栈变量（因为它位于堆栈上，所以它在内存中）。要利用这个技巧，我们需要讨论LLVM如何表示堆栈变量。
 - en: 'In LLVM, all memory accesses are explicit with load/store instructions, and
     it is carefully designed not to have (or need) an “address-of” operator. Notice
     how the type of the @G/@H global variables is actually “i32*” even though the
@@ -93,25 +132,36 @@
     i32 in the global data area, but its name actually refers to the address for that
     space. Stack variables work the same way, except that instead of being declared
     with global variable definitions, they are declared with the LLVM alloca instruction:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在LLVM中，所有的内存访问都是通过load/store指令显式进行的，并且它被精心设计为不具有（或不需要）“取地址”运算符。请注意，@G/@H全局变量的类型实际上是“i32*”，即使变量被定义为`i32`。这意味着@G在全局数据区域定义了一个i32的空间，但它的名称实际上是该空间的地址。堆栈变量的工作原理相同，只是它们不是用全局变量定义声明的，而是用LLVM
+    alloca指令声明的：
 - en: '[PRE2]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This code shows an example of how you can declare and manipulate a stack variable
     in the LLVM IR. Stack memory allocated with the alloca instruction is fully general:
     you can pass the address of the stack slot to functions, you can store it in other
     variables, etc. In our example above, we could rewrite the example to use the
     alloca technique to avoid using a PHI node:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 此代码展示了如何在LLVM IR中声明和操作堆栈变量的示例。用alloca指令分配的堆栈内存是完全通用的：你可以将堆栈槽的地址传递给函数，你可以将其存储在其他变量中等等。在上面的示例中，我们可以重写示例以使用alloca技术来避免使用PHI节点：
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'With this, we have discovered a way to handle arbitrary mutable variables without
     the need to create Phi nodes at all:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们发现了一种处理任意可变变量的方法，而不需要创建Phi节点：
 - en: 'Each mutable variable becomes a stack allocation. Each read of the variable
     becomes a load from the stack. Each update of the variable becomes a store to
     the stack. Taking the address of a variable just uses the stack address directly.
@@ -121,18 +171,24 @@
     has a highly-tuned optimization pass named “mem2reg” that handles this case, promoting
     allocas like this into SSA registers, inserting Phi nodes as appropriate. If you
     run this example through the pass, for example, you’ll get:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个可变变量都变成了一个堆栈分配。每次对变量的读取都变成了从堆栈加载。每次对变量的更新都变成了对堆栈的存储。取变量的地址只是直接使用堆栈地址。虽然这个解决方案解决了我们的即时问题，但它引入了另一个问题：我们现在显然为非常简单和常见的操作引入了大量的堆栈流量，这是一个主要的性能问题。幸运的是，LLVM优化器有一个高度调优的优化通道，名为“mem2reg”，它处理这种情况，将像这样的alloca提升为SSA寄存器，并适当插入Phi节点。例如，如果你通过该通道运行这个示例，你将得到：
 - en: '[PRE4]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The mem2reg pass implements the standard “iterated dominance frontier” algorithm
     for constructing SSA form and has a number of optimizations that speed up (very
     common) degenerate cases. The mem2reg optimization pass is the answer to dealing
     with mutable variables, and we highly recommend that you depend on it. Note that
     mem2reg only works on variables in certain circumstances:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: mem2reg通道实现了标准的“迭代支配前沿”算法来构造SSA形式，并且有许多优化来加速（非常常见的）退化情况。mem2reg优化通道是处理可变变量的答案，我们强烈建议您依赖它。请注意，mem2reg仅在某些情况下适用于变量：
 - en: 'mem2reg is alloca-driven: it looks for allocas and if it can handle them, it
     promotes them. It does not apply to global variables or heap allocations. mem2reg
     only looks for alloca instructions in the entry block of the function. Being in
@@ -151,8 +207,12 @@
     optimization pass? In short, we strongly recommend that you use this technique
     for building SSA form, unless there is an extremely good reason not to. Using
     this technique is:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: mem2reg是基于alloca的：它查找alloca，如果可以处理它们，就会提升它们。它不适用于全局变量或堆分配。 mem2reg只在函数的入口块中查找alloca指令。在入口块中保证了alloca只执行一次，这使得分析更简单。
+    mem2reg只提升其使用为直接加载和存储的alloca。如果堆栈对象的地址传递给函数，或者涉及任何有趣的指针算术，那么alloca将不会被提升。 mem2reg仅适用于第一类值（如指针、标量和向量）的alloca，仅当分配的数组大小为1（或在.ll文件中缺失）时。
+    mem2reg无法将结构体或数组提升为寄存器。请注意，“scalarrepl” pass更强大，可以在许多情况下提升结构体、“联合体”和数组。对于大多数命令式语言来说，这些属性都很容易满足，我们将在下面用Kaleidoscope进行说明。您可能会问的最后一个问题是：我是否应该为我的前端费心处理这些废话？直接进行SSA构造，避免使用mem2reg优化通道不是更好吗？简而言之，我们强烈建议您使用这种技术来构建SSA形式，除非有极好的理由不这样做。使用这种技术是：
 - en: 'Proven and well tested: clang uses this technique for local mutable variables.
     As such, the most common clients of LLVM are using this to handle a bulk of their
     variables. You can be sure that bugs are found fast and fixed early. Extremely
@@ -165,34 +225,46 @@
     naturally with this style of debug info. If nothing else, this makes it much easier
     to get your front-end up and running, and is very simple to implement. Lets extend
     Kaleidoscope with mutable variables now!'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过验证和经过充分测试：clang使用这种技术来处理本地可变变量。因此，LLVM最常见的客户端正在使用这种技术来处理大部分变量。您可以确信错误会被快速发现并及早修复。极快：mem2reg具有许多特殊情况，使其在常见情况下快速运行以及完全通用。例如，它对仅在单个块中使用的变量、仅有一个赋值点的变量、避免插入不需要的phi节点的良好启发式等都有快速路径。调试信息生成所需：LLVM中的调试信息依赖于暴露变量的地址，以便可以附加调试信息。这种技术与这种风格的调试信息非常自然地结合在一起。如果没有其他办法，这将使得启动和运行您的前端变得更加容易，并且实现起来非常简单。现在让我们在Kaleidoscope中扩展可变变量！
 - en: 7.4 Mutable Variables in Kaleidoscope
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.4 Kaleidoscope中的可变变量
 - en: 'Now that we know the sort of problem we want to tackle, lets see what this
     looks like in the context of our little Kaleidoscope language. We’re going to
     add two features:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道了我们要解决的问题类型，让我们看看在我们的小Kaleidoscope语言中是什么样子。我们将添加两个功能：
 - en: 'The ability to mutate variables with the `=` operator. The ability to define
     new variables. While the first item is really what this is about, we only have
     variables for incoming arguments as well as for induction variables, and redefining
     those only goes so far :). Also, the ability to define new variables is a useful
     thing regardless of whether you will be mutating them. Here’s a motivating example
     that shows how we could use these:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`=`运算符改变变量的能力。定义新变量的能力。虽然第一项才是重点，我们只有用于传入参数以及归纳变量的变量，重新定义这些变量只能走得那么远 :). 此外，定义新变量的能力是一个有用的事情，无论您是否会对它们进行变异。这里有一个激励性的例子，展示了我们如何使用这些功能：
 - en: '[PRE5]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: In order to mutate variables, we have to change our existing variables to use
     the “alloca trick”. Once we have that, we’ll add our new operator, then extend
     Kaleidoscope to support new variable definitions.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: 7.5 Adjusting Existing Variables for Mutation
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -203,76 +275,99 @@
     variable in question. Note that this change is a refactoring: it changes the structure
     of the code, but does not (by itself) change the behavior of the compiler. All
     of these changes are isolated in the Kaleidoscope code generator.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
 - en: 'At this point in Kaleidoscope’s development, it only supports variables for
     two things: incoming arguments to functions and the induction variable of `for`
     loops. For consistency, we’ll allow mutation of these variables in addition to
     other user-defined variables. This means that these will both need memory locations.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
 - en: 'To start our transformation of Kaleidoscope, we’ll change the NamedValues map
     so that it maps to `AllocaInst*` instead of `Value*`. Once we do this, the C++
     compiler will tell us what parts of the code we need to update:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Also, since we will need to create these alloca’s, we’ll use a helper function
     that ensures that the allocas are created in the entry block of the function:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: This funny looking code creates an IRBuilder object that is pointing at the
     first instruction (.begin()) of the entry block. It then creates an alloca with
     the expected name and returns it. Because all values in Kaleidoscope are doubles,
     there is no need to pass in a type to use.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
 - en: 'With this in place, the first functionality change we want to make is to variable
     references. In our new scheme, variables live on the stack, so code generating
     a reference to them actually needs to produce a load from the stack slot:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE8]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'As you can see, this is pretty straightforward. Now we need to update the things
     that define the variables to set up the alloca. We’ll start with ForExprAST::Codegen
     (see the full code listing for the unabridged code):'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE9]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This code is virtually identical to the code before we allowed mutable variables.
     The big difference is that we no longer have to construct a PHI node, and we use
     load/store to access the variable as needed.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
 - en: 'To support mutable argument variables, we need to also make allocas for them.
     The code for this is also pretty simple:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE10]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: For each argument, we make an alloca, store the input value to the function
     into the alloca, and register the alloca as the memory location for the argument.
     This method gets invoked by FunctionAST::Codegen right after it sets up the entry
     block for the function.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
 - en: 'The final missing piece is adding the mem2reg pass, which allows us to get
     good codegen once again:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Here there is only one variable (x, the input argument) but you can still see
     the extremely simple-minded code generation strategy we are using. In the entry
     block, an alloca is created, and the initial input value is stored into it. Each
@@ -280,160 +375,241 @@
     modify the if/then/else expression, so it still inserts a PHI node. While we could
     make an alloca for it, it is actually easier to create a PHI node for it, so we
     still just make the PHI.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里只有一个变量（输入参数x），但您仍然可以看到我们正在使用的极端简单的代码生成策略。在入口块中，创建一个alloca，并将初始输入值存储到其中。对变量的每个引用都从堆栈重新加载。另外，请注意，我们没有修改if/then/else表达式，所以它仍然插入PHI节点。虽然我们可以为它创建一个alloca，但实际上为它创建一个PHI节点更容易，所以我们仍然只是创建PHI。
 - en: 'Here is the code after the mem2reg pass runs:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在mem2reg pass运行后的代码如下：
 - en: '[PRE12]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: This is a trivial case for mem2reg, since there are no redefinitions of the
     variable. The point of showing this is to calm your tension about inserting such
     blatent inefficiencies :).
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于mem2reg来说，这是一个微不足道的案例，因为没有对变量的重新定义。展示这个案例的目的是为了缓解您关于插入这种明显的低效的紧张情绪 :）。
 - en: 'After the rest of the optimizers run, we get:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在其余的优化器运行之后，我们得到了：
 - en: '[PRE13]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Here we see that the simplifycfg pass decided to clone the return instruction
     into the end of the `else` block. This allowed it to eliminate some branches and
     the PHI node.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们看到simplifycfg pass决定将返回指令克隆到`else`块的末尾。这使得它能够消除一些分支和PHI节点。
 - en: Now that all symbol table references are updated to use stack variables, we’ll
     add the assignment operator.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，所有符号表引用都已更新为使用堆栈变量，我们将添加赋值运算符。
 - en: 7.6 New Assignment Operator
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.6 新的赋值运算符
 - en: 'With our current framework, adding a new assignment operator is really simple.
     We will parse it just like any other binary operator, but handle it internally
     (instead of allowing the user to define it). The first step is to set a precedence:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用我们当前的框架，添加一个新的赋值运算符非常简单。我们将它解析就像任何其他二元运算符一样，但在内部处理它（而不是允许用户定义它）。第一步是设置优先级：
 - en: '[PRE14]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Now that the parser knows the precedence of the binary operator, it takes care
     of all the parsing and AST generation. We just need to implement codegen for the
     assignment operator. This looks like:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在解析器知道了二元运算符的优先级，它会处理所有解析和AST生成。我们只需要为赋值运算符实现代码生成。代码如下所示：
 - en: '[PRE15]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Unlike the rest of the binary operators, our assignment operator doesn’t follow
     the “emit LHS, emit RHS, do computation” model. As such, it is handled as a special
     case before the other binary operators are handled. The other strange thing is
     that it requires the LHS to be a variable. It is invalid to have “(x+1) = expr”
     - only things like “x = expr” are allowed.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其他二元运算符不同，我们的赋值运算符不遵循“发出LHS，发出RHS，进行计算”的模式。因此，它在处理其他二元运算符之前作为特例处理。另一件奇怪的事情是它要求LHS是一个变量。像“(x+1)
+    = expr”这样的表达式是无效的——只有像“x = expr”这样的东西是允许的。
 - en: '[PRE16]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Once we have the variable, codegen’ing the assignment is straightforward: we
     emit the RHS of the assignment, create a store, and return the computed value.
     Returning a value allows for chained assignments like `X = (Y = Z)`.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们有了变量，生成赋值代码就很简单了：我们发出赋值的RHS，创建一个存储，然后返回计算出的值。返回一个值允许像`X = (Y = Z)`这样的链式赋值。
 - en: 'Now that we have an assignment operator, we can mutate loop variables and arguments.
     For example, we can now run code like this:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了一个赋值运算符，我们可以改变循环变量和参数。例如，我们现在可以运行这样的代码：
 - en: '[PRE17]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'When run, this example prints “123” and then “4”, showing that we did actually
     mutate the value! Okay, we have now officially implemented our goal: getting this
     to work requires SSA construction in the general case. However, to be really useful,
     we want the ability to define our own local variables, lets add this next!'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行时，这个示例打印“123”，然后“4”，显示我们确实改变了值！好的，我们现在正式实现了我们的目标：在一般情况下，使SSA构造工作需要一定的努力。然而，为了真正有用，我们希望能够定义自己的局部变量，让我们下一步添加这个！
 - en: 7.7 User-defined Local Variables
+  id: totrans-68
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7.7 用户定义的局部变量
 - en: 'Adding var/in is just like any other other extensions we made to Kaleidoscope:
     we extend the lexer, the parser, the AST and the code generator. The first step
     for adding our new ‘var/in’ construct is to extend the lexer. As before, this
     is pretty trivial, the code looks like this:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加var/in与我们向Kaleidoscope添加的任何其他扩展一样简单：我们扩展了词法分析器、解析器、AST和代码生成器。为了添加我们的新‘var/in’结构，首先要扩展词法分析器。与以前一样，这相当琐碎，代码如下所示：
 - en: '[PRE18]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The next step is to define the AST node that we will construct. For var/in,
     it looks like this:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是定义我们将构造的AST节点。对于var/in，它看起来像这样：
 - en: '[PRE19]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: var/in allows a list of names to be defined all at once, and each name can optionally
     have an initializer value. As such, we capture this information in the VarNames
     vector. Also, var/in has a body, this body is allowed to access the variables
     defined by the var/in.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: var/in 允许一次性定义一个名称列表，并且每个名称可以选择性地具有初始化值。因此，我们将这些信息捕捉在 VarNames 向量中。此外，var/in
+    有一个主体，这个主体可以访问 var/in 定义的变量。
 - en: 'With this in place, we can define the parser pieces. The first thing we do
     is add it as a primary expression:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个基础，我们可以定义解析器的部分。我们首先将其添加为主表达式：
 - en: '[PRE20]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'Next we define ParseVarExpr:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来我们定义 ParseVarExpr：
 - en: '[PRE21]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Once all the variables are parsed, we then parse the body and create the AST
     node:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦所有变量都被解析，我们然后解析主体并创建 AST 节点：
 - en: '[PRE22]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Now that we can parse and represent the code, we need to support emission of
     LLVM IR for it. This code starts out with:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以解析和表示代码，我们需要支持为其发出 LLVM IR。这段代码从以下内容开始：
 - en: '[PRE23]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: Basically it loops over all the variables, installing them one at a time. For
     each variable we put into the symbol table, we remember the previous value that
     we replace in OldBindings.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本上，它循环遍历所有变量，逐个安装它们。对于放入符号表的每个变量，我们记住要替换的上一个值，放入 OldBindings 中。
 - en: '[PRE24]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'There are more comments here than code. The basic idea is that we emit the
     initializer, create the alloca, then update the symbol table to point to it. Once
     all the variables are installed in the symbol table, we evaluate the body of the
     var/in expression:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的注释比代码还多。基本思想是我们发出初始化器，创建 alloca，然后更新符号表指向它。一旦所有变量都安装在符号表中，我们评估 var/in 表达式的主体：
 - en: '[PRE25]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: The end result of all of this is that we get properly scoped variable definitions,
     and we even (trivially) allow mutation of them :).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些的最终结果是，我们得到了正确作用域的变量定义，甚至（微不足道地）允许对它们进行变异 :).
 - en: 'With this, we completed what we set out to do. Our nice iterative fib example
     from the intro compiles and runs just fine. The mem2reg pass optimizes all of
     our stack variables into SSA registers, inserting PHI nodes where needed, and
     our front-end remains simple: no “iterated dominance frontier” computation anywhere
     in sight.'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们完成了我们的目标。我们在介绍中漂亮的迭代 fib 示例编译并运行得很好。mem2reg 优化了我们所有的栈变量为 SSA 寄存器，根据需要插入
+    PHI 节点，我们的前端保持简单：没有“迭代支配前沿”计算。
