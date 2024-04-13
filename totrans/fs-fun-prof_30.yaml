@@ -1,909 +1,1392 @@
 - en: Choosing properties for property-based testing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为属性基测试选择属性
 - en: Choosing properties for property-based testing
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为属性基测试选择属性
 - en: '*UPDATE: I did a talk on property-based testing based on these posts. [Slides
     and video here.](http://fsharpforfunandprofit.com/pbt/)*'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：我做了一个关于基于这些文章的属性的演讲。[这里是幻灯片和视频。](http://fsharpforfunandprofit.com/pbt/)*'
 - en: In [the previous post](property-based-testing.html), I described the basics
     of property-based testing, and showed how it could save a lot of time by generating
     random tests.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一篇文章](property-based-testing.html)中，我描述了属性基测试的基础知识，并展示了通过生成随机测试可以节省大量时间的方法。
 - en: 'But here''s a common problem. Everyone who sees a property-based testing tool
     like FsCheck or QuickCheck thinks that it is amazing... but when it times come
     to start creating your own properties, the universal complaint is: "what properties
     should I use? I can''t think of any!"'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这里有一个常见的问题。每个看到像FsCheck或QuickCheck这样的属性基测试工具的人都认为它很神奇... 但当开始创建自己的属性时，普遍的抱怨是：“我应该使用什么属性？我想不出任何！”
 - en: The goal of this post is to show some common patterns that can help you discover
     the properties that are applicable to your code.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的目标是展示一些常见的模式，这些模式可以帮助您发现适用于您的代码的属性。
 - en: Categories for properties
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 属性类别
 - en: In my experience, many properties can be discovered by using one of the seven
     approaches listed below.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据我的经验，许多属性可以通过以下列出的七种方法之一发现。
 - en: '["Different paths, same destination"](#different-paths)'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["不同的路径，同一个目的地"](#different-paths)'
 - en: '["There and back again"](#there-and-back)'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["往返之旅"](#there-and-back)'
 - en: '["Some things never change"](#some-things-never-change)'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["有些事情永远不会改变"](#some-things-never-change)'
 - en: '["The more things change, the more they stay the same"](#idempotence)'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["事物变化越大，保持不变的事物越多"](#idempotence)'
 - en: '["Solve a smaller problem first"](#structural-induction)'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["先解决一个较小的问题"](#structural-induction)'
 - en: '["Hard to prove, easy to verify"](#hard-to-prove-easy-to-verify)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["难以证明，易于验证"](#hard-to-prove-easy-to-verify)'
 - en: '["The test oracle"](#test-oracle)'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '["测试神谕"](#test-oracle)'
 - en: This is by no means a comprehensive list, just the ones that have been most
     useful to me. For a different perspective, check out [the list of patterns](http://research.microsoft.com/en-us/projects/pex/patterns.pdf)
     that the PEX team at Microsoft have compiled.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 这绝不是一份全面的清单，只是对我最有用的清单。要从不同的角度看问题，请查看微软PEX团队编制的[模式列表](http://research.microsoft.com/en-us/projects/pex/patterns.pdf)。
 - en: '"Different paths, same destination"'
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"不同的路径，同一个目的地"'
 - en: These kinds of properties are based on combining operations in different orders,
     but getting the same result. For example, in the diagram below, doing `X` then
     `Y` gives the same result as doing `Y` followed by `X`.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些类型的属性是基于以不同的顺序组合操作，但得到相同的结果。例如，在下面的图表中，先做`X`然后做`Y`得到的结果与先做`Y`然后做`X`得到的结果相同。
 - en: '![Commutative property](property_commutative.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![交换性质](property_commutative.png)'
 - en: The commutative property of addition is an obvious example of this pattern.
     For example, the result of `add 1` then `add 2` is the same as the result of `add
     2` followed by `add 1`.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 加法的交换性质是这种模式的一个明显例子。例如，`add 1`然后`add 2`的结果与`add 2`后跟`add 1`的结果相同。
 - en: This pattern, generalized, can produce a wide range of useful properties. We'll
     see some more uses of this pattern later in this post.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种模式，泛化后，可以产生各种有用的属性。我们将在本文的后面看到这种模式的更多用途。
 - en: '"There and back again"'
+  id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"往返之旅"'
 - en: These kinds of properties are based on combining an operation with its inverse,
     ending up with the same value you started with.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些类型的属性是基于将操作与其反操作相结合，最终得到与开始时相同的值。
 - en: In the diagram below, doing `X` serializes `ABC` to some kind of binary format,
     and the inverse of `X` is some sort of deserialization that returns the same `ABC`
     value again.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下图中，执行`X`将`ABC`序列化为某种二进制格式，而`X`的反函数是某种反序列化，将相同的`ABC`值再次返回。
 - en: '![Inverse](property_inverse.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![反函数](property_inverse.png)'
 - en: 'In addition to serialization/deserialization, other pairs of operations can
     be checked this way: `addition`/`subtraction`, `write`/`read`, `setProperty`/`getProperty`,
     and so on.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了序列化/反序列化之外，还可以通过其他一对操作进行检查：`加法`/`减法`，`写`/`读`，`setProperty`/`getProperty`等等。
 - en: Other pair of functions fit this pattern too, even though they are not strict
     inverses, pairs such as `insert`/`contains`, `create`/`exists` , etc.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他一对函数也适合这种模式，即使它们不是严格的反函数，例如`insert`/`contains`，`create`/`exists`等。
 - en: '"Some things never change"'
+  id: totrans-27
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"有些事情永远不会改变"'
 - en: These kinds of properties are based on an invariant that is preserved after
     some transformation.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些属性基于一种不变量，在某些转换后仍然保持不变。
 - en: In the diagram below, the transform changes the order of the items, but the
     same four items are still present afterwards.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的图表中，变换改变了项目的顺序，但之后仍然存在相同的四个项目。
 - en: '![Invariant](property_invariant.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![不变量](property_invariant.png)'
 - en: Common invariants include size of a collection (for `map` say), the contents
     of a collection (for `sort` say), the height or depth of something in proportion
     to size (e.g. balanced trees).
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 常见的不变量包括集合的大小（例如`map`），集合的内容（例如`sort`），某物的高度或深度与大小成比例（例如平衡树）。
 - en: '"The more things change, the more they stay the same"'
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"越是变化，越是不变"'
 - en: These kinds of properties are based on "idempotence" -- that is, doing an operation
     twice is the same as doing it once.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些属性基于"幂等性" -- 也就是说，对一个操作进行两次与进行一次是相同的。
 - en: In the diagram below, using `distinct` to filter the set returns two items,
     but doing `distinct` twice returns the same set again.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的图表中，使用`distinct`来过滤集合返回两个项目，但使用`distinct`两次会再次返回相同的集合。
 - en: '![Idempotence](property_idempotence.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![幂等性](property_idempotence.png)'
 - en: Idempotence properties are very useful, and can be extended to things like database
     updates and message processing.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 幂等性属性非常有用，可以扩展到诸如数据库更新和消息处理之类的事物。
 - en: '"Solve a smaller problem first"'
+  id: totrans-37
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"先解决一个较小的问题"'
 - en: These kinds of properties are based on "structural induction" -- that is, if
     a large thing can be broken into smaller parts, and some property is true for
     these smaller parts, then you can often prove that the property is true for a
     large thing as well.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些属性基于"结构归纳" -- 也就是说，如果一个大的东西可以被分解成较小的部分，并且某些属性对这些较小的部分成立，那么你通常可以证明该属性对大的东西也成立。
 - en: In the diagram below, we can see that the four-item list can be partitioned
     into an item plus a three-item list, which in turn can be partitioned into an
     item plus a two-item list. If we can prove the property holds for two-item list,
     then we can infer that it holds for the three-item list, and for the four-item
     list as well.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的图表中，我们可以看到，四项列表可以被分成一项加上一个三项列表，然后再分成一项加上一个两项列表。如果我们可以证明该属性对两项列表成立，那么我们可以推断它也对三项列表和四项列表成立。
 - en: '![Induction](property_induction.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![归纳](property_induction.png)'
 - en: Induction properties are often naturally applicable to recursive structures
     such as lists and trees.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 归纳属性通常自然适用于递归结构，例如列表和树。
 - en: '"Hard to prove, easy to verify"'
+  id: totrans-42
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"难以证明，易于验证"'
 - en: Often an algorithm to find a result can be complicated, but verifying the answer
     is easy.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，查找结果的算法可能很复杂，但验证答案很容易。
 - en: In the diagram below, we can see that finding a route through a maze is hard,
     but checking that it works is trivial!
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的图表中，我们可以看到，在迷宫中找到一条路线是困难的，但检查它是否有效是微不足道的！
 - en: '![Hard to find, easy to verify](property_easy_verification.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![难以发现，易于验证](property_easy_verification.png)'
 - en: Many famous problems are of this sort, such as prime number factorization. But
     this approach can be used for even simple problems.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多著名的问题都属于这种类型，例如质数分解。但这种方法甚至可以用于简单的问题。
 - en: For example, you might check that a string tokenizer works by just concatenating
     all the tokens again. The resulting string should be the same as what you started
     with.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，您可能会通过将所有标记再次连接来检查字符串分词器的工作。结果字符串应该与您开始的字符串相同。
 - en: '"The test oracle"'
+  id: totrans-48
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"测试预言"'
 - en: In many situations you often have an alternate version of an algorithm or process
     (a "test oracle") that you can use to check your results.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，您通常会有一个算法或流程的备用版本（一个"测试预言"），您可以使用它来检查您的结果。
 - en: '![Test Oracle](property_test_oracle.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![测试预言](property_test_oracle.png)'
 - en: For example, you might have a high-performance algorithm with optimization tweaks
     that you want to test. In this case, you might compare it with a brute force algorithm
     that is much slower but is also much easier to write correctly.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，您可能有一个高性能算法，带有优化调整，您想要测试。在这种情况下，您可能会将其与一个明显较慢但编写正确更容易的暴力算法进行比较。
 - en: Similarly, you might compare the result of a parallel or concurrent algorithm
     with the result of a linear, single thread version.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，您可能会将并行或并发算法的结果与线性的单线程版本的结果进行比较。
 - en: Putting the categories to work with some real examples
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将这些类别应用到一些实际例子中
 - en: In this section, we'll apply these categories to see if we can come up with
     properties for some simple functions such as "sort a list" and "reverse a list".
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将应用这些分类来看看是否可以为一些简单函数（如“对列表排序”和“反转列表”）提出属性。
 - en: '"Different paths, same destination" applied to a list sort'
+  id: totrans-55
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: “不同路径，同一目的地”应用于列表排序
 - en: Let's start with *"different paths, same destination"* and apply it to a "list
     sort" function.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从“*不同路径，同一目的地*”开始，将其应用于“列表排序”功能。
 - en: Can we think of any way of combining an operation *before* `List.sort`, and
     another operation *after* `List.sort`, so that you should end up with the same
     result? That is, so that "going up then across the top" is the same as "going
     across the bottom then up".
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们能想到任何一种方法将一个操作*放在*`List.sort`之前，另一个操作*放在*`List.sort`之后，以便最终得到相同的结果吗？也就是说，“先向上再横穿顶部”与“横穿底部再向上”是一样的。
 - en: '![List sort?](property_list_sort.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![进行列表排序？](property_list_sort.png)'
 - en: How about this?
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样怎么样？
 - en: '**Path 1:** We add one to each element of the list, then sort.'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**路径1：** 我们对列表的每个元素加1，然后排序。'
 - en: '**Path 2:** We sort, then add one to each element of the list.'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**路径2：** 我们先排序，然后对列表的每个元素加1。'
 - en: Both lists should be equal.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两个列表应该是相等的。
 - en: '![List sort with +1](property_list_sort1.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![加1进行列表排序](property_list_sort1.png)'
 - en: 'Here''s some code that implements that property:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一些实现该属性的代码：
 - en: '[PRE0]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Well, that works, but it also would work for a lot of other transformations
     too. For example, if we implemented `List.sort` as just the identity, then this
     property would be satisfied equally well! You can test this for yourself:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，这样做可以，但对于许多其他转换也同样适用。例如，如果我们将`List.sort`实现为恒等式，那么同样也满足这一属性！你可以自己测试一下：
 - en: '[PRE1]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The problem with this property is that it is not exploiting any of the "sortedness".
     We know that a sort will probably reorder a list, and certainly, the smallest
     element should be first.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个属性的问题在于它没有利用任何“有序性”。我们知道排序可能会重新排列列表，而且最小的元素肯定应该排在第一位。
 - en: How about adding an item that we *know* will come at the front of the list after
     sorting?
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何添加一个我们*知道*在排序后将出现在列表最前面的项目呢？
 - en: '**Path 1:** We append `Int32.MinValue` to the *end* of the list, then sort.'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**路径1：** 我们将`Int32.MinValue`追加到列表的*末尾*，然后排序。'
 - en: '**Path 2:** We sort, then prepend `Int32.MinValue` to the *front* of the list.'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**路径2：** 我们先排序，然后在列表*前面*添加`Int32.MinValue`。'
 - en: Both lists should be equal.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两个列表应该是相等的。
 - en: '![List sort with minValue](property_list_sort2.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![以minValue进行列表排序](property_list_sort2.png)'
 - en: 'Here''s the code:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE2]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The bad implementation fails now!
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 糟糕的实现现在失败了！
 - en: '[PRE3]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: In other words, the bad sort of `[0; minValue]` is *not* the same as `[minValue;
     0]`.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，`[0; minValue]`的糟糕排序*不同于*`[minValue; 0]`。
 - en: So that's good!
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这很好！
 - en: But... we've got some hard coded things in there that the Enterprise Developer
     From Hell ([see previous post](property-based-testing.html)) could take advantage
     of! The EDFH will exploit the fact that we always use `Int32.MinValue` and that
     we always prepend or append it to the test list.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是...我们在其中有一些硬编码的东西，这是“地狱企业开发人员”（[请参见先前的帖子](property-based-testing.html)）可能会利用的！EDFH将利用我们总是使用`Int32.MinValue`并且总是将其追加或添加到测试列表中的事实。
 - en: 'In other words, the EDFH can identify which path we are on and have special
     cases for each one:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，EDFH可以识别我们所处的路径，并针对每条路径设置特殊情况：
 - en: '[PRE4]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: And when we check it...
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们检查它时...
 - en: '[PRE5]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: We could fix this by (a) picking a random number smaller than any number in
     the list and (b) inserting it at a random location rather than always appending
     it. But rather than getting too complicated, let's stop and reconsider.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过（a）选择一个比列表中任何数字都小的随机数，并且（b）将其插入到一个随机位置而不总是追加它来修复这个问题。但是与其变得过于复杂，不如停下来重新考虑一下。
 - en: An alternative approach which also exploits the "sortedness" is to first negate
     all the values, then on the path that negates *after* the sort, add an extra reverse
     as well.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种利用“有序性”的替代方法是首先对所有值取负，然后在在对值进行排序之后进行取负的路径上，也添加一个额外的反转操作。
 - en: '![List sort with negate](property_list_sort3.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![进行负数列表排序](property_list_sort3.png)'
 - en: '[PRE6]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'This property is harder for the EDFH to beat because there are no magic numbers
     to help identify which path you are on:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个属性对EDFH来说更难击败，因为没有魔术数字来帮助确定您所处的路径：
 - en: '[PRE7]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: You might argue that we are only testing sorting for lists of integers. But
     the `List.sort` function is generic and knows nothing about integers per se, so
     I have high confidence that this property does test the core sorting logic.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会争辩说我们只是对整数列表进行排序测试。但`List.sort`函数是通用的，并不知道整数的特性，因此我对这个属性的测试逻辑有很高的信心。
 - en: Applying "different paths, same destination" to a list reversal function
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将“不同的路径，相同的目标”应用到列表反转函数
 - en: Ok, enough of `List.sort`. What about applying the same ideas to the list reversal
     function?
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 好了，`List.sort`就够了。那么应用相同的思想到列表反转函数呢？
 - en: 'We can do the same append/prepend trick:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用同样的附加/前置技巧：
 - en: '![List reverse](property_list_rev.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![列表反转](property_list_rev.png)'
 - en: 'Here''s the code for the property:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是属性的代码：
 - en: '[PRE8]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Here are the test results for the correct function and for two incorrect functions:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是正确函数和两个不正确函数的测试结果：
 - en: '[PRE9]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: You might notice something interesting here. I never specified the type of the
     list. The property works with *any* list.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能注意到这里有一些有趣的东西。我从未指定过列表的类型。该属性适用于*任何*列表。
 - en: In cases like these, FsCheck will generate random lists of bools, strings, ints,
     etc.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这样的情况下，FsCheck 将生成布尔值、字符串、整数等的随机列表。
 - en: In both failing cases, the `anyValue` is a bool. So FsCheck is using lists of
     bools to start with.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在两种失败的情况下，`anyValue`都是布尔值。所以 FsCheck 使用的是布尔值的列表作为起点。
 - en: 'Here''s an exercise for you: Is this property good enough? Is there some way
     that the EDFH can create an implementation that will pass?'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个练习给你：这个属性足够好吗？是否有某种方式 EDFH 可以创建一个能够通过的实现？
 - en: '"There and back again"'
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “来而复返”
 - en: Sometimes the multi-path style properties are not available or too complicated,
     so let's look at some other approaches.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时多路径样式属性不可用或过于复杂，所以让我们看看其他方法。
 - en: We'll start with properties involving inverses.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从涉及反向的属性开始。
 - en: Let's start with list sorting again. Is there an inverse to sorting? Hmmm, not
     really. So we'll skip sorting for now.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次从列表排序开始。排序是否有逆？嗯，不是真的。所以我们暂时跳过排序。
 - en: What about list reversal? Well, as it happens, reversal is its own inverse!
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 列表反转怎么样？嗯，碰巧反转就是它自己的逆！
 - en: '![List reverse with inverse](property_list_rev_inverse.png)'
+  id: totrans-109
   prefs: []
   type: TYPE_IMG
+  zh: '![具有逆属性的列表反转](property_list_rev_inverse.png)'
 - en: 'Let''s turn that into a property:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将其转化为一个属性：
 - en: '[PRE10]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'And it passes:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且通过了：
 - en: '[PRE11]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Unfortunately, a bad implementation satisfies the property too!
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，一个糟糕的实现也满足该属性！
 - en: '[PRE12]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Nevertheless, the use of properties involving inverses can be very useful to
     verify that your inverse function (such as deserialization) does indeed "undo"
     the primary function (such as serialization).
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，涉及反向的属性的使用可以非常有用，以验证您的反向函数（如反序列化）确实“撤销”了主要函数（如序列化）。
 - en: We'll see some real examples of using this in the next post.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一篇文章中看到一些真实的使用示例。
 - en: '"Hard to prove, easy to verify"'
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “难以证明，易于验证”
 - en: So far we've been testing properties without actually caring about the end result
     of an operation.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们一直在测试属性，而实际上并不关心操作的最终结果。
 - en: But of course in practice, we do care about the end result!
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是当然在实践中，我们确实关心最终结果！
 - en: Now we normally can't really tell if the result is right without duplicating
     the function under test. But often we can tell that the result is *wrong* quite
     easily. In the maze diagram from above, we can easily check whether the path works
     or not.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在通常我们无法真正确定结果是否正确，而不重复测试功能。但是通常我们可以很容易地确定结果是否*错误*。在上面的迷宫图中，我们可以轻松检查路径是否有效。
 - en: If we are looking for the *shortest* path, we might not be able to check it,
     but at least we know that we have *some* valid path.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们正在寻找*最短*路径，我们可能无法检查它，但至少我们知道我们有*一些*有效的路径。
 - en: This principle can be applied quite generally.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个原则可以相当普遍地应用。
 - en: For example, let's say that we want to check whether a `string split` function
     is working. We don't have to write a tokenizer -- all we have to do is ensure
     that the tokens, when concatenated, give us back the original string!
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们想要检查`string split`函数是否正常工作。我们不必编写一个标记生成器——我们所要做的就是确保这些标记，当连接在一起时，能够还原出原始字符串！
 - en: '![String split property](property_string_split.png)'
+  id: totrans-125
   prefs: []
   type: TYPE_IMG
+  zh: '![字符串分割属性](property_string_split.png)'
 - en: 'Here''s the core code from that property:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是该属性的核心代码：
 - en: '[PRE13]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: But how can we create an original string? The random strings generated by FsCheck
     are unlikely to contain many commas!
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我们如何创建一个原始字符串呢？FsCheck 生成的随机字符串不太可能包含许多逗号！
 - en: There are ways that you can control exactly how FsCheck generates random data,
     which we'll look at later.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 有方法可以精确控制 FsCheck 生成随机数据的方式，我们稍后会看一下。
 - en: For now though, we'll use a trick. The trick is to let FsCheck generate a list
     of random strings, and then we'll build an `originalString` from them by concatting
     them together.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 不过，目前我们会使用一个技巧。技巧是让 FsCheck 生成一个随机字符串列表，然后我们将通过将它们连接在一起构建一个`originalString`。
 - en: 'So here''s the complete code for the property:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这是属性的完整代码：
 - en: '[PRE14]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'When we test this we are happy:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们测试这个时，我们很高兴：
 - en: '[PRE15]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '"Hard to prove, easy to verify" for list sorting'
+  id: totrans-135
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '"难以证明，易于验证"的列表排序'
 - en: So how can we apply this principle to a sorted list? What property is easy to
     verify?
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们如何将这个原则应用到排序列表中？有什么属性是容易验证的？
 - en: The first thing that pops into my mind is that for each pair of elements in
     the list, the first one will be smaller than the second.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 我脑海中首先浮现的是列表中每对元素，第一个元素将小于第二个元素。
 - en: '![Pairwise property](property_list_sort_pairwise.png)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![成对属性](property_list_sort_pairwise.png)'
 - en: 'So let''s make that into a property:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以让我们将其��定为一个属性：
 - en: '[PRE16]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: But something funny happens when we try to check it. We get an error!
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 但当我们尝试检查时，出现了一个有趣的错误！
 - en: '[PRE17]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'What does `System.Exception: type not handled System.IComparable` mean? It
     means that FsCheck is trying to generate a random list, but all it knows is that
     the elements must be `IComparable`. But `IComparable` is not a type than can be
     instantiated, so FsCheck throws an error.'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '`System.Exception: type not handled System.IComparable` 是什么意思？这意味着 FsCheck
+    正在尝试生成一个随机列表，但它只知道元素必须是`IComparable`。但`IComparable`不是一个可以实例化的类型，所以 FsCheck 抛出错误。'
 - en: 'How can we prevent this from happening? The solution is to specify a particular
     type for the property, such as `int list`, like this:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何防止这种情况发生？解决方案是为属性指定一个特定类型，比如`int list`，像这样：
 - en: '[PRE19]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This code works now.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码现在可以工作了。
 - en: '[PRE20]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Note that even though the property has been constrained, the property is still
     a very general one. We could have used `string list` instead, for example, and
     it would work just the same.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，即使属性已被约束，该属性仍然是一个非常通用的属性。例如，我们可以使用`string list`，它也会正常工作。
 - en: '[PRE21]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '**TIP: If FsCheck throws "type not handled", add explicit type constraints
     to your property**'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示：如果 FsCheck 抛出 "type not handled"，请为属性添加显式类型约束**'
 - en: Are we done now? No! One problem with this property is that it doesn't catch
     malicious implementations by the EDFH.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们完成了吗？不！这个属性的一个问题是它不能捕捉到 EDFH 的恶意实现。
 - en: '[PRE22]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Is it a surprise to you that a silly implementation also works?
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会感到惊讶吗？一个愚蠢的实现也能奏效吗？
 - en: Hmmm. That tells us that there must be some property *other than pairwise ordering*
     associated with sorting that we've overlooked. What are we missing here?
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯。这告诉我们，在排序中必须有一些*不同于成对顺序*的属性，我们忽略了什么？我们漏掉了什么？
 - en: This is a good example of how doing property-based testing can lead to insights
     about design. We thought we knew what sorting meant, but we're being forced to
     be a bit stricter in our definition.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个很好的例子，说明基于属性的测试如何带来关于设计的见解。我们以为我们知道排序的含义，但我们被迫对我们的定义更加严格。
 - en: As it happens, we'll fix this particular problem by using the next principle!
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 恰好，我们将通过使用下一个原则来解决这个特定问题！
 - en: '"Some things never change"'
+  id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '"有些事情永远不会改变"'
 - en: A useful kind of property is based on an invariant that is preserved after some
     transformation, such as preserving length or contents.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种有用的属性类型是基于在某些转换后保持不变的不变量，比如保持长度或内容。
 - en: They are not normally sufficient in themselves to ensure a correct implementation,
     but they *do* often act as a counter-check to more general properties.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们通常本身不足以确保正确的实现，但它们*经常*作为对更一般属性的反向检查。
 - en: For example, in [the previous post](property-based-testing.html), we created
     commutative and associative properties for addition, but then noticed that simply
     having an implementation that returned zero would satisfy them just as well! It
     was only when we added `x + 0 = x` as a property that we could eliminate that
     particular malicious implementation.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在[上一篇文章](property-based-testing.html)中，我们为加法创建了可交换和可结合的属性，但后来注意到，只需返回零的实现也能满足它们！只有当我们添加`x
+    + 0 = x`作为属性时，我们才能消除那种恶意实现。
 - en: And in the "list sort" example above, we could satisfy the "pairwise ordered"
     property with a function that just returned an empty list! How could we fix that?
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的"列表排序"示例中，我们可以通过一个只返回空列表的函数满足"成对排序"属性！我们该如何修复这个问题？
 - en: Our first attempt might be to check the length of the sorted list. If the lengths
     are different, then the sort function obviously cheated!
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的第一次尝试可能是检查排序列表的长度。如果长度不同，那么排序函数显然作弊了！
 - en: '[PRE23]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'We check it and it works:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们检查了它，它奏效了：
 - en: '[PRE24]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'And yes, the bad implementation fails:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，糟糕的实现失败了：
 - en: '[PRE25]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Unfortunately, the BDFH is not defeated and can come up with another compliant
     implementation! Just repeat the first element N times!
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，BDFH 没有被打败，可以提出另一个符合条件的实现！只需重复第一个元素 N 次！
 - en: '[PRE26]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'Now when we test this, it passes:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在当我们测试这个时，它通过了：
 - en: '[PRE27]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: What's more, it also satisfies the pairwise property too!
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 更重要的是，它还满足了成对性质！
 - en: '[PRE28]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Sort invariant - 2nd attempt
+  id: totrans-175
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 排序不变性 - 第二次尝试
 - en: So now we have to try again. What is the difference between the real result
     `[1;2;3]` and the fake result `[1;1;1]`?
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们必须再试一次。 真结果`[1;2;3]`与假结果`[1;1;1]`之间有什么区别？
 - en: 'Answer: the fake result is throwing away data. The real result always contains
     the same contents as the original list, but just in a different order.'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案：假结果是丢弃数据。 真结果始终包含与原始列表相同的内容，只是顺序不同。
 - en: '![Permutation property](property_list_sort_permutation.png)'
+  id: totrans-178
   prefs: []
   type: TYPE_IMG
+  zh: '![排列属性](property_list_sort_permutation.png)'
 - en: 'That leads us to a new property: a sorted list is always a permutation of the
     original list. Aha! Let''s write the property in terms of permutations now:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致我们有了一个新的属性：排序列表始终是原始列表的排列。 啊哈！ 现在让我们用排列来写属性：
 - en: '[PRE29]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Great, now all we need is a permutation function.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 很好，现在我们只需要一个排列函数。
 - en: 'Let''s head over to StackOverflow and ~~steal~~ [borrow an implementation](http://stackoverflow.com/a/4610704/1136133).
     Here it is:'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们转到StackOverflow，并~~偷~~ [借用一个实现](http://stackoverflow.com/a/4610704/1136133)。
+    在这里：
 - en: '[PRE30]'
+  id: totrans-183
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'Some quick interactive tests confirm that it works as expected:'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些快速的交互式测试证实它按预期工作：
 - en: '[PRE31]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'Excellent! Now let''s run FsCheck:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 太好了！ 现在让我们运行FsCheck：
 - en: '[PRE32]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: Hmmm. That's funny, nothing seems to be happening. And my CPU is maxing out
     for some reason. What's going on?
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯。 这很有趣，似乎什么都没有发生。 而且我的CPU出现了某些原因的最大化。 发生了什么？
 - en: What's going on is that you are going to be sitting there for a long time! If
     you are following along at home, I suggest you right-click and cancel the interactive
     session now.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生的情况是你将会长时间坐在那里！ 如果您正在家中跟着做，请右键单击并取消交互式会话。
 - en: The innocent looking `permutations` is really *really* slow for any normal sized
     list. For example, a list of just 10 items has 3,628,800 permutations. While with
     20 items, you are getting to astronomical numbers.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 看似无害的`permutations`对于任何正常大小的列表来说确实*非常*慢。 例如，仅有10个项目的列表就有3,628,800个排列。 而对于20个项目，您将得到天文数字。
 - en: 'And of course, FsCheck will be doing hundreds of these tests! So this leads
     to an important tip:'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，FsCheck会进行数百次这样的测试！ 这导致了一个重要的提示：
 - en: '**TIP: Make sure your property checks are very fast. You will be running them
     a LOT!**'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示：确保您的属性检查非常快速。 你会频繁运行它们的！**'
 - en: We've already seen that even in the best case, FsCheck will evaluate the property
     100 times. And if shrinking is needed, even more. So make sure your tests are
     fast to run!
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到，即使在最好的情况下，FsCheck也会评估属性100次。 如果需要收缩，甚至更多。 因此，请确保您的测试运行速度快！
 - en: But what happens if you are dealing with real systems such as databases, networks,
     or other slow dependencies?
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，如果你要处理真实系统，比如数据库、网络或其他缓慢的依赖关系，会发生什么呢？
 - en: In his (highly recommended) [video on using QuickCheck](http://vimeo.com/68383317),
     John Hughes tells of when his team was trying to detect flaws in a distributed
     data store that could be caused by network partitions and node failures.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 在他（强烈推荐的）[关于使用QuickCheck的视频](http://vimeo.com/68383317)中，约翰·休斯讲述了他的团队试图检测由网络分区和节点故障引起的分布式数据存储中的缺陷。
 - en: Of course, killing real nodes thousands of times was too slow, so they extracted
     the core logic into a virtual model, and tested that instead. As a result, the
     code was *later refactored* to make this kind of testing easier. In other words,
     property-based testing influenced the design of the code, just as TDD would.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，杀死真实节点数千次太慢了，所以他们将核心逻辑提取到了虚拟模型中，并对其进行了测试。 结果，代码*后来被重构*以使此类测试更容易。 换句话说，基于属性的测试影响了代码的设计，就像TDD一样。
 - en: Sort invariant - 3rd attempt
+  id: totrans-197
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 排序不变性 - 第三次尝试
 - en: Ok, so we can't use permutations by just looping through them. So let's use
     the same idea but write a function that is specific for this case, a `isPermutationOf`
     function.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，所以我们不能只通过循环来使用排列。 那么让我们使用相同的想法，但编写一个特定于此案例的函数，一个`isPermutationOf`函数。
 - en: '[PRE33]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'Here''s the code for `isPermutationOf` and its associated helper functions:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`isPermutationOf`及其相关辅助函数的代码：
 - en: '[PRE34]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: Let's try the test again. And yes, this time it completes before the heat death
     of the universe.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次尝试测试。 是的，这次它在宇宙热寂之前完成了。
 - en: '[PRE35]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: What's also great is that the malicious implementation now fails to satisfy
     this property!
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 更棒的是，恶意实现现在无法满足这个性质了！
 - en: '[PRE36]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: In fact, these two properties, `adjacent pairs from a list should be ordered`
     and `a sorted list has same contents as the original list` should indeed ensure
     that any implementation is correct.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，这两个属性，`列表中的相邻对应应该是有序的`和`排序后的列表与原始列表具有相同的内容`确实应该确保任何实现都是正确的。
 - en: 'Sidebar: Combining properties'
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 侧边栏：组合属性
 - en: Just above, we noted that there were *two* properties needed to define the "is
     sorted" property. It would be nice if we could combine them into one property
     `is sorted` so that we can have a single test.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 就在上面，我们注意到定义“已排序”属性需要*两个*属性。如果我们能将它们合并成一个`已排序`属性，这样我们就可以进行单一测试。
 - en: Well, of course we can always merge the two sets of code into one function,
     but it's preferable to keep functions as small as possible. Furthermore, a property
     like `has same contents` might be reusable in other contexts as well.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们总是可以将两组代码合并成一个函数，但最好尽可能保持函数尽可能小。此外，像`具有相同内容`这样的属性可能在其他情境中也是可重用的。
 - en: What we want then, is an equivalent to `AND` and `OR` that is designed to work
     with properties.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们想要的是一个与属性一起工作的`AND`和`OR`的等效物。
 - en: 'FsCheck to the rescue! There are built in operators to combine properties:
     `.&.` for `AND` and `.|.` for `OR`.'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: FsCheck 来拯救！有内置运算符可以组合属性：`.&.` 用于`AND`和`.|.` 用于`OR`。
 - en: 'Here is an example of them in use:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是它们的一个使用示例：
 - en: '[PRE37]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: When we test the combined property with a good implementation of `sort`, everything
     works as expected.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们用一个良好的`sort`实现测试组合属性时，一切都按预期运行。
 - en: '[PRE38]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: And if we test a bad implementation, the combined property fails as well.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们测试一个糟糕的实现时，组合属性也会失败。
 - en: '[PRE39]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: But there's a problem now. Which of the two properties failed?
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在出现了一个问题。这两个属性中的哪一个失败了？
 - en: 'What we would like to do is add a "label" to each property so that we can tell
     them apart. In FsCheck, this is done with the `|@` operator:'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们想要做的是给每个属性添加一个“标签”，这样我们就可以区分它们。在 FsCheck 中，这是通过 `|@` 运算符实现的：
 - en: '[PRE40]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: 'And now, when we test with the bad sort, we get a message `Label of failing
     property: a sorted list has same contents as the original list`:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，当我们用糟糕的排序进行测试时，我们会得到一条消息 `失败属性的标签：排序后的列表与原始列表具有相同的内容`：
 - en: '[PRE41]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: For more on these operators, [see the FsCheck documentation under "And, Or and
     Labels"](https://fsharp.github.io/FsCheck/Properties.html).
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 想了解更多关于这些运算符的信息，请查看 [FsCheck 文档中的"And, Or and Labels"部分](https://fsharp.github.io/FsCheck/Properties.html)。
 - en: And now, back to the property-divising strategies.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，回到属性设计策略。
 - en: '"Solving a smaller problem"'
+  id: totrans-225
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '"解决一个较小的问题"'
 - en: Sometimes you have a recursive data structure or a recursive problem. In these
     cases, you can often find a property that is true of a smaller part.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候你会遇到一个递归数据结构或者一个递归问题。在这些情况下，你通常可以找到一个对于较小部分有效的属性。
 - en: 'For example, for a sort, we could say something like:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，对于一个排序，我们可以说类似这样的话：
 - en: '[PRE42]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'Here is that logic expressed in code:'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是用代码表达的逻辑：
 - en: '[PRE43]'
+  id: totrans-230
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'This property is satisfied by the real sort function:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个属性由真正的排序函数满足：
 - en: '[PRE44]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: But unfortunately, just like previous examples, the malicious implementations
     also pass.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 但不幸的是，就像之前的例子一样，恶意实现也会通过。
 - en: '[PRE45]'
+  id: totrans-234
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: So as before, we'll need another property (such as the `has same contents` invariant)
     to ensure that the code is correct.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，和之前一样，我们需要另一个属性（比如`具有相同内容`的不变性）来确保代码是正确的。
 - en: If you do have a recursive data structure, then try looking for recursive properties.
     They are pretty obvious and low hanging, when you get the hang of it.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个递归数据结构，那么尝试寻找递归属性。当你掌握了这个技巧时，它们会显而易见且容易实现。
 - en: Is the EDFH really a problem?
+  id: totrans-237
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: EDFH 真的是一个问题吗？
 - en: In the last few examples, I've noted that trivial but wrong implementations
     often satisfy the properties as well as good implementations.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最近的几个例子中，我注意到，琐碎但错误的实现通常也会满足属性，就像良好的实现一样。
 - en: But should we *really* spend time worrying about this? I mean, if we ever really
     released a sort algorithm that just duplicated the first element it would be obvious
     immediately, surely?
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我们*真的*需要花时间担心这个吗？我的意思是，如果我们真的发布了一个只复制第一个元素的排序算法，那肯定会立即显而易见，对吧？
 - en: So yes, it's true that truly malicious implementations are unlikely to be a
     problem. On the other hand, you should think of property-based testing not as
     a *testing* process, but as a *design* process -- a technique that helps you clarify
@@ -911,705 +1394,1089 @@
     satisfied with just a simple implementation, then perhaps there is something you
     have overlooked -- something that, when you discover it, will make your design
     both clearer and more robust.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，确实恶意实现不太可能成为问题。另一方面，你应该将基于属性的测试视为*设计*过程而不是*测试*过程--一种帮助你澄清系统真正要做什么的技术。如果你的设计的一个关键方面只需一个简单的实现就能满足，那么也许你忽视了一些东西--当你发现它时，将使你的设计更清晰和更健壮。
 - en: '"The more things change, the more they stay the same"'
+  id: totrans-241
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “变化的事物越多，不变的事物越多”
 - en: Our next type of property is "idempotence". Idempotence simply means that doing
     something twice is the same as doing it once. If I tell you to "sit down" and
     then tell you to "sit down" again, the second command has no effect.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们下一个属性类型是“幂等性”。幂等性简单地意味着做两次与做一次相同。如果我告诉你“坐下”，然后再告诉你“坐下”，第二个命令没有效果。
 - en: Idempotence is [essential for reliable systems](https://queue.acm.org/detail.cfm?id=2187821)
     and is [a key aspect of service oriented](http://soapatterns.org/design_patterns/idempotent_capability)
     and message-based architectures.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 幂等性是[可靠系统的关键](https://queue.acm.org/detail.cfm?id=2187821)，也是[面向服务的](http://soapatterns.org/design_patterns/idempotent_capability)和基于消息的架构的关键方面。
 - en: If you are designing these kinds of real-world systems it is well worth ensuring
     that your requests and processes are idempotent.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在设计这种真实世界的系统，确保你的请求和流程是幂等的是非常值得的。
 - en: I won't go too much into this right now, but let's look at two simple examples.
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 我现在不会深入讨论这个问题，但让我们看两个简单的例子。
 - en: First, our old friend `sort` is idempotent (ignoring stability) while `reverse`
     is not, obviously.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们的老朋友`sort`是幂等的（忽略稳定性），而`reverse`显然不是。
 - en: '[PRE46]'
+  id: totrans-247
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'In general, any kind of query should be idempotent, or to put it another way:
     ["asking a question should not change the answer"](https://en.wikipedia.org/wiki/Command%E2%80%93query_separation).'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，任何类型的查询都应该是幂等的，或者换句话说：“提问不应该改变答案”。
 - en: In the real world, this may not be the case. A simple query on a datastore run
     at different times may give different results.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现实世界中，情况可能并非如此。在不同时间运行的数据存储查询可能会得到不同的结果。
 - en: Here's a quick demonstration.
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个快速演示。
 - en: First we'll create a `NonIdempotentService` that gives different results on
     each query.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先我们将创建一个`NonIdempotentService`，每次查询都会得到不同的结果。
 - en: '[PRE47]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'But if we test it now, we find that it does not satisfy the required idempotence
     property:'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是如果我们现在测试它，我们会发现它不满足所需的幂等性属性：
 - en: '[PRE48]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: As an alternative, we can create a (crude) `IdempotentService` that requires
     a timestamp for each transaction. In this design, multiple GETs using the same
     timestamp will always retrieve the same data.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为替代方案，我们可以创建一个（粗糙的）`IdempotentService`，每个事务都需要一个时间戳。在这种设计中，使用相同时间戳的多个GET请求将始终检索相同的数据。
 - en: '[PRE49]'
+  id: totrans-256
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: 'And this one works:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个是有效的：
 - en: '[PRE50]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: So, if you are building a REST GET handler or a database query service, and
     you want idempotence, you should consider using techniques such as etags, "as-of"
     times, date ranges, etc.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果你正在构建一个REST GET处理程序或数据库查询服务，并且希望具有幂等性，你应该考虑使用诸如ETags、“as-of”时间、日期范围等技术。
 - en: If you need tips on how to do this, searching for [idempotency patterns](http://blog.jonathanoliver.com/idempotency-patterns/)
     will turn up some good results.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要关于如何做到这一点的提示，搜索[idempotency patterns](http://blog.jonathanoliver.com/idempotency-patterns/)会得到一些很好的结果。
 - en: '"Two heads are better than one"'
+  id: totrans-261
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “三个臭皮匠，顶个诸葛亮”
 - en: And finally, last but not least, we come to the "test oracle". A test oracle
     is simply an alternative implementation that gives the right answer, and that
     you can check your results against.
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后但同样重要的是，“测试神谕”。测试神谕只是一个给出正确答案的替代实现，你可以用它来检查你的结果。
 - en: Often the test oracle implementation is not suitable for production -- it's
     too slow, or it doesn't parallelize, or it's [too poetic](https://xkcd.com/1026/),
     etc., but that doesn't stop it being very useful for testing.
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常测试神谕的实现不适合生产环境--它太慢，无法并行化，或者太[诗意](https://xkcd.com/1026/)等，但这并不妨碍它在测试中非常有用。
 - en: 'So for "list sort", there are many simple but slow implementations around.
     For example, here''s a quick implementation of insertion sort:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于“列表排序”，周围有许多简单但速度慢的实现。例如，这里是插入排序的一个快速实现：
 - en: '[PRE51]'
+  id: totrans-265
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: With this in place, we can write a property that tests the result against insertion
     sort.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个设置，我们可以编写一个测试结果与插入排序相比较的属性。
 - en: '[PRE52]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: When we test the good sort, it works. Good!
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们测试良好的排序时，它起作用。很好！
 - en: '[PRE53]'
+  id: totrans-269
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: And when we test a bad sort, it doesn't. Even better!
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们测试糟糕的排序时，它不起作用。更好！
 - en: '[PRE54]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: Generating Roman numerals in two different ways
+  id: totrans-272
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 以两种不同的方式生成罗马数字
 - en: We can also use the test oracle approach to cross-check two different implementations
     when you're not sure that *either* implementation is right!
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你不确定*任何*实现是否正确时，我们也可以使用测试神谕方法互相交叉检查两种不同的实现！
 - en: For example, in my post ["Commentary on 'Roman Numerals Kata with Commentary'"](roman-numeral-kata.html)
     I came up with two completely different algorithms for generating Roman Numerals.
     Can we compare them to each other and test them both in one fell swoop?
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 举例来说，在我的帖子["对'罗马数字Kata的评论'"](roman-numeral-kata.html)中，我提出了两种完全不同的生成罗马数字的算法。我们能把它们互相对比，并一次性测试它们吗？
 - en: 'The first algorithm was based on understanding that Roman numerals were based
     on tallying, leading to this simple code:'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个算法是基于理解罗马数字是基于记数的，导致这段简单的代码：
 - en: '[PRE55]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: Another way to think about Roman numerals is to imagine an abacus. Each wire
     has four "unit" beads and one "five" bead.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种思考罗马数字的方式是想象一个算盘。每根线上有四个"单位"珠子和一个"五"珠子。
 - en: 'This leads to the so-called "bi-quinary" approach:'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致所谓的"双五"方法：
 - en: '[PRE56]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: We now have two completely different algorithms, and we can cross-check them
     with each other to see if they give the same result.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有两种完全不同的算法，我们可以互相交叉检查它们，看它们是否给出相同的结果。
 - en: '[PRE57]'
+  id: totrans-281
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: 'But if we try running this code, we get a `ArgumentException: The input must
     be non-negative` due to the `String.replicate` call.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '但是如果我们尝试运行这段代码，由于`String.replicate`调用，我们会得到一个`ArgumentException: The input
+    must be non-negative`。'
 - en: '[PRE58]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: So we need to only include inputs that are positive. We also need to exclude
     numbers that are greater than 4000, say, since the algorithms break down there
     too.
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以我们只需要包括正数作为输入。我们还需要排除大于4000的数字，因为算法在那里也会出问题。
 - en: How can we implement this filter?
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何实现这个过滤器？
 - en: We saw in the previous post that we could use preconditions. But for this example,
     we'll try something different and change the generator.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在上一篇帖子中看到我们可以使用先决条件。但是对于这个例子，我们将尝试一些不同的东西并更改生成器。
 - en: First we'll define a *new* arbitrary integer called `arabicNumber` which is
     filtered as we want (an "arbitrary" is a combination of a generator algorithm
     and a shrinker algorithm, as described in the previous post).
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先我们会定义一个*新的*称为`arabicNumber`的任意整数，它按我们想要的方式进行过滤（"任意"是一个生成算法和收缩算法的组合，如前面的帖子中所述）。
 - en: '[PRE59]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: Next, we create a new property *which is constrained to only use "arabicNumber"*
     by using the `Prop.forAll` helper.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们通过使用`Prop.forAll`助手，创建一个*只使用"arabicNumber"*的新属性。
 - en: We'll give the property the rather clever name of "for all values of arabicNumber,
     biquinary should give same result as tallying".
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们会给这个属性取一个相当聪明的名字，"对于所有值的arabicNumber，biquinary应该和记数相同"。
 - en: '[PRE60]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: 'Now finally, we can do the cross-check test:'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在最后，我们可以进行交叉检查测试：
 - en: '[PRE61]'
+  id: totrans-293
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: And we're good! Both algorithms work correctly, it seems.
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 一切都很好！两种算法都正确地工作了，看起来是这样的。
 - en: '"Model-based" testing'
+  id: totrans-295
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '"基于模型"的测试'
 - en: '"Model-based" testing, which we will discuss in more detail in a later post,
     is a variant on having a test oracle.'
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: '"基于模型"的测试，我们将在后续的帖子中详细讨论，是对测试神谕的一种变体。'
 - en: The way it works is that, in parallel with your (complex) system under test,
     you create a simplified model.
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 它的工作方式是，在对你的（复杂的）受测系统进行测试的同时，你创建一个简化模型。
 - en: Then, when you do something to the system under test, you do the same (but simplified)
     thing to your model.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，当你对受测系统执行某些操作时，你也对你的模型执行相同（但简化的）操作。
 - en: At the end, you compare your model's state with the state of the system under
     test. If they are the same, you're done. If not, either your SUT is buggy or your
     model is wrong and you have to start over!
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，你将你的模型状态与受测系统的状态进行比较。如果它们相同，你就完成了。如果不是，要么你的SUT有bug，要么你的模型是错误的，你需要重新开始！
 - en: 'Interlude: A game based on finding properties'
+  id: totrans-300
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 插曲：一个基于寻找属性的游戏
 - en: With that, we have come to the end of the various property categories. We'll
     go over them one more time in a minute -- but first, an interlude.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这些，我们已经完成了各种属性类别的讨论。我们马上会再次复习一遍--但首先，一个插曲。
 - en: If you sometimes feel that trying to find properties is a mental challenge,
     you're not alone. Would it help to pretend that it is a game?
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有时觉得寻找属性是一种心智挑战，那你并不孤单。假装这是一个游戏会有帮助吗？
 - en: As it happens, there *is* a game based on property-based testing.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 恰好有一个基于属性的测试游戏。
 - en: It's called [Zendo](http://boardgamegeek.com/boardgame/6830/zendo) and it involves
     placing sets of objects (such as plastic pyramids) on a table, such that each
     layout conforms to a pattern -- a rule -- or as we would now say, *a property*!.
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 它被称为 [Zendo](http://boardgamegeek.com/boardgame/6830/zendo)，它涉及在桌子上放置一组物体（例如塑料金字塔），使每个布局符合一个模式
+    -- 一个规则 -- 或者我们现在会说的 *一个属性*！。
 - en: The other players then have to guess what the rule (property) is, based on what
     they can see.
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后其他玩家必须根据他们所看到的来猜测规则（属性）是什么。
 - en: 'Here''s a picture of a Zendo game in progress:'
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个正在进行中的 Zendo 游戏的图片：
 - en: '![Zendo](zendo1.png)'
+  id: totrans-307
   prefs: []
   type: TYPE_IMG
+  zh: '![Zendo](zendo1.png)'
 - en: The white stones mean the property has been satisfied, while black stones mean
     failure. Can you guess the rule here? I'm going to guess that it's something like
     "a set must have a yellow pyramid that's not touching the ground".
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 白色石头表示属性已满足，而黑色石头表示失败。你能猜到这里的规则吗？我猜这是类似于“一个集合必须有一个不接触地面的黄色金字塔”的规则。
 - en: Alright, I suppose Zendo wasn't really inspired by property-based testing, but
     it is a fun game, and it has even been known to make an appearance at [programming
     conferences](https://thestrangeloop.com/sessions/zendo-%E2%80%93-the-scientific-method-in-a-box).
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，我想 Zendo 并不是真的受基于属性的测试启发，但这是一个有趣的游戏，甚至在 [编程会议](https://thestrangeloop.com/sessions/zendo-%E2%80%93-the-scientific-method-in-a-box)
+    上也曾出现过。
 - en: If you want to learn more about Zendo, [the rules are here](http://www.looneylabs.com/rules/zendo).
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想了解更多关于 Zendo 的信息，[规则在这里](http://www.looneylabs.com/rules/zendo)。
 - en: Applying the categories one more time
+  id: totrans-311
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 再次应用这些类别
 - en: With all these categories in hand, let's look at one more example problem, and
     see if we can find properties for it.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了所有这些类别，让我们再看一个例子问题，并看看我们能否找到它的属性。
 - en: This sample is based on the well-known `Dollar` example described in Kent Beck's
     "TDD By Example" book.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 此示例基于肯特·贝克的《测试驱动开发 by Example》一书中描述的著名的 `Dollar` 示例。
 - en: Nat Pryce, of [*Growing Object-Oriented Software Guided by Tests*](http://www.growing-object-oriented-software.com/)
     fame, wrote a blog post about property-based testing a while ago (["Exploring
     Test-Driven Development with QuickCheck"](http://www.natpryce.com/articles/000795.html)).
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*Growing Object-Oriented Software Guided by Tests*](http://www.growing-object-oriented-software.com/)
+    的 Nat Pryce 写了一篇关于基于属性的测试的博文（["Exploring Test-Driven Development with QuickCheck"](http://www.natpryce.com/articles/000795.html)）。'
 - en: In it, he expressed some frustration about property-based testing being useful
     in practice. So let's revisit the example he referenced and see what we can do
     with it.
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，他对基于属性的测试在实践中的有用性表达了一些挫折感。所以让我们重新审视他提到的例子，看看我们能做些什么。
 - en: We're not going to attempt to critique the design itself and make it more type-driven
     -- [others have done that](http://spin.atomicobject.com/2014/12/10/typed-language-tdd-part2/).
     Instead, we'll take the design as given and see what properties we can come up
     with.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不打算批评设计本身并使其更加类型驱动 -- [其他人已经做过了](http://spin.atomicobject.com/2014/12/10/typed-language-tdd-part2/)。相反，我们将接受设计并看看我们能想出什么属性。
 - en: So what do we have?
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们有什么呢？
 - en: A `Dollar` class that stores an `Amount`.
+  id: totrans-318
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个存储 `Amount` 的 `Dollar` 类。
 - en: Methods `Add` and `Times` that transform the amount in the obvious way.
+  id: totrans-319
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 方法 `Add` 和 `Times` 以明显的方式转换金额。
 - en: '[PRE62]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: 'So, first let''s try it out interactively to make sure it works as expected:'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，首先让我们交互式地尝试一下，以确保它按预期工作：
 - en: '[PRE63]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: But that's just playing around, not real testing. So what kind of properties
     can we think of?
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 但那只是玩耍，不是真正的测试。那么我们能想到什么样的属性呢？
 - en: 'Let''s run through them all again:'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次过一遍它们：
 - en: Different paths to same result
+  id: totrans-325
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同一结果的不同路径
 - en: Inverses
+  id: totrans-326
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 逆操作
 - en: Invariants
+  id: totrans-327
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不变量
 - en: Idempotence
+  id: totrans-328
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 幂等性
 - en: Structural induction
+  id: totrans-329
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 结构归纳
 - en: Easy to verify
+  id: totrans-330
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 易于验证
 - en: Test oracle
+  id: totrans-331
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 测试预测
 - en: Let's skip the "different paths" one for now. What about inverses? Are there
     any inverses we can use?
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们暂时跳过“不同路径”。逆操作呢？我们有没有可以使用的逆操作？
 - en: 'Yes, the setter and getter form an inverse that we can create a property from:'
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 是的，setter 和 getter 形成了一个可以创建属性的逆操作：
 - en: '[PRE64]'
+  id: totrans-334
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: 'Idempotence is relevant too. For example, doing two sets in a row should be
     the same as doing just one. Here''s a property for that:'
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 幂等性也是相关的。例如，连续进行两次设置应该与仅进行一次设置相同。这是一个对应的属性：
 - en: '[PRE65]'
+  id: totrans-336
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: Any "structural induction" properties? No, not relevant to this case.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 有任何“结构归纳”属性吗？不，对于这种情况不相关。
 - en: Any "easy to verify" properties? Not anything obvious.
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 有任何“易于验证”的属性吗？没有明显的。
 - en: Finally, is there a test oracle? No. Again not relevant, although if we really
     were designing a complex currency management system, it might be very useful to
     cross-check our results with a third party system.
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，有一个测试预言吗？没有。同样不相关，尽管如果我们真的在设计一个复杂的货币管理系统，与第三方系统交叉检查我们的结果可能非常有用。
 - en: Properties for an immutable Dollar
+  id: totrans-340
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一个不可变 Dollar 的属性
 - en: A confession! I cheated a bit in the code above and created a mutable class,
     which is how most OO objects are designed.
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个坦白！在上面的代码中，我有点作弊，创建了一个可变的类，这是大多数 OO 对象的设计方式。
 - en: But in "TDD by Example" , Kent quickly realizes the problems with that and changes
     it to an immutable class, so let me do the same.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在《TDD by Example》中，肯特很快意识到了这个问题，并将其更改为一个不可变类，所以让我也这样做。
 - en: 'Here''s the immutable version:'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是不可变版本：
 - en: '[PRE66]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: What's nice about immutable code is that we can eliminate the need for testing
     of setters, so the two properties we just created have now become irrelevant!
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可变代码的好处是我们可以消除对设置器的测试的需求，因此我们刚刚创建的两个属性现在已经变得不相关了！
 - en: To tell the truth they were pretty trivial anyway, so it's no great loss.
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: 说实话，它们本来就相当琐碎，所以也没什么大损失。
 - en: So then, what new properties can we devise now?
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，现在我们能想出什么新的属性呢？
 - en: Let's look at the `Times` method. How can we test that? Which one of the strategies
     can we use?
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看 `Times` 方法。我们如何测试呢？我们可以使用哪种策略之一呢？
 - en: I think the "different paths to same result" is very applicable. We can do the
     same thing we did with "sort" and do a times operation both "inside" and "outside"
     and see if they give the same result.
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为“不同路径得到相同结果”非常适用。我们可以像我们对“排序”所做的那样做一个“内部”和“外部”乘法操作，看看它们是否给出相同的结果。
 - en: '![Dollar times](property_dollar_times.png)'
+  id: totrans-350
   prefs: []
   type: TYPE_IMG
+  zh: '![Dollar times](property_dollar_times.png)'
 - en: 'Here''s that property expressed in code:'
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是用代码表达的那个属性：
 - en: '[PRE67]'
+  id: totrans-352
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: Great! Let's see if it works!
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！让我们看看它是否起作用！
 - en: '[PRE68]'
+  id: totrans-354
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: Oops -- it doesn't work!
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: 糟糕 -- 它不起作用了！
 - en: Why not? Because we forgot that `Dollar` is a reference type and doesn't compare
     equal by default!
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么不呢？因为我们忘记了 `Dollar` 是一个引用类型，默认情况下不会相等！
 - en: As a result of this mistake, we have discovered a property that we might have
     overlooked! Let's encode that before we forget.
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这个错误，我们发现了一个可能会被忽视的属性！在我们忘记之前，让我们对其进行编码。
 - en: '[PRE69]'
+  id: totrans-358
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: So now we need to fix this by adding support for `IEquatable` and so on.
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以现在我们需要通过添加对 `IEquatable` 的支持等来修复这个问题。
 - en: You can do that if you like -- I'm going to switch to F# record types and get
     equality for free!
+  id: totrans-360
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你愿意的话，你可以这样做 -- 我将切换到 F# 记录类型，并获得免费的相等性！
 - en: Dollar properties -- version 3
+  id: totrans-361
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Dollar 属性 -- 版本 3
 - en: 'Here''s the `Dollar` rewritten again:'
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是重写的 `Dollar`：
 - en: '[PRE70]'
+  id: totrans-363
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'And now our two properties are satisfied:'
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们的两个属性都满足了：
 - en: '[PRE71]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'We can extend this approach for different paths. For example, we can extract
     the amount and compare it directly, like this:'
+  id: totrans-366
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将这种方法扩展到不同的路径。例如，我们可以提取金额并直接比较，像这样：
 - en: '![Dollar times](property_dollar_times2.png)'
+  id: totrans-367
   prefs: []
   type: TYPE_IMG
+  zh: '![Dollar times](property_dollar_times2.png)'
 - en: 'The code looks like this:'
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码看起来像这样：
 - en: '[PRE72]'
+  id: totrans-369
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: And we can also include `Add` in the mix as well.
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以将 `Add` 包含在其中。
 - en: 'For example, we can do a `Times` followed by an `Add` via two different paths,
     like this:'
+  id: totrans-371
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们可以通过两条不同的路径执行 `Times` 然后是 `Add`，就像这样：
 - en: '![Dollar times](property_dollar_times3.png)'
+  id: totrans-372
   prefs: []
   type: TYPE_IMG
+  zh: '![Dollar times](property_dollar_times3.png)'
 - en: 'And here''s the code:'
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE73]'
+  id: totrans-374
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: So this "different paths, same result" approach is very fruitful, and we can
     generate *lots* of paths this way.
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这种“不同路径，相同结果”的方法非常有成效，我们可以以这种方式生成 *很多* 路径。
 - en: Dollar properties -- version 4
+  id: totrans-376
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Dollar 属性 -- 版本 4
 - en: Shall we call it done then? I would say not!
+  id: totrans-377
   prefs: []
   type: TYPE_NORMAL
+  zh: 那我们就算完成了吗？我会说没有！
 - en: We are beginning to get a whiff of a code smell. All this `(start * multiplier)
     + adder` code seems like a bit of duplicated logic, and could end up being brittle.
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们开始闻到一种代码气味。所有这些 `(start * multiplier) + adder` 代码似乎有些重复逻辑，并且可能会变得脆弱。
 - en: Can we abstract out some commonality that is present all these cases?
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们能否抽象出一些所有这些情况下都存在的共性呢？
 - en: 'If we think about it, our logic is *really* just this:'
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们考虑一下，我们的逻辑实际上只是这样的：
 - en: Transform the amount on the "inside" in some way.
+  id: totrans-381
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在某种程度上“内部”以某种方式转换金额。
 - en: Transform the amount on the "outside" in the same way.
+  id: totrans-382
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在相同的方式下“外部”转换金额。
 - en: Make sure that the results are the same.
+  id: totrans-383
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保结果相同。
 - en: But to test this, the `Dollar` class is going to have to support an arbitrary
     transform! Let's call it `Map`!
+  id: totrans-384
   prefs: []
   type: TYPE_NORMAL
+  zh: 但要测试这一点，`Dollar` 类将需要支持一个任意的转换！让我们称之为 `Map`！
 - en: 'Now all our tests can be reduced to this one property:'
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们所有的测试都可以简化为这一个属性：
 - en: '![Dollar map](property_dollar_map.png)'
+  id: totrans-386
   prefs: []
   type: TYPE_IMG
+  zh: '![Dollar map](property_dollar_map.png)'
 - en: 'Let''s add a `Map` method to `Dollar`. And we can also rewrite `Times` and
     `Add` in terms of `Map`:'
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们为`Dollar`添加一个`Map`方法。我们还可以用`Map`重新编写`Times`和`Add`：
 - en: '[PRE74]'
+  id: totrans-388
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: 'Now the code for our property looks like this:'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们的属性代码看起来像这样：
 - en: '[PRE75]'
+  id: totrans-390
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: But how can we test it now? What functions should we pass in?
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们该如何测试呢？我们应该传入什么函数？
 - en: Don't worry! FsCheck has you covered! In cases like this, FsCheck will actually
     generate random functions for you too!
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: 别担心！FsCheck已经为你准备好了！在这种情况下，FsCheck实际上也会为你生成随机函��！
 - en: Try it -- it just works!
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
+  zh: 试试看--它只是有效！
 - en: '[PRE76]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: Our new "map" property is much more general than the original property using
     "times", so we can eliminate the latter safely.
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的新的"map"属性比使用"times"的原始属性更通用，因此我们可以安全地消除后者。
 - en: Logging the function parameter
+  id: totrans-396
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 记录函数参数
 - en: There's a little problem with the property as it stands. If you want to see
     what the function is that FsCheck is generating, then Verbose mode is not helpful.
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前属性存在一个小问题。如果你想看看FsCheck生成的函数是什么，那么详细模式并不有用。
 - en: '[PRE77]'
+  id: totrans-398
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: 'Gives the output:'
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 给出输出：
 - en: '[PRE78]'
+  id: totrans-400
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: We can't tell what the function values actually were.
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们无法知道函数值实际是什么。
 - en: 'However, you can tell FsCheck to show more useful information by wrapping your
     function in a special `F` case, like this:'
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，你可以告诉FsCheck通过将你的函数包装在特殊的`F`情况中来显示更有用的信息，就像这样：
 - en: '[PRE79]'
+  id: totrans-403
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: And now when you use Verbose mode...
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在当你使用详细模式时...
 - en: '[PRE80]'
+  id: totrans-405
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: '... you get a detailed log of each function that was used:'
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
+  zh: '... 你会得到每个使用的函数的详细日志：'
 - en: '[PRE81]'
+  id: totrans-407
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: Each `{ 2->-2 }`, `{ 10->28 }`, etc., represents the function that was used
     for that iteration.
+  id: totrans-408
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个`{ 2->-2 }`，`{ 10->28 }`等，代表了该迭代中使用的函数。
 - en: TDD vs. property-based testing
+  id: totrans-409
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: TDD vs. 基于属性的测试
 - en: How does property-based testing (PBT) fit in with TDD? This is a common question,
     so let me quickly give you my take on it.
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于属性的测试（PBT）如何与TDD结合？这是一个常见问题，所以让我快速给出我的看法。
 - en: First off, TDD works with *specific examples*, while PBT works with *universal
     properties*.
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，TDD使用*具体示例*，而PBT使用*通用属性*。
 - en: As I said in the previous post, I think examples are useful as a way into a
     design, and can be a form of documentation. But in my opinion, relying *only*
     on example-based tests would be a mistake.
+  id: totrans-412
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我在之前的帖子中所说的，我认为示例对于设计是有用的，并且可以作为文档的一种形式。但在我看来，仅仅依赖基于示例的测试是一个错误。
 - en: 'Property-based approaches have a number of advantages over example-based tests:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于属性的方法比基于示例的测试有许多优点：
 - en: Property-based tests are more general, and thus are less brittle.
+  id: totrans-414
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于属性的测试更通用，因此更不容易脆弱。
 - en: Property-based tests provide a better and more concise description of requirements
     than a bunch of examples.
+  id: totrans-415
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于属性的测试提供了比一堆示例更好更简洁的需求描述。
 - en: As a consequence, one property-based test can replace many, many, example-based
     tests.
+  id: totrans-416
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，一个基于属性的测试可以替代许多基于示例的测试。
 - en: By generating random input, property-based tests often reveal issues that you
     have overlooked, such as dealing with nulls, missing data, divide by zero, negative
     numbers, etc.
+  id: totrans-417
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过生成随机输入，基于属性的测试通常会揭示你忽略的问题，比如处理空值、缺失数据、除零、负数等。
 - en: Property-based tests force you to think.
+  id: totrans-418
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于属性的测试迫使你思考。
 - en: Property-based tests force you to have a clean design.
+  id: totrans-419
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于属性的测试迫使你拥有清晰的设计。
 - en: These last two points are the most important for me. Programming is not a matter
     of writing lines of code, it is about creating a design that meets the requirements.
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
+  zh: 这最后两点对我来说是最重要的。编程不是写代码行的问题，而是创建符合要求的设计。
 - en: So, anything that helps you think deeply about the requirements and what can
     go wrong should be a key tool in your personal toolbox!
+  id: totrans-421
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，任何有助于深入思考需求和可能出错的东西都应该是你个人工具箱中的关键工具！
 - en: For example, in the Roman Numeral section, we saw that accepting `int` was a
     bad idea (the code broke!). We had a quick fix, but really we should model the
     concept of a `PositiveInteger` in our domain, and then change our code to use
     that type rather than just an `int`. This demonstrates how using PBT can actually
     improve your domain model, not just find bugs.
+  id: totrans-422
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在罗马数字部分，我们看到接受`int`是一个坏主意（代码崩溃了！）。我们有一个快速修复，但实际上我们应该在我们的领域中对`PositiveInteger`的概念进行建模，然后改变我们的代码以使用该类型而不仅仅是一个`int`。这展示了使用PBT实际上可以改进你的领域模型，而不仅仅是发现错误。
 - en: Similarly, introducing a `Map` method in the Dollar scenario not only made testing
     easier, but actually improved the usefulness of the Dollar "api".
+  id: totrans-423
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，在Dollar场景中引入`Map`方法不仅使测试更容易，而且实际上提高了Dollar "api"的实用性。
 - en: Stepping back to look at the big picture, though, TDD and property-based testing
     are not at all in conflict. They share the same goal of building correct programs,
     and both are really more about design than coding (think "Test-driven *design*"
     rather than "Test-driven *development*").
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 从宏观角度来看，TDD和基于属性的测试并不冲突。它们都有建立正确程序的相同目标，而且都更关注设计而不是编码（想想"测试驱动的*设计*"而不是"测试驱动的*开发*"）。
 - en: The end, at last
+  id: totrans-425
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 最后，结束了
 - en: So that brings us to the end of another long post on property-based testing!
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们又到了另一篇关于基于属性的测试的长篇文章的结尾！
 - en: I hope that you now have some useful approaches that you can take away and apply
     to your own code base.
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你现在有一些有用的方法可以带走，并应用到自己的代码库中。
 - en: Next time, we'll look at some real-world examples, and how you can create custom
     generators that match your domain.
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
+  zh: 下次，我们将看一些真实世界的例子，以及你如何创建符合你领域的自定义生成器。
 - en: '*The code samples used in this post are [available on GitHub](https://github.com/swlaschin/PropertyBasedTesting/blob/master/part2.fsx)*.'
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文中使用的代码示例可在[GitHub上获取](https://github.com/swlaschin/PropertyBasedTesting/blob/master/part2.fsx)*。'
