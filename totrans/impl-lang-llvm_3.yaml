@@ -1,0 +1,531 @@
+- en: Code Generation
+  id: totrans-0
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 代码生成
+- en: Code Generation to LLVM IR
+  id: totrans-1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 生成 LLVM IR 代码
+- en: Welcome to Chapter 3 of the "Implementing a language with LLVM" tutorial. This
+    chapter shows you how to transform the Abstract Syntax Tree, built in Chapter
+    2, into LLVM IR. This will teach you a little bit about how LLVM does things,
+    as well as demonstrate how easy it is to use. It's much more work to build a lexer
+    and parser than it is to generate LLVM IR code. :)
+  id: totrans-2
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 欢迎来到《使用 LLVM 实现语言》教程的第 3 章。本章将向您展示如何将第 2 章构建的抽象语法树转换为 LLVM IR。这将教会您一些关于 LLVM
+    的工作原理，并演示使用 LLVM 有多容易。构建词法分析器和解析器比生成 LLVM IR 代码要复杂得多。 :)
+- en: 'Please note: the code in this chapter and later require LLVM 2.2 or later.
+    LLVM 2.1 and before will not work with it. Also note that you need to use a version
+    of this tutorial that matches your LLVM release: If you are using an official
+    LLVM release, use the version of the documentation included with your release
+    or on the llvm.org releases page.'
+  id: totrans-3
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请注意：本章及后续章节中的代码需要 LLVM 2.2 或更高版本。LLVM 2.1 及之前的版本不适用于此。还请注意，您需要使用与您的 LLVM 发布版本匹配的教程版本：如果您使用的是官方
+    LLVM 发布版本，请使用您发布版本中附带的文档或在 llvm.org 发布页面上找到的文档。
+- en: 3.1 Code Generation Setup
+  id: totrans-4
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 3.1 代码生成设置
+- en: 'In order to generate LLVM IR, we want some simple setup to get started. First
+    we define virtual code generation (codegen) methods in each AST class:'
+  id: totrans-5
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 为了生成 LLVM IR，我们希望有一些简单的设置来开始。首先，在每个 AST 类中定义虚拟代码生成（codegen）方法：
+- en: '[PRE0]'
+  id: totrans-6
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE0]'
+- en: The `Codegen()` method says to emit IR for that AST node along with all the
+    things it depends on, and they all return an LLVM Value object. "Value" is the
+    class used to represent a "Static Single Assignment (SSA) register" or "SSA value"
+    in LLVM. The most distinct aspect of SSA values is that their value is computed
+    as the related instruction executes, and it does not get a new value until (and
+    if) the instruction re-executes. In other words, there is no way to "change" an
+    SSA value. For more information, please read up on Static Single Assignment -
+    the concepts are really quite natural once you grok them.
+  id: totrans-7
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`Codegen()`方法表示要为该 AST 节点以及它所依赖的所有内容发出 IR，并且它们都返回一个 LLVM Value 对象。 "Value"
+    是用于表示 LLVM 中的 "静态单赋值（SSA）寄存器" 或 "SSA 值" 的类。SSA 值最显著的特点是它们的值是与相关指令执行时计算的，并且在指令重新执行之前（如果有必要）不会获得新值。换句话说，没有办法“更改”SSA
+    值。有关更多信息，请阅读有关静态单赋值的内容 - 一旦你理解了这些概念，它们真的很自然。'
+- en: 'Note that instead of adding virtual methods to the ExprAST class hierarchy,
+    it could also make sense to use a visitor pattern or some other way to model this.
+    Again, this tutorial won''t dwell on good software engineering practices: for
+    our purposes, adding a virtual method is simplest.'
+  id: totrans-8
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请注意，与其向 ExprAST 类层次结构添加虚拟方法，还可以使用访问者模式或其他一些方式来建模。再次强调，本教程不会深入探讨良好的软件工程实践：对于我们的目的，添加一个虚拟方法是最简单的方法。
+- en: 'The second thing we want is an `Error` method like we used for the parser,
+    which will be used to report errors found during code generation (for example,
+    use of an undeclared parameter):'
+  id: totrans-9
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们想要的第二件事是一个像我们为解析器使用的`Error`方法，它将用于报告在代码生成过程中发现的错误（例如，使用了未声明的参数）：
+- en: '[PRE1]'
+  id: totrans-10
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE1]'
+- en: The static variables will be used during code generation. TheModule is the LLVM
+    construct that contains all of the functions and global variables in a chunk of
+    code. In many ways, it is the top-level structure that the LLVM IR uses to contain
+    code.
+  id: totrans-11
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 静态变量将在代码生成过程中使用。TheModule 是 LLVM 的构造，它包含了一段代码中的所有函数和全局变量。在许多方面，它是 LLVM IR 用来包含代码的顶层结构。
+- en: The Builder object is a helper object that makes it easy to generate LLVM instructions.
+    Instances of the [IRBuilder](http://llvm.org/doxygen/IRBuilder_8h-source.html)
+    class template keep track of the current place to insert instructions and has
+    methods to create new instructions.
+  id: totrans-12
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Builder 对象是一个辅助对象，它使生成 LLVM 指令变得简单。[IRBuilder](http://llvm.org/doxygen/IRBuilder_8h-source.html)
+    类模板的实例跟踪当前插入指令的位置，并具有创建新指令的方法。
+- en: The NamedValues map keeps track of which values are defined in the current scope
+    and what their LLVM representation is. (In other words, it is a symbol table for
+    the code). In this form of Kaleidoscope, the only things that can be referenced
+    are function parameters. As such, function parameters will be in this map when
+    generating code for their function body.
+  id: totrans-13
+  prefs: []
+  type: TYPE_NORMAL
+  zh: NamedValues 映射跟踪当前作用域中定义的哪些值以及它们的 LLVM 表示形式是什么（换句话说，它是代码的符号表）。在这种形式的 Kaleidoscope
+    中，唯一可以引用的是函数参数。因此，在为其函数体生成代码时，函数参数将在此映射中。
+- en: With these basics in place, we can start talking about how to generate code
+    for each expression. Note that this assumes that the Builder has been set up to
+    generate code into something. For now, we'll assume that this has already been
+    done, and we'll just use it to emit code.
+  id: totrans-14
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有了这些基础，我们可以开始讨论如何为每个表达式生成代码。请注意，这假定 Builder 已经设置好，以将代码生成到某个地方。暂时假设这已经完成，我们将只使用它来发出代码。
+- en: 3.2 Expression Code Generation
+  id: totrans-15
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 3.2 表达式代码生成
+- en: 'Generating LLVM code for expression nodes is very straightforward: less than
+    45 lines of commented code for all four of our expression nodes. First we''ll
+    do numeric literals:'
+  id: totrans-16
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 为表达式节点生成 LLVM 代码非常简单：我们的四个表达式节点的所有注释代码不到 45 行。首先我们来处理数字文字：
+- en: '[PRE2]'
+  id: totrans-17
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE2]'
+- en: In the LLVM IR, numeric constants are represented with the ConstantFP class,
+    which holds the numeric value in an APFloat internally (APFloat has the capability
+    of holding floating point constants of Arbitrary Precision). This code basically
+    just creates and returns a ConstantFP. Note that in the LLVM IR that constants
+    are all uniqued together and shared. For this reason, the API uses the `foo::get(...)`
+    idiom instead of `new foo(..)` or `foo::Create(..)`.
+  id: totrans-18
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在 LLVM IR 中，数字常量用 ConstantFP 类表示，该类在内部使用 APFloat 保存数字值（APFloat 具有保存任意精度浮点常量的能力）。这段代码基本上只是创建并返回一个
+    ConstantFP。请注意，在 LLVM IR 中，常量都是唯一的并共享的。因此，API 使用 `foo::get(...)` 惯用法而不是 `new foo(..)`
+    或 `foo::Create(..)`。
+- en: '[PRE3]'
+  id: totrans-19
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE3]'
+- en: References to variables are also quite simple using LLVM. In the simple version
+    of Kaleidoscope, we assume that the variable has already been emitted somewhere
+    and its value is available. In practice, the only values that can be in the NamedValues
+    map are function arguments. This code simply checks to see that the specified
+    name is in the map (if not, an unknown variable is being referenced) and returns
+    the value for it. In future chapters, we'll add support for loop induction variables
+    in the symbol table, and for local variables.
+  id: totrans-20
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 使用 LLVM 引用变量也非常简单。在 Kaleidoscope 的简单版本中，我们假设变量已经在某处发出，并且其值可用。实际上，NamedValues
+    映射中唯一可能存在的值是函数参数。这段代码简单地检查指定的名称是否在映射中（如果不在，则引用了未知变量），并返回其值。在后续章节中，我们将为符号表添加对循环归纳变量和局部变量的支持。
+- en: '[PRE4]'
+  id: totrans-21
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE4]'
+- en: Binary operators start to get more interesting. The basic idea here is that
+    we recursively emit code for the left-hand side of the expression, then the right-hand
+    side, then we compute the result of the binary expression. In this code, we do
+    a simple switch on the opcode to create the right LLVM instruction.
+  id: totrans-22
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 二元运算符开始变得更有趣。基本思想是我们递归地为表达式的左侧发出代码，然后是右侧，然后计算二元表达式的结果。在这段代码中，我们简单地根据操作码进行切换以创建正确的
+    LLVM 指令。
+- en: In the example above, the LLVM builder class is starting to show its value.
+    IRBuilder knows where to insert the newly created instruction, all you have to
+    do is specify what instruction to create (e.g. with CreateFAdd), which operands
+    to use (L and R here) and optionally provide a name for the generated instruction.
+  id: totrans-23
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在上面的示例中，LLVM builder 类开始显示其价值。IRBuilder 知道在哪里插入新创建的指令，你只需指定要创建的指令（例如使用 CreateFAdd），要使用的操作数（这里是
+    L 和 R），并可选择为生成的指令提供一个名称。
+- en: One nice thing about LLVM is that the name is just a hint. For instance, if
+    the code above emits multiple `addtmp` variables, LLVM will automatically provide
+    each one with an increasing, unique numeric suffix. Local value names for instructions
+    are purely optional, but it makes it much easier to read the IR dumps.
+  id: totrans-24
+  prefs: []
+  type: TYPE_NORMAL
+  zh: LLVM 的一个好处是名称只是一个提示。例如，如果上面的代码发出多个`addtmp`变量，LLVM 将自动为每个变量提供递增的唯一数字后缀。指令的本地值名称是完全可选的，但这样做可以使阅读
+    IR 转储变得更容易。
+- en: 'LLVM instructions are constrained by strict rules: for example, the Left and
+    Right operators of an add instruction must have the same type, and the result
+    type of the add must match the operand types. Because all values in Kaleidoscope
+    are doubles, this makes for very simple code for add, sub and mul.'
+  id: totrans-25
+  prefs: []
+  type: TYPE_NORMAL
+  zh: LLVM 指令受严格规则约束：例如，加法指令的左右操作数必须具有相同类型，并且加法的结果类型必须与操作数类型匹配。由于 Kaleidoscope 中的所有值都是双精度，这使得加法、减法和乘法的代码非常简单。
+- en: On the other hand, LLVM specifies that the fcmp instruction always returns an
+    ‘i1' value (a one bit integer). The problem with this is that Kaleidoscope wants
+    the value to be a 0.0 or 1.0 value. In order to get these semantics, we combine
+    the fcmp instruction with a uitofp instruction. This instruction converts its
+    input integer into a floating point value by treating the input as an unsigned
+    value. In contrast, if we used the sitofp instruction, the Kaleidoscope ‘<' operator
+    would return 0.0 and -1.0, depending on the input value.
+  id: totrans-26
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 另一方面，LLVM 规定 fcmp 指令始终返回一个‘i1’值（一个一位整数）。问题在于 Kaleidoscope 希望该值为 0.0 或 1.0 值。为了获得这些语义，我们将
+    fcmp 指令与 uitofp 指令结合使用。该指令通过将输入整数视为无符号值，将其转换为浮点值。相比之下，如果我们使用 sitofp 指令，Kaleidoscope
+    的‘<' 运算符将根据输入值返回 0.0 和 -1.0。
+- en: '[PRE5]'
+  id: totrans-27
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE5]'
+- en: Code generation for function calls is quite straightforward with LLVM. The code
+    above initially does a function name lookup in the LLVM Module's symbol table.
+    Recall that the LLVM Module is the container that holds all of the functions we
+    are JIT'ing. By giving each function the same name as what the user specifies,
+    we can use the LLVM symbol table to resolve function names for us.
+  id: totrans-28
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 使用 LLVM 进行函数调用的代码非常简单。上面的代码首先在 LLVM 模块的符号表中进行函数名称查找。回想一下，LLVM 模块是包含我们 JIT 的所有函数的容器。通过为每个函数指定与用户指定的名称相同的名称，我们可以使用
+    LLVM 符号表来解析函数名称。
+- en: Once we have the function to call, we recursively codegen each argument that
+    is to be passed in, and create an LLVM call instruction. Note that LLVM uses the
+    native C calling conventions by default, allowing these calls to also call into
+    standard library functions like `sin` and `cos`, with no additional effort.
+  id: totrans-29
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦我们有要调用的函数，我们递归地为每个要传递的参数生成代码，并创建一个 LLVM 调用指令。请注意，LLVM 默认使用本机 C 调用约定，允许这些调用调用标准库函数如`sin`和`cos`，而无需额外的努力。
+- en: This wraps up our handling of the four basic expressions that we have so far
+    in Kaleidoscope. Feel free to go in and add some more. For example, by browsing
+    the LLVM language reference you'll find several other interesting instructions
+    that are really easy to plug into our basic framework.
+  id: totrans-30
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这样我们就完成了对 Kaleidoscope 中迄今为止的四种基本表达式的处理。随时添加更多内容。例如，通过查阅 LLVM 语言参考，您会发现几个其他有趣的指令，这些指令非常容易插入到我们的基本框架中。
+- en: 3.3 Function Code Generation
+  id: totrans-31
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 3.3 函数代码生成
+- en: 'Code generation for prototypes and functions must handle a number of details,
+    which make their code less beautiful than expression code generation, but allows
+    us to illustrate some important points. First, lets talk about code generation
+    for prototypes: they are used both for function bodies and external function declarations.
+    The code starts with:'
+  id: totrans-32
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 原型和函数的代码生成必须处理许多细节，这使得它们的代码比表达式代码生成更加复杂，但可以帮助我们阐明一些重要的观点。首先，让我们谈谈原型的代码生成：它们既用于函数体，也用于外部函数声明。代码从以下开始：
+- en: '[PRE6]'
+  id: totrans-33
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE6]'
+- en: This code packs a lot of power into a few lines. Note first that this function
+    returns a `Function*` instead of a `Value*`. Because a "prototype" really talks
+    about the external interface for a function (not the value computed by an expression),
+    it makes sense for it to return the LLVM Function it corresponds to when codegen'd.
+  id: totrans-34
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这段代码将大量功能打包到几行代码中。首先注意到这个函数返回的是`Function*`而不是`Value*`。因为“原型”实际上是指函数的外部接口（而不是表达式计算得到的值），所以在代码生成时返回对应的
+    LLVM 函数是有意义的。
+- en: The call to FunctionType::get creates the FunctionType that should be used for
+    a given Prototype. Since all function arguments in Kaleidoscope are of type double,
+    the first line creates a vector of "N" LLVM double types. It then uses the Functiontype::get
+    method to create a function type that takes "N" doubles as arguments, returns
+    one double as a result, and that is not vararg (the false parameter indicates
+    this). Note that Types in LLVM are uniqued just like Constants are, so you don't
+    "new" a type, you "get" it.
+  id: totrans-35
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对 FunctionType::get 的调用创建了应用于给定原型的 FunctionType。由于 Kaleidoscope 中的所有函数参数都是 double
+    类型，第一行创建了一个包含“N”个 LLVM double 类型的向量。然后使用 Functiontype::get 方法创建一个函数类型，该函数接受“N”个
+    double 作为参数，返回一个 double 作为结果，并且不是 vararg（false 参数表示这一点）。请注意，LLVM 中的类型和常量一样是唯一的，因此你不需要“new”一个类型，而是“get”它。
+- en: 'The final line above actually creates the function that the prototype will
+    correspond to. This indicates the type, linkage and name to use, as well as which
+    module to insert into. "external linkage" means that the function may be defined
+    outside the current module and/or that it is callable by functions outside the
+    module. The Name passed in is the name the user specified: since "TheModule" is
+    specified, this name is registered in "TheModule"s symbol table, which is used
+    by the function call code above.'
+  id: totrans-36
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 上面的最后一行实际上创建了原型将对应的函数。这指示了要使用的类型、链接和名称，以及要插入的模块。"外部链接"意味着函数可以在当前模块之外定义和/或可以由模块外的函数调用。传入的名称是用户指定的名称：由于指定了
+    "TheModule"，这个名称将在 "TheModule" 的符号表中注册，该符号表由上面的函数调用代码使用。
+- en: '[PRE7]'
+  id: totrans-37
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE7]'
+- en: 'The Module symbol table works just like the Function symbol table when it comes
+    to name conflicts: if a new function is created with a name that was previously
+    added to the symbol table, the new function will get implicitly renamed when added
+    to the Module. The code above exploits this fact to determine if there was a previous
+    definition of this function.'
+  id: totrans-38
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 模块符号表的工作方式与函数符号表在处理名称冲突时完全相同：如果使用先前添加到符号表的名称创建了一个新函数，则在将其添加到模块时，新函数将隐式重命名。上面的代码利用了这一事实来确定是否存在此函数的先前定义。
+- en: 'In Kaleidoscope, I choose to allow redefinitions of functions in two cases:
+    first, we want to allow `extern`ing a function more than once, as long as the
+    prototypes for the externs match (since all arguments have the same type, we just
+    have to check that the number of arguments match). Second, we want to allow `extern`ing
+    a function and then defining a body for it. This is useful when defining mutually
+    recursive functions.'
+  id: totrans-39
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在万花筒中，我选择允许两种情况下的函数重新定义：首先，我们希望允许对函数进行多次 "extern"，只要外部的原型匹配即可（因为所有参数具有相同的类型，我们只需检查参数数量是否匹配）。其次，我们希望允许对函数进行
+    "extern" 然后为其定义主体。这在定义相互递归函数时很有用。
+- en: In order to implement this, the code above first checks to see if there is a
+    collision on the name of the function. If so, it deletes the function we just
+    created (by calling eraseFromParent) and then calling getFunction to get the existing
+    function with the specified name. Note that many APIs in LLVM have "erase" forms
+    and "remove" forms. The "remove" form unlinks the object from its parent (e.g.
+    a Function from a Module) and returns it. The "erase" form unlinks the object
+    and then deletes it.
+  id: totrans-40
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 为了实现这一点，上面的代码首先检查函数名称是否发生冲突。如果是，则删除我们刚刚创建的函数（通过调用 eraseFromParent）然后调用 getFunction
+    来获取具有指定名称的现有函数。注意，LLVM 中的许多 API 都有 "erase" 形式和 "remove" 形式。"remove" 形式将对象从其父对象（例如从模块中的函数）中取消链接并返回它。"erase"
+    形式取消链接对象然后删除它。
+- en: '[PRE8]'
+  id: totrans-41
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE8]'
+- en: In order to verify the logic above, we first check to see if the pre-existing
+    function is "empty". In this case, empty means that it has no basic blocks in
+    it, which means it has no body. If it has no body, it is a forward declaration.
+    Since we don't allow anything after a full definition of the function, the code
+    rejects this case. If the previous reference to a function was an ‘extern', we
+    simply verify that the number of arguments for that definition and this one match
+    up. If not, we emit an error.
+  id: totrans-42
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 为了验证上面的逻辑，我们首先检查预先存在的函数是否是 "空的"。在这种情况下，空的意思是它没有基本块，这意味着它没有主体。如果没有主体，它就是一个前向声明。由于我们不允许在函数的完整定义之后出现任何内容，所以代码拒绝了这种情况。如果前一个对函数的引用是一个
+    "extern"，我们只需验证该定义和此定义的参数数量是否匹配。如果不匹配，我们会发出错误。
+- en: '[PRE9]'
+  id: totrans-43
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE9]'
+- en: The last bit of code for prototypes loops over all of the arguments in the function,
+    setting the name of the LLVM Argument objects to match, and registering the arguments
+    in the NamedValues map for future use by the VariableExprAST AST node. Once this
+    is set up, it returns the Function object to the caller. Note that we don't check
+    for conflicting argument names here (e.g. "extern foo(a b a)"). Doing so would
+    be very straight-forward with the mechanics we have already used above.
+  id: totrans-44
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 最后一部分原型代码循环遍历函数中的所有参数，将 LLVM Argument 对象的名称设置为匹配，并在 NamedValues 映射中注册参数，以供将来
+    VariableExprAST AST 节点使用。设置完成后，将 Function 对象返回给调用者。注意，我们这里不检查参数名称是否冲突（例如 "extern
+    foo(a b a)"）。如果这样做，根据我们上面已经使用的机制，将会非常简单。
+- en: '[PRE10]'
+  id: totrans-45
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE10]'
+- en: 'Code generation for function definitions starts out simply enough: we just
+    codegen the prototype (Proto) and verify that it is ok. We then clear out the
+    NamedValues map to make sure that there isn''t anything in it from the last function
+    we compiled. Code generation of the prototype ensures that there is an LLVM Function
+    object that is ready to go for us.'
+  id: totrans-46
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 函数定义的代码生成开始得相当简单：我们只需对原型（Proto）进行代码生成并验证其是否正常。然后我们清空NamedValues映射，以确保它不包含上次编译的函数中的任何内容。原型的代码生成确保有一个准备就绪的LLVM函数对象。
+- en: '[PRE11]'
+  id: totrans-47
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE11]'
+- en: Now we get to the point where the Builder is set up. The first line creates
+    a new basic block (named "entry"), which is inserted into TheFunction. The second
+    line then tells the builder that new instructions should be inserted into the
+    end of the new basic block. Basic blocks in LLVM are an important part of functions
+    that define the Control Flow Graph. Since we don't have any control flow, our
+    functions will only contain one block at this point. We'll fix this in Chapter
+    5 :).
+  id: totrans-48
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在我们来到了设置构建器的地方。第一行创建了一个新的基本块（命名为"entry"），它被插入到TheFunction中。第二行告诉构建器新指令应该插入到新基本块的末尾。LLVM中的基本块是定义控制流图的函数中的重要部分。由于我们没有任何控制流，此时我们的函数将只包含一个块。我们将在第5章中修复这个问题
+    :).
+- en: '[PRE12]'
+  id: totrans-49
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE12]'
+- en: 'Once the insertion point is set up, we call the CodeGen() method for the root
+    expression of the function. If no error happens, this emits code to compute the
+    expression into the entry block and returns the value that was computed. Assuming
+    no error, we then create an LLVM ret instruction, which completes the function.
+    Once the function is built, we call verifyFunction, which is provided by LLVM.
+    This function does a variety of consistency checks on the generated code, to determine
+    if our compiler is doing everything right. Using this is important: it can catch
+    a lot of bugs. Once the function is finished and validated, we return it.'
+  id: totrans-50
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦插入点设置好了，我们就为函数的根表达式调用CodeGen()方法。如果没有错误发生，这将生成代码以计算表达式到入口块，并返回计算的值。假设没有错误，然后我们创建一个LLVM
+    ret指令，完成函数。函数构建完成后，我们调用LLVM提供的verifyFunction。这个函数对生成的代码进行各种一致性检查，以确定我们的编译器是否一切正常。使用这个函数很重要：它可以捕捉到很多错误。函数完成并验证后，我们返回它。
+- en: '[PRE13]'
+  id: totrans-51
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE13]'
+- en: 'The only piece left here is handling of the error case. For simplicity, we
+    handle this by merely deleting the function we produced with the eraseFromParent
+    method. This allows the user to redefine a function that they incorrectly typed
+    in before: if we didn''t delete it, it would live in the symbol table, with a
+    body, preventing future redefinition.'
+  id: totrans-52
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这里唯一剩下的部分是处理错误情况。为简单起见，我们通过简单地使用`eraseFromParent`方法删除我们生成的函数来处理这个问题。这允许用户重新定义他们之前错误输入的函数：如果我们不删除它，它将存在于符号表中，带有一个主体，阻止未来的重新定义。
+- en: 'This code does have a bug, though. Since the `PrototypeAST::Codegen` can return
+    a previously defined forward declaration, our code can actually delete a forward
+    declaration. There are a number of ways to fix this bug, see what you can come
+    up with! Here is a testcase:'
+  id: totrans-53
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 不过，这段代码确实有一个错误。由于`PrototypeAST::Codegen`可能返回先前定义的前向声明，我们的代码实际上可以删除一个前向声明。有许多方法可以修复这个错误，请看看你能想出什么！这里是一个测试用例：
+- en: '[PRE14]'
+  id: totrans-54
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE14]'
+- en: 3.4 Driver Changes and Closing Thoughts
+  id: totrans-55
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 3.4 驱动程序更改和结束思考
+- en: 'For now, code generation to LLVM doesn''t really get us much, except that we
+    can look at the pretty IR calls. The sample code inserts calls to Codegen into
+    the `HandleDefinition`, `HandleExtern` etc functions, and then dumps out the LLVM
+    IR. This gives a nice way to look at the LLVM IR for simple functions. For example:'
+  id: totrans-56
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 目前，将代码生成到LLVM并没有给我们带来太多好处，除了我们可以查看漂亮的IR调用。示例代码将Codegen调用插入到`HandleDefinition`、`HandleExtern`等函数中，然后输出LLVM
+    IR。这为查看简单函数的LLVM IR提供了一个很好的方式。例如：
+- en: '[PRE15]'
+  id: totrans-57
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE15]'
+- en: Note how the parser turns the top-level expression into anonymous functions
+    for us. This will be handy when we add JIT support in the next chapter. Also note
+    that the code is very literally transcribed, no optimizations are being performed
+    except simple constant folding done by IRBuilder. We will add optimizations explicitly
+    in the next chapter.
+  id: totrans-58
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 注意解析器如何将顶层表达式转换为匿名函数。当我们在下一章中添加JIT支持时，这将非常方便。还要注意代码是非常直接转录的，除了IRBuilder执行的简单常量折叠之外，没有进行任何优化。我们将在下一章中明确添加优化。
+- en: '[PRE16]'
+  id: totrans-59
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE16]'
+- en: This shows some simple arithmetic. Notice the striking similarity to the LLVM
+    builder calls that we use to create the instructions.
+  id: totrans-60
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这展示了一些简单的算术。注意到我们用来创建指令的LLVM构建器调用与之有着惊人的相似之处。
+- en: '[PRE17]'
+  id: totrans-61
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE17]'
+- en: This shows some function calls. Note that this function will take a long time
+    to execute if you call it. In the future we'll add conditional control flow to
+    actually make recursion useful :).
+  id: totrans-62
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这里展示了一些函数调用。请注意，如果你调用这个函数，它将需要很长时间才能执行。在未来，我们将添加条件控制流，以使递归真正有用 :).
+- en: '[PRE18]'
+  id: totrans-63
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE18]'
+- en: This shows an extern for the libm "cos" function, and a call to it.
+  id: totrans-64
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这里展示了对libm中的"cos"函数的外部引用，并对其进行调用。
+- en: '[PRE19]'
+  id: totrans-65
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE19]'
+- en: When you quit the current demo, it dumps out the IR for the entire module generated.
+    Here you can see the big picture with all the functions referencing each other.
+  id: totrans-66
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当你退出当前演示时，它会输出整个模块生成的IR。在这里，你可以看到所有函数相互引用的整体情况。
+- en: This wraps up the third chapter of the Kaleidoscope tutorial. Up next, we'll
+    describe how to add JIT codegen and optimizer support to this so we can actually
+    start running code!
+  id: totrans-67
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这结束了万花筒教程的第三章。接下来，我们将描述如何为此添加JIT代码生成和优化器支持，以便我们实际上可以开始运行代码！
