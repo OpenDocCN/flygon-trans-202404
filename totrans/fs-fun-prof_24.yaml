@@ -1,3394 +1,5053 @@
 - en: The "Understanding Parser Combinators" Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '"理解解析器组合器"系列'
 - en: In this series, we'll look at how so-called "applicative parsers" work. In order
     to understand something, there's nothing like building it for yourself, and so
     we'll create a basic parser library from scratch, then some useful "parser combinators",
     and then finish off by building a complete JSON parser.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的JSON解析器来结束。
 - en: '[Understanding Parser Combinators](understanding-parser-combinators1.html).
     Building a parser combinator library from scratch.'
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[理解解析器组合器](understanding-parser-combinators1.html)。从头开始构建一个解析器组合器库。'
 - en: '[Building a useful set of parser combinators](understanding-parser-combinators-2.html).
     15 or so combinators that can be combined to parse almost anything.'
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[构建一个有用的解析器组合器集合](understanding-parser-combinators-2.html)。大约15个可以组合以解析几乎任何内容的组合器。'
 - en: '[Improving the parser library](understanding-parser-combinators-3.html). Adding
     more informative errors.'
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[改进解析器库](understanding-parser-combinators-3.html)。添加更多信息的错误。'
 - en: '[Writing a JSON parser from scratch](understanding-parser-combinators-4.html).
     In 250 lines of code.'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[从头开始编写一个JSON解析���](understanding-parser-combinators-4.html)。只需250行代码。'
 - en: Understanding Parser Combinators
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解解析器组合器
 - en: Understanding Parser Combinators
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解解析器组合器
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于这个主题的幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*'
 - en: In this series, we'll look at how so-called "applicative parsers" work. In order
     to understand something, there's nothing like building it for yourself, and so
     we'll create a basic parser library from scratch, and then some useful "parser
     combinators", and then finish off by building a complete JSON parser.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的JSON解析器来结束。
 - en: Now terms like "applicative parsers" and "parser combinators" can make this
     approach seem complicated, but rather than attempting to explain these concepts
     up front, we'll just dive in and start coding.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在像"applicative parsers"和"parser combinators"这样的术语可能会让这种方法看起来复杂，但与其试图一开始就解释这些概念，不如我们直接开始编码。
 - en: We'll build up to the complex stuff incrementally via a series of implementations,
     where each implementation is only slightly different from the previous one. By
     using this approach, I hope that at each stage the design and concepts will be
     easy to understand, and so by the end of this series, parser combinators will
     have become completely demystified.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过一系列实现逐步构建复杂的内容，其中每个实现与前一个实现仅略有不同。通过使用这种方法，我希望在每个阶段设计和概念都容易理解，因此到本系列结束时，解析器组合器将完全被揭开神秘面纱。
 - en: 'There will be four posts in this series:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本系列将有四篇文章：
 - en: In this, the first post, we'll look at the basic concepts of parser combinators
     and build the core of the library.
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这个，第一篇文章中，我们将看看解析器组合器的基本概念，并构建库的核心。
 - en: In the [second post](understanding-parser-combinators-2.html), we'll build up
     a useful library of combinators.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第二篇文章](understanding-parser-combinators-2.html)中，我们将构建一个有用的组合器库。
 - en: In the [third post](understanding-parser-combinators-3.html), we'll work on
     providing helpful error messages.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第三篇文章](understanding-parser-combinators-3.html)中，我们将致力于提供有用的错误信息。
 - en: In the [last post](understanding-parser-combinators-4.html), we'll build a JSON
     parser using this parser library.
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[最后一篇文章](understanding-parser-combinators-4.html)中，我们将使用这个解析器库构建一个JSON解析器。
 - en: Obviously, the focus here will not be on performance or efficiency, but I hope
     that it will give you the understanding that will then enable you to use libraries
     like [FParsec](http://www.quanttec.com/fparsec/) effectively. And by the way,
     a big thank you to Stephan Tolksdorf, who created FParsec. You should make it
     your first port of call for all your .NET parsing needs!
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这里的重点不在于性能或效率，但我希望这将使你理解，从而能够有效地使用像[FParsec](http://www.quanttec.com/fparsec/)这样的库。顺便说一句，非常感谢创建FParsec的Stephan
+    Tolksdorf。你应该把它作为你所有.NET解析需求的首选！
 - en: '* * *'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Implementation 1\. Parsing a hard-coded character
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现1。解析一个硬编码字符
 - en: For our first implementation, let's create something that just parses a single,
     hard-coded, character, in this case, the letter "A". You can't get much simpler
     than that!
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的第一个实现，让我们创建一个只解析单个硬编码字符的东西，这里是字母"A"。你不可能比这更简单了！
 - en: 'Here is how it works:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是它的工作原理：
 - en: The input to a parser is a stream of characters. We could use something complicated,
     but for now we'll just use a `string`.
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解析器的输入是一系列字符。我们可以使用一些复杂的东西，但现在我们将只使用一个`string`。
 - en: If the stream is empty, then return a pair consisting of `false` and an empty
     string.
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果流为空，则返回一个由`false`和空字符串组成的对。
 - en: If the first character in the stream is an `A`, then return a pair consisting
     of `true` and the remaining stream of characters.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果流中的第一个字符是`A`，那么返回一个由`true`和剩余字符流组成的对。
 - en: If the first character in the stream is not an `A`, then return `false` and
     the (unchanged) original stream of characters.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果流中的第一个字符不是`A`，那么返回`false`和（未更改的）原始字符流。
 - en: 'Here''s the code:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码如下：
 - en: '[PRE0]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The signature of `A_Parser` is:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '`A_Parser`的签名是：'
 - en: '[PRE1]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'which tells us that the input is a string, and the output is a pair consisting
     of the boolean result and another string (the remaining input), like this:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这告诉我们输入是一个字符串，输出是一个由布尔结果和另一个字符串（剩余输入）组成的对，像这样：
 - en: '![](parser-1.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-1.png)'
 - en: 'Let''s test it now -- first with good input:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们测试一下--先用好的输入：
 - en: '[PRE2]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The result is:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是：
 - en: '[PRE3]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: As you can see, the `A` has been consumed and the remaining input is just `"BC"`.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，`A`已被消耗，剩余输入只是`"BC"`。
 - en: 'And now with bad input:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来看看错误的输入：
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'which gives the result:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了结果：
 - en: '[PRE5]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: And in this case, the first character was *not* consumed and the remaining input
     is still `"ZBC"`.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 而在这种情况下，第一个字符*没有*被消耗，剩余输入仍然是`"ZBC"`。
 - en: So, there's an incredibly simple parser for you. If you understand that, then
     everything that follows will be easy!
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，这就是一个非常简单的解析器。如果你理解了这一点，那么接下来的一切都将变得容易！
 - en: '* * *'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Implementation 2\. Parsing a specified character
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现2. 解析指定字符
 - en: Let's refactor so that we can pass in the character we want to match, rather
     than having it be hard coded.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们重构一下，以便我们可以传入我们想要匹配的字符，而不是将其硬编码。
 - en: And this time, rather than returning true or false, we'll return a message indicating
     what happened.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 而这一次，我们将不再返回真或假，而是返回一个指示发生了什么的消息。
 - en: 'We''ll call the function `pchar` for "parse char". Here''s the code:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将称这个函数为`pchar`，表示“解析字符”。代码如下：
 - en: '[PRE6]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This code is just like the previous example, except that the unexpected character
     is now shown in the error message.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码与前一个示例完全相同，只是现在错误消息中显示了意外的字符。
 - en: 'The signature of `pchar` is:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pchar`的签名是：'
 - en: '[PRE7]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: which tells us that the input is a pair of (string,character to match) and the
     output is a pair consisting of the (string) result and another string (the remaining
     input).
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这告诉我们输入是一对（字符串，要匹配的字符），输出是由（字符串）结果和另一个字符串（剩余输入）组成的对。
 - en: 'Let''s test it now -- first with good input:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们测试一下--先用好的输入：
 - en: '[PRE8]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The result is:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是：
 - en: '[PRE9]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: As before, the `A` has been consumed and the remaining input is just `"BC"`.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 与以前一样，`A`已被消耗，剩余输入只是`"BC"`。
 - en: 'And now with bad input:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来看看错误的输入：
 - en: '[PRE10]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'which gives the result:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了结果：
 - en: '[PRE11]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: And again, as before, the first character was *not* consumed and the remaining
     input is still `"ZBC"`.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，和以前一样，第一个字符*没有*被消耗，剩余输入仍然是`"ZBC"`。
 - en: 'If we pass in `Z`, then the parser does succeed:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们传入`Z`，那么解析器就会成功：
 - en: '[PRE12]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '* * *'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Implementation 3\. Returning a Success/Failure
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现3. 返回成功/失败
 - en: 'We want to be able to tell the difference between a successful match and a
     failure, and returning a stringly-typed message is not very helpful, so let''s
     define a special "choice" type to indicate the difference. I''ll call it `Result`:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望能够区分成功的匹配和失败，并返回一个字符串类型的消息并不是很有帮助，所以让我们定义一个特殊的“选择”类型来指示区别。我将其称为`Result`：
 - en: '[PRE13]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The `Success` case is generic and can contain any value. The `Failure` case
     contains an error message.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Success`情况是通用的，可以包含任何值。`Failure`情况包含错误消息。'
 - en: '*Note: for more on using this Success/Failure approach, see my talk on [functional
     error handling](http://fsharpforfunandprofit.com/rop/)*.'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：有关使用这种成功/失败方法的更多信息，请参见我的关于[函数式错误处理](http://fsharpforfunandprofit.com/rop/)的演讲*。'
 - en: 'We can now rewrite the parser to return one of the `Result` cases, like this:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以重写解析器以返回`Result`之一的情况，像这样：
 - en: '[PRE14]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'The signature of `pchar` is now:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在`pchar`的签名是：
 - en: '[PRE15]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: which tells us that the the output is now a `Result` (which in the `Success`
     case, contains the matched char and the remaining input string).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这告诉我们输出现在是一个`Result`（在`Success`情况下，包含匹配的字符和剩余输入字符串）。
 - en: 'Let''s test it again -- first with good input:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次测试一下--先用好的输入：
 - en: '[PRE16]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'The result is:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是：
 - en: '[PRE17]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: As before, the `A` has been consumed and the remaining input is just `"BC"`.
     We also get the *actual* matched char (`A` in this case).
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，`A`已经被消耗掉，剩下的输入只是`"BC"`。我们还得到了*实际*匹配的字符（在这种情况下为`A`）。
 - en: 'And now with bad input:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在来看一下坏输入：
 - en: '[PRE18]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'which gives the result:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会得到结果：
 - en: '[PRE19]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: And in this case, the `Failure` case is returned with the appropriate error
     message.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 而在这种情况下，`Failure`情况将返回适当的错误消息。
 - en: 'This is a diagram of the function''s inputs and outputs now:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是函数的输入和输出的图示：
 - en: '![](parser-2.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-2.png)'
 - en: '* * *'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Implementation 4\. Switching to a curried implementation
+  id: totrans-89
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现 4\. 切换到柯里化实现
 - en: In the previous implementation, the input to the function has been a tuple --
     a pair. This requires you to pass both inputs at once.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的实现中，函数的输入是一个元组-- 一对。这要求你一次性传递两个输入。
 - en: 'In functional languages like F#, it''s more idiomatic to use a curried version,
     like this:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 在像F#这样的函数式语言中，使用柯里化版本更加符合惯用法，像这样：
 - en: '[PRE20]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Can you see the difference? The only difference is in the first line, and even
     then it is subtle.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 你能看到区别吗？唯一的区别在于第一行，即使是那样也是微妙的。
 - en: 'Here''s the uncurried (tuple) version:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是未柯里化（元组）版本：
 - en: '[PRE21]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'And here''s the curried version:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是柯里化版本的：
 - en: '[PRE22]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'The difference is much more obvious when you look at the type signatures. Here''s
     the signature for the uncurried (tuple) version:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你查看类型签名时，差异就更加明显了。这是未柯里化（元组）版本的签名：
 - en: '[PRE23]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'And here''s the signature for the curried version:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是柯里化版本的签名：
 - en: '[PRE24]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'Here is the curried version of `pchar` represented as a diagram:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是`pchar`的柯里化版本的图示：
 - en: '![](parser-3.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-3.png)'
 - en: What is currying?
+  id: totrans-104
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 什么是柯里化？
 - en: If you are unclear on how currying works, I have a post about it [here](currying.html),
     but basically it means that a multi-parameter function can be written as a series
     of one-parameter functions.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不清楚柯里化的工作原理，我有一篇关于它的文章[在这里](currying.html)，但基本上它意味着一个多参数函数可以被写成一系列的单参数函数。
 - en: 'In other words, this two-parameter function:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，这个两参数函数：
 - en: '[PRE25]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'can be written as a one-parameter function that returns a lambda, like this:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以被写成一个返回lambda的单参数函数，就像这样：
 - en: '[PRE26]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'or as a function that returns an inner function, like this:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者作为返回内部函数的函数，就像这样：
 - en: '[PRE27]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Rewriting with an inner function
+  id: totrans-112
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用内部函数重写
 - en: We can take advantage of currying and rewrite the parser as a one-parameter
     function (where the parameter is `charToMatch`) that returns a inner function.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以利用柯里化并将解析器重写为一个单参数函数（参数是`charToMatch`），它返回一个内部函数。
 - en: 'Here''s the new implementation, with the inner function cleverly named `innerFn`:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是新的实现，内部函数巧妙地命名为`innerFn`：
 - en: '[PRE28]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'The type signature for this implementation looks like this:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现的类型签名看起来像这样：
 - en: '[PRE29]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: It's *exactly the same* as the previous version!
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 它和之前的版本*完全相同*！
 - en: 'That is, both of the above implementations are identical in practice:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，上述两种实现在实践中是相同的：
 - en: '[PRE30]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: The benefits of the curried implementation
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 柯里化实现的好处
 - en: 'What''s nice about the curried implementation is that we can [partially apply](partial-application.html)
     the character we want to parse, like this:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 柯里化实现的好处在于，我们可以[部分应用](partial-application.html)我们想要解析的字符，就像这样：
 - en: '[PRE31]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'and then later on supply the second "input stream" parameter:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后稍后提供第二个“输入流”参数：
 - en: '[PRE32]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'At this point, let''s stop and review what is going on:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，让我们停下来复习一下发生了什么：
 - en: The `pchar` function has two inputs
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`pchar`函数有两个输入'
 - en: We can provide one input (the char to match) and this results in a *function*
     being returned.
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以提供一个输入（要匹配的字符），这会导致返回一个*函数*。
 - en: We can then provide the second input (the stream of characters) to this parsing
     function, and this creates the final `Result` value.
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后我们可以向这个解析函数提供第二个输入（字符流），这样就创建了最终的`Result`值。
 - en: 'Here''s a diagram of `pchar` again, but this time with the emphasis on partial
     application:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`pchar`的图示，但这次重点放在部分应用上：
 - en: '![](parser-4a.png)'
+  id: totrans-131
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-4a.png)'
 - en: It's very important that you understand this logic before moving on, because
     the rest of the post will build on this basic design.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 在继续之前，你很重要地了解这个逻辑，因为后续的文章将建立在这个基本设计之上。
 - en: '* * *'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Implementation 5\. Encapsulating the parsing function in a type
+  id: totrans-134
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现 5\. 将解析函数封装在类型中
 - en: 'If we look at `parseA` (from the example above) we can see that it has a function
     type:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们看一下`parseA`（来自上面的例子），我们可以看到它有一个函数类型：
 - en: '[PRE33]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'That type is a bit complicated to use, so let''s encapsulate it in a "wrapper"
     type called `Parser`, like this:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 那种类型使用起来有点复杂，所以让我们将其封装在一个叫做`Parser`的“包装”类型中，就像这样：
 - en: '[PRE34]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'By encapsulating it, we''ll go from this design:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过封装它，我们将从这个设计：
 - en: '![](parser-4a.png)'
+  id: totrans-140
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-4a.png)'
 - en: 'to this design:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 到这个设计：
 - en: '![](parser-4b.png)'
+  id: totrans-142
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-4b.png)'
 - en: The change to the implementation is very simple. We just need to change the
     way the inner function is returned.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 对实现的更改非常简单。我们只需要改变内部函数返回的方式。
 - en: 'That is, from this:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是，从这里：
 - en: '[PRE35]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'to this:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 到这里：
 - en: '[PRE36]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Testing the wrapped function
+  id: totrans-148
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试包装函数
 - en: 'Ok, now let''s test again:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，现在让我们再次测试：
 - en: '[PRE37]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'But now we get a compiler error:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们得到一个编译器错误：
 - en: '[PRE38]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: And of course that is because the function is wrapped in the `Parser` data structure!
     It's not longer directly accessible.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这是因为函数被包装在`Parser`数据结构中！它不再直接可访���。
 - en: So now we need a helper function that can extract the inner function and run
     it against the input stream. Let's call it `run`!
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们需要一个能提取内部函数并对输入流运行的辅助函数。让我们称之为`run`！
 - en: 'Here''s the implementation of `run`:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`run`的实现：
 - en: '[PRE39]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'And now we can run the `parseA` parser against various inputs again:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以再次对各种输入运行`parseA`解析器：
 - en: '[PRE40]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: That's it! We've got a basic `Parser` type! I hope that this all makes sense
     so far.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样！我们有了一个基本的`Parser`类型！希望到目前为止这一切都说得通。
 - en: '* * *'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'Combining two parsers in sequence: the "and then" combinator'
+  id: totrans-161
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 按顺序组合两个解析器：使用“and then”组合子
 - en: That last implementation is good enough for basic parsing logic. We'll revisit
     it later, but now let's move up a level and develop some ways of combining parsers
     together -- the "parser combinators" mentioned at the beginning.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后的实现对于基本的解析逻辑已经足够好了。我们稍后会回顾它，但现在让我们提升一个层级，开发一些组合解析器的方法 -- 在开头提到的“解析器组合子”。
 - en: 'We''ll start with combining two parsers in sequence. For example, say that
     we want a parser that matches "A" and then "B". We could try writing something
     like this:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从按顺序组合两个解析器开始。例如，假设我们想要一个匹配“A”然后“B”的解析器。我们可以尝试写出类似这样的东西：
 - en: '[PRE41]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: but that gives us a compiler error, as the output of `parseA` does not match
     the input of `parseB`, and so they cannot be composed like that.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这会给我们一个编译器错误，因为`parseA`的输出与`parseB`的输入不匹配，所以它们不能这样组合。
 - en: If you are familiar with [functional programming patterns](http://fsharpforfunandprofit.com/fppatterns/),
     the need to chain a sequence of wrapped types together like this happens frequently,
     and the solution is a `bind` function.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你熟悉[函数式编程模式](http://fsharpforfunandprofit.com/fppatterns/)，像这样链式地将一系列包装类型组合在一起的需求经常发生，解决方案是一个`bind`函数。
 - en: However, in this case, I won't implement `bind` but will instead go straight
     to an `andThen` implemention.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在这种情况下，我不会实现`bind`，而是直接转向`andThen`的实现。
 - en: 'The implementation logic will be as follows:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现逻辑将如下：
 - en: Run the first parser.
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行第一个解析器。
 - en: If there is a failure, return.
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果失败，返回。
 - en: Otherwise, run the second parser with the remaining input.
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，运行第二个解析器与剩余输入。
 - en: If there is a failure, return.
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果失败，返回。
 - en: If both parsers succeed, return a pair (tuple) that contains both parsed values.
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果两个解析器都成功，返回一个包含两个解析值的对（元组）。
 - en: 'Here''s the code for `andThen`:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`andThen`的代码：
 - en: '[PRE42]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: The implementation follows the logic described above.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现遵循上面描述的逻辑。
 - en: 'We''ll also define an infix version of `andThen` so that we can use it like
     regular `>>` composition:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将定义`andThen`的中缀版本，以便我们可以像常规的`>>`组合一样使用它：
 - en: '[PRE43]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: '*Note: the parentheses are needed to define a custom operator, but are not
     needed in the infix usage.*'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：括号是为了定义自定义运算符而需要的，但在中缀使用时不需要。*'
 - en: 'If we look at the signature of `andThen`:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们看`andThen`的签名：
 - en: '[PRE44]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: we can see that it works for any two parsers, and they can be of different types
     (`'a` and `'b`).
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到它适用于任何两个解析器，并且它们可以是不同类型（`'a`和`'b`）。
 - en: Testing `andThen`
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试`andThen`
 - en: Let's test it and see if it works!
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们测试一下，看看它是否有效！
 - en: 'First, create the compound parser:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，创建复合解析器：
 - en: '[PRE45]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'If you look at the types, you can see that all three values have type `Parser`:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你看类型，你会发现所有三个值的类型都是`Parser`：
 - en: '[PRE46]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: '`parseAThenB` is of type `Parser<char * char>` meaning that the parsed value
     is a pair of chars.'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '`parseAThenB`的类型是`Parser<char * char>`，意味着解析值是一对字符。'
 - en: Now since the combined parser `parseAThenB` is just another `Parser`, we can
     use `run` with it as before.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在由于组合解析器`parseAThenB`只是另一个`Parser`，我们可以像以前一样使用`run`。
 - en: '[PRE47]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: You can see that in the success case, the pair `('A', 'B')` was returned, and
     also that failure happens when either letter is missing from the input.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到在成功的情况下，返回了一对`('A', 'B')`，并且当输入中缺少任一字母时会发生失败。
 - en: '* * *'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'Choosing between two parsers: the "or else" combinator'
+  id: totrans-194
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在两个解析器之间进行选择：使用“or else”组合子
 - en: Let's look at another important way of combining parsers -- the "or else" combinator.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看另一种重要的组合解析器的方式--"or else"组合子。
 - en: For example, say that we want a parser that matches "A" *or* "B". How could
     we combine them?
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们想要一个匹配"A" *或* "B"的解析器。我们如何组合它们？
 - en: 'The implementation logic would be:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现逻辑将是：
 - en: Run the first parser.
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行第一个解析器。
 - en: On success, return the parsed value, along with the remaining input.
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 成功时，返回解析的值，以及剩余的输入。
 - en: Otherwise, on failure, run the second parser with the original input...
+  id: totrans-200
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，在失败时，使用原始输入运行第二个解析器...
 - en: '...and in this case, return the result (success or failure) from the second
     parser.'
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '...在这种情况下，从第二个解析器返回结果（成功或失败）。'
 - en: 'Here''s the code for `orElse`:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`orElse`的代码：
 - en: '[PRE48]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: 'And we''ll define an infix version of `orElse` as well:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将定义`orElse`的中缀版本：
 - en: '[PRE49]'
+  id: totrans-205
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: 'If we look at the signature of `orElse`:'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们看一下`orElse`的签名：
 - en: '[PRE50]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: we can see that it works for any two parsers, but they must both be the *same*
     type `'a`.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到它适用于任何两个解析器，但它们必须都是*相同*类型`'a`。
 - en: Testing `orElse`
+  id: totrans-209
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试`orElse`
 - en: 'Time to test it. First, create the combined parser:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 是时候测试了。首先，创建组合解析器：
 - en: '[PRE51]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'If you look at the types, you can see that all three values have type `Parser<char>`:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您查看类型，您会看到所有三个值都具有类型`Parser<char>`：
 - en: '[PRE52]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: Now if we run `parseAOrElseB` we can see that it successfully handles an "A"
     or a "B" as first character.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在如果我们运行`parseAOrElseB`，我们可以看到它成功处理了作为第一个字符的"A"或"B"。
 - en: '[PRE53]'
+  id: totrans-215
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: Combining `andThen` and `orElse`
+  id: totrans-216
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 结合`andThen`和`orElse`
 - en: With these two basic combinators, we can build more complex ones, such as "A
     and then (B or C)".
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这两个基本的组合子，我们可以构建更复杂的组合子，比如"A然后(B或C)"。
 - en: 'Here''s how to build up `aAndThenBorC` from simpler parsers:'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是如何从更简单的解析器构建`aAndThenBorC`的代码：
 - en: '[PRE54]'
+  id: totrans-219
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: 'And here it is in action:'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是它的实际效果：
 - en: '[PRE55]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: Note that the last example gives a misleading error. It says "Expecting 'C'"
     when it really should say "Expecting 'B' or 'C'". We won't attempt to fix this
     right now, but in a later post we'll implement better error messages.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，最后一个示例给出了一个误导性的错误。它说"期望'C'"，而实际上应该说"期望'B'或'C'"。我们现在不打算修复这个问题，但在以后的帖子中，我们将实现更好的错误消息。
 - en: '* * *'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'Choosing from a list of parsers: "choice" and "anyOf"'
+  id: totrans-224
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从解析器列表中选择："choice"和"anyOf"
 - en: This is where where the power of combinators starts kicking in, because with
     `orElse` in our toolbox, we can use it to build even more combinators.
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是组合子的威力开始发挥作用的地方，因为有了`orElse`在我们的工具箱中，我们可以使用它来构建更多的组合子。
 - en: For example, let's say that we want choose from a *list* of parsers, rather
     than just two.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们想要从解析器*列表*中选择，而不仅仅是两个。
 - en: Well, that's easy. If we have a pairwise way of combining things, we can extend
     that to combining an entire list using `reduce` (for more on working with `reduce`,
     [see this post on monoids](monoids-without-tears.html) ).
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 好了，这很容易。如果我们有一种成���组合事物的方法，我们可以通过使用`reduce`来将整个列表组合起来（有关使用`reduce`的更多信息，请参阅关于幺半群的这篇文章）。
 - en: '[PRE56]'
+  id: totrans-228
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: '*Note that this will fail if the input list is empty, but we will ignore that
     for now.*'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: '*请注意，如果输入列表为空，这将失败，但我们现在将忽略这一点。*'
 - en: 'The signature of `choice` is:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: '`choice`的签名是：'
 - en: '[PRE57]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: which shows us that, as expected, the input is a list of parsers, and the output
     is a single parser.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明，正如预期的那样，输入是解析器列表，输出是单个解析器。
 - en: 'With `choice` available, we can create an `anyOf` parser that matches any character
     in a list, using the following logic:'
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了`choice`可用，我们可以创建一个`anyOf`解析器，它匹配列表中的任何字符，使用以下逻辑：
 - en: The input is a list of characters
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输入是一个字符列表
 - en: Each char in the list is transformed into a parser for that char using `pchar`
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 列表中的每个字符都使用`pchar`转换为该字符的解析器
 - en: Finally, all the parsers are combined using `choice`
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，所有解析器都使用`choice`组合
 - en: 'Here''s the code:'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE58]'
+  id: totrans-238
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'Let''s test it by creating a parser for any lowercase character and any digit
     character:'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过创建一个匹配任何小写字符和任何数字字符的解析器来测试它：
 - en: '[PRE59]'
+  id: totrans-240
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: 'If we test them, they work as expected:'
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们测试它们，它们会按预期工作：
 - en: '[PRE60]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: Again, the error messages are misleading. Any lowercase letter can be expected,
     not just 'z', and any digit can be expected, not just '9'. As I said earlier,
     we'll work on the error messages in a later post.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，错误消息是误导性的。可以期望任何小写字母，而不仅仅是'z'，可以期望任何数字，而不仅仅是'9'。正如我之前所说，我们将在以后的帖子中处理错误消息。
 - en: Review
+  id: totrans-244
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回顾
 - en: 'Let''s stop for now, and review what we have done:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在停下来，回顾一下我们所做的：
 - en: We have created a type `Parser` that is a wrapper for a parsing function.
+  id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们创建了一个名为`Parser`的类型，它是解析函数的包装器。
 - en: The parsing function takes an input (e.g. string) and attempts to match the
     input using the criteria baked into the function.
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解析函数接受一个输入（例如字符串）并尝试使用嵌入到函数中的标准进行匹配。
 - en: If the match succeeds, the parsing function returns a `Success` with the matched
     item and the remaining input.
+  id: totrans-248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果匹配成功，解析函数将返回一个带有匹配项和剩余输入的 `Success`。
 - en: If the match fails, the parsing function returns a `Failure` with reason for
     the failure.
+  id: totrans-249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果匹配失败，则解析函数返回一个带有失败原因的 `Failure`。
 - en: 'And finally, we saw some "combinators" -- ways in which `Parser`s could be
     combined to make a new `Parser`: `andThen` and `orElse` and `choice`.'
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，我们看到了一些“组合子”——可以将 `Parser` 组合以创建新的 `Parser` 的方式：`andThen` 和 `orElse` 和 `choice`。
 - en: Listing of the parser library so far
+  id: totrans-251
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 到目前为止解析器库的列表
 - en: Here's the complete listing for the parsing library so far -- it's about 90
     lines of code.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，这是解析库的完整列表——大约是 90 行代码。
 - en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-parserlibrary_v1-fsx).*'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '*下面显示的源代码也可以在 [此代码片段](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-parserlibrary_v1-fsx)
+    上找到。*'
 - en: '[PRE61]'
+  id: totrans-254
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: Summary
+  id: totrans-255
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: In this post, we have created the foundations of a parsing library, and few
     simple combinators.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们创建了解析库的基础，以及一些简单的组合子。
 - en: In the [next post](understanding-parser-combinators-2.html), we'll build on
     this to create a library with many more combinators.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[下一篇文章](understanding-parser-combinators-2.html)中，我们将在此基础上创建一个具有更多组合子的库。
 - en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-understanding_parser_combinators-fsx).*'
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文的源代码可以在 [此代码片段](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-understanding_parser_combinators-fsx)
+    上找到。*'
 - en: Further information
+  id: totrans-259
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进一步信息
 - en: If you are interesting in using this technique in production, be sure to investigate
     the [FParsec library](http://www.quanttec.com/fparsec/) for F#, which is optimized
     for real-world usage.
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您有兴趣将此技术用于生产，请务必研究适用于 F# 的 [FParsec 库](http://www.quanttec.com/fparsec/)，该库针对实际应用进行了优化。
 - en: For more information about parser combinators in general, search the internet
     for "Parsec", the Haskell library that influenced FParsec (and this post).
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有关解析器组合子的更多信息，请搜索互联网上的“Parsec”，这个 Haskell 库影响了 FParsec（以及本文）。
 - en: 'For some examples of using FParsec, try one of these posts:'
+  id: totrans-262
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 若要查看 FParsec 的使用示例，请尝试以下文章之一：
 - en: '[Implementing a phrase search query for FogCreek''s Kiln](http://blog.fogcreek.com/fparsec/)'
+  id: totrans-263
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[为 FogCreek 的 Kiln 实现短语搜索查询](http://blog.fogcreek.com/fparsec/)'
 - en: '[A LOGO Parser](http://trelford.com/blog/post/FParsec.aspx)'
+  id: totrans-264
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[一个 LOGO 解析器](http://trelford.com/blog/post/FParsec.aspx)'
 - en: '[A Small Basic Parser](http://trelford.com/blog/post/parser.aspx)'
+  id: totrans-265
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[一个 Small Basic 解析器](http://trelford.com/blog/post/parser.aspx)'
 - en: '[A C# Parser](http://trelford.com/blog/post/parsecsharp.aspx) and [building
     a C# compiler in F#](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)'
+  id: totrans-266
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[一个 C# 解析器](http://trelford.com/blog/post/parsecsharp.aspx) 和 [用 F# 构建一个 C#
+    编译器](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)'
 - en: '[Write Yourself a Scheme in 48 Hours in F#](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)'
+  id: totrans-267
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[48小时内用 F# 写一个 Scheme](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)'
 - en: '[Parsing GLSL, the shading language of OpenGL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)'
+  id: totrans-268
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[解析 OpenGL 的着色语言 GLSL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)'
 - en: Building a useful set of parser combinators
+  id: totrans-269
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 构建一个有用的解析器组合子集
 - en: Building a useful set of parser combinators
+  id: totrans-270
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 构建一个有用的解析器组合子集
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于这个话题的幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*'
 - en: In this series, we are looking at how applicative parsers and parser combinators
     work.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本系列中，我们将研究适用式解析器和解析器组合子的工作原理。
 - en: In the [first post](understanding-parser-combinators1.html), we created the
     foundations of a parsing library.
+  id: totrans-273
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
 - en: In this post, we'll build out the library with many other useful combinators.
     The combinator names will be copied from those used by [FParsec](http://www.quanttec.com/fparsec/),
     so that you can easily migrate to it.
+  id: totrans-274
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在本文中，我们将用许多其他有用的组合子扩展库。 组合子的名称将从 [FParsec](http://www.quanttec.com/fparsec/)
+    中使用的名称复制过来，以便您可以轻松迁移到它。
 - en: '* * *'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 1\. `map` -- transforming the contents of a parser
+  id: totrans-276
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1\. `map` —— 转换解析器的内容
 - en: When parsing, we often we want to match a particular string, such as a reserved
     word like "if" or "where". A string is just a sequence of characters, so surely
     we could use the same technique that we used to define `anyOf` in the first post,
     but using `andThen` instead of `orElse`?
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解析时，我们经常需要匹配特定的字符串，比如保留字如"if"或"where"。一个字符串只是一系列字符，所以我们肯定可以使用与我们在第一篇文章中定义`anyOf`时相同的技术，但使用`andThen`而不是`orElse`吗？
 - en: 'Here''s a (failed) attempt to create a `pstring` parser using that approach:'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个（失败的）尝试，使用该方法创建一个`pstring`解析器：
 - en: '[PRE62]'
+  id: totrans-279
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: This doesn't work, because the output of `andThen` is different from the input
     (a tuple, not a char) and so the `reduce` approach fails.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 这行不通，因为`andThen`的输出与输入不同（是一个元组，而不是一个字符），所以`reduce`方法失败了。
 - en: In order to solve this, we'll need to use a different technique.
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们需要使用一种不同的技术。
 - en: 'To get started, let''s try just matching a string of a specific length. Say,
     for example, that we want to match a three digits in a row. Well, we can do that
     using `andThen`:'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始，让我们尝试匹配一个特定长度的字符串。比如说，我们想匹配连续的三个数字。好吧，我们可以使用`andThen`来做到这一点：
 - en: '[PRE63]'
+  id: totrans-283
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'If we run it like this:'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们像这样运行它：
 - en: '[PRE64]'
+  id: totrans-285
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: 'then we get the result:'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们得到了结果：
 - en: '[PRE65]'
+  id: totrans-287
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: It does work, but the result contains a tuple inside a tuple `(('1', '2'), '3')`
     which is fugly and hard to use. It would be so much more convenient to just have
     a simple string (`"123"`).
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 它确实有效，但结果包含一个元组嵌套在另一个元组中`(('1', '2'), '3')`，这样做很丑陋，也很难使用。只要有一个简单的字符串(`"123"`)就方便多了。
 - en: But in order to turn `('1', '2'), '3')` into `"123"`, we'll need a function
     that can reach inside of the parser and transform the result using an arbitrary
     passed in function.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是为了将`('1', '2'), '3')`转换为`"123"`，我们需要一个函数，它可以进入解析器并使用任意传入的函数来转换结果。
 - en: Of course, what we need is the functional programmer's best friend, `map`.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们需要的是函数式编程员最好的朋友，`map`。
 - en: 'To understand `map` and similar functions, I like to think of there being two
     worlds: a "Normal World", where regular things live, and "Parser World", where
     `Parser`s live.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解`map`和类似的函数，我喜欢想象有两个世界：一个是“正常世界”，其中存放着常规的事物，另一个是“解析器世界”，其中存放着`Parser`。
 - en: 'You can think of Parser World as a sort of "mirror" of Normal World because
     it obeys the following rules:'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以将解析器世界看作是正常世界的一种“镜像”，因为它遵循以下规则：
 - en: Every type in Normal World (say `char`) has a corresponding type in Parser World
     (`Parser<char>`).
+  id: totrans-293
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正常世界中的每种类型（比如`char`）都有对应的解析器世界中的类型（`Parser<char>`）。
 - en: '![](parser-world-return.png)'
+  id: totrans-294
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-world-return.png)'
 - en: 'And:'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且：
 - en: Every value in Normal World (say `"ABC"`) has a corresponding value in Parser
     World (that is, some `Parser<string>` that returns `"ABC"`).
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正常世界中的每个值（比如`"ABC"`）都有一个对应的值在解析器世界中（也就是说，某个返回`"ABC"`的`Parser<string>`）。
 - en: 'And:'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且：
 - en: Every function in Normal World (say `char -> string`) has a corresponding function
     in Parser World (`Parser<char> -> Parser<string>`).
+  id: totrans-298
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正常世界中的每个函数（比如`char -> string`）都有对应的解析器世界中的函数（`Parser<char> -> Parser<string>`）。
 - en: '![](parser-world-map.png)'
+  id: totrans-299
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-world-map.png)'
 - en: Using this metaphor then, `map` transforms (or "lifts") a function in Normal
     World into a function in Parser World.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个比喻，`map`将正常世界中的函数转换（或“提升”）到解析器世界中的函数。
 - en: '![](parser-map.png)'
+  id: totrans-301
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-map.png)'
 - en: '*And by the way, if you like this metaphor, I have a [whole series of posts
     that develop it further](elevated-world.html).*'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: '*顺便说一下，如果你喜欢这个比喻，我有一系列[进一步发展它的帖子](elevated-world.html)。*'
 - en: So that's what `map` does; how do we implement it?
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么`map`的作用是什么呢？我们如何实现它？
 - en: 'The logic is:'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 逻辑是：
 - en: Inside the `innerFn`, run the parser to get the result.
+  id: totrans-305
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在`innerFn`内部，运行解析器以获得结果。
 - en: If the result was a success, apply the specified function to the success value
     to get a new, transformed value, and...
+  id: totrans-306
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果结果成功了，将指定的函数应用于成功值，以获得一个新的、转换过的值，并且……
 - en: '...return the new, mapped, value instead of the original value.'
+  id: totrans-307
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: …返回新的映射值而不是原始值。
 - en: 'Here''s the code (I''ve named the map function `mapP` to avoid confusion with
     other map functions):'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码（我将map函数命名为`mapP`以避免与其他map函数混淆）：
 - en: '[PRE66]'
+  id: totrans-309
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: 'If we look at the signature of `mapP`:'
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们看一下`mapP`的签名：
 - en: '[PRE67]'
+  id: totrans-311
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: we can see that it has exactly the signature we want, transforming a function
     `'a -> 'b` into a function `Parser<'a> -> Parser<'b>`.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到它正好具有我们想要的签名，将一个函数`'a -> 'b`转换为一个函数`Parser<'a> -> Parser<'b>`。
 - en: 'It''s common to define an infix version of `map` as well:'
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常也会定义`map`的中缀版本：
 - en: '[PRE68]'
+  id: totrans-314
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'And in the context of parsing, we''ll often want to put the mapping function
     *after* the parser, with the parameters flipped. This makes using `map` with the
     pipeline idiom much more convenient:'
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 而在解析的上下文中，我们经常希望将映射函数放在解析器之后，并翻转参数的顺序。这样使用管道习惯用法与 `map` 更加方便：
 - en: '[PRE69]'
+  id: totrans-316
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: Parsing three digits with `mapP`
+  id: totrans-317
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用 `mapP` 解析三个数字
 - en: With `mapP` available, we can revisit `parseThreeDigits` and turn the tuple
     into a string.
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了 `mapP`，我们可以重新审视 `parseThreeDigits` 并将元组转换为字符串。
 - en: 'Here''s the code:'
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE70]'
+  id: totrans-320
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: 'Or, if you prefer a more compact implementation:'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，如果你更喜欢更简洁的实现：
 - en: '[PRE71]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'And if we test it, we get a string in the result now, rather than a tuple:'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们测试它，现在结果会是一个字符串，而不是一个元组：
 - en: '[PRE72]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'We can go further, and map the string into an int:'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以进一步，将字符串映射为整数：
 - en: '[PRE73]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: If we test this, we get an `int` in the Success branch.
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们测试这个，我们将在成功分支中得到一个 `int`。
 - en: '[PRE74]'
+  id: totrans-328
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE74]'
 - en: 'Let''s check the type of `parseThreeDigitsAsInt`:'
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们检查一下 `parseThreeDigitsAsInt` 的类型：
 - en: '[PRE75]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE75]'
 - en: It's a `Parser<int>` now, not a `Parser<char>` or `Parser<string>`. The fact
     that a `Parser` can contain *any* type, not just a char or string, is a key feature
     that will be very valuable when we need to build more complex parsers.
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在它是 `Parser<int>`，不再是 `Parser<char>` 或 `Parser<string>`。`Parser` 可以包含*任何*类型，而不仅仅是
+    char 或 string，这一事实是一个重要特性，当我们需要构建更复杂的解析器时将会非常有价值。
 - en: 2\. `apply` and `return` -- lifting functions to the world of Parsers
+  id: totrans-332
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2\. `apply` 和 `return` -- 将函数提升到解析器的世界
 - en: To achieve our goal of creating a parser that matches a list of characters,
     we need two more helper functions which I will call `returnP` and `applyP`.
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现我们的目标，创建一个匹配字符列表的解析器，我们需要另外两个帮助函数，我将它们称为 `returnP` 和 `applyP`。
 - en: '`returnP` simply transforms a normal value into a value in Parser World'
+  id: totrans-334
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`returnP` 简单地将一个普通值转换为解析器世界中的值'
 - en: '`applyP` transforms a Parser containing a function (`Parser< ''a->''b >`) into
     a function in Parser World (`Parser<''a> -> Parser<''b >`)'
+  id: totrans-335
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`applyP` 将包含函数的解析器（`Parser< ''a->''b >`）转换为解析器世界中的函数（`Parser<''a> -> Parser<''b
+    >`）'
 - en: 'Here''s a diagram of `returnP`:'
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `returnP` 的图示：
 - en: '![](parser-return.png)'
+  id: totrans-337
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-return.png)'
 - en: 'And here is the implementation of `returnP`:'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `returnP` 的实现：
 - en: '[PRE76]'
+  id: totrans-339
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE76]'
 - en: 'The signature of `returnP` is just as we want:'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: '`returnP` 的签名正是我们所需的：'
 - en: '[PRE77]'
+  id: totrans-341
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE77]'
 - en: 'Now here''s a diagram of `applyP`:'
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在这是 `applyP` 的图示：
 - en: '![](parser-apply.png)'
+  id: totrans-343
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-apply.png)'
 - en: 'And here is the implementation of `applyP`, which uses `.>>.` and `map`:'
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `applyP` 的实现，它使用 `.>>.` 和 `map`：
 - en: '[PRE78]'
+  id: totrans-345
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE78]'
 - en: 'The infix version of `applyP` is written as `<*>`:'
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: '`applyP` 的中缀版本被写作 `<*>`：'
 - en: '[PRE79]'
+  id: totrans-347
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE79]'
 - en: 'Again, the signature of `applyP` is just as we want:'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，`applyP` 的签名正是我们所需的：
 - en: '[PRE80]'
+  id: totrans-349
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE80]'
 - en: Why do we need these two functions? Well, `map` will lift functions in Normal
     World into functions in Parser World, but only for one-parameter functions.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么我们需要这两个函数？嗯，`map` 将普通世界中的函数提升为解析器世界中的函数，但仅适用于单参数函数。
 - en: What's great about `returnP` and `applyP` is that, together, they can lift *any*
     function in Normal World into a function in Parser World, no matter how many parameters
     it has.
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: '`returnP` 和 `applyP` 的好处在于，它们一起可以将*任何*普通世界中的函数提升为解析器世界中的函数，无论它有多少个参数。'
 - en: 'For example, we now can define a `lift2` function that will lift a two parameter
     function into Parser World like this:'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们现在可以定义一个 `lift2` 函数，它将一个两个参数的函数提升到解析器的世界，像这样：
 - en: '[PRE81]'
+  id: totrans-353
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE81]'
 - en: 'The signature of `lift2` is:'
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
+  zh: '`lift2` 的签名是：'
 - en: '[PRE82]'
+  id: totrans-355
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE82]'
 - en: 'Here''s a diagram of `lift2`:'
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `lift2` 的图示：
 - en: '![](parser-lift2.png)'
+  id: totrans-357
   prefs: []
   type: TYPE_IMG
+  zh: '![](parser-lift2.png)'
 - en: '*If you want to know more about how this works, check out my ["man page" post
     on `lift2`](elevated-world.html) or [my explanation that involves the "Monadster"](monadster.html).*'
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如果你想了解更多关于这是如何工作的信息，请查看我的[关于 `lift2` 的“手册”文章](elevated-world.html)或[涉及“Monadster”的解释](monadster.html)。*'
 - en: 'Let''s see some examples of using `lift2` in practice. First, lifting integer
     addition to addition of Parsers:'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看实际中如何使用 `lift2` 的一些例子。首先，将整数加法提升为解析器的加法：
 - en: '[PRE83]'
+  id: totrans-360
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE83]'
 - en: 'The signature is:'
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
+  zh: 签名是：
 - en: '[PRE84]'
+  id: totrans-362
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE84]'
 - en: which shows that `addP` does indeed take two `Parser<int>` parameters and returns
     another `Parser<int>`.
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明 `addP` 确实接受两个 `Parser<int>` 参数，并返回另一个 `Parser<int>`。
 - en: 'And here''s the `startsWith` function being lifted to Parser World:'
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是被提升到解析器世界的 `startsWith` 函数：
 - en: '[PRE85]'
+  id: totrans-365
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE85]'
 - en: Again, the signature of `startsWithP` is parallel to the signature of `startsWith`,
     but lifted to the world of Parsers.
+  id: totrans-366
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，`startsWithP` 的签名与 `startsWith` 的签名类似，但是提升到了解析器的世界。
 - en: '[PRE86]'
+  id: totrans-367
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE86]'
 - en: 3\. `sequence` -- transforming a list of Parsers into a single Parser
+  id: totrans-368
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3\. `sequence` -- 将解析器列表转换为单个解析器
 - en: 'We now have the tools we need to implement our sequencing combinator! The logic
     will be:'
+  id: totrans-369
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在有了实现顺序组合子所需的工具！逻辑将是：
 - en: Start with the list "cons" operator. This is the two-parameter function that
     prepends a "head" element onto a "tail" of elements to make a new list.
+  id: totrans-370
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从列表“cons”运算符开始。这是一个两参数函数，将“头部”元素添加到“尾部”元素以创建新列表。
 - en: Lift `cons` into the world of Parsers using `lift2`.
+  id: totrans-371
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`lift2`将`cons`提升到解析器的世界中。
 - en: 'We now have a a function that prepends a head `Parser` to a tail list of `Parser`s
     to make a new list of `Parser`s, where:'
+  id: totrans-372
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在我们有一个将`Parser`头部添加到`Parser`尾部列表以创建新的`Parser`列表的函数，其中：
 - en: The head Parser is the first element in the list of parsers that has been passed
     in.
+  id: totrans-373
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 头部解析器是传入的解析器列表中的第一个元素。
 - en: The tail is generated by calling the same function recursively with the next
     parser in the list.
+  id: totrans-374
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尾部通过调用相同的函数递归生成下一个解析器的列表。
 - en: When the input list is empty, just return a `Parser` containing an empty list.
+  id: totrans-375
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当输入列表为空时，只返回包含空列表的`Parser`。
 - en: 'Here''s the implementation:'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是实现方式：
 - en: '[PRE87]'
+  id: totrans-377
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE87]'
 - en: 'The signature of `sequence` is:'
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sequence`的签名是：'
 - en: '[PRE88]'
+  id: totrans-379
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE88]'
 - en: which shows that the input is a list of `Parser`s and the output is a `Parser`
     containing a list of elements.
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明输入是`Parser`列表，输出是包含元素列表的`Parser`。
 - en: 'Let''s test it by creating a list of three parsers, and then combining them
     into one:'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过创建三个解析器的列表，然后将它们组合成一个来测试一下：
 - en: '[PRE89]'
+  id: totrans-382
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE89]'
 - en: As you can see, when we run it we get back a list of characters, one for each
     parser in the original list.
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您所看到的，当我们运行它时，我们会得到一个字符列表，每个解析器在原始列表中对应一个。
 - en: Implementing the `pstring` parser
+  id: totrans-384
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现`pstring`解析器
 - en: At last, we can implement the parser that matches a string, which we'll call
     `pstring`.
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以实现匹配字符串的解析器，我们将其称为`pstring`。
 - en: 'The logic is:'
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: 逻辑是：
 - en: Convert the string into a list of characters.
+  id: totrans-387
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将字符串转换为字符列表。
 - en: Convert each character into a `Parser<char>`.
+  id: totrans-388
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将每个字符转换为`Parser<char>`。
 - en: Use `sequence` to convert the list of `Parser<char>` into a single `Parser<char
     list>`.
+  id: totrans-389
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`sequence`将`Parser<char>`列表转换为单个`Parser<char list>`。
 - en: And finally, use `map` to convert the `Parser<char list>` into a `Parser<string>`.
+  id: totrans-390
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，使用`map`将`Parser<char list>`转换为`Parser<string>`。
 - en: 'Here''s the code:'
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE90]'
+  id: totrans-392
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE90]'
 - en: 'Let''s test it:'
+  id: totrans-393
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来测试一下：
 - en: '[PRE91]'
+  id: totrans-394
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE91]'
 - en: It works as expected. Phew!
+  id: totrans-395
   prefs: []
   type: TYPE_NORMAL
+  zh: 它按预期运行。呼！
 - en: 4\. `many` and `many1` -- matching a parser multiple times
+  id: totrans-396
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4\. `many`和`many1` -- 匹配多次解析器
 - en: 'Another common need is to match a particular parser as many times as you can.
     For example:'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个常见的需求是尽可能多地匹配特定的解析器。例如：
 - en: When matching an integer, you want to match as many digit characters as you
     can.
+  id: totrans-398
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当匹配整数时，您希望尽可能多地匹配数字字符。
 - en: When matching a run of whitespace, you want to match as many whitespace characters
     as you can.
+  id: totrans-399
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当匹配一系列空格时，您希望尽可能多地匹配空格字符。
 - en: There are slightly different requirements for these two cases.
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种情况有略微不同的要求。
 - en: When matching whitespace, it is often optional, so we want a "zero or more"
     matcher, which we'll call `many`.
+  id: totrans-401
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当匹配空白字符时，通常是可选的，因此我们需要一个“零个或多个”匹配器，我们将其称为`many`。
 - en: On the other hand, when matching digits for an integer, you want to match *at
     least one* digit, so we want a "one or more" matcher, which we'll call `many1`.
+  id: totrans-402
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一方面，当匹配整数的数字时，您希望至少匹配*一个*数字，因此我们需要一个“一个或多个”匹配器，我们将其称为`many1`。
 - en: 'Before creating these, we''ll define a helper function which matches a parser
     zero or more times. The logic is:'
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 在创建这些之前，我们将定义一个帮助函数，该函数匹配零次或多次解析器。逻辑是：
 - en: Run the parser.
+  id: totrans-404
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行解析器。
 - en: If the parser returns `Failure` (and this is key) just return an empty list.
     That is, this function can never fail!
+  id: totrans-405
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果解析器返回`Failure`（这很关键），只返回空列表。也就是说，这个函数永远不会失败！
 - en: 'If the parser succeeds:'
+  id: totrans-406
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果解析器成功：
 - en: Call the function recursively to get the remaining values (which could also
     be an empty list).
+  id: totrans-407
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 递归调用函数以获取剩余值（也可能是空列表）。
 - en: Then combine the first value and the remaining values.
+  id: totrans-408
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后将第一个值和剩余值组合起来。
 - en: 'Here''s the code:'
+  id: totrans-409
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE92]'
+  id: totrans-410
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE92]'
 - en: 'With this helper function, we can easily define `many` now -- it''s just a
     wrapper over `parseZeroOrMore`:'
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个辅助函数，我们现在可以轻松定义`many`了--它只是对`parseZeroOrMore`的包装：
 - en: '[PRE93]'
+  id: totrans-412
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE93]'
 - en: 'The signature of `many` shows that the output is indeed a list of values wrapped
     in a `Parser`:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: '`many`的签名表明，输出确实是包含在`Parser`中的值列表：'
 - en: '[PRE94]'
+  id: totrans-414
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE94]'
 - en: 'Now let''s test `many`:'
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来测试一下`many`：
 - en: '[PRE95]'
+  id: totrans-416
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE95]'
 - en: Note that in the last case, even when there is nothing to match, the function
     succeeds.
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在最后一种情况下，即使没有要匹配的内容，函数也会成功。
 - en: 'There''s nothing about `many` that restricts its use to single characters.
     For example, we can use it to match repetitive string sequences too:'
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
+  zh: '`many`并没有限制其仅适用于单个字符。例如，我们也可以使用它来匹配重复的字符串序列：'
 - en: '[PRE96]'
+  id: totrans-419
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE96]'
 - en: 'Finally, let''s implement the original example of matching whitespace:'
+  id: totrans-420
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE97]'
+  id: totrans-421
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE97]'
 - en: Defining `many1`
+  id: totrans-422
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'We can also define the "one or more" combinator `many1`, using the following
     logic:'
+  id: totrans-423
   prefs: []
   type: TYPE_NORMAL
 - en: Run the parser.
+  id: totrans-424
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: If it fails, return the failure.
+  id: totrans-425
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'If it succeeds:'
+  id: totrans-426
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Call the helper function `parseZeroOrMore` to get the remaining values.
+  id: totrans-427
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Then combine the first value and the remaining values.
+  id: totrans-428
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[PRE98]'
+  id: totrans-429
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE98]'
 - en: 'Again, the signature of `many1` shows that the output is indeed a list of values
     wrapped in a `Parser`:'
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE99]'
+  id: totrans-431
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE99]'
 - en: 'Now let''s test `many1`:'
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE100]'
+  id: totrans-433
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE100]'
 - en: As we saw in an earlier example, the last case gives a misleading error. It
     says "Expecting '9'" when it really should say "Expecting a digit". In the next
     post we'll fix this.
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
 - en: Parsing an integer
+  id: totrans-435
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Using `many1`, we can create a parser for an integer. The implementation logic
     is:'
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: Create a parser for a digit.
+  id: totrans-437
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Use `many1` to get a list of digits.
+  id: totrans-438
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Using `map`, transform the result (a list of digits) into a string and then
     into an int.
+  id: totrans-439
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE101]'
+  id: totrans-441
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE101]'
 - en: 'And let''s test it:'
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE102]'
+  id: totrans-443
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE102]'
 - en: 5\. `opt` -- matching a parser zero or one time
+  id: totrans-444
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Sometimes we only want to match a parser zero or one time. For example, the
     `pint` parser above does not handle negative values. To correct this, we need
     to be able to handle an optional minus sign.
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: 'We can define an `opt` combinator easily:'
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: Change the result of a specified parser to an option by mapping the result to
     `Some`.
+  id: totrans-447
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Create another parser that always returns `None`.
+  id: totrans-448
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Use `<|>` to choose the second ("None") parser if the first fails.
+  id: totrans-449
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE103]'
+  id: totrans-451
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE103]'
 - en: 'Here''s an example of it in use -- we match a digit followed by an optional
     semicolon:'
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE104]'
+  id: totrans-453
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE104]'
 - en: 'And here is `pint` rewritten to handle an optional minus sign:'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE105]'
+  id: totrans-455
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE105]'
 - en: Note that the `resultToInt` helper function now needs to handle the sign option
     as well as the list of digits.
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
 - en: 'And here it is in action:'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE106]'
+  id: totrans-458
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE106]'
 - en: 6\. Throwing results away
+  id: totrans-459
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'We often want to match something in the input, but we don''t care about the
     parsed value itself. For example:'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
 - en: For a quoted string, we need to parse the quotes, but we don't need the quotes
     themselves.
+  id: totrans-461
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For a statement ending in a semicolon, we need to ensure the semicolon is there,
     but we don't need the semicolon itself.
+  id: totrans-462
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For whitespace separators, we need to ensure the whitespace is there, but we
     don't need the actual whitespace data.
+  id: totrans-463
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'To handle these requirements, we will define some new combinators that throw
     away the results of a parser:'
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
 - en: '`p1 >>. p2` will apply `p1` and `p2` in sequence, just like `.>>.`, but throw
     away the result of `p1` and keep the result of `p2`.'
+  id: totrans-465
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`p1 .>> p2` will apply `p1` and `p2` in sequence, just like `.>>.`, but keep
     the result of `p1` and throw away the result of `p2`.'
+  id: totrans-466
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: These are easy to define -- just map over the result of `.>>.`, which is a tuple,
     and keep only one element of the pair.
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE107]'
+  id: totrans-468
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE107]'
 - en: 'These combinators allow us to simplify the `digitThenSemicolon` example shown
     earlier:'
+  id: totrans-469
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE108]'
+  id: totrans-470
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE108]'
 - en: You can see that the result now is the same, whether or not the semicolon was
     present.
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
 - en: How about an example with whitespace?
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: The following code creates a parser that looks for "AB" followed by one or more
     whitespace chars, followed by "CD".
+  id: totrans-473
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE109]'
+  id: totrans-474
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE109]'
 - en: The result contains "AB" and "CD" only. The whitespace between them has been
     discarded.
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
 - en: Introducing `between`
+  id: totrans-476
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: A particularly common requirement is to look for a parser between delimiters
     such as quotes or brackets.
+  id: totrans-477
   prefs: []
   type: TYPE_NORMAL
 - en: 'Creating a combinator for this is trivial:'
+  id: totrans-478
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE110]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE110]'
 - en: 'And here it is in use, to parse a quoted integer:'
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE111]'
+  id: totrans-481
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE111]'
 - en: 7\. Parsing lists with separators
+  id: totrans-482
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Another common requirement is parsing lists, seperated by something like commas
     or whitespace.
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
 - en: 'To implement a "one or more" list, we need to:'
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
 - en: First combine the separator and parser into one combined parser, but using `>>.`
     to throw away the separator value.
+  id: totrans-485
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Next, look for a list of the separator/parser combo using `many`.
+  id: totrans-486
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Then prefix that with the first parser and combine the results.
+  id: totrans-487
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE112]'
+  id: totrans-489
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE112]'
 - en: 'For the "zero or more" version, we can choose the empty list as an alternate
     if `sepBy1` does not find any matches:'
+  id: totrans-490
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE113]'
+  id: totrans-491
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE113]'
 - en: 'Here''s some tests for `sepBy1` and `sepBy`, with results shown in the comments:'
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE114]'
+  id: totrans-493
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE114]'
 - en: What about `bind`?
+  id: totrans-494
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: One combinator that we *haven't* implemented so far is `bind` (or `>>=`).
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
 - en: If you know anything about functional programming, or have seen my talk on [FP
     patterns](http://fsharpforfunandprofit.com/fppatterns/), you'll know that `bind`
     is a powerful tool that can be used to implement many functions.
+  id: totrans-496
   prefs: []
   type: TYPE_NORMAL
 - en: Up to this point, I thought that it would be better to show implementations
     for combinators such as `map` and `.>>.` that were explicit and thus, hopefully,
     easier to understand.
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
 - en: But now that we have have some experience, let's implement `bind` and see what
     we can do with it.
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
 - en: Here's the implementation of `bindP` (as I'll call it)
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE115]'
+  id: totrans-500
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE115]'
 - en: 'The signature of `bindP` is:'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE116]'
+  id: totrans-502
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE116]'
 - en: which conforms to a standard bind signature. The input `f` is a "diagonal" function
     (`'a -> Parser<'b>`) and the output is a "horizontal" function (`Parser<'a> ->
     Parser<'b>`). See [this post for more details on how `bind` works](elevated-world-2.html#bind).
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: 'The infix version of `bind` is `>>=`. Note that the parameters are flipped:
     `f` is now the second parameter which makes it more convenient for F#''s pipeline
     idiom.'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE117]'
+  id: totrans-505
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE117]'
 - en: Reimplementing other combinators with `bindP` and `returnP`
+  id: totrans-506
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'The combination of `bindP` and `returnP` can be used to re-implement many of
     the other combinators. Here are some examples:'
+  id: totrans-507
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE118]'
+  id: totrans-508
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE118]'
 - en: Note that the combinators that check the `Failure` path can not be implemented
     using `bind`. These include `orElse` and `many`.
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
 - en: Review
+  id: totrans-510
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: We could keep building combinators for ever, but I think we have everything
     we need to build a JSON parser now, so let's stop and review what we have done.
+  id: totrans-511
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the previous post we created these combinators:'
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
 - en: '`.>>.` (`andThen`) applies the two parsers in sequence and returns the results
     in a tuple.'
+  id: totrans-513
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`<|>` (`orElse`) applies the first parser, and if that fails, the second parsers.'
+  id: totrans-514
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`choice` extends `orElse` to choose from a list of parsers.'
+  id: totrans-515
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'And in this post we created the following additional combinators:'
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
 - en: '`bindP` chains the result of a parser to another parser-producing function.'
+  id: totrans-517
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`bindP`将解析器的结果链到另一个生成解析器的函数。'
 - en: '`mapP` transforms the result of a parser.'
+  id: totrans-518
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`mapP`转换解析器的结果。'
 - en: '`returnP` lifts an normal value into the world of parsers.'
+  id: totrans-519
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`returnP`将普通值提升到解析器的世界中。'
 - en: '`applyP` allows us to lift multi-parameter functions into functions that work
     on Parsers.'
+  id: totrans-520
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`applyP`允许我们将多参数函数提升为适用于解析器的函数。'
 - en: '`lift2` uses `applyP` to lift two-parameter functions into Parser World.'
+  id: totrans-521
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lift2`使用`applyP`将两个参数的函数提升为解析器世界。'
 - en: '`sequence` converts a list of Parsers into a Parser containing a list.'
+  id: totrans-522
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sequence`将解析器列表转换为包含列表的解析器。'
 - en: '`many` matches zero or more occurences of the specified parser.'
+  id: totrans-523
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`many`匹配指定解析器的零个或多个出现。'
 - en: '`many1` matches one or more occurences of the specified parser.'
+  id: totrans-524
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`many1`匹配指定解析器的一个或多个出现。'
 - en: '`opt` matches an optional occurrence of the specified parser.'
+  id: totrans-525
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`opt`匹配指定解析器的可选出现。'
 - en: '`.>>` keeps only the result of the left side parser.'
+  id: totrans-526
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`.>>`仅保留左侧解析器的结果。'
 - en: '`>>.` keeps only the result of the right side parser.'
+  id: totrans-527
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`>>.`仅保留右侧解析器的结果。'
 - en: '`between` keeps only the result of the middle parser.'
+  id: totrans-528
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`between`仅保留中间解析器的结果。'
 - en: '`sepBy` parses zero or more occurrences of a parser with a separator.'
+  id: totrans-529
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sepBy`解析零个或多个带有分隔符的解析器。'
 - en: '`sepBy1` parses one or more occurrences of a parser with a separator.'
+  id: totrans-530
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sepBy1`解析一个或多个带有分隔符的解析器。'
 - en: I hope you can see why the concept of "combinators" is so powerful; given just
     a few basic functions, we have built up a library of useful functions quickly
     and concisely.
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你能看出“组合子”概念为何如此强大；仅仅给出几个基本函数，我们就能迅速而简洁地构建一个有用的函数库。
 - en: Listing of the parser library so far
+  id: totrans-532
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 到目前为止，解析器库的清单
 - en: Here's the complete listing for the parsing library so far -- it's about 200
     lines of code now!
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，这是解析库的完整清单 -- 现在大约有 200 行代码！
 - en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-parserlibrary_v2-fsx).*'
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: '*下面显示的源代码也可在[此要点](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-parserlibrary_v2-fsx)处获得。*'
 - en: '[PRE119]'
+  id: totrans-535
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE119]'
 - en: Summary
+  id: totrans-536
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this post, we have built on the basic parsing code from last time to create
     a library of a 15 or so combinators that can be combined to parse almost anything.
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们在上次的基本解析代码基础上构建了一个包含大约15个组合子的库，可以组合起来解析几乎任何东西。
 - en: Soon, we'll use them to build a JSON parser, but before that, let's pause and
     take time to clean up the error messages. That will be the topic of the [next
     post](understanding-parser-combinators-3.html).
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
+  zh: 不久，我们将使用它们构建一个 JSON 解析器，但在那之前，让我们停下来清理错误消息。这将是[下一篇文章](understanding-parser-combinators-3.html)的主题。
 - en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-understanding_parser_combinators-2-fsx).*'
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文的源代码可在[此要点](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-understanding_parser_combinators-2-fsx)处获得。*'
 - en: Improving the parser library
+  id: totrans-540
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 改进解析器库
 - en: Improving the parser library
+  id: totrans-541
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 改进解析器库
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  id: totrans-542
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于此主题的我的演讲幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*'
 - en: In this series, we are looking at how applicative parsers and parser combinators
     work.
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本系列中，我们正在探讨应用型解析器和解析器组合子的工作原理。
 - en: In the [first post](understanding-parser-combinators1.html), we created the
     foundations of a parsing library.
+  id: totrans-544
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
 - en: In the [second post](understanding-parser-combinators-2.html), we built out
     the library with many other useful combinators.
+  id: totrans-545
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第二篇文章](understanding-parser-combinators-2.html)中，我们使用许多其他有用的组合子扩展了该库。
 - en: In this post, we'll rework the library to provide more helpful error messages.
+  id: totrans-546
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在本文中，我们将重新设计该库以提供更有帮助的错误消息。
 - en: '* * *'
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 1\. Labelling a Parser
+  id: totrans-548
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1. 标记解析器
 - en: 'In some of the failing code examples from earlier posts, we got confusing errors:'
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
+  zh: 在早期文章的一些失败代码示例中，我们得到了令人困惑的错误：
 - en: '[PRE120]'
+  id: totrans-550
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE120]'
 - en: '`parseDigit` is defined as a choice of digit characters, so when the last choice
     (`''9''`) fails, that is the error message we receive.'
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
+  zh: '`parseDigit`被定义为数字字符的选择，所以当最后一个选择（`''9''`）失败时，那就是我们收到的错误消息。'
 - en: 'But that message is quite confusing. What we *really* want is to receive is
     an error that mentions "digit", something like: `Failure "Expecting digit. Got
     ''|''"`.'
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是那个消息相当令人困惑。我们*真正*想要的是收到一条提到“数字”的错误，类似于：`Failure "期望数字。得到 '|' "`。
 - en: That is, what we need is a way of labeling parsers with a word like "digit"
     and then showing that label when a failure occurs.
+  id: totrans-553
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，我们需要的是一种将解析器标记为“数字”并在发生失败时显示该标签的方法。
 - en: 'As a reminder, this is how the `Parser` type was defined in earlier posts:'
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
+  zh: 提醒一下，这是之前帖子中如何定义 `Parser` 类型的方式：
 - en: '[PRE121]'
+  id: totrans-555
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE121]'
 - en: 'In order to add a label, we need to change it into a record structure:'
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了添加一个标签，我们需要将其改为记录结构：
 - en: '[PRE122]'
+  id: totrans-557
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE122]'
 - en: 'The record contains two fields: the parsing function (`parseFn`) and the `label`.'
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录包含两个字段：��析函数（`parseFn`）和 `label`。
 - en: One problem is that the label is in the parser itself, but not in the `Result`,
     which means that clients will not know how to display the label along with the
     error.
+  id: totrans-559
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个问题是标签在解析器本身中，而不在 `Result` 中，这意味着客户端不知道如何在错误消息中显示标签。
 - en: 'So let''s add it to the `Failure` case of `Result` as well, in addition to
     the error message:'
+  id: totrans-560
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，让我们将其添加到 `Result` 的 `Failure` 情况中，除了错误消息：
 - en: '[PRE123]'
+  id: totrans-561
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE123]'
 - en: 'And while we are at it, let''s define a helper function to display the result
     of a parse:'
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
+  zh: 而我们在这里时，让我们定义一个辅助函数来显示解析结果：
 - en: '[PRE124]'
+  id: totrans-563
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE124]'
 - en: Updating the code
+  id: totrans-564
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更新代码
 - en: 'With this change to the definition of `Parser` and `Result`, we have to change
     some of the basic functions, such as `bindP`:'
+  id: totrans-565
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着对 `Parser` 和 `Result` 定义的更改，我们必须更改一些基本函数，比如 `bindP`：
 - en: '[PRE125]'
+  id: totrans-566
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE125]'
 - en: We have to make similar changes to `returnP`, `orElse`, and `many`. For the
     complete code, see the gist linked to below.
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们必须对 `returnP`、`orElse` 和 `many` 进行类似的更改。有关完整代码，请参见下面链接的 gist。
 - en: Updating the label
+  id: totrans-568
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更新标签
 - en: When we use a combinator to build a new compound parser, we will often want
     to assign a new label to it. In order to do this, we replace the original `parseFn`
     with another one that returns the new label.
+  id: totrans-569
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们使用组合器构建新的复合解析器时，通常会希望为其分配一个新标签。为了做到这一点，我们用返回新标签的另一个 `parseFn` 替换原始的 `parseFn`。
 - en: 'Here''s the code:'
+  id: totrans-570
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE126]'
+  id: totrans-571
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE126]'
 - en: 'And let''s create an infix version of this called `<?>`:'
+  id: totrans-572
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们创建一个名为 `<?>` 的中缀版本：
 - en: '[PRE127]'
+  id: totrans-573
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE127]'
 - en: Let's test our new toy!
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们测试一下我们的新玩具！
 - en: '[PRE128]'
+  id: totrans-575
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE128]'
 - en: 'And the output is:'
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出为：
 - en: '[PRE129]'
+  id: totrans-577
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE129]'
 - en: The error message is now `Error parsing digit` rather than `Expecting '9'`.
     Much better!
+  id: totrans-578
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在错误消息是 `Error parsing digit` 而不是 `Expecting '9'`。好多了！
 - en: 'Setting default labels:'
+  id: totrans-579
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 设置默认标签：
 - en: 'We can also set the default labels for certain combinators such as `andThen`
     and `orElse` based on the inputs:'
+  id: totrans-580
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以根据输入为某些组合器（如 `andThen` 和 `orElse`）设置默认标签：
 - en: '[PRE130]'
+  id: totrans-581
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE130]'
 - en: '* * *'
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 2\. Replacing "pchar" with "satisfy"
+  id: totrans-583
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2\. 用 "satisfy" 替换 "pchar"
 - en: One thing that has bothered me about all the implementations so far is `pchar`,
     the basic primitive that all the other functions have built on.
+  id: totrans-584
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，迄今为止让我感到困扰的一件事是 `pchar`，所有其他函数都是基于这个基本原语构建的。
 - en: I don't like that it is so tightly coupled to the input model. What happens
     if we want to parse bytes from a binary format, or other kinds of input. All the
     combinators other than `pchar` are loosely coupled. If we could decouple `pchar`
     as well, we would be set up for parsing *any* stream of tokens, and that would
     make me happy!
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不喜欢它与输入模型紧密耦合。如果我们想要从二进制格式解析字节或其他类型的输入，会发生什么呢？除了 `pchar` 之外的所有组合器都是松散耦合的。如果我们也能解耦
+    `pchar`，那么我们就可以解析*任何*标记流，这会让我很开心！
 - en: 'At this point, I''ll repeat one of my favorite FP slogans: "parameterize all
     the things!" In the case of `pchar`, we''ll remove the `charToMatch` parameter
     and replace it with a function -- a predicate. We''ll call the new function `satisfy`:'
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一点上，我将重复我最喜欢的函数式编程口号之一：“参数化所有事物！”对于 `pchar`，我们将删除 `charToMatch` 参数，并用函数替换它
+    -- 一个谓词。我们将称新函数为 `satisfy`：
 - en: '[PRE131]'
+  id: totrans-587
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE131]'
 - en: 'Other than the parameters, the only thing that has changed from the `pchar`
     implementation is this one line:'
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了参数之外，从 `pchar` 实现中唯一改变的是这一行：
 - en: '[PRE132]'
+  id: totrans-589
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE132]'
 - en: 'With `satisfy` available, we can rewrite `pchar`:'
+  id: totrans-590
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了 `satisfy`，我们可以重写 `pchar`：
 - en: '[PRE133]'
+  id: totrans-591
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE133]'
 - en: Note that we are setting the label to be the `charToMatch`. This refactoring
     would not have been as convenient before, because we didn't have the concept of
     "labels" yet, and so `pchar` would not have been able to return a useful error
     message.
+  id: totrans-592
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我们将标签设置为 `charToMatch`。在此重构之前，这种操作不会那么方便，因为我们还没有“标签”概念，因此 `pchar` 将无法返回有用的错误消息。
 - en: 'The `satisfy` function also lets us write more efficient versions of other
     parsers. For example, parsing a digit looked like this originally:'
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
+  zh: '`satisfy` 函数还让我们能够编写其他解析器的更高效版本。例如，解析数字最初看起来是这样的：'
 - en: '[PRE134]'
+  id: totrans-594
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE134]'
 - en: 'But now we can rewrite it using a predicate directly, making it a lot more
     efficient:'
+  id: totrans-595
   prefs: []
   type: TYPE_NORMAL
+  zh: 但现在我们可以直接使用谓词重写它，使其更加高效：
 - en: '[PRE135]'
+  id: totrans-596
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE135]'
 - en: 'Similarly, we can create a more efficient whitespace parser too:'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样地，我们也可以创建一个更高效的空白符解析器：
 - en: '[PRE136]'
+  id: totrans-598
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE136]'
 - en: 3\. Adding position and context to error messages
+  id: totrans-599
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3\. 向错误消息添加位置和上下文
 - en: Another way to improve the error messages is to show the line and column that
     the error occurred on.
+  id: totrans-600
   prefs: []
   type: TYPE_NORMAL
+  zh: 改进错误消息的另一种方法是显示发生错误的行和列。
 - en: Obviously, for simple one-liners, keeping track of the error location is not
     a problem, but when you are parsing a 100 line JSON file, it will be very helpful.
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，对于简单的一行代码来说，跟踪错误位置不是问题，但是当你解析一个100行的JSON文件时，这将非常有帮助。
 - en: In order to track the line and column we are going to have to abandon the simple
     `string` input and replace it with something more complex, so let's start with
     that.
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了跟踪我们将要放弃简单的`string`输入的行和列，我们需要使用更复杂的东西来替换它，所以让我们从那里开始。
 - en: Defining a input that tracks position
+  id: totrans-603
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义跟踪位置的输入
 - en: 'First, we will need a `Position` type to store the line and column, with helper
     functions to increment one column and one line:'
+  id: totrans-604
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要一个`Position`类型来存储行和列，并提供增加一列和一行的辅助函数：
 - en: '[PRE137]'
+  id: totrans-605
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE137]'
 - en: 'Next, we''ll need to combine the input string with a position into a single
     "input state" type. Since we are line oriented, we can make our lives easier and
     store the input string as a array of lines rather than as one giant string:'
+  id: totrans-606
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要将输入字符串与位置组合成单个“输入状态”类型。由于我们是面向行的，所以我们可以简化生活并将输入字符串存储为一系列行而不是一个巨大的字符串：
 - en: '[PRE138]'
+  id: totrans-607
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE138]'
 - en: 'We will also need a way to convert a string into a initial `InputState`:'
+  id: totrans-608
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要一种方法将字符串转换为初始的`InputState`：
 - en: '[PRE139]'
+  id: totrans-609
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE139]'
 - en: Finally, and most importantly, we need a way to read the next character from
     the input -- let's call it `nextChar`.
+  id: totrans-610
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，也是最重要的，我们需要一种从输入中读取下一个字符的方法——让我们称之为`nextChar`。
 - en: We know what the input for `nextChar` will be (an `InputState`) but what should
     the output look like?
+  id: totrans-611
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们知道`nextChar`的输入将是什么（一个`InputState`），但输出应该是什么样的？
 - en: If the input is at the end, we need a way to indicate that there is no next
     character, so in that case return `None`.
+  id: totrans-612
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果输入处于结尾，我们需要一种方式来指示没有下一个字符，因此在这种情况下返回`None`。
 - en: Therefore in the case when a character is available, we will return `Some`.
+  id: totrans-613
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，在有字符可用的情况下，我们将返回`Some`。
 - en: In addition, the input state will have changed because the column (or line)
     will have been incremented as well.
+  id: totrans-614
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另外，输入状态也会发生变化，因为列（或行）也会增加。
 - en: So, putting this together, the input for `nextChar` is an `InputState` and the
     output is a pair `char option * InputState`.
+  id: totrans-615
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，将这些放在一起，`nextChar`的输入是`InputState`，输出是一对`char option * InputState`。
 - en: 'The logic for returning the next char will be as follows then:'
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回下一个字符的逻辑将如下所示：
 - en: If we are at the last character of the input, return EOF (`None`) and don't
     change the state.
+  id: totrans-617
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们在输入的最后一个字符处，返回EOF（`None`）并且不更改状态。
 - en: If the current column is *not* at the end of a line, return the character at
     that position and change the state by incrementing the column position.
+  id: totrans-618
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果当前列*不*位于行尾，返回该位置的字符并通过增加列位置来改变状态。
 - en: If the current column *is* at the end of a line, return a newline character
     and change the state by incrementing the line position.
+  id: totrans-619
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果当前列*位于*行尾，则返回换行符并通过增加行位置来改变状态。
 - en: 'Here''s the code:'
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是代码：
 - en: '[PRE140]'
+  id: totrans-621
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE140]'
 - en: Unlike the earlier `string` implementation, the underlying array of lines is
     never altered or copied -- only the position is changed. This means that making
     a new state each time the position changes should be reasonably efficient, because
     the text is shared everywhere.
+  id: totrans-622
   prefs: []
   type: TYPE_NORMAL
+  zh: 与先前的`string`实现不同，行的基础数组永远不会被更改或复制——只有位置会被更改。这意味着每次位置更改时创建一个新状态应该是相当高效的，因为文本在所有地方共享。
 - en: 'Let''s quickly test that the implementation works. We''ll create a helper function
     `readAllChars` and then see what it returns for different inputs:'
+  id: totrans-623
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们快速测试一下实现是否有效。我们将创建一个辅助函数`readAllChars`，然后看看对不同输入它返回什么：
 - en: '[PRE141]'
+  id: totrans-624
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE141]'
 - en: 'Here it is with some example inputs:'
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些示例输入：
 - en: '[PRE142]'
+  id: totrans-626
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE142]'
 - en: Note that the implementation returns a newline at the end of the input, even
     if the input doesn't have one. I think that this is a feature, not a bug!
+  id: totrans-627
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，即使输入没有换行符，实现也会在输入结尾返回一个换行符。我认为这是一个特性，而不是一个错误！
 - en: Changing the parser to use the input
+  id: totrans-628
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将解析器改为使用输入
 - en: We now need to change the `Parser` type again.
+  id: totrans-629
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们需要再次更改`Parser`类型。
 - en: To start with, the `Failure` case needs to return some kind of data that indicates
     the position, so we can show it in an error message.
+  id: totrans-630
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，`Failure`情况需要返回一种指示位置的数据，以便我们可以在错误消息中显示它。
 - en: 'We could just use the `InputState` as is, but let''s be good and define a new
     type specially for this use, called `ParserPosition`:'
+  id: totrans-631
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以直接使用`InputState`，但是让我们优雅一点，专门为此定义一个新类型，称为`ParserPosition`：
 - en: '[PRE143]'
+  id: totrans-632
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE143]'
 - en: 'We''ll need some way to convert a `InputState` into a `ParserPosition`:'
+  id: totrans-633
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要一种方法将`InputState`转换为`ParserPosition`：
 - en: '[PRE144]'
+  id: totrans-634
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE144]'
 - en: 'And finally, we can update the `Result` type to include `ParserPosition`:'
+  id: totrans-635
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以更新`Result`类型以包含`ParserPosition`：
 - en: '[PRE145]'
+  id: totrans-636
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE145]'
 - en: 'In addition, the `Parser` type needs to change from `string` to `InputState`:'
+  id: totrans-637
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，`Parser`类型需要从`string`更改为`InputState`：
 - en: '[PRE146]'
+  id: totrans-638
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE146]'
 - en: 'With all this extra information available, the `printResult` function can be
     enhanced to print the text of the current line, along with a caret where the error
     is:'
+  id: totrans-639
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了所有这些额外信息，`printResult`函数可以被增强以打印当前行的文本，以及指示错误位置的插入符：
 - en: '[PRE147]'
+  id: totrans-640
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE147]'
 - en: 'Let''s test `printResult` with a dummy error value:'
+  id: totrans-641
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用一个虚拟的错误值来测试`printResult`：
 - en: '[PRE148]'
+  id: totrans-642
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE148]'
 - en: 'The output is shown below:'
+  id: totrans-643
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出如下所示：
 - en: '[PRE149]'
+  id: totrans-644
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE149]'
 - en: Much nicer than before!
+  id: totrans-645
   prefs: []
   type: TYPE_NORMAL
+  zh: 比以前好多了！
 - en: Fixing up the `run` function
+  id: totrans-646
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 修复`run`函数
 - en: 'The `run` function now needs to take an `InputState` not a string. But we also
     want the convenience of running against string input, so let''s create two `run`
     functions, one that takes an `InputState` and one that takes a `string`:'
+  id: totrans-647
   prefs: []
   type: TYPE_NORMAL
+  zh: '`run`函数现在需要接受`InputState`而不是字符串。但我们也想要针对字符串输入进行运行的便利性，所以让我们创建两个`run`函数，一个接受`InputState`，另一个接受`string`：'
 - en: '[PRE150]'
+  id: totrans-648
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE150]'
 - en: Fixing up the combinators
+  id: totrans-649
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 修复组合子
 - en: We now have three items in the `Failure` case rather than two. This breaks some
     code but is easy to fix. I'm tempted to create a special `ParserError` type so
     that it never happens again, but for now, I'll just fix up the errors.
+  id: totrans-650
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在`Failure`情况下有三个项目而不是两个。这破坏了一些代码，但很容易修复。我倾向于创建一个特殊的`ParserError`类型，以便它永远不会再次发生，但现在，我只会修复这些错误。
 - en: 'Here''s a new version of `satisfy`:'
+  id: totrans-651
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`satisfy`的新版本：
 - en: '[PRE151]'
+  id: totrans-652
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE151]'
 - en: Note that the failure case code is now `Failure (label,err,pos)` where the parser
     position is built from the input state.
+  id: totrans-653
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，失败情况的代码现在是`Failure (label,err,pos)`，其中解析器位置是从输入状态构建的。
 - en: 'And here is `bindP`:'
+  id: totrans-654
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`bindP`：
 - en: '[PRE152]'
+  id: totrans-655
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE152]'
 - en: We can fix up the other functions in the same way.
+  id: totrans-656
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以以相同的方式修复其他函数。
 - en: Testing the positional errors
+  id: totrans-657
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试位置错误
 - en: 'Let''s test with a real parser now:'
+  id: totrans-658
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们用一个真正的解析器进行测试：
 - en: '[PRE153]'
+  id: totrans-659
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE153]'
 - en: 'And the output is:'
+  id: totrans-660
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出如下：
 - en: '[PRE154]'
+  id: totrans-661
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE154]'
 - en: Excellent! I think we can stop now.
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！我想我们现在可以停下来了。
 - en: 4\. Adding some standard parsers to the library
+  id: totrans-663
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4\. 向库中添加一些标准解析器
 - en: In the previous posts, we've built parsers for strings and ints in passing,
     but now let's add them to the core library, so that clients don't have to reinvent
     the wheel.
+  id: totrans-664
   prefs: []
   type: TYPE_NORMAL
+  zh: 在先前的帖子中，我们已经构建了字符串和整数的解析器，但现在让我们将它们添加到核心库中，以便客户端不必重新发明轮子。
 - en: These parsers are based on those in the [the FParsec library](http://www.quanttec.com/fparsec/reference/charparsers.html#).
+  id: totrans-665
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些解析器基于[FParsec库](http://www.quanttec.com/fparsec/reference/charparsers.html#)中的解析器。
 - en: Let's start with some string-related parsers. I will present them without comment
     -- I hope that the code is self-explanatory by now.
+  id: totrans-666
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一些与字符串相关的解析器开始。我将它们呈现而不附带注释 -- 我希望现在的代码已经是不言自明的了。
 - en: '[PRE155]'
+  id: totrans-667
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE155]'
 - en: 'Let''s test `pstring`, for example:'
+  id: totrans-668
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们以`pstring`为例进行测试：
 - en: '[PRE156]'
+  id: totrans-669
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE156]'
 - en: Whitespace parsers
+  id: totrans-670
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 空白解析器
 - en: Whitespace is important in parsing, even if we do end up mostly throwing it
     away!
+  id: totrans-671
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解析中，空白很重要，即使我们最终大部分时候都会丢弃它！
 - en: '[PRE157]'
+  id: totrans-672
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE157]'
 - en: 'And here''s some whitespace tests:'
+  id: totrans-673
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些空白测试：
 - en: '[PRE158]'
+  id: totrans-674
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE158]'
 - en: Numeric parsers
+  id: totrans-675
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 数字解析器
 - en: Finally, we need a parser for ints and floats.
+  id: totrans-676
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们需要一个解析器来解析整数和浮点数。
 - en: '[PRE159]'
+  id: totrans-677
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE159]'
 - en: 'And some tests:'
+  id: totrans-678
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些测试：
 - en: '[PRE160]'
+  id: totrans-679
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE160]'
 - en: 5\. Backtracking
+  id: totrans-680
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5\. 回溯
 - en: One more topic that we should discuss is "backtracking".
+  id: totrans-681
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们应该讨论的另一个主题是“回溯”。
 - en: 'Let''s say that you have two parsers: one to match the string `A-1` and and
     another to match the string `A-2`. If the input is `A-2` then the first parser
     will fail at the third character and the second parser will be attempted.'
+  id: totrans-682
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你有两个解析器：一个用于匹配字符串`A-1`，另一个用于匹配字符串`A-2`。如果输入是`A-2`，那么第一个解析器将在第三个字符失败，然后尝试第二个解析器。
 - en: Now the second parser must start at the *beginning* of the original sequence
     of characters, not at the third character. That is, we need to undo the current
     position in the input stream and go back to the first position.
+  id: totrans-683
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在第二个解析器必须从原始字符序列的*开头*开始，而不是从第三个字符开始。也就是说，我们需要撤消输入流中的当前位置，并回到第一个位置。
 - en: If we were using a mutable input stream then this might be a tricky problem,
     but thankfully we are using immutable data, and so "undoing" the position just
     means using the original input value. And of course, this is exactly what combinators
     such as `orElse` (`<|>`) do.
+  id: totrans-684
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用的是可变输入流，那么这可能是一个棘手的问题，但幸运的是我们使用的是不可变数据，因此“撤消”位置只意味着使用原始输入值。当然，这正是像`orElse`(`<|>`)这样的组合子所做的事情。
 - en: In other words, we get backtracking "for free" when we use immutable input state.
     Yay!
+  id: totrans-685
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，当我们使用不可变的输入状态时，我们可以免费获得回溯。耶！
 - en: 'Sometimes however, we *don''t* want to backtrack. For example, let''s say we
     have these parsers:'
+  id: totrans-686
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候，*我们*不*想回溯。例如，假设我们有以下解析器：
 - en: let `forExpression` = the "for" keyword, then an identifier, then the "in" keyword,
     etc.
+  id: totrans-687
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让`forExpression`等于“for”关键字，然后是标识符，然后是“in”关键字，等等。
 - en: let `ifExpression` = the "if" keyword, then an identifier, then the "then" keyword,
     etc.
+  id: totrans-688
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让`ifExpression`等于“if”关键字，然后是标识符，然后是“then”关键字，等等。
 - en: 'and we then create a combined expression parser that chooses between them:'
+  id: totrans-689
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们创建一个组合表达式解析器，在它们之间进行选择：
 - en: let `expression` = `forExpression <|> ifExpression`
+  id: totrans-690
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 让`expression`等于`forExpression <|> ifExpression`
 - en: Now, if the input stream is `for &&& in something` then the `forExpression`
     parser will error when it hits the sequence `&&&`, because it is expecting a valid
     identifier. At this point we *don't* want to backtrack and try the `ifExpression`
     -- we want to show an error such as "identifier expected after 'for'".
+  id: totrans-691
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果输入流是`for &&& in something`，那么当它遇到序列`&&&`时，`forExpression`解析器将出错，因为它期望一个有效的标识符。此时，我们*不*想回溯并尝试`ifExpression`——我们想显示一个错误，比如“在‘for’后面预期标识符”。
 - en: 'The rule then is that: *if* input has been consumed successfully (in this case,
     the `for` keyword was matched successfully) then do *not* backtrack.'
+  id: totrans-692
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么规则就是：*如果*输入已经成功消耗（在这种情况下，“for”关键字成功匹配），那么*不*回溯。
 - en: We're not going to implement this rule in our simple library, but a proper library
     like FParsec does implement this and also has support for [bypassing it when needed](http://www.quanttec.com/fparsec/reference/primitives.html#members.attempt).
+  id: totrans-693
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不打算在我们简单的库中实现这个规则，但是像FParsec这样的正式库确实实现了这一点，并且还支持[需要时绕过它](http://www.quanttec.com/fparsec/reference/primitives.html#members.attempt)。
 - en: Listing of the final parser library
+  id: totrans-694
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 最终解析器库清单
 - en: The parsing library is up to 500 lines of code now, so I won't show it here.
     You can see it at [this gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx).
+  id: totrans-695
   prefs: []
   type: TYPE_NORMAL
+  zh: 解析库现在已经达到了500行代码，所以我不会在这里展示它。您可以在[这个gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx)中看到它。
 - en: Summary
+  id: totrans-696
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this post, we added better error handling and some more parsers.
+  id: totrans-697
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们添加了更好的错误处理和一些其他解析器。
 - en: Now we have everything we need to build a JSON parser! That will be the topic
     of the [next post](understanding-parser-combinators-4.html).
+  id: totrans-698
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了构建JSON解析器所需的一切！这将是[下一篇文章](understanding-parser-combinators-4.html)的主题。
 - en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-understanding_parser_combinators-3-fsx).*'
+  id: totrans-699
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文的源代码可在[此处的gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-understanding_parser_combinators-3-fsx)找到。*'
 - en: Writing a JSON parser from scratch
+  id: totrans-700
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从头开始编写JSON解析器
 - en: Writing a JSON parser from scratch
+  id: totrans-701
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从头开始编写JSON解析器
 - en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  id: totrans-702
   prefs: []
   type: TYPE_NORMAL
+  zh: '*更新：[关于此主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*'
 - en: In this series, we are looking at how applicative parsers and parser combinators
     work.
+  id: totrans-703
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本系列中，我们正在研究适用解析器和解析器组合子的工作原理。
 - en: In the [first post](understanding-parser-combinators1.html), we created the
     foundations of a parsing library.
+  id: totrans-704
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
 - en: In the [second post](understanding-parser-combinators-2.html), we built out
     the library with many other useful combinators.
+  id: totrans-705
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第二篇文章](understanding-parser-combinators-2.html)中，我们用许多其他有用的组合子扩展了该库。
 - en: In the [third post](understanding-parser-combinators-3.html), we improved the
     error messages.
+  id: totrans-706
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[第三篇文章](understanding-parser-combinators-3.html)中，我们改进了错误消息。
 - en: In this last post, we'll use the library we've written to build a JSON parser.
+  id: totrans-707
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这篇最后的文章中，我们将使用我们编写的库来构建一个JSON解析器。
 - en: '* * *'
+  id: totrans-708
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'First, before we do anything else, we need to load the parser library script
     that we developed over the last few posts, and then open the `ParserLibrary` namespace:'
+  id: totrans-709
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，在我们做任何其他事情之前，我们需要加载我们在过去几篇文章中开发的解析器库脚本，然后打开`ParserLibrary`命名空间：
 - en: '[PRE161]'
+  id: totrans-710
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE161]'
 - en: You can download `ParserLibrary.fsx` [from here](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx).
+  id: totrans-711
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以从这里下载`ParserLibrary.fsx`[ParserLibrary.fsx](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx)。
 - en: 1\. Building a model to represent the JSON spec
+  id: totrans-712
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1. 构建表示JSON规范的模型
 - en: 'The JSON spec is available at [json.org](http://www.json.org/). I''ll paraphase
     it here:'
+  id: totrans-713
   prefs: []
   type: TYPE_NORMAL
+  zh: JSON规范可在[json.org](http://www.json.org/)找到。我会在这里重新叙述它：
 - en: A `value` can be a `string` or a `number` or a `bool` or `null` or an `object`
     or an `array`.
+  id: totrans-714
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`value`可以是`string`或`number`或`bool`或`null`或`object`或`array`。'
 - en: These structures can be nested.
+  id: totrans-715
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些结构可以嵌套。
 - en: A `string` is a sequence of zero or more Unicode characters, wrapped in double
     quotes, using backslash escapes.
+  id: totrans-716
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A `number` is very much like a C or Java number, except that the octal and hexadecimal
     formats are not used.
+  id: totrans-717
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A `boolean` is the literal `true` or `false`
+  id: totrans-718
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A `null` is the literal `null`
+  id: totrans-719
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: An `object` is an unordered set of name/value pairs.
+  id: totrans-720
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: An object begins with `{` (left brace) and ends with `}` (right brace).
+  id: totrans-721
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Each name is followed by `:` (colon) and the name/value pairs are separated
     by `,` (comma).
+  id: totrans-722
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: An `array` is an ordered collection of values.
+  id: totrans-723
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: An array begins with `[` (left bracket) and ends with `]` (right bracket).
+  id: totrans-724
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Values are separated by `,` (comma).
+  id: totrans-725
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Whitespace can be inserted between any pair of tokens.
+  id: totrans-726
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'In F#, this definition can be modelled naturally as:'
+  id: totrans-727
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE162]'
+  id: totrans-728
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE162]'
 - en: 'So the goal of our JSON parser is:'
+  id: totrans-729
   prefs: []
   type: TYPE_NORMAL
 - en: Given a string, we want to output a `JValue` value.
+  id: totrans-730
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 2\. Getting started with `Null` and `Bool`
+  id: totrans-731
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Let's start with the simplest tasks -- parsing the literal values for null and
     the booleans.
+  id: totrans-732
   prefs: []
   type: TYPE_NORMAL
 - en: Parsing Null
+  id: totrans-733
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Parsing the `null` literal is trivial. The logic will be:'
+  id: totrans-734
   prefs: []
   type: TYPE_NORMAL
 - en: Match the string "null".
+  id: totrans-735
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Map the result to the `JNull` case.
+  id: totrans-736
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-737
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE163]'
+  id: totrans-738
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE163]'
 - en: Note that we don't actually care about the value returned by the parser because
     we know in advance that it is going to be "null"!
+  id: totrans-739
   prefs: []
   type: TYPE_NORMAL
 - en: 'This is a common situation, so let''s write a little utility function, `>>%`
     to make this look nicer:'
+  id: totrans-740
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE164]'
+  id: totrans-741
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE164]'
 - en: 'Now we can rewrite `jNull` as follows:'
+  id: totrans-742
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE165]'
+  id: totrans-743
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE165]'
 - en: 'Let''s test:'
+  id: totrans-744
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE166]'
+  id: totrans-745
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE166]'
 - en: That looks good. Let's try another one!
+  id: totrans-746
   prefs: []
   type: TYPE_NORMAL
 - en: Parsing Bool
+  id: totrans-747
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'The bool parser will be similar to null:'
+  id: totrans-748
   prefs: []
   type: TYPE_NORMAL
 - en: Create a parser to match "true".
+  id: totrans-749
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Create a parser to match "false".
+  id: totrans-750
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: And then choose between them using `<|>`.
+  id: totrans-751
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-752
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE167]'
+  id: totrans-753
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE167]'
 - en: 'And here are some tests:'
+  id: totrans-754
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE168]'
+  id: totrans-755
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE168]'
 - en: Note that the error is misleading due to the backtracking issue discussed in
     the previous post. Since "true" failed, it is trying to parse "false" now, and
     "t" is an unexpected character.
+  id: totrans-756
   prefs: []
   type: TYPE_NORMAL
 - en: 3\. Parsing `String`
+  id: totrans-757
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Now for something more complicated -- strings.
+  id: totrans-758
   prefs: []
   type: TYPE_NORMAL
 - en: 'The spec for string parsing is available as a "railway diagram" like this:'
+  id: totrans-759
   prefs: []
   type: TYPE_NORMAL
 - en: '![](json_string.gif)'
+  id: totrans-760
   prefs: []
   type: TYPE_IMG
 - en: '*All diagrams sourced from [json.org](http://www.json.org).*'
+  id: totrans-761
   prefs: []
   type: TYPE_NORMAL
 - en: To build a parser from a diagram like this, we work from the bottom up, building
     small "primitive" parsers which we then combine into larger ones.
+  id: totrans-762
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s start with "any unicode character other than quote and backslash". We
     have a simple condition to test, so we can just use the `satisfy` function:'
+  id: totrans-763
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE169]'
+  id: totrans-764
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE169]'
 - en: 'We can test it immediately:'
+  id: totrans-765
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE170]'
+  id: totrans-766
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE170]'
 - en: Ok, good.
+  id: totrans-767
   prefs: []
   type: TYPE_NORMAL
 - en: Escaped characters
+  id: totrans-768
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Now what about the next case, the escaped characters?
+  id: totrans-769
   prefs: []
   type: TYPE_NORMAL
 - en: In this case we have a list of strings to match (`"\""`, `"\n"`, etc) and for
     each of these, a character to use as the result.
+  id: totrans-770
   prefs: []
   type: TYPE_NORMAL
 - en: 'The logic will be:'
+  id: totrans-771
   prefs: []
   type: TYPE_NORMAL
 - en: First define a list of pairs in the form `(stringToMatch, resultChar)`.
+  id: totrans-772
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For each of these, build a parser using `pstring stringToMatch >>% resultChar)`.
+  id: totrans-773
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finally, combine all these parsers together using the `choice` function.
+  id: totrans-774
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-775
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE171]'
+  id: totrans-776
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE171]'
 - en: 'And again, let''s test it immediately:'
+  id: totrans-777
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE172]'
+  id: totrans-778
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE172]'
 - en: It works nicely!
+  id: totrans-779
   prefs: []
   type: TYPE_NORMAL
 - en: Unicode characters
+  id: totrans-780
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The final case is the parsing of unicode characters with hex digits.
+  id: totrans-781
   prefs: []
   type: TYPE_NORMAL
 - en: 'The logic will be:'
+  id: totrans-782
   prefs: []
   type: TYPE_NORMAL
 - en: First define the primitives for `backslash`, `u` and `hexdigit`.
+  id: totrans-783
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Combine them together, using four `hexdigit`s.
+  id: totrans-784
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The output of the parser will be a nested, ugly tuple, so we need a helper function
     to convert the digits to an int, and then a char.
+  id: totrans-785
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here''s the code:'
+  id: totrans-786
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE173]'
+  id: totrans-787
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE173]'
 - en: And let's test with a smiley face -- `\u263A`.
+  id: totrans-788
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE174]'
+  id: totrans-789
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE174]'
 - en: The complete `String` parser
+  id: totrans-790
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Putting it all together now:'
+  id: totrans-791
   prefs: []
   type: TYPE_NORMAL
 - en: Define a primitive for `quote`
+  id: totrans-792
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Define a `jchar` as a choice between `jUnescapedChar`, `jEscapedChar`, and `jUnicodeChar`.
+  id: totrans-793
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The whole parser is then zero or many `jchar` between two quotes.
+  id: totrans-794
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[PRE175]'
+  id: totrans-795
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE175]'
 - en: 'One more thing, which is to wrap the quoted string in a `JString` case and
     give it a label:'
+  id: totrans-796
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE176]'
+  id: totrans-797
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE176]'
 - en: 'Let''s test the complete `jString` function:'
+  id: totrans-798
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE177]'
+  id: totrans-799
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE177]'
 - en: 4\. Parsing `Number`
+  id: totrans-800
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'The "railway diagram" for Number parsing is:'
+  id: totrans-801
   prefs: []
   type: TYPE_NORMAL
 - en: '![](json_number.gif)'
+  id: totrans-802
   prefs: []
   type: TYPE_IMG
 - en: 'Again, we''ll work bottom up. Let''s start with the most primitive components,
     the single chars and digits:'
+  id: totrans-803
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE178]'
+  id: totrans-804
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE178]'
 - en: 'Now let''s build the "integer" part of the number. This is either:'
+  id: totrans-805
   prefs: []
   type: TYPE_NORMAL
 - en: The digit zero, or,
+  id: totrans-806
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A `nonZeroInt`, which is a `digitOneNine` followed by zero or more normal digits.
+  id: totrans-807
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[PRE179]'
+  id: totrans-808
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE179]'
 - en: Note that, for the `nonZeroInt` parser, we have to combine the output of `digitOneNine`
     (a char) with `manyChars digit` (a string) so a simple map function is needed.
+  id: totrans-809
   prefs: []
   type: TYPE_NORMAL
 - en: 'The optional fractional part is a decimal point followed by one or more digits:'
+  id: totrans-810
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE180]'
+  id: totrans-811
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE180]'
 - en: 'And the exponent part is an `e` followed by an optional sign, followed by one
     or more digits:'
+  id: totrans-812
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE181]'
+  id: totrans-813
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE181]'
 - en: 'With these components, we can assemble the whole number:'
+  id: totrans-814
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE182]'
+  id: totrans-815
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE182]'
 - en: We haven't defined `convertToJNumber` yet though. This function will take the
     four-tuple output by the parser and convert it into a float.
+  id: totrans-816
   prefs: []
   type: TYPE_NORMAL
 - en: Now rather than writing custom float logic, we're going to be lazy and let the
     .NET framework to the conversion for us! That is, each of the components will
     be turned into a string, concatenated, and the whole string parsed into a float.
+  id: totrans-817
   prefs: []
   type: TYPE_NORMAL
 - en: The problem is that some of the components (like the sign and exponent) are
     optional. Let's write a helper that converts an option to a string using a passed
     in function, but if the option is `None` return the empty string.
+  id: totrans-818
   prefs: []
   type: TYPE_NORMAL
 - en: I'm going to call it `|>?` but it doesn't really matter because it is only used
     locally within the `jNumber` parser.
+  id: totrans-819
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE183]'
+  id: totrans-820
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE183]'
 - en: 'Now we can create `convertToJNumber`:'
+  id: totrans-821
   prefs: []
   type: TYPE_NORMAL
 - en: The sign is converted to a string.
+  id: totrans-822
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The fractional part is converted to a string, prefixed with a decimal point.
+  id: totrans-823
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The exponent part is converted to a string, with the sign of the exponent also
     being converted to a string.
+  id: totrans-824
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[PRE184]'
+  id: totrans-825
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE184]'
 - en: It's pretty crude, and converting things to strings can be slow, so feel free
     to write a better version.
+  id: totrans-826
   prefs: []
   type: TYPE_NORMAL
 - en: 'With that, we have everything we need for the complete `jNumber` function:'
+  id: totrans-827
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE185]'
+  id: totrans-828
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE185]'
 - en: It's a bit long-winded, but each component follows the spec, so I think it is
     still quite readable.
+  id: totrans-829
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let''s start testing it:'
+  id: totrans-830
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE186]'
+  id: totrans-831
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE186]'
 - en: And what about some failing cases?
+  id: totrans-832
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE187]'
+  id: totrans-833
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE187]'
 - en: Hmm. Something went wrong! These cases should fail, surely?
+  id: totrans-834
   prefs: []
   type: TYPE_NORMAL
 - en: Well, no. What's happening in the `-123.` case is that the parser is consuming
     everything up the to decimal point and then stopping, leaving the decimal point
     to be matched by the next parser! So, not an error.
+  id: totrans-835
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，不是。在 `-123.` 情况下发生的是，解析器消耗了小数点前的所有内容，然后停止，留下小数点由下一个解析器匹配！所以，不是错误。
 - en: Similarly, in the `00.1` case, the parser is consuming only the first `0` then
     stopping, leaving the rest of the input (`0.4`) to be matched by the next parser.
     Again, not an error.
+  id: totrans-836
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，在 `00.1` 情况下，解析器只消耗第一个 `0` 然后停止，留下输入的其余部分（`0.4`）由下一个解析器匹配。同样，不是错误。
 - en: To fix this properly is out of scope, so let's just add some whitespace to the
     parser to force it to terminate.
+  id: totrans-837
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确修复这个超出了范围，所以让我们只是向解析器添加一些空格，以强制其终止。
 - en: '[PRE188]'
+  id: totrans-838
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE188]'
 - en: 'Now let''s test again:'
+  id: totrans-839
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们再次测试：
 - en: '[PRE189]'
+  id: totrans-840
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE189]'
 - en: and we find the error is being detected properly now.
+  id: totrans-841
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们发现错误现在被正确地检测到了。
 - en: 'Let''s test the fractional part:'
+  id: totrans-842
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们测试一下小数部分：
 - en: '[PRE190]'
+  id: totrans-843
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE190]'
 - en: 'and the exponent part now:'
+  id: totrans-844
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是指数部分：
 - en: '[PRE191]'
+  id: totrans-845
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE191]'
 - en: It's all looking good so far. Onwards and upwards!
+  id: totrans-846
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止一切看起来都很好。继续前进！
 - en: 5\. Parsing `Array`
+  id: totrans-847
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5\. 解析 `Array`
 - en: 'Next up is the `Array` case. Again, we can use the railway diagram to guide
     the implementation:'
+  id: totrans-848
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是 `Array` 情况。同样，我们可以使用铁路图来指导实现：
 - en: '![](json_array.gif)'
+  id: totrans-849
   prefs: []
   type: TYPE_IMG
+  zh: '![](json_array.gif)'
 - en: 'We will start with the primitives again. Note that we are adding optional whitespace
     after each token:'
+  id: totrans-850
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将再次从基本类型开始。请注意，我们在每个标记后添加了可选的空格：
 - en: '[PRE192]'
+  id: totrans-851
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE192]'
 - en: And then we create a list of values separated by a comma, with the whole list
     between the left and right brackets.
+  id: totrans-852
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们创建一个由逗号分隔的值列表，整个列表位于左右括号之间。
 - en: '[PRE193]'
+  id: totrans-853
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE193]'
 - en: Hold on -- what is this `jValue`?
+  id: totrans-854
   prefs: []
   type: TYPE_NORMAL
+  zh: 等等 -- 这个 `jValue` 是什么？
 - en: '[PRE194]'
+  id: totrans-855
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE194]'
 - en: Well, the spec says that an `Array` can contain a list of values, so we'll assume
     that we have a `jValue` parser that can parse them.
+  id: totrans-856
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，规范说 `Array` 可以包含值的列表，所以我们假设有一个 `jValue` 解析器可以解析它们。
 - en: But to parse a `JValue`, we need to parse a `Array` first!
+  id: totrans-857
   prefs: []
   type: TYPE_NORMAL
+  zh: 但要解析 `JValue`，我们首先需要解析 `Array`！
 - en: We have hit a common problem in parsing -- mutually recursive definitions. We
     need a `JValue` parser to build an `Array`, but we need an `Array` parser to build
     a `JValue`.
+  id: totrans-858
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们遇到了解析中的一个常见问题 -- 相互递归定义。我们需要一个 `JValue` 解析器来构建一个 `Array`，但我们需要一个 `Array` 解析器来构建一个
+    `JValue`。
 - en: How can we deal with this?
+  id: totrans-859
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何处理这个？
 - en: Forward references
+  id: totrans-860
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 前向引用
 - en: The trick is to create a forward reference, a dummy `JValue` parser that we
     can use right now to define the `Array` parser, and then later on, we will fix
     up the forward reference with the "real" `JValue` parser.
+  id: totrans-861
   prefs: []
   type: TYPE_NORMAL
+  zh: 技巧是创建一个前向引用，一个虚拟的 `JValue` 解析器，我们现在可以用它来定义 `Array` 解析器，然后稍后，我们将用“真实”的 `JValue`
+    解析器修复前向引用。
 - en: This is one time where mutable references come in handy!
+  id: totrans-862
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个需要可变引用的时候！
 - en: 'We will need a helper function to assist us with this, and the logic will be
     as follows:'
+  id: totrans-863
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将需要一个辅助函数来帮助我们，逻辑如下：
 - en: Define a dummy parser that will be replaced later.
+  id: totrans-864
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定义一个稍后将被替换的虚拟解析器。
 - en: Define a real parser that forwards the input stream to the dummy parser.
+  id: totrans-865
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定义一个真实解析器，将输入流转发给虚拟解析器���
 - en: Return both the real parser and a reference to the dummy parser.
+  id: totrans-866
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 返回真实解析器和对虚拟解析器的引用。
 - en: Now when the client fixes up the reference, the real parser will forward the
     input to the new parser that has replaced the dummy parser.
+  id: totrans-867
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在当客户修复引用时，真正的解析器将将输入转发给替换虚拟解析器的新解析器。
 - en: 'Here''s the code:'
+  id: totrans-868
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是代码：
 - en: '[PRE195]'
+  id: totrans-869
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE195]'
 - en: 'With this in place, we can create a placeholder for a parser of type `JValue`:'
+  id: totrans-870
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个，我们可以为类型为 `JValue` 的解析器创建一个占位符：
 - en: '[PRE196]'
+  id: totrans-871
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE196]'
 - en: Finishing up the `Array` parser
+  id: totrans-872
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 完成 `Array` 解析器
 - en: 'Going back to the `Array` parser, we can now compile it successfully, using
     the `jValue` placeholder:'
+  id: totrans-873
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到 `Array` 解析器，现在我们可以成功编译它，使用 `jValue` 占位符：
 - en: '[PRE197]'
+  id: totrans-874
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE197]'
 - en: 'If we try to test it now, we get an exception because we haven''t fixed up
     the reference:'
+  id: totrans-875
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在尝试测试它，会出现异常，因为我们还没有修复引用：
 - en: '[PRE198]'
+  id: totrans-876
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE198]'
 - en: 'So for now, let''s fix up the reference to use one of the parsers that we have
     already created, such as `jNumber`:'
+  id: totrans-877
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以现在，让我们修复引用，使用我们已经创建的解析器之一，比如 `jNumber`：
 - en: '[PRE199]'
+  id: totrans-878
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE199]'
 - en: Now we *can* successfully test the `jArray` function, as long as we are careful
     to only use numbers in our array!
+  id: totrans-879
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们*可以*成功测试 `jArray` 函数，只要我们小心只在数组中使用数字！
 - en: '[PRE200]'
+  id: totrans-880
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE200]'
 - en: 6\. Parsing `Object`
+  id: totrans-881
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 6\. 解析 `Object`
 - en: The parser for `Object` is very similar to the one for `Array`.
+  id: totrans-882
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Object` 的解析器与 `Array` 的解析器非常相似。'
 - en: 'First, the railway diagram:'
+  id: totrans-883
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，铁路图：
 - en: '![](json_object.gif)'
+  id: totrans-884
   prefs: []
   type: TYPE_IMG
+  zh: '![](json_object.gif)'
 - en: 'Using this, we can create the parser directly, so I''ll present it here without
     comment:'
+  id: totrans-885
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个，我们可以直接创建解析器，所以我将在这里呈现它而不加评论：
 - en: '[PRE201]'
+  id: totrans-886
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE201]'
 - en: A bit of testing to make sure it works (but remember, only numbers are supported
     as values for now).
+  id: totrans-887
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE202]'
+  id: totrans-888
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE202]'
 - en: 7\. Putting it all together
+  id: totrans-889
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Finally, we can combine all six of the parsers using the `choice` combinator,
     and we can assign this to the `JValue` parser reference that we created earlier:'
+  id: totrans-890
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE203]'
+  id: totrans-891
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE203]'
 - en: And now we are ready to rock and roll!
+  id: totrans-892
   prefs: []
   type: TYPE_NORMAL
 - en: 'Testing the complete parser: example 1'
+  id: totrans-893
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Here''s an example of a JSON string that we can attempt to parse:'
+  id: totrans-894
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE204]'
+  id: totrans-895
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE204]'
 - en: 'And here is the result:'
+  id: totrans-896
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE205]'
+  id: totrans-897
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE205]'
 - en: 'Testing the complete parser: example 2'
+  id: totrans-898
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Here''s one from [the example page on json.org](http://json.org/example.html):'
+  id: totrans-899
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE206]'
+  id: totrans-900
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE206]'
 - en: 'And here is the result:'
+  id: totrans-901
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE207]'
+  id: totrans-902
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE207]'
 - en: Complete listing of the JSON parser
+  id: totrans-903
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Here's the complete listing for the JSON parser -- it's about 250 lines of useful
     code.
+  id: totrans-904
   prefs: []
   type: TYPE_NORMAL
 - en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/149deab2d457d8c1be37#file-jsonparser-fsx).*'
+  id: totrans-905
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE208]'
+  id: totrans-906
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE208]'
 - en: Summary
+  id: totrans-907
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this post, we built a JSON parser using the parser library that we have developed
     over the previous posts.
+  id: totrans-908
   prefs: []
   type: TYPE_NORMAL
 - en: I hope that, by building both the parser library and a real-world parser from
     scratch, you have gained a good appreciation for how parser combinators work,
     and how useful they are.
+  id: totrans-909
   prefs: []
   type: TYPE_NORMAL
 - en: 'I''ll repeat what I said in the first post: if you are interesting in using
     this technique in production, be sure to investigate the [FParsec library](http://www.quanttec.com/fparsec/)
     for F#, which is optimized for real-world usage.'
+  id: totrans-910
   prefs: []
   type: TYPE_NORMAL
 - en: And if you are using languages other than F#, there is almost certainly a parser
     combinator library available to use.
+  id: totrans-911
   prefs: []
   type: TYPE_NORMAL
 - en: For more information about parser combinators in general, search the internet
     for "Parsec", the Haskell library that influenced FParsec.
+  id: totrans-912
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'For some more examples of using FParsec, try one of these posts:'
+  id: totrans-913
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Implementing a phrase search query for FogCreek''s Kiln](http://blog.fogcreek.com/fparsec/)'
+  id: totrans-914
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[A LOGO Parser](http://trelford.com/blog/post/FParsec.aspx)'
+  id: totrans-915
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[A Small Basic Parser](http://trelford.com/blog/post/parser.aspx)'
+  id: totrans-916
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[A C# Parser](http://trelford.com/blog/post/parsecsharp.aspx) and [building
     a C# compiler in F#](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)'
+  id: totrans-917
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Write Yourself a Scheme in 48 Hours in F#](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)'
+  id: totrans-918
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Parsing GLSL, the shading language of OpenGL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)'
+  id: totrans-919
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Thanks!
+  id: totrans-920
   prefs: []
   type: TYPE_NORMAL
 - en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/149deab2d457d8c1be37#file-understanding_parser_combinators-4-fsx).*'
+  id: totrans-921
   prefs: []
   type: TYPE_NORMAL
