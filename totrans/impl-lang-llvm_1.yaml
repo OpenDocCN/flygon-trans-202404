@@ -1,123 +1,180 @@
 - en: Lexer
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 词法分析器
 - en: Kaleidoscope Language and its Lexer
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Kaleidoscope 语言及其词法分析器
 - en: 1.1 The Basic Language
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1.1 基本语言
 - en: This tutorial will be illustrated with a toy language that we’ll call “Kaleidoscope”
     (derived from “meaning beautiful, form, and view”). Kaleidoscope is a procedural
     language that allows you to define functions, use conditionals, math, etc. Over
     the course of the tutorial, we’ll extend Kaleidoscope to support the if/then/else
     construct, a for loop, user defined operators, JIT compilation with a simple command
     line interface, etc.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本教程将以一个我们将称之为“Kaleidoscope”的玩具语言来说明。Kaleidoscope 是一种过程化语言，允许您定义函数，使用条件语句，进行数学计算等。在教程的过程中，我们将扩展
+    Kaleidoscope 以支持 if/then/else 结构，for 循环，用户定义的操作符，具有简单命令行界面的 JIT 编译等。
 - en: 'Because we want to keep things simple, the only datatype in Kaleidoscope is
     a 64-bit floating point type (aka `double` in C parlance). As such, all values
     are implicitly double precision and the language doesn’t require type declarations.
     This gives the language a very nice and simple syntax. For example, the following
     simple example computes Fibonacci numbers:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们希望保持简单，Kaleidoscope 中唯一的数据类型是 64 位浮点类型（在 C 中称为`double`）。因此，所有值都隐式为双精度，并且语言不需要类型声明。这使得语言具有非常好的简单语法。例如，以下简单示例计算斐波那契数列：
 - en: '[PRE0]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'We also allow Kaleidoscope to call into standard library functions (the LLVM
     JIT makes this completely trivial). This means that you can use the `extern` keyword
     to define a function before you use it (this is also useful for mutually recursive
     functions). For example:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还允许 Kaleidoscope 调用标准库函数（LLVM JIT 使这完全微不足道）。这意味着您可以使用`extern`关键字在使用之前定义函数（这对于相互递归函数也很有用）。例如：
 - en: '[PRE1]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: A more interesting example is included in Chapter 6 where we write a little
     Kaleidoscope application that displays a Mandelbrot Set at various levels of magnification.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第 6 章中包含了一个更有趣的示例，我们编写了一个小的 Kaleidoscope 应用程序，以不同的放大级别显示曼德勃罗特集。
 - en: Lets dive into the implementation of this language!
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们深入了解这种语言的实现！
 - en: 1.2 The Lexer
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1.2 词法分析器
 - en: 'When it comes to implementing a language, the first thing needed is the ability
     to process a text file and recognize what it says. The traditional way to do this
     is to use a “lexer” (aka ‘scanner’) to break the input up into “tokens”. Each
     token returned by the lexer includes a token code and potentially some metadata
     (e.g. the numeric value of a number). First, we define the possibilities:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实现语言时，首先需要的是处理文本文件并识别其内容的能力。传统的做法是使用“词法分析器”（也称为“扫描器”）将输入分解为“标记”。词法分析器返回的每个标记都包括一个标记代码和可能的一些元数据（例如数字的数值）。首先，我们定义可能性：
 - en: '[PRE2]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Each token returned by our lexer will either be one of the Token enum values
     or it will be an ‘unknown’ character like `+`, which is returned as its ASCII
     value. If the current token is an identifier, the IdentifierStr global variable
     holds the name of the identifier. If the current token is a numeric literal (like
     1.0), NumVal holds its value. Note that we use global variables for simplicity,
     this is not the best choice for a real language implementation :).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的词法分析器返回的每个标记要么是 Token 枚举值之一，要么是一个像`+`这样的‘未知’字符，以其 ASCII 值返回。如果当前标记是标识符，则
+    IdentifierStr 全局变量保存标识符的名称。如果当前标记是数值文字（例如 1.0），NumVal 保存其值。请注意，出于简单起见，我们使用全局变量，这不是实现真实语言的最佳选择
+    :)。
 - en: 'The actual implementation of the lexer is a single function named gettok. The
     gettok function is called to return the next token from standard input. Its definition
     starts as:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 词法分析器的实际实现是一个名为 gettok 的单个函数。gettok 函数被调用以从标准输入返回下一个标记。其定义如下：
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: gettok works by calling the C getchar() function to read characters one at a
     time from standard input. It eats them as it recognizes them and stores the last
     character read, but not processed, in LastChar. The first thing that it has to
     do is ignore whitespace between tokens. This is accomplished with the loop above.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: gettok 通过调用 C 的 getchar() 函数从标准输入逐个读取字符。它在识别字符时吞掉它们，并将上次读取但未处理的最后一个字符存储在 LastChar
+    中。它必须做的第一件事是忽略标记之间的空白。通过上面的循环完成这一点。
 - en: 'The next thing gettok needs to do is recognize identifiers and specific keywords
     like `def`. Kaleidoscope does this with this simple loop:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: gettok 需要做的下一件事是识别标识符和特定关键字，例如`def`。Kaleidoscope 使用以下简单循环完成此操作：
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Note that this code sets the `IdentifierStr` global whenever it lexes an identifier.
     Also, since language keywords are matched by the same loop, we handle them here
     inline. Numeric values are similar:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，每当词法分析器识别出一个标识符时，此代码会设置`IdentifierStr`全局变量。此外，由于语言关键字也是在同一个循环中匹配的，我们在此内联处理它们。数值也是类似的：
 - en: '[PRE5]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'This is all pretty straight-forward code for processing input. When reading
     a numeric value from input, we use the C strtod function to convert it to a numeric
     value that we store in NumVal. Note that this isn’t doing sufficient error checking:
     it will incorrectly read "1.23.45.67" and handle it as if you typed in "1.23".
     Feel free to extend it :). Next we handle comments:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '这些代码都是用于处理输入的非常直接的代码。当从输入中读取数值时，我们使用C语言的strtod函数将其转换为我们存储在NumVal中的数值。请注意，这并没有进行足够的错误检查：它会错误地读取"1.23.45.67"并将其处理为你输入的"1.23"。欢迎扩展它
+    : )。接下来我们处理注释：'
 - en: '[PRE6]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We handle comments by skipping to the end of the line and then return the next
     token. Finally, if the input doesn’t match one of the above cases, it is either
     an operator character like `+` or the end of the file. These are handled with
     this code:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过跳过到行尾来处理注释，然后返回下一个标记。最后，如果输入不匹配上述情况之一，那么它要么是一个操作符字符，如`+`，要么是文件的结尾。这些情况会用以下代码处理：
 - en: '[PRE7]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: With this, we have the complete lexer for the basic Kaleidoscope language (the
     full code listing for the Lexer is available in the next chapter of the tutorial).
     Next we’ll build a simple parser that uses this to build an Abstract Syntax Tree.
     When we have that, we’ll include a driver so that you can use the lexer and parser
     together.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这些，我们就有了基本Kaleidoscope语言的完整词法分析器（词法分析器的完整代码清单在本教程的下一章节中提供）。接下来，我们将构建一个简单的解析器，使用它来构建一个抽象语法树。当我们完成后，我们将包含一个驱动程序，这样你就可以同时使用词法分析器和解析器。
