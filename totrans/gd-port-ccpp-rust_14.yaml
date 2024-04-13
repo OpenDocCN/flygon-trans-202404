@@ -1,0 +1,1716 @@
+- en: Porting from C/C++ to Rust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Fixing Problems in C/C++
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section is not so much concerned with *the correct* way code should be
+    written but what with the C/C++ languages allow. Successive versions of these
+    languages have attempted to retrofit good practice, but not by eliminating the
+    bad one!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All of these things should be considered bad and any construct in the language
+    that enables them is also bad:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling a pure virtual function in a constructor / destructor of a base class
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calling a dangling pointer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Freeing memory more than once
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using default copy constructors or assignment operators without following the
+    rule of three
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overflowing a buffer, e.g. being off by one with some string operation or not
+    testing a boundary condition
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Memory leaks due to memory allocation / ownership issues
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Heap corruption
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The C++ programming language is a very large specification, one that only grows
+    and gets more nuanced and qualified with each release.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem from a programmer's perspective is understanding what things C++
+    allows them to do as oppose to what things they should do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In each case we'll see how Rust might have stopped us getting into this situation
+    in the first place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about C?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: C++ will come in for most of the criticism in this section. Someone might be
+    inclined to think that therefore C does not suffer from problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes that is true to some extent, but it is akin to arguing we don't need shoes
+    because we have no legs. C++ exists and is popular because it is perceived as
+    a step up from C.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Namespaces
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Improved type checking
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Classes and inheritance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exception handling
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More useful runtime library including collections, managed pointers, file io
+    etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ability to model classes and bind methods to them is a major advance. The
+    ability to write RAII style code does improve the software's chances of keeping
+    its memory and resource use under control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compilers Will Catch Some Errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Modern C/C++ compilers can spot some of the errors mentioned in this section.
+    But usually they'll just throw a warning out. Large code bases always generate
+    warnings, many of which are innocuous and it's easy to see why some people become
+    numb to them as they scroll past.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simplest way to protect C / C++ from dumb errors is to elevate serious warnings
+    to be errors. While it is not going to protect against every error it is still
+    better than nothing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Microsoft VC++ enable a high warning level, e.g. /W4 and possibly /WX to
+    warnings into errors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In GCC enable -Wall, -pedantic-errors and possibly -Werror to turn warnings
+    into errors. The pedantic flag rejects code that doesn't follow ISO C and C++
+    standards. There are a lot of errors that can be [configured](https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However this will probably throw up a lot of noise in your compilation process
+    and some of these errors may be beyond your means to control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition it is a good to run a source code analysis tool or linter. However
+    these tend to be expensive and in many cases can be extremely unwieldy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Copy Constructor / Assignment Operators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Copy Constructor / Assignment Operators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In C++ you can construct one instance from another via a constructor and also
+    by an assignment operator. In some cases a constructor will be used instead of
+    an assignment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: By default C++ generates all the code to copy and assign the bytes in one class
+    to another without any effort. Lucky us!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So our class PersonList might look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Except we're not lucky, we just got slimed. The default byte copy takes the
+    pointer in `personList_` and makes a copy of it. Now if we copy `x` to `y`, or
+    assign `x` to `z` we have three classes pointing to the same private data! On
+    top of that, `z` allocated its own `personList_` during its default constructor
+    but the byte copy assignment overwrote it with the one from `x` so its old `personList_`
+    value just leaks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course we might be able to use a `std::unique_ptr` to hold our pointer. In
+    which case the compiler would generate an error. But it might not always be that
+    simple. `personList_` may have been opaquely allocated by an external library
+    so have no choice but to manage its lifetime through the constructor and destructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Rule of Three
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is such a terrible bug enabling problem in C++ that it has given rise to
+    the so-called the Rule of Three^([1](#fn_1)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rule says that if we explicitly declare a destructor, copy constructor or
+    copy assignment operator in a C++ class then we probably need to implement all
+    three of them to safely handle assignment and construction. In other words the
+    burden for fixing C++'s default and dangerous behaviour falls onto the developer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s fix the class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: What a mess!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've added a copy constructor and an assignment operator to the class to handle
+    copying safely. The code even had to check if it was being assigned to itself
+    in case someone wrote `x = x`. Without that test, the receiving instance would
+    clear itself in preparation to adding elements from itself which would of course
+    wipe out all its contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Alternatively we might disable copy / assignments by creating private constructors
+    that prevents them being called by external code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another alternative would be to use noncopyable types within the class itself.
+    For example, the copy would fail if the pointer were managed with a C++11 `std::unique_ptr`
+    (or Boost's `boost::scoped_ptr`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Boost also provides a `boost::noncopyable` class which provides yet another
+    option. Classes may inherit from noncopyable which implements a private copy constructor
+    and assignment operator so any code that tries to copy will generate a compile
+    error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Rule of Five
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Rule of Three has become the Rule of Five(!) in C++11 because of the introduction
+    of move semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have a class that can benefit from move semantics, the Rule of Five essentially
+    says that the existence of the user-defined destructor, copy constructor and copy
+    assignment operator requires you to also implement a move constructor and a move
+    assignment operator. So in addition to the code we wrote above we must also write
+    two more methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Move is the default
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Rust helps by making move semantics the default. i.e. unless you need to copy
+    data from one instance to another, you don't. If you assign a struct from one
+    variable to another, ownership moves with it. The old variable is marked invalid
+    by the compiler and it is an error to access it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But if you do want to copy data from one instance to another then you have two
+    choices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implement the `Clone` trait. Your struct will have an explicit `clone()` function
+    you can call to make a copy of the data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implement the `Copy` trait. Your struct will now implicitly copy on assignment
+    instead of move. Implementing `Copy` also implies implementing `Clone` so you
+    can still explicitly call `clone()` if you prefer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primitive types such as integers, chars, bools etc. implement `Copy` so you
+    can just assign one to another
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But a `String` cannot be copied this way. A string has an internal heap allocated
+    pointer so copying is a more expensive operation. So `String` only implements
+    the `Clone` trait which requires you to explicitly duplicate it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The default for any struct is that it can neither be copied nor cloned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following code will create a `Person` object, assigns it to `person1`.
+    And when `person1` is assigned to `person2`, ownership of the data also moves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Attempting to use `person1` after ownership moves to `person2` will generate
+    a compile error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: To illustrate consider this Rust which is equivalent to the PersonList we saw
+    in C++
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that `PersonList` has a `Vec` vector of `Person` objects. Under the
+    covers the `Vec` will allocate space in the heap to store its data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The variable `x` is on the stack and is a `PersonList` but the persons member
+    is partly allocated from the heap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The variable `x` is bound to a PersonList on the stack. The vector is created
+    in the heap. If we assign `x` to `y` then we could have two stack objects sharing
+    the same pointer on the heap in the same way we did in C++.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But Rust stops that from happening. When we assign `x` to `y`, the compiler
+    will do a bitwise copy of the data in x, but it will bind ownership to `y`. When
+    we try to access the in the old var Rust generates a compile error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rust has stopped the problem that we saw in C++. Not only stopped it but told
+    us why it stopped it - the value moved from x to y and so we can't use x any more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the Copy trait
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `Copy` trait allows us to do direct assignment between variables. The trait
+    has no functions, and acts as a marker in the code to denote data that should
+    be duplicated on assignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can implement the `Copy` trait by deriving it, or implementing it. But
+    you can only do so if all the members of the struct also derive the trait:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: So `PersonKey` is copyable because types `u32` and `u8` are also copyable and
+    the compiler will take the `#[derive(Copy)]` directive and modify the move / copy
+    semantics for the struct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But when a struct contains a a type that does not implement `Copy` you will
+    get a compiler error. So this struct `Person` will cause a compiler error because
+    `String` does not implement `Copy:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the Clone trait
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `Clone` trait adds a `clone()` function to your struct that produces an
+    independent copy of it. We can derive it if every member of the struct can be
+    cloned which in the case of `Person` it can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that Person derives `Clone`, we can do the same for PersonList because
+    all its member types implement that trait - a Person can be cloned, a Vec can
+    be cloned, and a Box can be cloned:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now we can clone `x` into `y` and we have two independent copies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In summary, Rust stops us from getting into trouble by treated assigns as moves
+    when a non-copyable variable is assigned from one to another. But if we want to
+    be able to clone / copy we can make our intent explicit and do that too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: C++ just lets us dig a hole and fills the dirt in on top of us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Missing Braces in Conditionals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Missing Braces in Conditionals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Every programmer eventually encounters an error like this and spends hours trying
+    to figure out why it wasn't working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The reason of course was the else statement wasn't enclosed in braces so the
+    wrong code was executed. The compiler might spot dead code in this instance but
+    that may not always be the case. Even if it did, it might only issue a warning
+    instead of an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The problem can be especially annoying in deeply nested conditions where a
+    misplaced brace can attach to the wrong level. This problem has lead real-world
+    security issues. For example here is the infamous ["goto fail"](https://www.imperialviolet.org/2014/02/22/applebug.html)
+    bug that occured in some Apple products. This (intentional?) bug occured during
+    an SSL handshake and was exploitable. :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note how the "goto fail" is repeated twice and not bound to the condition but
+    is indented as if it was. The code would jump straight into the fail label and
+    return with an err indicating success (since the prior SHA1 update had succeeded).
+    If conditionals
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust requires if-else expressions and loops to be associated with blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So this code won''t compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you try you will get an error like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assignment in Conditionals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Assignment in Conditionals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The omission of an `=` in an `==` condition turns it into an assignment that
+    evaluates to true:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: So here, result was assigned the value 200 rather than compared to the value
+    200\. Compilers should issue a warning for these cases, but an error would be
+    better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Developers might also try to reverse the left and right hand side to mitigate
+    the issue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now the compiler will complain because the value of result is being assigned
+    to a constant which makes no sense. This may work if a variable is compared to
+    a constant but arguably it makes the code less readable and wouldn't help if the
+    left and right hand sides were both assignable so their order didn't matter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `goto fail` example that we saw in section "Missing braces in conditionals"
+    also demonstrates a real world dangers combining assignment and comparison into
+    a single line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: This line is not broken for other reasons, but it's easy to see how might be,
+    especially if this pattern were repeated all over the place. The programmer might
+    have saved a few lines of code to combine everything in this way but at a greater
+    risk. In this case, the risk might be inadvertantly turning the `=` into an `==`,
+    i.e. comparing err to the function call and then comparing that to 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This code just won''t compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The only form of assignment inside a conditional is the specialised and explicit
+    `if let` and `while let` forms which are explained elsewhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Class Member Initialisation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Class Member Initialisation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C++ does not require that you initialise all variables in every constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A member that is a C++ class with its own default constructor doesn't need to
+    be initialised
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A member that is a C++ class without a default constructor must be explicitly
+    initialised.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A member that is a reference must be explicitly initialised
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Primitive types, including pointers do not have to be initialised although the
+    compiler may warn if they are not
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Members do not have to be initialised in the order they are declared
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some compilers may issue warnings if you forget to initialise members or their
+    ordering, but they will still compile the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'C++11 allows classes to have default member initializers which are used in
+    the absence of a constructor setting the value to something else:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is obviously a lot easier to read and ensures that if we have multiple
+    constructors that we don't have to initialize members if the default value will
+    do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You MUST initialise all members of a struct. If your code does not initialise
+    a struct you will get a compiler error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This will not compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you try you will get an error like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Forcing you to initialise the members of the struct ensures the struct is always
+    in a consistent predictable state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ordering of initialisation does not matter providing all of the fields are set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structs often implement a `new()` function which encapsulates this initialisation
+    and acts like a constructor in C++, e.g.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively the struct might implement one or more `From<>` traits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: There can be multiple `From` trait implementations so we can implement a form
+    of polymorphism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Headers and Sources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Headers and Sources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A header file contains definitions of classes, types, macros etc that other
+    files need to #include in order to resolve their use of those things.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Splitting the implementation and definition across different files is an added
+    burden for maintaining code but it can also lead to some serious errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Headers used across multiple projects that have different compiler settings
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Issues with pragmas and alignment
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Issues with different #definitions that affect byte length'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Issues with different typedefs that affect byte length
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each consumer of the header must do so with the exact same settings that affect
+    the size of every type, struct and class in the file plus any issues with packing
+    / alignment. If these settings are not the same, it can cause instability, corruption
+    or problems that only manifest themselves at at runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Headers also make the compiler slower because source that consumes the header
+    inevitably pulls in other headers which pull in other headers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Guard blocks / #pragma once'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Headers will also be expanded as many times as they are `#include`'d. To prevent
+    the expansion happening more than once per source file, they're usually protected
+    by guard blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the same header is included more than once, the second time through it is
+    preprocessed into nothing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#pragma once'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Most modern compilers also support a `#pragma once` directive. This allows the
+    compiler to completely ignore an `#include` which it knows it has already included
+    at least once before per source file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is more efficient than guard blocks because the compile doesn't even bother
+    opening or processing the file again and just skips over it. There may be situations
+    where this is not suitable, but usually it results in faster compilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Precompiled Headers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some compilers also support precompiled headers to speed up compilation. The
+    compiler builds a database lookup when compiling a single source file and subsequent
+    source compiles with reference to that database. This solution can speed up compilation
+    but it complicates the build process since one file has flags to generate the
+    precompiled header file and other sources have flags to reference it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pimpl pattern
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A popular workaround for header issues is the Pimpl pattern. It is a way to
+    separate a class into a public part and a private implementation part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The public class is almost an interface definition in its purity that can be
+    defined in the header with minimal dependencies. It forward references the implementation
+    class and stores it as a member:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: The constructor for the outer class would allocate the implementation class
+    and method calls would call through to the inner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The private implementation class is defined in the source file and can pull
+    in as many extra headers as it needs, pragmas whatever without hurting consumers
+    or compile times of the header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: This solution is known as Pimpl (private implementation) pattern and while it
+    can work to protect consumers and speed up builds it also adds complexity and
+    overhead to development. Instead of 2 definitions of a class to maintain (header
+    / source) you now have 4(!) because there is a public and private impl class.
+    Changing the signature of a method means changing it in potentially 4 places,
+    plus the line in the public class that invokes the private counterpart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One danger for Pimpl is that the private class is allocated from the heap. Code
+    that uses a lot of temporary Pimpl objects could contribute to heap fragmentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note 1: Remember the rule of three? That applies to this object too. The example
+    doesn''t show it but if we copy constructed or assigned ComplexThing to another
+    instance we''d be in a heap of trouble. So on top of the issues with making PImpl
+    work we also have to prevent the other ones. The easiest way to lock it down would
+    be to derive from `boost::noncopyable` if you were using boost or make the copy
+    constructor `private`, or use delete it in C++11.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Rust the definition and the implementation are the same thing. So immediately
+    we have exactly one thing to maintain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing a function defines the function. Let's assume we have a functions.rs
+    file
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Anyone can call it as `functions::create_directory_structure()`. The compiler
+    will validate the call is correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A struct's definition and its implementation are also written once. e.g. `directory.rs`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementations can be defined in a private Rust module and only public structs
+    exposed to consumers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we were a library crate (which we'll call `file_utils`) wishing to expose
+    these objects to consumers we would write a top-level `lib.rs` which says what
+    files our lib comprises of and we want to expose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now a consumer can use our crate easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: Forward Declarations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Forward Declarations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C++ prevents us from referring to a class or function which has not been defined
+    yet. The compiler will complain even if the class or function is in the same file
+    it is referenced from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means ordering matters. If our function or class is used by other files,
+    we have to declare the function in a header. If our function is private to a source
+    file, we have to declare it in the source file, and possibly make it static.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For classes we can make a forward reference. This acts as a hint to compiler
+    to say a class does exist with this name and it will be told about it shortly.
+    But it's a hack and it imposes limits on how we can use the forward declared class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, DataManager below can hand out Data objects but the Data object
+    has a reference to the DataManager. Since each class refers to each other there
+    is no simple way to make the compiler happy except with a forward declaration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But forward declaration compromises the design of the code. For example we
+    couldn''t hold the Data objects in a collection class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: The compiler would complain because it doesn't know anything about the constructors
+    or size of Data. So instantly the design has to change because of a dumb compiler
+    restriction. e.g. we might store a pointer to Data instead in the map but then
+    we'd have to remember to delete it. So forward references increase the potential
+    for bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Rust forward declarations are unnecessary. The struct and function’s definition
+    reside in a .rs and can be referenced with a use directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Namespace Collisions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Namespace Collisions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C code has no namespaces at all and namespaces in C++ are optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: C has learned to live without namespaces. Most C code uses prefixes on functions
+    and structs to avoid collisions, e.g `sqlite3_exec()` is a function belonging
+    to SQLite3\. The prefix stops the function colliding with `exec()` which is a
+    standard POSIX function that got there first. So the prefix acts as a pseudo namespace.
+    But it adds noise to our code and would not be necessary if namespaces were supported
+    and enforced.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: C++ makes them easy to declare but there is no compunction for any code to bother
+    or to do so in anything but the most perfunctory way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Macros are not affected by namespaces. For example, if `TRUE` and `FALSE` are
+    defined by some header they taint everything that `#include`'s those definitions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'By default all C++ code resides in a global namespace:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `hello()` is part of the global namespace. The call to it within
+    `main` could be replaced with calls to `::hello()`. The problem of course is that
+    the more code we write into the global namespace, or the more libraries we pull
+    in that have no namespaces, the more chance there is of collisions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Namespacing requires code enclose the namespaced portion in a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is also easy to abuse namespaces, for example this happens sometimes and
+    is NOT a good idea:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Any file that says `#include "foo.h"` will inadvertently tell the compiler to
+    automatically look up unscoped types and functions against std which may not be
+    what the code wants at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nested namespacing is also possible but it can look messy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we forget to close a brace when nesting headers it becomes very easy to make
+    C++ throw up a wall of incoherent errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Rust every file is implicitly a module (equivalent to a namespace). You cannot
+    NOT use modules because you get them automatically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have a collision between the names of crates or modules y
+  prefs: []
+  type: TYPE_NORMAL
+- en: Macros
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Macros
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Macros in C/C++ are basically little rules that are defined by a preprocessor
+    and substituted into the code that the compiler ultimately attempts to compile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modern coding practice these days is to use inline functions and constants instead
+    of macros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the reality is they can still be (ab)used and code often does. For example
+    code might insert debug statements or logging which is compiled away in release
+    mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another common use is on Windows where the type `TCHAR` compiles to be either
+    `char` or `wchar_t` depending on `#define UNICODE` being present or not. Along
+    with it go macros like `USES_CONVERSION`, `A2CT`, `T2CW` etc. Code should compile
+    cleanly either way but the reality is usually it doesn't.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A classic problem would be something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: So the value in result would be wrong and the value in x would be incremented
+    twice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compilation errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider we are compiling this structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: And in C++
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we fail to define `TOOLTIP_VERSION` to the same value in the implementation
+    as in the caller, then this code may stomp all over memory because it thinks the
+    struct is 128 bytes in one place and 64 bytes in another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Namespace issues
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Macros aren't namespaced and in some cases this leads to problems where a macro
+    definition collides with a well qualified symbol. For example code that `#include
+    <windows.h>` gets a `#define TRUE 1`. But that excludes any other code that expects
+    to compile on Windows from ever using `TRUE` as a const no matter how well they
+    qualify it. Consequently code has to do workarounds such as `#undef` macros to
+    make code work or using another value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ugh. But more likely we'll rename myapp::TRUE to something like myapp::MYAPP_TRUE
+    to avoid the conflict. It's still an ugly workaround for a problem caused by inconsiderate
+    use of macros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Commonly used words like TRUE, FALSE, ERROR, OK, SUCCESS, FAIL are more or less
+    unusable thanks to macros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust provides developers with consts, inline attributes, and platform / architecture
+    attributes for the purpose of conditional compilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust offers macros but they consist of a set of matching rules than must generate
+    syntactically Rust. Macro expansion is performed by the compiler so it is capable
+    of generating errors on the macro if the macro is in error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Type Mismatching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Type Mismatching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Consider two methods. Both are called evaluate() and they are overloaded. The
+    main() method calls evaluate("Hello world"). What version is called in the compiled
+    code?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It may surprise you to know that the bool version is called and the compiler
+    doesn''t even complain about it either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is an example of bad type inference. A string literal (a char *) should
+    be turned into a std::string (a C++ string has a constructor that takes char*
+    ) but the compiler chose to treat it as a bool instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On other occasions the compiler might spot ambiguity and complain but the blurred
+    lines between types in C++ combined with overloading lead to errors: Here is another
+    example where the compiler is a little more useful by generating an error, but
+    in doing so it demonstrates the limits of overloading'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: These overloaded methods should be distinct but they're not distinct enough
+    as far as the compiler is concerned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, blurred and confusing rules about types in C++ can cause unexpected
+    errors that can propagate to runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Rust the functions cannot be overloaded in this manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust is also more strict about type coercion - if you have a bool you cannot
+    pass it to a function that takes an integer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nor can you pass an integer of one size to a function taking an integer of another
+    size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will yield an error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You must use an explicit numeric cast to turn the value into the type the function
+    expects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explicit / Implicit Class Constructors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Explicit / Implicit Class Constructors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It's not just overloading that can be a mess. C++ has a bunch of rules about
+    implicit / explicit type conversion for single argument constructors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `magic()` takes a `const MagicNumber &` yet we called it with `2016`
+    and it still compiled. How did it do that? Well our `MagicNumber` class has a
+    constructor that takes an `int` so the compiler implicitly called that constructor
+    and used the `MagicNumber` it yielded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we didn't want the implicit conversion (e.g. maybe it's horribly expensive
+    to do this without knowing), then we'd have to tack an `explicit` keyword to the
+    constructor to negate the behaviour.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: It demonstrates an instance where the default behavior is probably wrong. The
+    default *should* be `explicit` and if programmers want implicit they should be
+    required to say it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: C++11 adds to the confusion by allowing classes to declare deleted constructors
+    which are anti-constructors that generate an error instead of code if they match.
+    For example, perhaps we only want implicit `int` constructors to match but we
+    want to stop somebody passing in a `double`. In that case we can make a constructor
+    for `double` and then delete it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust does not have constructors and so there is no implicit conversion during
+    construction. And since there is no implicit conversion there is no reason to
+    have C++11 style function delete operators either.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You must write explicit write "constructor" functions and call them explicitly.
+    If you want to overload the function you can use `Into<>` patterns to achieve
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example we might write our `MagicNumber` constructor like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have said here that the `new()` function takes as its argument anything that
+    type `T` which implements the trait `Into<MagicNumber>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we could implement it for `i32`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now our client code can just call `new` and providing it provides a type which
+    implements that trait our constructor will work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: Poor Lifetime Enforcement
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Poor Lifetime Enforcement
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A function like is completely legal and dangerous:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function returns a reference to a temporary variable. Whoever calls it
+    will get a reference to garbage on the stack. Even if it appears to work (e.g.
+    if we called the reference immediately) it is only through luck that it does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our compiler will probably issue a warning for this trivial example but it won't
+    stop us from compiling it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust tracks the lifetime of all objects and knows when their lifetime begins
+    and ends. It tracks references to the object, knows when it is being borrowed
+    (being passed to a function / scope).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It generate a compiler error if it detects any violations of its lifetime /
+    borrowing rules. So the above code would fail to compile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory Allocation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Memory Allocation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Allocated memory is memory that is requested from a portion of memory called
+    a heap, used for some purpose and returned to the free space when it is no longer
+    required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In C memory is allocated and freed through a relatively simple API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`malloc` and `calloc` allocate memory and `free` destroys it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However C++ also needs allocates that call the appropriate constructors and
+    destructors so in addition to C's memory allocation functions, there are keywords
+    for allocation / free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new` / `delete` for C++ class instances'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`new[]` and `delete[]` for arrays of classes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The above but through scoped / shared pointer classes that take ownership of
+    the pointer and free it when appropriate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we fail to free / delete memory that we've allocated, the program will leak
+    memory. If we free / delete memory we've already deallocated, the program may
+    crash. If we free a C++ class with a C `free()` the program may leak memory because
+    any member variables will not be destroyed properly. If we fail to call the correct
+    constructor and destructor pair the program may leak / crash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A cottage industry of tools has sprung up just to try and debug issues with
+    memory leaks, crashes and so forth. Tools like Valgrind etc. specialise in trying
+    to figure out who allocated something without freeing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, what's wrong with this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Oops we allocated an array of strings with `new[]` but called `delete` instead
+    of `delete[]`. So instead of deleting an array of strings we called delete on
+    the first member. 99 of those string''s destructors will never be called. We should
+    have written:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: But the compiler doesn't care and so we have created a potentially hard-to-find
+    bug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the problems with memory allocation can be mitigated by wrapping pointers
+    with scoped or shared pointer classes. But there are even problems which can prevent
+    them from working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's not a good idea to allow memory allocation to cross a library boundary.
+    So many libraries provide new / free functions through their API. Issues about
+    balancing calls apply to them too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: During normal safe programming Rust has no explicit memory allocation or deallocation.
+    We simply declare an object and it continues to exist until its lifetime goes
+    out of scope (i.e. nothing refers to it any more).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is NOT garbage collection. The compiler tracks the lifetime of the object
+    and generates code to automatically delete it at the point it is no longer used.
+    The compiler also knows if we enclose an object's declaration inside a cell, box,
+    rc or similar construct that the object should be allocated on the heap and otherwise
+    it should go on the stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allocation / deallocation is only available in unsafe programming. We would
+    not only ordinarily do this except when we are interacting with an external library
+    or function call and explicitly tag the section as unsafe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Null Pointers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Null Pointers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The need to test a pointer for NULL, or blindly call a pointer that might be
+    NULL has caused so many errors that it has even been called the [billion dollar
+    mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)
+  prefs: []
+  type: TYPE_NORMAL
+- en: TODO
+  prefs: []
+  type: TYPE_NORMAL
+- en: Virtual Destructors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Virtual Destructors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C++ allows classes to inherit from other classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In some cases, such as this example, this can lead to memory leaks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: So here we allocate a pointer to A, assign it to "instance" which is of type
+    `ABase`, do something with it and finally delete it. It looks fine but we just
+    leaked memory! When we called "delete instance" the code invoked the destructor
+    `~ABase()` and NOT the destructor `~A()` . And `value_` was not deleted and the
+    memory leaked. Even if we'd used a scoped pointer to wrap `value_` it would still
+    have leaked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code should have said
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: The compiler didn't care our code was in error. It just allowed us to leak for
+    the sake of a missing keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust also does not use inheritance so problems like ABase above cannot exist.
+    In Rust `ABase` would be declared as a trait that A implements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rust also allows our struct to implement another trait called `Drop` which is
+    equivalent to a C++ destructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: It allows our code to do something during destruction such as to free an open
+    resource, log a message or whatever.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exception Handling / Safety
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Exception Handling / Safety
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are no hard and fast rules for when a function in C++ should throw an
+    exception and when it should return a code. So one codebase may have a tendency
+    to throw lots of exceptions while another might throw none at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aside from that, code may or may not be exception safe. That is, it may or may
+    not free up its resources if it suffers an exception.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Articles have been written to describe the levels of guarantees that code can
+    aim for with [exception safety](http://www.boost.org/community/exception_safety.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You may also be advised to throw exceptions in constructors because there is
+    no easy way to signal the object is an error otherwise except to set the new object
+    into some kind of zombie / dead state via a flag that has to be tested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: But if DatabaseConn() had allocated some memory before throwing an exception,
+    this would NOT be recovered and so ~DatabaseConn would have to clean it up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: But if we waited until after the exception throwing to allocate memory then
+    maybe buffer_ is not set to NULL, so we'd have to ensure we initialised it to
+    NULL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Destructors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: But you will be advised NOT to throw exceptions in destructors because throwing
+    an exception during a stack unwind from handling another exception is fatal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The recommended way of dealing with errors is to use the `Option` and `Result`
+    types to formally pass errors to your caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For irregular errors your code can choose to invoke `panic!()` which is a little
+    like an exception in that it will cause the entire thread to unwind. If the main
+    thread panics then the process terminates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `panic!()` can be caught and recovered from in some scenarios but it is the
+    nuclear option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lacking exceptions might seem a bad idea but C++ demonstrates that they come
+    with a whole raft of considerations of their own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Templates vs Generics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Templates vs Generics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What's a template?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: C++ provides a way of substituting types and values into inline classes and
+    functions called templates. Think of it as a sophisicated substitution macro -
+    you specify a type T in the template and this can substitute for a type `int`
+    or something else at compile time. During compilation you'll be told if there
+    are any errors with the type you supply. This is a very powerful feature since
+    it allows a class to be reused for many different types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Templates are used extensively in the C++ library, Boost and in other places.
+    Collections, strings, algorithms and various other piece of code use templates
+    in one form or another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, templates only expand into code when something actually calls the inline
+    function. Then, if the template calls other templates, the inline code is expanded
+    again and again until there is a large body of code which can be compiled. A small
+    error in our code can propogate into an enormous wall of noise in the middle of
+    some expanded template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example a vector takes a type it holds as a template parameter. So we can
+    create a vector of PatientRecords.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So far so good. So let''s add a record:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That works too! Now let''s try to erase the record we just added:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: Boom!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you wade through that noise to the bottom we can see the erase() function
+    wanted to call the assignment operator on PatientRecord, but couldn't because
+    it was private.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But why did vector allow us to declare a vector with a class which didn't meet
+    its requirements?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We were able to declare the vector, use the std::vector::push_back() function
+    but when we called std::vector::erase() the compiler discovered some deeply nested
+    error and threw these errors back at us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason is that C++ only generates code for templates when it is called.
+    So the declaration was not in violation, the push_back() was not in violation
+    but the erase was.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust has a concept similar to templates called generics. A generics is a struct
+    or trait that takes type parameters just like a template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However but the type can be enforced by saying the traits that it must implement.
+    In addition any errors are meaningful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Say we want to write a generic function that clones the input value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: We haven't even called the function yet, merely defined it. When we compile
+    this, we'll instantly get an error in Rust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'error: no method named `clone` found for type `T` in the current scope'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Rust is saying we never said what T was and because some-random-type has no
+    method called clone() we got an error. So we''ll modify the function to add a
+    trait bound to T. This binding says T must implement Clone:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now the compiler knows T must have implement Clone it is able to resolve clone()
+    and be happy. Next we actually call it to see what happens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can clone the integer 10 because integers implement the Clone trait, but
+    our empty struct WhatHappensToMe does not implement Clone trait. So when we compile
+    it we get an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: In summary, Rust improves on templates by TODO
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling generic functions / structs even when they are unused and offer meaningful
+    errors immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allow us to bind traits to generic types to constrain what we can pass into
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Offer meaningful errors if we violate the requirements of the trait bounds
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple Inheritance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Multiple Inheritance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C++ allows code to inherit from multiple classes and they in turn could inherit
+    from other classes. This gives rise to the dreaded *diamond pattern*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: e.g. D inherits from B and C but B and C both inherit from A. So does D have
+    two instances of A or one?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can cause compiler errors which are only partially solved by using something
+    called "virtual inheritance" to convince the compiler to share A between B and
+    C.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'i.e if we knew B and C could potentially be multiply inherited we might declare
+    them with a virtual keyword in their inheritance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: When D inherits from B and C, both share the same instance of A. But that assumes
+    the authors of A, B and C were aware of this problem arising and coded themselves
+    with the assumption that A could be shared.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The more usual normal solution for diamond patterns is "don't do it". i.e use
+    composition or something to avoid the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust also does not use class inheritance so problems like diamond patterns cannot
+    exist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However traits in Rust can inherit from other traits, so potentially it could
+    have diamond-like issues. But to ensure it doesn't, the base trait is implemented
+    separately from any traits that inherit from it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So if struct D implements traits B & C and they inherit from A, then A, B and
+    C must have impl blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: Linker Errors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Linker Errors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: C and C++ requires you supply a list of all the .obj files that form part of
+    your library or executable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you omit a file by accident you will get undefined or missing references.
+    Maintaining this list of files is an additional burden of development, ensuring
+    to update your makefile or solution every time you add a file to your project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Rust Helps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Rust includes everything in your library / executable that is directly or indirectly
+    referenced by mod commands, starting from your toplevel lib.rs or main.rs and
+    working all the way down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Providing you reference a module, it will be automatically built and linked
+    into your binary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you use the `cargo` command, then the above also applies for external crates
+    that you link with. The cargo command will also check for version conflicts between
+    external libraries. If you find your cargo generating errors about compatibility
+    conflicts between crates you may be able to resolve them by updating the Cargo.lock
+    file like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE

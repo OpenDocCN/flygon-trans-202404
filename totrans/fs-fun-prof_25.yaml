@@ -1,0 +1,2432 @@
+- en: The "Handling State" Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series of posts, I'll look at how you can thread state through a series
+    of pure functions in a convenient way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start with, I'll tell the story of Dr Frankenfunctor and the Monadster, and
+    how the Doctor needed a way to create "recipes" that were activated when lightning
+    struck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Doctor then devised ways to work with these recipes using functions such
+    as `map`, `bind` and `apply`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the final post, we'll see how we can use a computation expression to make
+    the coding cleaner, and how these techniques can be generalized into the so-called
+    "state monad".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Warning! These posts contains gruesome topics, strained analogies, discussion
+    of monads*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Dr Frankenfunctor and the Monadster](monadster.html). Or, how a 19th century
+    scientist nearly invented the state monad.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Completing the body of the Monadster](monadster-2.html). Dr Frankenfunctor
+    and the Monadster, part 2.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Refactoring the Monadster](monadster-3.html). Dr Frankenfunctor and the Monadster,
+    part 3.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dr Frankenfunctor and the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Dr Frankenfunctor and the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Warning! This post contains gruesome topics, strained analogies, discussion
+    of monads*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For generations, we have been captivated by the tragic story of Dr Frankenfunctor.
+    The fascination with vital forces, the early experiments with electricity and
+    galvanism, and finally the breakthough culminating in the bringing to life of
+    a collection of dead body parts -- the Monadster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But then, as we all know, the creature escaped and the free Monadster rampaged
+    through computer science conferences, bringing fear to the hearts of even the
+    most seasoned programmers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The horror, The horror](monadster_horror.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*CAPTION: The terrible events at the 1990 ACM Conference on LISP and Functional
+    Programming.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will not repeat the details here; the story is still too terrible to recall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in all the millions of words devoted to this tragedy, one topic has never
+    been satisfactorily addressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*How was the creature assembled and brought to life?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know that Dr Frankenfunctor built the creature from dead body parts, and
+    then animated them in a single instant, using a bolt of lightning to create the
+    vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the various body parts had to be assembled into a whole, and the vital force
+    had to be transmitted through the assembly in the appropriate manner, and all
+    this done in a split second, in the moment that the lightning struck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have devoted many years of research into this matter, and recently, at great
+    expense, I have managed to obtain Dr Frankenfunctor's personal laboratory notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So at last, I can present Dr Frankenfunctor's technique to the world. Use it
+    as you will. I do not make any judgements as to its morality, after all, it is
+    not for mere developers to question the real-world effects of what we build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To start with, you need to understand the fundamental process involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you must know that no whole body was available to Dr Frankenfunctor.
+    Instead, the creature was created from an assemblage of body parts -- arms, legs,
+    brain, heart -- whose provenances were murky and best left unspoken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Dr Frankenfunctor started with a dead body part, and infused it with some amount
+    of vital force. The result was two things: a now live body part, and the remaining,
+    diminished, vital force, because of course some of the vital force was transferred
+    to the live part.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a diagram demonstrating the principle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The principle](monadster1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But this creates only *one* body part. How can we create more than one? This
+    is the challenge that faced Dr Frankenfunctor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first problem is that we only have a limited quantity of the vital force.
+    This means that when we need to animate a second body part, we have available
+    only the remaining vital force from a previous step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we connect the two steps together so that the vital force from the first
+    step is fed into the input of the second step?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Connecting steps together](monadster_connect.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Even if we have chained the steps correctly, we need to take the various live
+    body parts and combine them somehow. But we only have access to *live* body parts
+    during the moment of creation. How can we combine them in that split second?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Combining the outputs of each step](monadster_combine.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It was Dr Frankenfunctor's genius that led to an elegant approach that solved
+    both of these problems, the approach that I will present to you now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The common context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before discussing the particulars of assembling the body parts, we should spend
+    a moment on common functionality that is required for the rest of the procedure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need a label type. Dr Frankenfunctor was very disciplined in labeling
+    the source of every part used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The vital force we will model with a simple record type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we will be using vital force frequently, we will create a function that
+    extracts one unit and returns a tuple of the unit and remaining force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Left Leg
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With the common code out of the way, we can return to the substance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dr Frankenfunctor's notebooks record that the lower extremities were created
+    first. There was a left leg lying around in the laboratory, and that was the starting
+    point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: From this leg, a live leg could be created with the same label and one unit
+    of vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The type signature for the creation function would thus look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the actual implementation like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, this implementation matched the earlier diagram precisely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Version 1](monadster1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: At this point Dr Frankenfunctor had two important insights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first insight was that, thanks to [currying](currying.html), the function
+    could be converted from a function taking a tuple to a two parameter function,
+    with each parameter passed in turn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Version 2](monadster2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And the code now looked like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The second insight was that this *same* code can be interpreted as a function
+    that in turn returns a "becomeAlive" function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, we have the dead part on hand, but we won't have any vital force until
+    the final moment, so why not process the dead part right now and return a function
+    that can be used when the vital force becomes available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we pass in a dead part, and we get back a function that creates
+    a live part when given some vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Version 3](monadster3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: These "become alive" functions can then be treated as "steps in a recipe", assuming
+    we can find some way of combining them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code looks like this now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: It may not be obvious, but this is *exactly the same code* as the previous version,
+    just written slightly differently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This curried function (with two parameters) can be interpreted as a normal two
+    parameter function, or it can be interpreted as a *one parameter* function that
+    returns *another* one parameter function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If this is not clear, consider the much simpler example of a two parameter
+    `add` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Because F# curries functions by default, that implementation is exactly the
+    same as this one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which, if we define an intermediate function, is also exactly the same as this
+    one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating the Monadster type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Looking ahead, we can see that we can use a similar approach for all the functions
+    that create live body parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All those functions will return a function that has a signature like: `VitalForce
+    -> LiveBodyPart * VitalForce`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make our life easy, let's give that function signature a name, `M`, which
+    stands for "Monadster part generator", and give it a generic type parameter `'LiveBodyPart`
+    so that we can use it with many different body parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now explicitly annotate the return type of the `makeLiveLeftLeg` function
+    with `:M<LiveLeftLeg>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The rest of the function is unchanged because the `becomeAlive` return value
+    is already compatible with `M<LiveLeftLeg>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But I don''t like having to explicitly annotate all the time. How about we
+    wrap the function in a single case union -- call it "M" -- to give it its own
+    distinct type? Like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: That way, we can [distinguish between a "Monadster part generator" and an ordinary
+    function returning a tuple](https://stackoverflow.com/questions/2595673/state-monad-why-not-a-tuple).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use this new definition, we need to tweak the code to wrap the intermediate
+    function in the single case union `M` when we return it, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For this last version, the type signature will be correctly inferred without
+    having to specify it explicitly: a function that takes a dead left leg and returns
+    an "M" of a live leg:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that I've renamed the function `makeLiveLeftLegM` to make it clear that
+    it returns a `M` of `LiveLeftLeg`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The meaning of M
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So what does this "M" type mean exactly? How can we make sense of it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One helpful way is to think of a `M<T>` as a *recipe* for creating a `T`. You
+    give me some vital force and I'll give you back a `T`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But how can an `M<T>` create a `T` out of nothing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That''s where functions like `makeLiveLeftLegM` are critically important. They
+    take a parameter and "bake" it into the result. As a result, you will see lots
+    of "M-making" functions with similar signatures, all looking something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](monadster5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Or in code terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The challenge now will be how to combine these in an elegant way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the left leg
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Ok, let's test what we've got so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start by creating a dead leg and use `makeLiveLeftLegM` on it to get an
+    `M<LiveLeftLeg>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is `leftLegM`? It's a recipe for creating a live left leg, given some vital
+    force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's useful is that we can create this recipe *up front*, *before* the lightning
+    strikes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let''s pretend that the storm has arrived, the lightning has struck, and
+    10 units of vital force are now available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, inside the `leftLegM` is a function which we can apply to the vital force.
+    But first we need to get the function out of the wrapper using pattern matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then we can run the inner function to get the live left leg and the remaining
+    vital force:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that a `LiveLeftLeg` was created successfully and that the remaining
+    vital force is reduced to 9 units now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This pattern matching is awkward, so let's create a helper function that both
+    unwraps the inner function and calls it, all in one go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll call it `runM` and it looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So the test code above would now be simplified to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: So now, finally, we have a function that can create a live left leg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It took a while to get it working, but we've also built some useful tools and
+    concepts that we can use moving forwards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Right Leg
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we know what we are doing, we should be able to use the same techniques
+    for the other body parts now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How about a right leg then?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, according to the notebook, Dr Frankenfunctor could not find a
+    right leg in the laboratory. The problem was solved with a hack... but we'll come
+    to that later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Left Arm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, the arms were created, starting with the left arm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But there was a problem. The laboratory only had a *broken* left arm lying around.
+    The arm had to be healed before it could be used in the final body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now Dr Frankenfunctor, being a doctor, *did* know how to heal a broken arm,
+    but only a live one. Trying to heal a dead broken arm would be impossible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In code terms, we have this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The challenge was therefore this: how can we make a live left arm out the material
+    we have on hand?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we have to rule out creating a `LiveLeftArm` from a `DeadLeftUnbrokenArm`,
+    as there isn't any such thing. Nor can we convert a `DeadLeftBrokenArm` into a
+    healthy `LiveLeftArm` directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Map dead to dead](monadster_map1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But what we *can* do is turn the `DeadLeftBrokenArm` into a *live* broken arm
+    and then heal the live broken arm, yes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Can''t create live broken arm directly](monadster_map2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: No, I'm afraid that won't work. We can't create live parts directly, we can
+    only create live parts in the context of the `M` recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we need to do then is create a special version of `healBrokenArm` (call
+    it `healBrokenArmM`) that converts a `M<LiveBrokenArm>` to a `M<LiveArm>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Can''t create live broken arm directly](monadster_map3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But how do we create such a function? And how can we reuse `healBrokenArm` as
+    part of it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with the most straightforward implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, since the function will return an `M` something, it will have the same
+    form as the `makeLiveLeftLegM` function that we saw earlier. We'll need to create
+    an inner function that has a vitalForce parameter, and then return it wrapped
+    in an `M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But unlike the function that we saw earlier, this one has an `M` as parameter
+    too (an `M<LiveBrokenArm>`). How can we extract the data we need from this input?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple, just run it with some vitalForce. And where are we going to get the
+    vitalForce from? From the parameter to the inner function!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So our finished version will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we evaluate this code, we get the signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: which is exactly what we want!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But not so fast -- we can do better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've hard-coded the `healBrokenArm` transformation in there. What happens if
+    we want to do some other transformation, and for some other body part? Can we
+    make this function a bit more generic?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yes, it''s easy. All we need to is pass in a function ("f" say) that transforms
+    the body part, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's amazing about this is that by parameterizing that one transformation
+    with the `f` parameter, the *whole* function becomes generic!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We haven't made any other changes, but the signature for `makeGenericTransform`
+    no longer refers to arms. It works with anything!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Introducing mapM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Since it is so generic now, the names are confusing. Let's rename it. I'll call
+    it `mapM`. It works with *any* body part and *any* transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the implementation, with the internal names fixed up too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In particular, it works with the `healBrokenArm` function, so to create a version
+    of "heal" that has been lifted to work with `M`s we can just write this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![mapM with heal](monadster_map4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The importance of mapM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One way of thinking about `mapM` is that it is a "function converter". Given
+    any "normal" function, it converts it to a function where the input and output
+    are `M`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![mapM](monadster_mapm.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Functions similar to `mapM` crop up in many situations. For example, `Option.map`
+    transforms a "normal" function into a function whose inputs and outputs are options.
+    Similarly, `List.map` transforms a "normal" function into a function whose inputs
+    and outputs are lists. And there are many other examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: What might be new to you is that the "wrapper" type `M` contains a *function*,
+    not a simple data structure like Option or List. That might make your head hurt!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, the diagram above implies that `M` could wrap *any* normal type
+    and `mapM` could map *any* normal function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try it and see!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, yes, it works!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the left arm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Again, let's test what we've got so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start by creating a dead broken arm and use `makeLiveLeftBrokenArm` on
+    it to get an `M<BrokenLeftArm>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can use `mapM` and `healBrokenArm` to convert the `M<BrokenLeftArm>`
+    into a `M<LeftArm>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we have now in `leftArmM` is a recipe for creating a unbroken and live
+    left arm. All we need to do is add some vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As before, we can do all these things up front, before the lightning strikes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now when the storm arrives, and the lightning has struck, and vital force is
+    available, we can run `leftArmM` with the vital force...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and we get this result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: A live left arm, just as we wanted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Right Arm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: On to the right arm next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, there was a problem. Dr Frankenfunctor's notebooks record that there
+    was no whole arm available. However there *was* a lower arm and an upper arm...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...which could be turned into corresponding live ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Dr Frankenfunctor decided to do surgery to join the two arm sections into a
+    whole arm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: As with the broken arm, the surgery could only be done with *live* parts. Doing
+    that with dead parts would be yucky and gross.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But also, as with the broken arm, we don't have access to the live parts directly,
+    only within the context of an `M` wrapper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words we need to convert our `armSurgery` function that works with
+    normal live parts, and convert it into a `armSurgeryM` function that works with
+    `M`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![armsurgeryM](monadster_armsurgeryM.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can use the same approach as we did before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: create a inner function that takes a vitalForce parameter
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: run the incoming parameters with the vitalForce to extract the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: from the inner function return the new data after surgery
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: wrap the inner function in an "M" and return it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: One big difference from the broken arm example is that we have *two* parameters,
+    of course. When we run the second parameter (to get the `liveUpperArm`), we must
+    be sure to pass in the *remaining vital force* after the first step, not the original
+    one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And then, when we return from the inner function, we must be sure to return
+    `remainingVitalForce2` (the remainder after the second step) not any other one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we compile this code, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: which is just the signature we are looking for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing map2M
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: But as before, why not make this more generic? We don't need to hard-code `armSurgery`
+    -- we can pass it as a parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll call the more generic function `map2M` -- just like `mapM` but with two
+    parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And it has the signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Just as with `mapM` we can interpret this function as a "function converter"
+    that converts a "normal" two parameter function into a function in the world of
+    `M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![map2M](monadster_map2m.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Testing the right arm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Again, let's test what we've got so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, we need some functions to convert the dead parts into live parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*By the way, are you noticing that there is a lot of duplication in these functions?
+    Me too! We will attempt to fix that later.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we''ll create the parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then create the function to make a whole arm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: As always, we can do all these things up front, before the lightning strikes,
+    building a recipe (or *computation* if you like) that will do everything we need
+    when the time comes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the vital force is available, we can run `rightArmM` with the vital force...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and we get this result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: A live right arm, composed of two subcomponents, just as required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that the remaining vital force has gone down to *eight*. We have correctly
+    used up two units of vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we saw how to create a `M` type that wrapped a "become alive"
+    function that in turn could only be activated when lightning struck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also saw how various M-values could be processed and combined using `mapM`
+    (for the broken arm) and `map2M` (for the arm in two parts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This exciting tale has more shocks in store for you! Stay tuned for [the next
+    installment](monadster-2.html), when I reveal how the head and body were created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Completing the body of the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Completing the body of the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Warning! This post contains gruesome topics, strained analogies, discussion
+    of monads*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Welcome to the gripping tale of Dr Frankenfunctor and the Monadster!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We saw [in the previous installment](monadster.html) how Dr Frankenfunctor created
+    life out of dead body parts using "Monadster part generators" (or "M"s for short),
+    that would, on being supplied with some vital force, return a live body part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also saw how the leg and arms of the creature were created, and how these
+    M-values could be processed and combined using `mapM` (for the broken arm) and
+    `map2M` (for the arm in two parts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this second installment, we'll look at the other techniques Dr Frankenfunctor
+    used to create the head, the heart, and the complete body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Head
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, the head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just like the right arm, the head is composed of two parts, a brain and a skull.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Dr Frankenfunctor started by defining the dead brain and skull:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unlike the two-part right arm, only the brain needs to become alive. The skull
+    can be used as is and does not need to be transformed before being used in a live
+    head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: The live brain is combined with the skull to make a live head using a `headSurgery`
+    function, analogous to the `armSurgery` we had earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we are ready to create a live head -- but how should we do it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be great if we could reuse `map2M`, but there's a catch -- for `map2M`
+    to work, it needs a skull wrapped in a `M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![head](monadster_head1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But the skull doesn't need to become alive or use vital force, so we will need
+    to create a special function that converts a `Skull` to a `M<Skull>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can use the same approach as we did before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: create a inner function that takes a vitalForce parameter
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in this case, we leave the vitalForce untouched
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: from the inner function return the original skull and the untouched vitalForce
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: wrap the inner function in an "M" and return it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: But the signature of `wrapSkullInM` is quite interesting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: No mention of skulls anywhere!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing returnM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We've created a completely generic function that will turn anything into an
+    `M`. So let's rename it. I'm going to call it `returnM`, but in other contexts
+    it might be called `pure` or `unit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Testing the head
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's put this into action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to define how to create a live brain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we obtain a dead brain and skull:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*By the way, how this particular dead brain was obtained is an [interesting
+    story](https://en.wikipedia.org/wiki/Young_Frankenstein) that I don''t have time
+    to go into right now.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![abnormal brain](monadster_brain.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Next we build the "M" versions from the dead parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And combine the parts using `map2M`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once again, we can do all these things up front, before the lightning strikes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the vital force is available, we can run `headM` with the vital force...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and we get this result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: A live head, composed of two subcomponents, just as required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that the remaining vital force is just nine, as the skull did not
+    use up any units.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Beating Heart
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is one more component we need, and that is a heart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we have a dead heart and a live heart defined in the usual way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But the creature needs more than a live heart -- it needs a *beating heart*.
+    A beating heart is constructed from a live heart and some more vital force, like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code that creates a live heart is very similar to the previous examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code that creates a beating heart is also very similar. It takes a live
+    heart as a parameter, uses up another unit of vital force, and returns the beating
+    heart and the remaining vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we look at the signatures for these functions, we see that they are very
+    similar; both of the form `Something -> M<SomethingElse>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: Chaining together M-returning functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We start with a dead heart, and we need to get a beating heat
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![heart1](monadster_heart1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But we don't have the tools to do this directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have a function that turns a `DeadHeart` into a `M<LiveHeart>`, and we have
+    a function that turns a `LiveHeart` into a `M<BeatingHeart>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the output of the first is not compatible with the input of the second,
+    so we can't glue them together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![heart2](monadster_heart2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What we want then, is a function that, given a `M<LiveHeart>` as input, can
+    convert it to a `M<BeatingHeart>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And furthermore, we want to build it from the `makeBeatingHeart` function we
+    already have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![heart2](monadster_heart3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s a first attempt, using the same pattern we''ve used many times before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: But what goes in the middle? How can we get a beating heart from a `beatingHeartM`?
+    The answer is to run it with some vital force (which we happen to have on hand,
+    because we are in the middle of the `becomeAlive` function).
+  prefs: []
+  type: TYPE_NORMAL
+- en: What vital force though? It should be the remaining vital force after getting
+    the `liveHeart`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So the final version looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that we return `remainingVitalForce2` at the end, the remainder after
+    both steps are run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we look at the signature for this function, it is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: which is just what we wanted!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing bindM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once again, we can make this function generic by passing in a function parameter
+    rather than hardcoding `makeBeatingHeart`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I''ll call it `bindM`. Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the signature is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, given any function `Something -> M<SomethingElse>`, I can convert
+    it to a function `M<Something> -> M<SomethingElse>` that has an `M` as input and
+    output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, functions with a signature like `Something -> M<SomethingElse>`
+    are often called *monadic* functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Anyway, once you understand what is going on in `bindM`, a slightly shorter
+    version can be implemented like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: So finally, we have a way of creating a function, that given a `DeadHeart`,
+    creates a `M<BeatingHeart>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![heart3](monadster_heart4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are a lot of intermediate values in there, and it can be made simpler
+    by using piping, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The importance of bind
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One way of thinking about `bindM` is that it is another "function converter",
+    just like `mapM`. That is, given any "M-returning" function, it converts it to
+    a function where the input and output are both `M`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![bindM](monadster_bindm.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Just like `map`, `bind` appears in many other contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, `Option.bind` transforms a option-generating function (`'a -> 'b
+    option`) into a function whose inputs and outputs are options. Similarly, `List.bind`
+    transforms a list-generating function (`'a -> 'b list`) into a function whose
+    inputs and outputs are lists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And I discuss yet another version of bind at length in my talk on [functional
+    error handling](http://fsharpforfunandprofit.com/rop/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason that bind is so important is that "M-returning" functions crop up
+    a lot, and they cannot be chained together easily because the output of one step
+    does not match the input of the the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using `bindM`, we can convert each step into a function where the input and
+    output are both `M`s, and then they *can* be chained together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![bindM](monadster_bindm2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Testing the beating heart
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As always, we construct the recipe ahead of time, in this case, to make a `BeatingHeart`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: When the vital force is available, we can run `beatingHeartM` with the vital
+    force...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and we get this result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the remaining vital force is eight units, as we used up two units
+    doing two steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Whole Body
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, we have all the parts we need to assemble a complete body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is Dr Frankenfunctor''s definition of a live body:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that it uses all the subcomponents that we have already developed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two left feet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Because there was no right leg available, Dr Frankenfunctor decided to take
+    a short cut and use *two* left legs in the body, hoping that no one would notice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The result of this was that the creature had two left feet, [which is not always
+    a handicap](https://www.youtube.com/watch?v=DC_PACr5cT8&t=55), and indeed, the
+    creature not only overcame this disadvantage but became a creditable dancer, as
+    can be seen in this rare footage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.youtube.com/embed/w1FLZPFI3jc](https://www.youtube.com/embed/w1FLZPFI3jc)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assembling the subcomponents
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `LiveBody` type has six fields. How can we construct it from the various
+    `M<BodyPart>`s that we have?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way would be to repeat the technique that we used with `mapM` and `map2M`.
+    We could create a `map3M` and `map4M` and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, `map3M` could be defined like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: But that gets tedious quite quickly. Is there a better way?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why, yes there is!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand it, remember that record types like `LiveBody` have to be built
+    all-or-nothing, but *functions* can be assembled step by step, thanks to the magic
+    of currying and partial application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So if we have a six parameter function that creates a `LiveBody`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we can actually think of it as a *one* parameter function that returns a five
+    parameter function, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and then when we apply the function to the first parameter ("leftLeg") we get
+    back that five parameter function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'where the five parameter function has the signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This five parameter function can in turn be thought of as a one parameter function
+    that returns a four parameter function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, we can apply a first parameter ("rightLeg") and get back that four parameter
+    function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'where the four parameter function has the signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: And so on and so on, until eventually we get a function with one parameter.
+    The function will have the signature `BeatingHeart -> LiveBody`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we apply the final parameter ("beatingHeart") then we get back our completed
+    `LiveBody`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use this trick for M-things as well!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start with the six parameter function wrapped in an M, and an M <liveleftleg
+    class="hljs-class">parameter.</liveleftleg>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's assume there is some way to "apply" the M-function to the M-parameter.
+    We should get back a five parameter function wrapped in an `M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: And then doing that again, we can apply the next M-parameter
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: and so on, applying the parameters one by one until we get the final result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing applyM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This `applyM` function will have two parameters then, a function wrapped in
+    an M, and a parameter wrapped in an M. The output will be the result of the function
+    wrapped in an M.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see it is quite similar to `map2M`, except that the "f" comes from
+    unwrapping the first parameter itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try it out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we need our six parameter function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we''re going to need to clone the left leg to use it for the right leg:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we need to wrap this `createBody` function in an `M`. How can we do that?
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the `returnM` function we defined earlier for skull, of course!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So putting it together, we have this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: It works! The result is a `M<LiveBody>` just as we want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But that code sure is ugly! What can we do to make it look nicer?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One trick is to turn `applyM` into an infix operation, just like normal function
+    application. The operator used for this is commonly written `<*>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this in place, we can rewite the above code as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: which is much nicer!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another trick is to notice that the `returnM` followed by `applyM` is the same
+    as `mapM`. So if we create an infix operator for `mapM` too...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...we can get rid of the `returnM` as well and write the code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's nice about this is that it reads almost as if you were just calling the
+    original function (once you get used to the symbols!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the whole body
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As always, we want to construct the recipe ahead of time. In this case, we have
+    already created the `bodyM` that will give us a complete `LiveBody` when the vital
+    force arrives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now all we have to do is wait for lightning to strike and charge the machinery
+    that generates the vital force!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Electricity in the lab](monadster-lab-electricity.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[[Source: Misfit Robot Daydream](http://misfitdaydream.blogspot.co.uk/2012/10/frankenstein-1931.html)]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here it comes -- the vital force is available! Quickly we run `bodyM` in the
+    usual way...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...and we get this result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's alive! We have successfully reproduced Dr Frankenfunctor's work!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the body contains all the correct subcomponents, and that the remaining
+    vital force has been correctly reduced to two units, as we used up eight units
+    creating the body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this post, we extended our repertoire of manipulation techniques to include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`returnM` for the skull'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`bindM` for the beating heart'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`applyM` to assemble the whole body'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In [the final installment](monadster-3.html), we'll refactor the code and review
+    all the techniques used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refactoring the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Refactoring the Monadster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/monadster/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Warning! This post contains gruesome topics, strained analogies, discussion
+    of monads*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Welcome to the third installment in the gripping tale of Dr Frankenfunctor and
+    the Monadster!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We saw [in the first installment](monadster.html) how Dr Frankenfunctor created
+    life out of dead body parts using "Monadster part generators" (or "M"s for short),
+    that would, on being supplied with some vital force, return a live body part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also saw how the leg and arms of the creature were created, and how these
+    M-values could be processed and combined using `mapM` and `map2M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [the second installment](monadster-2.html) we learned how the head, heart
+    and body were built using other powerful techniques such as `returnM`, `bindM`
+    and `applyM`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this last installment, we'll review all the techniques used, refactor the
+    code, and compare Dr Frankenfunctor's techniques to the modern-day state monad.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Links for the complete series:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part 1 - Dr Frankenfunctor and the Monadster](monadster.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Part 2 - Completing the body](monadster-2.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Part 3 - Review and refactoring](monadster-3.html) (*this post*)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Review of the the techniques used
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we refactor, let's review all the techniques we have used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The M <bodypart class="calibre44">type</bodypart>
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We couldn't create an actual live body part until the vital force was available,
+    yet we wanted to manipulate them, combine them, etc. *before* the lightning struck.
+    We did this by creating a type `M` that wrapped a "become alive" function for
+    each part. We could then think of `M<BodyPart>` as a *recipe* or *instructions*
+    for creating a `BodyPart` when the time came.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The definition of `M` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: mapM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next, we wanted to transform the contents of an `M` without using any vital
+    force. In our specific case, we wanted to turn a broken arm recipe (`M<BrokenLeftArm>`)
+    into a unbroken arm recipe (`M<LeftArm>`). The solution was to implement a function
+    `mapM` that took a normal function `'a -> 'b` and turned it into a `M<'a> -> M<'b>`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `mapM` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: map2M
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We also wanted to combine two M-recipes to make a new one. In that particular
+    case, it was combining an upper arm (`M<UpperRightArm>`) and lower arm (`M<LowerRightArm>`)
+    into a whole arm (`M<RightArm>`). The solution was `map2M`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `map2M` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: returnM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Another challenge was to lift a normal value into the world of M-recipes directly,
+    without using any vital force. In that particular case, it was turning a `Skull`
+    into an `M<Skull>` so it could be used with `map2M` to make a whole head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `returnM` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: Monadic functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We created many functions that had a similar shape. They all take something
+    as input and return a M-recipe as output. In other words, they have this signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are some examples of actual monadic functions that we used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: bindM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The functions up to now did not require access to the vital force. But then
+    we found that we needed to chain two monadic functions together. In particular,
+    we needed to chain the output of `makeLiveHeart` (with signature `DeadHeart ->
+    M<LiveHeart>`) to the input of `makeBeatingHeart` (with signature `LiveHeart ->
+    M<BeatingHeart>`). The solution was `bindM`, which transforms monadic functions
+    of the form `'a -> M<'b>` into functions in the M-world (`M<'a> -> M<'b>`) which
+    could then be composed together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `bindM` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: applyM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, we needed a way to combine a large number of M-parameters to make the
+    live body. Rather than having to create special versions of map (`map4M`, `map5M`,
+    `map6M`, etc), we implemented a generic `applyM` function that could apply an
+    M-function to an M-parameter. From that, we could work with a function of any
+    size, step by step, using partial application to apply one M-parameter at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `applyM` was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: Defining the others functions in terms of bind and return
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Note that of all these functions, only `bindM` needed access to the vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, as we'll see below, the functions `mapM`, `map2M`, and `applyM` can
+    actually be defined in terms of `bindM` and `returnM`!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refactoring to a computation expression
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A lot of the functions we have created have a very similar shape, resulting
+    in a lot of duplication. Here''s one example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: In particular, there is a lot of explicit handling of the vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In most functional languages, there is a way to hide this so that the code looks
+    much cleaner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Haskell, developers use "do-notation", in Scala people use "for-yield" (the
+    "for comprehension"). And in F#, people use computation expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a computation expression in F#, you just need two things to start
+    with, a "bind" and a "return", both of which we have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, you define a class with specially named methods `Bind` and `Return`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, you create an instance of this class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: When this is done, we have access to the special syntax `monster {...}`, just
+    like `async{...}`, `seq{...}`, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `let! x = xM` syntax requires that the right side is an M-type, say `M<X>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`let!` unwraps the `M<X>` into an `X` and binds it to the left side -- "x"
+    in this case.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The `return y` syntax requires that return value is a "normal" type, `Y` say.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`return` wraps it into a `M<Y>` (using `returnM`) and returns it as the overall
+    value of the `monster` expression.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'So some example code would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*If you want more on computation expressions, I have an [in-depth series of
+    posts about them](computation-expressions.html).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redefining mapM and friends
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With `monster` expressions available, let's rewrite `mapM` and the other functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**mapM**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mapM` takes a function and a wrapped M-value and returns the function applied
+    to the inner value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an implementation using `monster`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we compile this implementation, we get the same signature as the previous
+    implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**map2M**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`map2M` takes a function and two wrapped M-values and returns the function
+    applied to both the values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s also easy to write using `monster` expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we compile this implementation, we again get the same signature as the previous
+    implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**applyM**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`applyM` takes a wrapped function and a wrapped value and returns the function
+    applied to the value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, it''s trivial to write using `monster` expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: And the signature is as expected
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: Manipulating the vital force from within a monster context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We'd like to use the monster expression to rewrite all our other functions too,
+    but there is a stumbling block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Many of our functions have a body that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, we're *getting* some of the vital force and then *putting* a
+    new vital force to be used for the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are familiar with "getters" and "setters" in object-oriented programming,
+    so let's see if we can write similar ones that will work in the `monster` context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing getM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's start with the getter. How should we implement it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, the vital force is only available in the context of becoming alive, so
+    the function must follow the familiar template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that getting the `vitalForce` doesn't use any up, so the original amount
+    can be returned untouched.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what should happen in the middle? And what should be returned as the first
+    element of the tuple?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer is simple: just return the vital force itself!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`getM` is a `M<VitalForce>` value, which means that we can unwrap it inside
+    a monster expression like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: Introducing putM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For the putter, the implementation is a function with a parameter for the new
+    vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, what should we do in the middle?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most important thing is that the `newVitalForce` becomes the value that
+    is passed on to the next step. We must throw away the original vital force!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which in turn means that `newVitalForce` *must* be used as the second part of
+    the tuple that is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And what should be in the first part of the tuple that is returned? There is
+    no sensible value to return, so we'll just use `unit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the final implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: With `getM` and `putM` in place, we can now create a function that
+  prefs: []
+  type: TYPE_NORMAL
+- en: gets the current vital force from the context
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: extracts one unit from that
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: replaces the current vital force with the remaining vital force
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: returns the one unit of vital force to the caller
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the monster expression to rewrite all the other functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With `useUpOneUnitM`, we can start to rewrite all the other functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the original function `makeLiveLeftLegM` looked like this, with
+    lots of explicit handling of the vital force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: The new version, using a monster expression, has implicit handling of the vital
+    force, and consequently looks much cleaner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, we can rewrite all the arm surgery code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: And so on. This new code is much cleaner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, we can make it cleaner yet by eliminating the intermediate values such
+    as `armSurgery` and `armSurgeryM` and putting everything in the one monster expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use this approach for the head as well. We don't need `headSurgery` or
+    `returnM` any more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can use a `monster` expression to create the whole body too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'NOTE: The complete code using `monster` expressions is [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster2-fsx).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monster expressions vs applyM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We previously used an alternative way to create the body, using `applyM`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For reference, here''s that way using `applyM`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: So what's the difference?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aesthetically there is a bit of difference, but you could legitimately prefer
+    either.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there is a much more important difference between the `applyM` approach
+    and the `monster` expression approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `applyM` approach allows the parameters to be run *independently* or *in
+    parallel*, while the `monster` expression approach requires that the parameters
+    are run *in sequence*, with the output of one being fed into the input of the
+    next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That's not relevant for this scenario, but can be important for other situations
+    such as validation or async. For example, in a validation context, you may want
+    to collect all the validation errors at once, rather than only returning the first
+    one that fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relationship to the state monad
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Dr Frankenfunctor was a pioneer in her time, blazing a new trail, but she did
+    not generalize her discoveries to other domains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nowadays, this pattern of threading some information through a series of functions
+    is very common, and we give it a standard name: "State Monad".'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now to be a true monad, there are various properties that must be satisfied
+    (the so-called monad laws), but I am not going to discuss them here, as this post
+    is not intended to be a monad tutorial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, I'll just focus on how the state monad might be defined and used in
+    practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First off, to be truly reusable, we need to replace the `VitalForce` type with
+    other types. So our function-wrapping type (call it `S`) must have *two* type
+    parameters, one for the type of the state, and one for the type of the value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this defined, we can create the usual suspects: `runS`, `returnS` and
+    `bindS`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: Personlly, I'm glad that we got to understood how these worked in the `M` context
+    before making them completely generic. I don't know about you, but signatures
+    like these
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: would be really hard to understand on their own, without any preparation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anyway, with those basics in place we can create a `state` expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`getS` and `putS` are defined in a similar way as `getM` and `putM` for `monster`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: Property based testing of the state expression
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Before moving on, how do we know that our `state` implementation is correct?
+    What does it even *mean* to be correct?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, rather than writing lots of example based tests, this is a great candidate
+    for a [property-based testing](http://fsharpforfunandprofit.com/pbt/) approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The properties we might expect to be satisfied include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**The monad laws**](https://stackoverflow.com/questions/18569656/explanation-of-monad-laws-in-f).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Only the last put counts**. That is, putting X then putting Y should be the
+    same as just putting Y.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Get should return the last put**. That is, putting X then doing a get should
+    return the same X.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I won't go into this any more right now. I suggest watching [the talk](http://fsharpforfunandprofit.com/pbt/)
+    for a more in-depth discussion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the state expression instead of the monster expression
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can now use `state` expressions exactly as we did `monster` expressions.
+    Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Another example is how to build a `BeatingHeart`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the `state` expression automatically picked up that `VitalForce`
+    was being used as the state -- we didn't need to specify it explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, if you have a `state` expression type available to you, you don't need to
+    create your own expressions like `monster` at all!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a more detailed and complex example of the state monad in F#, check out
+    the [FSharpx library](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs#L409).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*NOTE: The complete code using `state` expressions is [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster3-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other examples of using a state expression
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The state computation expression, once defined, can be used for all sorts of
+    things. For example, we can use `state` to model a stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start by defining a `Stack` type and associated functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that none of that code knows about or uses the `state` computation expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make it work with `state`, we need to define a customized getter and putter
+    for use in a `state` context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: With these in place we can start coding our domain!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stack-based Hello World
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here's a simple one. We push "world", then "hello", then pop the stack and combine
+    the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: Stack-based calculator
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s a simple stack-based calculator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now we can combine these basic states to build more complex ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember that, just as with the vital force, all we have now is a *recipe* for
+    building a stack. We still need to *run* it to execute the recipe and get the
+    result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s add a helper to run all the operations and return the top of the stack:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can evaluate the operations, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: OK, OK, some monad stuff
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: People always want to know about monads, even though I do not want these posts
+    to degenerate into [yet another monad tutorial](why-i-wont-be-writing-a-monad-tutorial.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So here's how they fit in with what we have worked with in these posts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **functor** (in a programming sense, anyway) is a data structure (such as
+    Option, or List, or State) which has a `map` function associated with it. And
+    the `map` function has some properties that it must satisfy (the ["functor laws"](https://en.wikibooks.org/wiki/Haskell/The_Functor_class#The_functor_laws)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A **applicative functor** (in a programming sense) is a data structure (such
+    as Option, or List, or State) which has two functions associated with it: `apply`
+    and `pure` (which is the same as `return`). And these functions have some properties
+    that they must satisfy (the ["applicative functor laws"](https://en.wikibooks.org/wiki/Haskell/Applicative_functors#Applicative_functor_laws)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, a **monad** (in a programming sense) is a data structure (such as
+    Option, or List, or State) which has two functions associated with it: `bind`
+    (often written as `>>=`) and `return`. And again, these functions have some properties
+    that they must satisfy (the ["monad laws"](https://en.wikibooks.org/wiki/Haskell/Understanding_monads#Monad_Laws)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of these three, the monad is most "powerful" in a sense, because the `bind`
+    function allows you to chain M-producing functions together, and as we have seen,
+    `map` and `apply` can be written in terms of `bind` and `return`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So you can see that both our original `M` type and the more generic `State`
+    type, in conjunction with their supporting functions, are monads, (assuming that
+    our `bind` and `return` implementations satisfy the monad laws).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a visual version of these definitions, there is a great post called [Functors,
+    Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further reading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are a lot of posts about state monads on the web, of course. Most of them
+    are Haskell oriented, but I hope that those explanations will make more sense
+    after reading this series of posts, so I'm only going to mention a few follow
+    up links.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[State monad in pictures](http://adit.io/posts/2013-06-10-three-useful-monads.html#the-state-monad)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["A few monads more", from "Learn You A Haskell"](http://learnyouahaskell.com/for-a-few-monads-more)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Much Ado About Monads](http://codebetter.com/matthewpodwysocki/2009/12/31/much-ado-about-monads-state-edition/).
+    Discussion about state monad in F#.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And for another important use of "bind", you might find my talk on [functional
+    error handling](http://fsharpforfunandprofit.com/rop/) useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to see F# implementations of other monads, look no further than
+    [the FSharpx project](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Dr Frankenfunctor was a groundbreaking experimentalist, and I'm glad that I
+    have been able to share insights on her way of working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've seen how she discovered a primitive monad-like type, `M<BodyPart>`, and
+    how `mapM`, `map2M`, `returnM`, `bindM` and `applyM` were all developed to solve
+    specific problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've also seen how the need to solve the same problems led to the modern-day
+    state monad and computation expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anyway, I hope that this series of posts has been enlightening. My not-so-secret
+    wish is that monads and their associated combinators will no longer be so shocking
+    to you now...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![shocking](monadster_shocking300.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: '...and that you can use them wisely in your own projects. Good luck!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*NOTE: The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.'
+  prefs: []
+  type: TYPE_NORMAL

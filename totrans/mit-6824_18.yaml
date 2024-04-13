@@ -1,410 +1,589 @@
 - en: Amazon's Dynamo keystore
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 亚马逊的 Dynamo 键值存储
 - en: '6.824 2015 Lecture 18: Amazon''s Dynamo keystore'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 18 讲：亚马逊的 Dynamo 键值存储
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：** 这些讲座笔记是从 2015 年春季 6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    上发布的笔记中稍作修改的。'
 - en: Dynamo
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Dynamo
 - en: eventually consistent
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最终一致性
 - en: considerably less consistent than PNUTS or Spanner
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比 PNUTS 或 Spanner 要不一致得多
 - en: successful open source projects like Cassandra that have built upon the ideas
     of Dynamo
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 像 Cassandra 这样的成功开源项目是基于 Dynamo 的想法构建的
 - en: Design
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设计
 - en: really worried about their service level agreements (SLA)
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非常担心他们的服务水平协议（SLA）
 - en: internal SLAs, say between webserver and storage system
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内部 SLA，比如 web 服务器和存储系统之间
 - en: worried about *worst-case* perf., not average perf.
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 担心*最坏情况*的性能，而不是平均性能
 - en: they want 99.9th percentile of delay `< 300ms`
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们希望延迟的 99.9th 百分位数 `< 300ms`
 - en: not very clear how this requirement worked itself in the design
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个要求如何在设计中体现还不是很清楚
 - en: what choices were made to satisfy this?
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了满足这一点做了什么选择？
 - en: supposed to deal w/ constant failures
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应该处理不断发生的故障
 - en: entire data center offline
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整个数据中心离线
 - en: they need the system to be always writeable
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们需要系统始终可写
 - en: '`=>` no single master'
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 没有单一的主节点'
 - en: 'Diagram:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 图表：
 - en: '[PRE0]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Guess: amazon has quite a lot of data centers and no one of them are primary
     or backup, then even if a datacenter goes down only a small fraction of your system
     is down'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 猜测：亚马逊有相当多的数据中心，没有一个是主要的或备份的，那么即使一个数据中心宕机，你的系统只会有一小部分宕机
 - en: much more natural to, instead of replicating every record everywhere, to just
     replicate it on 2 or 3 data centers
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相比于在每个地方都复制每个记录，只在 2 或 3 个数据中心复制它要自然得多
 - en: design of Dynamo is not really data-center oriented
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Dynamo 的设计实际上并不是以数据中心为��向的
 - en: difference from PNUTS is that there's nothing about locality in their design
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与 PNUTS 的不同之处在于他们的设计中没有关于局部性的内容
 - en: 'they don''t worry about it: no copy of data is made to be near every client'
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们不担心这个问题：不会为了靠近每个客户端而复制数据
 - en: they need the wide area network to work really well
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们需要广域网的运行非常良好
 - en: Details
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 详情
 - en: always writeable `=>` no single master `=>` different puts on different servers
     `=>` conflicting updates
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 始终可写 `=>` 没有单一的主节点 `=>` 不同的服务器上有不同的 puts `=>` 冲突的更新
 - en: where should puts go and where should gets go so that they are likely to see
     data written by puts
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: puts 应该去哪里，gets 应该去哪里，以便它们可能看到 puts 写入的数据
 - en: Consistent hashing
+  id: totrans-29
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一致性哈希
 - en: you hash the key and it tells you what server to put/get it from
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你对键进行哈希，它告诉你应该从哪个服务器获取/存储它
 - en: hash output space is a ring/circle
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 哈希输出空间是一个环/圆
 - en: every key's hash is a point on this circle
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个键的哈希值都是圆环上的一个点
 - en: every node's hash is also a point
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点的哈希值也是一个点
 - en: '`=>` a key will be between nodes or on a node in the circle'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 一个键将在节点之间或在圆环上的一个节点之上'
 - en: node closest to key on the circle (clockwise) is the key's *coordinator*
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在圆环上最接近键的节点（顺时针）是键的*协调者*
 - en: if key is replicated `N` times, then the `N` successor nodes (clockwise) after
     the key store the key
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果键被复制 `N` 次，那么键后面的 `N` 个后继节点（顺时针）存储该键
 - en: even with random choice of node IDs, consistent hashing doesn't uniformly spread
     the keys across nodes
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使节点 ID 随机选择，一致性哈希并不能均匀地将键分布在节点之间
 - en: 'the # of keys on a node is proportional to the gap between that node and its
     predecessor'
+  id: totrans-38
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个节点上的键的数量与该节点与其前驱节点之间的间隙成比例
 - en: the distribution of gaps is pretty wide
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 间隙的分布相当宽
 - en: to make up for this, virtual nodes are used
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了弥补这一点，使用虚拟节点
 - en: 'each physical node is made up of a certain # of virtual nodes, proportional
     to the perf/capacity of the physical node'
+  id: totrans-41
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个物理节点由一定数量的虚拟节点组成，与物理节点的性能/容量成比例
 - en: 'Preference lists:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 优先级列表：
 - en: suppose you have nodes A, B, C, D, E, F and key `k` that hashes before node
     A
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设你有节点 A、B、C、D、E、F 和键 `k`，它的哈希值在节点 A 之前
 - en: this key `k` should have 3 copies stored at A, B and C, if `N = 3`
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个键 `k` 应该在 A、B 和 C 存储 3 个副本，如果 `N = 3`
 - en: request could go to the first node A, which could be down
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请求可能发送到第一个节点 A，该节点可能已经宕机
 - en: or it could go to the first node A, which would try to replicate it on node
     B and C, which could be down
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者请求可能发送到第一个节点 A，该节点会尝试在节点 B 和 C 上复制它，这两个节点可能已经宕机
 - en: '`=>` this first node would replicate on nodes D and E'
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 这个第一个节点会在节点 D 和 E 上复制'
 - en: '`=>` more than `N` nodes that could have the data'
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 可能有超过 `N` 个节点拥有数据'
 - en: '`=>` remember all these nodes in a *preference list*'
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`=>` 记住所有这些节点在一个*优先级列表*中'
 - en: request for `k` goes to the first node in the preference list
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请求 `k` 发送到优先级列表中的第一个节点
 - en: that node acts as a coordinator for the request and reads/writes the key on
     all other nodes
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 该节点作为请求的协调员，并在所有其他节点上读取/写入密钥
 - en: sloppy quorums,
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 懒惰的法定人数，
 - en: '`N` the # of nodes the coordinator sends the request to'
+  id: totrans-53
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`N`协调员发送请求的节点数'
 - en: '`R` the # of nodes the coordinator waits for data to come back on a get'
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`R`协调员等待获取数据返回的节点数'
 - en: '`W` the # of nodes the coordinator waits for data to write on on a put'
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`W`协调员等待写入数据的节点数'
 - en: if there are no failures, the coordinator kind of acts like a master
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果没有故障，协调员会像主节点一样运作
 - en: if there are failures the sloppy quorum makes sure data is persisted, but inconsistencies
     can be created
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果出现故障，那么懒惰的法定人数确保数据被持久化，但可能会产生不一致性
 - en: 'Trouble: because there aren''t any real quorums, gets can miss the most recent
     puts'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题：因为没有真正的法定人数，获取可能会错过最近的放置
 - en: you can have nodes A, B, C store some put on stale data, and nodes D, E, F store
     another put on data
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以让节点A、B、C存储一些放置在陈旧数据上的放置，节点D、E、F存储另一些放置在数据上
 - en: the coordinator among D, E, F knows the data is out-of-place and stores a flag
     to indicate it should be passed to A, B, C (*hinted hand-off*)
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: D、E、F中的协调员知道数据位置不对，并存储一个标志以指示应该将其传递给A、B、C（*hinted hand-off*）
 - en: Conflicts
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 冲突
 - en: figure 3 in the paper
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 论文中的图3
 - en: when there are 2 conflicting versions, client code has to be able to reconcile
     them
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当存在2个冲突版本时，客户端代码必须能够调和它们
 - en: dynamo uses version vectors just like [Ficus](l11-ficus.html)
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: dynamo使用版本向量，就像[Ficus](l11-ficus.html)一样
 - en: '`[a: 1] -> [a: 1, b: 3]`'
+  id: totrans-65
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[a: 1] -> [a: 1, b: 3]`'
 - en: '`[a: 1] -> [a: 1, c: 3]`'
+  id: totrans-66
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[a: 1] -> [a: 1, c: 3]`'
 - en: '`[a:1, b:3, c: 0]` and `[a:1, b:0, c:3]` conflicts'
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[a:1, b:3, c: 0]`和`[a:1, b:0, c:3]`冲突'
 - en: Dynamo is weaker than Bayou
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Dynamo比Bayou弱
 - en: both have a story for how to reconcile conflicted version
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两者都有解决冲突版本的方法
 - en: In dynamo we just have the two conflicting pieces of data, but we don't have
     the ops that were applied to the state (like remove/add smth from shopping cart)
+  id: totrans-70
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在dynamo中，我们只有两个冲突的数据片段，但我们没有应用于状态的操作（比如从购物车中移除/添加某物）
 - en: Bayou has the log of the ops
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Bayou有操作日志
 - en: PNUTS had atomic operation support like a `test-and-set-write` op
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PNUTS支持原子操作，比如`test-and-set-write`操作
 - en: nothing like that in Dynamo
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Dynamo中没有这样的东西
 - en: the only way to do that in Dynamo is to be able to merge two conflicting versions
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Dynamo中唯一的方法是能够合并两个冲突的版本
 - en: Performance
+  id: totrans-75
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 性能
 - en: '*Question to always ask about version vectors:* What happens when the version
     vectors get too large?'
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*关于版本向量始终要问的问题：*当版本向量变得太大时会发生什么？'
 - en: they delete entries for nodes that have been modified a long time ago
+  id: totrans-77
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 删除了长时间修改过的节点的条目
 - en: '`v1 = [a:1, b:7] -> v1'' = [b:7]`'
+  id: totrans-78
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`v1 = [a:1, b:7] -> v1'' = [b:7]`'
 - en: what can go wrong? if `[b:7]` is updated to `v2 = [b:8]` then `v2` will conflict
     with `v1`, even though it was derived directly from it, so the application will
     get some *false* merges
+  id: totrans-79
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 会出什么问题？如果`[b:7]`更新为`v2 = [b:8]`，那么`v2`将与`v1`冲突，即使它是直接从`v1`派生出来的，所以应用程序会获得一些*错误*合并
 - en: they like that they can adjust `N, R, W` to get different trade-offs
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们喜欢能够调整`N、R、W`以获得不同的权衡
 - en: standard `3,2,2`
+  id: totrans-81
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标准的`3,2,2`
 - en: '`3, 3, 1 ->` write quickly but not very durably, reads are rare'
+  id: totrans-82
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`3, 3, 1 ->`快速写入但持久性不强，读取很少'
 - en: '`3, 1, 3 ->` writes are slow, but reads are quite fast'
+  id: totrans-83
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`3, 1, 3 ->`写入速度慢，但读取速度相当快'
 - en: the average delays are 5-10ms, much smaller than PNUTS or memcached
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均延迟为5-10ms，远小于PNUTS或memcached
 - en: too small relative to speed-of-light across datacenters
+  id: totrans-85
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 相对于数据中心之间的光速来说太小了
 - en: but not clear where the data centers were, and what the workloads were
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但数据中心在哪里以及工作负载是什么并不清楚
 - en: 6.824 2015 original notes
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015原始笔记
 - en: '[PRE1]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'

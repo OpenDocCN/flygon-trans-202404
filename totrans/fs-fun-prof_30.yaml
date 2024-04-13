@@ -1,0 +1,1615 @@
+- en: Choosing properties for property-based testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Choosing properties for property-based testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: I did a talk on property-based testing based on these posts. [Slides
+    and video here.](http://fsharpforfunandprofit.com/pbt/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [the previous post](property-based-testing.html), I described the basics
+    of property-based testing, and showed how it could save a lot of time by generating
+    random tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But here''s a common problem. Everyone who sees a property-based testing tool
+    like FsCheck or QuickCheck thinks that it is amazing... but when it times come
+    to start creating your own properties, the universal complaint is: "what properties
+    should I use? I can''t think of any!"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of this post is to show some common patterns that can help you discover
+    the properties that are applicable to your code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Categories for properties
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In my experience, many properties can be discovered by using one of the seven
+    approaches listed below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '["Different paths, same destination"](#different-paths)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["There and back again"](#there-and-back)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["Some things never change"](#some-things-never-change)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["The more things change, the more they stay the same"](#idempotence)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["Solve a smaller problem first"](#structural-induction)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["Hard to prove, easy to verify"](#hard-to-prove-easy-to-verify)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["The test oracle"](#test-oracle)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is by no means a comprehensive list, just the ones that have been most
+    useful to me. For a different perspective, check out [the list of patterns](http://research.microsoft.com/en-us/projects/pex/patterns.pdf)
+    that the PEX team at Microsoft have compiled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Different paths, same destination"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These kinds of properties are based on combining operations in different orders,
+    but getting the same result. For example, in the diagram below, doing `X` then
+    `Y` gives the same result as doing `Y` followed by `X`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Commutative property](property_commutative.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The commutative property of addition is an obvious example of this pattern.
+    For example, the result of `add 1` then `add 2` is the same as the result of `add
+    2` followed by `add 1`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This pattern, generalized, can produce a wide range of useful properties. We'll
+    see some more uses of this pattern later in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"There and back again"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These kinds of properties are based on combining an operation with its inverse,
+    ending up with the same value you started with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the diagram below, doing `X` serializes `ABC` to some kind of binary format,
+    and the inverse of `X` is some sort of deserialization that returns the same `ABC`
+    value again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Inverse](property_inverse.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In addition to serialization/deserialization, other pairs of operations can
+    be checked this way: `addition`/`subtraction`, `write`/`read`, `setProperty`/`getProperty`,
+    and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other pair of functions fit this pattern too, even though they are not strict
+    inverses, pairs such as `insert`/`contains`, `create`/`exists` , etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Some things never change"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These kinds of properties are based on an invariant that is preserved after
+    some transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the diagram below, the transform changes the order of the items, but the
+    same four items are still present afterwards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Invariant](property_invariant.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Common invariants include size of a collection (for `map` say), the contents
+    of a collection (for `sort` say), the height or depth of something in proportion
+    to size (e.g. balanced trees).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"The more things change, the more they stay the same"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These kinds of properties are based on "idempotence" -- that is, doing an operation
+    twice is the same as doing it once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the diagram below, using `distinct` to filter the set returns two items,
+    but doing `distinct` twice returns the same set again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Idempotence](property_idempotence.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Idempotence properties are very useful, and can be extended to things like database
+    updates and message processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Solve a smaller problem first"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These kinds of properties are based on "structural induction" -- that is, if
+    a large thing can be broken into smaller parts, and some property is true for
+    these smaller parts, then you can often prove that the property is true for a
+    large thing as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the diagram below, we can see that the four-item list can be partitioned
+    into an item plus a three-item list, which in turn can be partitioned into an
+    item plus a two-item list. If we can prove the property holds for two-item list,
+    then we can infer that it holds for the three-item list, and for the four-item
+    list as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Induction](property_induction.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Induction properties are often naturally applicable to recursive structures
+    such as lists and trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Hard to prove, easy to verify"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Often an algorithm to find a result can be complicated, but verifying the answer
+    is easy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the diagram below, we can see that finding a route through a maze is hard,
+    but checking that it works is trivial!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Hard to find, easy to verify](property_easy_verification.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Many famous problems are of this sort, such as prime number factorization. But
+    this approach can be used for even simple problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, you might check that a string tokenizer works by just concatenating
+    all the tokens again. The resulting string should be the same as what you started
+    with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"The test oracle"'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In many situations you often have an alternate version of an algorithm or process
+    (a "test oracle") that you can use to check your results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Test Oracle](property_test_oracle.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For example, you might have a high-performance algorithm with optimization tweaks
+    that you want to test. In this case, you might compare it with a brute force algorithm
+    that is much slower but is also much easier to write correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, you might compare the result of a parallel or concurrent algorithm
+    with the result of a linear, single thread version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting the categories to work with some real examples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we'll apply these categories to see if we can come up with
+    properties for some simple functions such as "sort a list" and "reverse a list".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Different paths, same destination" applied to a list sort'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's start with *"different paths, same destination"* and apply it to a "list
+    sort" function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we think of any way of combining an operation *before* `List.sort`, and
+    another operation *after* `List.sort`, so that you should end up with the same
+    result? That is, so that "going up then across the top" is the same as "going
+    across the bottom then up".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![List sort?](property_list_sort.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How about this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Path 1:** We add one to each element of the list, then sort.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Path 2:** We sort, then add one to each element of the list.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both lists should be equal.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![List sort with +1](property_list_sort1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s some code that implements that property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Well, that works, but it also would work for a lot of other transformations
+    too. For example, if we implemented `List.sort` as just the identity, then this
+    property would be satisfied equally well! You can test this for yourself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The problem with this property is that it is not exploiting any of the "sortedness".
+    We know that a sort will probably reorder a list, and certainly, the smallest
+    element should be first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How about adding an item that we *know* will come at the front of the list after
+    sorting?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Path 1:** We append `Int32.MinValue` to the *end* of the list, then sort.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Path 2:** We sort, then prepend `Int32.MinValue` to the *front* of the list.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both lists should be equal.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![List sort with minValue](property_list_sort2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The bad implementation fails now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, the bad sort of `[0; minValue]` is *not* the same as `[minValue;
+    0]`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So that's good!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But... we've got some hard coded things in there that the Enterprise Developer
+    From Hell ([see previous post](property-based-testing.html)) could take advantage
+    of! The EDFH will exploit the fact that we always use `Int32.MinValue` and that
+    we always prepend or append it to the test list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, the EDFH can identify which path we are on and have special
+    cases for each one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: And when we check it...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We could fix this by (a) picking a random number smaller than any number in
+    the list and (b) inserting it at a random location rather than always appending
+    it. But rather than getting too complicated, let's stop and reconsider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative approach which also exploits the "sortedness" is to first negate
+    all the values, then on the path that negates *after* the sort, add an extra reverse
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![List sort with negate](property_list_sort3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This property is harder for the EDFH to beat because there are no magic numbers
+    to help identify which path you are on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might argue that we are only testing sorting for lists of integers. But
+    the `List.sort` function is generic and knows nothing about integers per se, so
+    I have high confidence that this property does test the core sorting logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying "different paths, same destination" to a list reversal function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Ok, enough of `List.sort`. What about applying the same ideas to the list reversal
+    function?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can do the same append/prepend trick:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![List reverse](property_list_rev.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the code for the property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the test results for the correct function and for two incorrect functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might notice something interesting here. I never specified the type of the
+    list. The property works with *any* list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In cases like these, FsCheck will generate random lists of bools, strings, ints,
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In both failing cases, the `anyValue` is a bool. So FsCheck is using lists of
+    bools to start with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an exercise for you: Is this property good enough? Is there some way
+    that the EDFH can create an implementation that will pass?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"There and back again"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes the multi-path style properties are not available or too complicated,
+    so let's look at some other approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start with properties involving inverses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with list sorting again. Is there an inverse to sorting? Hmmm, not
+    really. So we'll skip sorting for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about list reversal? Well, as it happens, reversal is its own inverse!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![List reverse with inverse](property_list_rev_inverse.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Let''s turn that into a property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And it passes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, a bad implementation satisfies the property too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Nevertheless, the use of properties involving inverses can be very useful to
+    verify that your inverse function (such as deserialization) does indeed "undo"
+    the primary function (such as serialization).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll see some real examples of using this in the next post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Hard to prove, easy to verify"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far we've been testing properties without actually caring about the end result
+    of an operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But of course in practice, we do care about the end result!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we normally can't really tell if the result is right without duplicating
+    the function under test. But often we can tell that the result is *wrong* quite
+    easily. In the maze diagram from above, we can easily check whether the path works
+    or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we are looking for the *shortest* path, we might not be able to check it,
+    but at least we know that we have *some* valid path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This principle can be applied quite generally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let's say that we want to check whether a `string split` function
+    is working. We don't have to write a tokenizer -- all we have to do is ensure
+    that the tokens, when concatenated, give us back the original string!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![String split property](property_string_split.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the core code from that property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: But how can we create an original string? The random strings generated by FsCheck
+    are unlikely to contain many commas!
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are ways that you can control exactly how FsCheck generates random data,
+    which we'll look at later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For now though, we'll use a trick. The trick is to let FsCheck generate a list
+    of random strings, and then we'll build an `originalString` from them by concatting
+    them together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here''s the complete code for the property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When we test this we are happy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '"Hard to prove, easy to verify" for list sorting'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So how can we apply this principle to a sorted list? What property is easy to
+    verify?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first thing that pops into my mind is that for each pair of elements in
+    the list, the first one will be smaller than the second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Pairwise property](property_list_sort_pairwise.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So let''s make that into a property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: But something funny happens when we try to check it. We get an error!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What does `System.Exception: type not handled System.IComparable` mean? It
+    means that FsCheck is trying to generate a random list, but all it knows is that
+    the elements must be `IComparable`. But `IComparable` is not a type than can be
+    instantiated, so FsCheck throws an error.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How can we prevent this from happening? The solution is to specify a particular
+    type for the property, such as `int list`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code works now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that even though the property has been constrained, the property is still
+    a very general one. We could have used `string list` instead, for example, and
+    it would work just the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**TIP: If FsCheck throws "type not handled", add explicit type constraints
+    to your property**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Are we done now? No! One problem with this property is that it doesn't catch
+    malicious implementations by the EDFH.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Is it a surprise to you that a silly implementation also works?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hmmm. That tells us that there must be some property *other than pairwise ordering*
+    associated with sorting that we've overlooked. What are we missing here?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a good example of how doing property-based testing can lead to insights
+    about design. We thought we knew what sorting meant, but we're being forced to
+    be a bit stricter in our definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it happens, we'll fix this particular problem by using the next principle!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Some things never change"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A useful kind of property is based on an invariant that is preserved after some
+    transformation, such as preserving length or contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They are not normally sufficient in themselves to ensure a correct implementation,
+    but they *do* often act as a counter-check to more general properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in [the previous post](property-based-testing.html), we created
+    commutative and associative properties for addition, but then noticed that simply
+    having an implementation that returned zero would satisfy them just as well! It
+    was only when we added `x + 0 = x` as a property that we could eliminate that
+    particular malicious implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And in the "list sort" example above, we could satisfy the "pairwise ordered"
+    property with a function that just returned an empty list! How could we fix that?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our first attempt might be to check the length of the sorted list. If the lengths
+    are different, then the sort function obviously cheated!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We check it and it works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And yes, the bad implementation fails:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, the BDFH is not defeated and can come up with another compliant
+    implementation! Just repeat the first element N times!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now when we test this, it passes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's more, it also satisfies the pairwise property too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sort invariant - 2nd attempt
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So now we have to try again. What is the difference between the real result
+    `[1;2;3]` and the fake result `[1;1;1]`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Answer: the fake result is throwing away data. The real result always contains
+    the same contents as the original list, but just in a different order.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Permutation property](property_list_sort_permutation.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'That leads us to a new property: a sorted list is always a permutation of the
+    original list. Aha! Let''s write the property in terms of permutations now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Great, now all we need is a permutation function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s head over to StackOverflow and ~~steal~~ [borrow an implementation](http://stackoverflow.com/a/4610704/1136133).
+    Here it is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some quick interactive tests confirm that it works as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Excellent! Now let''s run FsCheck:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hmmm. That's funny, nothing seems to be happening. And my CPU is maxing out
+    for some reason. What's going on?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's going on is that you are going to be sitting there for a long time! If
+    you are following along at home, I suggest you right-click and cancel the interactive
+    session now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The innocent looking `permutations` is really *really* slow for any normal sized
+    list. For example, a list of just 10 items has 3,628,800 permutations. While with
+    20 items, you are getting to astronomical numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And of course, FsCheck will be doing hundreds of these tests! So this leads
+    to an important tip:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TIP: Make sure your property checks are very fast. You will be running them
+    a LOT!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've already seen that even in the best case, FsCheck will evaluate the property
+    100 times. And if shrinking is needed, even more. So make sure your tests are
+    fast to run!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what happens if you are dealing with real systems such as databases, networks,
+    or other slow dependencies?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In his (highly recommended) [video on using QuickCheck](http://vimeo.com/68383317),
+    John Hughes tells of when his team was trying to detect flaws in a distributed
+    data store that could be caused by network partitions and node failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, killing real nodes thousands of times was too slow, so they extracted
+    the core logic into a virtual model, and tested that instead. As a result, the
+    code was *later refactored* to make this kind of testing easier. In other words,
+    property-based testing influenced the design of the code, just as TDD would.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sort invariant - 3rd attempt
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Ok, so we can't use permutations by just looping through them. So let's use
+    the same idea but write a function that is specific for this case, a `isPermutationOf`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the code for `isPermutationOf` and its associated helper functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's try the test again. And yes, this time it completes before the heat death
+    of the universe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's also great is that the malicious implementation now fails to satisfy
+    this property!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: In fact, these two properties, `adjacent pairs from a list should be ordered`
+    and `a sorted list has same contents as the original list` should indeed ensure
+    that any implementation is correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sidebar: Combining properties'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Just above, we noted that there were *two* properties needed to define the "is
+    sorted" property. It would be nice if we could combine them into one property
+    `is sorted` so that we can have a single test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, of course we can always merge the two sets of code into one function,
+    but it's preferable to keep functions as small as possible. Furthermore, a property
+    like `has same contents` might be reusable in other contexts as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we want then, is an equivalent to `AND` and `OR` that is designed to work
+    with properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'FsCheck to the rescue! There are built in operators to combine properties:
+    `.&.` for `AND` and `.|.` for `OR`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of them in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we test the combined property with a good implementation of `sort`, everything
+    works as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: And if we test a bad implementation, the combined property fails as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: But there's a problem now. Which of the two properties failed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we would like to do is add a "label" to each property so that we can tell
+    them apart. In FsCheck, this is done with the `|@` operator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now, when we test with the bad sort, we get a message `Label of failing
+    property: a sorted list has same contents as the original list`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: For more on these operators, [see the FsCheck documentation under "And, Or and
+    Labels"](https://fsharp.github.io/FsCheck/Properties.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: And now, back to the property-divising strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Solving a smaller problem"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes you have a recursive data structure or a recursive problem. In these
+    cases, you can often find a property that is true of a smaller part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, for a sort, we could say something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is that logic expressed in code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This property is satisfied by the real sort function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: But unfortunately, just like previous examples, the malicious implementations
+    also pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: So as before, we'll need another property (such as the `has same contents` invariant)
+    to ensure that the code is correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do have a recursive data structure, then try looking for recursive properties.
+    They are pretty obvious and low hanging, when you get the hang of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is the EDFH really a problem?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the last few examples, I've noted that trivial but wrong implementations
+    often satisfy the properties as well as good implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But should we *really* spend time worrying about this? I mean, if we ever really
+    released a sort algorithm that just duplicated the first element it would be obvious
+    immediately, surely?
+  prefs: []
+  type: TYPE_NORMAL
+- en: So yes, it's true that truly malicious implementations are unlikely to be a
+    problem. On the other hand, you should think of property-based testing not as
+    a *testing* process, but as a *design* process -- a technique that helps you clarify
+    what your system is really trying to do. And if a key aspect of your design is
+    satisfied with just a simple implementation, then perhaps there is something you
+    have overlooked -- something that, when you discover it, will make your design
+    both clearer and more robust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"The more things change, the more they stay the same"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our next type of property is "idempotence". Idempotence simply means that doing
+    something twice is the same as doing it once. If I tell you to "sit down" and
+    then tell you to "sit down" again, the second command has no effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Idempotence is [essential for reliable systems](https://queue.acm.org/detail.cfm?id=2187821)
+    and is [a key aspect of service oriented](http://soapatterns.org/design_patterns/idempotent_capability)
+    and message-based architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are designing these kinds of real-world systems it is well worth ensuring
+    that your requests and processes are idempotent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I won't go too much into this right now, but let's look at two simple examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, our old friend `sort` is idempotent (ignoring stability) while `reverse`
+    is not, obviously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In general, any kind of query should be idempotent, or to put it another way:
+    ["asking a question should not change the answer"](https://en.wikipedia.org/wiki/Command%E2%80%93query_separation).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the real world, this may not be the case. A simple query on a datastore run
+    at different times may give different results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a quick demonstration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we'll create a `NonIdempotentService` that gives different results on
+    each query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But if we test it now, we find that it does not satisfy the required idempotence
+    property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: As an alternative, we can create a (crude) `IdempotentService` that requires
+    a timestamp for each transaction. In this design, multiple GETs using the same
+    timestamp will always retrieve the same data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this one works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, if you are building a REST GET handler or a database query service, and
+    you want idempotence, you should consider using techniques such as etags, "as-of"
+    times, date ranges, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need tips on how to do this, searching for [idempotency patterns](http://blog.jonathanoliver.com/idempotency-patterns/)
+    will turn up some good results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Two heads are better than one"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: And finally, last but not least, we come to the "test oracle". A test oracle
+    is simply an alternative implementation that gives the right answer, and that
+    you can check your results against.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often the test oracle implementation is not suitable for production -- it's
+    too slow, or it doesn't parallelize, or it's [too poetic](https://xkcd.com/1026/),
+    etc., but that doesn't stop it being very useful for testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So for "list sort", there are many simple but slow implementations around.
+    For example, here''s a quick implementation of insertion sort:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this in place, we can write a property that tests the result against insertion
+    sort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we test the good sort, it works. Good!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: And when we test a bad sort, it doesn't. Even better!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generating Roman numerals in two different ways
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can also use the test oracle approach to cross-check two different implementations
+    when you're not sure that *either* implementation is right!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in my post ["Commentary on 'Roman Numerals Kata with Commentary'"](roman-numeral-kata.html)
+    I came up with two completely different algorithms for generating Roman Numerals.
+    Can we compare them to each other and test them both in one fell swoop?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first algorithm was based on understanding that Roman numerals were based
+    on tallying, leading to this simple code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another way to think about Roman numerals is to imagine an abacus. Each wire
+    has four "unit" beads and one "five" bead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This leads to the so-called "bi-quinary" approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now have two completely different algorithms, and we can cross-check them
+    with each other to see if they give the same result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But if we try running this code, we get a `ArgumentException: The input must
+    be non-negative` due to the `String.replicate` call.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: So we need to only include inputs that are positive. We also need to exclude
+    numbers that are greater than 4000, say, since the algorithms break down there
+    too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we implement this filter?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We saw in the previous post that we could use preconditions. But for this example,
+    we'll try something different and change the generator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we'll define a *new* arbitrary integer called `arabicNumber` which is
+    filtered as we want (an "arbitrary" is a combination of a generator algorithm
+    and a shrinker algorithm, as described in the previous post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we create a new property *which is constrained to only use "arabicNumber"*
+    by using the `Prop.forAll` helper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll give the property the rather clever name of "for all values of arabicNumber,
+    biquinary should give same result as tallying".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now finally, we can do the cross-check test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we're good! Both algorithms work correctly, it seems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Model-based" testing'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '"Model-based" testing, which we will discuss in more detail in a later post,
+    is a variant on having a test oracle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The way it works is that, in parallel with your (complex) system under test,
+    you create a simplified model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, when you do something to the system under test, you do the same (but simplified)
+    thing to your model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end, you compare your model's state with the state of the system under
+    test. If they are the same, you're done. If not, either your SUT is buggy or your
+    model is wrong and you have to start over!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Interlude: A game based on finding properties'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With that, we have come to the end of the various property categories. We'll
+    go over them one more time in a minute -- but first, an interlude.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you sometimes feel that trying to find properties is a mental challenge,
+    you're not alone. Would it help to pretend that it is a game?
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it happens, there *is* a game based on property-based testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's called [Zendo](http://boardgamegeek.com/boardgame/6830/zendo) and it involves
+    placing sets of objects (such as plastic pyramids) on a table, such that each
+    layout conforms to a pattern -- a rule -- or as we would now say, *a property*!.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other players then have to guess what the rule (property) is, based on what
+    they can see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a picture of a Zendo game in progress:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Zendo](zendo1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The white stones mean the property has been satisfied, while black stones mean
+    failure. Can you guess the rule here? I'm going to guess that it's something like
+    "a set must have a yellow pyramid that's not touching the ground".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alright, I suppose Zendo wasn't really inspired by property-based testing, but
+    it is a fun game, and it has even been known to make an appearance at [programming
+    conferences](https://thestrangeloop.com/sessions/zendo-%E2%80%93-the-scientific-method-in-a-box).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to learn more about Zendo, [the rules are here](http://www.looneylabs.com/rules/zendo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying the categories one more time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With all these categories in hand, let's look at one more example problem, and
+    see if we can find properties for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This sample is based on the well-known `Dollar` example described in Kent Beck's
+    "TDD By Example" book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nat Pryce, of [*Growing Object-Oriented Software Guided by Tests*](http://www.growing-object-oriented-software.com/)
+    fame, wrote a blog post about property-based testing a while ago (["Exploring
+    Test-Driven Development with QuickCheck"](http://www.natpryce.com/articles/000795.html)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In it, he expressed some frustration about property-based testing being useful
+    in practice. So let's revisit the example he referenced and see what we can do
+    with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We're not going to attempt to critique the design itself and make it more type-driven
+    -- [others have done that](http://spin.atomicobject.com/2014/12/10/typed-language-tdd-part2/).
+    Instead, we'll take the design as given and see what properties we can come up
+    with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what do we have?
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `Dollar` class that stores an `Amount`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Methods `Add` and `Times` that transform the amount in the obvious way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, first let''s try it out interactively to make sure it works as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: But that's just playing around, not real testing. So what kind of properties
+    can we think of?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s run through them all again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different paths to same result
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Inverses
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Invariants
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Idempotence
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Structural induction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy to verify
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Test oracle
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's skip the "different paths" one for now. What about inverses? Are there
+    any inverses we can use?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yes, the setter and getter form an inverse that we can create a property from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Idempotence is relevant too. For example, doing two sets in a row should be
+    the same as doing just one. Here''s a property for that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: Any "structural induction" properties? No, not relevant to this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any "easy to verify" properties? Not anything obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, is there a test oracle? No. Again not relevant, although if we really
+    were designing a complex currency management system, it might be very useful to
+    cross-check our results with a third party system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Properties for an immutable Dollar
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A confession! I cheated a bit in the code above and created a mutable class,
+    which is how most OO objects are designed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in "TDD by Example" , Kent quickly realizes the problems with that and changes
+    it to an immutable class, so let me do the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the immutable version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's nice about immutable code is that we can eliminate the need for testing
+    of setters, so the two properties we just created have now become irrelevant!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To tell the truth they were pretty trivial anyway, so it's no great loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So then, what new properties can we devise now?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's look at the `Times` method. How can we test that? Which one of the strategies
+    can we use?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I think the "different paths to same result" is very applicable. We can do the
+    same thing we did with "sort" and do a times operation both "inside" and "outside"
+    and see if they give the same result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Dollar times](property_dollar_times.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s that property expressed in code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: Great! Let's see if it works!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: Oops -- it doesn't work!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not? Because we forgot that `Dollar` is a reference type and doesn't compare
+    equal by default!
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result of this mistake, we have discovered a property that we might have
+    overlooked! Let's encode that before we forget.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: So now we need to fix this by adding support for `IEquatable` and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can do that if you like -- I'm going to switch to F# record types and get
+    equality for free!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dollar properties -- version 3
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s the `Dollar` rewritten again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now our two properties are satisfied:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can extend this approach for different paths. For example, we can extract
+    the amount and compare it directly, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Dollar times](property_dollar_times2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The code looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we can also include `Add` in the mix as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we can do a `Times` followed by an `Add` via two different paths,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Dollar times](property_dollar_times3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: So this "different paths, same result" approach is very fruitful, and we can
+    generate *lots* of paths this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dollar properties -- version 4
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Shall we call it done then? I would say not!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are beginning to get a whiff of a code smell. All this `(start * multiplier)
+    + adder` code seems like a bit of duplicated logic, and could end up being brittle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we abstract out some commonality that is present all these cases?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we think about it, our logic is *really* just this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transform the amount on the "inside" in some way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transform the amount on the "outside" in the same way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Make sure that the results are the same.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But to test this, the `Dollar` class is going to have to support an arbitrary
+    transform! Let's call it `Map`!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now all our tests can be reduced to this one property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Dollar map](property_dollar_map.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Let''s add a `Map` method to `Dollar`. And we can also rewrite `Times` and
+    `Add` in terms of `Map`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now the code for our property looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: But how can we test it now? What functions should we pass in?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don't worry! FsCheck has you covered! In cases like this, FsCheck will actually
+    generate random functions for you too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try it -- it just works!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our new "map" property is much more general than the original property using
+    "times", so we can eliminate the latter safely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logging the function parameter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There's a little problem with the property as it stands. If you want to see
+    what the function is that FsCheck is generating, then Verbose mode is not helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Gives the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can't tell what the function values actually were.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, you can tell FsCheck to show more useful information by wrapping your
+    function in a special `F` case, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now when you use Verbose mode...
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... you get a detailed log of each function that was used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each `{ 2->-2 }`, `{ 10->28 }`, etc., represents the function that was used
+    for that iteration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TDD vs. property-based testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: How does property-based testing (PBT) fit in with TDD? This is a common question,
+    so let me quickly give you my take on it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First off, TDD works with *specific examples*, while PBT works with *universal
+    properties*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I said in the previous post, I think examples are useful as a way into a
+    design, and can be a form of documentation. But in my opinion, relying *only*
+    on example-based tests would be a mistake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Property-based approaches have a number of advantages over example-based tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Property-based tests are more general, and thus are less brittle.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Property-based tests provide a better and more concise description of requirements
+    than a bunch of examples.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As a consequence, one property-based test can replace many, many, example-based
+    tests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: By generating random input, property-based tests often reveal issues that you
+    have overlooked, such as dealing with nulls, missing data, divide by zero, negative
+    numbers, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Property-based tests force you to think.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Property-based tests force you to have a clean design.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These last two points are the most important for me. Programming is not a matter
+    of writing lines of code, it is about creating a design that meets the requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, anything that helps you think deeply about the requirements and what can
+    go wrong should be a key tool in your personal toolbox!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in the Roman Numeral section, we saw that accepting `int` was a
+    bad idea (the code broke!). We had a quick fix, but really we should model the
+    concept of a `PositiveInteger` in our domain, and then change our code to use
+    that type rather than just an `int`. This demonstrates how using PBT can actually
+    improve your domain model, not just find bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, introducing a `Map` method in the Dollar scenario not only made testing
+    easier, but actually improved the usefulness of the Dollar "api".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stepping back to look at the big picture, though, TDD and property-based testing
+    are not at all in conflict. They share the same goal of building correct programs,
+    and both are really more about design than coding (think "Test-driven *design*"
+    rather than "Test-driven *development*").
+  prefs: []
+  type: TYPE_NORMAL
+- en: The end, at last
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So that brings us to the end of another long post on property-based testing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope that you now have some useful approaches that you can take away and apply
+    to your own code base.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next time, we'll look at some real-world examples, and how you can create custom
+    generators that match your domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The code samples used in this post are [available on GitHub](https://github.com/swlaschin/PropertyBasedTesting/blob/master/part2.fsx)*.'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,259 @@
+- en: Memory Management
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Memory Management
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The memory model of Rust is quite close to C++. Structures that you declare
+    in Rust reside on the stack or they reside in the heap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stack
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The stack is a memory reserved by the operating system for each thread in your
+    program. Stack is reserved for local variables based upon their predetermined
+    size by moving a stack pointer register forward by that amount. When the local
+    variables go out of scope, the stack pointer reduces by the same amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In C-style languages it is normal for the stack in each thread to be a single
+    contiguous slab of memory that represents the "worst case" scenario for your program
+    i.e. you will never need any more stack than the thread allocated at start. If
+    you do exceed the stack, then you cause a stack overflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some languages support the concept of split or segmented stack. In this case,
+    the stack is a series of "stacklets" joined together by a linked list. When the
+    stack is insufficient for the next call, it allocates another stacklet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The gcc can support a segmented stack, but it greatly complicates stack unwinding
+    when an exception is thrown and also when calls are made across linker boundaries,
+    e.g. between a segmented-stack aware process and a non segmented stack dynamic
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stack Overflows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main worry from using the stack is the possibility of a stack overflow,
+    i.e the stack pointer moves out of the memory reserved for the stack and starts
+    trampling on other memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This can occur in two common ways in isolation or combination:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deeply nested function calls, e.g. a recursive function that traverses a binary
+    tree, or a recursive function that never stops
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exhausting stack by using excessive and/or large local variables in functions,
+    e.g. lots of 64KB byte arrays.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: C++
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some C++ compilers won't catch an overflow at all. They have no guard page and
+    thus allow the stack pointer to just grow whereever memory takes it until the
+    program is destabilized and crashes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The gcc compiler has support segmented stacks but as described earlier not without
+    issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The MSVC compiler adds a guard page and stack pointer checks when when the stack
+    pointer could advance more than a page in a single jump and potentially miss the
+    guard page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Rust used to support a segmented stack as a means of detecting memory violation
+    but since 1.4 has replaced it with a guard page at the end of the stack space.
+    If the guard page is touched by a memory write, it will generate a segmentation
+    fault that halts the thread. Guard pages open up a small risk that the stack could
+    grow well in excess of the guard and it might take some time for a write to the
+    guard to generate a fault.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust aspires to support stack probe code generation on all platforms at which
+    point it is likely to use that in addition to a guard page. A stack probe is additional
+    generated code on functions that use more than a page of space for local variables
+    to test if they exceed the stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust reduces the risk stack overflows in some indirect ways. It's easy in C++
+    through inheritance or by calling a polymorphic method inadvertently set off a
+    recursive loop
+  prefs: []
+  type: TYPE_NORMAL
+- en: Heap
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Heap is a memory that the language runtime requests from the operating system
+    and makes available to your code through memory allocation calls
+  prefs: []
+  type: TYPE_NORMAL
+- en: C++
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Allocation simply means a portion of the heap is marked as in-use and the code
+    is provided with a pointer to the reserved area to do what it likes with. Free
+    causes the portion to be returned to its free state, coalescing with any free
+    areas that it resides next to in memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A heap can grow and code might create multiple heaps and might even be compelled
+    to in order control problems such as heap fragmentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To allocate memory on the heap in Rust you declare data inside of a a box.
+    For example to create a 1k block of bytes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Many structs in std:: and elsewhere will have a stack based portion and also
+    use use heap internally to hold their buffers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Heap fragmentation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Heap fragmentation happens when contiguous space in the heap is limited by the
+    pattern of memory allocations that it already contains. When this happens a memory
+    allocation can fail and the heap must be grown to make it succeed. In systems
+    which do not have virtual memory / paging, memory exhaustion caused by fragmentation
+    can cause the program or even the operating system to fail completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The easiest way to see fragmentation is with a simple example. We'll pretend
+    there is no housekeeping structures, guard blocks or other things to get in the
+    way. Imagine a 10 byte heap, where every byte is initially free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now allocate 5 bytes for object of type A. The heap reserves 5 bytes and marks
+    them used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](aaaaa-----.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now allocate 1 byte for object of type B. This is also marked used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](aaaaaab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now free object A. The the portion of heap is marked unused. Now we have a block
+    of 5 bytes free and a block with 4 bytes free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](-----b----.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now allocate 2 bytes for object of type C. Now we have a block of 3 bytes free
+    and a block with 4 bytes free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](cc---b----.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now allocate 5 slots for object of type A - Oops we can't! The heap has 7 bytes
+    free but they are not contiguous. At this point the runtime would be forced to
+    grow the heap, i.e. ask the operating system for another chunk of memory at which
+    point it can allocate 5 bytes for A.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](cc---baaaaa---.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The above assumes the heap is a contiguous, or that memory paging makes it seem
+    so. On some systems, it might be that the heap is a linked list of chunks, in
+    which case the allocated space for A would have to reside be in a single chunk,
+    the newly allocated portion above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is also an exagerated example, but it demonstrates how heap can have space,
+    but not enough to fufilly allocations without growing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Software running in embedded devices are particularly vulnerable to fragmentation
+    because they do not have virtual memory, have low physical memory and normally
+    have to run for days, weeks or years at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One major problem for C++ is that heap fragmentation is almost impossible to
+    avoid. The standard template library allocates memory for virtually all string
+    and collection work, and if a string / collection grows then it may have to reallocate
+    more memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only way to mitigate the issue is to choose the best collection, and to
+    reserve capacity wherever possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rust also has this issue and strings / collections have methods to reserve capacity.
+    But as a consequence of its design it prefers the stack over the heap. Unless
+    you explicitly allocate memory by putting it into a Box, Cell or RefCell you do
+    not allocate it on the heap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAII
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: RAII stands for Resource Acquisiton Is Initalization. It's a programming pattern
+    that ties access to some resource the object's lifetime
+  prefs: []
+  type: TYPE_NORMAL
+- en: C++ classes allow a pattern called RAII (). A class constructor acquires some
+    resource, the destructor releases that resource. As soon as the class goes out
+    of scope, the resource is released.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO** C++ example'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust is inherently RAII and enforces it through lifetimes. When an object goes
+    out of scope, the thing it holds is released. Rust also allows the programmer
+    to explicitly drop a struct earlier than its natural lifetime if there is a reason
+    to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAII is most commonly seen for heap allocated memory but it can apply to files,
+    system handles etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TODO** Rust example'
+  prefs: []
+  type: TYPE_NORMAL

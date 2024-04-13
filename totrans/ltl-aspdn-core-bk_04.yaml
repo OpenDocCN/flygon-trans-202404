@@ -1,0 +1,369 @@
+- en: Use a database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Use a database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Writing database code can be tricky. Unless you really know what you're doing,
+    it's a bad idea to paste raw SQL query strings into your application code. An
+    **object-relational mapper** (ORM) makes it easier to write code that interacts
+    with a database by adding a layer of abstraction between your code and the database
+    itself. Hibernate in Java and ActiveRecord in Ruby are two well-known ORMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a number of ORMs for .NET, including one built by Microsoft and included
+    in ASP.NET Core by default: Entity Framework Core. Entity Framework Core makes
+    it easy to connect to a number of different database types, and lets you use C#
+    code to create database queries that are mapped back into C# models (POCOs).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember how creating a service interface decoupled the controller code from
+    the actual service class? Entity Framework Core is like a big interface over your
+    database, and you can swap out different providers depending on the underlying
+    database technology.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Entity Framework Core can connect to SQL database like SQL Server and MySQL,
+    and also works with NoSQL (document) databases like Mongo. You'll use a SQLite
+    database for this project, but you can plug in a different database provider if
+    you'd like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connect to a database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Connect to a database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are a few things you need to use Entity Framework Core to connect to
+    a database. Since you used `dotnet new` and the MVC + Individual Auth template
+    to set your project, you''ve already got them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Entity Framework Core packages**. These are included by default in all
+    ASP.NET Core projects.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A database** (naturally). The `app.db` file in the project root directory
+    is a small SQLite database created for you by `dotnet new`. SQLite is a lightweight
+    database engine that can run without requiring you to install any extra tools
+    on your machine, so it''s easy and quick to use in development.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A database context class**. The database context is a C# class that provides
+    an entry point into the database. It''s how your code will interact with the database
+    to read and save items. A basic context class already exists in the `Data/ApplicationDbContext.cs`
+    file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A connection string**. Whether you are connecting to a local file database
+    (like SQLite) or a database hosted elsewhere, you''ll define a string that contains
+    the name or address of the database to connect to. This is already set up for
+    you in the `appsettings.json` file: the connection string for the SQLite database
+    is `DataSource=app.db`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Entity Framework Core uses the database context, together with the connection
+    string, to establish a connection to the database. You need to tell Entity Framework
+    Core which context, connection string, and database provider to use in the `ConfigureServices`
+    method of the `Startup` class. Here''s what''s defined for you, thanks to the
+    template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code adds the `ApplicationDbContext` to the service container, and tells
+    Entity Framework Core to use the SQLite database provider, with the connection
+    string from configuration (`appsettings.json`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, `dotnet new` creates a lot of stuff for you! The database is
+    set up and ready to be used. However, it doesn't have any tables for storing to-do
+    items. In order to store your `TodoItem` entities, you'll need to update the context
+    and migrate the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update the context
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Update the context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There''s not a whole lot going on in the database context yet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`Data/ApplicationDbContext.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Add a `DbSet` property to the `ApplicationDbContext`, right below the constructor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A `DbSet` represents a table or collection in the database. By creating a `DbSet<TodoItem>`
+    property called `Items`, you're telling Entity Framework Core that you want to
+    store `TodoItem` entities in a table called `Items`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You''ve updated the context class, but now there''s one small problem: the
+    context and database are now out of sync, because there isn''t actually an `Items`
+    table in the database. (Just updating the code of the context class doesn''t change
+    the database itself.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to update the database to reflect the change you just made to the context,
+    you need to create a **migration**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you already have an existing database, search the web for "scaffold-dbcontext
+    existing database" and read Microsoft's documentation on using the `Scaffold-DbContext`
+    tool to reverse-engineer your database structure into the proper `DbContext` and
+    model classes automatically.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Create a migration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Create a migration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Migrations keep track of changes to the database structure over time. They make
+    it possible to undo (roll back) a set of changes, or create a second database
+    with the same structure as the first. With migrations, you have a full history
+    of modifications like adding or removing columns (and entire tables).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the previous chapter, you added an `Items` set to the context. Since the
+    context now includes a set (or table) that doesn''t exist in the database, you
+    need to create a migration to update the database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This creates a new migration called `AddItems` by examining any changes you've
+    made to the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you get an error like `No executable found matching command "dotnet-ef"`,
+    make sure you're in the right directory. These commands must be run from the project
+    root directory (where the `Program.cs` file is).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'If you open up the `Data/Migrations` directory, you''ll see a few files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Multiple migrations](migrations.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The first migration file (with a name like `00_CreateIdentitySchema.cs`) was
+    created and applied for you way back when you ran `dotnet new`. Your new `AddItem`
+    migration is prefixed with a timestamp when you create it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see a list of migrations with `dotnet ef migrations list`.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'If you open your migration file, you''ll see two methods called `Up` and `Down`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`Data/Migrations/<date>_AddItems.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Up` method runs when you apply the migration to the database. Since you
+    added a `DbSet<TodoItem>` to the database context, Entity Framework Core will
+    create an `Items` table (with columns that match a `TodoItem`) when you apply
+    the migration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `Down` method does the opposite: if you need to undo (roll back) the migration,
+    the `Items` table will be dropped.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Workaround for SQLite limitations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are some limitations of SQLite that get in the way if you try to run
+    the migration as-is. Until this problem is fixed, use this workaround:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comment out the `migrationBuilder.AddForeignKey` lines in the `Up` method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Comment out any `migrationBuilder.DropForeignKey` lines in the `Down` method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you use a full-fledged SQL database, like SQL Server or MySQL, this won't
+    be an issue and you won't need to do this (admittedly hackish) workaround.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apply the migration
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The final step after creating one (or more) migrations is to actually apply
+    them to the database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This command will cause Entity Framework Core to create the `Items` table in
+    the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you want to roll back the database, you can provide the name of the *previous*
+    migration: `dotnet ef database update CreateIdentitySchema` This will run the
+    `Down` methods of any migrations newer than the migration you specify.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If you need to completely erase the database and start over, run `dotnet ef
+    database drop` followed by `dotnet ef database update` to re-scaffold the database
+    and bring it up to the current migration.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: That's it! Both the database and the context are ready to go. Next, you'll use
+    the context in your service layer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a new service class
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Create a new service class
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Back in the *MVC basics* chapter, you created a `FakeTodoItemService` that contained
+    hard-coded to-do items. Now that you have a database context, you can create a
+    new service class that will use Entity Framework Core to get the real items from
+    the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Delete the `FakeTodoItemService.cs` file, and create a new file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`Services/TodoItemService.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: You'll notice the same dependency injection pattern here that you saw in the
+    MVC basics chapter, except this time it's the `ApplicationDbContext` that gets
+    injected into the service. The `ApplicationDbContext` is already being added to
+    the service container in the `ConfigureServices` method, so it's available for
+    injection here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s take a closer look at the code of the `GetIncompleteItemsAsync` method.
+    First, it uses the `Items` property of the context to access all the to-do items
+    in the `DbSet`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, the `Where` method is used to filter only the items that are not complete:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Where` method is a feature of C# called LINQ (**l**anguage **in**tegrated
+    **q**uery), which takes cues from functional programming and makes it easy to
+    express database queries in code. Under the hood, Entity Framework Core translates
+    the method into a statement like `SELECT * FROM Items WHERE IsDone = 0`, or an
+    equivalent query document in a NoSQL database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the `ToArrayAsync` method tells Entity Framework Core to get all the
+    entities that matched the filter and return them as an array. The `ToArrayAsync`
+    method is asynchronous (it returns a `Task`), so it must be `await`ed to get its
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make the method a little shorter, you can remove the intermediate `items`
+    variable and just return the result of the query directly (which does the same
+    thing):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Update the service container
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Because you deleted the `FakeTodoItemService` class, you''ll need to update
+    the line in `ConfigureServices` that is wiring up the `ITodoItemService` interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`AddScoped` adds your service to the service container using the **scoped**
+    lifecycle. This means that a new instance of the `TodoItemService` class will
+    be created during each web request. This is required for service classes that
+    interact with a database.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding a service class that interacts with Entity Framework Core (and your database)
+    with the singleton lifecycle (or other lifecycles) can cause problems, because
+    of how Entity Framework Core manages database connections per request under the
+    hood. To avoid that, always use the scoped lifecycle for services that interact
+    with Entity Framework Core.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The `TodoController` that depends on `ITodoItemService` will be blissfully unaware
+    of the change, but under the hood you'll be using Entity Framework Core and talking
+    to a real database!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test it out
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Start up the application and navigate to `http://localhost:5000/todo`. The fake
+    items are gone, and your application is making real queries to the database. There
+    just doesn't happen to be any saved to-do items!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you'll add more features to the application, starting with
+    the ability to create new to-do items.
+  prefs: []
+  type: TYPE_NORMAL

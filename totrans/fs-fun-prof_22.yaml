@@ -1,0 +1,2092 @@
+- en: A functional approach to error handling (Railway oriented programming)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Railway oriented programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from a more comprehensive presentation available
+    here](http://fsharpforfunandprofit.com/rop/) (and if you understand the Either
+    monad, [read this first](http://fsharpforfunandprofit.com/rop/#monads)!)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the previous post, we saw how a use case could be broken into steps, and
+    all the errors shunted off onto a separate error track, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![A function with two outputs](Recipe_Function_ErrorTrack.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this post, we'll look at various ways of connecting these step functions
+    into a single unit. The detailed internal design of the functions will be described
+    in a later post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing a function that represents a step
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's have a closer look at these steps. For example, consider the validation
+    function. How would it work? Some data goes in, but what comes out?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, there are two possible cases: either the data is valid (the happy path),
+    or something is wrong, in which case we go onto the failure path and bypass the
+    rest of the steps, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The validation function with a two outputs](Recipe_Validation_Paths.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'But as before, this would not be a valid function. A function can only have
+    one output, so we must use the `Result` type we defined last time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the diagram now looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The validation function with a success/failure output](Recipe_Validation_Union2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To show you how this works in practice, here is an example of what an actual
+    validation function might look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you look at the type of the function, the compiler has deduced that it takes
+    a `Request` and spits out a `Result` as output, with a `Request` for the success
+    case and a `string` for the failure case:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can analyze the other steps in the flow in the same way. We will find that
+    each one will have the same "shape" -- some sort of input and then this Success/Failure
+    output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*A pre-emptive apology: Having just said that a function can''t have two outputs,
+    I may occasionally refer to them hereafter as "two output" functions! Of course,
+    what I mean is that the shape of the function output has two cases.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Railway oriented programming
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we have a lot of these "one input -> Success/Failure output" functions --
+    how do we connect them together?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we want to do is connect the `Success` output of one to the input of the
+    next, but somehow bypass the second function in case of a `Failure` output. This
+    diagram gives the general idea:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Connecting validation function with update function](Recipe_Validation_Update.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: There is a great analogy for doing this -- something you are probably already
+    familiar with. Railways!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Railways have switches ("points" in the UK) for directing trains onto a different
+    track. We can think of these "Success/Failure" functions as railway switches,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![A railway switch](Recipe_RailwaySwitch.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And here we have two in a row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches disconnected](Recipe_RailwaySwitch1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How do we combine them so that both failure tracks are connected? It's obvious
+    -- like this!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches connected](Recipe_RailwaySwitch2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And if we have a whole series of switches, we will end up with a two track
+    system, looking something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![3 railway switches connected](Recipe_RailwaySwitch3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The top track is the happy path, and the bottom track is the failure path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now stepping back and looking at the big picture, we can see that we will have
+    a series of black box functions that appear to be straddling a two-track railway,
+    each function processing data and passing it down the track to the next function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Opaque functions](Recipe_Railway_Opaque.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'But if we look inside the functions, we can see that there is actually a switch
+    inside each one, for shunting bad data onto the failure track:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Transparent functions](Recipe_Railway_Transparent.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note that once we get on the failure path, we never (normally) get back onto
+    the happy path. We just bypass the rest of the functions until we reach the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic composition
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we discuss how to "glue" the step functions together, let's review how
+    composition works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine that a standard function is a black box (a tunnel, say) sitting on a
+    one-track railway. It has one input and one output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we want to connect a series of these one-track functions, we can use the
+    left-to-right composition operator, with the symbol `>>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Composition of one-track functions](Recipe_Railway_Compose1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The same composition operation also works with two-track functions as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Composition of two-track functions](Recipe_Railway_Compose2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The only constraint on composition is that the output type of the left-hand
+    function has to match the input type of the right-hand function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our railway analogy, this means that you can connect one-track output to
+    one-track input, or two-track output to two-track input, but you *can't* directly
+    connect two-track output to one-track input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Composition of two-track functions](Recipe_Railway_Compose3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Converting switches to two-track inputs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So now we have run into a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function for each step is going to be a switch, with *one* input track.
+    But the overall flow requires a *two-track* system, with each function straddling
+    *both* tracks, meaning that each function must have a two-track input (the `Result`
+    output by the previous function), not just a simple one-track input (`Request`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we insert the switches into the two track system?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer is simple. We can create an "adapter" function that has a "hole"
+    or "slot" for a switch function and converts it into a proper two-track function.
+    Here''s an illustration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Bind adapter](Recipe_Railway_BindAdapter.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And here's what the actual code looks like. I'm going to name the adapter function
+    `bind`, which is the standard name for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The bind function takes a switch function as a parameter and returns a new function.
+    The new function takes a two-track input (which is of type `Result`) and then
+    checks each case. If the input is a `Success` it calls the `switchFunction` with
+    the value. But if the input is a `Failure`, then the switch function is bypassed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Compile it and then look at the function signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: One way of interpreting this signature is that the `bind` function has one parameter,
+    a switch function (`'a -> Result<..>`) and it returns a fully two-track function
+    (`Result<..> -> Result<..>`) as output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To be even more specific:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The parameter (`switchFunction`) of bind takes some type `'a` and emits a `Result`
+    of type `'b` (for the success track) and `'c` (for the failure track)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The returned function itself has a parameter (`twoTrackInput`) which is a `Result`
+    of type `'a` (for success) and `'c` (for failure). The type `'a` has to be the
+    same as what the `switchFunction` is expecting on its one track.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The output of the returned function is another `Result`, this time of type `'b`
+    (for success) and `'c` (for failure) -- the same type as the switch function output.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you think about it, this type signature is exactly what we would expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that this function is completely generic -- it will work with *any* switch
+    function and *any* types. All it cares about is the "shape" of the `switchFunction`,
+    not the actual types involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other ways of writing the bind function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Just as an aside, there are some other ways of writing functions like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One way is to use an explicit second parameter for the `twoTrackInput` rather
+    than defining an internal function, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is exactly the same as the first definition. And if you are wondering how
+    a two parameter function can be exactly the same as a one parameter function,
+    you need to read the post on [currying](currying.html)!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yet another way of writing it is to replace the `match..with` syntax with the
+    more concise `function` keyword, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might see all three styles in other code, but I personally prefer to use
+    the second style (`let bind switchFunction twoTrackInput =`), because I think
+    that having explicit parameters makes the code more readable for non-experts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Combining some validation functions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's write a little bit of code now, to test the concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start with what we already have defined. `Request`, `Result` and `bind`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we''ll create three validation functions, each of which is a "switch"
+    function, with the goal of combining them into one bigger function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now to combine them, we apply `bind` to each validation function to create a
+    new alternative function that is two-tracked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then we can connect the two-tracked functions using standard function composition,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The functions `validate2'` and `validate3'` are new functions that take two-track
+    input. If you look at their signatures you will see that they take a `Result`
+    and return a `Result`. But note that `validate1` does not need to be converted
+    to two track input. Its input is left as one-track, and its output is two-track
+    already, as needed for composition to work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a diagram showing the `Validate1` switch (unbound) and the `Validate2`
+    and `Validate3` switches, together with the `Validate2'` and `Validate3'` adapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Validate2 and Validate3 connected](Recipe_Railway_Validator2and3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We could have also "inlined" the `bind`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test it with two bad inputs and a good input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: I would encourage you to try it for yourself and play around with the validation
+    functions and test input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*You might be wondering if there is a way to run all three validations in parallel,
+    rather than serially, so that you can get back all the validation errors at once.
+    Yes, there is a way, which I''ll explain later in this post.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bind as a piping operation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While we are discussing the `bind` function, there is a common symbol for it,
+    `>>=`, which is used to pipe values into switch functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the definition, which switches around the two parameters to make them
+    easier to chain together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*One way to remember the symbol is to think of it as the composition symbol,
+    `>>`, followed by a two-track railway symbol, `=`.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When used like this, the `>>=` operator is sort of like a pipe (`|>`) but for
+    switch functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a normal pipe, the left hand side is a one-track value, and the right hand
+    value is a normal function. But in a "bind pipe" operation, the left hand side
+    is a *two-track* value, and the right hand value is a *switch function*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here it is in use to create another implementation of the `combinedValidation`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The difference between this implementation and the previous one is that this
+    definition is *data-oriented* rather than *function-oriented*. It has an explicit
+    parameter for the initial data value, namely `x`. `x` is passed to the first function,
+    and then the output of that is passed to the second function, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous implementation (repeated below), there was no data parameter
+    at all! The focus was on the functions themselves, not the data that flows through
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: An alternative to bind
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another way to combine switches is not by adapting them to a two track input,
+    but simply by joining them directly together to make a new, bigger switch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches disconnected](Recipe_RailwaySwitch1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'becomes this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches connected](Recipe_RailwaySwitch2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'But if you think about it, this combined track is actually just another switch!
+    You can see this if you cover up the middle bit. There''s one input and two outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches connected](Recipe_RailwaySwitch2a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So what we have really done is a form of composition for switches, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![switches composition](Recipe_Railway_MComp.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Because each composition results in just another switch, we can always add another
+    switch again, resulting in an even bigger thing that is still a switch, and so
+    on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the code for switch composition. The standard symbol used is `>=>`, a
+    bit like the normal composition symbol, but with a railway track between the angles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, the actual implementation is very straightforward. Pass the single track
+    input `x` through the first switch. On success, pass the result into the second
+    switch, otherwise bypass the second switch completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we can rewrite the `combinedValidation` function to use switch composition
+    rather than bind:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This one is the simplest yet, I think. It's very easy to extend of course, if
+    we have a fourth validation function, we can just append it to the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bind vs. switch composition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have two different concepts that at first glance seem quite similar. What's
+    the difference?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To recap:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bind** has *one* switch function parameter. It is an adapter that converts
+    the switch function into a fully two-track function (with two-track input and
+    two-track output).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Switch composition** has *two* switch function parameters. It combines them
+    in series to make another switch function.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So why would you use bind rather than switch composition? It depends on the
+    context. If you have an existing two-track system, and you need to insert a switch,
+    then you have to use bind as an adapter to convert the switch into something that
+    takes two-track input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![switches composition](Recipe_Railway_WhyBind.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the other hand, if your entire data flow consists of a chain of switches,
+    then switch composition can be simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![switches composition](Recipe_Railway_WhyCompose.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Switch composition in terms of bind
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As it happens, switch composition can be written in terms of bind. If you connect
+    the first switch with a bind-adapted second switch, you get the same thing as
+    switch composition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are two separate switches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches disconnected](Recipe_RailwaySwitch1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And then here are the switches composed together to make a new bigger switch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![2 railway switches disconnected](Recipe_RailwaySwitch2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And here''s the same thing done by using `bind` on the second switch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![bind as switch composition](Recipe_Railway_BindIsCompose.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the switch composition operator rewritten using this way of thinking:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implementation of switch composition is much simpler than the first one,
+    but also more abstract. Whether it is easier to comprehend for a beginner is another
+    matter! I find that if you think of functions as things in their own right, rather
+    than just as conduits for data, this approach becomes easier to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting simple functions to the railway-oriented programming model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once you get the hang of it, you can fit all sorts of other things into this
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let's say we have a function that is *not* a switch, just a regular
+    function. And say that we want to insert it into our flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a real example - say that we want to trim and lowercase the email address
+    after the validation is complete. Here''s some code to do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code takes a (single-track) `Request` and returns a (single-track) `Request`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we insert this after the validation steps but before the update step?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, if we can turn this simple function into a switch function, then we can
+    use the switch composition we just talked about above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we need an adapter block. It the same concept that we used for
+    `bind`, except that this time our adapter block will have a slot for one-track
+    function, and the overall "shape" of the adapter block is a switch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![lifting a simple function](Recipe_Railway_SwitchAdapter.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The code to do this is trivial. All we need to do is take the output of the
+    one track function and turn it into a two-track result. In this case, the result
+    will *always* be Success.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: In railway terms, we have added a bit of failure track. Taken as a whole, it
+    *looks* like a switch function (one-track input, two-track output), but of course,
+    the failure track is just a dummy and the switch never actually gets used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![lifting a simple function](Recipe_Railway_SwitchAdapter2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Once `switch` is available, we can easily append the `canonicalizeEmail` function
+    to the end of the chain. Since we are beginning to extend it, let's rename the
+    function to `usecase`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Try testing it to see what happens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating two-track functions from one-track functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the previous example, we took a one-track function and created a switch from
+    it. This enabled us to use switch composition with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes though, you want to use the two-track model directly, in which case
+    you want to turn a one-track function into a two-track function directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![mapping a simple function](Recipe_Railway_MapAdapter2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Again, we just need an adapter block with a slot for the simple function. We
+    typically call this adapter `map`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![mapping a simple function](Recipe_Railway_MapAdapter.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And again, the actual implementation is very straightforward. If the two-track
+    input is `Success`, call the function, and turn its output into Success. On the
+    other hand, if the two-track input is `Failure` bypass the function completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use with `canonicalizeEmail`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that *normal* composition is now used because `map canonicalizeEmail` is
+    a fully two-track function and can be connected to the output of the `validate3`
+    switch directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, for one-track functions, `>=> switch` is exactly the same as
+    `>> map`. Your choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting dead-end functions to two-track functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another function we will often want to work with is a "dead-end" function --
+    a function that accepts input but has no useful output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, consider a function that updates a database record. It is useful
+    only for its side-effects -- it doesn't normally return anything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we incorporate this kind of function into the flow?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we need to do is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Save a copy of the input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call the function and ignore its output, if any.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Return the original input for passing on to the next function in the chain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: From a railway point of view, this is equivalent to creating a dead-end siding,
+    like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![tee for a dead end function](Recipe_Railway_Tee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To make this work, we need another adapter function, like `switch`, except that
+    this time it has a slot for one-track dead-end function, and converts it into
+    a single-track pass through function, with a one-track output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![tee for a dead end function](Recipe_Railway_TeeAdapter.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the code, which I will call `tee`, after the UNIX tee command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we have converted the dead-end function to a simple one-track pass through
+    function, we can then use it in the data flow by converting it using `switch`
+    or `map` as described above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code in use with the "switch composition" style:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Or alternatively, rather than using `switch` and then connecting with `>=>`,
+    we can use `map` and connect with `>>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a variant implementation which is exactly the same but uses the "two-track"
+    style with normal composition
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Handling exceptions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our dead end database update might not return anything, but that doesn't mean
+    that it might not throw an exception. Rather than crashing, we want to catch that
+    exception and turn it into a failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code is similar to the `switch` function, except that it catches exceptions.
+    I''ll call it `tryCatch`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here is a modified version of the data flow, using `tryCatch` rather than
+    `switch` for the update database code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Functions with two-track input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All the functions we have seen so far have only one input, because they always
+    just work with data travelling along the happy path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes though, you *do* need a function that handles both tracks. For example,
+    a logging function that logs errors as well as successes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we have done previously, we will create an adapter block, but this time it
+    will have slots for *two* separate one-track functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![double map adapter](Recipe_Railway_DoubleMapAdapter.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As an aside, we can use this function to create a simpler version of `map`,
+    using `id` for the failure function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s use `doubleMap` to insert some logging into the data flow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s some test code, with the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Converting a single value to a two-track value
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For completeness, we should also create simple functions that turn a single
+    simple value into a two-track value, either success or failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Right now these are trivial, just calling the constructor of the `Result` type,
+    but when we get down to some proper coding we'll see that by using these rather
+    than the union case constructor directly, we can isolate ourselves from changes
+    behind the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Combining functions in parallel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So far, we have combined functions in series. But with something like validation,
+    we might want to run multiple switches in parallel, and combine the results, like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![switches in parallel](Recipe_Railway_Parallel.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To make this easier, we can reuse the same trick that we did for switch composition.
+    Rather than doing many at once, if we just focus on a single pair, and "add" them
+    to make a new switch, we can then easily chain the "addition" together so that
+    we can add as many as we want. In other words, we just need to implement this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![add two switches in parallel](Recipe_Railway_MPlus.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, what is the logic for adding two switches in parallel?
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, take the input and apply it to each switch.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next look at the outputs of both switches, and if both are successful, the overall
+    result is `Success`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If either output is a failure, then the overall result is `Failure` as well.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the function, which I will call `plus`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: But we now have a new problem. What do we do with two successes, or two failures?
+    How do we combine the inner values?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used `s1 + s2` and `f1 + f2` in the example above, but that implies that there
+    is some sort of `+` operator we can use. That may be true for strings and ints,
+    but it is not true in general.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method of combining values might change in different contexts, so rather
+    than trying to solve it once and for all, let's punt by letting the caller pass
+    in the functions that are needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a rewritten version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have put these new functions first in the parameter list, to aid partial application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An implementation for parallel validation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now let's create a implementation of "plus" for the validation functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When both functions succeed, they will return the request unchanged, so the
+    `addSuccess` function can return either parameter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When both functions fail, they will return different strings, so the `addFailure`
+    function should concatenate them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For validation then, the "plus" operation that we want is like an "AND" function.
+    Only if both parts are "true" is the result "true".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That naturally leads to wanting to use `&&` as the operator symbol. Unfortunately,
+    `&&` is reserved, but we can use `&&&`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now using `&&&`, we can create a single validation function that combines
+    the three smaller validations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s try it with the same tests we had earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first test now has *two* validation errors combined into a single string,
+    just as we wanted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we can tidy up the main dataflow function by using the `usecase` function
+    now instead of the three separate validation functions we had before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And if we test that now, we can see that a success flows all the way to the
+    end and that the email is lowercased and trimmed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*You might be asking, can we create a way of OR-ing validation functions as
+    well? That is, the overall result is valid if either part is valid? The answer
+    is yes, of course. Try it! I suggest that you use the symbol `|||` for this.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamic injection of functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another thing we might want to do is add or remove functions into the flow dynamically,
+    based on configuration settings, or even the content of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simplest way to do this is to create a two-track function to be injected
+    into the stream, and replace it with the `id` function if not needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the idea:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s try it with some real code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is it in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The railway track functions: A toolkit'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's step back and review what we have done so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using railway track as a metaphor, we have created a number of useful building
+    blocks that will work with *any* data-flow style application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can classify our functions roughly like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**"constructors"** are used to create new track.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**"adapters"** convert one kind of track into another.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**"combiners"** link sections of track together to make a bigger piece of track.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These functions form what can be loosely called a *combinator library*, that
+    is, a group of functions that are designed to work with a type (here represented
+    by railway track), with the design goal that bigger pieces can be built by adapting
+    and combining smaller pieces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions like `bind`, `map`, `plus`, etc., crop up in all sorts of functional
+    programming scenarios, and so you can think of them as functional patterns --
+    similar to, but not the same as, the OO patterns such as "visitor", "singleton",
+    "facade", etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here they all are together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Concept | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `succeed` | A constructor that takes a one-track value and creates a two-track
+    value on the Success branch. In other contexts, this might also be called `return`
+    or `pure`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fail` | A constructor that takes a one-track value and creates a two-track
+    value on the Failure branch. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `bind` | An adapter that takes a switch function and creates a new function
+    that accepts two-track values as input. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `>>=` | An infix version of bind for piping two-track values into switch
+    functions. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `>>` | Normal composition. A combiner that takes two normal functions and
+    creates a new function by connecting them in series. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `>=>` | Switch composition. A combiner that takes two switch functions and
+    creates a new switch function by connecting them in series. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `switch` | An adapter that takes a normal one-track function and turns it
+    into a switch function. (Also known as a "lift" in some contexts.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `map` | An adapter that takes a normal one-track function and turns it into
+    a two-track function. (Also known as a "lift" in some contexts.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tee` | An adapter that takes a dead-end function and turns it into a one-track
+    function that can be used in a data flow. (Also known as `tap`.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tryCatch` | An adapter that takes a normal one-track function and turns
+    it into a switch function, but also catches exceptions. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `doubleMap` | An adapter that takes two one-track functions and turns them
+    into a single two-track function. (Also known as `bimap`.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `plus` | A combiner that takes two switch functions and creates a new switch
+    function by joining them in "parallel" and "adding" the results. (Also known as
+    `++` and `in other contexts.)` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `&&&` | The "plus" combiner tweaked specifically for the validation functions,
+    modelled on a binary AND. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The railway track functions: complete code'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here is the complete code for all the functions in one place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I have made some minor tweaks from the original code presented above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most functions are now defined in terms of a core function called `either`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`tryCatch` has been given an extra parameter for the exception handler.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Types vs. shapes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, we have focused entirely on the shape of the track, not the cargo on
+    the trains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a magical railway, where the goods being carried can change as they
+    go along each length of track.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a cargo of pineapples will magically transform into apples when
+    it goes through the tunnel called `function1`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![pineapples to apples](Recipe_Railway_Cargo1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And a cargo of apples will transform into bananas when it goes through the tunnel
+    called `function2`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![apples to bananas](Recipe_Railway_Cargo2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This magical railway has an important rule, namely that you can only connect
+    tracks which carry the same type of cargo. In this case we *can* connect `function1`
+    to `function2` because the cargo coming out of `function1` (apples) is the same
+    as the cargo going into `function2` (also apples).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![connecting functions](Recipe_Railway_Cargo3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Of course, it is not always true that the tracks carry the same cargo, and a
+    mismatch in the kind of cargo will cause an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But you'll notice that in this discussion so far, we haven't mentioned the cargo
+    once! Instead, we have spent all our time talking about one-track vs. two track
+    functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, it goes without saying that the cargo must match up. But I hope you
+    can see that it is the *shape* of the track that is really the important thing,
+    not the cargo that is carried.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generic types are powerful
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Why have we not worried about the type of cargo? Because all the "adapter" and
+    "combiner" functions are completely generic! The `bind` and `map` and `switch`
+    and `plus` functions do not care about the type of the cargo, only the *shape*
+    of the track.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Having extremely generic functions is a benefit in two ways. The first way
+    is obvious: the more generic a function is, the more reusable it is. The implementation
+    of `bind` will work with any types (as long as the shape is right).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But there is another, more subtle aspect of generic functions that is worth
+    pointing out. Because we generally know *nothing* about the types involved, we
+    are very constrained in what we can and can't do. As a result, we can't introduce
+    bugs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see what I mean, let''s look at the signature for `map`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: It takes a function parameter `'a -> 'b` and a value `Result<'a,'c>` and returns
+    a value `Result<'b,'c>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We don''t know anything about the types `''a`, `''b`, and `''c`. The only things
+    we know are that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *same* type `'a` shows up in both the function parameter and the `Success`
+    case of the first `Result`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *same* type `'b` shows up in both the function parameter and the `Success`
+    case of the second `Result`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *same* type `'c` shows up in the `Failure` cases of both the first and second
+    `Result`s, but doesn't show up in the function parameter at all.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What can we deduce from this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The return value has a type `'b` in it. But where does it come from? We don't
+    know what type `'b` is, so we don't know how to make one. But the function parameter
+    knows how to make one! Give it an `'a` and it will make a `'b` for us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But where can we get an `'a` from? We don't know what type `'a` is either, so
+    again we don't know how to make one. But the first result parameter has an `'a`
+    we can use, so you can see that we are *forced* to get the `Success` value from
+    the `Result<'a,'c>` parameter and pass it to the function parameter. And then
+    the `Success` case of the `Result<'b,'c>` return value *must* be constructed from
+    the result of the function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the same logic applies to `'c`. We are forced to get the `Failure`
+    value from the `Result<'a,'c>` input parameter and use it to construct the `Failure`
+    case of the `Result<'a,'c>` return value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, there is basically *only one way to implement the `map` function*!
+    The type signature is so generic that we have no choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, imagine that the `map` function had been very specific about
+    the types it needed, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this case, we can come up a huge number of different implementations. To
+    list a few:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We could have swapped the success and failure tracks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We could have added a random number to the success track.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We could have ignored the function parameter altogether, and returned zero on
+    both the success and failure tracks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All of these implementations are "buggy" in the sense that they don't do what
+    we expect. But they are all only possible because we know in advance that the
+    type is `int`, and therefore we can manipulate the values in ways we are not supposed
+    to. The less we know about the types, the less likely we are to make a mistake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The failure type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In most of our functions, the transformation only applies to the success track.
+    The failure track is left alone (`map`), or merged with an incoming failure (`bind`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implies that the failure track must be *same type* all the way through.
+    In this post we have just used `string`, but in the next post we'll change the
+    failure type to be something more useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary and guidelines
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At the beginning of this series, I promised to give you a simple recipe that
+    you could follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But you might be feeling a bit overwhelmed now. Instead of making things simpler,
+    I seem to have made things more complicated. I have shown you lots of different
+    ways of doing the same thing! Bind vs. compose. Map vs. switch. Which approach
+    should you use? Which way is best?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, there is never one "right way" for all scenarios, but nevertheless,
+    as promised, here are some guidelines that can be used as the basis of a reliable
+    and repeatable recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Guidelines*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use double-track railway as your underlying model for dataflow situations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a function for each step in the use case. The function for each step
+    can in turn be built from smaller functions (e.g. the validation functions).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use standard composition (`>>`) to connect the functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you need to insert a switch into the flow, use `bind`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you need to insert a single-track function into the flow, use `map`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you need to insert other types of functions into the flow, create an appropriate
+    adapter block and use it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These guidelines may result in code that is not particularly concise or elegant,
+    but on the other hand, you will be using a consistent model, and it should be
+    understandable to other people when it needs to be maintained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So with these guidelines, here are the main bits of the implementation so far.
+    Note especially the use of `>>` everywhere in the final `usecase` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'One final suggestion. If you are working with a team of non-experts, unfamiliar
+    operator symbols will put people off. So here some extra guidelines with respect
+    to operators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don't use any "strange" operators other than `>>` and `|>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In particular, that means you should *not* use operators like `>>=` or `>=>`
+    unless everyone is aware of them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An exception can be made if you define the operator at the top of the module
+    or function where it is used. For example, the `&&&` operator could be defined
+    at the top of the validation module and then used later in that same module.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Further reading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you like this "railway oriented" approach, you can also [see it applied to
+    FizzBuzz](railway-oriented-programming-carbonated.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I also have some [slides and video](http://fsharpforfunandprofit.com/rop/) that
+    show how take this approach further. (At some point I will turn these into a proper
+    blog post)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I presented on this topic at NDC Oslo 2014 (click image to view video)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![Video from NDC Oslo 2014](../assets/img/rop-ndcoslo.jpg)](http://vimeo.com/97344498)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here are the slides I used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[//www.slideshare.net/slideshow/embed_code/32242318](//www.slideshare.net/slideshow/embed_code/32242318)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[Railway Oriented Programming](https://www.slideshare.net/ScottWlaschin/railway-oriented-programming
+    "Railway Oriented Programming")** from **[my slideshare page](http://www.slideshare.net/ScottWlaschin)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Railway oriented programming: Carbonated edition'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Railway oriented programming: Carbonated edition'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As a follow up to the [Railway Oriented Programming](recipe-part2.html) post,
+    I thought I'd apply the same technique to the [FizzBuzz](http://imranontech.com/2007/01/24/using-fizzbuzz-to-find-developers-who-grok-coding/)
+    problem, and compare it with other implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A large part of this post was directly ~~stolen from~~ inspired by [Dave Fayram's
+    post on FizzBuzz](http://dave.fayr.am/posts/2012-10-4-finding-fizzbuzz.html),
+    with some additional ideas from [raganwald](http://weblog.raganwald.com/2007/01/dont-overthink-fizzbuzz.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'FizzBuzz: The imperative version'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As a reminder, here are the requirements for the FizzBuzz problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is a basic F# solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have defined a function `fizzBuzz` that, given an integer `i`, uses `match`
+    with `when` clauses to do the various tests, and then prints the appropriate value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple and straightforward, and fine for a quick hack, but there are a number
+    of problems with this implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, note that we had to have a special case for "fifteen". We couldn't just
+    reuse the code from the "three" and "five" cases. And this means that if we want
+    to add another case, such as "seven", we also need to add special cases for all
+    the combinations as well (that is "21", "35" and "105"). And of course, adding
+    more numbers would lead to a combinatorial explosion of cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, the order of matching is important. If the "fifteen" case had come last
+    in the list of patterns, the code would have run correctly, but not actually met
+    the requirements. And again, if we need to add new cases, we must always remember
+    to put the largest ones first to ensure correctness. This is just the kind of
+    thing that causes subtle bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s try another implementation, where we reuse the code for the "three"
+    and "five" case, and eliminate the need for a "fifteen" case altogether:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this implementation, the printed value for "15" will be correct, because
+    both the "3" and "5" cases will be used. And also we don't have to worry about
+    order -- as much, anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But -- these branches are no longer independent, so we have to track whether
+    *any* branch has been used at all, so that we can handle the default case. And
+    that has led to the mutable variable. Mutables are a code smell in F#, so this
+    implementation is not ideal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this version *does* have the advantage that it can be easily refactored
+    to support multiple factors, not just 3 and 5\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is a version that does just this. We pass in a list of "rules" to `fizzBuzz`.
+    Each rule consists of a factor and a corresponding label to print out. The `fizzBuzz`
+    function then just iterates through these rules, processing each in turn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we want additional numbers to be processed, we just add them to the list
+    of rules, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: To sum up, we have created a very imperative implementation that would be almost
+    the same in C#. It's flexible, but the mutable variable is a bit of a code smell.
+    Is there another way?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'FizzBuzz: The pipeline version'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this next version, we'll look at using the "pipeline" model, where data is
+    fed through a series of functions to arrive at a final result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this design, I envision a pipeline of functions, one to handle the "three"
+    case, one to handle the "five" case, and so on. And at the end, the appropriate
+    label is spat out, ready to be printed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is some pseudocode to demonstrate the concept:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: As an additional requirement, we want the pipeline to have *no* side effects.
+    This means that the intermediate functions must *not* print anything. They must
+    instead pass any generated labels down the pipe to the end, and only at that point
+    print the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing the pipeline
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As a first step, we need to define what data will be fed down the pipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with the first function, called `handleThreeCase` in the pseudocode
+    above. What is its input, and what is its output?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obviously, the input is the integer being processed. But the output could be
+    the string "Fizz" if we're lucky. Or the original integer if we're not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now let's think about the input to the second function, `handleFiveCase`.
+    It needs the integer as well. But in the case of "15" it *also* needs the string
+    "Fizz" as well, so it can append "Buzz" to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the `handleAllOtherCases` function converts the int to a string, but
+    *only* if "Fizz" or "Buzz" have not been generated yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's quite obvious then, that the data structure needs to contain both the integer
+    being processed *and* the "label so far".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next question is: how do we know if an upstream function has created a
+    label? The `handleAllOtherCases` needs to know this in order to determine whether
+    it needs to do anything.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way would be to use an empty string (or, horrors, a null string), but let's
+    be good and use a `string option`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, here''s the final data type that we will be using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pipeline version 1
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With this data structure, we can define how `handleThreeCase` and `handleFiveCase`
+    will work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, test the input int `i` to see if it is divisible by the factor.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If it is divisible, look at the `label` -- if it is `None`, then replace it
+    with `Some "Fizz"` or `Some "Buzz"`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the label already has a value, then append "Buzz" (or whatever) to it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the input is not divisible by the factor, just pass on the data unchanged.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Given this design, here''s the implementation. It''s a generic function that
+    I will call `carbonate` (after [raganwald](http://weblog.raganwald.com/2007/01/dont-overthink-fizzbuzz.html))
+    because it works with both "Fizz" and "Buzz":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The design for the `handleAllOtherCases` function is slightly different:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look at the label -- if it is not `None`, then a previous function has created
+    a label, so do nothing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But if the label is `None`, replace it with the string representation of the
+    integer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code -- I will call it `labelOrDefault`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we have the components, we can assemble the pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we have to create an initial record using `{i=i; label=None}` for
+    passing into the first function (`carbonate 3 "Fizz"`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, here is all the code put together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pipeline version 2
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Creating a new record type can be useful as a form of documentation, but in
+    a case like this, it would probably be more idiomatic to just use a tuple rather
+    than creating a special data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So here's a modified implementation that uses tuples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: As an exercise, try to find all the code that had to be changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eliminating explicit tests for Some and None
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the tuple code above, I have also replaced the explicit Option matching code
+    `match .. Some .. None` with some built-in Option functions, `map` and `defaultArg`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the changes in `carbonate` :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and in `labelOrDefault`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might be wondering about the strange looking `|> defaultArg <|` idiom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I am using it because the option is the *first* parameter to `defaultArg`, not
+    the *second*, so a normal partial application won't work. But "bi-directional"
+    piping does work, hence the strange looking code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s what I mean:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pipeline version 3
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Our `carbonate` function is generic for any factor, so we can easily extend
+    the code to support "rules" just as in the earlier imperative version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But one issue seems to be that we have hard-coded the "3" and "5" cases into
+    the pipeline, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: How can we dynamically add new functions into the pipeline?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is quite simple. We dynamically create a function for each rule,
+    and then combine all these functions into one using composition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a snippet to demonstrate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each rule is mapped into a function. And then the list of functions is combined
+    into one single function using `>>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting it all together, we have this final implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: Comparing this "pipeline" version with the previous imperative version, the
+    design is much more functional. There are no mutables and there are no side-effects
+    anywhere (except in the final `printf` statement).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a subtle bug in the use of `List.reduce`, however. Can you see what
+    it is?** For a discussion of the problem and the fix, see the postscript at the
+    bottom of this page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[** Hint: try an empty list of rules.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'FizzBuzz: The railway oriented version'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The pipeline version is a perfectly adequate functional implementation of FizzBuzz,
+    but for fun, let's see if we can use the "two-track" design described in the [railway
+    oriented programming](recipe-part2.html) post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a quick reminder, in "railway oriented programming" (a.k.a the "Either"
+    monad), we define a union type with two cases: "Success" and "Failure", each representing
+    a different "track". We then connect a set of "two-track" functions together to
+    make the railway.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the functions we actually use are what I called "switch" or "points"
+    functions, with a *one* track input, but a two-track output, one for the Success
+    case, and one for the Failure case. These switch functions are converted into
+    two-track functions using a glue function called "bind".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a module containing definitions of the functions we will need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I am using the `Choice` type here, which is built into the F# core library.
+    But I have created some helpers to make it look like the Success/Failure type:
+    an active pattern and two constructors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, how will we adapt FizzBuzz to this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start by doing the obvious thing: defining "carbonation" as success,
+    and an unmatched integer as a failure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, the Success track contains the labels, and the Failure track
+    contains the ints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our `carbonate` "switch" function will therefore look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implementation is similar to the one used in the pipeline design discussed
+    above, but it is cleaner because the input is just an int, not a record or a tuple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we need to connect the components together. The logic will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if the int is already carbonated, ignore it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if the int is not carbonated, connect it to the input of the next switch function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Another way of writing this is to use the `either` function we defined in the
+    library module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure you understand that both of these implementations do exactly the same
+    thing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we can create our "two-track" pipeline, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is superficially similar to the "one-track" pipeline, but actually uses
+    a different technique. The switches are connected together through composition
+    (`>>`) rather than piping (`|>`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, the `fizzBuzz` function does not have an int parameter -- we are
+    defining a function by combining other functions. There is no data anywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A few other things have changed as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have had to reintroduce the explicit test for the "15" case. This is because
+    we have only two tracks (success or failure). There is no "half-finished track"
+    that allows the "5" case to add to the output of the "3" case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `labelOrDefault` function from the previous example has been replaced with
+    `either`. In the Success case, a string is printed. In the Failure case, an int
+    is printed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is the complete implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Carbonation as failure?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We defined carbonation as "success"in the example above -- it seems the natural
+    thing to do, surely. But if you recall, in the railway oriented programming model,
+    "success" means that data should be passed on to the next function, while "failure"
+    means to bypass all the intermediate functions and go straight to the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For FizzBuzz, the "bypass all the intermediate functions" track is the track
+    with the carbonated labels, while the "pass on to next function" track is the
+    one with integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we should really reverse the tracks: "Failure" now means carbonation, while
+    "Success" means no carbonation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: By doing this, we also get to reuse the pre-defined `bind` function, rather
+    than having to write our own `connect` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code with the tracks switched around:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: What are the two tracks anyway?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The fact that we can swap the tracks so easily implies that that maybe there
+    is a weakness in the design. Are we trying to use a design that doesn't fit?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does one track have to be "Success" and another track "Failure" anyway?
+    It doesn't seem to make much difference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, why don't we *keep* the two-track idea, but get rid of the "Success" and
+    "Failure" labels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, we can call one track "Carbonated" and the other "Uncarbonated".
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make this work, we can define an active pattern and constructor methods,
+    just as we did for "Success/Failure".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you are doing domain driven design, it is good practice to write code that
+    uses the appropriate [Ubiquitous Language](http://martinfowler.com/bliki/UbiquitousLanguage.html)
+    rather than language that is not applicable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, if FizzBuzz was our domain, then our functions could now use the
+    domain-friendly terminology of `carbonated` and `uncarbonated` rather than "success"
+    or "failure".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that, as before, the `connect` function can be rewritten using `either`
+    (or we can just use the predefined `bind` as before):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s all the code in one module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: Adding rules
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are some problems with the version we have so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "15" test is ugly. Can we get rid of it and reuse the "3" and "5" cases?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The "3" and "5" cases are hard-coded. Can we make this more dynamic?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As it happens, we can kill two birds with one stone and address both of these
+    issues at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of combining all the "switch" functions in *series*, we can "add" them
+    together in *parallel*. In the [railway oriented programming](recipe-part2.html)
+    post, we used this technique for combining validation functions. For FizzBuzz
+    we are going to use it for doing all the factors at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The trick is to define a "append" or "concat" function for combining two functions.
+    Once we can add two functions this way, we can continue and add as many as we
+    like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So given that we have two carbonation functions, how do we concat them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, here are the possible cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If they both have carbonated outputs, we concatenate the labels into a new carbonated
+    label.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If one has a carbonated output and the other doesn't, then we use the carbonated
+    one.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If neither has a carbonated output, then we use either uncarbonated one (they
+    will be the same).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As an aside, notice that this code is almost like math, with `uncarbonated`
+    playing the role of "zero", like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is not a coincidence! We will see this kind of thing pop up over and over
+    in functional code. I'll be talking about this in a future post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Anyway, with this "concat" function in place, we can rewrite the main `fizzBuzz`
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: The two `carbonate` functions are added and then passed to `either` as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the complete code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this addition logic available, we can easily refactor the code to use rules.
+    Just as with the earlier "pipeline" implementation, we can use `reduce` to add
+    all the rules together at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the version with rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this post, we''ve seen three different implementations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An imperative version that used mutable values and mixed side-effects with logic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A "pipeline" version that passed a data structure through a series of functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A "railway oriented" version that had two separate tracks, and used "addition"
+    to combine functions in parallel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In my opinion, the imperative version is the worst design. Even though it was
+    easy to hack out quickly, it has a number of problems that make it brittle and
+    error-prone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of the two functional versions, I think the "railway oriented" version is cleaner,
+    for this problem at least.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using the `Choice` type rather than a tuple or special record, we made the
+    code more elegant thoughout. You can see the difference if you compare the pipeline
+    version of `carbonate` with the railway oriented version of `carbonate`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other situations, of course, the railway oriented approach might not work,
+    and the pipeline approach might be better. I hope this post has given some useful
+    insight into both.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If you''re a FizzBuzz fan, check out the [Functional Reactive Programming](concurrency-reactive.html)
+    page, which has yet another variant of the problem.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Postscript: Be careful when using List.reduce'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Be careful with `List.reduce` -- it will fail with empty lists. So if you have
+    an empty rule set, the code will throw a `System.ArgumentException`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the pipeline case, you can see this by adding the following snippet to the
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The fix is to replace `List.reduce` with `List.fold`. `List.fold` requires
+    an additional parameter: the initial (or "zero") value. In this case, we can use
+    the identity function, `id`, as the initial value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the fixed version of the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, in the railway oriented example, we had:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which should be corrected to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: where `zero` is the "default" function to use if the list is empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an exercise, define the zero function for this case. (Hint: we have actually
+    already defined it under another name).'
+  prefs: []
+  type: TYPE_NORMAL

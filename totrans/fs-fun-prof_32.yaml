@@ -1,0 +1,2353 @@
+- en: 'Calculator Walkthrough: Part 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One comment I hear often is a complaint about the gap between theory and practice
+    in F# and functional programming in general. In other words, you know the theory,
+    but how do you actually design and implement an application using FP principles?
+  prefs: []
+  type: TYPE_NORMAL
+- en: So I thought it might be useful to show you how I personally would go about
+    designing and implementing some little applications from beginning to end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These will be sort of annotated "live coding" sessions. I'll take a problem
+    and start coding it, taking you through my thought process at each stage. I will
+    make mistakes too, so you'll see how I deal with that, and do backtracking and
+    refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please be aware that I'm not claiming that this is production ready code. The
+    code I'm going to show you is more like a exploratory sketch, and as a result
+    I will do certain bad things (like not testing!) which I would not do for more
+    critical code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this first post in the series, I''ll be developing a simple pocket calculator
+    app, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Calculator image](calculator_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: My development approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: My approach to software development is eclectic and pragmatic -- I like to mix
+    different techniques and alternate between top-down and bottom-up approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically I start with the requirements -- I'm a fan of [requirements-driven
+    design](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)! Ideally,
+    I would aim to become an expert in the domain as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, I work on modelling the domain, using [domain-driven design](http://fsharpforfunandprofit.com/ddd/)
+    with a focus on domain events (["event storming"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)),
+    not just static data ("aggregates" in DDD terminology).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As part of the modelling process, I sketch a design using [type-first development](http://tomasp.net/blog/type-first-development.aspx/)
+    to [create types](designing-with-types.html) that represent both the domain data
+    types ("nouns") and the domain activities ("verbs").
+  prefs: []
+  type: TYPE_NORMAL
+- en: After doing a first draft of the domain model, I typically switch to a "bottom
+    up" approach and code a small prototype that exercises the model that I have defined
+    so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing some real coding at this point acts as a reality check. It ensures that
+    the domain model actually makes sense and is not too abstract. And of course,
+    it often drives more questions about the requirements and domain model, so I go
+    back to step 1, do some refining and refactoring, and rinse and repeat until I
+    am happy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Now if I was working with a team on a large project, at this point we could
+    also start [building a real system incrementally](http://www.growing-object-oriented-software.com/)
+    and start on the user interface (e.g. with paper prototypes). Both of these activities
+    will typically generate yet more questions and changes in requirements too, so
+    the whole process is cyclical at all levels.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So this would be my approach in a perfect world. In practice, of course, the
+    world is not perfect. There is bad management to contend with, a lack of requirements,
+    silly deadlines and more, all of which mean that I rarely get to use an ideal
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in this example, I'm the boss, so if I don't like the result, I've only
+    myself to blame!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting started
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So, let's get started. What should we do first?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally I would start with requirements. But do I *really* need to spend a
+    lot of time writing up requirements for a calculator?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I'm going to be lazy and say no. Instead I'm just to dive in -- I'm confident
+    that I know how a calculator works. (*As you'll see later, I was wrong! Trying
+    to write up the requirements would have been a good exercise, as there are some
+    interesting edge cases.*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's start with the type-first design instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my designs, every use-case is a function, with one input and one output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this example then, we need to model the public interface to the Calculator
+    as a function. Here''s the signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That was easy! The first question then is: are there any other use-cases that
+    we need to model? I think for now, no. We''ll just start with a single case that
+    handles all the inputs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the input and output to the function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: But now we have created two new types, `CalculatorInput` and `CalculatorOutput`,
+    that are undefined (and if you type this into a F# script file, you'll have red
+    squigglies to remind you). We'd better define those now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before moving on, I should make it very clear that the input and output types
+    for this function are going to be pure and clean. When designing our domain we
+    never want to be dealing with the messy world of strings, primitive datatypes,
+    validation, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead there will typically be a validation/transformation function that converts
+    from the messy untrusted world into our lovely, pristine domain on the way in,
+    and another similar function that does the reverse on the way out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Domain input and output](domain_input_output.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ok, let's work on the `CalculatorInput` first. What would the structure of the
+    input look like?
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, obviously, there will be some keystrokes, or some other way of communicating
+    the intent of the user. But also, since the calculator is stateless, we need to
+    pass in some state as well. This state would contain, for example, the digits
+    typed in so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As to the output, the function will have to emit a new, updated state, of course.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But do we need anything else, such as a structure containing formatted output
+    for display? I don't think we do. We want to isolate ourselves from the display
+    logic, so we'll just let the UI turn the state into something that can be displayed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about errors? In [other posts](http://fsharpforfunandprofit.com/rop/),
+    I have spent a lot of time talking about error handling. Is it needed in this
+    case?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, I think not. In a cheap pocket calculator, any errors are shown
+    right in the display, so we'll stick with that approach for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here''s the new version of the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`CalculatorInput` now means the keystrokes or whatever, and `CalculatorState`
+    is the state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that I have defined this function using a [tuple](tuples.html) (`CalculatorInput
+    * CalculatorState`) as input, rather than as two separate parameters (which would
+    look like `CalculatorInput -> CalculatorState -> CalculatorState`). I did this
+    because both parameters are always needed and a tuple makes this clear -- I don't
+    want to be partially applying the input, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact I do this for all functions when doing type-first design. Every function
+    has one input and one output. This doesn't mean that there might not be potential
+    for doing partial application later, just that, at the design stage, I only want
+    one parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that things that are not part of the pure domain (such as configuration
+    and connection strings) will *never* be shown at this stage, although, at implementation
+    time, they will of course be added to the functions that implement the design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the CalculatorState type
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let's look at the `CalculatorState`. All I can think of that we need right
+    now is something to hold the information to display.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: I've defined a type `CalculatorDisplay`, firstly as documentation to make it
+    clear what the field value is used for, and secondly, so I can postpone deciding
+    what the display actually is!
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what should the type of the display be? A float? A string? A list of characters?
+    A record with multiple fields?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, I'm going to go for `string`, because, as I said above, we might need
+    to display errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that I am using `and` to connect the type definitions together. Why?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, F# compiles from top to bottom, so you must define a type before it is
+    used. The following code will not compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: I could fix this by changing the order of the declarations, but since I am in
+    "sketch" mode, and I don't want to reorder things all the time, I will just append
+    new declarations to the bottom and use `and` to connect them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the final production code though, when the design has stabilized, I *would*
+    reorder these types to avoid using `and`. The reason is that `and` can [hide cycles
+    between types](cyclic-dependencies.html) and prevent refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the CalculatorInput type
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For the `CalculatorInput` type, I'll just list all the buttons on the calculator!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some people might say: why not use a `char` as the input? But as I explained
+    above, in my domain I only want to deal with ideal data. By using a limited set
+    of choices like this, I never have to deal with unexpected input.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, a side benefit of using abstract types rather than chars is that `DecimalSeparator`
+    is not assumed to be ".". The actual separator should be obtained by first getting
+    the current culture (`System.Globalization.CultureInfo.CurrentCulture`) and then
+    using `CurrentCulture.NumberFormat.CurrencyDecimalSeparator` to get the separator.
+    By hiding this implementation detail from the design, changing the actual separator
+    used will have minimal effect on the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Refining the design: handling digits'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So that's a first pass at the design done. Now let's dig deeper and define some
+    of the internal processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with how the digits are handled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When a digit key is pressed, we want to append the digit to the current display.
+    Let''s define a function type that represents that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `CalculatorDisplay` type is the one we defined earlier, but what is this
+    new `CalculatorDigit` type?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well obviously we need some type to represent all the possible digits that can
+    be used as input. Other inputs, such as `Add` and `Clear`, would not be valid
+    for this function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: So the next question is, how do we get a value of this type? Do we need a function
+    that maps a `CalculatorInput` to a `CalculatorDigit` type, like this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: In many situations, this might be necessary, but in this case it seems like
+    overkill. And also, how would this function deal with non-digits such as `Add`
+    and `Clear`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s just redefine the `CalculatorInput` type to use the new type directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: While we're at it, let's classify the other buttons as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would classify `Add | Subtract | Multiply | Divide` as math operations, and
+    as for `Equals | Clear`, I'll just call them "actions" for lack of better word.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the complete refactored design with new types `CalculatorDigit`, `CalculatorMathOp`
+    and `CalculatorAction`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is not the only approach. I could have easily left `Equals` and `Clear`
+    as separate choices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's revisit `UpdateDisplayFromDigit` again. Do we need any other parameters?
+    For example, do we need any other part of the state?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No, I can't think of anything else. When defining these functions, I want to
+    be as minimal as possible. Why pass in the whole calculator state if you only
+    need the display?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, would `UpdateDisplayFromDigit` ever return an error? For example, surely
+    we can't add digits indefinitely -- what happens when we are not allowed to? And
+    is there some other combination of inputs that might cause an error? For example,
+    inputting nothing but decimal separators! What happens then?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this little project, I will assume that neither of these will create an
+    explicit error, but instead, bad input will be rejected silently. In other words,
+    after 10 digits, say, other digits will be ignored. And after the first decimal
+    separator, subsequent ones will be ignored as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alas, I cannot encode these requirements in the design. But that fact that `UpdateDisplayFromDigit`
+    does not return any explicit error type *does* at least tell me that errors will
+    be handled silently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Refining the design: the math operations'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let's move on to the math operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are all binary operations, taking two numbers and spitting out a new result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A function type to represent this would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: If there were unary operations as well, such as `1/x`, we would need a different
+    type for those, but we don't, so we can keep things simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next decision: what numeric type should we use? Should we make it generic?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, let''s just keep it simple and use `float`. But we''ll keep the `Number`
+    alias around to decouple the representation a bit. Here''s the updated code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let's ponder `DoMathOperation`, just as we did for `UpdateDisplayFromDigit`
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question 1: Is this the minimal set of parameters? For example, do we need
+    any other part of the state?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Answer: No, I can''t think of anything else.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question 2: Can `DoMathOperation` ever return an error?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Answer: Yes! What about dividing by zero?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So how should we handle errors? Let''s create a new type that represents a
+    result of a math operation, and make that the output of `DoMathOperation`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new type, `MathOperationResult` will have two choices (discriminated union)
+    between `Success` and `Failure`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We could have also used the built-in generic `Choice` type, or even a full ["railway
+    oriented programming"](http://fsharpforfunandprofit.com/rop/) approach, but since
+    this is a sketch of the design, I want the design to stand alone, without a lot
+    of dependencies, so I'll just define the specific type right here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any other errors? NaNs or underflows or overflows? I'm not sure. We have the
+    `MathOperationError` type, and it would be easy to extend it as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where do numbers come from?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've defined `DoMathOperation` to use `Number` values as input. But where does
+    a `Number` come from?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well they come from the sequence of digits that have been entered -- converting
+    the digits into a float.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One approach would be to store a `Number` in the state along with the string
+    display, and update it as each digit comes in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I''m going to take a simpler approach, and just get the number from the display
+    directly. In other words, we need a function that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Thinking about it though, the function could fail, because the display string
+    could be "error" or something. So let's return an option instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, when we *do* have a successful result, we will want to display it,
+    so we need a function that works in the other direction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function can never error (I hope), so we don't need the `option`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Refining the design: handling a math operation input'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We're not done with math operations yet, though!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the visible effect when the input is `Add`? None!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Add` event needs another number to be entered later, so the `Add` event
+    is somehow kept pending, waiting for the next number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you think about, we not only have to keep the `Add` event pending, but also
+    the previous number, ready to be added to the latest number that is input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where will we keep track of this? In the `CalculatorState` of course!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s our first attempt to add the new fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But sometimes there isn''t a pending operation, so we have to make it optional:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: But this is wrong too! Can we have a `pendingOp` without a `pendingNumber`,
+    or vice versa? No. They live and die together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This implies that the state should contain a pair, and the whole pair is optional,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: But now we are still missing a piece. If the operation is added to the state
+    as pending, when does the operation actually get *run* and the result displayed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Answer: when the `Equals` button is pushed, or indeed any another math op button.
+    We''ll deal with that later.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Refining the design: handling the Clear button'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've got one more button to handle, the `Clear` button. What does it do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, it obviously just resets the state so that the display is empty and any
+    pending operations are removed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I''m going to call this function `InitState` rather than "clear", and here
+    is its signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Defining the services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point, we have everything we need to switch to bottom up development.
+    I'm eager to try building a trial implementation of the `Calculate` function,
+    to see if the design is usable, and if we've missed anything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But how can I create a trial implementation without implementing the whole thing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where all these types come in handy. We can define a set of "services"
+    that the `calculate` function will use, but without actually implementing them!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s what I mean:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We've created a set of services that can be injected into an implementation
+    of the `Calculate` function. With these in place, we can code the `Calculate`
+    function immediately and deal with the implementation of the services later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, you might be thinking that this seems like overkill for a tiny
+    project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's true -- we don't want this to turn into [FizzBuzz Enterprise Edition](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But I'm demonstrating a principle here. By separating the "services" from the
+    core code, you can start prototyping immediately. The goal is not to make a production
+    ready codebase, but to find any issues in the design. We are still in the requirements
+    discovery phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach should not be unfamiliar to you -- it is directly equivalent to
+    the OO principle of creating a bunch of interfaces for services and then injecting
+    them into the core domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Review
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So let''s review -- with the addition of the services, our initial design is
+    complete. Here is all the code so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I think that this is quite nice. We haven't written any "real" code yet, but
+    with a bit of thought, we have already built quite a detailed design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [next post](calculator-implementation), I'll put this design to the test
+    by attempting to create an implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)
+    on GitHub.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 2'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 2'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this post, I''ll continue developing a simple pocket calculator app, like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Calculator image](calculator_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the [previous post](calculator-design.html), we completed a first draft of
+    the design, using only types (no UML diagrams!).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it's time to create a trial implementation that uses the design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing some real coding at this point acts as a reality check. It ensures that
+    the domain model actually makes sense and is not too abstract. And of course,
+    it often drives more questions about the requirements and domain model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So let's try implementing the main calculator function, and see how we do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we can immediately create a skeleton that matches each kind of input
+    and processes it accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that this skeleton has a case for each type of input to handle it
+    appropriately. Note that in all cases, a new state is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This style of writing a function might look strange though. Let's look at it
+    a bit more closely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we can see that `createCalculate` is the not the calculator function
+    itself, but a function that *returns* another function. The returned function
+    is a value of type `Calculate` -- that's what the `:Calculate` at the end means.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s just the top part:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since it is returning a function, I chose to write it using a lambda. That's
+    what the `fun (input,state) ->` is for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But I could have also written it using an inner function, like this
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both approaches are basically the same* -- take your pick!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[* Although there might be some performance differences.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dependency injection of services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: But `createCalculate` doesn't just return a function, it also has a `services`
+    parameter. This parameter is used for doing the "dependency injection" of the
+    services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, the services are only used in `createCalculate` itself, and are not
+    visible in the function of type `Calculate` that is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The "main" or "bootstrapper" code that assembles all the components for the
+    application would look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Implementation: handling digits'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let's start implementing the various parts of the calculation function.
+    We'll start with the digits handling logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To keep the main function clean, let''s pass the reponsibility for all the
+    work to a helper function `updateDisplayFromDigit`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that I'm creating a `newState` value from the result of `updateDisplayFromDigit`
+    and then returning it as a separate step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I could have done the same thing in one step, without an explicit `newState`
+    value, as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Neither approach is automatically best. I would pick one or the other depending
+    on the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For simple cases, I would avoid the extra line as being unnecessary, but sometimes
+    having an explicit return value is more readable. The name of the value tells
+    you an indication of the return type, and it gives you something to watch in the
+    debugger, if you need to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alright, let's implement `updateDisplayFromDigit` now. It's pretty straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: first use the `updateDisplayFromDigit` in the services to actually update the
+    display
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then create a new state from the new display and return it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Implementation: handling Clear and Equals'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we move onto the implementation of the math operations, lets look at
+    handling `Clear` and `Equals`, as they are simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For `Clear`, just init the state, using the provided `initState` service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For `Equals`, we check if there is a pending math op. If there is, run it and
+    update the display, otherwise do nothing. We'll put that logic in a helper function
+    called `updateDisplayFromPendingOp`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here''s what `createCalculate` looks like now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now to `updateDisplayFromPendingOp`. I spent a few minutes thinking about,
+    and I''ve come up with the following algorithm for updating the display:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, check if there is any pending op. If not, then do nothing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, try to get the current number from the display. If you can't, then do
+    nothing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, run the op with the pending number and the current number from the display.
+    If you get an error, then do nothing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, update the display with the result and return a new state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The new state also has the pending op set to `None`, as it has been processed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And here''s what that logic looks like in imperative style code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ewww! Don't try that at home!
+  prefs: []
+  type: TYPE_NORMAL
+- en: That code does follow the algorithm exactly, but is really ugly and also error
+    prone (using `.Value` on an option is a code smell).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the plus side, we did make extensive use of our "services", which has isolated
+    us from the actual implementation details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, how can we rewrite it to be more functional?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bumping into bind
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The trick is to recognize that the pattern "if something exists, then act on
+    that value" is exactly the `bind` pattern discussed [here](computation-expressions-continuations.html)
+    and [here](http://fsharpforfunandprofit.com/rop/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to use the bind pattern effectively, it's a good idea to break the
+    code into many small chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the code `if state.pendingOp.IsSome then do something` can be replaced
+    by `Option.bind`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: But remember that the function has to return a state. If the overall result
+    of the bind is `None`, then we have *not* created a new state, and we must return
+    the original state that was passed in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be done with the built-in `defaultArg` function which, when applied
+    to an option, returns the option's value if present, or the second parameter if
+    `None`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can also tidy this up a bit as well by piping the result directly into
+    `defaultArg`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: I admit that the reverse pipe for `state` looks strange -- it's definitely an
+    acquired taste!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Onwards! Now what about the parameter to `bind`? When this is called, we know
+    that pendingOp is present, so we can write a lambda with those parameters, like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, we could create a local helper function instead, and connect
+    it to the bind, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I myself generally prefer the second approach when the logic is complicated,
+    as it allows a chain of binds to be simple. That is, I try to make my code look
+    like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that in this approach, each helper function has a non-option for input
+    but always must output an *option*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using bind in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once we have the pending op, the next step is to get the current number from
+    the display so we can do the addition (or whatever).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rather than having a lot of logic, I'm going keep the helper function (`getCurrentNumber`)
+    simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The input is the pair (op,pendingNumber)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The output is the triple (op,pendingNumber,currentNumber) if currentNumber is
+    `Some`, otherwise `None`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In other words, the signature of `getCurrentNumber` will be `pair -> triple
+    option`, so we can be sure that is usable with the `Option.bind` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to convert the pair into the triple? This can be done just by using `Option.map`
+    to convert the currentNumber option to a triple option. If the currentNumber is
+    `Some`, then the output of the map is `Some triple`. On the other hand, if the
+    currentNumber is `None`, then the output of the map is `None` also.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can rewrite `getCurrentNumber` to be a bit more idiomatic by using pipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have a triple with valid values, we have everything we need to write
+    a helper function for the math operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It takes a triple as input (the output of `getCurrentNumber`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It does the math operation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It then pattern matches the Success/Failure result and outputs the new state
+    if applicable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that, unlike the earlier version with nested ifs, this version returns
+    `Some` on success and `None` on failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Displaying errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Writing the code for the `Failure` case made me realize something. If there
+    is a failure, we are not displaying it *at all*, just leaving the display alone.
+    Shouldn't we show an error or something?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hey, we just found a requirement that got overlooked! This is why I like to
+    create an implementation of the design as soon as possible. Writing real code
+    that deals with all the cases will invariably trigger a few "what happens in this
+    case?" moments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So how are we going to implement this new requirement?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to do this, we'll need a new "service" that accepts a `MathOperationError`
+    and generates a `CalculatorDisplay`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and we''ll need to add it to the `CalculatorServices` structure too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`doMathOp` can now be altered to use the new service. Both `Success` and `Failure`
+    cases now result in a new display, which in turn is wrapped in a new state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: I'm going to leave the `Some` in the result, so we can stay with `Option.bind`
+    in the result pipeline*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[* An alternative would be to not return `Some`, and then use `Option.map`
+    in the result pipeline]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting it all together, we have the final version of `updateDisplayFromPendingOp`.
+    Note that I've also added a `ifNone` helper that makes defaultArg better for piping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using a "maybe" computation expression instead of bind
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, we've being using "bind" directly. That has helped by removing the cascading
+    `if/else`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But F# allows you to hide the complexity in a different way, by creating [computation
+    expressions](computation-expressions-intro.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we are dealing with Options, we can create a "maybe" computation expression
+    that allows clean handling of options. (If we were dealing with other types, we
+    would need to create a different computation expression for each type).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the definition -- only four lines!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this computation expression available, we can use `maybe` instead of bind,
+    and our code would look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: In our case, then we can write yet another version of `updateDisplayFromPendingOp`
+    -- our fourth!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that in *this* implementation, I don't need the `getCurrentNumber` helper
+    any more, as I can just call `services.getDisplayNumber` directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, which of these variants do I prefer?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It depends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a very strong "pipeline" feel, as in [the ROP](http://fsharpforfunandprofit.com/rop/)
+    approach, then I prefer using an explicit `bind`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On the other hand, if I am pulling options from many different places, and I
+    want to combine them in various ways, the `maybe` computation expression makes
+    it easier.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, in this case, I'll go for the last implementation, using `maybe`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementation: handling math operations'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we are ready to do the implementation of the math operation case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, if there is a pending operation, the result will be shown on the display,
+    just as for the `Equals` case. But *in addition*, we need to push the new pending
+    operation onto the state as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the math operation case, then, there will be *two* state transformations,
+    and `createCalculate` will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: We've already defined `updateDisplayFromPendingOp` above. So we just need `addPendingMathOp`
+    as a helper function to push the operation onto the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithm for `addPendingMathOp` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try to get the current number from the display. If you can't, then do nothing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update the state with the op and current number.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the ugly version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we can make this more functional using exactly the same techniques we
+    used for `updateDisplayFromPendingOp`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here''s the more idiomatic version using `Option.map` and a `newStateWithPending`
+    helper function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s one using `maybe`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: As before, I'd probably go for the last implementation using `maybe`. But the
+    `Option.map` one is fine too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementation: review'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now we''re done with the implementation part. Let''s review the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not bad -- the whole implementation is less than 60 lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have proved that our design is reasonable by making an implementation --
+    plus we found a missed requirement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [next post](calculator-complete-v1.html), we'll implement the services
+    and the user interface to create a complete application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_implementation-fsx)
+    on GitHub.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 3'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 3'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, I'll continue developing a simple pocket calculator app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first post](calculator-design.html), we completed a first draft of the
+    design, using only types (no UML diagrams!). and in the [previous post](calculator-implementation.html),
+    we created an initial implementation that exercised the design and revealed a
+    missing requirement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it's time to build the remaining components and assemble them into a complete
+    application
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have a implementation. But the implementation depends on some services, and
+    we haven't created the services yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice though, this bit is very easy and straightforward. The types defined
+    in the domain enforce constraints such there is really only one way of writing
+    the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I'm going to show all the code at once (below), and I'll add some comments afterwards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some comments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have created a configuration record that stores properties that are used to
+    parameterize the services, such as the decimal separator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The configuration record is passed into the `createServices` function, which
+    in turn passes the configuration on those services that need it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All the functions use the same approach of returning one of the types defined
+    in the design, such as `UpdateDisplayFromDigit` or `DoMathOperation`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are only a few tricky edge cases, such as trapping exceptions in division,
+    or preventing more than one decimal separator being appended.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the user interface
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For the user interface, I'm going to use WinForms rather than WPF or a web-based
+    approach. It's simple and should work on Mono/Xamarin as well as Windows. And
+    it should be easy to port to other UI frameworks as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As is typical with UI development I spent more time on this than on any other
+    part of the process! I'm going to spare you all the painful iterations and just
+    go directly to the final version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I won''t show all the code, as it is about 200 lines (and you can see it in
+    the [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)),
+    but here are some highlights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `CalculatorForm` is a subclass of `Form`, as usual.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two parameters for its constructor. One is `initState`, the function
+    that creates an empty state, and `calculate`, the function that transforms the
+    state based on the input. In other words, I'm using standard constructor based
+    dependency injection here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two mutable fields (shock horror!).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One is the state itself. Obviously, it will be modified after each button is
+    pressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second is a function called `setDisplayedText`. What's that all about?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, after the state has changed, we need to refresh the control (a Label)
+    that displays the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The standard way to do it is to make the label control a field in the form,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and then set it to an actual control value when the form has been initialized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: But this has the problem that you might accidentally try to access the label
+    control before it is initialized, causing a NRE. Also, I'd prefer to focus on
+    the desired behavior, rather than having a "global" field that can be accessed
+    by anyone anywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using a function, we (a) encapsulate the access to the real control and (b)
+    avoid any possibility of a null reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The mutable function starts off with a safe default implementation (`fun text
+    -> ()`), and is then changed to a *new* implementation when the label control
+    is created:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating the buttons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The buttons are laid out in a grid, and so I create a helper function `getPos(row,col)`
+    that gets the physical position from a logical (row,col) on the grid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of creating the buttons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And since all the digit buttons have the same behavior, as do all the math
+    op buttons, I just created some helpers that set the event handler in a generic
+    way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I also added some keyboard support:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: Button clicks and keyboard presses are eventually routed into the key function
+    `handleInput`, which does the calculation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the implementation of `handleInput` is trivial. It calls the
+    calculation function that was injected, sets the mutable state to the result,
+    and then updates the display.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So there you have it -- a complete calculator!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try it now -- get the code from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)
+    and try running it as a F# script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disaster strikes!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's start with a simple test. Try entering `1` `Add` `2` `Equals`. What would
+    you expect?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I don't know about you, but what I *wouldn't* expect is that the calculator
+    display shows `12`!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's going on? Some quick experimenting shows that I have forgotten something
+    really important -- when an `Add` or `Equals` operation happens, any subsequent
+    digits should *not* be added to the current buffer, but instead start a new one.
+    Oh no! We've got a showstopper bug!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remind me again, what idiot said "if it compiles, it probably works".*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[* Actually, that idiot would be me (among many others).]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what went wrong then?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well the code did compile, but it didn't work as expected, not because the code
+    was buggy, but because *my design was flawed*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, the use of the types from the type-first design process means
+    that I *do* have high confidence that the code I wrote is a correct implementation
+    of the design. But if the requirements and design are wrong, all the correct code
+    in the world can't fix that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll revisit the requirements in the next post, but meanwhile, is there a patch
+    we can make that will fix the problem?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fixing the bug
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's think of the circumstances when we start a new set of digits, vs. when
+    we just append to the existing ones. As we noted above, a math operation or `Equals`
+    will force the reset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So why not set a flag when those operations happen? If the flag is set, then
+    start a new display buffer, and after that, unset the flag so that characters
+    are appended as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What changes do we need to make to the code?
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to store the flag somewhere. We'll store it in the `CalculatorState`
+    of course!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: (*This might seem like a good solution for now, but using flags like this is
+    really a design smell. In the next post, I'll use a [different approach](designing-with-types-representing-states.html#replace-flags)
+    which doesn't involve flags)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fixing the implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With this change made, compiling the `CalculatorImplementation` code now breaks
+    everywhere a new state is created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Actually, that's what I like about using F# -- something like adding a new field
+    to a record is a breaking change, rather than something that can be overlooked
+    by mistake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll make the following tweaks to the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For `updateDisplayFromDigit`, we return a new state with `allowAppend` set to
+    true.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For `updateDisplayFromPendingOp` and `addPendingMathOp`, we return a new state
+    with `allowAppend` set to false.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fixing the services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most of the services are fine. The only service that is broken now is `initState`,
+    which just needs to be tweaked to have `allowAppend` be true when starting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixing the user interface
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `CalculatorForm` class continues to work with no changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But this change does raise the question of how much the `CalculatorForm` should
+    know about the internals of the `CalculatorDisplay` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should `CalculatorDisplay` be transparent, in which case the form might break
+    every time we change the internals?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or should `CalculatorDisplay` be an opaque type, in which case we will need
+    to add another "service" that extracts the buffer from the `CalculatorDisplay`
+    type so that the form can display it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For now, I'm happy to tweak the form if there are changes. But in a bigger or
+    more long-term project, when we are trying to reduce dependencies, then yes, I
+    would make the domain types opaque as much as possible to reduce the fragility
+    of the design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the patched version
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's try out the patched version now (*you can get the code for the patched
+    version from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does it work now?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes. Entering `1` `Add` `2` `Equals` results in `3`, as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So that fixes the major bug. Phew.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But if you keep playing around with this implementation, you will encounter
+    other ~~bugs~~ undocumented features too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1.0 / 0.0` displays `Infinity`. What happened to our divide by zero error?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You get strange behaviors if you enter operations in unusual orders. For example,
+    entering `2 + + -` shows `8` on the display!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So obviously, this code is not yet fit for purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about Test-Driven Development?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At this point, you might be saying to yourself: "if only he had used TDD this
+    wouldn''t have happened".'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's true -- I wrote all this code, and yet I didn't even bother to write a
+    test that checked whether you could add two numbers properly!
+  prefs: []
+  type: TYPE_NORMAL
+- en: If I had started out by writing tests, and letting that drive the design, then
+    surely I wouldn't have run into this problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well in this particular example, yes, I would probably would have caught the
+    problem immediately. In a TDD approach, checking that `1 + 2 = 3` would have been
+    one of the first tests I wrote! But on the other hand, for obvious flaws like
+    this, any interactive testing will reveal the issue too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To my mind, the advantages of test-driven development are that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: it drives the *design* of the code, not just the implementation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: it provides guarantees that code stays correct during refactoring.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So the real question is, would test-driven development help us find missing
+    requirements or subtle edge cases? Not necessarily. Test-driven development will
+    only be effective if we can think of every possible case that could happen in
+    the first place. In that sense, TDD would not make up for a lack of imagination!
+  prefs: []
+  type: TYPE_NORMAL
+- en: And if do have good requirements, then hopefully we can design the types to
+    [make illegal states unrepresentable](designing-with-types-making-illegal-states-unrepresentable.html)
+    and then we won't need the tests to provide correctness guarantees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now I'm not saying that I am against automated testing. In fact, I do use it
+    all the time to verify certain requirements, and especially for integration and
+    testing in the large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, for example, here is how I might test this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: And of course, this would be easily adapted to using [NUnit or similar](low-risk-ways-to-use-fsharp-at-work-3.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can I develop a better design?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I messed up! As I said earlier, the *implementation itself* was not the problem.
+    I think the type-first design process worked. The real problem was that I was
+    too hasty and just dived into the design without really understanding the requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can I prevent this from happening again next time?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One obvious solution would be to switch to a proper TDD approach. But I'm going
+    to be a bit stubborn, and see if I can stay with a type-first design!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[In the next post](calculator-complete-v2.html), I will stop being so ad-hoc
+    and over-confident, and instead use a process that is more thorough and much more
+    likely to prevent these kinds of errors at the design stage.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The code for this post is available on GitHub in [this gist (unpatched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)
+    and [this gist (patched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 4'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Calculator Walkthrough: Part 4'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series of posts, I've been developing a simple pocket calculator app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first post](calculator-design.html), we completed a first draft of the
+    design, using type-first development. and in the [second post](calculator-implementation.html),
+    we created an initial implemeentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous post](calculator-complete-v1.html), we created the rest of
+    the code, including the user interface, and attempted to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the final result was unusable! The problem wasn't that the code was buggy,
+    it was that I didn't spend enough time thinking about the requirements before
+    I started coding!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Oh well. As Fred Brooks famously said: "plan to throw one away; you will, anyhow"
+    (although that is a [bit simplistic](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The good news is that I have learned from the previous bad implementation, and
+    have a plan to make the design better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reviewing the bad design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Looking at the design and implementation (see [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)),
+    a few things stand out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the event handling types such as `UpdateDisplayFromDigit` did not take
+    into account the *context*, the current state of the calculator. The `allowAppend`
+    flag we added as a patch was one way to take the context into account, but it
+    smells awful bad.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second there was a bit of special case code for certain inputs (`Zero` and
+    `DecimalSeparator`), as you can see from this code snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: This makes me think that these inputs should be treated as different *in the
+    design itself* and not hidden in the implementation -- after all we want the design
+    to also act as documentation as much as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a finite state machine as a design tool
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So if the ad-hoc, make-it-up-as-you-go-along approach failed, what should I
+    do instead?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, I am a big proponent of using [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine)
+    ("FSMs" -- not be confused with the [True FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster))
+    where appropriate. It is amazing how often a program can be modelled as a state
+    machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the benefits of using state machines? I'm going to repeat what I said
+    in [another post](designing-with-types-representing-states.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Each state can have different allowable behavior.** In other words, a state
+    machine forces you to think about context, and what options are available in that
+    context.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, I forgot that the context changed after an `Add` was processed,
+    and thus the rules for accumulating digits changed too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**All the states are explicitly documented.** It is all too easy to have important
+    states that are implicit but never documented.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, I have created special code to deal with zero and decimal separators.
+    Currently it is buried away in the implementation, but it should be part of the
+    design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**It is a design tool that forces you to think about every possibility that
+    could occur.** A common cause of errors is that certain edge cases are not handled,
+    but a state machine forces *all* cases to be thought about.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, in addition to the most obvious bug, there are still some edge
+    cases that are not dealt with properly, such as immediately following a math operation
+    with *another* math operation. What should happen then?
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to implement simple finite state machines in F#
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You are probably familiar with complex FSMs, such as those used in language
+    parsers and regular expressions. Those kinds of state machines are generated from
+    rule sets or grammars, and are quite complicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The kinds of state machines that I'm talking about are much, much simpler. Just
+    a few cases at the most, with a small number of transitions, so we don't need
+    to use complex generators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of what I am talking about: ![State machine](state_machine_1.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what is the best way to implement these simple state machines in F#?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, designing and implementing FSMs is a complex topic in in own right, with
+    its own terminology ([NFAs and DFAs](https://en.wikipedia.org/wiki/Powerset_construction),
+    [Moore vs. Mealy](https://stackoverflow.com/questions/11067994/difference-between-mealy-and-moore),
+    etc), and [whole businesses](http://www.stateworks.com/) built around it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In F#, there are a number of possible approaches, such as table driven, or mutually
+    recursive functions, or agents, or OO-style subclasses, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But my preferred approach (for an ad-hoc manual implementation) makes extensive
+    use of union types and pattern matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, create a union type that represents all the states. For example, if
+    there are three states called "A", "B" and "C", the type would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: In many cases, each state will need to store some data that is relevant to that
+    state. So we will need to create types to hold that data as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, all possible events that can happen are defined in another union type.
+    If events have data associated with them, add that as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we can create a "transition" function that, given a current state and
+    input event, returns a new state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: What I like about this approach in a language with pattern matching, like F#,
+    is that **if we forget to handle a particular combination of state and event,
+    we get a compiler warning**. How awesome is that?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's true that, for systems with many states and input events, it may be unreasonable
+    to expect every possible combination to be explicitly handled. But in my experience,
+    many nasty bugs are caused by processing an event when you shouldn't, exactly
+    as we saw with the original design accumulating digits when it shouldn't have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forcing yourself to consider every possible combination is thus a helpful design
+    practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, even with a small number of states and events, the number of possible
+    combinations gets large very quickly. To make it more manageable in practice,
+    I typically create a series of helper functions, one for each state, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So let''s try this approach and attempt to implement the state diagram above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we try to compile this, we immediately get some warnings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (near bStateHandler) `Incomplete pattern matches on this expression. For example,
+    the value 'ZEvent' may indicate a case not covered by the pattern(s).`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (near cStateHandler) `Incomplete pattern matches on this expression. For example,
+    the value 'YEvent (_)' may indicate a case not covered by the pattern(s).`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is really helpful. It means we have missed some edge cases and we should
+    change our code to handle these events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, please do *not* fix the code with a wildcard match (underscore)!
+    That defeats the purpose. If you want to ignore an event, do it explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the fixed up code, which compiles without warnings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*You can see the code for this example in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-statemachine-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing the state machine for the calculator
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s sketch out a state machine for the calculator now. Here''s a first attempt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Calculator state machine v1](calculator_states_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Each state is a box, and the events that trigger transitions (such as a digit
+    or math operation or `Equals`) are in red.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we follow through a sequence of events for something like `1` `Add` `2` `Equals`,
+    you can see that we'll end up at the "Show result" state at the bottom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But remember that we wanted to raise the handling of zero and decimal separators
+    up to the design level?
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's create special events for those inputs, and a new state "accumulate
+    with decimal" that ignores subsequent decimal separators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s version 2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Calculator state machine v1](calculator_states_2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Finalizing the state machine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '"Good artists copy. Great artists steal." -- Pablo Picasso ([but not really](http://quoteinvestigator.com/2013/03/06/artists-steal/))'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: At this point, I'm thinking that surely I can't be only person to have thought
+    of using a state machine to model a calculator? Perhaps I can do some research
+    and ~~steal~~ borrow someone else's design?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sure enough, googling for "calculator state machine" brings up all sorts of
+    results, including [this one](http://cnx.org/contents/9bac155d-509e-46a6-b48b-30731ed08ce6@2/Finite_State_Machines_and_the_)
+    which has a detailed spec and state transition diagram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Looking at that diagram, and doing some more thinking, leads to the following
+    insights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "clear" state and zero state are the same. Sometimes there is a pending
+    op, sometimes not.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A math operation and `Equals` are very similar in that they update the display
+    with any pending calculation. The only difference is whether a pending op is added
+    to the state or not.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The error message case definitely needs to be a distinct state. It ignores all
+    input other than `Clear`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With these insights in mind then, here''s version 3 of our state transition
+    diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Calculator state machine v1](calculator_states_3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I'm only showing the key transitions -- it would be too overwhelming to show
+    all of them. But it does give us enough information to get started on the detailed
+    requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can see, there are five states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ZeroState
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AccumulatorState
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AccumulatorDecimalState
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ComputedState
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ErrorState
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And there are six possible inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Zero
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NonZeroDigit
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DecimalSeparator
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MathOp
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Equals
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clear
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's document each state, and what data it needs to store, if any.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| State | Data associated with state | Special behavior? |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ZeroState | (optional) pending op | Ignores all Zero input |'
+  prefs: []
+  type: TYPE_TB
+- en: '| AccumulatorState | buffer and (optional) pending op | Accumulates digits
+    in buffer |'
+  prefs: []
+  type: TYPE_TB
+- en: '| AccumulatorDecimalState | buffer and (optional) pending op | Accumulates
+    digits in buffer, but ignores decimal separators |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ComputedState | Calculated number and (optional) pending op |  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ErrorState | Error message | Ignores all input other than Clear |'
+  prefs: []
+  type: TYPE_TB
+- en: Documenting each state and event combination
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next we should think about what happens for each state and event combination.
+    As with the sample code above, we'll group them so that we only have to deal with
+    the events for one state at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start with the `ZeroState` state. Here are the transitions for each
+    type of input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Input | Action | New State |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Zero | (ignore) | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| NonZeroDigit | Start a new accumulator with the digit. | AccumulatorState
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| DecimalSeparator | Start a new accumulator with "0." | AccumulatorDecimalState
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| MathOp | Go to Computed or ErrorState state. If there is a pending op, update
+    the display based on the result of the calculation (or error).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, if calculation was successful, push a new pending op, built from the event,
+    using a current number of "0". | ComputedState |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Equals | As with MathOp, but without any pending op | ComputedState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Clear | (ignore) | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: 'We can repeat the process with the `AccumulatorState` state. Here are the transitions
+    for each type of input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Input | Action | New State |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Zero | Append "0" to the buffer. | AccumulatorState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| NonZeroDigit | Append the digit to the buffer. | AccumulatorState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| DecimalSeparator | Append the separator to the buffer, and transition to
+    new state. | AccumulatorDecimalState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| MathOp | Go to Computed or ErrorState state. If there is a pending op, update
+    the display based on the result of the calculation (or error).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, if calculation was successful, push a new pending op, built from the event,
+    using a current number based on whatever is in the accumulator. | ComputedState
+    |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Equals | As with MathOp, but without any pending op | ComputedState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: The event handling for `AccumulatorDecimalState` state is the same, except that
+    `DecimalSeparator` is ignored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What about the `ComputedState` state. Here are the transitions for each type
+    of input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Input | Action | New State |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Zero | Go to ZeroState state, but preserve any pending op | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| NonZeroDigit | Start a new accumulator, preserving any pending op | AccumulatorState
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| DecimalSeparator | Start a new decimal accumulator, preserving any pending
+    op | AccumulatorDecimalState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| MathOp | Stay in Computed state. Replace any pending op with a new one built
+    from the input event | ComputedState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Equals | Stay in Computed state. Clear any pending op | ComputedState |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Finally, the `ErrorState` state is very easy. :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Input | Action | New State |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Zero, NonZeroDigit, DecimalSeparator MathOp, Equals | (ignore) | ErrorState
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Clear | Go to Zero state. Clear any pending op. | ZeroState |'
+  prefs: []
+  type: TYPE_TB
+- en: Converting the states into F# code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we've done all this work, the conversion into types is straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the main types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we compare these types to the first design (below), we have now made it clear
+    that there is something special about `Zero` and `DecimalSeparator`, as they have
+    been promoted to first class citizens of the input type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: Also, in the old design, we had a single state type (below) that stored data
+    for all contexts, while in the new design, the state is *explicitly different*
+    for each context. The types `ZeroStateData`, `AccumulatorStateData`, `ComputedStateData`,
+    and `ErrorStateData` make this obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we have the basics of the new design, we need to define the other
+    types referenced by it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, we can define the services:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that because the state is much more complicated, I've added helper function
+    `getDisplayFromState` that extracts the display text from the state. This helper
+    function will be used the UI or other clients (such as tests) that need to get
+    the text to display.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I've also added a `getPendingOpFromState`, so that we can show the pending state
+    in the UI as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a state-based implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we can create a state-based implementation, using the pattern described
+    earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(The complete code is available in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start with the main function that does the state transitions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, it passes the responsibility to a number of handlers, one for
+    each state, which will be discussed below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But before we do that, I thought it might be instructive to compare the new
+    state-machine based design with the (buggy!) one I did previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the code from the previous one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we compare the two implementations, we can see that there has been a shift
+    of emphasis from events to state. You can see this by comparing how main pattern
+    matching is done in the two implementations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the original version, the focus was on the input, and the state was secondary.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the new version, the focus is on the state, and the input is secondary.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The focus on *input* over *state*, ignoring the context, is why the old version
+    was such a bad design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To repeat what I said above, many nasty bugs are caused by processing an event
+    when you shouldn't (as we saw with the original design). I feel much more confident
+    in the new design because of the explicit emphasis on state and context from the
+    very beginning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, I'm not alone in noticing these kinds of issues. Many people think
+    that classic "[event-driven programming](https://en.wikipedia.org/wiki/Event-driven_programming)"
+    is flawed and recommend a more "state driven approach" (e.g. [here](http://www.barrgroup.com/Embedded-Systems/How-To/State-Machines-Event-Driven-Systems)
+    and [here](http://seabites.wordpress.com/2011/12/08/your-ui-is-a-statechart/)),
+    just as I have done here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the handlers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have already documented the requirements for each state transition, so writing
+    the code is straightforward. We''ll start with the code for the `ZeroState` handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, the *real* work is done in helper functions such as `accumulateNonZeroDigit`
+    and `getComputationState`. We'll look at those in a minute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the code for the `AccumulatorState` handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the code for the `ComputedState` handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: The helper functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, let''s look at the helper functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The accumulator helpers are trivial -- they just call the appropriate service
+    and wrap the result in an `AccumulatorData` record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `getComputationState` helper is much more complex -- the most complex function
+    in the entire code base, I should think.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s very similar to the `updateDisplayFromPendingOp` that we implemented
+    before, but there are a couple of changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `services.getNumberFromAccumulator` code can never fail, because of the
+    state-based approach. That makes life simpler!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `match result with Success/Failure` code now returns *two* possible states:
+    `ComputedState` or `ErrorState`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If there is no pending op, we *still* need to return a valid `ComputedState`,
+    which is what `computeStateWithNoPendingOp` does.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we have a new piece of code that wasn't in the previous implementation
+    at all!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What do you do when you get two math ops in a row? We just replace the old pending
+    op (if any) with the new one (if any).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: Completing the calculator
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To complete the application, we just need to implement the services and the
+    UI, in the same way as we did before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it happens, we can reuse almost all of the previous code. The only thing
+    that has really changed is the way that the input events are structured, which
+    affects how the button handlers are created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can get the code for the state machine version of the calculator [here](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you try it out the new code, I think that you will find that it works first
+    time, and feels much more robust. Another win for state-machine driven design!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercises
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you liked this design, and want to work on something similar, here are some
+    exercises that you could do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you could add some other operations. What would you have to change to
+    implement unary ops such as `1/x` and `sqrt`?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some calculators have a back button. What would you have to do to implement
+    this? Luckily all the data structures are immutable, so it should be easy!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most calculators have a one-slot memory with store and recall. What would you
+    have to change to implement this?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The logic that says that there are only 10 chars allowed on the display is still
+    hidden from the design. How would you make this visible?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I hope you found this little experiment useful. I certainly learned something,
+    namely: don''t shortcut requirements gathering, and consider using a state based
+    approach from the beginning -- it might save you time in the long run!'
+  prefs: []
+  type: TYPE_NORMAL

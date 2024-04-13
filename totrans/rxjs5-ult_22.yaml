@@ -1,0 +1,216 @@
+- en: Testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Testing of async code is generally quite tricky. Async code may finish in ms
+    or even minutes. So you need a way to either mock it away completely like for
+    example you do with jasmine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or a more shorthand version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Point is you try to avoid the whole timing thing. Rxjs have historically, in
+    `Rxjs 4` provided the approach of using a TestScheduler with its own internal
+    clock, which has enabled you to increment time. This approach have had two flavors
+    :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Approach 1**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This approach was pretty easy to grok. The second approach was using hot observables
+    and a `startSchedule()` method, looking something like this :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: A little harder to read IMO but you still get the idea, you control time because
+    you have a `TestScheduler` that dictates how fast time should pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is all Rxjs 4 and it has changed a bit in Rxjs 5\. I should say that what
+    I am about to write down is a bit of a general direction and a moving target so
+    this chapter will be updated, but here goes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Rxjs 5 something called `Marble Testing` is used. Yes that is related to
+    [Marble Diagram](marble-diagrams.html) i.e you express your expected input and
+    actual output with graphical symbols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First time I had a look at the [offical docs page](https://github.com/ReactiveX/rxjs/blob/master/doc/writing-marble-tests.md)
+    I was like *What now with a what now?*. But after writing a few tests myself I
+    came to the conclusion this is a pretty elegant approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So I will explain it by showing you code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's break it down part by part
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Setup**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We essentially create a pattern instruction `-x-y-z` to the method `createHotObservable()`
+    that exist on our `TestScheduler`. This is a factory method that does some heavy
+    lifting for us. Compare this to writing this by yourself, in which case it corresponds
+    to something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The reason we don''t do it ourselves is that we want the `TestScheduler` to
+    do it, so time passes according to its internal clock. Note also that we define
+    an expected pattern and an expected map:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Thats what we need for the setup, but to make the test run we need to `flush`
+    it so that `TestScheduler` internally can trigger the HotObservable and run an
+    assert. Peeking at `createHotObservable()` method we find that it parses the marble
+    patterns we give it and pushes it to list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next step is assertion which happens in two steps
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) expectObservable()
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2) flush()
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expect call pretty much sets up a subscription to our HotObservable
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: by defining an internal `schedule()` method and invoking it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second part of the assert is the assertion itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: It ends up comparing two lists to each other, the `actual` and `expect` list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It does a deep compare and verifies two things, that the data happened on the
+    correct time `frame` and that the value on that frame is correct. So both lists
+    consist of objects that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both these properties must be equal for the assert to be true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doesn't seem that bloody right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symbols
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I havn''t really explained what we looked at with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But it actually means something. `-` means a time frame passed. `a` is just
+    a symbol. So it matters how many `-` you write in actual and expected cause they
+    need to match. Let''s look at another test so you get the hang of it and to introduce
+    more symbols:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this case our algorithm consists of a `filter()` operation. Which means
+    1,2,3 will not be emitted, only 2\. Looking at the ingoing pattern we have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: And expected pattern
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: And this is where you clearly see that no of `-` matters. Every symbol you write,
+    be it `-` or `x` etc, happens at a certain time, so in this case when `x` and
+    `z` wont occur due to the `filter()` method it means we just replace them with
+    `-` in the resulting output so
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: because `x` doesn't happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are of course other symbols that are of interest that lets us define
+    things like an error. An error is denoted as a `#` and below follows an example
+    of such a test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is another symbol `|` representing a stream that completes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: and there are more symbols than that like `(ab)` essentially saying that these
+    two values are emitted on the same time frame and so on. Now that you hopefully
+    understand the basics of how symbols work I urge you to write your own tests to
+    fully grasp it and learn the other symbols presented at the official docs page
+    that I mentioned in the beginning of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy testing
+  prefs: []
+  type: TYPE_NORMAL

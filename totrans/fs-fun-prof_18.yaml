@@ -1,0 +1,2312 @@
+- en: The "Designing with types" Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series, we'll look at some of the ways we can use types as part of the
+    design process. In particular, the thoughtful use of types can make a design more
+    transparent and improve correctness at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This series will be focused on the "micro level" of design. That is, working
+    at the lowest level of individual types and functions. Higher level design approaches,
+    and the associated decisions about using functional or object-oriented style,
+    will be discussed in another series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of the suggestions are also feasable in C# or Java, but the lightweight
+    nature of F# types means that it is much more likely that we will do this kind
+    of refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Designing with types: Introduction](designing-with-types-intro.html). Making
+    design more transparent and improving correctness.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Single case union types](designing-with-types-single-case-dus.html).
+    Adding meaning to primitive types.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Making illegal states unrepresentable](designing-with-types-making-illegal-states-unrepresentable.html).
+    Encoding business logic in types.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Discovering new concepts](designing-with-types-discovering-the-domain.html).
+    Gaining deeper insight into the domain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Making state explicit](designing-with-types-representing-states.html).
+    Using state machines to ensure correctness.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Constrained strings](designing-with-types-more-semantic-types.html).
+    Adding more semantic information to a primitive type.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Non-string types](designing-with-types-non-strings.html).
+    Working with integers and dates safely.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Designing with types: Conclusion](designing-with-types-conclusion.html). A
+    before and after comparison.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Designing with types: Introduction'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Introduction'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series, we'll look at some of the ways we can use types as part of the
+    design process. In particular, the thoughtful use of types can make a design more
+    transparent and improve correctness at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This series will be focused on the "micro level" of design. That is, working
+    at the lowest level of individual types and functions. Higher level design approaches,
+    and the associated decisions about using functional or object-oriented style,
+    will be discussed in another series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of the suggestions are also feasable in C# or Java, but the lightweight
+    nature of F# types means that it is much more likely that we will do this kind
+    of refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A basic example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For demonstration of the various uses of types, I'll work with a very straightforward
+    example, namely a `Contact` type, such as the one below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This seems very obvious -- I'm sure we have all seen something like this many
+    times. So what can we do with it? How can we refactor this to make the most of
+    the type system?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating "atomic" types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first thing to do is to look at the usage pattern of data access and updates.
+    For example, would be it be likely that `Zip` is updated without also updating
+    `Address1` at the same time? On the other hand, it might be common that a transaction
+    updates `EmailAddress` but not `FirstName`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This leads to the first guideline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Guideline: Use records or tuples to group together data that are required
+    to be consistent (that is "atomic") but don''t needlessly group together data
+    that is not related.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this case, it is fairly obvious that the three name values are a set, the
+    address values are a set, and the email is also a set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have also some extra flags here, such as `IsAddressValid` and `IsEmailVerified`.
+    Should these be part of the related set or not? Certainly yes for now, because
+    the flags are dependent on the related values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if the `EmailAddress` changes, then `IsEmailVerified` probably
+    needs to be reset to false at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For `PostalAddress`, it seems clear that the core "address" part is a useful
+    common type, without the `IsAddressValid` flag. On the other hand, the `IsAddressValid`
+    is associated with the address, and will be updated when it changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So it seems that we should create *two* types. One is a generic `PostalAddress`
+    and the other is an address in the context of a contact, which we can call `PostalContactInfo`,
+    say.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we can use the option type to signal that certain values, such as `MiddleInitial`,
+    are indeed optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'With all these changes, we now have the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We haven't written a single function yet, but already the code represents the
+    domain better. However, this is just the beginning of what we can do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next up, using single case unions to add semantic meaning to primitive types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Single case union types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Single case union types'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At the end of the previous post, we had values for email addresses, zip codes,
+    etc., defined like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are all defined as simple strings. But really, are they just strings?
+    Is an email address interchangable with a zip code or a state abbreviation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a domain driven design, they are indeed distinct things, not just strings.
+    So we would ideally like to have lots of separate types for them so that they
+    cannot accidentally be mixed up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This has been [known as good practice](http://codemonkeyism.com/never-never-never-use-string-in-java-or-at-least-less-often/)
+    for a long time, but in languages like C# and Java it can be painful to create
+    hundred of tiny types like this, leading to the so called ["primitive obsession"](http://sourcemaking.com/refactoring/primitive-obsession)
+    code smell.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But F# there is no excuse! It is trivial to create simple wrapper types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping primitive types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The simplest way to create a separate type is to wrap the underlying string
+    type inside another type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can do it using single case union types, like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or alternatively, we could use record types with one field, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both approaches can be used to create wrapper types around a string or other
+    primitive type, so which way is better?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is generally the single case discriminated union. It is much easier
+    to "wrap" and "unwrap", as the "union case" is actually a proper constructor function
+    in its own right. Unwrapping can be done using inline pattern matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s some examples of how an `EmailAddress` type might be constructed and
+    deconstructed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can't do this as easily using record types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, let''s refactor the code again to use these union types. It now looks like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another nice thing about the union type is that the implementation can be encapsulated
+    with module signatures, as we'll discuss below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naming the "case" of a single case union
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the examples above we used the same name for the case as we did for the
+    type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This might seem confusing initially, but really they are in different scopes,
+    so there is no naming collision. One is a type, and one is a constructor function
+    with the same name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So if you see a function signature like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: this refers to things in the world of types, so `EmailAddress` refers to the
+    type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, if you see some code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: this refers to things in the world of values, so `EmailAddress` refers to the
+    constructor function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructing single case unions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For values that have special meaning, such as email addresses and zip codes,
+    generally only certain values are allowed. Not every string is an acceptable email
+    or zip code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implies that we will need to do validation at some point, and what better
+    point than at construction time? After all, once the value is constructed, it
+    is immutable, so there is no worry that someone might modify it later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how we might extend the above module with some constructor functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can test the constructors now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Handling invalid input in a constructor
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With these kinds of constructor functions, one immediate challenge is the question
+    of how to handle invalid input. For example, what should happen if I pass in "abc"
+    to the email address constructor?
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a number of ways to deal with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you could throw an exception. I find this ugly and unimaginative, so
+    I'm rejecting this one out of hand!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, you could return an option type, with `None` meaning that the input wasn't
+    valid. This is what the constructor functions above do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is generally the easiest approach. It has the advantage that the caller
+    has to explicitly handle the case when the value is not valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, the caller''s code for the example above might look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The disadvantage is that with complex validations, it might not be obvious what
+    went wrong. Was the email too long, or missing a '@' sign, or an invalid domain?
+    We can't tell.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do need more detail, you might want to return a type which contains a
+    more detailed explanation in the error case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following example uses a `CreationResult` type to indicate the error in
+    the failure case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, the most general approach uses continuations. That is, you pass in
+    two functions, one for the success case (that takes the newly constructed email
+    as parameter), and another for the failure case (that takes the error string as
+    parameter).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The success function takes the email as a parameter and the error function takes
+    a string. Both functions must return the same type, but the type is up to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a simple example -- both functions do a printf, and return nothing (i.e.
+    unit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: With continuations, you can easily reproduce any of the other approaches. Here's
+    the way to create options, for example. In this case both functions return an
+    `EmailAddress option`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the way to throw exceptions in the error case:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code seems quite cumbersome, but in practice you would probably create
+    a local partially applied function that you use instead of the long-winded one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating modules for wrapper types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: These simple wrapper types are starting to get more complicated now that we
+    are adding validations, and we will probably discover other functions that we
+    want to associate with the type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So it is probably a good idea to create a module for each wrapper type, and
+    put the type and its associated functions there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The users of the type would then use the module functions to create and unwrap
+    the type. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Forcing use of the constructor
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One issue is that you cannot force callers to use the constructor. Someone could
+    just bypass the validation and create the type directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, that tends not to be a problem. One simple techinique is to use
+    naming conventions to indicate a "private" type, and provide "wrap" and "unwrap"
+    functions so that the clients never need to interact with the type directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of course the type is not really private in this case, but you are encouraging
+    the callers to always use the "published" functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you really want to encapsulate the internals of the type and force callers
+    to use a constructor function, you can use module signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a signature file for the email address example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: (Note that module signatures only work in compiled projects, not in interactive
+    scripts, so to test this, you will need to create three files in an F# project,
+    with the filenames as shown here.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s a client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The type `EmailAddress.T` exported by the module signature is opaque, so clients
+    cannot access the internals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, this approach enforces the use of the constructor. Trying to
+    create the type directly (`T.EmailAddress "bad email"`) causes a compile error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When to "wrap" single case unions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have the wrapper type, when should we construct them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generally you only need to at service boundaries (for example, boundaries in
+    a [hexagonal architecture](http://alistair.cockburn.us/Hexagonal+architecture))
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this approach, wrapping is done in the UI layer, or when loading from a persistence
+    layer, and once the wrapped type is created, it is passed in to the domain layer
+    and manipulated "whole", as an opaque type. It is suprisingly uncommon that you
+    actually need the wrapped contents directly when working in the domain itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As part of the construction, it is critical that the caller uses the provided
+    constructor rather than doing its own validation logic. This ensures that "bad"
+    values can never enter the domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here is some code that shows the UI doing its own validation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: A better way is to let the constructor do it, as shown earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: When to "unwrap" single case unions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: And when is unwrapping needed? Again, generally only at service boundaries.
+    For example, when you are persisting an email to a database, or binding to a UI
+    element or view model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One tip to avoid explicit unwrapping is to use the continuation approach again,
+    passing in a function that will be applied to the wrapped value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is, rather than calling the "unwrap" function explicitly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You would pass in a function which gets applied to the inner value, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting this together, we now have the complete `EmailAddress` module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `create` and `value` functions are not strictly necessary, but are added
+    for the convenience of callers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code so far
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's refactor the `Contact` code now, with the new wrapper types and modules
+    added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: By the way, notice that we now have quite a lot of duplicate code in the three
+    wrapper type modules. What would be a good way of getting rid of it, or at least
+    making it cleaner?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To sum up the use of discriminated unions, here are some guidelines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do use single case discriminated unions to create types that represent the domain
+    accurately.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the wrapped value needs validation, then provide constructors that do the
+    validation and enforce their use.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be clear what happens when validation fails. In simple cases, return option
+    types. In more complex cases, let the caller pass in handlers for success and
+    failure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the wrapped value has many associated functions, consider moving it into
+    its own module.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you need to enforce encapsulation, use signature files.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We're still not done with refactoring. We can alter the design of types to enforce
+    business rules at compile time -- making illegal states unrepresentable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many people have asked for more information on how to ensure that constrained
+    types such as `EmailAddress` are only created through a special constructor that
+    does the validation. So I have created a [gist here](https://gist.github.com/swlaschin/54cfff886669ccab895a)
+    that has some detailed examples of other ways of doing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making illegal states unrepresentable
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Making illegal states unrepresentable'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, we look at a key benefit of F#, which using the type system to
+    "make illegal states unrepresentable" (a phrase borrowed from [Yaron Minsky](https://ocaml.janestreet.com/?q=node/85)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s look at our `Contact` type. Thanks to the previous refactoring, it is
+    quite simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s say that we have the following simple business rule: *"A contact
+    must have an email or a postal address"*. Does our type conform to this rule?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is no. The business rule implies that a contact might have an email
+    address but no postal address, or vice versa. But as it stands, our type requires
+    that a contact must always have *both* pieces of information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer seems obvious -- make the addresses optional, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: But now we have gone too far the other way. In this design, it would be possible
+    for a contact to have neither type of address at all. But the business rule says
+    that at least one piece of information *must* be present.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's the solution?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making illegal states unrepresentable
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If we think about the business rule carefully, we realize that there are three
+    possibilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A contact only has an email address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A contact only has a postal address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A contact has both a email address and a postal address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once it is put like this, the solution becomes obvious -- use a union type with
+    a case for each possibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: This design meets the requirements perfectly. All three cases are explictly
+    represented, and the fourth possible case (with no email or postal address at
+    all) is not allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that for the "email and post" case, I just used a tuple type for now. It's
+    perfectly adequate for what we need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructing a ContactInfo
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now let''s see how we might use this in practice. We''ll start by creating
+    a new contact:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this code, we have created a simple helper function `contactFromEmail` to
+    create a new contact by passing in a name and email. However, the email might
+    not be valid, so the function has to handle both cases, which it doesn't by returning
+    a `Contact option`, not a `Contact`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updating a ContactInfo
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now if we need to add a postal address to an existing `ContactInfo`, we have
+    no choice but to handle all three possible cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a contact previously only had an email address, it now has both an email
+    address and a postal address, so return a contact using the `EmailAndPost` case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a contact previously only had a postal address, return a contact using the
+    `PostOnly` case, replacing the existing address.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a contact previously had both an email address and a postal address, return
+    a contact with using the `EmailAndPost` case, replacing the existing address.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So here's a helper method that updates the postal address. You can see how it
+    explicitly handles each case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the code in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*WARNING: I am using `option.Value` to extract the contents of an option in
+    this code. This is ok when playing around interactively but is extremely bad practice
+    in production code! You should always use matching to handle both cases of an
+    option.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why bother to make these complicated types?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At this point, you might be saying that we have made things unnecessarily complicated.
+    I would answer with these points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the business logic *is* complicated. There is no easy way to avoid it.
+    If your code is not this complicated, you are not handling all the cases properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, if the logic is represented by types, it is automatically self documenting.
+    You can look at the union cases below and immediate see what the business rule
+    is. You do not have to spend any time trying to analyze any other code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, if the logic is represented by a type, any changes to the business
+    rules will immediately create breaking changes, which is a generally a good thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next post, we'll dig deeper into the last point. As you try to represent
+    business logic using types, you may suddenly find that can gain a whole new insight
+    into the domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discovering new concepts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Discovering new concepts'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the last post, we looked at how we could represent a business rule using
+    types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rule was: *"A contact must have an email or a postal address"*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And the type we designed was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s say that the business decides that phone numbers need to be supported
+    as well. The new business rule is: *"A contact must have at least one of the following:
+    an email, a postal address, a home phone, or a work phone"*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we represent this now?
+  prefs: []
+  type: TYPE_NORMAL
+- en: A little thought reveals that there are 15 possible combinations of these four
+    contact methods. Surely we don't want to create a union case with 15 choices?
+    Is there a better way?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's hold that thought and look at a different but related problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forcing breaking changes when requirements change
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here''s the problem. Say that you have a contact structure which contains a
+    list of email addresses and also a list of postal addresses, like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And, also let''s say that you have created a `printReport` function that loops
+    through the information and prints it out in a report:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Crude, but simple and understandable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now if the new business rule comes into effect, we might decide to change the
+    structure to have some new lists for the phone numbers. The updated structure
+    will now look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you make this change, you also want to make sure that all the functions that
+    process the contact infomation are updated to handle the new phone cases as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certainly, you will be forced to fix any pattern matches that break. But in
+    many cases, you would *not* be forced to handle the new cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here''s `printReport` updated to work with the new lists:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Can you see the deliberate mistake? Yes, I forgot to change the function to
+    handle the phones. The new fields in the record have not caused the code to break
+    at all. There is no guarantee that you will remember to handle the new cases.
+    It would be all too easy to forget.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, we have the challenge: can we design types such that these situations
+    cannot easily happen?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deeper insight into the domain
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you think about this example a bit more deeply, you will realize that we
+    have missed the forest for the trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our initial concept was: *"to contact a customer, there will be a list of possible
+    emails, and a list of possible addresses, etc"*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But really, this is all wrong. A much better concept is: *"To contact a customer,
+    there will be a list of contact methods. Each contact method could be an email
+    OR a postal address OR a phone number"*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a key insight into how the domain should be modelled. It creates a whole
+    new type, a "ContactMethod", which resolves our problems in one stroke.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can immediately refactor the types to use this new concept:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the reporting code must now be changed to handle the new type as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: These changes have a number of benefits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, from a modelling point of view, the new types represent the domain much
+    better, and are more adaptable to changing requitements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And from a development point of view, changing the type to be a union means
+    that any new cases that we add (or remove) will break the code in a very obvious
+    way, and it will be much harder to accidentally forget to handle all the cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back to the business rule with 15 possible combinations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So now back to the original example. We left it thinking that, in order to encode
+    the business rule, we might have to create 15 possible combinations of various
+    contact methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the new insight from the reporting problem also affects our understanding
+    of the business rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the "contact method" concept in our heads, we can rephase the requirement
+    as: *"A customer must have at least one contact method. A contact method could
+    be an email OR a postal addresses OR a phone number"*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s redesign the `Contact` type to have a list of contact methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: But this is still not quite right. The list could be empty. How can we enforce
+    the rule that there must be *at least* one contact method?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The simplest way is to create a new field that is required, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this design, the `PrimaryContactMethod` is required, and the secondary contact
+    methods are optional, which is exactly what the business rule requires!
+  prefs: []
+  type: TYPE_NORMAL
+- en: And this refactoring too, has given us some insight. It may be that the concepts
+    of "primary" and "secondary" contact methods might, in turn, clarify code in other
+    areas, creating a cascading change of insight and refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we've seen how using types to model business rules can actually
+    help you to understand the domain at a deeper level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the *Domain Driven Design* book, Eric Evans devotes a whole section and two
+    chapters in particular (chapters 8 and 9) to discussing the importance of [refactoring
+    towards deeper insight](http://dddcommunity.org/wp-content/uploads/files/books/evans_pt03.pdf).
+    The example in this post is simple in comparison, but I hope that it shows that
+    how an insight like this can help improve both the model and the code correctness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next post, we'll see how types can help with representing fine-grained
+    states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making state explicit
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Making state explicit'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we will look at making implicit states explicit by using state
+    machines, and then modelling these state machines with union types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In an [earlier post](designing-with-types-single-case-dus.html) in this series,
+    we looked at single case unions as a wrapper for types such as email addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code assumes that either an address is valid or it is not. If it is not,
+    we reject it altogether and return `None` instead of a valid value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But there are degrees of validity. For example, what happens if we want to keep
+    an invalid email address around rather than just rejecting it? In this case, as
+    usual, we want to use the type system to make sure that we don't get a valid address
+    mixed up with an invalid address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The obvious way to do this is with a union type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and with these types we can ensure that only valid emails get sent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: So far, so good. This kind of design should be obvious to you by now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But this approach is more widely applicable than you might think. In many situations,
+    there are similar "states" that are not made explicit, and handled with flags,
+    enums, or conditional logic in code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State machines
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the example above, the "valid" and "invalid" cases are mutually incompatible.
+    That is, a valid email can never become invalid, and vice versa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in many cases, it is possible to go from one case to another, triggered
+    by some kind of event. At which point we have a ["state machine"](http://en.wikipedia.org/wiki/Finite-state_machine),
+    where each case represents a "state", and moving from one state to another is
+    a "transition".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A email address might have states "Unverified" and "Verified", where you can
+    transition from the "Unverified" state to the "Verified" state by asking the user
+    to click on a link in a confirmation email. ![State transition diagram: Verified
+    Email](State_VerifiedEmail.png)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A shopping cart might have states "Empty", "Active" and "Paid", where you can
+    transition from the "Empty" state to the "Active" state by adding an item to the
+    cart, and to the "Paid" state by paying. ![State transition diagram: Shopping
+    Cart](State_ShoppingCart.png)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A game such as chess might have states "WhiteToPlay", "BlackToPlay" and "GameOver",
+    where you can transition from the "WhiteToPlay" state to the "BlackToPlay" state
+    by White making a non-game-ending move, or transition to the "GameOver" state
+    by playing a checkmate move. ![State transition diagram: Chess game](State_Chess.png)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In each of these cases, we have a set of states, a set of transitions, and events
+    that can trigger a transition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'State machines are often represented by a table, like this one for a shopping
+    cart:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Current State | Event-> | Add Item | Remove Item | Pay |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Empty |  | new state = Active | n/a | n/a |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Active |  | new state = Active | new state = Active or Empty, depending on
+    the number of items | new state = Paid |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Paid |  | n/a | n/a | n/a |'
+  prefs: []
+  type: TYPE_TB
+- en: With a table like this, you can quickly see exactly what should happen for each
+    event when the system is in a given state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why use state machines?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are a number of benefits to using state machines in these cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Each state can have different allowable behavior.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the verified email example, there is probably a business rule that says that
+    you can only send password resets to verified email addresses, not to unverified
+    addresses. And in the shopping cart example, only an active cart can be paid for,
+    and a paid cart cannot be added to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**All the states are explicitly documented.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is all too easy to have important states that are implicit but never documented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the "empty cart" has different behavior from the "active cart"
+    but it would be rare to see this documented explicitly in code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**It is a design tool that forces you to think about every possibility that
+    could occur.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A common cause of errors is that certain edge cases are not handled, but a state
+    machine forces all cases to be thought about.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, what should happen if we try to verify an already verified email?
+    What happens if we try to remove an item from an empty shopping cart? What happens
+    if white tries to play when the state is "BlackToPlay"? And so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to implement simple state machines in F#
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You are probably familiar with complex state machines, such as those used in
+    language parsers and regular expressions. Those kinds of state machines are generated
+    from rule sets or grammars, and are quite complicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The kinds of state machines that I'm talking about are much, much simpler. Just
+    a few cases at the most, with a small number of transitions, so we don't need
+    to use complex generators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what is the best way implement these simple state machines?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically, each state will have its own type, to store the data that is relevant
+    to that state (if any), and then the entire set of states will be represented
+    by a union class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example using the shopping cart state machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the `EmptyCart` state has no data, so no special type is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each event is then represented by a function that accepts the entire state machine
+    (the union type) and returns a new version of the state machine (again, the union
+    type).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example using two of the shopping cart events:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that from the caller's point of view, the set of states is treated
+    as "one thing" for general manipulation (the `ShoppingCart` type), but when processing
+    the events internally, each state is treated separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing event handling functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Guideline: *Event handling functions should always accept and return the entire
+    state machine*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might ask: why do we have to pass in the whole shopping cart to the event-handling
+    functions? For example, the `makePayment` event only has relevance when the cart
+    is in the Active state, so why not just explicitly pass it the ActiveCart type,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s compare the function signatures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: You will see that the original `makePayment` function takes a cart and results
+    in a cart, while the new function takes an `ActiveCartData` and results in a `PaidCartData`,
+    which seems to be much more relevant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But if you did this, how would you handle the same event when the cart was in
+    a different state, such as empty or paid? Someone has to handle the event for
+    all three possible states somewhere, and it is much better to encapsulate this
+    business logic inside the function than to be at the mercy of the caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with "raw" states
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Occasionally you do genuinely need to treat one of the states as a separate
+    entity in its own right and use it independently. Because each state is a type
+    as well, this is normally straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if I need to report on all paid carts, I can pass it a list of
+    `PaidCartData`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: By using a list of `PaidCartData` as the parameter rather than `ShoppingCart`
+    itself, I ensure that I cannot accidentally report on unpaid carts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do this, it should be in a supporting function to the event handlers,
+    never the event handlers themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using explicit states to replace boolean flags
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's look at how we can apply this approach to a real example now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the `Contact` example from an [earlier post](designing-with-types-intro.html)
+    we had a flag that was used to indicate whether a customer had verified their
+    email address. The type looked like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any time you see a flag like this, chances are you are dealing with state.
+    In this case, the boolean is used to indicate that we have two states: "Unverified"
+    and "Verified".'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As mentioned above, there will probably be various business rules associated
+    with what is permissible in each state. For example, here are two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Business rule: *"Verification emails should only be sent to customers who have
+    unverified email addresses"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Business rule: *"Password reset emails should only be sent to customers who
+    have verified email addresses"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As before, we can use types to ensure that code conforms to these rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's rewrite the `EmailContactInfo` type using a state machine. We'll put it
+    in an module as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start by defining the two states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the "Unverified" state, the only data we need to keep is the email address.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the "Verified" state, we might want to keep some extra data in addition
+    to the email address, such as the date it was verified, the number of recent password
+    resets, on so on. This data is not relevant (and should not even be visible) to
+    the "Unverified" state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that for the `UnverifiedData` type I just used a type alias. No need for
+    anything more complicated right now, but using a type alias makes the purpose
+    explicit and helps with refactoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's handle the construction of a new state machine, and then the events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Construction *always* results in an unverified email, so that is easy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There is only one event that transitions from one state to another: the "verified"
+    event.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that, as [discussed here](match-expression.html), every branch of the match
+    must return the same type, so when ignoring the verified state we must still return
+    something, such as the object that was passed in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we can write the two utility functions `sendVerificationEmail` and
+    `sendPasswordReset`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using explicit cases to replace case/switch statements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes it is not just a simple boolean flag that is used to indicate state.
+    In C# and Java it is common to use a `int` or an `enum` to represent a set of
+    states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here''s a simple state diagram of a package status for a delivery
+    system, where a package has three possible states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![State transition diagram: Package Delivery](State_Delivery.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'There are some obvious business rules that come out of this diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rule: "You can''t put a package on a truck if it is already out for delivery"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Rule: "You can''t sign for a package that is already delivered"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, without using union types, we might represent this design by using an
+    enum to represent the state, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then the code to handle the "putOnTruck" and "signedFor" events might look
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code has some subtle bugs in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When handling the "putOnTruck" event, what should happen in the case that the
+    status is *already* `OutForDelivery` or `Delivered`. The code is not explicit
+    about it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When handling the "signedFor" event, we do handle the other states, but the
+    last else branch assumes that we only have three states, and therefore doesn't
+    bother to be explicit about testing for it. This code would be incorrect if we
+    ever added a new status.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, because the `DeliveryDate` and `DeliverySignature` are in the basic
+    structure, it would be possible to set them accidentally, even though the status
+    was not `Delivered`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But as usual, the idiomatic and more type-safe F# approach is to use an overall
+    union type rather than embed a status value inside a data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: And then the event handlers *must* handle every case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note: I am using `failWith` to handle the errors. In a production system,
+    this code should be replaced by client driven error handlers. See the discussion
+    of handling constructor errors in the [post about single case DUs](designing-with-types-single-case-dus.html)
+    for some ideas.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using explicit cases to replace implicit conditional code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, there are often cases where a system has states, but they are implicit
+    in conditional code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, here is a type that represents an order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can guess that Orders can be "new", "paid", "shipped" or "returned", and
+    have timestamps and extra information for each transition, but this is not made
+    explicit in the structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The option types are a clue that this type is trying to do too much. At least
+    F# forces you to use options -- in C# or Java these might just be nulls, and you
+    would have no idea from the type definition whether they were required or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And now let's look at the kind of ugly code that might test these option types
+    to see what state the order is in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, there is some important business logic that depends on the state of the
+    order, but nowhere is it explicitly documented what the various states and transitions
+    are.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note: I added `IsSome` to test for option values being present as a direct
+    port of the way that a C# program would test for `null`. But `IsSome` is both
+    ugly and dangerous. Don''t use it!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a better approach using types that makes the states explicit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here are the event handling methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note: Here I am using `printfn` to handle the errors. In a production system,
+    do use a different approach.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When not to use this approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As with any technique we learn, we have to be careful of treating it like a
+    [golden hammer](http://en.wikipedia.org/wiki/Law_of_the_instrument).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach does add complexity, so before you start using it, be sure that
+    benefits will outweigh the costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To recap, here are the conditions where using simple state machines might be
+    benficial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have a set of mutually exclusive states with transitions between them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The transitions are triggered by external events.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The states are exhaustive. That is, there are no other choices and you must
+    always handle all cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each state might have associated data that should not be accessable when the
+    system is in another state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are static business rules that apply to the states.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's look at some examples where these guidelines *don't* apply.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**States are not important in the domain.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider a blog authoring application. Typically, each blog post can be in a
+    state such as "Draft", "Published", etc. And there are obviously transitions between
+    these states driven by events (such as clicking a "publish" button).
+  prefs: []
+  type: TYPE_NORMAL
+- en: But is it worth creating a state machine for this? Generally, I would say not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes, there are state transitions, but is there really any change in logic because
+    of this? From the authoring point of view, most blogging apps don't have any restrictions
+    based on the state. You can author a draft post in exactly the same way as you
+    author a published post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only part of the system that *does* care about the state is the display
+    engine, and that filters out the drafts in the database layer before it ever gets
+    to the domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since there is no special domain logic that cares about the state, it is probably
+    unnecessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State transitions occur outside the application**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a customer management application, it is common to classify customers as
+    "prospects", "active", "inactive", etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![State transition diagram: Customer states](State_Customer.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the application, these states have business meaning and should be represented
+    by the type system (such as a union type). But the state *transitions* generally
+    do not occur within the application itself. For example, we might classify a customer
+    as inactive if they haven't ordered anything for 6 months. And then this rule
+    might be applied to customer records in a database by a nightly batch job, or
+    when the customer record is loaded from the database. But from our application's
+    point of view, the transitions do not happen *within* the application, and so
+    we do not need to create a special state machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dynamic business rules**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last bullet point in the list above refers to "static" business rules. By
+    this I mean that the rules change slowly enough that they should be embedded into
+    the code itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, if the rules are dynamic and change frequently, it is probably
+    not worth going to the trouble of creating static types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In these situations, you should consider using active patterns, or even a proper
+    rules engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we've seen that if you have data structures with explicit flags
+    ("IsVerified") or status fields ("OrderStatus"), or implicit state (clued by an
+    excessive number of nullable or option types), it is worth considering using a
+    simple state machine to model the domain objects. In most cases the extra complexity
+    is compensated for by the explicit documention of the states and the elimination
+    of errors due to not handling all possible cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constrained strings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Constrained strings'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a [previous post](designing-with-types-single-case-dus.html), I talked about
+    avoiding using plain primitive strings for email addresses, zip codes, states,
+    etc. By wrapping them in a single case union, we could (a) force the types to
+    be distinct and (b) add validation rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we'll look at whether we can extend that concept to an even more
+    fine grained level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When is a string not a string?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's look a simple `PersonalName` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: The type says that the first name is a `string`. But really, is that all it
+    is? Are there any other constraints that we might need to add to it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, OK, it must not be null. But that is assumed in F#.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about the length of the string? Is it acceptable to have a name which is
+    64K characters long? If not, then is there some maximum length allowed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: And can a name contain linefeed characters or tabs? Can it start or end with
+    whitespace?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once you put it this way, there are quite a lot of constraints even for a "generic"
+    string. Here are some of the obvious ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is its maximum length?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can it cross over multiple lines?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can it have leading or trailing whitespace?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can it contain non-printing characters?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Should these constraints be part of the domain model?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we might acknowledge that some constraints exist, but should they really
+    be part of the domain model (and the corresponding types derived from it)? For
+    example, the constraint that a last name is limited to 100 characters -- surely
+    that is specific to a particular implementation and not part of the domain at
+    all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would answer that there is a difference between a logical model and a physical
+    model. In a logical model some of these constraints might not be relevant, but
+    in a physical model they most certainly are. And when we are writing code, we
+    are always dealing with a physical model anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another reason for incorporating the constraints into the model is that often
+    the model is shared across many separate applications. For example, a personal
+    name may be created in a e-commerce application, which writes it into a database
+    table and then puts it on a message queue to be picked up by a CRM application,
+    which in turn calls an email templating service, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important that all these applications and services have the *same* idea
+    of what a personal name is, including the length and other constraints. If the
+    model does not make the constraints explicit, then it is easy to have a mismatch
+    when moving across service boundaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, have you ever written code that checks the length of a string before
+    writing it to a database?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the string *is* too long at this point, what should you do? Silently truncate
+    it? Throw an exception?
+  prefs: []
+  type: TYPE_NORMAL
+- en: A better answer is to avoid the problem altogether if you can. By the time the
+    string gets to the database layer it is too late -- the database layer should
+    not be making these kinds of decisions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem should be dealt with when the string was *first created*, not when
+    it is *used*. In other words, it should have been part of the validation of the
+    string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But how can we trust that the validation has been done correctly for all possible
+    paths? I think you can guess the answer...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modeling constrained strings with types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The answer, of course, is to create wrapper types which have the constraints
+    built into the type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's knock up a quick prototype using the single case union technique we
+    used [before](designing-with-types-single-case-dus.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we immediately have to deal with the case when the validation fails
+    by using an option type as the result. It makes creation more painful, but we
+    can't avoid it if we want the benefits later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, here is a good string and a bad string of length 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to use the `String2` value we are forced to check whether it is `Some`
+    or `None` at the time of creation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Problems with this design
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One problem is that we have a lot of duplicated code. In practice a typical
+    domain only has a few dozen string types, so there won't be that much wasted code.
+    But still, we can probably do better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another more serious problem is that comparisons become harder. A `String50`
+    is a different type from a `String100` so that they cannot be compared directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: This kind of thing will make working with dictionaries and lists harder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refactoring
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'At this point we can exploit F#''s support for interfaces, and create a common
+    interface that all wrapped strings have to support, and also some standard functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The key function is `create`, which takes a constructor function and creates
+    new values using it only when the validation passes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this in place it is a lot easier to define new types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For each type of string now, we just have to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: create a type (e.g. `String100`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: an implementation of `IWrappedString` for that type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and a public constructor (e.g. `string100`) for that type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (In the sample above I have also thrown in a useful `convertTo` to convert from
+    one type to another.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The type is a simple wrapped type as we have seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The implementation of the `Value` method of the IWrappedString could have been
+    written using multiple lines, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But I chose to use a one liner shortcut:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: The constructor function is also very simple. The canonicalize function is `singleLineTrimmed`,
+    the validator function checks the length, and the constructor is the `String100`
+    function (the function associated with the single case, not to be confused with
+    the type of the same name).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you want to have other types with different constraints, you can easily add
+    them. For example you might want to have a `Text1000` type that supports multiple
+    lines and embedded tabs and is not trimmed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: Playing with the WrappedString module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can now play with the module interactively to see how it works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we need to interact with types such as maps that use raw strings, it is
+    easy to compose new helper functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here are some helpers to work with maps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is how these helpers might be used in practice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: So overall, this "WrappedString" module allows us to create nicely typed strings
+    without interfering too much. Now let's use it in a real situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the new string types in the domain
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we have our types, we can change the definition of the `PersonalName` type
+    to use them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have created a module for the type and added a creation function that converts
+    a pair of strings into a `PersonalName`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that we have to decide what to do if *either* of the input strings are
+    invalid. Again, we cannot postpone the issue till later, we have to deal with
+    it at construction time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case we use the simple approach of creating an option type with None
+    to indicate failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here it is in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can also provide additional helper functions in the module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's say, for example, that we want to create a `fullname` function that will
+    return the first and last names joined together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, more decisions to make.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should we return a raw string or a wrapped string? The advantage of the latter
+    is that the callers know exactly how long the string will be, and it will be compatible
+    with other similar types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we do return a wrapped string (say a `String100`), then how do we handle
+    the the case when the combined length is too long? (It could be up to 151 chars,
+    based on the length of the first and last name types.). We could either return
+    an option, or force a truncation if the combined length is too long.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here's code that demonstrates all three options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which particular approach you take to implementing `fullName` is up to you.
+    But it demonstrates a key point about this style of type-oriented design: these
+    decisions have to be taken *up front*, when creating the code. You cannot postpone
+    them till later.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be very annoying at times, but overall I think it is a good thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting the email address and zip code types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can use this WrappedString module to reimplement the `EmailAddress` and `ZipCode`
+    types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: Other uses of wrapped strings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This approach to wrapping strings can also be used for other scenarios where
+    you don't want to mix string types together accidentally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One case that leaps to mind is ensuring safe quoting and unquoting of strings
+    in web applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let's say that you want to output a string to HTML. Should the
+    string be escaped or not?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If it is already escaped, you want to leave it alone but if it is not, you do
+    want to escape it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be a tricky problem. Joel Spolsky discusses using a naming convention
+    [here](http://www.joelonsoftware.com/articles/Wrong.html), but of course, in F#,
+    we want a type-based solution instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A type-based solution will probably use a type for "safe" (already escaped)
+    HTML strings (`HtmlString` say), and one for safe Javascript strings (`JsString`),
+    one for safe SQL strings (`SqlString`), etc. Then these strings can be mixed and
+    matched safely without accidentally causing security issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I won't create a solution here (and you will probably be using something like
+    Razor anyway), but if you are interested you can read about a [Haskell approach
+    here](http://blog.moertel.com/articles/2006/10/18/a-type-based-solution-to-the-strings-problem)
+    and a [port of that to F#](http://stevegilham.blogspot.co.uk/2011/12/approximate-type-based-solution-to.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many people have asked for more information on how to ensure that constrained
+    types such as `EmailAddress` are only created through a special constructor that
+    does the validation. So I have created a [gist here](https://gist.github.com/swlaschin/54cfff886669ccab895a)
+    that has some detailed examples of other ways of doing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-string types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Non-string types'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series we've seen a lot of uses of single case discriminated unions
+    to wrap strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no reason why you cannot use this technique with other primitive types,
+    such as numbers and dates. Let's look a few examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Single case unions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In many cases, we want to avoid accidentally mixing up different kinds of integers.
+    Two domain objects may have the same representation (using integers) but they
+    should never be confused.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, you may have an `OrderId` and a `CustomerId`, both of which are
+    stored as ints. But they are not *really* ints. You cannot add 42 to a `CustomerId`,
+    for example. And `CustomerId(42)` is not equal to `OrderId(42)`. In fact, they
+    should not even be allowed to be compared at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Types to the rescue, of course.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly, you might want avoid mixing up semantically different date values
+    by wrapping them in a type. (`DateTimeKind` is an attempt at this, but not always
+    reliable.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: With these types we can ensure that we always pass the right kind of datetime
+    as parameters. Plus, it acts as documentation as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: Constraints on integers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Just as we had validation and constraints on types such as `String50` and `ZipCode`,
+    we can use the same approach when we need to have constraints on integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, an inventory management system or a shopping cart may require that
+    certain types of number are always positive. You might ensure this by creating
+    a `NonNegativeInt` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: Embedding business rules in the type
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Just as we wondered earlier whether first names could ever be 64K characters
+    long, can you really add 999999 items to your shopping cart?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![State transition diagram: Package Delivery](AddToCart.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Is it worth trying to avoid this issue by using constrained types? Let's look
+    at some real code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a very simple shopping cart manager using a standard `int` type for
+    the quantity. The quantity is incremented or decremented when the related buttons
+    are clicked. Can you find the obvious bug?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you can't quickly find the bug, perhaps you should consider making any constraints
+    more explicit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the same simple shopping cart manager using a typed quantity instead.
+    Can you find the bug now? (Tip: paste the code into a F# script file and run it)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might think this is overkill for such a trivial problem. But if you want
+    to avoid being in the DailyWTF, it might be worth considering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constraints on dates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Not all systems can handle all possible dates. Some systems can only store dates
+    going back to 1/1/1980, and some systems can only go into the future up to 2038
+    (I like to use 1/1/2038 as a max date to avoid US/UK issues with month/day order).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with integers, it might be useful to have constraints on the valid dates
+    built into the type, so that any out of bound issues are dealt with at construction
+    time rather than later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: Union types vs. units of measure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You might be asking at this point: What about [units of measure](units-of-measure.html)?
+    Aren''t they meant to be used for this purpose?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes and no. Units of measure can indeed be used to avoid mixing up numeric values
+    of different type, and are much more powerful than the single case unions we've
+    been using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, units of measure are not encapsulated and cannot have constraints.
+    Anyone can create a int with unit of measure `<kg>` say, and there is no min or
+    max value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many cases, both approaches will work fine. For example, there are many parts
+    of the .NET library that use timeouts, but sometimes the timeouts are set in seconds,
+    and sometimes in milliseconds. I often have trouble remembering which is which.
+    I definitely don't want to accidentally use a 1000 second timeout when I really
+    meant a 1000 millisecond timeout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid this scenario, I often like to create separate types for seconds and
+    milliseconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a type based approach using single case unions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the same thing using units of measure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which approach is better?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are doing lots of arithmetic on them (adding, multiplying, etc) then
+    the units of measure approach is much more convenient, but otherwise there is
+    not much to choose between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Designing with types: Conclusion'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Designing with types: Conclusion'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this series, we''ve looked at some of the ways we can use types as part
+    of the design process, including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Breaking large structures down into small "atomic" components.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using single case unions to add semantic meaning and validation to key domain
+    types such `EmailAddress` and `ZipCode`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ensuring that the type system can only represent valid data ("making illegal
+    states unrepresentable").
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using types as an analysis tool to uncover hidden requirements
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replacing flags and enums with simple state machines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replacing primitive strings with types that guarantee various constraints
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For this final post, let's see them all applied together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "before" code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here''s the original example we started off with in the [first post](designing-with-types-intro.html)
+    in the series:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: And how does that compare to the final result after applying all the techniques
+    above?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "after" code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, let's start with the types that are not application specific. These types
+    could probably be reused in many applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now the application specific types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Phew! The new code is much, much longer than the original code. Granted, it
+    has a lot of supporting functions that were not needed in the original version,
+    but even so it seems like a lot of extra work. So was it worth it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I think the answer is yes. Here are some of the reasons why:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The new code is more explicit**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we look at the original example, there was no atomicity between fields, no
+    validation rules, no length constraints, nothing to stop you updating flags in
+    the wrong order, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data structure was "dumb" and all the business rules were implicit in the
+    application code. Chances are that the application would have lots of subtle bugs
+    that might not even show up in unit tests. (*Are you sure the application reset
+    the `IsEmailVerified` flag to false in every place the email address was updated?*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, the new code is extremely explicit about every little detail.
+    If I stripped away everything but the types themselves, you would have a very
+    good idea of what the business rules and domain constraints were.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The new code won''t let you postpone error handling**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing code that works with the new types means that you are forced to handle
+    every possible thing that could go wrong, from dealing with a name that is too
+    long, to failing to supply a contact method. And you have to do this up front
+    at construction time. You can't postpone it till later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing such error handling code can be annoying and tedious, but on the other
+    hand, it pretty much writes itself. There is really only one way to write code
+    that actually compiles with these types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The new code is more likely to be correct**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *huge* benefit of the new code is that it is probably bug free. Without
+    even writing any unit tests, I can be quite confident that a first name will never
+    be truncated when written to a `varchar(50)` in a database, and that I can never
+    accidentally send out a verification email twice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And in terms of the code itself, many of the things that you as a developer
+    have to remember to deal with (or forget to deal with) are completely absent.
+    No null checks, no casting, no worrying about what the default should be in a
+    `switch` statement. And if you like to use cyclomatic complexity as a code quality
+    metric, you might note that there are only three `if` statements in the entire
+    350 odd lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A word of warning...**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, beware! Getting comfortable with this style of type-based design will
+    have an insidious effect on you. You will start to develop paranoia whenever you
+    see code that isn't typed strictly enough. (*How long should an email address
+    be, exactly?*) and you will be unable to write the simplest python script without
+    getting anxious. When this happens, you will have been fully inducted into the
+    cult. Welcome!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If you liked this series, here is a slide deck that covers many of the same
+    topics. There is [a video as well (here)](http://fsharpforfunandprofit.com/ddd/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[//www.slideshare.net/slideshow/embed_code/32418451](//www.slideshare.net/slideshow/embed_code/32418451)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[Domain Driven Design with the F# type System -- F#unctional Londoners 2014](https://www.slideshare.net/ScottWlaschin/domain-driven-design-with-the-f-type-system-functional-londoners-2014
+    "Domain Driven Design with the F# type System -- F#unctional Londoners 2014")**
+    from **[my slideshare page](http://www.slideshare.net/ScottWlaschin)**'
+  prefs: []
+  type: TYPE_NORMAL

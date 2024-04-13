@@ -1,0 +1,2216 @@
+- en: The "A functional approach to authorization" Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series of posts, I'll look at how you might handle the common security
+    challenge of authorization. That is, how can you ensure that clients of your code
+    can only do what you want them to do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This series will sketch out two different approaches, first using an approach
+    called *capability based security*, and second using statically checked types
+    to emulate access tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, both approaches tend to produce a cleaner, more modular design
+    as a side effect, which is why I like them!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[A functional approach to authorization](capability-based-security.html). Capability
+    based security and more.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Constraining capabilities based on identity and role](capability-based-security-2.html).
+    A functional approach to authorization, part 2.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Using types as access tokens](capability-based-security-3.html). A functional
+    approach to authorization, part 3.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A functional approach to authorization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A functional approach to authorization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series of posts, I'll look at how you might handle the common security
+    challenge of authorization. That is, how can you ensure that clients of your code
+    can only do what you want them to do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This series will sketch out two different approaches, first using an approach
+    called *capability based security*, and second using statically checked types
+    to emulate access tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, both approaches tend to produce a cleaner, more modular design
+    as a side effect, which is why I like them!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before I start, I must mention a major caveat. In a .NET environment, you can
+    generally use reflection to bypass compile-time checking, so the approaches shown
+    here are not about preventing truly malicious attacks so much as helping you create
+    designs that reduce *unintentional* security vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, I'm no expert on security -- I'm just putting down some of my own thoughts
+    and suggestions. This post is certainly not meant to substitute for a proper full-fledged
+    security design, nor is it a serious study of security practices. If you want
+    to know more, there are links to further reading at the bottom of the post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: A configuration example'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, let''s start with a simple scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have a configuration option that can be set by one part of the the code.
+    Let's say it is a boolean called `DontShowThisMessageAgain`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We have a component of the application (the UI say) that wants to set this option.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition, we're also going to assume that the component was written by a
+    malicious developer and is going to try to cause trouble if possible.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, how should we expose this configuration setting to a potentially malicious
+    caller?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attempt 1: Give the caller the name of the configuration file**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with a really bad idea. We'll just provide the name of the config
+    file to the caller, and let them change the file themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how this might be written in C# pseudocode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: and the caller code would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Obviously, this is not good! In order for this to work, we have to give the
+    caller the ability to write to any file on the filesystem, and then a malicious
+    caller could delete or corrupt all sorts of things.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could avoid this to some extent by having strict permissions on the file
+    system, but we're still giving way too much control to the caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attempt 2: Give the caller a TextWriter**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ok, so let's open the file ourselves and just give the caller the opened file
+    stream as a `TextWriter`. That way the caller doesn't need permission to access
+    the file system at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But of course, a malicious caller could still corrupt the config file by writing
+    garbage to the file. Again, we're giving way too much control to the caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attempt 3: Give the caller a key/value interface**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s lock this down by providing the caller an interface that forces them
+    to treat the config file as a key/value store, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The caller code is then something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's much better, but because it is a stringly-typed interface, a malicious
+    caller could still corrupt the configuration by setting the value to a non-boolean
+    which would not parse. They could also corrupt all the other configuration keys
+    if they wanted to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attempt 4: Give the caller a domain-centric interface**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ok, so rather than having a generic config interface, let's provide an interface
+    that provides specific methods for each configuration setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now the caller can't possibly corrupt the config, because each option is statically
+    typed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But we still have a problem! What's to stop a malicious caller changing the
+    connection string when they were only supposed to change the message flag?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attempt 5: Give the caller only the interface they need**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ok, so let's define a new interface that contains *only* the methods the caller
+    should have access to, with all the other methods hidden.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's about as locked down as we can get! The caller can *only* do the thing
+    we allow them to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we have just created a design using the [Principle Of Least
+    Authority](https://en.wikipedia.org/wiki/Principle_of_least_privilege), normally
+    abbreviated to "POLA".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security as good design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What's interesting about this approach is that it exactly parallels what you
+    would do for good design *anyway*, regardless of a malicious caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's how I might think about designing this, basing my decisions only on core
+    design principles such information hiding and decoupling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we give the caller a filename, we would be limiting ourselves to file-based
+    config files. By giving the caller a TextWriter, we can make the design more mockable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But if we give the caller a TextWriter, we are exposing a specific storage format
+    (XML, JSON, etc) and are also limiting ourselves to text-based storage. By giving
+    the caller a generic KeyValue store, we hide the format and make the implementation
+    choices more flexible.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But if we give the caller a generic KeyValue store using strings, we are still
+    exposing ourselves to bugs where the value is not a boolean, and we'd have to
+    write validation and tests for that. If we use a statically typed interface instead,
+    we don't have to write any corruption checking code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But if we give the caller an interface with too many methods, we are not following
+    the *[Interface Segregation Principle](https://en.wikipedia.org/wiki/Interface_segregation_principle)*.
+    Hence, we should reduce the number of available methods to the absolute minimum
+    needed by the caller.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Working through a thought process like this, using good design practices only,
+    we end up with exactly the same result as if we had been worried about security!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is: designing the most minimal interface that the caller needs will both
+    avoid accidental complexity (good design) and increase security (POLA).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we don't normally have to deal with malicious callers, but we should
+    treat ourselves, as developers, as unintentionally malicious. For example, if
+    there is a extra method in the interface, it might well be used in a different
+    context, which then increases coupling between the two contexts and makes refactoring
+    harder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, here''s a tip: **design for malicious callers and you will probably end
+    up with more modular code!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing capability-based security
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What we have done above is gradually reduce the surface area to the caller so
+    that by the final design, the caller can only do exactly one thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That "one thing" is a "capability". The caller has a capability to set the message
+    flag, and that's all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '["Capability-based" security](https://en.wikipedia.org/wiki/Capability-based_security)
+    is a security model that is based on this idea:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The system provides "capabilities" to clients (in our case, via an implementation
+    of an interface).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These capabilities encapsulate any access rights that are needed. For example,
+    the very fact that I have access to an implementation of the interface means that
+    I can set that flag. If I did not have permission to set that flag, I would have
+    not been given the capability (interface) in the first place. (I'll talk more
+    about authorization in the next post).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the capabilities can be passed around. For example, I can acquire the
+    capability at startup and then later pass it to the UI layer which can use it
+    as needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In other words, we have a "just-in-time" rather than a "just-in-case" model;
+    we pass in the minimal amount of authority as and when needed, rather than having
+    excess "ambient" authority available globally to everyone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The capability-based model is often focused on operating systems, but it can
+    be mapped to programming languages very nicely, where it is called [the object-capability
+    model](https://en.wikipedia.org/wiki/Object-capability_model).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope to demonstrate in this post that by using a capability-based approach
+    in your code, you can create better designed and more robust code. In addition,
+    potential security errors will be detectable at *compile-time* rather than at
+    run-time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I mentioned above, if your app is trusted, you can always use .NET reflection
+    to "forge" capabilities that you are not entitled to. So, again, the approach
+    shown here is not about preventing truly malicious attacks so much as it about
+    creating a more robust design that reduces *unintentional* security vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authority vs. permission
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A capability-based security model tends to use the term "authority" rather
+    than "permission". There is a distinction between the two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In an *authority* based system, once I have been granted authority to do something,
+    I can pass some or all of that authority to others, add additional constraints
+    of my own, and so on.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In a *permission* based system, I can ask for permission to do something, but
+    I cannot pass that around to others.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It might seem that an authority based system is more open and "dangerous" than
+    a permission based system. But in a permission based system, if others have access
+    to me and I cooperate with them, I can act as proxy for anything they want to
+    do so, so third-parties can *still* get authority indirectly. Permissions don't
+    really make things more secure -- an attacker just has to use a more convoluted
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a concrete example. Let's say Alice trusts me to drive her car, and she
+    is willing to let me borrow it, but she doesn't trust Bob. If I'm friends with
+    Bob, I can let Bob drive the car anyway when Alice is not looking. So if Alice
+    trusts me, she also implicitly trusts anyone that I trust. An authority-based
+    system just makes this explicit. Alice giving me her car keys is giving me the
+    "capability" to drive her car, with full knowledge that I might give the car keys
+    to someone else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, when I act as a proxy in a permission based system, I can stop cooperating
+    with the third-party if I want to, at which point the third-party loses their
+    access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The equivalent of that in an authority based system is "revokable authority",
+    which we will see an example of later. In the car key analogy, this might be like
+    having car keys that self-destruct on demand!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modelling capabilities as functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'An interface with one method can be better realized as a function. So this
+    interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'becomes just this function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or in F#:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: In a functional approach to capability-based security, each capability is represented
+    by a function rather than an interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The nice thing about using functions to represent capabilities is that we can
+    use all the standard functional programming techniques: we can compose them, combine
+    them with combinators, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The object-capability model vs. the functional programming model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Many of the other requirements of the object-capability model fit well within
+    a functional programming framework. Here is a comparison table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Object-capability model | Functional programming |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No global mutable state is allowed. | No global mutable state is allowed.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities are always passed around explicitly from parent to child, or
+    from a sender to a receiver. | Functions are values that can be passed as parameters.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities are never extracted out of the environment ("ambient authority").
+    | Pure functions have all "dependencies" passed in explicitly. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities cannot be tampered with. | Data is immutable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities cannot be forged or cast to other capabilities. | In a uncompromising
+    FP language, there is no reflection or casting available (of course, F# is not
+    strict in this way). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities should "fail safe". If a capability cannot be obtained, or doesn''t
+    work, we must not allow any progress on paths that assumed that it was successful.
+    | In a statically typed language such as F#, we can embed these kinds of control-flow
+    rules into the type system. The use of `Option` is an example of this. |'
+  prefs: []
+  type: TYPE_TB
+- en: You can see that there is quite a lot of overlap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the *unofficial* goals of the object-capability model is **make security
+    user-friendly by making the security invisible**. I think that this is a great
+    idea, and by passing capabilities as functions, is quite easily achievable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's important to note there is one important aspect in which a capability-based
+    model does *not* overlap with a true functional model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Capabilities are mostly all about (side) effects -- reading or writing the file
+    system, the network, etc. A true functional model would try to wrap them somehow
+    (e.g. in a monad). Personally, using F#, I would generally just allow the side-effects
+    rather than constructing [a more complex framework](http://hackage.haskell.org/package/Capabilities).
+  prefs: []
+  type: TYPE_NORMAL
+- en: But again, as I noted above, the goal of this post is to not to force you into
+    a 100% strict object-capability model, but to borrow some of the same ideas in
+    order to create better designs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting capabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A natural question at this point is: where do these capability functions come
+    from?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is, some sort of service that can authorize you to have that capability.
+    In the configuration example, we generally don't do serious authorization, so
+    the configuration service itself will normally provide the capabilities without
+    checking your identity, role or other claims.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now I need a capability to access the configuration service. Where does
+    that come from? The buck has to stop somewhere!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In OO designs, there is typically a bootstrap/startup stage where all the dependencies
+    are constructed and an IoC container is configured. In a capability based system,
+    a [so-called Powerbox](http://c2.com/cgi/wiki?PowerBox) plays a similar role of
+    being the starting point for all authority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code for a service that provides configuration capabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code might look very similar to the interface defined earlier, but the
+    difference is that this one will be initialized at startup to return capabilities
+    that are then passed around.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The actual users of the capabilities will not have access to the configuration
+    system at all, just the capabilities they have been given. That is, the capability
+    will be injected into the clients in the same way as a one method interface would
+    be injected in an OO model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s some sample C# pseudocode to demonstrate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The capability is obtained at startup.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The capability is injected into the main window (`ApplicationWindow`) via the
+    constructor.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ApplicationWindow` creates a checkbox.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The event handler for the checkbox calls the capability.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: A complete example in F#
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's the code to a complete example in F# (also available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example consists of a simple window with a main region and some extra buttons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you click in the main area, an annoying dialog pops up with a "don't show
+    this message again" option.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One of the buttons allows you to change the background color using the system
+    color picker, and store it in the config.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The other button allows you to reset the "don't show this message again" option
+    back to false.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It's very crude and very ugly -- no UI designers were hurt in the making of
+    it -- but it should demonstrate the main points so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Example application](auth_annoying_popup.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The configuration system
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We start with the configuration system. Here''s an overview:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The custom types `MessageFlag`, `ConnectionString`, and `Color` are defined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The record type `ConfigurationCapabilities` is defined to hold all the capabilities.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An in-memory store (`ConfigStore`) is created for the purposes of the demo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the `configurationCapabilities` are created using functions that read
+    and write to the `ConfigStore`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The annoying popup dialog
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next, we'll create the annoying popup dialog. This will be triggered whenever
+    you click on the main window, *unless* the "Don't show this message again" option
+    is checked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dialog consists of a label control, the message flag checkbox, and the OK
+    button.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the `createMessageFlagCheckBox` function, which creates the checkbox
+    control, is passed only the two capabilities it needs -- to get and set the flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This requires in turn that the main form creation function (`createForm`) is
+    also passed the capabilities. These capabilities, and these capabilities *only*
+    are passed in to the form. The capabilities for setting the background color or
+    connection string are *not* passed in, and thus not available to be (mis)used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The main application window
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can now create a main window for our rather silly "application". It consists
+    of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A label control that can be clicked to produce the annoying popup (`createClickMeLabel`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A button that brings up a color picking dialog to change the background color
+    (`createChangeBackColorButton`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A button that resets the message flag to "show" again (`createResetMessageFlagButton`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All three of these constructor functions are passed capabilities, but capabilities
+    are different in each case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The label control is only passed `getFlag` and `setFlag` capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The color picking dialog is only passed `getColor` and `setColor` capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The button that resets the message flag is only passed the `setFlag` capability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the main form (`createMainForm`) the complete set of capabilities are passed
+    in, and they are recombined in various ways as needed for the child controls (`popupMessageCapabilities`,
+    `colorDialogCapabilities`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In addition, the capability functions are modified:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A new "SetColor" capability is created from the existing one, with the addition
+    of changing the form's background as well.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The flag capabilities are converted from the domain type (`MessageFlag`) to
+    bools that can be used directly with the checkbox.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The startup code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, the top-level module, here called `Startup`, gets some of the capabilities
+    from the Configuration subsystem, and combines them into a tuple that can be passed
+    to the main form. The `ConnectionString` capabilities are *not* passed in though,
+    so there is no way the form can accidentally show it to a user or update it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary of Part 1
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you can see, this code is very similar to an OO system designed with dependency
+    injection. There is no global access to capabilities, only those passed in from
+    the parent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Example 1](auth_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Of course, the use of functions to parameterize behavior like this is nothing
+    special. It's one of the most fundamental functional programming techniques. So
+    this code is not really showing any new ideas, rather it is just demonstrating
+    how a standard functional programming approach can be applied to enforce access
+    paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some common questions at this point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: This seems like extra work. Why do I need to do this at all?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you have a simple system, you certainly don''t need to do this. But here''s
+    where it might be useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have a system which uses fine-grained authorization already, and you want
+    to make this more explicit and easier to use in practice.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have a system which runs at a high privilege but has strict requirements
+    about leaking data or performing actions in an unauthorized context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In these situations, I believe that is very important to be *explicit* about
+    what the capabilities are at *all points* in the codebase, not just in the UI
+    layer. This not only helps with compliance and auditing needs, but also has the
+    practical benefit that it makes the code more modular and easier to maintain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: What''s the difference between this approach and dependency injection?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dependency injection and a capability-based model have different goals. Dependency
+    injection is all about decoupling, while capabilities are all about controlling
+    access. As we have seen, both approaches end up promoting similar designs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: What happens if I have hundreds of capabilities that I need to
+    pass around?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It seems like this should be a problem, but in practice it tends not to be.
+    For one thing, judicious use of partial application means that capabilities can
+    be baked in to a function before passing it around, so that child objects are
+    not even aware of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, it is very easy -- just a few lines -- to create simple record types
+    that contain a group of capabilities (as I did with the `ConfigurationCapabilities`
+    type) and pass those around if needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: What''s to stop someone accessing global capabilities without following
+    this approach?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nothing in C# or F# can stop you accessing global public functions. Just like
+    other best practices, such as avoiding global variables, we have to rely on self-discipline
+    (and maybe code reviews) to keep us on the straight and narrow path!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in the [third part of this series](capability-based-security-3.html), we'll
+    look at a way to prevent access to global functions by using access tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: Aren''t these just standard functional programming techniques?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes. I'm not claiming to be doing anything clever here!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: These capability functions have side-effects. What''s up with that?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes, these capability functions are not pure. The goal here is not about being
+    pure -- it's about being explicit about the provision of capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even if we used a pure `IO` context (e.g. in Haskell) it would not help control
+    access to capabilities. That is, in the context of security, there's a big difference
+    between the capability to change a password or credit card vs. the capability
+    to change a background color configuration, even though they are both just "IO"
+    from a computation point of view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating pure capabilities is possible but not very easy to do in F#, so I'm
+    going to keep it out of scope for this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: What''s your response to what (some person) wrote? And why didn''t
+    you cite (some paper)?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a blog post, not an academic paper. I'm not an expert in this area,
+    but just doing some experiments of my own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More importantly, as I said earlier, my goal here is very different from security
+    experts -- I'm *not* attempting to develop a ideal security model. Rather, I'm
+    just trying to encourage some *good design* practices that can help pragmatic
+    developers avoid accidental vulnerabilities in their code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**I''ve got more questions...**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some additional questions are answered at the [end of part 2](capability-based-security-2.html#summary),
+    so read those answers first. Otherwise please add your question in the comments
+    below, and I'll try to address it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further reading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ideas on capability-based security here are mostly derived from the work
+    of Mark Miller and Marc Stiegler, and the [erights.org](http://www.erights.org/)
+    website, although my version is cruder and simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For a more complete understanding, I suggest you follow up on the links below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Wikipedia articles on [Capability-based security](https://en.wikipedia.org/wiki/Capability-based_security)
+    and [Object-capability model](https://en.wikipedia.org/wiki/Object-capability_model)
+    are a good starting point.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[What is a Capability, Anyway?](https://webcache.googleusercontent.com/search?q=cache:www.eros-os.org/essays/capintro.html)
+    by Jonathan Shapiro of the EROS project. He also discusses ACL-based security
+    vs. a capability-based model.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["The Lazy Programmer''s Guide to Secure Computing"](http://www.youtube.com/watch?v=eL5o4PFuxTY),
+    a great video on capability-based security by Marc Stiegler. Don''t miss the last
+    5 mins (starting around 1h:02m:10s)!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '["Object Capabilities for Security"](https://www.youtube.com/watch?v=EGX2I31OhBE),
+    a good talk by David Wagner.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A lot of work has been done on hardening languages for security and safety.
+    For example the [E Language](http://www.erights.org/elang/index.html) and [Mark
+    Miller's thesis on the E Language](http://www.erights.org/talks/thesis/markm-thesis.pdf)(PDF);
+    the [Joe-E Language](https://en.wikipedia.org/wiki/Joe-E) built on top of Java;
+    Google's [Caja](https://developers.google.com/caja/) built over JavaScript; [Emily](http://www.hpl.hp.com/techreports/2006/HPL-2006-116.html),
+    a capability based language derived from OCaml; and [Safe Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/safe-haskell/safe-haskell.pdf)(PDF).
+  prefs: []
+  type: TYPE_NORMAL
+- en: My approach is not about strict safeness so much as proactively designing to
+    avoid unintentional breaches, and the references above do not focus on very much
+    on design specifically. The most useful thing I have found is a [section on capability
+    patterns in E](http://www.skyhunter.com/marcs/ewalnut.html#SEC45).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, if you like this kind of thing, then head over to LtU where there are
+    a number of discussions, such as [this one](http://lambda-the-ultimate.org/node/1635)
+    and [this one](http://lambda-the-ultimate.org/node/3930) and [this paper](http://lambda-the-ultimate.org/node/2253).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coming up next
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the [next post](capability-based-security-2.html), we'll look at how to constrain
+    capabilities based on claims such as the current user's identity and role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constraining capabilities based on identity and role
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Constraining capabilities based on identity and role
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous post](capability-based-security.html), we started looking at
+    "capabilities" as the basis for ensuring that code could not do any more than
+    it was supposed to do. And I demonstrated this with a simple application that
+    changed a configuration flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we'll look at how to constrain capabilities based on the current
+    user's identity and role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's switch from the configuration example to a typical situation where
+    stricter authorization is required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Database capabilities example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Consider a website and call-centre with a backing database. We have the following
+    security rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A customer can only view or update their own record in the database (via the
+    website)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A call-centre operator can view or update any record in the database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This means that at some point, we'll have to do some authorization based on
+    the identity and role of the user. (We'll assume that the user has been authenticated
+    successfully).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tendency in many web frameworks is to put the authorization in the UI layer,
+    often [in the controller](https://msdn.microsoft.com/en-us/library/system.web.mvc.authorizeattribute.aspx).
+    My concern about this approach is that once you are "inside" (past the gateway),
+    any part of the app has full authority to access the database, and it is all to
+    easy for code to do the wrong thing by mistake, resulting in a security breach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only that, but because the authority is everywhere ("ambient"), it is hard
+    to review the code for potential security issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid these issues, let's instead put the access logic as "low" as possible,
+    in the database access layer in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start with an obvious approach. We'll add the identity and role to each
+    database call and then do authorization there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following method assumes that there is a `CustomerIdBelongsToPrincipal`
+    function that checks whether the customer id being accessed is owned by the principal
+    requesting access. Then, if the `customerId` does belong to the principal, or
+    the principal has the role of "CustomerAgent", the access is granted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note that I have deliberately added the `IPrincipal` to the method signature
+    -- we are not allowing any "magic" where the principal is fetched from a global
+    context. As with the use of any global, having implicit access hides the dependencies
+    and makes it hard to test in isolation.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the F# equivalent, using a [Success/Failure return value](http://fsharpforfunandprofit.com/rop/)
+    rather than throwing exceptions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This "inline" authorization approach is all too common, but unfortunately it
+    has many problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It mixes up security concerns with the database logic. If the authorization
+    logic gets more complicated, the code will also get more complicated.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It throws an exception (C#) or returns an error (F#) if the authorization fails.
+    It would be nice if we could tell *in advance* if we had the authorization rather
+    than waiting until the last minute.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's compare this with a capability-based approach. Instead of directly getting
+    a customer, we first obtain the *capability* of doing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, if the authorization succeeds, a reference to the `GetCustomer`
+    method is returned to the caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It might not be obvious, but the code above has a rather large security hole.
+    I can request the capability for a particular customer id, but I get back a function
+    that can called for *any* customer id! That's not very safe, is it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we need to is "bake in" the customer id to the capability, so that it can't
+    be misused. The return value will now be a `Func<CustomerData>`, with the customer
+    id not available to be passed in any more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this separation of concerns in place, we can now handle failure nicely,
+    by returning an *optional* value which is present if we get the capability, or
+    absent if not. That is, we know whether we have the capability *at the time of
+    trying to obtain it*, not later on when we try to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This assumes that we're using some sort of `Option` type in C# rather than just
+    returning null!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we can put the authorization logic into its own class (say `CustomerDatabaseCapabilityProvider`),
+    to keep the authorization concerns separate from the `CustomerDatabase`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll have to find some way of keeping the "real" database functions private
+    to all other callers though. For now, I'll just assume the database code is in
+    a different assembly, and mark the code `internal`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the F# version of the same code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s a diagram that represents this design:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Example 2](auth_2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Problems with this model**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this model, the caller is isolated from the `CustomerDatabase`, and the `CustomerDatabaseCapabilityProvider`
+    acts as a proxy between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which means, as currently designed, for every function available in `CustomerDatabase`
+    there must be a parallel function available in `CustomerDatabaseCapabilityProvider`
+    as well. We can see that this approach will not scale well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be nice if we had a way to generally get capabilities for a *whole
+    set* of database functions rather than one at a time. Let's see if we can do that!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Restricting and transforming capabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `getCustomer` function in `CustomerDatabase` can be thought of as a capability
+    with no restrictions, while the `getCustomerCapability` returns a capability restricted
+    by identity and role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But note that the two function signatures are similar (`CustomerId -> CustomerData`
+    vs `unit -> CustomerData`), and so they are almost interchangeable from the callers
+    point of view. In a sense, then, the second capability is a transformed version
+    of the first, with additional restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transforming functions to new functions! This is something we can easily do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let's write a transformer that, given *any* function of type `CustomerId
+    -> 'a`, we return a function with the customer id baked in (`unit -> 'a`), but
+    only if the authorization requirements are met.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The type signature for the `onlyForSameIdOrAgents` function is `(CustomerId
+    -> 'a) -> (unit -> 'a) option`. It accepts any `CustomerId` based function and
+    returns, maybe, the same function *with the customer id already applied* if the
+    authorization succeeds. If the authorization does not succeed, `None` is returned
+    instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see that this function will work generically with *any* function that
+    has a `CustomerId` as the first parameter. That could be "get", "update", "delete",
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So for example, given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can create restricted versions now, for example at the top level bootstrapper
+    or controller:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The types of `getCustomerOnlyForSameIdOrAgents` and `updateCustomerOnlyForSameIdOrAgents`
+    are similar to the original functions in the database module, but with `CustomerId`
+    replaced with `unit`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*The `updateCustomerOnlyForSameIdOrAgents` has a extra `CustomerData` parameter,
+    so the extra unit where the `CustomerId` used to be is a bit ugly. If this is
+    too annoying, you could easily create other versions of the function which handle
+    this more elegantly. I''ll leave that as an exercise for the reader!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now we have an option value that might or might not contain the capability
+    we wanted. If it does, we can create a child component and pass in the capability.
+    If it does not, we can return some sort of error, or hide a element from a view,
+    depending on the type of application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s a diagram that represents this design:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Example 3](auth_3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: More transforms on capabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Because capabilities are functions, we can easily create new capabilities by
+    chaining or combining transformations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we could create a separate filter function for each business rule,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the first business rule, `onlyForSameId`, we return a capability with the
+    customer id baked in, as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second business rule, `onlyForAgents`, doesn't mention customer ids anywhere,
+    so why do we restrict the function parameter to `CustomerId -> 'a`? The reason
+    is that it enforces that this rule *only* applies to customer centric capabilities,
+    not ones relating to products or payments, say.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now, to make the output of this filter compatible with the first rule (`unit
+    -> 'a`), we need to pass in a customer id and partially apply it too. It's a bit
+    of a hack but it will do for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also write a generic combinator that returns the first valid capability
+    from a list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's a trivial implementation really -- this is the kind of helper function
+    that is just to help the code be a little more self-documenting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this in place, we can apply the rules separately, take the two filters
+    and combine them into one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Or let's say we have some sort of restriction; the operation can only be performed
+    during business hours, say.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can write another combinator that restricts the original capability. This
+    is just a version of "bind".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this in place, we can restrict the "agentsOnly" capability to business
+    hours:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: So now we have created a new capability, "Customer agents can only access customer
+    data during business hours", which tightens the data access logic a bit more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can combine this with the previous `onlyForSameId` filter to build a compound
+    capability which can access customer data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if you have the same customer id (at any time of day)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if you are a customer agent (only during business hours)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, this approach is a useful way to build complex capabilities
+    from simpler ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional transforms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It should be obvious that you can easily create additional transforms which
+    can extend capabilities in other ways. Some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a capability that writes to an audit log on each execution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a capability that can only be performed once.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a capability that can be revoked when needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a capability that is throttled and can only be performed a limited number of
+    times in a given time period (such as password change attempts).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are implementations of the first three of them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s say that we have an `updatePassword` function, such as this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can then create a auditable version of `updatePassword`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or, we could create a one-time only version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can create a revokable function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code for all these F# examples is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A complete example in F#
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's the code to a complete application in F# (also available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example consists of a simple console app that allows you to get and update
+    customer records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to login as a user. "Alice" and "Bob" are normal users, while
+    "Zelda" has a customer agent role.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once logged in, you can select a customer to edit. Again, you are limited to
+    a choice between "Alice" and "Bob". (I'm sure you can hardly contain your excitement)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Once a customer is selected, you are presented with some (or none) of the following
+    options:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get a customer's data.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update a customer's data.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update a customer's password.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Which options are shown depend on which capabilities you have. These in turn
+    are based on who you are logged in as, and which customer is selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the domain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We''ll start with the core domain types that are shared across the application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `FailureCase` type documents all possible things that can go wrong at the
+    top-level of the application. See the ["Railway Oriented Programming" talk](http://fsharpforfunandprofit.com/rop/)
+    for more discussion on this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the capabilities
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next, we document all the capabilities that are available in the application.
+    To add clarity to the code, each capability is given a name (i.e. a type alias).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, the `CapabilityProvider` is a record of functions, each of which accepts
+    a customer id and principal, and returns an optional capability of the specified
+    type. This record is created in the top level model and then passed around to
+    the child components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the complete code for this module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: This module references a `SuccessFailure` result type similar to the one [discussed
+    here](http://fsharpforfunandprofit.com/rop/), but which I won't show.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing authentication
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next, we'll roll our own little authentication system. Note that when the user
+    "Zelda" is authenticated, the role is set to "CustomerAgent".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `customerIdForName` function attempts to find the customer id associated
+    with a particular name, while the `customerIdOwnedByPrincipal` compares this id
+    with another one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing authorization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here are the functions related to authorization, very similar to what was discussed
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the database
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The functions related to database access are similar to those in the earlier
+    examples, only this time we have implemented a crude in-memory database (just
+    a `Dictionary`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the business services
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next we have the "business services" (for lack of better word) where all the
+    work gets done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that each of these functions is passed in only the capability needed to
+    do its job. This code knows nothing about databases, or anything else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes, in this crude example, the code is reading and writing directly to the
+    console. Obviously in a more complex (and less crude!) design, the inputs to these
+    functions would be passed in as parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Here''s a simple exercise: replace the direct access to the console with a
+    capability such as `getDataWithPrompt`?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the user interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now for the user interface module, where most of the complex code lies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First up is a type (`CurrentState`) that represents the state of the user interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we're `LoggedOut` there is no `IPrincipal` available.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When we're `LoggedIn` there is a `IPrincipal` available, but no selected customer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When we're in the `CustomerSelected` state there is both a `IPrincipal` and
+    a `CustomerId` available.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the `Exit` state is a signal to the app to shutdown.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I very much like using a "state" design like this, because it ensures that we
+    can't accidentally access data that we shouldn't. For example, we literally cannot
+    access a customer when none is selected, because there is no customer id in that
+    state!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each state, there is a corresponding function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`loggedOutActions` is run when we are in the `LoggedOut` state. It presents
+    the available actions to you, and changes the state accordingly. You can log in
+    as a user, or exit. If the login is successful (`authenticate name` worked) then
+    the state is changed to `LoggedIn`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`loggedInActions` is run when we are in the `LoggedIn` state. You can select
+    a customer, or log out. If the customer selection is successful (`customerIdForName
+    customerName` worked) then the state is changed to `CustomerSelected`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selectedCustomerActions` is run when we are in the `CustomerSelected` state.
+    This works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, find out what capabilities we have.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next convert each capability into a corresponding menu text (using `Option.map`
+    because the capability might be missing), then remove the ones that are None.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, read a line from input, and depending on what it is, call one of the "business
+    services" (`getCustomer`, `updateCustomer`, or `updatePassword`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally the `mainUiLoop` function loops around until the state is set to `Exit`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the top-level module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With all this in place, we can implement the top-level module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module fetches all the capabilities, adds restrictions as explained previously,
+    and creates a `capabilities` record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `capabilities` record is then passed into the user interface when the app
+    is started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: The complete code for this example is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary of Part 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In part 2, we added authorization and other transforms as a separate concern
+    that could be applied to restrict authority. Again, there is nothing particularly
+    clever about using functions like this, but I hope that this has given you some
+    ideas that might be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: Why go to all this trouble? What''s the benefit over just testing
+    an "IsAuthorized" flag or something?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a typical use of a authorization flag:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Recall the quote from the previous post: "Capabilities should ''fail safe''.
+    If a capability cannot be obtained, or doesn''t work, we must not allow any progress
+    on paths that assumed that it was successful."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem with testing a flag like this is that **it's easy to forget, and
+    the compiler won't complain if you do**. And then you have a possible security
+    breach, as in the following code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not only that, but by "inlining" the test like this, we're mixing security concerns
+    into our main code, as pointed out earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast, a simple capability approach looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, it is **not possible to accidentally use the capability** if
+    you are not allowed to, as you literally don't have a function to call! And this
+    has to be handled at compile-time, not at runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, as we have just seen, capabilities are just functions, so we get
+    all the benefits of filtering, etc., which are not available with the inlined
+    boolean test version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: In many situations, you don''t know whether you can access a resource
+    until you try. So aren''t capabilities just extra work?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is indeed true. For example, you might want to test whether a file exists
+    first, and only then try to access it. The IT gods are always ruthless in these
+    cases, and in the time between checking the file's existence and trying to open
+    it, the file will probably be deleted!
+  prefs: []
+  type: TYPE_NORMAL
+- en: So since we will have to check for exceptions anyway, why do two slow I/O operations
+    when one would have sufficed?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is that the capability model is not about physical or system-level
+    authority, but logical authority -- only having the minimum you need to accomplish
+    a task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a web service process may be operating at a high level of system
+    authority, and can access any database record. But we don't want to expose that
+    to most of our code. We want to make sure that any failures in programming logic
+    cannot accidentally expose unauthorized data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes, of course, the capability functions themselves must do error handling,
+    and as you can see in the snippets above, I'm using the `Success/Failure` result
+    type as described [here](http://fsharpforfunandprofit.com/rop/). As a result,
+    we will need to merge failures from core functions (e.g. database errors) with
+    capability-specific failures such as `Failure OnlyAllowedOnce`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: You''ve created a whole module with types defined for each capability.
+    I might have hundreds of capabilities. Do you really expect me to do all this
+    extra work?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two points here, so let''s address each one in turn:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, do you have a system that already uses fine-grained authorization, or
+    has business-critical requirements about not leaking data, or performing actions
+    in an unauthorized context, or needs a security audit?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If none of these apply, then indeed, this approach is complete overkill!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But if you *do* have such a system, that raises some new questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: should the capabilities that are authorized be explicitly described in the code
+    somewhere?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and if so, should the capabilities be explicit throughout the code, or only
+    at the top-level (e.g. in the controller) and implicit everywhere else.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The question comes to down to whether you want to be explicit or implicit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Personally, I prefer things like this to be explicit. It may be a little extra
+    work initially, just a few lines to define each capability, but I find that it
+    generally stops problems from occurring further down the line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And it has the benefit of acting as a single place to document all the security-related
+    capabilities that you support. Any new requirements would require a new entry
+    here, so can be sure that no capabilities can sneak in under the radar (assuming
+    developers follow these practices).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: In this code, you''ve rolled your own authorization. Wouldn''t
+    you use a proper authorization provider instead?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes. This code is just an example. The authorization logic is completely separate
+    from the domain logic, so it should be easy to substitute any authorization provider,
+    such as [`ClaimsAuthorizationManager`](https://msdn.microsoft.com/en-us/library/system.security.claims.claimsauthorizationmanager.aspx)
+    class, or something like [XACML](https://en.wikipedia.org/wiki/XACML).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**I''ve got more questions...**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you missed them, some additional questions are answered at the [end of part
+    1](capability-based-security.html#summary). Otherwise please add your question
+    in the comments below, and I'll try to address it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coming up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the [next post](capability-based-security-3.html), we'll look at how to use
+    types to emulate access tokens and prevent unauthorized access to global functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx)
+    and [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using types as access tokens
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Using types as access tokens
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/cap/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous posts ([link](capability-based-security.html), [link](capability-based-security-2.html))
+    we looked at "capabilities" as the basis for locking down code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in most of the examples so far, we've been relying on self-discipline to
+    avoid using the global capabilities, or by trying to hide the "raw" capabilities
+    using the `internal` keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's a bit ugly -- can we do better?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we'll show that we can by using types to emulate "access tokens".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Real-world authorization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, let's step back and look at how authorization works in the real world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's a simplified diagram of a basic authorization system (such as [OAuth
+    2.0](https://developers.google.com/accounts/docs/OAuth2#basicsteps)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Simplified authentication](auth_token.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The steps, in their crudest form, are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client presents some claims to the Authorization Service, including identity
+    and the id and scope (capability) of the service it wants to access.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Authorization Service checks whether the client is authorized, and if so,
+    creates an access token which is returned to the client.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client then presents this access token to the Resource Service (the service
+    the client wants to use).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In general, the access token will only let the client do certain things. In
+    our terminology, it has been granted a limited set of capabilities.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Obviously, there's a lot more to it than that, but it will be enough to give
+    us some ideas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing an Access Token
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If we want to emulate this in our design, it's clear that we need some sort
+    of "access token". Since we're running in a single process, and the primary goal
+    is to stop accidental errors, we don't need to do cryptographic signatures and
+    all that. All we need is some object that can *only* be created by an authorization
+    service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That's easy. We can just use a type with a private constructor!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll set it up so that the type can only be created by an Authorization Service,
+    but is required to be passed in to the database service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, here's an F# implementation of the `AccessToken` type. The constructor
+    is private, and there's a static member that returns an instance if authorization
+    is allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, in the database module, we will add an extra parameter to each function,
+    which is the AccessToken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because the AccessToken token is required, we can safely make the database module
+    public now, as no unauthorized client can call the functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the accessToken is not actually used in the implementation. It is
+    just there to force callers to obtain a token at compile time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's look at how this might be used in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: At this point we have an optional access token. Using `Option.map`, we can apply
+    it to `CustomerDatabase.getCustomer` to get an optional capability. And by partially
+    applying the access token, the user of the capability is isolated from the authentication
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: And finally, we can attempt to use the capability, if present.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: So now we have a statically typed authorization system that will prevent us
+    from accidentally getting too much access to the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oops! We have made a big mistake...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This design looks fine on the surface, but we haven't actually made anything
+    more secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first problem is that the `AccessToken` type is too broad. If I can somehow
+    get hold of an access token for innocently writing to a config file, I might also
+    be able to use it to maliciously update passwords as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second problem is that the `AccessToken` throws away the context of the
+    operation. For example, I might get an access token for updating `CustomerId 1`,
+    but when I actually *use* the capability, I could pass in `CustomerId 2` as the
+    the customer id instead!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer to both these issues is to store information in the access token
+    itself, at the point when the authorization is granted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if the token stores the operation that was requested, the service
+    can check that the token matches the operation being called, which ensures that
+    the token can only be used for that particular operation. In fact, as we'll see
+    in a minute, we can be lazy and have the *compiler* do this checking for us!
+  prefs: []
+  type: TYPE_NORMAL
+- en: And, if we also store any data (such as the customer id) that was part of the
+    authorization request, then we don't need to ask for it again in the service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's more, we can trust that the information stored in the token is not forged
+    or tampered with because only the Authorization Service can create the token.
+    In other words, this is the equivalent of the token being "signed".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting the Access Token design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So let's revisit the design and fix it up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we will define a *distinct type* for each capability. The type will also
+    contain any data needed at authorization time, such as the customer id.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, here are two types that represent access to capabilities, one for
+    accessing a customer (both read and update), and another one updating a password.
+    Both of these will store the `CustomerId` that was provided at authorization time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, the `AccessToken` type is redefined to be a generic container with a `data`
+    field. The constructor is still private, but a public getter is added so clients
+    can access the data field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: The authorization implementation is similar to the previous examples, except
+    that this time the capability type and customer id are stored in the token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using Access Tokens in the database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With these access token types in place the database functions can be rewritten
+    to require a token of a particular type. The `customerId` is no longer needed
+    as an explicit parameter, because it will be passed in as part of the access token's
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note also that both `getCustomer` and `updateCustomer` can use the same type
+    of token (`AccessCustomer`), but `updatePassword` requires a different type (`UpdatePassword`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting it all together
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So now let's see all this in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The steps to getting a customer are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attempt to get the access token from the authorization service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you have the access token, get the `getCustomer` capability from the database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, if you have the capability, you can use it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that, as always, the `getCustomer` capability does not take a customer
+    id parameter. It was baked in when the capability was created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now what happens if we accidentally get the *wrong* type of access token? For
+    example, let us try to access the `updatePassword` function with an `AccessCustomer`
+    token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code will not even compile! The line `CustomerDatabase.updatePassword token
+    password` has an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have accidentally fetched the wrong kind of Access Token, but we have been
+    stopped from accessing the wrong database method at *compile time*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using types in this way is a nice solution to the problem of global access to
+    a potentially dangerous capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A complete example in F#
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the last post, I showed a complete console application in F# that used capabilities
+    to update a database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's update it to use access tokens as well. (The code is available as
+    a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since this is an update of the example, I'll focus on just the changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the capabilities
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The capabilities are as before except that we have defined the two new types
+    (`AccessCustomer` and `UpdatePassword`) to be stored inside the access tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing authorization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The authorization implementation must be changed to return `AccessTokens` now.
+    The `onlyIfDuringBusinessHours` restriction applies to capabilities, not access
+    tokens, so it is unchanged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the database
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Compared with the example from the previous post, the database functions have
+    the `CustomerId` parameter replaced with an `AccessToken` instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s what the database implementation looked like *before* using access
+    tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s what the code looks like *after* using access tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the business services and user interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The code relating to the business services and UI is completely unchanged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because these functions have been passed capabilities only, they are decoupled
+    from both the lower levels and higher levels of the application, so any change
+    in the authorization logic has no effect on these layers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the top-level module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The major change in the top-level module is how the capabilities are fetched.
+    We now have an additional step of getting the access token first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s what the code looked like *before* using access tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s what the code looks like *after* using access tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `tokenToCap` function is a little utility that applies the (optional) token
+    to a given function as the first parameter. The output is an (equally optional)
+    capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: And that's it for the changes needed to support access tokens. You can see all
+    the code for this example [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary of Part 3
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this post, we used types to represent access tokens, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `AccessToken` type is the equivalent of a signed ticket in a distributed
+    authorization system. It has a private constructor and can only be created by
+    the Authorization Service (ignoring reflection, of course!).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A specific type of `AccessToken` is needed to access a specific operation, which
+    ensures that we can't accidentally do unauthorized activities.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each specific type of `AccessToken` can store custom data collected at authorization
+    time, such as a `CustomerId`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Global functions, such as the database, are modified so that they cannot be
+    accessed without an access token. This means that they can safely be made public.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Question: Why not also store the caller in the access token, so that no other
+    client can use it?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is not needed because of the authority-based approach we're using. As discussed
+    in the [first post](capability-based-security.html#authority), once a client has
+    a capability, they can pass it around to other people to use, so there is no point
+    limiting it to a specific caller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: The authorization module needs to know about the capability and
+    access token types now. Isn''t that adding extra coupling?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the authorization service is going to do its job, it has to know *something*
+    about what capabilities are available, so there is always some coupling, whether
+    it is implicit ("resources" and "actions" in XACML) or explicit via types, as
+    in this model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So yes, the authorization service and database service both have a dependency
+    on the set of capabilities, but they are not coupled to each other directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: How do you use this model in a distributed system?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This model is really only designed to be used in a single codebase, so that
+    type checking can occur.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could probably hack it so that types are turned into tickets at the boundary,
+    and conversely, but I haven't looked at that at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question: Where can I read more on using types as access tokens?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type-oriented version of an access token is my own design, although I very
+    much doubt that I'm the first person to think of using types this way. There are
+    some related things for Haskell [(example)](http://hackage.haskell.org/package/Capabilities)
+    but I don't know of any directly analogous work that's accessible to mainstream
+    developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**I''ve got more questions...**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some additional questions are answered at the end of [part 1](capability-based-security.html#summary)
+    and [part 2](capability-based-security-2.html#summary), so read those answers
+    first. Otherwise please add your question in the comments below, and I'll try
+    to address it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Thanks for making it all the way to the end!
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I said at the beginning, the goal is not to create an absolutely safe system,
+    but instead encourage you to think about and integrate authorization constraints
+    into the design of your system from the beginning, rather than treating it as
+    an afterthought.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's more, the point of doing this extra work is not just to improve *security*,
+    but also to *improve the general design* of your code. If you follow the principle
+    of least authority, you get modularity, decoupling, explicit dependencies, etc.,
+    for free!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my opinion, a capability-based system works very well for this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions map well to capabilities, and the need to pass capabilities around
+    fits in very well with standard functional programming patterns.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once created, capabilities hide all the ugliness of authorization from the client,
+    and so the model succeeds in "making security user-friendly by making the security
+    invisible".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, with the addition of type-checked access tokens, we can have high confidence
+    that no part of our code can access global functions to do unauthorized operations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope you found this series useful, and might inspire you to investigate some
+    of these ideas more fully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*NOTE: All the code for this post is available as a [gist here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_typeexample-fsx)
+    and [here](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample_withtypes-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL

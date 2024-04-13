@@ -1,0 +1,3394 @@
+- en: The "Understanding Parser Combinators" Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series, we'll look at how so-called "applicative parsers" work. In order
+    to understand something, there's nothing like building it for yourself, and so
+    we'll create a basic parser library from scratch, then some useful "parser combinators",
+    and then finish off by building a complete JSON parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Understanding Parser Combinators](understanding-parser-combinators1.html).
+    Building a parser combinator library from scratch.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Building a useful set of parser combinators](understanding-parser-combinators-2.html).
+    15 or so combinators that can be combined to parse almost anything.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Improving the parser library](understanding-parser-combinators-3.html). Adding
+    more informative errors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Writing a JSON parser from scratch](understanding-parser-combinators-4.html).
+    In 250 lines of code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understanding Parser Combinators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Understanding Parser Combinators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series, we'll look at how so-called "applicative parsers" work. In order
+    to understand something, there's nothing like building it for yourself, and so
+    we'll create a basic parser library from scratch, and then some useful "parser
+    combinators", and then finish off by building a complete JSON parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now terms like "applicative parsers" and "parser combinators" can make this
+    approach seem complicated, but rather than attempting to explain these concepts
+    up front, we'll just dive in and start coding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll build up to the complex stuff incrementally via a series of implementations,
+    where each implementation is only slightly different from the previous one. By
+    using this approach, I hope that at each stage the design and concepts will be
+    easy to understand, and so by the end of this series, parser combinators will
+    have become completely demystified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There will be four posts in this series:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this, the first post, we'll look at the basic concepts of parser combinators
+    and build the core of the library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [second post](understanding-parser-combinators-2.html), we'll build up
+    a useful library of combinators.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [third post](understanding-parser-combinators-3.html), we'll work on
+    providing helpful error messages.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [last post](understanding-parser-combinators-4.html), we'll build a JSON
+    parser using this parser library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Obviously, the focus here will not be on performance or efficiency, but I hope
+    that it will give you the understanding that will then enable you to use libraries
+    like [FParsec](http://www.quanttec.com/fparsec/) effectively. And by the way,
+    a big thank you to Stephan Tolksdorf, who created FParsec. You should make it
+    your first port of call for all your .NET parsing needs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation 1\. Parsing a hard-coded character
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our first implementation, let's create something that just parses a single,
+    hard-coded, character, in this case, the letter "A". You can't get much simpler
+    than that!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is how it works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The input to a parser is a stream of characters. We could use something complicated,
+    but for now we'll just use a `string`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the stream is empty, then return a pair consisting of `false` and an empty
+    string.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the first character in the stream is an `A`, then return a pair consisting
+    of `true` and the remaining stream of characters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the first character in the stream is not an `A`, then return `false` and
+    the (unchanged) original stream of characters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `A_Parser` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which tells us that the input is a string, and the output is a pair consisting
+    of the boolean result and another string (the remaining input), like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Let''s test it now -- first with good input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the `A` has been consumed and the remaining input is just `"BC"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now with bad input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which gives the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: And in this case, the first character was *not* consumed and the remaining input
+    is still `"ZBC"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, there's an incredibly simple parser for you. If you understand that, then
+    everything that follows will be easy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation 2\. Parsing a specified character
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's refactor so that we can pass in the character we want to match, rather
+    than having it be hard coded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And this time, rather than returning true or false, we'll return a message indicating
+    what happened.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll call the function `pchar` for "parse char". Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code is just like the previous example, except that the unexpected character
+    is now shown in the error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `pchar` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: which tells us that the input is a pair of (string,character to match) and the
+    output is a pair consisting of the (string) result and another string (the remaining
+    input).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s test it now -- first with good input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: As before, the `A` has been consumed and the remaining input is just `"BC"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now with bad input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which gives the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: And again, as before, the first character was *not* consumed and the remaining
+    input is still `"ZBC"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we pass in `Z`, then the parser does succeed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation 3\. Returning a Success/Failure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We want to be able to tell the difference between a successful match and a
+    failure, and returning a stringly-typed message is not very helpful, so let''s
+    define a special "choice" type to indicate the difference. I''ll call it `Result`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Success` case is generic and can contain any value. The `Failure` case
+    contains an error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: for more on using this Success/Failure approach, see my talk on [functional
+    error handling](http://fsharpforfunandprofit.com/rop/)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now rewrite the parser to return one of the `Result` cases, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `pchar` is now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: which tells us that the the output is now a `Result` (which in the `Success`
+    case, contains the matched char and the remaining input string).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s test it again -- first with good input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: As before, the `A` has been consumed and the remaining input is just `"BC"`.
+    We also get the *actual* matched char (`A` in this case).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now with bad input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'which gives the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: And in this case, the `Failure` case is returned with the appropriate error
+    message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a diagram of the function''s inputs and outputs now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation 4\. Switching to a curried implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the previous implementation, the input to the function has been a tuple --
+    a pair. This requires you to pass both inputs at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In functional languages like F#, it''s more idiomatic to use a curried version,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Can you see the difference? The only difference is in the first line, and even
+    then it is subtle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the uncurried (tuple) version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the curried version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The difference is much more obvious when you look at the type signatures. Here''s
+    the signature for the uncurried (tuple) version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the signature for the curried version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the curried version of `pchar` represented as a diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What is currying?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you are unclear on how currying works, I have a post about it [here](currying.html),
+    but basically it means that a multi-parameter function can be written as a series
+    of one-parameter functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, this two-parameter function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'can be written as a one-parameter function that returns a lambda, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or as a function that returns an inner function, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rewriting with an inner function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can take advantage of currying and rewrite the parser as a one-parameter
+    function (where the parameter is `charToMatch`) that returns a inner function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the new implementation, with the inner function cleverly named `innerFn`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The type signature for this implementation looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's *exactly the same* as the previous version!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is, both of the above implementations are identical in practice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: The benefits of the curried implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'What''s nice about the curried implementation is that we can [partially apply](partial-application.html)
+    the character we want to parse, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and then later on supply the second "input stream" parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this point, let''s stop and review what is going on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `pchar` function has two inputs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can provide one input (the char to match) and this results in a *function*
+    being returned.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can then provide the second input (the stream of characters) to this parsing
+    function, and this creates the final `Result` value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s a diagram of `pchar` again, but this time with the emphasis on partial
+    application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-4a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It's very important that you understand this logic before moving on, because
+    the rest of the post will build on this basic design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation 5\. Encapsulating the parsing function in a type
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If we look at `parseA` (from the example above) we can see that it has a function
+    type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That type is a bit complicated to use, so let''s encapsulate it in a "wrapper"
+    type called `Parser`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By encapsulating it, we''ll go from this design:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-4a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'to this design:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The change to the implementation is very simple. We just need to change the
+    way the inner function is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is, from this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Testing the wrapped function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Ok, now let''s test again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But now we get a compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: And of course that is because the function is wrapped in the `Parser` data structure!
+    It's not longer directly accessible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now we need a helper function that can extract the inner function and run
+    it against the input stream. Let's call it `run`!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation of `run`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now we can run the `parseA` parser against various inputs again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's it! We've got a basic `Parser` type! I hope that this all makes sense
+    so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Combining two parsers in sequence: the "and then" combinator'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: That last implementation is good enough for basic parsing logic. We'll revisit
+    it later, but now let's move up a level and develop some ways of combining parsers
+    together -- the "parser combinators" mentioned at the beginning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll start with combining two parsers in sequence. For example, say that
+    we want a parser that matches "A" and then "B". We could try writing something
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: but that gives us a compiler error, as the output of `parseA` does not match
+    the input of `parseB`, and so they cannot be composed like that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are familiar with [functional programming patterns](http://fsharpforfunandprofit.com/fppatterns/),
+    the need to chain a sequence of wrapped types together like this happens frequently,
+    and the solution is a `bind` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, in this case, I won't implement `bind` but will instead go straight
+    to an `andThen` implemention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The implementation logic will be as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the first parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If there is a failure, return.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, run the second parser with the remaining input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If there is a failure, return.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If both parsers succeed, return a pair (tuple) that contains both parsed values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code for `andThen`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: The implementation follows the logic described above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll also define an infix version of `andThen` so that we can use it like
+    regular `>>` composition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note: the parentheses are needed to define a custom operator, but are not
+    needed in the infix usage.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we look at the signature of `andThen`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: we can see that it works for any two parsers, and they can be of different types
+    (`'a` and `'b`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing `andThen`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's test it and see if it works!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, create the compound parser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you look at the types, you can see that all three values have type `Parser`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`parseAThenB` is of type `Parser<char * char>` meaning that the parsed value
+    is a pair of chars.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now since the combined parser `parseAThenB` is just another `Parser`, we can
+    use `run` with it as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that in the success case, the pair `('A', 'B')` was returned, and
+    also that failure happens when either letter is missing from the input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Choosing between two parsers: the "or else" combinator'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's look at another important way of combining parsers -- the "or else" combinator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, say that we want a parser that matches "A" *or* "B". How could
+    we combine them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The implementation logic would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the first parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On success, return the parsed value, along with the remaining input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, on failure, run the second parser with the original input...
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...and in this case, return the result (success or failure) from the second
+    parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code for `orElse`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we''ll define an infix version of `orElse` as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we look at the signature of `orElse`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: we can see that it works for any two parsers, but they must both be the *same*
+    type `'a`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing `orElse`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Time to test it. First, create the combined parser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you look at the types, you can see that all three values have type `Parser<char>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now if we run `parseAOrElseB` we can see that it successfully handles an "A"
+    or a "B" as first character.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: Combining `andThen` and `orElse`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With these two basic combinators, we can build more complex ones, such as "A
+    and then (B or C)".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how to build up `aAndThenBorC` from simpler parsers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the last example gives a misleading error. It says "Expecting 'C'"
+    when it really should say "Expecting 'B' or 'C'". We won't attempt to fix this
+    right now, but in a later post we'll implement better error messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Choosing from a list of parsers: "choice" and "anyOf"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is where where the power of combinators starts kicking in, because with
+    `orElse` in our toolbox, we can use it to build even more combinators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let's say that we want choose from a *list* of parsers, rather
+    than just two.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, that's easy. If we have a pairwise way of combining things, we can extend
+    that to combining an entire list using `reduce` (for more on working with `reduce`,
+    [see this post on monoids](monoids-without-tears.html) ).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note that this will fail if the input list is empty, but we will ignore that
+    for now.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature of `choice` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: which shows us that, as expected, the input is a list of parsers, and the output
+    is a single parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With `choice` available, we can create an `anyOf` parser that matches any character
+    in a list, using the following logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The input is a list of characters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each char in the list is transformed into a parser for that char using `pchar`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, all the parsers are combined using `choice`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test it by creating a parser for any lowercase character and any digit
+    character:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we test them, they work as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, the error messages are misleading. Any lowercase letter can be expected,
+    not just 'z', and any digit can be expected, not just '9'. As I said earlier,
+    we'll work on the error messages in a later post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Review
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s stop for now, and review what we have done:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have created a type `Parser` that is a wrapper for a parsing function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The parsing function takes an input (e.g. string) and attempts to match the
+    input using the criteria baked into the function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the match succeeds, the parsing function returns a `Success` with the matched
+    item and the remaining input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the match fails, the parsing function returns a `Failure` with reason for
+    the failure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And finally, we saw some "combinators" -- ways in which `Parser`s could be
+    combined to make a new `Parser`: `andThen` and `orElse` and `choice`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Listing of the parser library so far
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's the complete listing for the parsing library so far -- it's about 90
+    lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-parserlibrary_v1-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we have created the foundations of a parsing library, and few
+    simple combinators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [next post](understanding-parser-combinators-2.html), we'll build on
+    this to create a library with many more combinators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-understanding_parser_combinators-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further information
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you are interesting in using this technique in production, be sure to investigate
+    the [FParsec library](http://www.quanttec.com/fparsec/) for F#, which is optimized
+    for real-world usage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For more information about parser combinators in general, search the internet
+    for "Parsec", the Haskell library that influenced FParsec (and this post).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For some examples of using FParsec, try one of these posts:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a phrase search query for FogCreek''s Kiln](http://blog.fogcreek.com/fparsec/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A LOGO Parser](http://trelford.com/blog/post/FParsec.aspx)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A Small Basic Parser](http://trelford.com/blog/post/parser.aspx)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A C# Parser](http://trelford.com/blog/post/parsecsharp.aspx) and [building
+    a C# compiler in F#](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Write Yourself a Scheme in 48 Hours in F#](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Parsing GLSL, the shading language of OpenGL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building a useful set of parser combinators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Building a useful set of parser combinators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series, we are looking at how applicative parsers and parser combinators
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first post](understanding-parser-combinators1.html), we created the
+    foundations of a parsing library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this post, we'll build out the library with many other useful combinators.
+    The combinator names will be copied from those used by [FParsec](http://www.quanttec.com/fparsec/),
+    so that you can easily migrate to it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. `map` -- transforming the contents of a parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When parsing, we often we want to match a particular string, such as a reserved
+    word like "if" or "where". A string is just a sequence of characters, so surely
+    we could use the same technique that we used to define `anyOf` in the first post,
+    but using `andThen` instead of `orElse`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a (failed) attempt to create a `pstring` parser using that approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: This doesn't work, because the output of `andThen` is different from the input
+    (a tuple, not a char) and so the `reduce` approach fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to solve this, we'll need to use a different technique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started, let''s try just matching a string of a specific length. Say,
+    for example, that we want to match a three digits in a row. Well, we can do that
+    using `andThen`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we run it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'then we get the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: It does work, but the result contains a tuple inside a tuple `(('1', '2'), '3')`
+    which is fugly and hard to use. It would be so much more convenient to just have
+    a simple string (`"123"`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in order to turn `('1', '2'), '3')` into `"123"`, we'll need a function
+    that can reach inside of the parser and transform the result using an arbitrary
+    passed in function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, what we need is the functional programmer's best friend, `map`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To understand `map` and similar functions, I like to think of there being two
+    worlds: a "Normal World", where regular things live, and "Parser World", where
+    `Parser`s live.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can think of Parser World as a sort of "mirror" of Normal World because
+    it obeys the following rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every type in Normal World (say `char`) has a corresponding type in Parser World
+    (`Parser<char>`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](parser-world-return.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every value in Normal World (say `"ABC"`) has a corresponding value in Parser
+    World (that is, some `Parser<string>` that returns `"ABC"`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every function in Normal World (say `char -> string`) has a corresponding function
+    in Parser World (`Parser<char> -> Parser<string>`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](parser-world-map.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using this metaphor then, `map` transforms (or "lifts") a function in Normal
+    World into a function in Parser World.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-map.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*And by the way, if you like this metaphor, I have a [whole series of posts
+    that develop it further](elevated-world.html).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So that's what `map` does; how do we implement it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside the `innerFn`, run the parser to get the result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the result was a success, apply the specified function to the success value
+    to get a new, transformed value, and...
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '...return the new, mapped, value instead of the original value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code (I''ve named the map function `mapP` to avoid confusion with
+    other map functions):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we look at the signature of `mapP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: we can see that it has exactly the signature we want, transforming a function
+    `'a -> 'b` into a function `Parser<'a> -> Parser<'b>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s common to define an infix version of `map` as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And in the context of parsing, we''ll often want to put the mapping function
+    *after* the parser, with the parameters flipped. This makes using `map` with the
+    pipeline idiom much more convenient:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: Parsing three digits with `mapP`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With `mapP` available, we can revisit `parseThreeDigits` and turn the tuple
+    into a string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or, if you prefer a more compact implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And if we test it, we get a string in the result now, rather than a tuple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can go further, and map the string into an int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we test this, we get an `int` in the Success branch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s check the type of `parseThreeDigitsAsInt`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's a `Parser<int>` now, not a `Parser<char>` or `Parser<string>`. The fact
+    that a `Parser` can contain *any* type, not just a char or string, is a key feature
+    that will be very valuable when we need to build more complex parsers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. `apply` and `return` -- lifting functions to the world of Parsers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To achieve our goal of creating a parser that matches a list of characters,
+    we need two more helper functions which I will call `returnP` and `applyP`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`returnP` simply transforms a normal value into a value in Parser World'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`applyP` transforms a Parser containing a function (`Parser< ''a->''b >`) into
+    a function in Parser World (`Parser<''a> -> Parser<''b >`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s a diagram of `returnP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-return.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And here is the implementation of `returnP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `returnP` is just as we want:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now here''s a diagram of `applyP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-apply.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And here is the implementation of `applyP`, which uses `.>>.` and `map`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The infix version of `applyP` is written as `<*>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, the signature of `applyP` is just as we want:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why do we need these two functions? Well, `map` will lift functions in Normal
+    World into functions in Parser World, but only for one-parameter functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's great about `returnP` and `applyP` is that, together, they can lift *any*
+    function in Normal World into a function in Parser World, no matter how many parameters
+    it has.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we now can define a `lift2` function that will lift a two parameter
+    function into Parser World like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `lift2` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s a diagram of `lift2`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](parser-lift2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*If you want to know more about how this works, check out my ["man page" post
+    on `lift2`](elevated-world.html) or [my explanation that involves the "Monadster"](monadster.html).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s see some examples of using `lift2` in practice. First, lifting integer
+    addition to addition of Parsers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: which shows that `addP` does indeed take two `Parser<int>` parameters and returns
+    another `Parser<int>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here''s the `startsWith` function being lifted to Parser World:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, the signature of `startsWithP` is parallel to the signature of `startsWith`,
+    but lifted to the world of Parsers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. `sequence` -- transforming a list of Parsers into a single Parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We now have the tools we need to implement our sequencing combinator! The logic
+    will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start with the list "cons" operator. This is the two-parameter function that
+    prepends a "head" element onto a "tail" of elements to make a new list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lift `cons` into the world of Parsers using `lift2`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We now have a a function that prepends a head `Parser` to a tail list of `Parser`s
+    to make a new list of `Parser`s, where:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The head Parser is the first element in the list of parsers that has been passed
+    in.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The tail is generated by calling the same function recursively with the next
+    parser in the list.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When the input list is empty, just return a `Parser` containing an empty list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `sequence` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: which shows that the input is a list of `Parser`s and the output is a `Parser`
+    containing a list of elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s test it by creating a list of three parsers, and then combining them
+    into one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, when we run it we get back a list of characters, one for each
+    parser in the original list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the `pstring` parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At last, we can implement the parser that matches a string, which we'll call
+    `pstring`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convert the string into a list of characters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert each character into a `Parser<char>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `sequence` to convert the list of `Parser<char>` into a single `Parser<char
+    list>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And finally, use `map` to convert the `Parser<char list>` into a `Parser<string>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: It works as expected. Phew!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. `many` and `many1` -- matching a parser multiple times
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Another common need is to match a particular parser as many times as you can.
+    For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When matching an integer, you want to match as many digit characters as you
+    can.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When matching a run of whitespace, you want to match as many whitespace characters
+    as you can.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are slightly different requirements for these two cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When matching whitespace, it is often optional, so we want a "zero or more"
+    matcher, which we'll call `many`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On the other hand, when matching digits for an integer, you want to match *at
+    least one* digit, so we want a "one or more" matcher, which we'll call `many1`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Before creating these, we''ll define a helper function which matches a parser
+    zero or more times. The logic is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the parser returns `Failure` (and this is key) just return an empty list.
+    That is, this function can never fail!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If the parser succeeds:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call the function recursively to get the remaining values (which could also
+    be an empty list).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then combine the first value and the remaining values.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this helper function, we can easily define `many` now -- it''s just a
+    wrapper over `parseZeroOrMore`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `many` shows that the output is indeed a list of values wrapped
+    in a `Parser`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s test `many`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that in the last case, even when there is nothing to match, the function
+    succeeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There''s nothing about `many` that restricts its use to single characters.
+    For example, we can use it to match repetitive string sequences too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, let''s implement the original example of matching whitespace:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: Defining `many1`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can also define the "one or more" combinator `many1`, using the following
+    logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If it fails, return the failure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If it succeeds:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call the helper function `parseZeroOrMore` to get the remaining values.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then combine the first value and the remaining values.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, the signature of `many1` shows that the output is indeed a list of values
+    wrapped in a `Parser`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s test `many1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we saw in an earlier example, the last case gives a misleading error. It
+    says "Expecting '9'" when it really should say "Expecting a digit". In the next
+    post we'll fix this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing an integer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Using `many1`, we can create a parser for an integer. The implementation logic
+    is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a parser for a digit.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `many1` to get a list of digits.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using `map`, transform the result (a list of digits) into a string and then
+    into an int.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And let''s test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: 5\. `opt` -- matching a parser zero or one time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes we only want to match a parser zero or one time. For example, the
+    `pint` parser above does not handle negative values. To correct this, we need
+    to be able to handle an optional minus sign.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can define an `opt` combinator easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change the result of a specified parser to an option by mapping the result to
+    `Some`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create another parser that always returns `None`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `<|>` to choose the second ("None") parser if the first fails.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s an example of it in use -- we match a digit followed by an optional
+    semicolon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is `pint` rewritten to handle an optional minus sign:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the `resultToInt` helper function now needs to handle the sign option
+    as well as the list of digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here it is in action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: 6\. Throwing results away
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We often want to match something in the input, but we don''t care about the
+    parsed value itself. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a quoted string, we need to parse the quotes, but we don't need the quotes
+    themselves.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For a statement ending in a semicolon, we need to ensure the semicolon is there,
+    but we don't need the semicolon itself.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For whitespace separators, we need to ensure the whitespace is there, but we
+    don't need the actual whitespace data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To handle these requirements, we will define some new combinators that throw
+    away the results of a parser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p1 >>. p2` will apply `p1` and `p2` in sequence, just like `.>>.`, but throw
+    away the result of `p1` and keep the result of `p2`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`p1 .>> p2` will apply `p1` and `p2` in sequence, just like `.>>.`, but keep
+    the result of `p1` and throw away the result of `p2`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These are easy to define -- just map over the result of `.>>.`, which is a tuple,
+    and keep only one element of the pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These combinators allow us to simplify the `digitThenSemicolon` example shown
+    earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the result now is the same, whether or not the semicolon was
+    present.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How about an example with whitespace?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following code creates a parser that looks for "AB" followed by one or more
+    whitespace chars, followed by "CD".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result contains "AB" and "CD" only. The whitespace between them has been
+    discarded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing `between`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A particularly common requirement is to look for a parser between delimiters
+    such as quotes or brackets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Creating a combinator for this is trivial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use, to parse a quoted integer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: 7\. Parsing lists with separators
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another common requirement is parsing lists, seperated by something like commas
+    or whitespace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To implement a "one or more" list, we need to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First combine the separator and parser into one combined parser, but using `>>.`
+    to throw away the separator value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, look for a list of the separator/parser combo using `many`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then prefix that with the first parser and combine the results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the "zero or more" version, we can choose the empty list as an alternate
+    if `sepBy1` does not find any matches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s some tests for `sepBy1` and `sepBy`, with results shown in the comments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: What about `bind`?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One combinator that we *haven't* implemented so far is `bind` (or `>>=`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you know anything about functional programming, or have seen my talk on [FP
+    patterns](http://fsharpforfunandprofit.com/fppatterns/), you'll know that `bind`
+    is a powerful tool that can be used to implement many functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Up to this point, I thought that it would be better to show implementations
+    for combinators such as `map` and `.>>.` that were explicit and thus, hopefully,
+    easier to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now that we have have some experience, let's implement `bind` and see what
+    we can do with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the implementation of `bindP` (as I'll call it)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The signature of `bindP` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: which conforms to a standard bind signature. The input `f` is a "diagonal" function
+    (`'a -> Parser<'b>`) and the output is a "horizontal" function (`Parser<'a> ->
+    Parser<'b>`). See [this post for more details on how `bind` works](elevated-world-2.html#bind).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The infix version of `bind` is `>>=`. Note that the parameters are flipped:
+    `f` is now the second parameter which makes it more convenient for F#''s pipeline
+    idiom.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reimplementing other combinators with `bindP` and `returnP`
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The combination of `bindP` and `returnP` can be used to re-implement many of
+    the other combinators. Here are some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the combinators that check the `Failure` path can not be implemented
+    using `bind`. These include `orElse` and `many`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Review
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We could keep building combinators for ever, but I think we have everything
+    we need to build a JSON parser now, so let's stop and review what we have done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the previous post we created these combinators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`.>>.` (`andThen`) applies the two parsers in sequence and returns the results
+    in a tuple.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`<|>` (`orElse`) applies the first parser, and if that fails, the second parsers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`choice` extends `orElse` to choose from a list of parsers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And in this post we created the following additional combinators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bindP` chains the result of a parser to another parser-producing function.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`mapP` transforms the result of a parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`returnP` lifts an normal value into the world of parsers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`applyP` allows us to lift multi-parameter functions into functions that work
+    on Parsers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`lift2` uses `applyP` to lift two-parameter functions into Parser World.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sequence` converts a list of Parsers into a Parser containing a list.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`many` matches zero or more occurences of the specified parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`many1` matches one or more occurences of the specified parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`opt` matches an optional occurrence of the specified parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`.>>` keeps only the result of the left side parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`>>.` keeps only the result of the right side parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`between` keeps only the result of the middle parser.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sepBy` parses zero or more occurrences of a parser with a separator.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sepBy1` parses one or more occurrences of a parser with a separator.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope you can see why the concept of "combinators" is so powerful; given just
+    a few basic functions, we have built up a library of useful functions quickly
+    and concisely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing of the parser library so far
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's the complete listing for the parsing library so far -- it's about 200
+    lines of code now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-parserlibrary_v2-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we have built on the basic parsing code from last time to create
+    a library of a 15 or so combinators that can be combined to parse almost anything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Soon, we'll use them to build a JSON parser, but before that, let's pause and
+    take time to clean up the error messages. That will be the topic of the [next
+    post](understanding-parser-combinators-3.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-understanding_parser_combinators-2-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Improving the parser library
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Improving the parser library
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series, we are looking at how applicative parsers and parser combinators
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first post](understanding-parser-combinators1.html), we created the
+    foundations of a parsing library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [second post](understanding-parser-combinators-2.html), we built out
+    the library with many other useful combinators.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this post, we'll rework the library to provide more helpful error messages.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Labelling a Parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In some of the failing code examples from earlier posts, we got confusing errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`parseDigit` is defined as a choice of digit characters, so when the last choice
+    (`''9''`) fails, that is the error message we receive.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But that message is quite confusing. What we *really* want is to receive is
+    an error that mentions "digit", something like: `Failure "Expecting digit. Got
+    ''|''"`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, what we need is a way of labeling parsers with a word like "digit"
+    and then showing that label when a failure occurs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a reminder, this is how the `Parser` type was defined in earlier posts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order to add a label, we need to change it into a record structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The record contains two fields: the parsing function (`parseFn`) and the `label`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One problem is that the label is in the parser itself, but not in the `Result`,
+    which means that clients will not know how to display the label along with the
+    error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s add it to the `Failure` case of `Result` as well, in addition to
+    the error message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And while we are at it, let''s define a helper function to display the result
+    of a parse:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: Updating the code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'With this change to the definition of `Parser` and `Result`, we have to change
+    some of the basic functions, such as `bindP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have to make similar changes to `returnP`, `orElse`, and `many`. For the
+    complete code, see the gist linked to below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updating the label
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When we use a combinator to build a new compound parser, we will often want
+    to assign a new label to it. In order to do this, we replace the original `parseFn`
+    with another one that returns the new label.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And let''s create an infix version of this called `<?>`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's test our new toy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the output is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: The error message is now `Error parsing digit` rather than `Expecting '9'`.
+    Much better!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Setting default labels:'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can also set the default labels for certain combinators such as `andThen`
+    and `orElse` based on the inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Replacing "pchar" with "satisfy"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One thing that has bothered me about all the implementations so far is `pchar`,
+    the basic primitive that all the other functions have built on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I don't like that it is so tightly coupled to the input model. What happens
+    if we want to parse bytes from a binary format, or other kinds of input. All the
+    combinators other than `pchar` are loosely coupled. If we could decouple `pchar`
+    as well, we would be set up for parsing *any* stream of tokens, and that would
+    make me happy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this point, I''ll repeat one of my favorite FP slogans: "parameterize all
+    the things!" In the case of `pchar`, we''ll remove the `charToMatch` parameter
+    and replace it with a function -- a predicate. We''ll call the new function `satisfy`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Other than the parameters, the only thing that has changed from the `pchar`
+    implementation is this one line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With `satisfy` available, we can rewrite `pchar`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we are setting the label to be the `charToMatch`. This refactoring
+    would not have been as convenient before, because we didn't have the concept of
+    "labels" yet, and so `pchar` would not have been able to return a useful error
+    message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `satisfy` function also lets us write more efficient versions of other
+    parsers. For example, parsing a digit looked like this originally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But now we can rewrite it using a predicate directly, making it a lot more
+    efficient:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, we can create a more efficient whitespace parser too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. Adding position and context to error messages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another way to improve the error messages is to show the line and column that
+    the error occurred on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obviously, for simple one-liners, keeping track of the error location is not
+    a problem, but when you are parsing a 100 line JSON file, it will be very helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to track the line and column we are going to have to abandon the simple
+    `string` input and replace it with something more complex, so let's start with
+    that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining a input that tracks position
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'First, we will need a `Position` type to store the line and column, with helper
+    functions to increment one column and one line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we''ll need to combine the input string with a position into a single
+    "input state" type. Since we are line oriented, we can make our lives easier and
+    store the input string as a array of lines rather than as one giant string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will also need a way to convert a string into a initial `InputState`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, and most importantly, we need a way to read the next character from
+    the input -- let's call it `nextChar`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know what the input for `nextChar` will be (an `InputState`) but what should
+    the output look like?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the input is at the end, we need a way to indicate that there is no next
+    character, so in that case return `None`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Therefore in the case when a character is available, we will return `Some`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition, the input state will have changed because the column (or line)
+    will have been incremented as well.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, putting this together, the input for `nextChar` is an `InputState` and the
+    output is a pair `char option * InputState`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic for returning the next char will be as follows then:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we are at the last character of the input, return EOF (`None`) and don't
+    change the state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the current column is *not* at the end of a line, return the character at
+    that position and change the state by incrementing the column position.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the current column *is* at the end of a line, return a newline character
+    and change the state by incrementing the line position.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unlike the earlier `string` implementation, the underlying array of lines is
+    never altered or copied -- only the position is changed. This means that making
+    a new state each time the position changes should be reasonably efficient, because
+    the text is shared everywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s quickly test that the implementation works. We''ll create a helper function
+    `readAllChars` and then see what it returns for different inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here it is with some example inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the implementation returns a newline at the end of the input, even
+    if the input doesn't have one. I think that this is a feature, not a bug!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Changing the parser to use the input
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We now need to change the `Parser` type again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start with, the `Failure` case needs to return some kind of data that indicates
+    the position, so we can show it in an error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We could just use the `InputState` as is, but let''s be good and define a new
+    type specially for this use, called `ParserPosition`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We''ll need some way to convert a `InputState` into a `ParserPosition`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, we can update the `Result` type to include `ParserPosition`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In addition, the `Parser` type needs to change from `string` to `InputState`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With all this extra information available, the `printResult` function can be
+    enhanced to print the text of the current line, along with a caret where the error
+    is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test `printResult` with a dummy error value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: Much nicer than before!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fixing up the `run` function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `run` function now needs to take an `InputState` not a string. But we also
+    want the convenience of running against string input, so let''s create two `run`
+    functions, one that takes an `InputState` and one that takes a `string`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fixing up the combinators
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We now have three items in the `Failure` case rather than two. This breaks some
+    code but is easy to fix. I'm tempted to create a special `ParserError` type so
+    that it never happens again, but for now, I'll just fix up the errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a new version of `satisfy`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the failure case code is now `Failure (label,err,pos)` where the parser
+    position is built from the input state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here is `bindP`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can fix up the other functions in the same way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the positional errors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s test with a real parser now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the output is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: Excellent! I think we can stop now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Adding some standard parsers to the library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the previous posts, we've built parsers for strings and ints in passing,
+    but now let's add them to the core library, so that clients don't have to reinvent
+    the wheel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These parsers are based on those in the [the FParsec library](http://www.quanttec.com/fparsec/reference/charparsers.html#).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with some string-related parsers. I will present them without comment
+    -- I hope that the code is self-explanatory by now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test `pstring`, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: Whitespace parsers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Whitespace is important in parsing, even if we do end up mostly throwing it
+    away!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s some whitespace tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: Numeric parsers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, we need a parser for ints and floats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And some tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: 5\. Backtracking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One more topic that we should discuss is "backtracking".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s say that you have two parsers: one to match the string `A-1` and and
+    another to match the string `A-2`. If the input is `A-2` then the first parser
+    will fail at the third character and the second parser will be attempted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now the second parser must start at the *beginning* of the original sequence
+    of characters, not at the third character. That is, we need to undo the current
+    position in the input stream and go back to the first position.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we were using a mutable input stream then this might be a tricky problem,
+    but thankfully we are using immutable data, and so "undoing" the position just
+    means using the original input value. And of course, this is exactly what combinators
+    such as `orElse` (`<|>`) do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we get backtracking "for free" when we use immutable input state.
+    Yay!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sometimes however, we *don''t* want to backtrack. For example, let''s say we
+    have these parsers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: let `forExpression` = the "for" keyword, then an identifier, then the "in" keyword,
+    etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: let `ifExpression` = the "if" keyword, then an identifier, then the "then" keyword,
+    etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'and we then create a combined expression parser that chooses between them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: let `expression` = `forExpression <|> ifExpression`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now, if the input stream is `for &&& in something` then the `forExpression`
+    parser will error when it hits the sequence `&&&`, because it is expecting a valid
+    identifier. At this point we *don't* want to backtrack and try the `ifExpression`
+    -- we want to show an error such as "identifier expected after 'for'".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rule then is that: *if* input has been consumed successfully (in this case,
+    the `for` keyword was matched successfully) then do *not* backtrack.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We're not going to implement this rule in our simple library, but a proper library
+    like FParsec does implement this and also has support for [bypassing it when needed](http://www.quanttec.com/fparsec/reference/primitives.html#members.attempt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing of the final parser library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The parsing library is up to 500 lines of code now, so I won't show it here.
+    You can see it at [this gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we added better error handling and some more parsers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we have everything we need to build a JSON parser! That will be the topic
+    of the [next post](understanding-parser-combinators-4.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-understanding_parser_combinators-3-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing a JSON parser from scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Writing a JSON parser from scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*UPDATE: [Slides and video from my talk on this topic](http://fsharpforfunandprofit.com/parser/)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series, we are looking at how applicative parsers and parser combinators
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first post](understanding-parser-combinators1.html), we created the
+    foundations of a parsing library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [second post](understanding-parser-combinators-2.html), we built out
+    the library with many other useful combinators.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the [third post](understanding-parser-combinators-3.html), we improved the
+    error messages.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this last post, we'll use the library we've written to build a JSON parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, before we do anything else, we need to load the parser library script
+    that we developed over the last few posts, and then open the `ParserLibrary` namespace:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can download `ParserLibrary.fsx` [from here](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Building a model to represent the JSON spec
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The JSON spec is available at [json.org](http://www.json.org/). I''ll paraphase
+    it here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `value` can be a `string` or a `number` or a `bool` or `null` or an `object`
+    or an `array`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These structures can be nested.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `string` is a sequence of zero or more Unicode characters, wrapped in double
+    quotes, using backslash escapes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `number` is very much like a C or Java number, except that the octal and hexadecimal
+    formats are not used.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `boolean` is the literal `true` or `false`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `null` is the literal `null`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An `object` is an unordered set of name/value pairs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An object begins with `{` (left brace) and ends with `}` (right brace).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each name is followed by `:` (colon) and the name/value pairs are separated
+    by `,` (comma).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An `array` is an ordered collection of values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An array begins with `[` (left bracket) and ends with `]` (right bracket).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Values are separated by `,` (comma).
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whitespace can be inserted between any pair of tokens.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In F#, this definition can be modelled naturally as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So the goal of our JSON parser is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a string, we want to output a `JValue` value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2\. Getting started with `Null` and `Bool`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's start with the simplest tasks -- parsing the literal values for null and
+    the booleans.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing Null
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Parsing the `null` literal is trivial. The logic will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Match the string "null".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Map the result to the `JNull` case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we don't actually care about the value returned by the parser because
+    we know in advance that it is going to be "null"!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a common situation, so let''s write a little utility function, `>>%`
+    to make this look nicer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can rewrite `jNull` as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: That looks good. Let's try another one!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing Bool
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The bool parser will be similar to null:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a parser to match "true".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a parser to match "false".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And then choose between them using `<|>`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here are some tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the error is misleading due to the backtracking issue discussed in
+    the previous post. Since "true" failed, it is trying to parse "false" now, and
+    "t" is an unexpected character.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Parsing `String`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now for something more complicated -- strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The spec for string parsing is available as a "railway diagram" like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](json_string.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*All diagrams sourced from [json.org](http://www.json.org).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To build a parser from a diagram like this, we work from the bottom up, building
+    small "primitive" parsers which we then combine into larger ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start with "any unicode character other than quote and backslash". We
+    have a simple condition to test, so we can just use the `satisfy` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can test it immediately:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE170]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ok, good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Escaped characters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now what about the next case, the escaped characters?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case we have a list of strings to match (`"\""`, `"\n"`, etc) and for
+    each of these, a character to use as the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First define a list of pairs in the form `(stringToMatch, resultChar)`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For each of these, build a parser using `pstring stringToMatch >>% resultChar)`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, combine all these parsers together using the `choice` function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And again, let''s test it immediately:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: It works nicely!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unicode characters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The final case is the parsing of unicode characters with hex digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First define the primitives for `backslash`, `u` and `hexdigit`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Combine them together, using four `hexdigit`s.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The output of the parser will be a nested, ugly tuple, so we need a helper function
+    to convert the digits to an int, and then a char.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: And let's test with a smiley face -- `\u263A`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: The complete `String` parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Putting it all together now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define a primitive for `quote`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Define a `jchar` as a choice between `jUnescapedChar`, `jEscapedChar`, and `jUnicodeChar`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The whole parser is then zero or many `jchar` between two quotes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'One more thing, which is to wrap the quoted string in a `JString` case and
+    give it a label:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s test the complete `jString` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4\. Parsing `Number`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The "railway diagram" for Number parsing is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](json_number.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Again, we''ll work bottom up. Let''s start with the most primitive components,
+    the single chars and digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s build the "integer" part of the number. This is either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The digit zero, or,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `nonZeroInt`, which is a `digitOneNine` followed by zero or more normal digits.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that, for the `nonZeroInt` parser, we have to combine the output of `digitOneNine`
+    (a char) with `manyChars digit` (a string) so a simple map function is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The optional fractional part is a decimal point followed by one or more digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the exponent part is an `e` followed by an optional sign, followed by one
+    or more digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these components, we can assemble the whole number:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: We haven't defined `convertToJNumber` yet though. This function will take the
+    four-tuple output by the parser and convert it into a float.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now rather than writing custom float logic, we're going to be lazy and let the
+    .NET framework to the conversion for us! That is, each of the components will
+    be turned into a string, concatenated, and the whole string parsed into a float.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is that some of the components (like the sign and exponent) are
+    optional. Let's write a helper that converts an option to a string using a passed
+    in function, but if the option is `None` return the empty string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I'm going to call it `|>?` but it doesn't really matter because it is only used
+    locally within the `jNumber` parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can create `convertToJNumber`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The sign is converted to a string.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The fractional part is converted to a string, prefixed with a decimal point.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The exponent part is converted to a string, with the sign of the exponent also
+    being converted to a string.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's pretty crude, and converting things to strings can be slow, so feel free
+    to write a better version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With that, we have everything we need for the complete `jNumber` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's a bit long-winded, but each component follows the spec, so I think it is
+    still quite readable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start testing it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: And what about some failing cases?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hmm. Something went wrong! These cases should fail, surely?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, no. What's happening in the `-123.` case is that the parser is consuming
+    everything up the to decimal point and then stopping, leaving the decimal point
+    to be matched by the next parser! So, not an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, in the `00.1` case, the parser is consuming only the first `0` then
+    stopping, leaving the rest of the input (`0.4`) to be matched by the next parser.
+    Again, not an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix this properly is out of scope, so let's just add some whitespace to the
+    parser to force it to terminate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s test again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: and we find the error is being detected properly now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s test the fractional part:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the exponent part now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's all looking good so far. Onwards and upwards!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Parsing `Array`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Next up is the `Array` case. Again, we can use the railway diagram to guide
+    the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](json_array.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We will start with the primitives again. Note that we are adding optional whitespace
+    after each token:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: And then we create a list of values separated by a comma, with the whole list
+    between the left and right brackets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hold on -- what is this `jValue`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: Well, the spec says that an `Array` can contain a list of values, so we'll assume
+    that we have a `jValue` parser that can parse them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But to parse a `JValue`, we need to parse a `Array` first!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have hit a common problem in parsing -- mutually recursive definitions. We
+    need a `JValue` parser to build an `Array`, but we need an `Array` parser to build
+    a `JValue`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we deal with this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forward references
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The trick is to create a forward reference, a dummy `JValue` parser that we
+    can use right now to define the `Array` parser, and then later on, we will fix
+    up the forward reference with the "real" `JValue` parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is one time where mutable references come in handy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will need a helper function to assist us with this, and the logic will be
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define a dummy parser that will be replaced later.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Define a real parser that forwards the input stream to the dummy parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Return both the real parser and a reference to the dummy parser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now when the client fixes up the reference, the real parser will forward the
+    input to the new parser that has replaced the dummy parser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this in place, we can create a placeholder for a parser of type `JValue`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finishing up the `Array` parser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Going back to the `Array` parser, we can now compile it successfully, using
+    the `jValue` placeholder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we try to test it now, we get an exception because we haven''t fixed up
+    the reference:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So for now, let''s fix up the reference to use one of the parsers that we have
+    already created, such as `jNumber`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we *can* successfully test the `jArray` function, as long as we are careful
+    to only use numbers in our array!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: 6\. Parsing `Object`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The parser for `Object` is very similar to the one for `Array`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the railway diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](json_object.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Using this, we can create the parser directly, so I''ll present it here without
+    comment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: A bit of testing to make sure it works (but remember, only numbers are supported
+    as values for now).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: 7\. Putting it all together
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, we can combine all six of the parsers using the `choice` combinator,
+    and we can assign this to the `JValue` parser reference that we created earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now we are ready to rock and roll!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Testing the complete parser: example 1'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s an example of a JSON string that we can attempt to parse:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Testing the complete parser: example 2'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s one from [the example page on json.org](http://json.org/example.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE206]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE207]'
+  prefs: []
+  type: TYPE_PRE
+- en: Complete listing of the JSON parser
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's the complete listing for the JSON parser -- it's about 250 lines of useful
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code displayed below is also available at [this gist](https://gist.github.com/swlaschin/149deab2d457d8c1be37#file-jsonparser-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE208]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we built a JSON parser using the parser library that we have developed
+    over the previous posts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope that, by building both the parser library and a real-world parser from
+    scratch, you have gained a good appreciation for how parser combinators work,
+    and how useful they are.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I''ll repeat what I said in the first post: if you are interesting in using
+    this technique in production, be sure to investigate the [FParsec library](http://www.quanttec.com/fparsec/)
+    for F#, which is optimized for real-world usage.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And if you are using languages other than F#, there is almost certainly a parser
+    combinator library available to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more information about parser combinators in general, search the internet
+    for "Parsec", the Haskell library that influenced FParsec.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For some more examples of using FParsec, try one of these posts:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a phrase search query for FogCreek''s Kiln](http://blog.fogcreek.com/fparsec/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A LOGO Parser](http://trelford.com/blog/post/FParsec.aspx)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A Small Basic Parser](http://trelford.com/blog/post/parser.aspx)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A C# Parser](http://trelford.com/blog/post/parsecsharp.aspx) and [building
+    a C# compiler in F#](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Write Yourself a Scheme in 48 Hours in F#](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Parsing GLSL, the shading language of OpenGL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thanks!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available at [this gist](https://gist.github.com/swlaschin/149deab2d457d8c1be37#file-understanding_parser_combinators-4-fsx).*'
+  prefs: []
+  type: TYPE_NORMAL

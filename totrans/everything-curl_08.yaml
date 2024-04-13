@@ -1,0 +1,1608 @@
+- en: How to HTTP with curl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: How to HTTP with curl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In all user surveys and during all curl's lifetime, HTTP has been the most important
+    and most frequently used protocol that curl supports. This chapter will explain
+    how to do effective HTTP transfers and general fiddling with curl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will mostly work the same way for HTTPS, as they are really the same thing
+    under the hood, as HTTPS is HTTP with an extra security TLS layer. See also the
+    specific [HTTPS](#https) section below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP methods
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In every HTTP request, there's a method. Sometimes called a verb. The most commonly
+    used ones are GET, POST, HEAD and PUT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally however you don't specify the method in the command line, but instead
+    the exact method used depends on the specific options you use. GET is default,
+    using `-d` or `-F` makes it a POST, `-I` generates a HEAD and `-T` sends a PUT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More about this in the [Modify the HTTP request](http-requests.html) section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scripting browser-like tasks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
+- en: Protocol basics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP protocol basics
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: (This assumes you have read the [Network and protocols](protocols.html) section
+    or are otherwise already familiar with protocols.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP is a protocol that is easy to learn the basics of. A client connects to
+    a server—and it is always the client that takes the initiative—sends a request
+    and receives a response. Both the request and the response consist of headers
+    and a body. There can be little or a lot of information going in both directions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An HTTP request sent by a client starts with a request line, followed by headers
+    and then optionally a body. The most common HTTP request is probably the GET request
+    which asks the server to return a specific resource, and this request does not
+    contain a body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When a client connects to ''example.com'' and asks for the ''/'' resource,
+    it sends a GET without a request body:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…the server could respond with something like below, with response headers
+    and a response body (''hello''). The first line in the response also contains
+    the response code and the specific version the server supports:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the client would instead send a request with a small request body (''hello''),
+    it could look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A server always responds to an HTTP request unless something is wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The URL converted to a request
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'So when a HTTP client is given a URL to operate on, that URL is then used,
+    picked apart and those parts are used in various places in the outgoing request
+    to the server. Let''s take the an example URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**https** means that curl will use TLS to the remote port 443 (which is the
+    default port number when no specified is used in the URL).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**www.example.com** is the host name that curl will resolve to one or more
+    IP address to connect to. This host name will also be used in the HTTP request
+    in the `Host:` header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**/path/to/file** is used in the HTTP request to tell the server which exact
+    document/resources curl wants to fetch'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: --path-as-is
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The path part of the URL is the part that starts with the first slash after
+    the host name and ends either at the end of the URL or at a '?' or '#' (roughly
+    speaking).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you include substrings including `/../` or `/./` in the path, curl will automatically
+    squash them before the path is sent to the server, as is dictated by standards
+    and how such strings tend to work in local file systems. The `/../` sequence will
+    remove the previous section so that `/hello/sir/../` ends up just `/hello/` and
+    `/./` is simply removed so that `/hello/./sir/` becomes `/hello/sir/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To *prevent* curl from squashing those magic sequences before they are sent
+    to the server and thus allow them through, the `--path-as-is` option exists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP responses
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When an HTTP client talks HTTP to a server, the server *will* respond with an
+    HTTP response message or curl will consider it an error and returns 52 with the
+    error message "Empty reply from server".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Size of an HTTP response
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: An HTTP response has a certain size and curl needs to figure it out. There are
+    several different ways to signal the end of an HTTP response but the most basic
+    way is to use the `Content-Length:` header in the response and with that specify
+    the exact number of bytes in the response body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some early HTTP server implementations had problems with file sizes greater
+    than 2GB and wrongly managed to send Content-Length: headers with negative sizes
+    or otherwise just plain wrong data. curl can be told to ignore the Content-Length:
+    header completely with `--ignore-content-length`. Doing so may have some other
+    negative side-effects but should at least let you get the data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP response codes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An HTTP transfer gets a 3 digit response code back in the first response line.
+    The response code is the server's way of giving the client a hint about how the
+    request was handled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to note that curl does not consider it an error even if the
+    response code would indicate that the requested document couldn't be delivered
+    (or similar). curl considers a successful sending and receiving of HTTP to be
+    good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first digit of the HTTP response code is a kind of "error class":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1xx: transient response, more is coming'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '2xx: success'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '3xx: a redirect'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '4xx: the client asked for something the server couldn''t/wouldn''t deliver'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '5xx: there''s problem in the server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Remember that you can use curl's `--write-out` option to extract the response
+    code. See the [--write-out](usingcurl-verbose.html#--writeout) section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CONNECT response codes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Since there can be a HTTP request and a separate CONNECT request in the same
+    curl transfer, we often separate the CONNECT response (from the proxy) from the
+    remote server's HTTP response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The CONNECT is also an HTTP request so it gets response codes in the same numeric
+    range and you can use `--write-out` to extract that code as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chunked transfer encoding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An HTTP 1.1 server can decide to respond with a "chunked" encoded response,
+    a feature that wasn't present in HTTP 1.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When sending a chunked response, there''s no Content-Length: for the response
+    to indicate its size. Instead, there''s a `Transfer-Encoding: chunked` header
+    that tells curl there''s chunked data coming and then in the response body, the
+    data comes in a series of "chunks". Every individual chunk starts with the size
+    of that particular chunk (in hexadecimal), then a newline and then the contents
+    of the chunk. This is repeated over and over until the end of the response, which
+    is signaled with a zero sized chunk. The point of this sort of response is for
+    the client to be able to figure out when the responses has ended even though the
+    server didn''t know the full size before it started to send it. This is usually
+    the case when the response is dynamic and generated at the point when the request
+    comes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clients like curl will, of course, decode the chunks and not show the chunk
+    sizes to users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gzipped transfers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Responses over HTTP can be sent in compressed format. This is most commonly
+    done by the server when it includes a `Content-Encoding: gzip` in the response
+    as a hint to the client. Compressed responses make a lot of sense when either
+    static resources are sent (that were compressed at a previous moment in time)
+    or even in run-time when there''s more CPU power available than bandwidth. Sending
+    a much smaller amount of data is often preferred.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can ask curl to both ask for compressed content *and* automatically and
+    transparently uncompress gzipped data when receiving content encoded gzip (or
+    in fact any other compression algorithm that curl understands) by using `--compressed`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Transfer encoding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A less common feature used with transfer encoding is compression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compression in itself is common. Over time the dominant and web compatible way
+    to do compression for HTTP has become to use `Content-Encoding` as described in
+    the section above. But HTTP was originally intended and specified to allow transparent
+    compression as a transfer encoding, and curl supports this feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The client then simply asks the server to do compression transfer encoding
+    and if acceptable, it will response with a header indicating that it will and
+    curl will then transparently uncompress that data on arrival. A user enables asking
+    for compressed transfer encoding with `--tr-encoding`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: It should be noted that not many HTTP servers in the wild support this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pass on transfer encoding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In some situations you may want to use curl as some sort of proxy or other in
+    between software. In those cases, curl's way to deal with transfer-encoding headers
+    and then decoding the actual data transparently may not be desired, if the end
+    receiver *also* expects to do the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can then ask curl to pass on the received data, without decoding it. That
+    means passing on the sizes in the chunked encoding format or the compressed format
+    when compressed transfer encoding is used etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Authentication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP authentication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Each HTTP request can be made authenticated. If a server or a proxy wants the
+    user to provide proof that they have the correct credentials to access a URL or
+    perform an action, it can send back a HTTP response code that informs the client
+    that it needs to provide a correct HTTP authentication header in the request to
+    be allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A server that requires authentication sends back a 401 response code and an
+    associated `WWW-Authenticate:` header that lists all the authentication methods
+    that the server supports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An HTTP proxy that requires authentication sends back a 407 response code and
+    an associated `Proxy-Authenticate:` header that lists all the authentication methods
+    that the proxy supports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It might be worth to note that most web sites of today do not require HTTP authentication
+    for login etc, but they will instead ask users to login on web pages and then
+    the browser will issue a POST with the user and password etc, and then subsequently
+    maintain cookies for the session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To tell curl to do an authenticated HTTP request, you use the `-u, --user`
+    option to provide user name and password (separated with a colon). Like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will make curl use the default "Basic" HTTP authentication method. Yes,
+    it is actually called Basic and it is truly very basic. To explicitly ask for
+    the basic method, use `--basic`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Basic authentication method sends the user name and password in clear text
+    over the network (base64 encoded) and should be avoided for HTTP transport.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When asking to do a HTTP transfer using a single (specified or implied), authentication
+    method, curl will insert the authentication header already in the first request
+    on the wire.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you''d rather have curl first *test* if the authentication is really required,
+    you can ask curl to figure that out and then automatically use the most safe method
+    it knows about with `--anyauth`. This makes curl try the request unauthenticated,
+    and then switch over to authentication if necessary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the same concept works for HTTP operations that may require authentication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'curl typically (a little depending on how it was built) speaks several other
+    authentication methods as well, including Digest, Negotiate and NTLM. You can
+    ask for those methods too specifically:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ranges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP ranges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if the client only wants the first 200 bytes out of a remote resource or
+    perhaps 300 bytes somewhere in the middle? The HTTP protocol allows a client to
+    ask for only a specific data range. The client asks the server for the specific
+    range with a start offset and an end offset. It can even combine things and ask
+    for several ranges in the same request by just listing a bunch of pieces next
+    to each other. When a server sends back multiple independent pieces to answer
+    such a request, you will get them separated with mime boundary strings and it
+    will be up to the user application to handle that accordingly. curl will not further
+    separate such a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a byte range is only a request to the server. It does not have to respect
+    the request and in many cases, like when the server automatically generates the
+    contents on the fly when it is being asked, it will simply refuse to do it and
+    it then instead responds with the full contents anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can make curl ask for a range with `-r` or `--range`. If you want the first
+    200 bytes out of something:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or everything in the file starting from index 200:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Get 200 bytes from index 0 *and* 200 bytes from index 1000:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTTP versions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP versions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As any other Internet protocol, the HTTP protocol has kept evolving over the
+    years and now there are clients and servers distributed over the world and over
+    time that speak different versions with varying levels of success. So in order
+    to get libcurl to work with the URLs you pass in libcurl offers ways for you to
+    specify which HTTP version that request and transfer should use. libcurl is designed
+    in a way so that it tries to use the most common, the most sensible if you want,
+    default values first but sometimes that isn't enough and then you may need to
+    instruct libcurl what to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since perhaps mid 2016, curl will default to use HTTP/1.1 for HTTP servers.
+    If you connect to HTTPS and you have a libcurl that has HTTP/2 abilities built-in,
+    curl will attempt to use HTTP/2 automatically or fall down to 1.1 in case the
+    negotiation failed. Non-HTTP/2 capable curls get 1.1 over HTTPS by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the default isn't good enough for your transfer, the `CURLOPT_HTTP_VERSION`
+    option is there for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Option | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| [default] | fill in |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --http1.0 | fill in |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --http1.1 | fill in |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --http2 | fill in |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --http2-prior-knowledge | fill in |'
+  prefs: []
+  type: TYPE_TB
+- en: HTTPS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTPS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTPS is in effect Secure HTTP. The "secure" part means that the TCP transport
+    layer is enhanced to provide authentication, privacy (encryption) and data integrity
+    by the use of TLS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See the [Using TLS](usincurl-tls.md) section for in-depth details on how to
+    modify and tweak the TLS details in a HTTPS transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP POST
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP POST
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: POST is the HTTP method that was invented to send data to a receiving web application,
+    and it is how most common HTML forms on the web works. It usually sends a chunk
+    of relatively small amounts of data to the receiver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When the data is sent by a browser after data have been filled in a form, it
+    will send it "URL encoded", as a serialized name=value pairs separated with ampersand
+    symbols (''&''). You send such data with curl''s `-d` or `--data` option like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When specifying multiple `-d` options on the command line, curl will concatenate
+    them and insert ampersands in between, so the above example could also be made
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the amount of data to send isn''t really fit to put in a mere string on
+    the command line, you can also read it off a file name in standard curl style:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Content-Type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'POSTing with curl''s -d option will make it include a default header that looks
+    like `Content-Type: application/x-www-form-urlencoded`. That''s what your typical
+    browser will use for a plain POST.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many receivers of POST data don't care about or check the Content-Type header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If that header is not good enough for you, you should, of course, replace that
+    and instead provide the correct one. Such as if you POST JSON to a server and
+    want to more accurately tell the server about what the content is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: POSTing binary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When reading from a file, `-d` will strip out carriage return and newlines.
+    Use `--data-binary` if you want curl to read and use the given file in binary
+    exactly as given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: URL encoding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Percent-encoding, also known as URL encoding, is technically a mechanism for
+    encoding data so that it can appear in URLs. This encoding is typically used when
+    sending POSTs with the `application/x-www-form-urlencoded` content type, such
+    as the ones curl sends with `--data` and `--data-binary` etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The command-line options mentioned above all require that you provide properly
+    encoded data, data you need to make sure already exists in the right format. While
+    that gives you a lot of freedom, it is also a bit inconvenient at times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To help you send data you haven't already encoded, curl offers the `--data-urlencode`
+    option. This option offers several different ways to URL encode the data you give
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You use it like `--data-urlencode data` in the same style as the other --data
+    options. To be CGI-compliant, the **data** part should begin with a name followed
+    by a separator and a content specification. The **data** part can be passed to
+    curl using one of the following syntaxes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"content": This will make curl URL encode the content and pass that on. Just
+    be careful so that the content doesn''t contain any = or @ symbols, as that will
+    then make the syntax match one of the other cases below!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"=content": This will make curl URL encode the content and pass that on. The
+    initial ''='' symbol is not included in the data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"name=content": This will make curl URL encode the content part and pass that
+    on. Note that the name part is expected to be URL encoded already.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"@filename": This will make curl load data from the given file (including any
+    newlines), URL encode that data and pass it on in the POST.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"name@filename": This will make curl load data from the given file (including
+    any newlines), URL encode that data and pass it on in the POST. The name part
+    gets an equal sign appended, resulting in name=urlencoded-file-content. Note that
+    the name is expected to be URL encoded already.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As an example, you could POST a name to have it encoded by curl:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…which would send the following data in the actual request body:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you store the string `John Doe (Junior)` in a file named `contents.txt`,
+    you can tell curl to send that contents URL encoded using the field name ''user''
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In both these examples above, the field name is not URL encoded but is passed
+    on as-is. If you want to URL encode the field name as well, like if you want to
+    pass on a field name called "user name", you can ask curl to encode the entire
+    string by prefixing it with an equals sign (that will not get sent):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Convert that to a GET
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A little convenience feature that could be suitable to mention in this context
+    (even though it isn't for POSTing), is the `-G` or `--get` option, which takes
+    all data you have specified with the different `-d` variants and appends that
+    data on the right end of the URL separated with a '?' and then makes curl send
+    a GET instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This option makes it easy to switch between POSTing and GETing a form, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expect 100-continue
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'HTTP has no proper way to stop an ongoing transfer (in any direction) and still
+    maintain the connection. So, if we figure out that the transfer had better stop
+    after the transfer has started, there are only two ways to proceed: cut the connection
+    and pay the price of reestablishing the connection again for the next request,
+    or keep the transfer going and waste bandwidth but be able to reuse the connection
+    next time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One example of when this can happen is when you send a large file over HTTP,
+    only to discover that the server requires authentication and immediately sends
+    back a 401 response code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The mitigation that exists to make this scenario less frequent is to have curl
+    pass on an extra header, `Expect: 100-continue`, which gives the server a chance
+    to deny the request before a lot of data is sent off. curl sends this Expect:
+    header by default if the POST it will do is known or suspected to be larger than
+    just minuscule. curl also does this for PUT requests.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a server gets a request with an 100-continue and deems the request fine,
+    it will respond with a 100 response that makes the client continue. If the server
+    doesn't like the request, it sends back response code for the error it thinks
+    it is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, lots of servers in the world don''t properly support the Expect:
+    header or don''t handle it correctly, so curl will only wait 1000 milliseconds
+    for that first response before it will continue anyway.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Those are 1000 wasted milliseconds. You can then remove the use of Expect:
+    from the request and avoid the waiting with `-H`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: In some situations, curl will inhibit the use of the Expect header if the content
+    it is about to send is very small (like below one kilobyte), as having to "waste"
+    such a small chunk of data is not considered much of a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chunked encoded POSTs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When talking to a HTTP 1.1 server, you can tell curl to send the request body
+    without a `Content-Length:` header upfront that specifies exactly how big the
+    POST is. By insisting on curl using chunked Transfer-Encoding, curl will send
+    the POST "chunked" piece by piece in a special style that also sends the size
+    for each such chunk as it goes along.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You send a chunked POST with curl like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hidden form fields
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This chapter has explained how sending a post with `-d` is the equivalent of
+    what a browser does when an HTML form is filled in and submitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Submitting such forms is a very common operation with curl; effectively, to
+    have curl fill in a web form in an automated fashion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to submit a form with curl and make it look as if it has been done
+    with a browser, it is important to provide all the input fields from the form.
+    A very common method for web pages is to set a few hidden input fields to the
+    form and have them assigned values directly in the HTML. A successful form submission,
+    of course, also includes those fields and in order to do that automatically you
+    may be forced to first download the HTML page that holds the form, parse it, and
+    extract the hidden field values so that you can send them off with curl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure out what a browser sends
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A very common shortcut is to simply fill in the form with your browser and submit
+    it and check in the browser's network development tools exactly what it sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A slightly different way is to save the HTML page containing the form, and then
+    edit that HTML page to redirect the 'action=' part of the form to your own server
+    or a test server that just outputs exactly what it gets. Completing that form
+    submission will then show you exactly how a browser sends it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A third option is, of course, to use a network capture tool such as Wireshark
+    to check exactly what is sent over the wire. If you are working with HTTPS, you
+    can't see form submissions in clear text on the wire but instead you need to make
+    sure you can have Wireshark extract your TLS private key from your browser. See
+    the Wireshark documentation for details on doing that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JavaScript and forms
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A very common mitigation against automated "agents" or scripts using curl is
+    to have the page with the HTML form use JavaScript to set values of some input
+    fields, usually one of the hidden ones. Often, there's some JavaScript code that
+    executes on page load or when the submit button is pressed which sets a magic
+    value that the server then can verify before it considers the submission to be
+    valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can usually work around that by just reading the JavaScript code and redoing
+    that logic in your script. Using the above mentioned tricks to check exactly what
+    a browser sends is then also a good help.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multipart formposts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP multipart formposts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A multipart formpost is what an HTTP client sends when an HTML form is submitted
+    with *enctype* set to "multipart/form-data".
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is an HTTP POST request sent with the request body specially formatted as
+    a series of "parts", separated with MIME boundaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An example piece of HTML would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which could look something like this in a web browser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![a multipart form](multipart-form.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A user can fill in text in the 'Name' field and by pressing the 'Browse' button
+    a local file can be selected that will be uploaded when 'Submit' is pressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending such a form with curl
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With curl, you add each separate multipart with one `-F` (or `--form`) flag
+    and you then continue and add one -F for every input field in the form that you
+    want to send.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above small example form has two parts, one named 'person' that is a plain
+    text field and one named 'secret' that is a file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Send your data to that form like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The HTTP this generates
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The **action** specifies where the POST is sent. **method** says it is a POST
+    and **enctype** tells us it is a multipart formpost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the fields filled in as shown above, curl generates and sends these HTTP
+    request headers to the host example.com:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Content-Length**, of course, tells the server how much data to expect. This
+    example''s 313 bytes is really small.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **Expect** header is explained in the [HTTP POST](http-post.html) chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **Content-Type** header is a bit special. It tells that this is a multipart
+    formpost and then it sets the "boundary" string. The boundary string is a line
+    of characters with a bunch of random digits somewhere in it, that serves as a
+    separator between the different parts of the form that will be submitted. The
+    particular boundary you see in this example has the random part `d74496d66958873e`
+    but you will, of course, get something different when you run curl (or when you
+    submit such a form with a browser).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So after that initial set of headers follows the request body
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here you clearly see the two parts sent, separated with the boundary strings.
+    Each part starts with one or more headers describing the individual part with
+    its name and possibly some more details. Then after the part's headers come the
+    actual data of the part, without any sort of encoding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last boundary string has two extra dashes `--` appended to signal the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Content-Type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: POSTing with curl's -F option will make it include a default Content-Type header
+    in its request, as shown in the above example. This says `multipart/form-data`
+    and then specifies the MIME boundary string. That content-type is the default
+    for multipart formposts but you can, of course, still modify that for your own
+    commands and if you do, curl is clever enough to still append the boundary magic
+    to the replaced header. You can't really alter the boundary string, since curl
+    needs that for producing the POST stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To replace the header, use `-H` like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Converting an HTML form
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
+- en: -d vs -F
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: -d vs -F
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Previous chapters talked about [regular POST](http-post.html) and [multipart
+    formpost](http-multipart.html), and in your typical command lines you do them
+    with `-d` or `-F`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But when do you use which of them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: As described in the chapters mentioned above, both these options send the specified
+    data to the server. The difference is in how the data is formatted over the wire.
+    Most of the time, the receiving end is written to expect a specific format and
+    it expects that the sender formats and sends the data correctly. A client cannot
+    just pick a format of its own choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTML web forms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When we are talking browsers and HTML, the standard way is to offer a form to
+    the user that sends off data when the form has been filled in. The `<form>` tag
+    is what makes one of those appear on the web page. The tag instructs the browser
+    how to format its POST. If the form tag includes `enctype=multipart/form-data`,
+    it tells the browser to send the data as a [multipart formpost](http-multipart.html)
+    which you make with curl's `-F` option. This method is typically used when the
+    form includes a `<input type=file>` tag, for file uploads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default `enctype` used by forms, which is rarely spelled out in HTML since
+    it is default, is `application/x-www-form-urlencoded`. It makes the browser "URL
+    encode" the input as name=value pairs with the data encoded to avoid unsafe character.
+    We often refer to that as a [regular POST](http-post.html), and you perform one
+    with curl's `-d` and friends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: POST outside of HTML
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: POST is a regular HTTP method and there is no requirement that it be triggered
+    by HTML or involve a browser. Lots of services, APIs and other systems allow you
+    to pass in data these days in order to get things done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If these services expect plain "raw" data or perhaps data formatted as JSON
+    or similar, you want the [regular POST](http-post.html) approach. curl's `-d`
+    option won't alter or encode the data at all but will just send exactly what you
+    tell it to. Just pay attention to -d's default Content-Type as that might not
+    be what you want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirects
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP redirects
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The “redirect” is a fundamental part of the HTTP protocol. The concept was present
+    and is documented already in the first spec (RFC 1945), published in 1996, and
+    it has remained well-used ever since.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A redirect is exactly what it sounds like. It is the server sending back an
+    instruction to the client instead of giving back the contents the client wanted.
+    The server basically says “go look over *here* instead for that thing you asked
+    for“.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But not all redirects are alike. How permanent is the redirect? What request
+    method should the client use in the next request?
+  prefs: []
+  type: TYPE_NORMAL
+- en: All redirects also need to send back a `Location:` header with the new URI to
+    ask for, which can be absolute or relative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Permanent and temporary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Is the redirect meant to last or just remain valid for now? If you want a GET
+    to permanently redirect users to resource B with another GET, send back a 301\.
+    It also means that the user-agent (browser) is meant to cache this and keep going
+    to the new URI from now on when the original URI is requested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The temporary alternative is 302\. Right now the server wants the client to
+    send a GET request to B, but it shouldn't cache this but keep trying the original
+    URI when directed to it next time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that both 301 and 302 will make browsers do a GET in the next request,
+    which possibly means changing the method if it started with a POST (and only if
+    POST). This changing of the HTTP method to GET for 301 and 302 responses is said
+    to be “for historical reasons”, but that’s still what browsers do so most of the
+    public web will behave this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, the 303 code is very similar to 302\. It will not be cached and
+    it will make the client issue a GET in the next request. The differences between
+    a 302 and 303 are subtle, but 303 seems to be more designed for an “indirect response”
+    to the original request rather than just a redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These three codes were the only redirect codes in the HTTP/1.0 spec.
+  prefs: []
+  type: TYPE_NORMAL
+- en: curl however, doesn't remember or cache any redirects at all so to it, there's
+    really no difference between permanent and temporary redirects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tell curl to follow redirects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In curl's tradition of only doing the basics unless you tell it differently,
+    it doesn't follow HTTP redirects by default. Use the `-L, --location` to tell
+    it to do that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When following redirects is enabled, curl will follow up to 50 redirects by
+    default. There's a maximum limit mostly to avoid the risk of getting caught in
+    endless loops. If 50 isn't sufficient for you, you can change the maximum number
+    of redirects to follow with the `--max-redirs` option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GET or POST?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All three of these response codes, 301 and 302/303, will assume that the client
+    sends a GET to get the new URI, even if the client might have sent a POST in the
+    first request. This is very important, at least if you do something that doesn't
+    use GET.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the server instead wants to redirect the client to a new URI and wants it
+    to send the same method in the second request as it did in the first, like if
+    it first sent POST it’d like it to send POST again in the next request, the server
+    would use different response codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To tell the client “the URI you sent a POST to, is permanently redirected to
+    B where you should instead send your POST now and in the future”, the server responds
+    with a 308\. And to complicate matters, the 308 code is only recently defined
+    (the [spec](https://tools.ietf.org/html/rfc7238#section-3) was published in June
+    2014) so older clients may not treat it correctly! If so, then the only response
+    code left for you is…
+  prefs: []
+  type: TYPE_NORMAL
+- en: The (older) response code to tell a client to send a POST also in the next request
+    but temporarily is 307\. This redirect will not be cached by the client though,
+    so it’ll again post to A if requested to again. The 307 code was introduced in
+    HTTP/1.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oh, and redirects work the exact same way in HTTP/2 as they do in HTTP/1.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  | Permanent | Temporary |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Switch to GET | 301 | 302 and 303 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Keep original method | 308 | 307 |'
+  prefs: []
+  type: TYPE_TB
+- en: Decide what method to use in redirects
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It turns out that there are web services out there in the world that want a
+    POST sent to the original URL, but are responding with HTTP redirects that use
+    a 301, 302 or 303 response codes and *still* want the HTTP client to send the
+    next request as a POST. As explained above, browsers won’t do that and neither
+    will curl—by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since these setups exist, and they’re actually not terribly rare, curl offers
+    options to alter its behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can tell curl to not change the non-GET request method to GET after a 30x
+    response by using the dedicated options for that: `--post301`, `--post302` and
+    `--post303`. If you are instead writing a libcurl based application, you control
+    that behavior with the `CURLOPT_POSTREDIR` option.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting to other host names
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When you use curl you may provide credentials like user name and password for
+    a particular site, but since a HTTP redirect might very well move away to a different
+    host curl limits what it sends away to other hosts than the original within the
+    same "transfer".
+  prefs: []
+  type: TYPE_NORMAL
+- en: So if you want the credentials to also get sent to the following host names
+    even though they are not the same as the original—presumably because you trust
+    them and know that there's no harm in doing that—you can tell curl that it is
+    fine to do so by using the `--location-trusted` option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-HTTP redirects
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Browsers support more ways to do redirects that sometimes make life complicated
+    to a curl user as these methods are not supported or recognized by curl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTML redirects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If the above wasn't enough, the web world also provides a method to redirect
+    browsers by plain HTML. See the example `<meta>` tag below. This is somewhat complicated
+    with curl since curl never parses HTML and thus has no knowledge of these kinds
+    of redirects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: JavaScript redirects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The modern web is full of JavaScript and as you know, JavaScript is a language
+    and a full run time that allows code to execute in the browser when visiting web
+    sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JavaScript also provides means for it to instruct the browser to move on to
+    another site—a redirect, if you will.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modify the HTTP request
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Modify the HTTP request
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As described earlier, each HTTP transfer starts with curl sending a HTTP request.
+    That request consists of a request line and a number of request headers, and this
+    chapter details how you can modify all of those.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request method
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first line of the request includes the *method* - sometimes also referred
+    to as "the verb". When doing a simple GET request as this command line would do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…the initial request line looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can tell curl to change the method into something else by using the `-X`
+    or `--request` command-line options followed by the actual method name. You can,
+    for example, send a `DELETE` instead of `GET` like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: This command-line option only changes the text in the outgoing request, it does
+    not change any behavior. This is particularly important if you, for example, ask
+    curl to send a HEAD with `-X`, as HEAD is specified to send all the headers a
+    GET response would get but *never* send a response body, even if the headers otherwise
+    imply that one would come. So, adding `-X HEAD` to a command line that would otherwise
+    do a GET will cause curl to hang, waiting for a response body that won't come.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When asking curl to perform HTTP transfers, it will pick the correct method
+    based on the option so you should only very rarely have to explicitly ask for
+    it with `-X`. It should also be noted that when curl follows redirects like asked
+    to with `-L`, the request method set with `-X` will be sent even on the subsequent
+    redirects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request target
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the example above, you can see how the path section of the URL gets turned
+    into `/file` in the request line. That is called the "request target". That's
+    the resource this request will interact with. Normally this request target is
+    extracted from the URL and then used in the request and as a user you don't need
+    to think about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In some rare circumstances, user may want to go creative and change this request
+    target in ways that the URL doesn''t really allow. For example, the HTTP OPTIONS
+    method has a specially define request target for magic that concerns *the server*
+    and not a specific path, and it uses `*` for that. Yes, a single asterisk. There''s
+    no way to specicy a URL for this, so if you want to pass a single asterisk in
+    the request target to a server, like for OPTIONS, you have to do it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Anchors or fragments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A URL may contain an anchor, also known as a fragment, which is written with
+    a pound sign and string at the end of the URL. Like for example `http://example.com/foo.html#here-it-is`.
+    That fragment part, everything from the pound/hash sign to the end of the URL,
+    is only intend for local use and will not be sent over the network. curl will
+    simply strip that data off and discard it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customize headers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In a HTTP request, after the initial request-line, there will typically follow
+    a numbre of request headers. That''s a set of `name: value` pairs that ends with
+    a blank line that separates the headers from the following request body (that
+    sometimes is empty).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: curl will by default and on its own account pass a few headers in requests,
+    like for example `Host:`, `Accept:`, `User-Agent:` and a few others that may depend
+    on what the user asks curl to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All headers set by curl itself can be overriden, replaced if you will, by the
+    user. You just then tell curl's `-H` or `--header` the new header to use and it
+    will then replace the internal one if the header field matches one of those headers,
+    or it will add the specified header to the list of headers to send in the request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To change the `Host:` header, do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To add a `Elevator: floor-9` header, do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you just want to delete an internally generated header, just give it to curl
+    without a value, just nothing on the right side of the colon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To switch off the `User-Agent:` header, do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, if you then truly want to add a header with no contents on the right
+    side of the colon (which is a rare thing), the magic marker for that is to instead
+    end the header field name with a *semicolon*. Like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: Referer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When a user clicks on a link on a web page and the browser takes the user away
+    to the next URL, it will send the new URL a "referer" header in the new request
+    telling it where it came from. That is the referer header. And yes, referer is
+    misspelled but that's how it is supposed to be!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With curl you set the referer header with `-e` or `--referer`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: User-agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The User-Agent is a header that each client can set in the request to inform
+    the server which user-agent it is. Sometimes servers will look at this header
+    and determine how to act based on its contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The default header value is ''curl/[version]'', as in `User-Agent: curl/7.54.1`
+    for curl version 7.54.1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can set any value you like, using the option `-A` or `--user-agent` plus
+    the string to use or, as it''s just a header, `-H "User-Agent: foobar/2000"`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As comparison, a recent test version of Firefox on a Linux machine sent this
+    User-Agent header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: --time-cond
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP PUT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: PUT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The difference between a PUT and a POST is subtle. They are virtually identical
+    transmissions except for the different method strings. Where POST is meant to
+    pass on data to a remote resource, PUT is supposed to be the new version of that
+    resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In that aspect, PUT is similar to good old standard file upload found in other
+    protocols. You upload a new version of the resource with PUT. The URL identifies
+    the resource and you point out the local file to put there:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…so -T will imply a PUT and tell curl which file to send off. But the similarities
+    between POST and PUT also allows you to send a PUT with a string by using the
+    regular curl POST mechanism using `-d` but asking for it to use a PUT instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cookies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cookies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: HTTP cookies are key/value pairs that a client stores on the behalf of a server.
+    They are sent back in subsequent requests to allow clients to keep state between
+    requests. Remember that the HTTP protocol itself has no state but instead the
+    client has to resend all data in subsequent requests that it wants the server
+    to be aware of.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cookies are set by the server with the `Set-Cookie:` header and with each cookie
+    the server sends a bunch of extra properties that need to match for the client
+    to send the cookie back. Like domain name and path and perhaps most important
+    for how long the cookie should live on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expiry of a cookie is either set to a fixed time in the future (or to live
+    a number of seconds) or it gets no expiry at all. A cookie without an expire time
+    is called a "session cookie" and is meant to live for the duration of the "session"
+    but not longer. A session in this aspect is typically thought to be the life time
+    of the browser used to view a site. When you close the browser, you end your session.
+    Doing HTTP operations with a command-line client that supports cookies begs the
+    question of when a session really ends…
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cookie engine
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The general concept of curl only doing the bare minimum unless you tell it differently
+    makes it not acknowledge cookies by default. You need to switch on "the cookie
+    engine" to make curl keep track of cookies it receives and then subsequently send
+    them out on requests that have matching cookies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You enable the cookie engine by asking curl to read or write cookies. If you
+    tell curl to read cookies from a non-existing file, you will only switch on the
+    engine but start off with an empty internal cookie store:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But just switching on the cookie engine, getting a single resource and then
+    quitting would be pointless as curl would have no chance to actually send any
+    cookies it received. Assuming the site in this example would set cookies and then
+    do a redirect we would do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reading cookies from file
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Starting off with a blank cookie store may not be desirable. Why not start off
+    with cookies you stored in a previous fetch or that you otherwise acquired? The
+    file format curl uses for cookies is called the Netscape cookie format because
+    it was once the file format used by browsers and then you could easily tell curl
+    to use the browser's cookies!
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a convenience, curl also supports a cookie file being a set of HTTP headers
+    that set cookies. It's an inferior format but may be the only thing you have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tell curl which file to read the initial cookies from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember that this only *reads* from the file. If the server would update the
+    cookies in its response, curl would update that cookie in its in-memory store
+    but then eventually throw them all away when it exits and a subsequent invocation
+    of the same input file would use the original cookie contents again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing cookies to file
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The place where cookies are stored is sometimes referred to as the "cookie jar".
+    When you enable the cookie engine in curl and it has received cookies, you can
+    instruct curl to write down all its known cookies to a file, the cookie jar, before
+    it exists. It is important to remember that curl only updates the output cookie
+    jar on exit and not during its lifetime, no matter how long the handling of the
+    given input takes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You point out the cookie jar output with `-c`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`-c` is the instruction to *write* cookies to a file, `-b` is the instruction
+    to *read* cookies from a file. Oftentimes you want both.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When curl writes cookies to this file, it will save all known cookies including
+    those that are session cookies (without a given lifetime). curl itself has no
+    notion of a session and it doesn't know when a session ends so it will not flush
+    session cookies unless you tell it to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: New cookie session
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Instead of telling curl when a session ends, in order to flush session cookies
+    and with this basically signal to the server that we are starting a new session,
+    curl features an option that lets the user decide when a new session begins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A new cookie session means that all the session cookies will be thrown away.
+    It is the equivalent of closing a browser and starting it up again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tell curl a new cookie session starts by using `-j, --junk-session-cookies`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTTP/2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP/2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: curl supports HTTP/2 for both HTTP:// and HTTPS:// URLs assuming that curl was
+    built with the proper prerequisites. It will even default to using HTTP/2 when
+    given a HTTPS URL since doing so implies no penalty and when curl is used with
+    sites that don't support HTTP/2 the request will instead negotiate HTTP/1.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With HTTP:// URLs however, the upgrade to HTTP/2 is done with an `Upgrade:`
+    header that may cause an extra round-trip and perhaps even more troublesome, a
+    sizable share of old servers will return a 400 response when seeing such a header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should also be noted that some (most?) servers that support HTTP/2 for HTTP://
+    (which in itself isn't all servers) will not acknowledge the `Upgrade:` header
+    on POST, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To ask a server to use HTTP/2, just:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: If your curl doesn't support HTTP/2, that command line will return an error
+    saying so. Running `curl -V` will show if your version of curl supports it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you by some chance already know that your server speaks HTTP/2 (for example,
+    within your own controlled environment where you know exactly what runs in your
+    machines) you can shortcut the HTTP/2 "negotiation" with `--http2-prior-knowledge`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiplexing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One of the primary features in the HTTP/2 protocol is the ability to multiplex
+    several logical stream over the same physical connection. When using the curl
+    command-line tool, you cannot take advantage of that cool feature since curl is
+    doing all its network requests in a strictly serial manner, one after the next,
+    with the second only ever starting once the previous one has ended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully, a future curl version will be enhanced to allow the use of this feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP cheat sheet
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: curl HTTP cheat sheet
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[online here](https://bagder.github.io/curl-cheat-sheet/http-sheet.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Verbose | Hide progress | extra info | Write output | Timeout |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| -v | -s | -w "format" | -O | -m |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --trace-ascii |  |  | -o |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **POST** | **multipart** | **PUT** | **HEAD** | **custom** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| -d "string" | -F name=value | -T | -I | -X "METHOD" |'
+  prefs: []
+  type: TYPE_TB
+- en: '| -d @file | -F name=@file |  |  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Basic auth** | **read cookies** | **write cookies** | **send cookies**
+    | **user-agent** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| -u user:password | -b | -c | -b "c=1; d=2" | -A "string" |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Use proxy** | **Headers, add/remove** | **follow redirs** | **gzip** |
+    **insecure** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| -x<hostu0003aport class="calibre28"></hostu0003aport> | -H "name: value"
+    | -L | --compressed | -k |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  | -H "name:" |  |'
+  prefs: []
+  type: TYPE_TB

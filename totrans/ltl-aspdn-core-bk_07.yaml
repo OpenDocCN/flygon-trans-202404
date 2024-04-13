@@ -1,0 +1,380 @@
+- en: Automated testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Automated testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Writing tests is an important part of building any application. Testing your
+    code helps you spot and avoid bugs, and makes it easier to refactor your code
+    later without breaking functionality or introducing new problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter you'll learn how to write both **unit tests** and **integration
+    tests** that exercise your ASP.NET Core application. Unit tests are small tests
+    that make sure a single method or a few lines of code are working properly. Integration
+    tests (sometimes called **functional** tests) are larger tests that simulate real-world
+    scenarios and exercise multiple layers or parts of your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unit testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unit testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unit tests are small, quick tests that check the behavior of a single method
+    or chunk of logic. Instead of testing a whole group of classes, or the entire
+    system (as integration tests do), unit tests rely on **mocking** or replacing
+    the objects the method-under-test depends on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, the `TodoController` has two dependencies: an `ITodoItemService`
+    and the `UserManager`. The `TodoItemService`, in turn, depends on the `ApplicationDbContext`.
+    (The idea that you can draw a line from `TodoController` -> `TodoItemService`
+    -> `ApplicationDbContext` is called a *dependency graph*).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the application runs normally, the ASP.NET Core dependency injection system
+    injects each of those objects into the dependency graph when the `TodoController`
+    or the `TodoItemService` is created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you write a unit test, on the other hand, you'll manually inject mock or
+    test-only versions of those dependencies. This means you can isolate just the
+    logic in the class or method you are testing. (If you're testing a service, you
+    don't want to also be accidentally writing to your database!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a test project
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It's a common practice to create a separate project for your tests, to keep
+    things clean and organized. The new test project should live in a directory that's
+    next to (not inside) your main project's directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you''re currently in your project directory, `cd` up one level. (This directory
+    will also be called `AspNetCoreTodo`). Then use these commands to scaffold a new
+    test project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: xUnit.NET is a popular test framework for .NET code that can be used to write
+    both unit and integration tests. Like everything else, it's a set of NuGet packages
+    that can be installed in any project. The `dotnet new xunit` template already
+    includes everything you need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Your directory structure should now look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since the test project will use the classes defined in your main project, you''ll
+    need to add a reference to the main project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Delete the `UnitTest1.cs` file that's automatically created. You're ready to
+    write your first test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write a service test
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Take a look at the logic in the `AddItemAsync` method of the `TodoItemService`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This method makes a number of decisions or assumptions about the new item before
+    it actually saves it to the database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `OwnerId` property should be set to the user's ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New items should always be incomplete (`IsDone = false`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The title of the new item should be copied from `newItem.Title`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New items should always be due 3 days from now
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These types of decisions made by your code are called *business logic*, because
+    it's logic that relates to the purpose or "business" of your application. Other
+    examples of business logic include things like calculating a total cost based
+    on product prices and tax rates, or checking whether a player has enough points
+    to level up in a game.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: These decisions make sense, and it also makes sense to have a test that ensures
+    that this logic doesn't change down the road. (Imagine if you or someone else
+    refactored the `AddItemAsync` method and forgot about one of these assumptions.
+    It might be unlikely when your services are simple, but it becomes important to
+    have automated checks as your application becomes more complicated.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To write a unit test that will verify the logic in the `TodoItemService`, create
+    a new class in your test project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`AspNetCoreTodo.UnitTests/TodoItemServiceShould.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `[Fact]` attribute comes from the xUnit.NET package, and it marks this method
+    as a test method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many different ways of naming and organizing tests, all with different
+    pros and cons. I like postfixing my test classes with `Should` to create a readable
+    sentence with the test method name, but feel free to use your own style!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The `TodoItemService` requires an `ApplicationDbContext`, which is normally
+    connected to your development or live database. You won't want to use that for
+    tests. Instead, you can use Entity Framework Core's in-memory database provider
+    in your test code. Since the entire database exists in memory, it's wiped out
+    every time the test is restarted. And, since it's a proper Entity Framework Core
+    provider, the `TodoItemService` won't know the difference!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use a `DbContextOptionsBuilder` to configure the in-memory database provider,
+    and then make a call to `AddItem`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The last line creates a new to-do item called `Testing?`, and tells the service
+    to save it to the (in-memory) database. To verify that the business logic ran
+    correctly, retrieve the item:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first verification step is a sanity check: there should never be more than
+    one item saved to the in-memory database. Assuming that''s true, the test retrieves
+    the saved item with `FirstAsync` and then asserts that the properties are set
+    to the expected values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Asserting a datetime value is a little tricky, since comparing two dates for
+    equality will fail if even the millisecond components are different. Instead,
+    the test checks that the `DueAt` value is less than a second away from the expected
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Both unit and integration tests typically follow the AAA (Arrange-Act-Assert)
+    pattern: objects and data are set up first, then some action is performed, and
+    finally the test checks (asserts) that the expected behavior occurred.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here''s the final version of the `AddNewItem` test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`AspNetCoreTodo.UnitTests/TodoItemServiceShould.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run the test
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'On the terminal, run this command (make sure you''re still in the `AspNetCoreTodo.UnitTests`
+    directory):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `test` command scans the current project for tests (marked with `[Fact]`
+    attributes in this case), and runs all the tests it finds. You''ll see an output
+    similar to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You now have one test providing test coverage of the `TodoItemService`. As
+    an extra-credit challenge, try writing unit tests that ensure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MarkDoneAsync` returns false if it''s passed an ID that doesn''t exist'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`MarkDoneAsync` returns true when it makes a valid item as complete'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`GetIncompleteItemsAsync` returns only the items owned by a particular user'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integration testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Integration testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Compared to unit tests, integration tests exercise the whole application stack
+    (routing, controllers, services, database). Instead of isolating one class or
+    component, integration tests ensure that all of the components of your application
+    are working together properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integration tests are slower and more involved than unit tests, so it's common
+    for a project to have lots of unit tests but only a handful of integration tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to test the whole stack (including controller routing), integration
+    tests typically make HTTP calls to your application just like a web browser would.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To write integration tests that make HTTP requests, you could manually start
+    your application run tests that make requests to `http://localhost:5000` (and
+    hope the app is still running). ASP.NET Core provides a nicer way to host your
+    application for testing, however: using the `TestServer` class. `TestServer` can
+    host your application for the duration of the test, and then stop it automatically
+    when the test is complete.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a test project
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You could keep your unit tests and integration tests in the same project (feel
+    free to do so), but for the sake of completeness, I'll show you how to create
+    a separate project for your integration tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you''re currently in your project directory, `cd` up one level to the base
+    `AspNetCoreTodo` directory. Use these commands to scaffold a new test project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Your directory structure should now look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since the test project will use the classes defined in your main project, you''ll
+    need to add a reference to the main project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You''ll also need to add the `Microsoft.AspNetCore.TestHost` NuGet package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Delete the `UnitTest1.cs` file that's created by `dotnet new`. You're ready
+    to write an integration test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write an integration test
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are a few things that need to be configured on the test server before
+    each test. Instead of cluttering the test with this setup code, you can factor
+    out this setup to a separate class. Create a new class called `TestFixture`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`AspNetCoreTodo.IntegrationTests/TestFixture.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This class takes care of setting up a `TestServer`, and will help keep the tests
+    themselves clean and tidy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you configured Facebook login in the *Security and identity* chapter., it's
+    necessary to add fake values for the Facebook app ID and secret (in the `ConfigureAppConfiguration`
+    block above). This is because the test server doesn't have access to the values
+    in the Secrets Manager. Adding some fake values in this fixture class will prevent
+    an error when the test server starts up.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now you''re (really) ready to write an integration test. Create a new class
+    called `TodoRouteShould`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**`AspNetCoreTodo.IntegrationTests/TodoRouteShould.cs`**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: This test makes an anonymous (not-logged-in) request to the `/todo` route and
+    verifies that the browser is redirected to the login page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This scenario is a good candidate for an integration test, because it involves
+    multiple components of the application: the routing system, the controller, the
+    fact that the controller is marked with `[Authorize]`, and so on. It''s also a
+    good test because it ensures you won''t ever accidentally remove the `[Authorize]`
+    attribute and make the to-do view accessible to everyone.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run the test in the terminal with `dotnet test`. If everything''s working right,
+    you''ll see a success message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Wrap up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Testing is a broad topic, and there's much more to learn. This chapter doesn't
+    touch on UI testing or testing frontend (JavaScript) code, which probably deserve
+    entire books of their own. You should, however, have the skills and base knowledge
+    you need to practice and learn more about writing tests for your own applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, the ASP.NET Core documentation ([https://docs.asp.net](https://docs.asp.net))
+    and StackOverflow are good resources for learning more and finding answers when
+    you get stuck.
+  prefs: []
+  type: TYPE_NORMAL

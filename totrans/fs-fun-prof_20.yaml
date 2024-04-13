@@ -1,0 +1,3719 @@
+- en: Thirteen ways of looking at a turtle
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thirteen ways of looking at a turtle
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This post is part of the [F# Advent Calendar in English 2015](https://sergeytihon.wordpress.com/2015/10/25/f-advent-calendar-in-english-2015/)
+    project. Check out all the other great posts there! And special thanks to Sergey
+    Tihon for organizing this.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I was discussing how to implement a simple [turtle graphics system](https://en.wikipedia.org/wiki/Turtle_graphics)
+    some time ago, and it struck me that, because the turtle requirements are so simple
+    and so well known, it would make a great basis for demonstrating a range of different
+    techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, in this two part mega-post, I''ll stretch the turtle model to the limit
+    while demonstrating things like: partial application, validation with Success/Failure
+    results, the concept of "lifting", agents with message queues, dependency injection,
+    the State monad, event sourcing, stream processing, and finally a custom interpreter!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Without further ado then, I hereby present thirteen different ways of implementing
+    a turtle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 1\. A basic object-oriented approach](13-ways-of-looking-at-a-turtle.html#way1),
+    in which we create a class with mutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 2\. A basic functional approach](13-ways-of-looking-at-a-turtle.html#way2),
+    in which we create a module of functions with immutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 3\. An API with a object-oriented core](13-ways-of-looking-at-a-turtle.html#way3),
+    in which we create an object-oriented API that calls a stateful core class.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 4\. An API with a functional core](13-ways-of-looking-at-a-turtle.html#way4),
+    in which we create an stateful API that uses stateless core functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 5\. An API in front of an agent](13-ways-of-looking-at-a-turtle.html#way5),
+    in which we create an API that uses a message queue to communicate with an agent.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 6\. Dependency injection using interfaces](13-ways-of-looking-at-a-turtle.html#way6),
+    in which we decouple the implementation from the API using an interface or record
+    of functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 7\. Dependency injection using functions](13-ways-of-looking-at-a-turtle.html#way7),
+    in which we decouple the implementation from the API by passing a function parameter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 8\. Batch processing using a state monad](13-ways-of-looking-at-a-turtle.html#way8),
+    in which we create a special "turtle workflow" computation expression to track
+    state for us.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 9\. Batch processing using command objects](13-ways-of-looking-at-a-turtle.html#way9),
+    in which we create a type to represent a turtle command, and then process a list
+    of commands all at once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Interlude: Conscious decoupling with data types](13-ways-of-looking-at-a-turtle.html#decoupling).
+    A few notes on using data vs. interfaces for decoupling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 10\. Event sourcing](13-ways-of-looking-at-a-turtle-2.html#way10), in
+    which state is built from a list of past events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 11\. Functional Retroactive Programming (stream processing)](13-ways-of-looking-at-a-turtle-2.html#way11),
+    in which business logic is based on reacting to earlier events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Episode V: The Turtle Strikes Back](13-ways-of-looking-at-a-turtle-2.html#strikes-back),
+    in which the turtle API changes so that some commands may fail.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 12\. Monadic control flow](13-ways-of-looking-at-a-turtle-2.html#way12),
+    in which we make decisions in the turtle workflow based on results from earlier
+    commands.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 13\. A turtle interpreter](13-ways-of-looking-at-a-turtle-2.html#way13),
+    in which we completely decouple turtle programming from turtle implementation,
+    and nearly encounter the free monad.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Review of all the techniques used](13-ways-of-looking-at-a-turtle-2.html#review).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'and 2 bonus ways for the extended edition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 14\. Abstract Data Turtle](13-ways-of-looking-at-a-turtle-3.html#way14),
+    in which we encapsulate the details of a turtle implementation by using an Abstract
+    Data Type.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 15\. Capability-based Turtle](13-ways-of-looking-at-a-turtle-3.html#way15),
+    in which we control what turtle functions are available to a client, based on
+    the current state of the turtle.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The requirements for a Turtle
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A turtle supports four instructions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Move some distance in the current direction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Turn a certain number of degrees clockwise or anticlockwise.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Put the pen down or up. When the pen is down, moving the turtle draws a line.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Set the pen color (one of black, blue or red).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These requirements lead naturally to some kind of "turtle interface" like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Move aDistance`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Turn anAngle`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`PenUp`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`PenDown`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`SetColor aColor`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All of the following implementations will be based on this interface or some
+    variant of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the turtle must convert these instructions to drawing lines on a canvas
+    or other graphics context. So the implementation will probably need to keep track
+    of the turtle position and current state somehow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Common code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we start implementing, let's get some common code out of the way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we'll need some types to represent distances, angles, the pen state,
+    and the pen colors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and we''ll also need a type to represent the position of the turtle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We''ll also need a helper function to calculate a new position based on moving
+    a certain distance at a certain angle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s also define the initial state of a turtle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And a helper that pretends to draw a line on a canvas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we're ready for the first implementation!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Basic OO -- A class with mutable state
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this first design, we will use an object-oriented approach and represent
+    the turtle with a simple class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The state will be stored in local fields (`currentPosition`, `currentAngle`,
+    etc) that are mutable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will inject a logging function `log` so that we can monitor what happens.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](turtle-oo.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And here''s the complete code, which should be self-explanatory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Calling the turtle object
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The client code instantiates the turtle and talks to it directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The logged output of `drawTriangle()` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, here''s the code to draw a polygon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that `drawOneSide()` does not return anything -- all the code is imperative
+    and stateful. Compare this to the code in the next example, which takes a pure
+    functional approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So what are the advantages and disadvantages of this simple approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's very easy to implement and understand.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The stateful code is harder to test. We have to put an object into a known state
+    state before testing, which is simple in this case, but can be long-winded and
+    error-prone for more complex objects.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client is coupled to a particular implementation. No interfaces here! We'll
+    look at using interfaces shortly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here (turtle class)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/OOTurtleLib.fsx)
+    and [here (client)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/01-OOTurtle.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2: Basic FP - A module of functions with immutable state'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next design will use a pure, functional approach. An immutable `TurtleState`
+    is defined, and then the various turtle functions accept a state as input and
+    return a new state as output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this approach then, the client is responsible for keeping track of the current
+    state and passing it into the next function call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-fp.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s the definition of `TurtleState` and the values for the initial state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here are the "api" functions, all of which take a state parameter and return
+    a new state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the `state` is always the last parameter -- this makes it easier to
+    use the "piping" idiom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the turtle functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The client now has to pass in both the `log` function and the `state` to every
+    function, every time!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can eliminate the need to pass in the log function by using partial application
+    to create new versions of the functions with the logger baked in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these simpler versions, the client can just pipe the state through in
+    a natural way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When it comes to drawing a polygon, it''s a little more complicated, as we
+    have to "fold" the state through the repetitions for each side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What are the advantages and disadvantages of this purely functional approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, it's very easy to implement and understand.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The stateless functions are easier to test. We always provide the current state
+    as input, so there is no setup needed to get an object into a known state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because there is no global state, the functions are modular and can be reused
+    in other contexts (as we'll see later in this post).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As before, the client is coupled to a particular implementation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client has to keep track of the state (but some solutions to make this easier
+    are shown later in this post).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here (turtle functions)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/FPTurtleLib.fsx)
+    and [here (client)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/02-FPTurtle.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3: An API with a object-oriented core'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's hide the client from the implementation using an API!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, the API will be string based, with text commands such as `"move
+    100"` or `"turn 90"`. The API must validate these commands and turn them into
+    method calls on the turtle (we'll use the OO approach of a stateful `Turtle` class
+    again).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-oo-api.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If the command is *not* valid, the API must indicate that to the client. Since
+    we are using an OO approach, we'll do this by throwing a `TurtleApiException`
+    containing a string, like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we need some functions that validate the command text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: With these in place, we can create the API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The logic for parsing the command text is to split the command text into tokens
+    and then match the first token to `"move"`, `"turn"`, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the API
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here''s how `drawPolygon` is implemented using the `TurtleApi` class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the code is quite similar to the earlier OO version, with the
+    direct call `turtle.Move 100.0` being replaced with the indirect API call `api.Exec
+    "Move 100.0"`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now if we trigger an error with a bad command such as `api.Exec "Move bad"`,
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'then the expected exception is thrown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What are the advantages and disadvantages of an API layer like this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The turtle implementation is now hidden from the client.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An API at a service boundary supports validation and can be extended to support
+    monitoring, internal routing, load balancing, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The API is coupled to a particular implementation, even though the client isn't.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The system is very stateful. Even though the client does not know about the
+    implementation behind the API, the client is still indirectly coupled to the inner
+    core via shared state which in turn can make testing harder.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/03-Api_OO_Core.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4: An API with a functional core'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An alternative approach for this scenario is to use a hybrid design, where the
+    core of the application consists of pure functions, while the boundaries are imperative
+    and stateful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach has been named "Functional Core/Imperative Shell" by [Gary Bernhardt](https://www.youtube.com/watch?v=yTkzNHF6rMs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applied to our API example, the API layer uses only pure turtle functions, but
+    the API layer manages the state (rather than the client) by storing a mutable
+    turtle state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, to be more functional, the API will not throw exceptions if the command
+    text is not valid, but instead will return a `Result` value with `Success` and
+    `Failure` cases, where the `Failure` case is used for any errors. (See [my talk
+    on the functional approach to error handling](http://fsharpforfunandprofit.com/rop/)
+    for a more in depth discussion of this technique).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-fp-api.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Let''s start by implementing the API class. This time it contains a `mutable`
+    turtle state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The validation functions no longer throw an exception, but return `Success`
+    or `Failure`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The error cases are documented in their own type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now because the validation functions now return a `Result<Distance>` rather
+    than a "raw" distance, the `move` function needs to be lifted to the world of
+    `Results`, as does the current state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three functions that we will use when working with `Result`s: `returnR`,
+    `mapR` and `lift2R`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`returnR` transforms a "normal" value into a value in the world of Results:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](turtle-returnR.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`mapR` transforms a "normal" one-parameter function into a one-parameter function
+    in the world of Results:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](turtle-mapR.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`lift2R` transforms a "normal" two-parameter function into a two-parameter
+    function in the world of Results:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](turtle-lift2R.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As an example, with these helper functions, we can turn the normal `move` function
+    into a function in the world of Results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The distance parameter is already in `Result` world
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The state parameter is lifted into `Result` world using `returnR`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `move` function is lifted into `Result` world using `lift2R`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*(For more details on lifting functions to `Result` world, see the post on
+    ["lifting" in general](elevated-world.html#lift) )*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the complete code for `Exec`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the API
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The API returns a `Result`, so the client can no longer call each function in
+    sequence, as we need to handle any errors coming from a call and abandon the rest
+    of the steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make our lives easier, we'll use a `result` computation expression (or workflow)
+    to chain the calls and preserve the imperative "feel" of the OO version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*The source code for the `result` computation expression is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/Common.fsx#L70).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, for the `drawPolygon` code, we can create a helper to draw one side
+    and then call it `n` times inside a `result` expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code looks imperative, but is actually purely functional, as the returned
+    `Result` values are being handled transparently by the `result` workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The same as for the OO version of an API -- the turtle implementation is hidden
+    from the client, validation can be done, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The only stateful part of the system is at the boundary. The core is stateless
+    which makes testing easier.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The API is still coupled to a particular implementation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here (api helper functions)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/TurtleApiHelpers.fsx)
+    and [here (API and client)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/04-Api_FP_Core.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5: An API in front of an agent'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this design, an API layer communicates with a `TurtleAgent` via a message
+    queue and the client talks to the API layer as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-agent.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: There are no mutables in the API (or anywhere). The `TurtleAgent` manages state
+    by storing the current state as a parameter in the recursive message processing
+    loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now because the `TurtleAgent` has a typed message queue, where all messages
+    are the same type, we must combine all possible commands into a single discriminated
+    union type (`TurtleCommand`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The agent implementation is similar to the previous ones, but rather than exposing
+    the turtle functions directly, we now do pattern matching on the incoming command
+    to decide which function to call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sending a command to the Agent
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The API calls the agent by constructing a `TurtleCommand` and posting it to
+    the agent's queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This time, rather than using the previous approach of "lifting" the `move`
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we''ll use the `result` computation expression instead, so the code above would
+    have looked like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the agent implementation, we are not calling a `move` command, but instead
+    creating the `Move` case of the `Command` type, so the code looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the complete code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages of the Agent approach
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A great way to protect mutable state without using locks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The API is decoupled from a particular implementation via the message queue.
+    The `TurtleCommand` acts as a sort of protocol that decouples the two ends of
+    the queue.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The turtle agent is naturally asynchronous.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Agents can easily be scaled horizontally.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Agents are stateful and have the same problem as stateful objects:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is harder to reason about your code.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing is harder.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is all too easy to create a web of complex dependencies between actors.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A robust implementation for agents can get quite complex, as you may need support
+    for supervisors, heartbeats, back pressure, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/05-TurtleAgent.fsx)
+    .*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6: Dependency injection using interfaces'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All the implementations so far have been tied to a specific implementation of
+    the turtle functions, with the exception of the Agent version, where the API communicated
+    indirectly via a queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's now look at some ways of decoupling the API from the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing an interface, object-oriented style
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We''ll start with the classic OO way of decoupling implementations: using interfaces.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying that approach to the turtle domain, we can see that our API layer will
+    need to communicate with a `ITurtle` interface rather than a specific turtle implementation.
+    The client injects the turtle implementation later, via the API's constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the interface definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that there are a lot of `unit`s in these functions. A `unit` in a function
+    signature implies side effects, and indeed the `TurtleState` is not used anywhere,
+    as this is a OO-based approach where the mutable state is encapsulated in the
+    object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we need to change the API layer to use the interface by injecting it
+    in the constructor for `TurtleApi`. Other than that, the rest of the API code
+    is unchanged, as shown by the snippet below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating some implementations of an OO interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now let's create and test some implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first implementation will be called `normalSize` and will be the original
+    one. The second will be called `halfSize` and will reduce all the distances by
+    half.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For `normalSize` we could go back and retrofit the orginal `Turtle` class to
+    support the `ITurtle` interface. But I hate having to change working code! Instead,
+    we can create a "proxy" wrapper around the orginal `Turtle` class, where the proxy
+    implements the new interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In some languages, creating proxy wrappers can be long-winded, but in F# you
+    can use [object expressions](object-expressions.html) to implement an interface
+    quickly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And to create the `halfSize` version, we do the same thing, but intercept the
+    calls to `Move` and halve the distance parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is actually [the "decorator" pattern](https://en.wikipedia.org/wiki/Decorator_pattern)
+    at work: we''re wrapping `normalSize` in a proxy with an identical interface,
+    then changing the behavior for some of the methods, while passing others though
+    untouched.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Injecting dependencies, OO style
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now let's look at the client code that injects the dependencies into the API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, some code to draw a triangle, where a `TurtleApi` is passed in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now let''s try drawing the triangle by instantiating the API object with
+    the normal interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: Obviously, in a real system, the dependency injection would occur away from
+    the call site, using an IoC container or similar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we run it, the output of `drawTriangle` is just as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now with the half-size interface..
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...the output is, as we hoped, half the size!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: Designing an interface, functional style
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In a pure FP world, OO-style interfaces do not exist. However, you can emulate
+    them by using a record containing functions, with one function for each method
+    in the interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's create a alternative version of dependency injection, where this time
+    the API layer will use a record of functions rather than an interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A record of functions is a normal record, but the types of the fields are function
+    types. Here''s the definition we''ll use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that there are no `unit`s in these function signatures, unlike the OO version.
+    Instead, the `TurtleState` is explicitly passed in and returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that there is no logging either. The logging method will be baked
+    in to the functions when the record is created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `TurtleApi` constructor now takes a `TurtleFunctions` record rather than
+    an `ITurtle`, but as these functions are pure, the API needs to manage the state
+    again with a `mutable` field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The implementation of the main `Exec` method is very similar to what we have
+    seen before, with these differences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function is fetched from the record (e.g. `turtleFunctions.move`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All the activity takes place in a `result` computation expression so that the
+    result of the validations can be used.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating some implementations of a "record of functions"
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Noe let's create some implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, we'll have a `normalSize` implementation and a `halfSize` implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For `normalSize` we just need to use the functions from the original `Turtle`
+    module, with the logging baked in using partial application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And to create the `halfSize` version, we clone the record, and change just
+    the `move` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's nice about cloning records rather than proxying interfaces is that we
+    don't have to reimplement every function in the record, just the ones we care
+    about.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Injecting dependencies again
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The client code that injects the dependencies into the API is implemented just
+    as you expect. The API is a class with a constructor, and so the record of functions
+    can be passed into the constructor in exactly the same way that the `ITurtle`
+    interface was:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the client code in the `ITurtle` version and `TurtleFunctions`
+    version looks identical! If it wasn't for the different types, you could not tell
+    them apart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of using interfaces
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The OO-style interface and the FP-style "record of functions" are very similar,
+    although the FP functions are stateless, unlike the OO interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The API is decoupled from a particular implementation via the interface.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the FP "record of functions" approach (compared to OO interfaces):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Records of functions can be cloned more easily than interfaces.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The functions are stateless
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interfaces are more monolithic than individual functions and can easily grow
+    to include too many unrelated methods, breaking the [Interface Segregation Principle](https://en.wikipedia.org/wiki/Interface_segregation_principle)
+    if care is not taken.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interfaces are not composable (unlike individual functions).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For more on the problems with this approach, see [this Stack Overflow answer
+    by Mark Seemann](https://stackoverflow.com/questions/34011895/f-how-to-pass-equivalent-of-interface/34028711?stw=2#34028711).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the OO interface approach in particular:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You may have to modify existing classes when refactoring to an interface.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the FP "record of functions" approach:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Less tooling support, and poor interop, compared to OO interfaces.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for these versions is available [here (interface)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/06-DependencyInjection_Interface-1.fsx)
+    and [here (record of functions)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/06-DependencyInjection_Interface-2.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7: Dependency injection using functions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The two main disadvantages of the "interface" approach is that interfaces are
+    not composable, and they break the ["pass in only the dependencies you need" rule](https://en.wikipedia.org/wiki/Interface_segregation_principle),
+    which is a key part of functional design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a true functional approach, we would pass in functions. That is, the API
+    layer communicates via one or more functions that are passed in as parameters
+    to the API call. These functions are typically partially applied so that the call
+    site is decoupled from the "injection".
+  prefs: []
+  type: TYPE_NORMAL
+- en: No interface is passed to the constructor as generally there is no constructor!
+    (I'm only using a API class here to wrap the mutable turtle state.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the approach in this section, I''ll show two alternatives which use function
+    passing to inject dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the first approach, each dependency (turtle function) is passed separately.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the second approach, only one function is passed in. So to determine which
+    specific turtle function is used, a discriminated union type is defined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Approach 1 - passing in each dependency as a separate function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The simplest way to manage dependencies is always just to pass in all dependencies
+    as parameters to the function that needs them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, the `Exec` method is the only function that needs to control the
+    turtle, so we can pass them in there directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To stress that point again: in this approach dependencies are always passed
+    "just in time", to the function that needs them. No dependencies are used in the
+    constructor and then used later.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a bigger snippet of the `Exec` method using those functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using partial application to bake in an implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To create a normal or half-size version of `Exec`, we just pass in different
+    functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: In both cases we are returning a *function* of type `string -> Result<unit,ErrorMessage>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a purely functional API
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So now when we want to draw something, we need only pass in *any* function of
+    type `string -> Result<unit,ErrorMessage>`. The `TurtleApi` is no longer needed
+    or mentioned!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is how the API would be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, although we did have mutable state in the `TurtleApi`, the final "published"
+    api is a function that hides that fact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach of having the api be a single function makes it very easy to mock
+    for testing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: Approach 2 - passing a single function that handles all commands
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the version above, we passed in 5 separate functions!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generally, when you are passing in more than three or four parameters, that
+    implies that your design needs tweaking. You shouldn't really need that many,
+    if the functions are truly independent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in our case, the five functions are *not* independent -- they come as a
+    set -- so how can we pass them in together without using a "record of functions"
+    approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The trick is to pass in just *one* function! But how can one function handle
+    five different actions? Easy - by using a discriminated union to represent the
+    possible commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ve seen this done before in the agent example, so let''s revisit that type
+    again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: All we need now is a function that handles each case of that type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Befor we do that though, let''s look at the changes to the `Exec` method implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that a `command` object is being created and then the `turtleFn` parameter
+    is being called with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And by the way, this code is very similar to the agent implementation, which
+    used `turtleAgent.Post command` rather than `newState = turtleFn command state`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using partial application to bake in an implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s create the two implementations using this approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As before, in both cases we are returning a function of type `string -> Result<unit,ErrorMessage>`,.
+    which we can pass into the `drawTriangle` function we defined earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages of using functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The API is decoupled from a particular implementation via parameterization.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because dependencies are passed in at the point of use ("in your face") rather
+    than in a constructor ("out of sight"), the tendency for dependencies to multiply
+    is greatly reduced.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Any function parameter is automatically a "one method interface" so no retrofitting
+    is needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Regular partial application can be used to bake in parameters for "dependency
+    injection". No special pattern or IoC container is needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the number of dependent functions is too great (say more than four) passing
+    them all in as separate parameters can become awkward (hence, the second approach).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The discriminated union type can be trickier to work with than an interface.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for these versions is available [here (five function params)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/07-DependencyInjection_Functions-1.fsx)
+    and [here (one function param)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/07-DependencyInjection_Functions-2.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8: Batch processing using a state monad'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the next two sections, we'll switch from "interactive" mode, where instructions
+    are processed one at a time, to "batch" mode, where a whole series of instructions
+    are grouped together and then run as one unit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the first design, we'll go back to the model where the client uses the Turtle
+    functions directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just as before, the client must keep track of the current state and pass it
+    into the next function call, but this time we'll keep the state out of sight by
+    using a so-called "state monad" to thread the state through the various instructions.
+    As a result, there are no mutables anywhere!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This won't be a generalized state monad, but a simplified one just for this
+    demonstration. I'll call it the `turtle` workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(For more on the state monad see my ["monadster" talk and post](http://fsharpforfunandprofit.com/monadster/)
+    and [post on parser combinators](understanding-parser-combinators1.html) )*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-monad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Defining the `turtle` workflow
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The core turtle functions that we defined at the very beginning follow the same
+    "shape" as many other state-transforming functions, an input plus the turtle state,
+    and the output plus the turtle state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-monad-1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(It''s true that, so far. we have not had any useable output from the turtle
+    functions, but in a later example we will see this output being used to make decisions.)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a standard way to deal with these kinds of functions -- the "state
+    monad".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's look at how this is built.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, note that, thanks to currying, we can recast a function in this shape
+    into two separate one-parameter functions: processing the input generates another
+    function that in turn has the state as the parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-monad-2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can then think of a turtle function as something that takes an input and
+    returns a new *function*, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-monad-3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In our case, using `TurtleState` as the state, the returned function will look
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, to make it easier to work with, we can treat the returned function
+    as a thing in its own right, give it a name such as `TurtleStateComputation`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-monad-4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In the implementation, we would typically wrap the function with a [single
+    case discriminated union](designing-with-types-single-case-dus.html) like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: So that is the basic idea behind the "state monad". However, it's important
+    to realize that a state monad consists of more than just this type -- you also
+    need some functions ("return" and "bind") that obey some sensible laws.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I won't define the `returnT` and `bindT` functions here, but you can see their
+    definitions in the [full source](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/8e4e8d23b838ca88702d0b318bfd57a87801305e/08-StateMonad.fsx#L46).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need some additional helper functions too. (I'm going to add a `T` for Turtle
+    suffix to all the functions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In particular, we need a way to feed some state into the `TurtleStateComputation`
+    to "run" it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can create a `turtle` workflow, which is a computation expression
+    that makes it easier to work with the `TurtleStateComputation` type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using the Turtle workflow
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To use the `turtle` workflow, we first need to create "lifted" or "monadic"
+    versions of the turtle functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `toUnitComputation` helper function does the lifting. Don't worry about
+    how it works, but the effect is that the original version of the `move` function
+    (`Distance -> TurtleState -> TurtleState`) is reborn as a function returning a
+    `TurtleStateComputation` (`Distance -> TurtleStateComputation<unit>`)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we have these "monadic" versions, we can use them inside the `turtle`
+    workflow like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first part of `drawTriangle` chains together six instructions, but importantly,
+    does *not* run them. Only when the `runT` function is used at the end are the
+    instructions actually executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `drawPolygon` example is a little more complicated. First we define a workflow
+    for drawing one side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: But then we need a way of combining all the sides into a single workflow. There
+    are a couple of ways of doing this. I'll go with creating a pairwise combiner
+    `chain` and then using `reduce` to combine all the sides into one operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the complete code for `drawPolygon`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages of the `turtle` workflow
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client code is similar to imperative code, but preserves immutability.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The workflows are composable -- you can define two workflows and then combine
+    them to create another workflow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coupled to a particular implementation of the turtle functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More complex than tracking state explicitly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stacks of nested monads/workflows are hard to work with.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As an example of that last point, let's say we have a `seq` containing a `result`
+    workflow containing a `turtle` workflow and we want to invert them so that the
+    `turtle` workflow is on the outside. How would you do that? It's not obvious!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/08-StateMonad.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '9: Batch processing using command objects'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another batch-oriented approach is to reuse the `TurtleCommand` type in a new
+    way. Instead of calling functions immediately, the client creates a list of commands
+    that will be run as a group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you "run" the list of commands, you can just execute each one in turn using
+    the standard Turtle library functions, using `fold` to thread the state through
+    the sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-batch.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And since all the commands are run at once, this approach means that there is
+    no state that needs to be persisted between calls by the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the `TurtleCommand` definition again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To process a sequence of commands, we will need to fold over them, threading
+    the state through, so we need a function that applies a single command to a state
+    and returns a new state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then, to run all the commands, we just use `fold`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running a batch of Commands
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To draw a triangle, say, we just create a list of the commands and then run
+    them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, since the commands are just a collection, we can easily build bigger collections
+    from smaller ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example for `drawPolygon`, where `drawOneSide` returns a collection
+    of commands, and that collection is duplicated for each side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages of batch commands
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simpler to construct and use than workflows or monads.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only one function is coupled to a particular implementation. The rest of the
+    client is decoupled.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Batch oriented only.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only suitable when control flow is *not* based on the response from a previous
+    command. If you *do* need to respond to the result of each command, consider using
+    the "interpreter" approach discussed later.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/09-BatchCommands.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Interlude: Conscious decoupling with data types'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In three of the examples so far (the [agent](13-ways-of-looking-at-a-turtle.html#way5),
+    [functional dependency injection](13-ways-of-looking-at-a-turtle.html#way7) and
+    [batch processing](13-ways-of-looking-at-a-turtle.html#way9)) we have used a `Command`
+    type -- a discriminated union containing a case for each API call. We'll also
+    see something similar used for the event sourcing and interpreter approaches in
+    the next post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is not an accident. One of the differences between object-oriented design
+    and functional design is that OO design focuses on behavior, while functional
+    design focuses on data transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, their approach to decoupling differs too. OO designs prefer to
+    provide decoupling by sharing bundles of encapsulated behavior ("interfaces")
+    while functional designs prefer to provide decoupling by agreeing on a common
+    data type, sometimes called a "protocol" (although I prefer to reserve that word
+    for message exchange patterns).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once that common data type is agreed upon, any function that emits that type
+    can be connected to any function that consumes that type using regular function
+    composition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also think of the two approaches as analogous to the choice between
+    [RPC or message-oriented APIs in web services](https://sbdevel.wordpress.com/2009/12/17/the-case-rpc-vs-messaging/),
+    and just as [message-based designs have many advantages](https://github.com/ServiceStack/ServiceStack/wiki/Advantages-of-message-based-web-services#advantages-of-message-based-designs)
+    over RPC, so the data-based decoupling has similar advantages over the behavior-based
+    decoupling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some advantages of decoupling using data include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a shared data type means that composition is trivial. It is harder to
+    compose behavior-based interfaces.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Every* function is already "decoupled", as it were, and so there is no need
+    to retrofit existing functions when refactoring. At worst you might need to convert
+    one data type to another, but that is easily accomplished using... moar functions
+    and moar function composition!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data structures are easy to serialize to remote services if and when you need
+    to split your code into physically separate services.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data structures are easy to evolve safely. For example, if I added a sixth turtle
+    action, or removed an action, or changed the parameters of an action, the discriminated
+    union type would change and all clients of the shared type would fail to compile
+    until the sixth turtle action is accounted for, etc. On the other hand, if you
+    *didn't* want existing code to break, you can use a versioning-friendly data serialization
+    format like [protobuf](https://developers.google.com/protocol-buffers/docs/proto3#updating).
+    Neither of these options are as easy when interfaces are used.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The meme is spreading.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The turtle must be paddling.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- *"Thirteen ways of looking at a turtle", by Wallace D Coriacea*
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Hello? Anyone still there? Thanks for making it this far!
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, time for a break! In the [next post](13-ways-of-looking-at-a-turtle-2.html),
+    we'll cover the remaining four ways of looking at a turtle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thirteen ways of looking at a turtle (part 2)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thirteen ways of looking at a turtle (part 2)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This post is part of the [F# Advent Calendar in English 2015](https://sergeytihon.wordpress.com/2015/10/25/f-advent-calendar-in-english-2015/)
+    project. Check out all the other great posts there! And special thanks to Sergey
+    Tihon for organizing this.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this two-part mega-post, I'm stretching the simple turtle graphics model
+    to the limit while demonstrating partial application, validation, the concept
+    of "lifting", agents with message queues, dependency injection, the State monad,
+    event sourcing, stream processing, and an interpreter!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous post](13-ways-of-looking-at-a-turtle.html), we covered the
+    first nine ways of looking at a turtle. In this post, we'll look at the remaining
+    four.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a reminder, here are the thirteen ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 1\. A basic object-oriented approach](13-ways-of-looking-at-a-turtle.html#way1),
+    in which we create a class with mutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 2\. A basic functional approach](13-ways-of-looking-at-a-turtle.html#way2),
+    in which we create a module of functions with immutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 3\. An API with a object-oriented core](13-ways-of-looking-at-a-turtle.html#way3),
+    in which we create an object-oriented API that calls a stateful core class.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 4\. An API with a functional core](13-ways-of-looking-at-a-turtle.html#way4),
+    in which we create an stateful API that uses stateless core functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 5\. An API in front of an agent](13-ways-of-looking-at-a-turtle.html#way5),
+    in which we create an API that uses a message queue to communicate with an agent.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 6\. Dependency injection using interfaces](13-ways-of-looking-at-a-turtle.html#way6),
+    in which we decouple the implementation from the API using an interface or record
+    of functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 7\. Dependency injection using functions](13-ways-of-looking-at-a-turtle.html#way7),
+    in which we decouple the implementation from the API by passing a function parameter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 8\. Batch processing using a state monad](13-ways-of-looking-at-a-turtle.html#way8),
+    in which we create a special "turtle workflow" computation expression to track
+    state for us.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 9\. Batch processing using command objects](13-ways-of-looking-at-a-turtle.html#way9),
+    in which we create a type to represent a turtle command, and then process a list
+    of commands all at once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Interlude: Conscious decoupling with data types](13-ways-of-looking-at-a-turtle.html#decoupling).
+    A few notes on using data vs. interfaces for decoupling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 10\. Event sourcing](13-ways-of-looking-at-a-turtle-2.html#way10), in
+    which state is built from a list of past events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 11\. Functional Retroactive Programming (stream processing)](13-ways-of-looking-at-a-turtle-2.html#way11),
+    in which business logic is based on reacting to earlier events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Episode V: The Turtle Strikes Back](13-ways-of-looking-at-a-turtle-2.html#strikes-back),
+    in which the turtle API changes so that some commands may fail.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 12\. Monadic control flow](13-ways-of-looking-at-a-turtle-2.html#way12),
+    in which we make decisions in the turtle workflow based on results from earlier
+    commands.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 13\. A turtle interpreter](13-ways-of-looking-at-a-turtle-2.html#way13),
+    in which we completely decouple turtle programming from turtle implementation,
+    and nearly encounter the free monad.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Review of all the techniques used](13-ways-of-looking-at-a-turtle-2.html#review).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'and 2 bonus ways for the extended edition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 14\. Abstract Data Turtle](13-ways-of-looking-at-a-turtle-3.html#way14),
+    in which we encapsulate the details of a turtle implementation by using an Abstract
+    Data Type.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 15\. Capability-based Turtle](13-ways-of-looking-at-a-turtle-3.html#way15),
+    in which we control what turtle functions are available to a client, based on
+    the current state of the turtle.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It's turtles all the way down!
+  prefs: []
+  type: TYPE_NORMAL
+- en: All source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '10: Event sourcing -- Building state from a list of past events'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this design, we build on the "command" concept used in the [Agent (way 5)](13-ways-of-looking-at-a-turtle.html#way5)
+    and [Batch (way 9)](13-ways-of-looking-at-a-turtle.html#way9) approaches, but
+    replacing "commands" with "events" as the method of updating state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The way that it works is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client sends a `Command` to a `CommandHandler`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before processing a `Command`, the `CommandHandler` first rebuilds the current
+    state from scratch using the past events associated with that particular turtle.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `CommandHandler` then validates the command and decides what to do based
+    on the current (rebuilt) state. It generates a (possibly empty) list of events.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The generated events are stored in an `EventStore` for the next command to use.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](turtle-event-source.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this way, neither the client nor the command handler needs to track state.
+    Only the `EventStore` is mutable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Command and Event types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We will start by defining the types relating to our event sourcing system.
+    First, the types related to commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the command is addressed to a particular turtle using a `TurtleId`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we will define two kinds of events that can be generated from a command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `StateChangedEvent` which represents what changed in the state
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `MovedEvent` which represents the start and end positions of a turtle movement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is an important part of event sourcing that all events are labeled in the
+    past tense: `Moved` and `Turned` rather than `Move` and `Turn`. The event are
+    facts -- they have happened in the past.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Command handler
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The next step is to define the functions that convert a command into events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A (private) `applyEvent` function that updates the state from a previous event.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A (private) `eventsFromCommand` function that determines what events to generate,
+    based on the command and the state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A public `commandHandler` function that handles the command, reads the events
+    from the event store and calls the other two functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here's `applyEvent`. You can see that it is very similar to the `applyCommand`
+    function that we saw in the [previous batch-processing example](13-ways-of-looking-at-a-turtle.html#way9).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `eventsFromCommand` function contains the key logic for validating the command
+    and creating events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this particular design, the command is always valid, so at least one event
+    is returned.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `StateChangedEvent` is created from the `TurtleCommand` in a direct one-to-one
+    map of the cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `MovedEvent` is only created from the `TurtleCommand` if the turtle has
+    changed position.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, the `commandHandler` is the public interface. It is passed in some
+    dependencies as parameters: a logging function, a function to retrieve the historical
+    events from the event store, and a function to save the newly generated events
+    into the event store.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: Calling the command handler
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now we are ready to send events to the command handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we need some helper functions that create commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then we can draw a figure by sending the various commands to the command
+    handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'NOTE: I have not shown how to create the command handler or event store, see
+    the code for full details.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of event sourcing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All code is stateless, hence easy to test.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Supports replay of events.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can be more complex to implement than a CRUD approach (or at least, less support
+    from tools and libraries).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If care is not taken, the command handler can get overly complex and evolve
+    into implementing too much business logic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/10-EventSourcing.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11: Functional Retroactive Programming (stream processing)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the event sourcing example above, all the domain logic (in our case, just
+    tracing the state) is embedded in the command handler. One drawback of this is
+    that, as the application evolves, the logic in the command handler can become
+    very complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A way to avoid this is to combine ["functional reactive programming"](https://en.wikipedia.org/wiki/Functional_reactive_programming)
+    with event sourcing to create a design where the domain logic is performed on
+    the "read-side", by listening to events ("signals") emitted from the event store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this approach, the "write-side" follows the same pattern as the event-sourcing
+    example. A client sends a `Command` to a `commandHandler`, which converts that
+    to a list of events and stores them in an `EventStore`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However the `commandHandler` only does the *minimal* amount of work, such as
+    updating state, and does NOT do any complex domain logic. The complex logic is
+    performed by one or more downstream "processors" (also sometimes called "aggregators")
+    that subscribe to the event stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-frp.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can even think of these events as "commands" to the processors, and of course,
+    the processors can generate new events for another processor to consume, so this
+    approach can be extended into an architectural style where an application consists
+    of a set of command handlers linked by an event store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This techique is often called ["stream processing"](http://www.confluent.io/blog/making-sense-of-stream-processing/).
+    However, Jessica Kerr once called this approach ["Functional Retroactive Programming"](https://twitter.com/jessitron/status/408554836578537472)
+    -- I like that, so I'm going to steal that name!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-stream-processor.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Implementing the design
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For this implementation, the `commandHandler` function is the same as in the
+    event sourcing example, except that no work (just logging!) is done at all. The
+    command handler *only* rebuilds state and generates events. How the events are
+    used for business logic is no longer in its scope.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new stuff comes in creating the processors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, before we can create a processor, we need some helper functions that
+    can filter the event store feed to only include turtle specific events, and of
+    those only `StateChangedEvent`s or `MovedEvent`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let's create a processor that listens for movement events and moves a physical
+    turtle when the virtual turtle is moved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will make the input to the processor be an `IObservable` -- an event stream
+    -- so that it is not coupled to any specific source such as the `EventStore`.
+    We will connect the `EventStore` "save" event to this processor when the application
+    is configured.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case we are just printing the movement -- I'll leave the building of
+    an [actual Lego Mindstorms turtle](https://www.youtube.com/watch?v=pcJHLClDKVw)
+    as an exercise for the reader!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s also create a processor that draws lines on a graphics display:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: And finally, let's create a processor that accumulates the total distance moved
+    so that we can keep track of how much ink has been used, say.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: This processor uses `Observable.scan` to accumulate the events into a single
+    value -- the total distance travelled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processors in practice
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's try these out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here is `drawTriangle`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that `eventStore.SaveEvent` is cast into an `IObservable<Guid*obj>` (that
+    is, an event stream) before being passed to the processors as a parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`drawTriangle` generates this output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that all the processors are handling events successfully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The turtle is moving, the graphics processor is drawing lines, and the ink used
+    processor has correctly calculated the total distance moved as 300 units.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note, though, that the ink used processor is emitting output on *every* state
+    change (such as turning), rather than only when actual movement happens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can fix this by putting a pair `(previousDistance, currentDistance)` in the
+    stream, and then filtering out those events where the values are the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the new `inkUsedProcessor` code, with the following changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `accumulate` function now emits a pair.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is a new filter `changedDistanceOnly`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these changes, the output of `drawTriangle` looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: and there are no longer any duplicate messages from the `inkUsedProcessor`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of stream processing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Same advantages as event-sourcing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decouples stateful logic from other non-intrinsic logic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy to add and remove domain logic without affecting the core command handler.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: More complex to implement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/11-FRP.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Episode V: The Turtle Strikes Back'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, we have not had to make decisions based on the turtle's state. So, for
+    the two final approaches, we will change the turtle API so that some commands
+    may fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, we might say that the turtle must move within a limited arena,
+    and a `move` instruction may cause the turtle to hit the barrier. In this case,
+    the `move` instruction can return a choice of `MovedOk` or `HitBarrier`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or let's say that there is only a limited amount of colored ink. In this case,
+    trying to set the color may return an "out of ink" response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s update the turtle functions with these cases. First the new response
+    types for `move` and `setColor`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will need a bounds checker to see if the turtle is in the arena. Say that
+    if the position tries to go outside the square (0,0,100,100), the response is
+    `HitABarrier`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, the `move` function needs an extra line to check the new position:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s the complete `move` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will make similar changes for the `setColor` function too, returning `OutOfInk`
+    if we attempt to set the color to `Red`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the new versions of the turtle functions available, we have to create implementations
+    that can respond to the error cases. That will be done in the next two examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for the new turtle functions is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/FPTurtleLib2.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '12: Monadic control flow'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this approach, we will reuse the `turtle` workflow from [way 8](13-ways-of-looking-at-a-turtle.html#way8).
+    This time though, we will make decisions for the next command based on the result
+    of the previous one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we do that though, let's look at what effect the change to `move` will
+    have on our code. Let's say that we want to move forwards a few times using `move
+    40.0`, say.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we write the code using `do!` as we did before, we get a nasty compiler
+    error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: Instead, we need to use `let!` and assign the response to something.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following code, we assign the response to a value and then ignore it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code does compile and work, but if we run it the output shows that, by the
+    third call, we are banging our turtle against the wall (at 100,0) and not moving
+    anywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: Making decisions based on a response
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's say that our response to a `move` that returns `HitABarrier` is to turn
+    90 degrees and wait for the next command. Not the cleverest algorithm, but it
+    will do for demonstration purposes!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's design a function to implement this. The input will be a `MoveResponse`,
+    but what will the output be? We want to encode the `turn` action somehow, but
+    the raw `turn` function needs state input that we don't have. So instead let's
+    return a `turtle` workflow that represents the instruction we *want* to do, when
+    the state becomes available (in the `run` command).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here is the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The type signature looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: which means that it is a monadic (or "diagonal") function -- one that starts
+    in the normal world and ends in the `TurtleStateComputation` world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are exactly the functions that we can use "bind" with, or within computation
+    expressions, `let!` or `do!`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we can add this `handleMoveResponse` step after `move` in the turtle workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the result of running it is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the move response worked. When the turtle hit the edge at (100,0)
+    it turned 90 degrees and the next move succeeded (from (100,0) to (100,60)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So there you go! This code demonstrates how you can make decisions inside the
+    `turtle` workflow while the state is being passed around behind the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computation expressions allow the code to focus on the logic while taking care
+    of the "plumbing" -- in this case, the turtle state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still coupled to a particular implementation of the turtle functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Computation expressions can be complex to implement and how they work is not
+    obvious for beginners.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/12-BranchingOnResponse.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '13: A turtle interpreter'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our final approach, we'll look at a way to *completely* decouple the programming
+    of the turtle from its interpretation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is similar to the [batch processing using command objects](13-ways-of-looking-at-a-turtle.html#way9)
+    approach, but is enhanced to support responding to the output of a command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing an interpreter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The approach we will take is to design an "interpreter" for a set of turtle
+    commands, where the client provides the commands to the turtle, and responds to
+    outputs from the turtle, but the actual turtle functions are provided later by
+    a particular implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, we have a chain of interleaved commands and turtle functions
+    that look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-interpreter-chain.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So how can we model this design in code?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For a first attempt, let''s model the chain as a sequence of request/response
+    pairs. We send a command to the turtle and it responds appropriately with a `MoveResponse`
+    or whatever, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: The problem is that we cannot be sure that the response correctly matches the
+    command. For example, if I send a `Move` command, I expect to get a `MoveResponse`,
+    and never a `SetColorResponse`. But this implementation doesn't enforce that!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We want to [make illegal states unrepresentable](designing-with-types-making-illegal-states-unrepresentable.html)
+    -- how can we do that?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The trick is to combine the request and response in *pairs*. That is, for a
+    `Move` command, there is an associated function which is given a `MoveResponse`
+    as input, and similarly for each other combination. Commands that have no response
+    can be considered as returning `unit` for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The way this works is that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client creates a command, say `Move 100`, and also provides the additional
+    function that handles the response.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The turtle implementation for the Move command (inside the interpreter) processes
+    the input (a `Distance`) and then generates a `MoveResponse`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The interpreter then takes this `MoveResponse` and calls the associated function
+    in the pair, as supplied by the client.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: By associating the `Move` command with a function in this way, we can *guarantee*
+    that the internal turtle implementation must accept a `distance` and return a
+    `MoveResponse`, just as we want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next question is: what is the `something` that is the output? It is the
+    output after the client has handled the response -- that is, another command/response
+    chain!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we can model the whole chain of pairs as a recursive structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](turtle-interpreter-nested.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Or in code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: I've renamed the type from `TurtleCommand` to `TurtleProgram` because it is
+    no longer just a command, but is now a complete chain of commands and associated
+    response handlers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's a problem though! Every step needs yet another `TurtleProgram` to follow
+    -- so when will it stop? We need some way of saying that there is no next command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To solve this issue, we will add a special `Stop` case to the program type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that there is no mention of `TurtleState` in this structure. How the turtle
+    state is managed is internal to the interpreter, and is not part of the "instruction
+    set", as it were.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TurtleProgram` is an example of an Abstract Syntax Tree (AST) -- a structure
+    that represents a program to interpreted (or compiled).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the interpreter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s create a little program using this model. Here''s our old friend `drawTriangle`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: This program is a data structure containing only client commands and responses
+    -- there are no actual turtle functions in it anywhere! And yes, it is really
+    ugly right now, but we will fix that shortly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now the next step is to interpret this data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's create an interpreter that calls the real turtle functions. How would
+    we implement the `Move` case, say?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, just as described above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the distance and associated function from the `Move` case
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call the real turtle function with the distance and current turtle state, to
+    get a `MoveResult` and a new turtle state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get the next step in the program by passing the `MoveResult` to the associated
+    function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally call the interpreter again (recursively) with the new program and new
+    turtle state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the updated turtle state is passed as a parameter to the next
+    recursive call, and so no mutable field is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the full code for `interpretAsTurtle`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s run it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the output is exactly what we have seen before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: But unlike all the previous approaches we can take *exactly the same program*
+    and interpret it in a new way. We don't need to set up any kind of dependency
+    injection, we just need to use a different interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s create another interpreter that aggregates the distance travelled,
+    without caring about the turtle state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, I've aliased `interpretAsDistance` as `recurse` locally to make
+    it obvious what kind of recursion is happening.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s run the same program with this new interpreter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the output is again exactly what we expect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating a "turtle program" workflow
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: That code for creating a program to interpret was pretty ugly! Can we create
+    a computation expression to make it look nicer?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, in order to create a computation expression, we need `return` and `bind`
+    functions, and those require that the `TurtleProgram` type be generic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'No problem! Let''s make `TurtleProgram` generic then:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that the `Stop` case has a value of type `''a` associated with it now.
+    This is needed so that we can implement `return` properly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `bind` function is more complicated to implement. Don't worry about how
+    it works right now -- the important thing is that the types match up and it compiles!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With `bind` and `return` in place, we can create a computation expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now create a workflow that handles `MoveResponse`s just as in the monadic
+    control flow example (way 12) earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s interpret this using the real turtle functions (assuming that the `interpretAsTurtle`
+    function has been modified to handle the new generic structure):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output shows that the `MoveResponse` is indeed being handled correctly
+    when the barrier is encountered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: Refactoring the `TurtleProgram` type into two parts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This approach works fine, but it bothers me that there is a special `Stop` case
+    in the `TurtleProgram` type. It would nice if we could somehow just focus on the
+    five turtle actions and ignore it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it turns out, there *is* a way to do this. In Haskell and Scalaz it would
+    be called a "free monad", but since F# doesn't support typeclasses, I'll just
+    call it the "free monad pattern" that you can use to solve the problem. There's
+    a little bit of boilerplate that you have to write, but not much.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The trick is to separate the api cases and "stop"/"keep going" logic into two
+    separate types, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that I've also changed the responses for `Turn`, `PenUp` and `PenDown`
+    to be single values rather than a unit function. `Move` and `SetColor` remain
+    as functions though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this new "free monad" approach, the only custom code we need to write is
+    a simple `map` function for the api type, in this case `TurtleInstruction`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: The rest of the code (`return`, `bind`, and the computation expression) is [always
+    implemented exactly the same way](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/4a8cdf3bda9fc9db030842e99f78487aea928e57/13-Interpreter-v2.fsx#L67),
+    regardless of the particular api. That is, more boilerplate is needed but less
+    thinking is required!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interpreters need to change in order to handle the new cases. Here''s a
+    snippet of the new version of `interpretAsTurtle`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we also need to adjust the helper functions when creating a workflow. You
+    can see below that we now have slightly more complicated code like `KeepGoing
+    (Move (dist, Stop))` instead of the simpler code in the original interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: But with those changes, we are done, and the code works just as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of the interpreter pattern
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Decoupling.* An abstract syntax tree completely decouples the program flow
+    from the implementation and allows lots of flexibility.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Optimization*. Abstract syntax trees can be manipulated and changed *before*
+    running them, in order to do optimizations or other transformations. As an example,
+    for the turtle program, we could process the tree and collapse all contiguous
+    sequences of `Turn` into a single `Turn` operation. This is a simple optimization
+    which saves on the number of times we need to communicate with a physical turtle.
+    [Twitter''s Stitch library](https://engineering.twitter.com/university/videos/introducing-stitch)
+    does something like this, but obviously, in a more sophisticated way. [This video
+    has a good explanation](https://www.youtube.com/watch?v=VVpmMfT8aYw&feature=youtu.be&t=625).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Minimal code for a lot of power*. The "free monad" approach to creating abstract
+    syntax trees allows you to focus on the API and ignore the Stop/KeepGoing logic,
+    and also means that only a minimal amount of code needs to be customized. For
+    more on the free monad, start with [this excellent video](https://www.youtube.com/watch?v=hmX2s3pe_qk)
+    and then see [this post](http://underscore.io/blog/posts/2015/04/14/free-monads-are-simple.html)
+    and [this one](http://www.haskellforall.com/2012/06/you-could-have-invented-free-monads.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Complex to understand.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only works well if there are a limited set of operations to perform.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can be inefficient if the ASTs get too large.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here (original version)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/13-Interpreter-v1.fsx)
+    and [here ("free monad" version)](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/13-Interpreter-v2.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Review of techniques used
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this post, we looked at thirteen different ways to implement a turtle API,
+    using a wide variety of different techniques. Let''s quickly run down all the
+    techniques that were used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pure, stateless functions**. As seen in all of the FP-oriented examples.
+    All these are very easy to test and mock.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Partial application**. As first seen in [the simplest FP example (way 2)](13-ways-of-looking-at-a-turtle.html#way2),
+    when the turtle functions had the logging function applied so that the main flow
+    could use piping, and thereafter used extensively, particularly in the ["dependency
+    injection using functions approach" (way 7)](13-ways-of-looking-at-a-turtle.html#way7).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Object expressions** to implement an interface without creating a class,
+    as seen in [way 6](13-ways-of-looking-at-a-turtle.html#way6).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The Result type** (a.k.a the Either monad). Used in all the functional API
+    examples ([e.g. way 4](13-ways-of-looking-at-a-turtle.html#way4)) to return an
+    error rather than throw an exception.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Applicative "lifting"** (e.g. `lift2`) to lift normal functions to the world
+    of `Result`s, again [in way 4](13-ways-of-looking-at-a-turtle.html#way4) and others.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Lots of different ways of managing state**:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mutable fields (way 1)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: managing state explicitly and piping it though a series of functions (way 2)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: having state only at the edge (the functional core/imperative shell in way 4)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hiding state in an agent (way 5)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: threading state behind the scenes in a state monad (the `turtle` workflow in
+    ways 8 and 12)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: avoiding state altogether by using batches of commands (way 9) or batches of
+    events (way 10) or an interpreter (way 13)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Wrapping a function in a type**. Used in [way 8](13-ways-of-looking-at-a-turtle.html#way8)
+    to manage state (the State monad) and in [way 13](13-ways-of-looking-at-a-turtle.html#way13)
+    to store responses.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Computation expressions**, lots of them! We created and used three:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`result` for working with errors'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`turtle` for managing turtle state'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`turtleProgram` for building an AST in the interpreter approach ([way 13](13-ways-of-looking-at-a-turtle-2.html#way13)).'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Chaining of monadic functions** in the `result` and `turtle` workflows. The
+    underlying functions are monadic ("diagonal") and would not normally compose properly,
+    but inside a workflow, they can be sequenced easily and transparently.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Representing behavior as a data structure** in the ["functional dependency
+    injection" example (way 7)](13-ways-of-looking-at-a-turtle.html#way7) so that
+    a single function could be passed in rather than a whole interface.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Decoupling using a data-centric protocol** as seen in the agent, batch command,
+    event sourcing, and interpreter examples.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Lock free and async processing** using an agent (way 5).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The separation of "building" a computation vs. "running" it**, as seen in
+    the `turtle` workflows (ways 8 and 12) and the `turtleProgram` workflow (way 13:
+    interpreter).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Use of event sourcing to rebuild state** from scratch rather than maintaining
+    mutable state in memory, as seen in the [event sourcing (way 10)](13-ways-of-looking-at-a-turtle-2.html#way10)
+    and [FRP (way 11)](13-ways-of-looking-at-a-turtle-2.html#way11) examples.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Use of event streams** and [FRP (way 11)](13-ways-of-looking-at-a-turtle-2.html#way11)
+    to break business logic into small, independent, and decoupled processors rather
+    than having a monolithic object.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope it's clear that examining these thirteen ways is just a fun exercise,
+    and I'm not suggesting that you immediately convert all your code to use stream
+    processors and interpreters! And, especially if you are working with people who
+    are new to functional programming, I would tend to stick with the earlier (and
+    simpler) approaches unless there is a clear benefit in exchange for the extra
+    complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When the tortoise crawled out of sight,
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It marked the edge
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Of one of many circles.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- *"Thirteen ways of looking at a turtle", by Wallace D Coriacea*
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I hope you enjoyed this post. I certainly enjoyed writing it. As usual, it ended
+    up much longer than I intended, so I hope that the effort of reading it was worth
+    it to you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you like this kind of comparative approach, and want more, check out [the
+    posts by Yan Cui, who is doing something similar](http://theburningmonk.com/fsharp-exercises-in-programming-style/)
+    on his blog.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enjoy the rest of the [F# Advent Calendar](https://sergeytihon.wordpress.com/2015/10/25/f-advent-calendar-in-english-2015/).
+    Happy Holidays!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thirteen ways of looking at a turtle - addendum
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thirteen ways of looking at a turtle - addendum
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this, the third part of my two-part mega-post, I'm continuing to stretch
+    the simple turtle graphics model to the breaking point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [first](13-ways-of-looking-at-a-turtle.html) and [second post](13-ways-of-looking-at-a-turtle-2.html),
+    I described thirteen different ways of looking at a turtle graphics implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, after I published them, I realized that there were some other
+    ways that I had forgotten to mention. So in this post, you'll get to see two BONUS
+    ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 14\. Abstract Data Turtle](13-ways-of-looking-at-a-turtle-3.html#way14),
+    in which we encapsulate the details of a turtle implementation by using an Abstract
+    Data Type.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 15\. Capability-based Turtle](13-ways-of-looking-at-a-turtle-3.html#way15),
+    in which we control what turtle functions are available to a client, based on
+    the current state of the turtle.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As a reminder, here were the previous thirteen ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Way 1\. A basic object-oriented approach](13-ways-of-looking-at-a-turtle.html#way1),
+    in which we create a class with mutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 2\. A basic functional approach](13-ways-of-looking-at-a-turtle.html#way2),
+    in which we create a module of functions with immutable state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 3\. An API with a object-oriented core](13-ways-of-looking-at-a-turtle.html#way3),
+    in which we create an object-oriented API that calls a stateful core class.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 4\. An API with a functional core](13-ways-of-looking-at-a-turtle.html#way4),
+    in which we create an stateful API that uses stateless core functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 5\. An API in front of an agent](13-ways-of-looking-at-a-turtle.html#way5),
+    in which we create an API that uses a message queue to communicate with an agent.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 6\. Dependency injection using interfaces](13-ways-of-looking-at-a-turtle.html#way6),
+    in which we decouple the implementation from the API using an interface or record
+    of functions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 7\. Dependency injection using functions](13-ways-of-looking-at-a-turtle.html#way7),
+    in which we decouple the implementation from the API by passing a function parameter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 8\. Batch processing using a state monad](13-ways-of-looking-at-a-turtle.html#way8),
+    in which we create a special "turtle workflow" computation expression to track
+    state for us.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 9\. Batch processing using command objects](13-ways-of-looking-at-a-turtle.html#way9),
+    in which we create a type to represent a turtle command, and then process a list
+    of commands all at once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Interlude: Conscious decoupling with data types](13-ways-of-looking-at-a-turtle.html#decoupling).
+    A few notes on using data vs. interfaces for decoupling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 10\. Event sourcing](13-ways-of-looking-at-a-turtle-2.html#way10), in
+    which state is built from a list of past events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 11\. Functional Retroactive Programming (stream processing)](13-ways-of-looking-at-a-turtle-2.html#way11),
+    in which business logic is based on reacting to earlier events.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Episode V: The Turtle Strikes Back](13-ways-of-looking-at-a-turtle-2.html#strikes-back),
+    in which the turtle API changes so that some commands may fail.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 12\. Monadic control flow](13-ways-of-looking-at-a-turtle-2.html#way12),
+    in which we make decisions in the turtle workflow based on results from earlier
+    commands.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Way 13\. A turtle interpreter](13-ways-of-looking-at-a-turtle-2.html#way13),
+    in which we completely decouple turtle programming from turtle implementation,
+    and nearly encounter the free monad.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Review of all the techniques used](13-ways-of-looking-at-a-turtle-2.html#review).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '14: Abstract Data Turtle'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this design, we use the concept of an [abstract data type](https://en.wikipedia.org/wiki/Abstract_data_type)
+    to encapsulate the operations on a turtle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, a "turtle" is defined as an opaque type along with a corresponding
+    set of operations, in the same way that standard F# types such as `List`, `Set`
+    and `Map` are defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, we have number of functions that work on the type, but we are not allowed
+    to see "inside" the type itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a sense, you can think of it as a third alternative to the [OO approach in
+    way 1](13-ways-of-looking-at-a-turtle.html#way1) and the [functional approach
+    in way 2](13-ways-of-looking-at-a-turtle.html#way2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the OO implementation, the details of the internals are nicely encapsulated,
+    and access is only via methods. The downside of the OO class is that it is mutable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the FP implementation, the `TurtleState` is immutable, but the downside is
+    that the internals of the state are public, and some clients may have accessed
+    these fields, so if we ever change the design of `TurtleState`, these clients
+    may break.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The abstract data type implementation combines the best of both worlds: the
+    turtle state is immutable, as in the original FP way, but no client can access
+    it, as in the OO way.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The design for this (and for any abstract type) is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The turtle state type itself is public, but its constructor and fields are private.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The functions in the associated `Turtle` module can see inside the turtle state
+    type (and so are unchanged from the FP design).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because the turtle state constructor is private, we need a constructor function
+    in the `Turtle` module.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client can *not* see inside the turtle state type, and so must rely entirely
+    on the `Turtle` module functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That's all there is to it. We only need to add some privacy modifiers to the
+    earlier FP version and we are done!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, we are going to put both the turtle state type and the `Turtle` module
+    inside a common module called `AdtTurtle`. This allows the turtle state to be
+    accessible to the functions in the `AdtTurtle.Turtle` module, while being inaccessible
+    outside the `AdtTurtle`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, the turtle state type is going to be called `Turtle` now, rather than
+    `TurtleState`, because we are treating it almost as an object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, the associated module `Turtle` (that contains the functions) is going
+    have some special attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`RequireQualifiedAccess` means the module name *must* be used when accessing
+    the functions (just like `List` module)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ModuleSuffix` is needed so the that module can have the same name as the state
+    type. This would not be required for generic types (e.g if we had `Turtle<''a>`
+    instead).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An alternative way to avoid collisions is to have the state type have a different
+    case, or a different name with a lowercase alias, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: No matter how the naming is done, we will need a way to construct a new `Turtle`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there are no parameters to the constructor, and the state is immutable, then
+    we just need an initial value rather than a function (like `Set.empty` say).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Otherwise we can define a function called `make` (or `create` or similar):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: The rest of the turtle module functions are unchanged from their implementation
+    in [way 2](13-ways-of-looking-at-a-turtle.html#way2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: An ADT client
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's look the client now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, let''s check that the state really is private. If we try to create a
+    state explicitly, as shown below, we get a compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we use the constructor and then try to directly access a field directly
+    (such as `position`), we again get a compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But if we stick to the functions in the `Turtle` module, we can safely create
+    a state value and then call functions on it, just as we did before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: Advantages and disadvantages of ADTs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All code is stateless, hence easy to test.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The encapsulation of the state means that the focus is always fully on the behavior
+    and properties of the type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clients can never have a dependency on a particular implementation, which means
+    that implementations can be changed safely.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can even swap implementations (e.g. by shadowing, or linking to a different
+    assembly) for testing, performance, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client has to manage the current turtle state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client has no control over the implementation (e.g. by using dependency
+    injection).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For more on ADTs in F#, see [this talk and thread](https://www.reddit.com/r/fsharp/comments/36s0zr/structuring_f_programs_with_abstract_data_types/?)
+    by Bryan Edds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/14-AdtTurtle.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* * *'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '15: Capability-based Turtle'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the "monadic control flow" approach [(way 12)](13-ways-of-looking-at-a-turtle-2.html#way12)
+    we handled responses from the turtle telling us that it had hit a barrier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But even though we had hit a barrier, nothing was stopping us from calling the
+    `move` operation over and over again!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now imagine that, once we had hit the barrier, the `move` operation was no longer
+    available to us. We couldn't abuse it because it would be no longer there!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make this work, we shouldn't provide an API, but instead, after each call,
+    return a list of functions that the client can call to do the next step. The functions
+    would normally include the usual suspects of `move`, `turn`, `penUp`, etc., but
+    when we hit a barrier, `move` would be dropped from that list. Simple, but effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This technique is closely related to an authorization and security technique
+    called *capability-based security*. If you are interested in learning more, I
+    have [a whole series of posts devoted to it](capability-based-security.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing a capability-based Turtle
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The first thing is to define the record of functions that will be returned
+    after each call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's look at these declarations in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, there is no `TurtleState` anywhere. The published turtle functions will
+    encapsulate the state for us. Similarly there is no `log` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, the record of functions `TurtleFunctions` defines a field for each function
+    in the API (`move`, `turn`, etc.):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `move` function is optional, meaning that it might not be available.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `turn`, `penUp` and `penDown` functions are always available.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `setColor` operation has been broken out into three separate functions,
+    one for each color, because you might not be able to use red ink, but still be
+    able to use blue ink. To indicate that these functions might not be available,
+    `option` is used again.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We have also declared type aliases for each function to make them easier to
+    work. Writing `MoveFn` is easier than writing `Distance -> (MoveResponse * TurtleFunctions)`
+    everywhere! Note that, since these definitions are mutually recursive, I was forced
+    to use the `and` keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, note the difference between the signature of `MoveFn` in this design
+    and the signature of `move` in [the earlier design of way 12](13-ways-of-looking-at-a-turtle-2.html#way12).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Earlier version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'New version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: On the input side, the `Log` and `TurtleState` parameters are gone, and on the
+    output side, the `TurtleState` has been replaced with `TurtleFunctions`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that somehow, the output of every API function must be changed to
+    be a `TurtleFunctions` record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the turtle operations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In order to decide whether we can indeed move, or use a particular color, we
+    first need to augment the `TurtleState` type to track these factors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: This has been enhanced with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`canMove`, which if false means that we are at a barrier and should not return
+    a valid `move` function.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`availableInk` contains a set of colors. If a color is not in this set, then
+    we should not return a valid `setColorXXX` function for that color.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we've added the `log` function into the state so that we don't have
+    to pass it explicitly to each operation. It will get set once, when the turtle
+    is created.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `TurtleState` is getting a bit ugly now, but that's alright, because it's
+    private! The clients will never even see it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this augmented state available, we can change `move`. First we''ll make
+    it private, and second we''ll set the `canMove` flag (using `moveResult <> HitABarrier`)
+    before returning a new state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: We need some way of changing `canMove` back to true! So let's assume that if
+    you turn, you can move again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s add that logic to the `turn` function then:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `penUp` and `penDown` functions are unchanged, other than being made private.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And for the last operation, `setColor`, we'll remove the ink from the availability
+    set as soon as it is used just once!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally we need a function that can create a `TurtleFunctions` record from the
+    `TurtleState`. I'll call it `createTurtleFunctions`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the complete code, and I''ll discuss it in detail below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's look at how this works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, note that this function needs the `rec` keyword attached, as it refers
+    to itself. I've added a shorter alias (`ctf`) for it as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, new versions of each of the API functions are created. For example, a
+    new `turn` function is defined like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: This calls the original `turn` function with the logger and state, and then
+    uses the recursive call (`ctf`) to convert the new state into the record of functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For an optional function like `move`, it is a bit more complicated. An inner
+    function `f` is defined, using the orginal `move`, and then either `f` is returned
+    as `Some`, or `None` is returned, depending on whether the `state.canMove` flag
+    is set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, for `setColor`, an inner function `f` is defined and then returned
+    or not depending on whether the color parameter is in the `state.availableInk`
+    collection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, all these functions are added to the record:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: And that's how you build a `TurtleFunctions` record!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need one more thing: a constructor to create some initial value of the `TurtleFunctions`,
+    since we no longer have direct access to the API. This is now the ONLY public
+    function available to the client!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function bakes in the `log` function, creates a new state, and then calls
+    `createTurtleFunctions` to return a `TurtleFunction` record for the client to
+    use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing a client of the capability-based turtle
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's try using this now. First, let's try to do `move 60` and then `move 60`
+    again. The second move should take us to the boundary (at 100), and so at that
+    point the `move` function should no longer be available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we create the `TurtleFunctions` record with `Turtle.make`. Then we can''t
+    just move immediately, we have to test to see if the `move` function is available
+    first:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the last case, the `moveFn` is available, so we can call it with a distance
+    of 60\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The output of the function is a pair: a `MoveResponse` type and a new `TurtleFunctions`
+    record.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll ignore the `MoveResponse` and check the `TurtleFunctions` record again
+    to see if we can do the next move:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, one more time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we run this, we get the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which shows that indeed, the concept is working!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That nested option matching is really ugly, so let''s whip up a quick `maybe`
+    workflow to make it look nicer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And a logging function that we can use inside the workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can try setting some colors using the `maybe` workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output of this is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: Actually, using a `maybe` workflow is not a very good idea, because the first
+    failure exits the workflow! You'd want to come up with something a bit better
+    for real code, but I hope that you get the idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of a capability-based approach
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Advantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prevents clients from abusing the API.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allows APIs to evolve (and devolve) without affecting clients. For example,
+    I could transition to a monochrome-only turtle by hard-coding `None` for each
+    color function in the record of functions, after which I could safely remove the
+    `setColor` implementation. During this process no client would break! This is
+    similar to the [HATEAOS approach](https://en.wikipedia.org/wiki/HATEOAS) for RESTful
+    web services.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clients are decoupled from a particular implementation because the record of
+    functions acts as an interface.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Disadvantages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Complex to implement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The client's logic is much more convoluted as it can never be sure that a function
+    will be available! It has to check every time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The API is not easily serializable, unlike some of the data-oriented APIs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For more on capability-based security, see [my posts](capability-based-security.html)
+    or watch my ["Enterprise Tic-Tac-Toe" video](http://fsharpforfunandprofit.com/ettt/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this version is available [here](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle/blob/master/15-CapabilityBasedTurtle.fsx).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I was of three minds,
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Like a finger tree
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In which there are three immutable turtles.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: -- *"Thirteen ways of looking at a turtle", by Wallace D Coriacea*
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I feel better now that I've got these two extra ways out of my system! Thanks
+    for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The source code for this post is available [on github](https://github.com/swlaschin/13-ways-of-looking-at-a-turtle).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: .
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,445 @@
+- en: Organizing modules in a project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Organizing modules in a project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we move on to any coding in the recipe, let''s look at the overall structure
+    of a F# project. In particular: (a) what code should be in which modules and (b)
+    how the modules should be organized within a project.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How not to do it
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A newcomer to F# might be tempted to organize code in classes just like in C#.
+    One class per file, in alphabetical order. After all, F# supports the same object-oriented
+    features that C# does, right? So surely the F# code can be organized the same
+    way as C# code?
+  prefs: []
+  type: TYPE_NORMAL
+- en: After a while, this is often followed by the discovery that F# requires files
+    (and code within a file) to be in *dependency order*. That is, you cannot use
+    forward references to code that hasn't been seen by the compiler yet**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is followed by [general annoyance](http://www.sturmnet.org/blog/2008/05/20/f-compiler-considered-too-linear)
+    and swearing. How can F# be so stupid? Surely it impossible to write any kind
+    of large project!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we'll look at one simple way to organize your code so that this
+    doesn't happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[** The `and` keyword can be used in some cases to allow mutual recursion,
+    but is discouraged.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The functional approach to layered design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A standard way of thinking about code is to group it into layers: a domain
+    layer, a presentation layer, and so on, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Design layers](Recipe_DesignLayers1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Each layer contains *only* the code that is relevant to that layer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in practice, it is not that simple, as there are dependencies between each
+    layer. The domain layer depends on the infrastructure, and the presentation layer
+    depends on the domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And most importantly, the domain layer should *not* depend on the persistence
+    layer. That is, it should be ["persistence agnostic"](http://stackoverflow.com/questions/905498/what-are-the-benefits-of-persistence-ignorance).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We therefore need to tweak the layer diagram to look more like this (where
+    each arrow represents a dependency):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Design layers](Recipe_DesignLayers1a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And ideally this reorganization would be made even more fine grained, with a
+    separate "Service Layer", containing application services, domain services, etc.
+    And when we are finished, the core domain classes are "pure" and have no dependencies
+    on anything else outside the domain. This is often called a ["hexagonal architecture"](http://alistair.cockburn.us/Hexagonal+architecture)
+    or ["onion architecture"](http://jeffreypalermo.com/blog/the-onion-architecture-part-1/).
+    But this post is not about the subtleties of OO design, so for now, let's just
+    work with the simpler model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Separating behavior from types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*"It is better to have 100 functions operate on one data structure than 10
+    functions on 10 data structures" -- Alan Perlis*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a functional design, it is very important to *separate behavior from data*.
+    The data types are simple and "dumb". And then separately, you have a number of
+    functions that act on those data types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the exact opposite of an object-oriented design, where behavior and
+    data are meant to be combined. After all, that's exactly what a class is. In a
+    truly object-oriented design in fact, you should have nothing *but* behavior --
+    the data is private and can only be accessed via methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In fact, in OOD, not having enough behavior around a data type is considered
+    a Bad Thing, and even has a name: the ["anemic domain model"](http://www.martinfowler.com/bliki/AnemicDomainModel.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In functional design though, having "dumb data" with transparency is preferred.
+    It is normally fine for the data to be exposed without being encapsulated. The
+    data is immutable, so it can't get "damaged" by a misbehaving function. And it
+    turns out that the focus on transparent data allows for more code that is more
+    flexible and generic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you haven't seen it, I highly recommend [Rich Hickey's excellent talk on
+    "The Value of Values"](http://www.infoq.com/presentations/Value-Values), which
+    explains the benefits of this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Type layers and behavior layers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So how does this apply to our layered design from above?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we must separate each layer into two distinct parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data Types**. Data structures that are used by that layer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Logic**. Functions that are implemented in that layer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Once we have separated these two elements, our diagram will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Design layers](Recipe_DesignLayers2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice though, that we might have some backwards references (shown by the red
+    arrow). For example, a function in the domain layer might depend on a persistence-related
+    type, such as `IRepository`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In an OO design, we would [add more layers](http://c2.com/cgi/wiki?OneMoreLevelOfIndirection)
+    (e.g. application services) to handle this. But in a functional design, we don''t
+    need to -- we can just move the persistence-related types to a different place
+    in the hierarchy, underneath the domain functions, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Design layers](Recipe_DesignLayers2a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this design, we have now eliminated all cyclic references between layers.
+    *All the arrows point down*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And this without having to create any extra layers or overhead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we can translate this layered design into F# files by turning it upside
+    down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first file in the project should contain code which has no dependencies.
+    This represents the functionality at the *bottom* of the layer diagram. It is
+    generally a set of types, such the infrastructure or domain types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next file depends only on the first file. It would represents the functionality
+    at the next-to-bottom layer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And so on. Each file depends only on the previous ones.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So, if we refer back to the use case example discussed in [Part 1](recipe-part1.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Recipe Happy Path](Recipe_HappyPath.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'then the corresponding code in an F# project might look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Design layers](Recipe_DesignLayers_CodeLayout.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: At the very bottom of the list is the main file, called "main" or "program",
+    which contains the entry point for the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And just above it is the code for the use cases in the application. The code
+    in this file is where all the functions from all the other modules are "glued
+    together" into a single function that represents a particular use case or service
+    request. (The nearest equivalent of this in an OO design are the ["application
+    services"](http://stackoverflow.com/questions/2268699/domain-driven-design-domain-service-application-service),
+    which serve roughly the same purpose.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: And then just above that is the "UI layer" and then the "DB layer" and so on,
+    until you get to the top.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What's nice about this approach is that, if you are a newcomer to a code base,
+    you always know where to start. The first few files will always be the "bottom
+    layer" of an application and the last few files will always be the "top layer".
+    No folders needed!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting code in modules, not classes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A common question from newcomers to F# is "how should I organize my code if
+    I don't use classes?"
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer is: *modules*. As you know, in an object oriented program, a data
+    structure and the functions that act on it would be combined in a class. However
+    in functional-style F#, a data structure and the functions that act on it are
+    contained in modules instead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three common patterns for mixing types and functions together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: having the type declared in the same module as the functions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: having the type declared separately from the functions but in the same file.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: having the type declared separately from the functions and in a different file,
+    typically containing type definitions only.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the first approach, types are defined *inside* the module along with their
+    related functions. If there is only one primary type, it is often given a simple
+    name such as "T" or the name of the module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: So the functions are accessed with names like `Person.create` and `Person.fullName`
+    while the type itself is accessed with the name `Person.T`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the second approach, types are declared in the same file, but outside any
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, the functions are accessed with the same names (`Person.create`
+    and `Person.fullName`) while the type itself is accessed with the name such as
+    `PersonType`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And finally, here''s the third approach. The type is declared in a special
+    "types-only" module (typically in a different file):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this particular case, the `AutoOpen` attribute has been used to make the
+    types in this module automatically visible to all the other modules in the project
+    -- making them "global".
+  prefs: []
+  type: TYPE_NORMAL
+- en: And then a different module contains all the functions that work on, say, the
+    `Person` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that in this example, both the type and the module are called `Person`.
+    This is not normally a problem in practice, as the compiler can normally figure
+    out what you want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, if you write this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then the compiler will understand that you are referring to the `Person` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, if you write this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then the compiler will understand that you are referring to the `Person` module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more on modules, see the post on [organizing functions](organizing-functions.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The organization of the modules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For our recipe we will use a mixture of approaches, with the following guidelines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Module Guidelines**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If a type is shared among multiple modules, then put it in a special types-only
+    module.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if a type is used globally (or to be precise, within a "bounded
+    domain" in DDD-speak), I would put it in a module called `DomainTypes` or `DomainModel`,
+    which comes early in the compilation order.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a type is used only in a subsystem, such as a type shared by a number of
+    UI modules, then I would put it in a module called `UITypes`, which would come
+    just before the other UI modules in the compilation order.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*If a type is private to a module (or two) then put it in the same module as
+    its related functions.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a type that was used only for validation would be put in the `Validation`
+    module. A type used only for database access would be put in the `Database` module,
+    and so on.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of course, there are many ways to organize types, but these guidelines act as
+    a good default starting point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dude, where are my folders?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A common complaint is that F# projects do not support a folder structure, which
+    supposedly makes it hard to organize large projects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are doing a pure object-oriented design, then this is a legitimate complaint.
+    But as you can see from the discussion above, having a linear list of modules
+    is very helpful (if not strictly necessary) to ensure that the dependencies are
+    maintained correctly. Yes, in theory, the files could be scattered about and the
+    compiler might be able to figure out the correct compilation order, but in practice,
+    it's not easy for the compiler to determine this order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even more importantly, it's not easy for a *human* to determine the correct
+    order either, and so it would make maintenance more painful than it needed to
+    be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In reality, even for large projects, not having folders is not as much of a
+    problem as you might think. There are a number of large F# projects which successfully
+    work within this limitation, such as the F# compiler itself. See the post on [cycles
+    and modularity in the wild](cycles-and-modularity-in-the-wild.html) for more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Help, I have mutual dependencies between my types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you are coming from an OO design, you might run into mutual dependencies
+    between types, such as this example, which won''t compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How can you fix this to make the F# compiler happy?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's not that hard, but it does requires some more explanation, so I have devoted
+    [another whole post to dealing with cyclic dependencies](cyclic-dependencies.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's revisit at the code we have so far, but this time organized into modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each module below would typically become a separate file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be aware that this is still a skeleton. Some of the modules are missing, and
+    some of the modules are almost empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This kind of organization would be overkill for a small project, but there will
+    be lots more code to come!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we looked at organizing code into modules. In the next post in
+    this series, we'll finally start doing some real coding!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Meanwhile, you can read more on cyclic dependencies in the follow up posts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Cyclic dependencies are evil](cyclic-dependencies.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Refactoring to remove cyclic dependencies](removing-cyclic-dependencies.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Cycles and modularity in the wild](cycles-and-modularity-in-the-wild.html),
+    which compares some real-world metrics for C# and F# projects.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

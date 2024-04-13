@@ -1,0 +1,4692 @@
+- en: The "Computation Expressions" Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this series, you'll learn what computation expressions are, some common patterns,
+    and how to make your own. In the process, we'll also look at continuations, the
+    bind function, wrapper types, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Computation expressions: Introduction](computation-expressions-intro.html).
+    Unwrapping the enigma....'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Understanding continuations](computation-expressions-continuations.html).
+    How ''let'' works behind the scenes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Introducing ''bind''](computation-expressions-bind.html). Steps towards creating
+    our own ''let!'' .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Computation expressions and wrapper types](computation-expressions-wrapper-types.html).
+    Using types to assist the workflow.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[More on wrapper types](computation-expressions-wrapper-types-part2.html).
+    We discover that even lists can be wrapper types.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: Zero and Yield](computation-expressions-builder-part1.html).
+    Getting started with the basic builder methods.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: Combine](computation-expressions-builder-part2.html).
+    How to return multiple values at once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: Delay and Run](computation-expressions-builder-part3.html).
+    Controlling when functions execute.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: Overloading](computation-expressions-builder-part4.html).
+    Stupid method tricks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: Adding laziness](computation-expressions-builder-part5.html).
+    Delaying a workflow externally.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementing a builder: The rest of the standard methods](computation-expressions-builder-part6.html).
+    Implementing While, Using, and exception handling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Computation expressions: Introduction'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Computation expressions: Introduction'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By popular request, it is time to talk about the mysteries of computation expressions,
+    what they are, and how they can be useful in practice (and I will try to avoid
+    using the [forbidden m-word](../about/index.md#banned)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series, you'll learn what computation expressions are, how to make your
+    own, and what some common patterns involving them. In the process, we'll also
+    look at continuations, the bind function, wrapper types, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Computation expressions seem to have a reputation for being abstruse and difficult
+    to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On one hand, they're easy enough to use. Anyone who has written much F# code
+    has certainly used standard ones like `seq{...}` or `async{...}`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But how do you make a new one of these things? How do they work behind the scenes?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, many explanations seem to make things even more confusing. There
+    seems to be some sort of mental bridge that you have to cross. Once you are on
+    the other side, it is all obvious, but to someone on this side, it is baffling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we turn for guidance to the [official MSDN documention](http://msdn.microsoft.com/en-us/library/dd233182.aspx),
+    it is explicit, but quite unhelpful to a beginner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, it says that when you see the following code within a computation
+    expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'it is simply syntactic sugar for this method call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: But... what does this mean exactly?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope that by the end of this series, the documentation above will become obvious.
+    Don't believe me? Read on!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computation expressions in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before going into the mechanics of computation expressions, let's look at a
+    few trivial examples that show the same code before and after using computation
+    expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s start with a simple one. Let''s say we have some code, and we want to
+    log each step. So we define a little logging function, and call it after every
+    value is created, like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you run this, you will see the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Simple enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it is annoying to have to explicitly write all the log statements each time.
+    Is there a way to hide them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Funny you should ask... A computation expression can do that. Here's one that
+    does exactly the same thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we define a new type called `LoggingBuilder`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Don''t worry about what the mysterious `Bind` and `Return` are for yet --
+    they will be explained soon.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next we create an instance of the type, `logger` in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So with this `logger` value, we can rewrite the original logging example like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you run this, you get exactly the same output, but you can see that the use
+    of the `logger{...}` workflow has allowed us to hide the repetitive code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Safe division
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now let's look at an old chestnut.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Say that we want to divide a series of numbers, one after another, but one of
+    them might be zero. How can we handle it? Throwing an exception is ugly. Sounds
+    like a good match for the `option` type though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we need to create a helper function that does the division and gives us
+    back an `int option`. If everything is OK, we get a `Some` and if the division
+    fails, we get a `None`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then we can chain the divisions together, and after each division we need to
+    test whether it failed or not, and keep going only if it was successful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the helper function first, and then the main workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that I have put the divisor first in the parameter list. This is so we
+    can write an expression like `12 |> divideBy 3`, which makes chaining easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s put it to use. Here is a workflow that attempts to divide a starting
+    number three times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `bad` workflow fails on the third step and returns `None` for the whole
+    thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is very important to note that the *entire workflow* has to return an `int
+    option` as well. It can't just return an `int` because what would it evaluate
+    to in the bad case? And can you see how the type that we used "inside" the workflow,
+    the option type, has to be the same type that comes out finally at the end. Remember
+    this point -- it will crop up again later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anyway, this continual testing and branching is really ugly! Does turning it
+    into a computation expression help?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once more we define a new type (`MaybeBuilder`) and make an instance of the
+    type (`maybe`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have called this one `MaybeBuilder` rather than `divideByBuilder` because
+    the issue of dealing with option types this way, using a computation expression,
+    is quite common, and `maybe` is the standard name for this thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now that we have defined the `maybe` workflow, let's rewrite the original
+    code to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Much, much nicer. The `maybe` expression has completely hidden the branching
+    logic!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And if we test it we get the same result as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Chains of "or else" tests
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the previous example of "divide by", we only wanted to continue if each step
+    was successful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But sometimes it is the other way around. Sometimes the flow of control depends
+    on a series of "or else" tests. Try one thing, and if that succeeds, you're done.
+    Otherwise try another thing, and if that fails, try a third thing, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's look at a simple example. Say that we have three dictionaries and we want
+    to find the value corresponding to a key. Each lookup might succeed or fail, so
+    we need to chain the lookups in a series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because everything is an expression in F# we can't do an early return, we have
+    to cascade all the tests in a single expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how this might be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: It works fine, but can it be simplified?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Yes indeed. Here is an "or else" builder that allows us to simplify these kinds
+    of lookups:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here''s how the lookup code could be altered to use it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again we can confirm that the code works as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Asynchronous calls with callbacks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, let's look at callbacks. The standard approach for doing asynchronous
+    operations in .NET is to use a [AsyncCallback delegate](http://msdn.microsoft.com/en-us/library/ms228972.aspx)
+    which gets called when the async operation is complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of how a web page might be downloaded using this technique:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lots of calls to `BeginGetResponse` and `EndGetResponse`, and the use of nested
+    lambdas, makes this quite complicated to understand. The important code (in this
+    case, just print statements) is obscured by the callback logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, managing this cascading approach is always a problem in code that requires
+    a chain of callbacks; it has even been called the ["Pyramid of Doom"](http://raynos.github.com/presentation/shower/controlflow.htm?full#PyramidOfDoom)
+    (although [none of the solutions are very elegant](http://adamghill.com/callbacks-considered-a-smell/),
+    IMO).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we would never write that kind of code in F#, because F# has the
+    `async` computation expression built in, which both simplifies the logic and flattens
+    the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: We'll see exactly how the `async` workflow is implemented later in this series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we've seen some very simple examples of computation expressions, both "before"
+    and "after", and they are quite representative of the kinds of problems that computation
+    expressions are useful for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the logging example, we wanted to perform some side-effect between each step.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the safe division example, we wanted to handle errors elegantly so that we
+    could focus on the happy path.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the multiple dictionary lookup example, we wanted to return early with the
+    first success.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And finally, in the async example, we wanted to hide the use of callbacks and
+    avoid the "pyramid of doom".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What all the cases have in common is that the computation expression is "doing
+    something behind the scenes" between each expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you want a bad analogy, you can think of a computation expression as somewhat
+    like a post-commit hook for SVN or git, or a database trigger that gets called
+    on every update. And really, that''s all that a computation expression is: something
+    that allows you to sneak your own code in to be called *in the background*, which
+    in turn allows you to focus on the important code in the foreground.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why are they called "computation expressions"? Well, it's obviously some kind
+    of expression, so that bit is obvious. I believe that the F# team did originally
+    want to call it "expression-that-does-something-in-the-background-between-each-let"
+    but for some reason, people thought that was a bit unwieldy, so they settled on
+    the shorter name "computation expression" instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And as to the difference between a "computation expression" and a "workflow",
+    I use *"computation expression"* to mean the `{...}` and `let!` syntax, and reserve
+    *"workflow"* for particular implementations where appropriate. Not all computation
+    expression implementations are workflows. For example, it is appropriate to talk
+    about the "async workflow" or the "maybe workflow", but the "seq workflow" doesn't
+    sound right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, in the following code, I would say that `maybe` is the workflow
+    we are using, and the particular chunk of code `{ let! a = .... return c }` is
+    the computation expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: You probably want to start creating your own computation expressions now, but
+    first we need to take a short detour into continuations. That's up next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Update on 2015-01-11: I have removed the counting example that used a "state"
+    computation expression. It was too confusing and distracted from the main concepts.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding continuations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Understanding continuations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous post we saw how some complex code could be condensed using computation
+    expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code before using a computation expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the same code after using a computation expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The use of `let!` rather than a normal `let` is important. Can we emulate this
+    ourselves so we can understand what is going on? Yes, but we need to understand
+    continuations first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Continuations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In imperative programming, we have the concept of "returning" from a function.
+    When you call a function, you "go in", and then you "come out", just like pushing
+    and popping a stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is some typical C# code which works like this. Notice the use of the `return`
+    keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You''ve seen this a million times, but there is a subtle point about this approach
+    that you might not have considered: *the called function always decides what to
+    do*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the implemention of `Divide` has decided that it is going to throw
+    an exception. But what if I don't want an exception? Maybe I want a `nullable<int>`,
+    or maybe I am going to display it on a screen as "#DIV/0". Why throw an exception
+    that I am immediately going to have to catch? In other words, why not let the
+    *caller* decide what should happen, rather the callee.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly in the `IsEven` example, what am I going to do with the boolean return
+    value? Branch on it? Or maybe print it in a report? I don't know, but again, rather
+    than returning a boolean that the caller has to deal with, why not let the caller
+    tell the callee what to do next?
+  prefs: []
+  type: TYPE_NORMAL
+- en: So this is what continuations are. A **continuation** is simply a function that
+    you pass into another function to tell it what to do next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the same C# code rewritten to allow the caller to pass in functions which
+    the callee uses to handle each case. If it helps, you can think of this as somewhat
+    analogous to a visitor pattern. Or maybe not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the C# functions have been changed to return a generic `T` now, and
+    both continuations are a `Func` that returns a `T`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, passing in lots of `Func` parameters always looks pretty ugly in C#, so
+    it is not done very often. But passing functions is easy in F#, so let's see how
+    this code ports over.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the "before" code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and here''s the "after" code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: A few things to note. First, you can see that I have put the extra functions
+    (`ifZero`, etc) *first* in the parameter list, rather than last, as in the C#
+    example. Why? Because I am probably going to want to use [partial application](partial-application.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: And also, in the `isEven` example, I wrote `aNumber |> ifEven` and `aNumber
+    |> ifOdd`. This makes it clear that we are piping the current value into the continuation
+    and the continuation is always the very last step to be evaluated. *We will be
+    using this exact same pattern later in this post, so make sure you understand
+    what is going on here.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Continuation examples
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With the power of continuations at our disposal, we can use the same `divide`
+    function in three completely different ways, depending on what the caller wants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are three scenarios we can create quickly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: pipe the result into a message and print it,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: convert the result to an option using `None` for the bad case and `Some` for
+    the good case,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: or throw an exception in the bad case and just return the result in the good
+    case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that with this approach, the caller *never* has to catch an exception
+    from `divide` anywhere. The caller decides whether an exception will be thrown,
+    not the callee. So not only has the `divide` function become much more reusable
+    in different contexts, but the cyclomatic complexity has just dropped a level
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The same three scenarios can be applied to the `isEven` implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this case, the benefits are subtler, but the same: the caller never had
+    to handle booleans with an `if/then/else` anywhere. There is less complexity and
+    less chance of error.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It might seem like a trivial difference, but by passing functions around like
+    this, we can use all our favorite functional techniques such as composition, partial
+    application, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have also met continuations before, in the series on [designing with types](designing-with-types-single-case-dus.html).
+    We saw that their use enabled the caller to decide what would happen in case of
+    possible validation errors in a constructor, rather than just throwing an exception.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: The success function takes the email as a parameter and the error function takes
+    a string. Both functions must return the same type, but the type is up to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And here is a simple example of the continuations in use. Both functions do
+    a printf, and return nothing (i.e. unit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Continuation passing style
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Using continuations like this leads to a style of programming called "[continuation
+    passing style](http://en.wikipedia.org/wiki/Continuation-passing_style)" (or CPS),
+    whereby *every* function is called with an extra "what to do next" function parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To see the difference, let's look at the standard, direct style of programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you use the direct style, you go "in" and "out" of functions, like this
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In continuation passing style, on the other hand, you end up with a chain of
+    functions, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: There is obviously a big difference between the two styles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the direct style, there is a hierarchy of functions. The top level function
+    is a sort of "master controller" who calls one subroutine, and then another, deciding
+    when to branch, when to loop, and generally coordinating the control flow explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the contination passing style, though, there is no "master controller". Instead
+    there is a sort of "pipeline", not of data but of control flow, where the "function
+    in charge" changes as the execution logic flows through the pipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have ever attached a event handler to a button click in a GUI, or used
+    a callback with [BeginInvoke](http://msdn.microsoft.com/en-us/library/2e08f6yc.aspx),
+    then you have used this style without being aware of it. And in fact, this style
+    will be key to understanding the `async` workflow, which I'll discuss later in
+    this series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Continuations and 'let'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So how does all this fit in with `let`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's go back and [revisit](let-use-do.html) what 'let` actually does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that a (non-top-level) "let" can never be used in isolation -- it must
+    always be part of a larger code block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'really means:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: And then every time you see the `x` in the second expression (the body expression),
+    substitute it with the first expression (`someExpression`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So for example, the expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'really means (using the verbose `in` keyword):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now funnily enough, a lambda looks very similar to a `let`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and if we pipe in the value of `x` as well, we get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Doesn''t this look awfully like a `let` to you? Here is a let and a lambda
+    side by side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: They both have an `x`, and a `someExpression`, and everywhere you see `x` in
+    the body of the lambda you replace it with `someExpression`. Yes, the `x` and
+    the `someExpression` are reversed in the lambda case, but otherwise it is basically
+    the same thing as a `let`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, using this technique, we can rewrite the original example in this style:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: When it is written this way, you can see that we have transformed the `let`
+    style into a continuation passing style!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the first line we have a value `42` -- what do we want to do with it? Let's
+    pass it into a continuation, just as we did with the `isEven` function earlier.
+    And in the context of the continuation, we will relabel `42` as `x`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the second line we have a value `43` -- what do we want to do with it? Let's
+    pass it too into a continuation, calling it `y` in that context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the third line we add the x and y together to create a new value. And what
+    do we want to do with it? Another continuation, another label (`z`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally in the last line we are done and the whole expression evaluates to `z`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapping the continuation in a function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's get rid of the explicit pipe and write a little function to wrap this
+    logic. We can't call it "let" because that is a reserved word, and more importantly,
+    the parameters are backwards from 'let'. The "x" is on the right hand side, and
+    the "someExpression" is on the left hand side. So we'll call it `pipeInto` for
+    now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The definition of `pipeInto` is really obvious:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Note that we are passing both parameters in at once using a tuple rather than
+    as two distinct parameters separated by whitespace. They will always come as a
+    pair.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, with this `pipeInto` function we can then rewrite the example once more
+    as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or we can eliminate the indents and write it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You might be thinking: so what? Why bother to wrap the pipe into a function?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is that we can add *extra code* in the `pipeInto` function to do
+    stuff "behine the scenes", just as in a computation expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "logging" example revisited
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s redefine `pipeInto` to add a little bit of logging, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now... run that code again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is the output?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is exactly the same output as we had in the earlier implementations. We
+    have created our own little computation expression workflow!
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we compare this side by side with the computation expression version, we
+    can see that our homebrew version is very similar to the `let!`, except that we
+    have the parameters reversed, and we have the explicit arrow for the continuation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![computation expression: logging](compexpr_logging.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The "safe divide" example revisited
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s do the same thing with the "safe divide" example. Here was the original
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should see now that this "stepped" style is an obvious clue that we really
+    should be using continuations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s see if we can add extra code to `pipeInto` to do the matching for us.
+    The logic we want is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the `someExpression` parameter is `None`, then don't call the continuation
+    lambda.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the `someExpression` parameter is `Some`, then do call the continuation lambda,
+    passing in the contents of the `Some`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here it is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this new version of `pipeInto` we can rewrite the original code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can clean this up quite a bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we can eliminate the `a`, `b` and `c`, and replace them with the `divideBy`
+    expression directly. So that this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'becomes just this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can relabel `a''` as just `a`, and so on, and we can also remove the
+    stepped indentation, so that we get this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we''ll create a little helper function called `return''` to wrap the
+    result in an option. Putting it all together, the code looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, if we compare this side by side with the computation expression version,
+    we can see that our homebrew version is identical in meaning. Only the syntax
+    is different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![computation expression: logging](compexpr_safedivide.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this post, we talked about continuations and continuation passing style,
+    and how we can think of `let` as a nice syntax for doing continuations behind
+    scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now we have everything we need to start creating our *own* version of `let`.
+    In the next post, we'll put this knowledge into practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing 'bind'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Introducing 'bind'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the last post we talked about how we can think of `let` as a nice syntax
+    for doing continuations behind scenes. And we introduced a `pipeInto` function
+    that allowed us to add hooks into the continuation pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are ready to look at our first builder method, `Bind`, which formalizes
+    this approach and is the core of any computation expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "Bind "
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The [MSDN page on computation expressions](http://msdn.microsoft.com/en-us/library/dd233182.aspx)
+    describes the `let!` expression as syntactic sugar for a `Bind` method. Let''s
+    look at this again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the `let!` expression documentation, along with a real example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here''s the `Bind` method documentation, along with a real example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notice a few interesting things about this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Bind` takes two parameters, an expression (`43`) and a lambda.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The parameter of the lambda (`x`) is bound to the expression passed in as the
+    first parameter. (In this case at least. More on this later.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The parameters of `Bind` are reversed from the order they are in `let!`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So in other words, if we chain a number of `let!` expressions together like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'the compiler converts it to calls to `Bind`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: I think you can see where we are going with this by now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, our `pipeInto` function is exactly the same as the `Bind` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a key insight: *computation expressions are just a way to create nice
+    syntax for something that we could do ourselves*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A standalone bind function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Having a "bind" function like this is actually a standard functional pattern,
+    and it is not dependent on computation expressions at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, why is it called "bind"? Well, as we've seen, a "bind" function or method
+    can be thought of as feeding an input value to a function. This is known as "[binding](function-values-and-simple-values.html)"
+    a value to the parameter of the function (recall that all functions have only
+    [one parameter](currying.html)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So when you think of `bind` this this way, you can see that it is similar to
+    piping or composition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In fact, you can turn it into an infix operation like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*By the way, this symbol ">>=" is the standard way of writing bind as an infix
+    operator. If you ever see it used in other F# code, that is probably what it represents.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Going back to the safe divide example, we can now write the workflow on one
+    line, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might be wondering exactly how this is different from normal piping or composition?
+    It's not immediately obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer is twofold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the `bind` function has *extra* customized behavior for each situation.
+    It is not a generic function, like pipe or composition.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second, the input type of the value parameter (`m` above) is not necessarily
+    the same as the output type of the function parameter (`f` above), and so one
+    of the things that bind does is handle this mismatch elegantly so that functions
+    can be chained.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we will see in the next post, bind generally works with some "wrapper" type.
+    The value parameter might be of `WrapperType<TypeA>`, and then the signature of
+    the function parameter of `bind` function is always `TypeA -> WrapperType<TypeB>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the particular case of the `bind` for safe divide, the wrapper type is `Option`.
+    The type of the value parameter (`m` above) is `Option<int>` and the signature
+    of the function parameter (`f` above) is `int -> Option<int>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see bind used in a different context, here is an example of the logging
+    workflow expressed using a infix bind function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, there is no wrapper type. Everything is an `int`. But even so,
+    `bind` has the special behavior that performs the logging behind the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Option.bind and the "maybe" workflow revisited
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the F# libraries, you will see `Bind` functions or methods in many places.
+    Now you know what they are for!
+  prefs: []
+  type: TYPE_NORMAL
+- en: A particularly useful one is `Option.bind`, which does exactly what we wrote
+    by hand above, namely
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the input parameter is `None`, then don't call the continuation function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the input parameter is `Some`, then do call the continuation function, passing
+    in the contents of the `Some`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here was our hand-crafted function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the implementation of `Option.bind`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: There is a moral in this -- don't be too hasty to write your own functions.
+    There may well be library functions that you can reuse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the "maybe" workflow, rewritten to use `Option.bind`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reviewing the different approaches so far
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've used four different approaches for the "safe divide" example so far. Let's
+    put them together side by side and compare them once more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: I have renamed the original `pipeInto` function to `bind`, and used
+    `Option.bind` instead of our original custom implementation.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First the original version, using an explicit workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, using our own version of "bind" (a.k.a. "pipeInto")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, using a computation expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, using bind as an infix operation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: Bind functions turn out to be very powerful. In the next post we'll see that
+    combining `bind` with wrapper types creates an elegant way of passing extra information
+    around in the background.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exercise: How well do you understand?'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before you move on to the next post, why don't you test yourself to see if you
+    have understood everything so far?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a little exercise for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Part 1 - create a workflow**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, create a function that parses a string into a int:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: and then create your own computation expression builder class so that you can
+    use it in a workflow, as shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE69]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Part 2 -- create a bind function**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once you have the first part working, extend the idea by adding two more functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE70]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then with these functions, you should be able to write code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE71]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here''s a summary of the points covered in this post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computation expressions provide a nice syntax for continuation passing, hiding
+    the chaining logic for us.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`bind` is the key function that links the output of one step to the input of
+    the next step.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The symbol `>>=` is the standard way of writing bind as an infix operator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Computation expressions and wrapper types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Computation expressions and wrapper types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous post, we were introduced to the "maybe" workflow, which allowed
+    us to hide the messiness of chaining together option types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A typical use of the "maybe" workflow looked something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE72]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As we saw before, there is some apparently strange behavior going on here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the `let!` lines, the expression on the *right* of the equals is an `int
+    option`, but the value on the *left* is just an `int`. The `let!` has "unwrapped"
+    the option before binding it to the value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And in the `return` line, the opposite occurs. The expression being returned
+    is an `int`, but the value of the whole workflow (`result`) is an `int option`.
+    That is, the `return` has "wrapped" the raw value back into an option.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We will follow up these observations in this post, and we will see that this
+    leads to one of the major uses of computation expressions: namely, to implicitly
+    unwrap and rewrap values that are stored in some sort of wrapper type.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s look at another example. Say that we are accessing a database, and we
+    want to capture the result in a Success/Error union type, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE73]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then use this type in our database access methods. Here are some very simple
+    stubs to give you an idea of how the `DbResult` type might be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE74]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let's say we want to chain these calls together. First get the customer
+    id from the name, and then get the order for the customer id, and then get the
+    product from the order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the most explicit way of doing it. As you can see, we have to have pattern
+    matching at each step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE75]'
+  prefs: []
+  type: TYPE_PRE
+- en: Really ugly code. And the top-level flow has been submerged in the error handling
+    logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Computation expressions to the rescue! We can write one that handles the branching
+    of Success/Error behind the scenes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE76]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And with this workflow, we can focus on the big picture and write much cleaner
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE77]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And if there are errors, the workflow traps them nicely and tells us where
+    the error was, as in this example below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE78]'
+  prefs: []
+  type: TYPE_PRE
+- en: The role of wrapper types in workflows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So now we have seen two workflows (the `maybe` workflow and the `dbresult` workflow),
+    each with their own corresponding wrapper type (`Option<T>` and `DbResult<T>`
+    respectively).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are not just special cases. In fact, *every* computation expression *must*
+    have an associated wrapper type. And the wrapper type is often designed specifically
+    to go hand-in-hand with the workflow that we want to manage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The example above demonstrates this clearly. The `DbResult` type we created
+    is more than just a simple type for return values; it actually has a critical
+    role in the workflow by "storing" the current state of the workflow, and whether
+    it is succeeding or failing at each step. By using the various cases of the type
+    itself, the `dbresult` workflow can manage the transitions for us, hiding them
+    from view and enabling us to focus on the big picture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll learn how to design a good wrapper type later in the series, but first
+    let's look at how they are manipulated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bind and Return and wrapper types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's look again at the definition of the `Bind` and `Return` methods of a computation
+    expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ll start off with the easy one, `Return`. The signature of `Return` [as
+    documented on MSDN](http://msdn.microsoft.com/en-us/library/dd233182.aspx) is
+    just this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE79]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, for some type `T`, the `Return` method just wraps it in the
+    wrapper type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: In signatures, the wrapper type is normally called `M`, so `M<int>`
+    is the wrapper type applied to `int` and `M<string>` is the wrapper type applied
+    to `string`, and so on.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And we've seen two examples of this usage. The `maybe` workflow returns a `Some`,
+    which is an option type, and the `dbresult` workflow returns `Success`, which
+    is part of the `DbResult` type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE80]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let''s look at `Bind`. The signature of `Bind` is this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE81]'
+  prefs: []
+  type: TYPE_PRE
+- en: It looks complicated, so let's break it down. It takes a tuple `M<'T> * ('T
+    -> M<'U>)` and returns a `M<'U>`, where `M<'U>` means the wrapper type applied
+    to type `U`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The tuple in turn has two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`M<''T>` is a wrapper around type `T`, and'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`''T -> M<''U>` is a function that takes a *unwrapped* `T` and creates a *wrapped*
+    `U`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In other words, what `Bind` does is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a *wrapped* value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unwrap it and do any special "behind the scenes" logic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, optionally apply the function to the *unwrapped* value to create a new
+    *wrapped* value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Even if the function is *not* applied, `Bind` must still return a *wrapped*
+    `U`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With this understanding, here are the `Bind` methods that we have seen already:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE82]'
+  prefs: []
+  type: TYPE_PRE
+- en: Look over this code and make sure that you understand why these methods do indeed
+    follow the pattern described above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, a picture is always useful. Here is a diagram of the various types
+    and functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![diagram of bind](bind.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For `Bind`, we start with a wrapped value (`m` here), unwrap it to a raw value
+    of type `T`, and then (maybe) apply the function `f` to it to get a wrapped value
+    of type `U`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For `Return`, we start with a value (`x` here), and simply wrap it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The type wrapper is generic
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Note that all the functions use generic types (`T` and `U`) other than the wrapper
+    type itself, which must be the same throughout. For example, there is nothing
+    stopping the `maybe` binding function from taking an `int` and returning a `Option<string>`,
+    or taking a `string` and then returning an `Option<bool>`. The only requirement
+    is that it always return an `Option<something>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To see this, we can revisit the example above, but rather than using strings
+    everywhere, we will create special types for the customer id, order id, and product
+    id. This means that each step in the chain will be using a different type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll start with the types again, this time defining `CustomerId`, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE83]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code is almost identical, except for the use of the new types in the `Success`
+    line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE84]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here's the long-winded version again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE85]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are a couple of changes worth discussing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the `printfn` at the bottom uses the "%A" format specifier rather than
+    "%s". This is required because the `ProductId` type is a union type now.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More subtly, there seems to be unnecessary code in the error lines. Why write
+    `| Error e -> Error e`? The reason is that the incoming error that is being matched
+    against is of type `DbResult<CustomerId>` or `DbResult<OrderId>`, but the *return*
+    value must be of type `DbResult<ProductId>`. So, even though the two `Error`s
+    look the same, they are actually of different types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next up, the builder, which hasn't changed at all except for the `| Error e
+    -> Error e` line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE86]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we can use the workflow as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE87]'
+  prefs: []
+  type: TYPE_PRE
+- en: At each line, the returned value is of a *different* type (`DbResult<CustomerId>`,`DbResult<OrderId>`,
+    etc), but because they have the same wrapper type in common, the bind works as
+    expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And finally, here's the workflow with an error case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE88]'
+  prefs: []
+  type: TYPE_PRE
+- en: Composition of computation expressions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We''ve seen that every computation expression *must* have an associated wrapper
+    type. This wrapper type is used in both `Bind` and `Return`, which leads to a
+    key benefit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*the output of a `Return` can be fed to the input of a `Bind`*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In other words, because a workflow returns a wrapper type, and because `let!`
+    consumes a wrapper type, you can put a "child" workflow on the right hand side
+    of a `let!` expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, say that you have a workflow called `myworkflow`. Then you can
+    write the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE89]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or you can even "inline" them, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE90]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you have used the `async` workflow, you probably have done this already,
+    because an async workflow typically contains other asyncs embedded in it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE91]'
+  prefs: []
+  type: TYPE_PRE
+- en: Introducing "ReturnFrom"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have been using `return` as a way of easily wrapping up an unwrapped return
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But sometimes we have a function that already returns a wrapped value, and we
+    want to return it directly. `return` is no good for this, because it requires
+    an unwrapped type as input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution is a variant on `return` called `return!`, which takes a *wrapped
+    type* as input and returns it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The corresponding method in the "builder" class is called `ReturnFrom`. Typically
+    the implementation just returns the wrapped type "as is" (although of course,
+    you can always add extra logic behind the scenes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a variant on the "maybe" workflow to show how it can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE92]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here it is in use, compared with a normal `return`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE93]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For a more realistic example, here is `return!` used in conjunction with `divideBy`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE94]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This post introduced wrapper types and how they related to `Bind`, `Return`
+    and `ReturnFrom`, the core methods of any builder class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next post, we'll continue to look at wrapper types, including using lists
+    as wrapper types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More on wrapper types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: More on wrapper types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous post, we looked at the concept of "wrapper types" and their
+    relation to computation expressions. In this post, we'll investigate what types
+    are suitable for being wrapper types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What kinds of types can be wrapper types?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If every computation expression must have an associated wrapper type, then what
+    kinds of type can be used as wrapper types? Are there any special constraints
+    or limitations that apply?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is one general rule, which is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Any type with a generic parameter can be used as a wrapper type**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So for example, you can use `Option<T>`, `DbResult<T>`, etc., as wrapper types,
+    as we have seen. And you can use wrapper types that restrict the type parameter,
+    such as `Vector<int>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what about other generic types like `List<T>` or `IEnumerable<T>`? Surely
+    they can't be used? Actually, yes, they *can* be used! We'll see how shortly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can non-generic wrapper types work?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Is it possible to use a wrapper type that does *not* have a generic parameter?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we saw in an earlier example an attempt to do addition on strings,
+    like this: `"1" + "2"`. Can''t we be clever and treat `string` as a wrapper type
+    for `int` in this case? That would be cool, yes?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try. We can use the signatures of `Bind` and `Return` to guide our implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Bind` takes a tuple. The first part of the tuple is the wrapped type (`string`
+    in this case), and the second part of the tuple is a function that takes an unwrapped
+    type and converts it to a wrapped type. In this case, that would be `int -> string`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Return` takes an unwrapped type (`int` in this case) and converts it to a
+    wrapped type. So in this case, the signature of `Return` would be `int -> string`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does this guide the implementation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of the "rewrapping" function, `int -> string`, is easy. It
+    is just "toString" on an int.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The bind function has to unwrap a string to an int, and then pass it to the
+    function. We can use `int.Parse` for that.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But what happens if the bind function *can't* unwrap a string, because it is
+    not a valid number? In this case, the bind function *must* still return a wrapped
+    type (a string), so we can just return a string such as "error".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the implementation of the builder class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE95]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can try using it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE96]'
+  prefs: []
+  type: TYPE_PRE
+- en: And what happens if one of the strings is invalid?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE97]'
+  prefs: []
+  type: TYPE_PRE
+- en: That looks really good -- we can treat strings as ints inside our workflow!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But hold on, there is a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's say we give the workflow an input, unwrap it (with `let!`) and then immediately
+    rewrap it (with `return`) without doing anything else. What should happen?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE98]'
+  prefs: []
+  type: TYPE_PRE
+- en: No problem. The input `g1` and the output `g2` are the same value, as we would
+    expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what about the error case?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE99]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case we have got some unexpected behavior. The input `b1` and the output
+    `b2` are *not* the same value. We have introduced an inconsistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Would this be a problem in practice? I don't know. But I would avoid it and
+    use a different approach, like options, that are consistent in all cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rules for workflows that use wrapper types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here's a question? What is the difference between these two code fragments,
+    and should they behave differently?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE100]'
+  prefs: []
+  type: TYPE_PRE
+- en: The answer is no, they should not behave differently. The only difference is
+    that in the second example, the `unwrapped` value has been refactored away and
+    the `wrapped` value is returned directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But as we just saw in the previous section, you can get inconsistencies if
+    you are not careful. So, any implementation you create should be sure to follow
+    some standard rules, which are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Rule 1: If you start with an unwrapped value, and then you wrap it (using
+    `return`), then unwrap it (using `bind`), you should always get back the original
+    unwrapped value.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This rule and the next are about not losing information as you wrap and unwrap
+    the values. Obviously, a sensible thing to ask, and required for refactoring to
+    work as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In code, this would be expressed as something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE101]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Rule 2: If you start with a wrapped value, and then you unwrap it (using
+    `bind`), then wrap it (using `return`), you should always get back the original
+    wrapped value.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the rule that the `stringInt` workflow broke above. As with rule 1,
+    this should obviously be a requirement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In code, this would be expressed as something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE102]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Rule 3: If you create a child workflow, it must produce the same result as
+    if you had "inlined" the logic in the main workflow.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This rule is required for composition to behave properly, and again, "extraction"
+    refactoring will only work correctly if this is true.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, you will get this for free if you follow some guidelines (which
+    will be explained in a later post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In code, this would be expressed as something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE103]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lists as wrapper types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I said earlier that types like `List<T>` or `IEnumerable<T>` can be used as
+    wrapper types. But how can this be? There is no one-to-one correspondence between
+    the wrapper type and the unwrapped type!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where the "wrapper type" analogy becomes a bit misleading. Instead,
+    let's go back to thinking of `bind` as a way of connecting the output of one expression
+    with the input of another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we have seen, the `bind` function "unwraps" the type, and applies the continuation
+    function to the unwrapped value. But there is nothing in the definition that says
+    that there has to be only *one* unwrapped value. There is no reason that we can't
+    apply the continuation function to each item of the list in turn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, we should be able to write a `bind` that takes a list and a
+    continuation function, where the continuation function processes one element at
+    a time, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE104]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And with this concept, we should be able to chain some binds together like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE105]'
+  prefs: []
+  type: TYPE_PRE
+- en: But we've missed something important. The continuation function passed into
+    `bind` is required to have a certain signature. It takes an unwrapped type, but
+    it produces a *wrapped* type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, the continuation function must *always create a new list* as
+    its result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE106]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the chained example would have to be written like this, with the `elem1
+    + elem2` result turned into a list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE107]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So the logic for our bind method now looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE108]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have another issue now. `Bind` itself must produce a wrapped type, which
+    means that the "list of lists" is no good. We need to turn them back into a simple
+    "one-level" list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But that is easy enough -- there is a list module function that does just that,
+    called `concat`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So putting it together, we have this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE109]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we understand how the `bind` works on its own, we can create a "list
+    workflow".
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Bind` applies the continuation function to each element of the passed in list,
+    and then flattens the resulting list of lists into a one-level list. `List.collect`
+    is a library function that does exactly that.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Return` converts from unwrapped to wrapped. In this case, that just means
+    wrapping a single element in a list.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE110]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the workflow in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE111]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the results show that every element in the first collection has been combined
+    with every element in the second collection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE112]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's quite amazing really. We have completely hidden the list enumeration
+    logic, leaving just the workflow itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Syntactic sugar for "for"
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If we treat lists and sequences as a special case, we can add some nice syntactic
+    sugar to replace `let!` with something a bit more natural.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What we can do is replace the `let!` with a `for..in..do` expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE113]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both variants mean exactly the same thing, they just look different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To enable the F# compiler to do this, we need to add a `For` method to our builder
+    class. It generally has exactly the same implementation as the normal `Bind` method,
+    but is required to accept a sequence type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE114]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is how it is used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE115]'
+  prefs: []
+  type: TYPE_PRE
+- en: LINQ and the "list workflow"
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Does the `for element in collection do` look familiar? It is very close to the
+    `from element in collection ...` syntax used by LINQ. And indeed LINQ uses basically
+    the same technique to convert from a query expression syntax like `from element
+    in collection ...` to actual method calls behine the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In F#, as we saw, the `bind` uses the `List.collect` function. The equivalent
+    of `List.collect` in LINQ is the `SelectMany` extension method. And once you understand
+    how `SelectMany` works, you can implement the same kinds of queries yourself.
+    Jon Skeet has written a [helpful blog post](http://codeblog.jonskeet.uk/2010/12/27/reimplementing-linq-to-objects-part-9-selectmany/)
+    explaining this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The identity "wrapper type"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we've seen a number of wrapper types in this post, and have said that *every*
+    computation expression *must* have an associated wrapper type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what about the logging example in the previous post? There was no wrapper
+    type there. There was a `let!` that did things behind the scenes, but the input
+    type was the same as the output type. The type was left unchanged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The short answer to this is that you can treat any type as its own "wrapper".
+    But there is another, deeper way to understand this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's step back and consider what a wrapper type definition like `List<T>` really
+    means.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have a type such as `List<T>`, it is in fact not a "real" type at all.
+    `List<int>` is a real type, and `List<string>` is a real type. But `List<T>` on
+    its own is incomplete. It is missing the parameter it needs to become a real type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to think about `List<T>` is that it is a *function*, not a type. It
+    is a function in the abstract world of types, rather than the concrete world of
+    normal values, but just like any function it maps values to other values, except
+    in this case, the input values are types (say `int` or `string`) and the output
+    values are other types (`List<int>` and `List<string>`). And like any function
+    it takes a parameter, in this case a "type parameter". Which is why the concept
+    that .NET developers call "generics" is known as "[parametric polymorphism](http://en.wikipedia.org/wiki/Parametric_polymorphism)"
+    in computer science terminology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we grasp the concept of functions that generate one type from another type
+    (called "type constructors"), we can see that what we really mean by a "wrapper
+    type" is just a type constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But if a "wrapper type" is just a function that maps one type to another type,
+    surely a function that maps a type to the *same* type fits into this category?
+    And indeed it does. The "identity" function for types fits our definition and
+    can be used as a wrapper type for computation expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Going back to some real code then, we can define the "identity workflow" as
+    the simplest possible implementation of a workflow builder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE116]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this in place, you can see that the logging example discussed earlier is
+    just the identity workflow with some logging added in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another long post, and we covered a lot of topics, but I hope that the role
+    of wrapper types is now clearer. We will see how the wrapper types can be used
+    in practice when we come to look at common workflows such as the "writer workflow"
+    and the "state workflow" later in this series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a summary of the points covered in this post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A major use of computation expressions is to unwrap and rewrap values that are
+    stored in some sort of wrapper type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can easily compose computation expressions, because the output of a `Return`
+    can be fed to the input of a `Bind`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every computation expression *must* have an associated wrapper type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Any type with a generic parameter can be used as a wrapper type, even lists.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When creating workflows, you should ensure that your implementation conforms
+    to the three sensible rules about wrapping and unwrapping and composition.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Zero and Yield'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Zero and Yield'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Having covered bind and continuations, and the use of wrapper types, we're finally
+    ready to take on the full set of methods associated with "builder" classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you look at the [MSDN documentation](http://msdn.microsoft.com/en-us/library/dd233182.aspx),
+    you'll see not just `Bind` and `Return`, but also other strangely named methods
+    like `Delay` and `Zero`. What are *they* for? That's what this and the next few
+    posts will answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The plan of action
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To demonstrate how to create a builder class, we will create a custom workflow
+    which uses all of the possible builder methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But rather than starting at the top and trying to explain what these methods
+    mean without context, we'll work from the bottom up, starting with a simple workflow
+    and adding methods only as needed to solve a problem or an error. In the process,
+    you'll come to understand how F# processes computation expressions in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The outline of this process is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: In this first part, we''ll look at what methods are needed for a basic
+    workflow. We''ll introduce `Zero`, `Yield`, `Combine` and `For`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Part 2: Next, we''ll look at how to delay the execution of your code, so that
+    it is only evaluated when needed. We''ll introduce `Delay` and `Run`, and look
+    at lazy computations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Part 3: Finally, we''ll cover the rest of the methods: `While`, `Using`, and
+    exception handling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before we get started
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we dive into creating the workflow, here are some general comments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The documentation for computation expressions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, as you might have noticed, the MSDN documentation for computation expressions
+    is meagre at best, and although not inaccurate, can be misleading. For example,
+    the signatures of the builder methods are *more* flexible than they appear to
+    be, and this can be used to implement some features that might not be obvious
+    if you work from the documentation alone. We will show an example of this later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want more detailed documentation, there are two sources I can recommend.
+    For an detailed overview of the concepts behind computation expressions, a great
+    resource is the [paper "The F# Expression Zoo" by Tomas Petricek and Don Syme](http://tomasp.net/academic/papers/computation-zoo/computation-zoo.pdf).
+    And for the most accurate up-to-date technical documentation, you should read
+    the [F# language specification](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf),
+    which has a section on computation expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapped and unwrapped types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When you are trying to understand the signatures as documented, remember that
+    what I have been calling the "unwrapped" type is normally written as `'T` and
+    the "wrapped" type is normally written `M<'T>`. That is, when you see that the
+    `Return` method has the signature `'T -> M<'T>` it means `Return` takes an unwrapped
+    type and returns a wrapped type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I have in the earlier posts in this series, I will continue to use "unwrapped"
+    and "wrapped" to describe the relationship between these types, but as we move
+    forward these terms will be stretched to the breaking point, so I will also start
+    using other terminology, such as "computation type" instead of "wrapped type".
+    I hope that when we reach this point, the reason for the change will be clear
+    and understandable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, in my examples, I will generally try to keep things simple by using code
+    such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE117]'
+  prefs: []
+  type: TYPE_PRE
+- en: But this is actually an oversimplification. To be precise, the "x" can be any
+    *pattern* not just a single value, and the "wrapped type" value can, of course,
+    be an *expression* that evaluates to a wrapped type. The MSDN documentation uses
+    this more precise approach. It uses "pattern" and "expression" in the definitions,
+    such as `let! pattern = expr in cexpr`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are some examples of using patterns and expressions in a `maybe` computation
+    expression, where `Option` is the wrapped type, and the right hand side expressions
+    are `options`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE118]'
+  prefs: []
+  type: TYPE_PRE
+- en: Having said this, I will continue to use the oversimplified examples, so as
+    not to add extra complication to an already complicated topic!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing special methods in the builder class (or not)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The MSDN documentation shows that each special operation (such as `for..in`,
+    or `yield`) is translated into one or more calls to methods in the builder class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is not always a one-to-one correspondence, but generally, to support the
+    syntax for a special operation, you *must* implement a corresponding method in
+    the builder class, otherwise the compiler will complain and give you an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, you do *not* need to implement every single method if you
+    don't need the syntax. For example, we have already implemented the `maybe` workflow
+    quite nicely by only implementing the two methods `Bind` and `Return`. We don't
+    need to implement `Delay`, `Use`, and so on, if we don't need to use them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see what happens if you have not implemented a method, let''s try to use
+    the `for..in..do` syntax in our `maybe` workflow like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE119]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will get the compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE120]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Sometimes you get will errors that might be cryptic unless you know what is
+    going on behind the scenes. For example, if you forget to put `return` in your
+    workflow, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE121]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You will get the compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE122]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You might be asking: what is the `Zero` method? And why do I need it? The answer
+    to that is coming right up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Operations with and without '!'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Obviously, many of the special operations come in pairs, with and without a
+    "!" symbol. For example: `let` and `let!` (pronounced "let-bang"), `return` and
+    `return!`, `yield` and `yield!` and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference is easy to remember when you realize that the operations *without*
+    a "!" always have *unwrapped* types on the right hand side, while the ones *with*
+    a "!" always have *wrapped* types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So for example, using the `maybe` workflow, where `Option` is the wrapped type,
+    we can compare the different syntaxes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE123]'
+  prefs: []
+  type: TYPE_PRE
+- en: The "!" versions are particularly important for composition, because the wrapped
+    type can be the result of *another* computation expression of the same type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE124]'
+  prefs: []
+  type: TYPE_PRE
+- en: Diving in - creating a minimal implementation of a workflow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's start! We'll begin by creating a minimal version of the "maybe" workflow
+    (which we'll rename as "trace") with every method instrumented, so we can see
+    what is going on. We'll use this as our testbed throughout this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code for the first version of the `trace` workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE125]'
+  prefs: []
+  type: TYPE_PRE
+- en: Nothing new here, I hope. We have already seen all these methods before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let''s run some sample code through it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE126]'
+  prefs: []
+  type: TYPE_PRE
+- en: Everything should work as expected, in particular, you should be able to see
+    that the use of `None` in the 4th example caused the next two lines (`let! y =
+    ... return x+y`) to be skipped and the result of the whole expression was `None`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "do!"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our expression supports `let!`, but what about `do!`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In normal F#, `do` is just like `let`, except that the expression doesn't return
+    anything useful (namely, a unit value).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside a computation expression, `do!` is very similar. Just as `let!` passes
+    a wrapped result to the `Bind` method, so does `do!`, except that in the case
+    of `do!` the "result" is the unit value, and so a *wrapped* version of unit is
+    passed to the bind method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a simple demonstration using the `trace` workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE127]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE128]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can verify for yourself that a `unit option` is being passed to `Bind` as
+    a result of each `do!`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "Zero"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'What is the smallest computation expression you can get away with? Let''s try
+    nothing at all:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE129]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We get an error immediately:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE130]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fair enough. If you think about it, it doesn't make sense to have nothing at
+    all in a computation expression. After all, it's purpose is to chain expressions
+    together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, what about a simple expression with no `let!` or `return`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE131]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we get a different error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE132]'
+  prefs: []
+  type: TYPE_PRE
+- en: So why is the `Zero` method needed now but we haven't needed it before? The
+    answer is that in this particular case we haven't returned anything explicitly,
+    yet the computation expression as a whole *must* return a wrapped value. So what
+    value should it return?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, this situation will occur any time the return value of the computation
+    expression has not been explicitly given. The same thing happens if you have an
+    `if..then` expression without an else clause.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE133]'
+  prefs: []
+  type: TYPE_PRE
+- en: In normal F# code, an "if..then" without an "else" would result in a unit value,
+    but in a computation expression, the particular return value must be a member
+    of the wrapped type, and the compiler does not know what value this is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fix is to tell the compiler what to use -- and that is the purpose of the
+    `Zero` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What value should you use for Zero?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So which value *should* you use for `Zero`? It depends on the kind of workflow
+    you are creating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are some guidelines that might help:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Does the workflow have a concept of "success" or "failure"?** If so, use
+    the "failure" value for `Zero`. For example, in our `trace` workflow, we use `None`
+    to indicate failure, and so we can use `None` as the Zero value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Does the workflow have a concept of "sequential processing"?** That is, in
+    your workflow you do one step and then another, with some processing behind the
+    scenes. In normal F# code, an expression that did return anything explicitly would
+    evaluate to unit. So to parallel this case, your `Zero` should be the *wrapped*
+    version of unit. For example, in a variant on an option-based workflow, we might
+    use `Some ()` to mean `Zero` (and by the way, this would always be the same as
+    `Return ()` as well).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Is the workflow primarily concerned with manipulating data structures?**
+    If so, `Zero` should be the "empty" data structure. For example, in a "list builder"
+    workflow, we would use the empty list as the Zero value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Zero` value also has an important role to play when combining wrapped types.
+    So stay tuned, and we'll revisit Zero in the next post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Zero implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So now let's extend our testbed class with a `Zero` method that returns `None`,
+    and try again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE134]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The test code makes it clear that `Zero` is being called behind the scenes.
+    And `None` is the return value for the expression as whole. *Note: `None` may
+    print out as `<null>`. You can ignore this.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you always need a Zero?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Remember, you *not required* to have a `Zero`, but only if it makes sense in
+    the context of the workflow. For example `seq` does not allow zero, but `async`
+    does:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE135]'
+  prefs: []
+  type: TYPE_PRE
+- en: Introducing "Yield"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In C#, there is a "yield" statement that, within an iterator, is used to return
+    early and then picks up where you left off when you come back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And looking at the docs, there is a "yield" available in F# computation expressions
+    as well. What does it do? Let's try it and see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE136]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we get the error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE137]'
+  prefs: []
+  type: TYPE_PRE
+- en: No surprise there. So what should the implementation of "yield" method look
+    like? The MSDN documentation says that it has the signature `'T -> M<'T>`, which
+    is exactly the same as the signature for the `Return` method. It must take an
+    unwrapped value and wrap it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So let's implement it the same way as `Return` and retry the test expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE138]'
+  prefs: []
+  type: TYPE_PRE
+- en: This works now, and it seems that it can be used as an exact substitute for
+    `return`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a also a `YieldFrom` method that parallels the `ReturnFrom` method.
+    And it behaves the same way, allowing you to yield a wrapped value rather than
+    a unwrapped one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s add that to our list of builder methods as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE139]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this point you might be wondering: if `return` and `yield` are basically
+    the same thing, why are there two different keywords? The answer is mainly so
+    that you can enforce appropriate syntax by implementing one but not the other.
+    For example, the `seq` expression *does* allow `yield` but *doesn''t* allow `return`,
+    while the `async` does allow `return`, but does not allow `yield`, as you can
+    see from the snippets below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE140]'
+  prefs: []
+  type: TYPE_PRE
+- en: In fact, you could create slightly different behavior for `return` vs. `yield`,
+    so that, for example, using `return` stops the rest of the computation expression
+    from being evaluated, while `yield` doesn't.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More generally, of course, `yield` should be used for sequence/enumeration semantics,
+    while `return` is normally used once per expression. (We'll see how `yield` can
+    be used multiple times in the next post.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting "For"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We talked about the `for..in..do` syntax in the last post. So now let's revisit
+    the "list builder" that we discussed earlier and add the extra methods. We already
+    saw how to define `Bind` and `Return` for a list in a previous post, so we just
+    need to implement the additional methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Zero` method just returns an empty list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Yield` method can be implemented in the same way as `Return`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `For` method can be implemented the same as `Bind`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE141]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the code using `let!`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE142]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the equivalent code using `for`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE143]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that both approaches give the same result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we've seen how to implement the basic methods for a simple computation
+    expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some points to reiterate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For simple expressions you don't need to implement all the methods.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Things with bangs have wrapped types on the right hand side.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Things without bangs have unwrapped types on the right hand side.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You need to implement `Zero` if you want a workflow that doesn't explicitly
+    return a value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Yield` is basically equivalent to `Return`, but `Yield` should be used for
+    sequence/enumeration semantics.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`For` is basically equivalent to `Bind` in simple cases.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the next post, we'll look at what happens when we need to combine multiple
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Combine'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Combine'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we're going to look at returning multiple values from a computation
+    expression using the `Combine` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The story so far...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So far, our expression builder class looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE144]'
+  prefs: []
+  type: TYPE_PRE
+- en: And this class has worked fine so far. But we are about to run into a problem...
+  prefs: []
+  type: TYPE_NORMAL
+- en: A problem with two 'yields'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Previously, we saw how `yield` could be used to return values just like `return`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Normally, `yield` is not used just once, of course, but multiple times in order
+    to return values at different stages of a process such as an enumeration. So let''s
+    try that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE145]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But uh-oh, we get an error message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE146]'
+  prefs: []
+  type: TYPE_PRE
+- en: And if you use `return` instead of `yield`, you get the same error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE147]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this problem occurs in other contexts too. For example, if we want to do
+    something and then return, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE148]'
+  prefs: []
+  type: TYPE_PRE
+- en: We get the same error message about a missing 'Combine' method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So what's going on here?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To understand, let''s go back to the behind-the-scenes view of the computation
+    expression. We have seen that `return` and `yield` are really just the last step
+    in a series of continuations, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE149]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can think of `return` (or `yield`) as "resetting" the indentation, if you
+    like. So when we `return/yield` and then `return/yield` again, we are generating
+    code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE150]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But really this can be simplified to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE151]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, we now have *two* values in our computation expression. And
+    then the obvious question is, how should these two values be combined to give
+    a single result for the computation expression as a whole?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a very important point. **Return and yield do *not* generate an early
+    return from a computation expression**. No, the entire computation expression,
+    all the way to the last curly brace, is *always* evaluated and results in a *single*
+    value. Let me repeat that. Every part of the computation expression is *always
+    evaluated* -- there is no short circuiting going on. If we want to short circuit
+    and return early, we have to write our own code to do that (and we'll see how
+    to do that later).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, back to the pressing question. We have two expressions resulting in two
+    values: how should those multiple values be combined into one?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "Combine"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The answer is by using the `Combine` method, which takes two *wrapped* values
+    and combines them to make another wrapped value. Exactly how this works is up
+    to us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, we are dealing specifically with `int options`, so one simple
+    implementation that leaps to mind it just to add the numbers together. Each parameter
+    is an `option` of course (the wrapped type), so we need to pick them apart and
+    handle the four possible cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE152]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running the test code again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE153]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But now we get a different error message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE154]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `Delay` method is a hook that allows you to delay evaluation of a computation
+    expression until needed -- we''ll discuss this in detail very soon; but for now,
+    let''s create a default implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE155]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running the test code again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE156]'
+  prefs: []
+  type: TYPE_PRE
+- en: And finally we get the code to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE157]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result of the entire workflow is the sum of all the yields, namely `Some
+    3`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we have a "failure" in the workflow (e.g. a `None`), the second yield doesn't
+    occur and the overall result is `Some 1` instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE158]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can have three `yields` rather than two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE159]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result is what you would expect, `Some 6`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can even try mixing up `yield` and `return` together. Other than the syntax
+    difference, the overall effect is the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE160]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using Combine for sequence generation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Adding numbers up is not really the point of `yield`, although you might perhaps
+    use a similar idea for constructing concatenated strings, somewhat like `StringBuilder`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No, `yield` is naturally used as part of sequence generation, and now that we
+    understand `Combine`, we can extend our "ListBuilder" workflow (from last time)
+    with the required methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Combine` method is just list concatenation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Delay` method can use a default implementation for now.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s the full class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE161]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE162]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here's a more complicated example with a `for` loop and some `yield`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE163]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the result is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE164]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that by combining `for..in..do` with `yield`, we are not too far
+    away from the built-in `seq` expression syntax (except that `seq` is lazy, of
+    course).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would strongly encourage you to play around with this a bit until you are
+    clear on what is going on behind the scenes. As you can see from the example above,
+    you can use `yield` in creative ways to generate all sorts of irregular lists,
+    not just simple ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: If you''re wondering about `While`, we''re going to hold off on it for
+    a bit, until after we have looked at `Delay` in an upcoming post*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Order of processing for "combine"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `Combine` method only has two parameters. So what happens when you combine
+    more than two values? For example, here are four values to combine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE165]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you look at the output you can see that the values are combined pair-wise,
+    as you might expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE166]'
+  prefs: []
+  type: TYPE_PRE
+- en: A subtle but important point is that they are combined "backwards", starting
+    from the last value. First "3" is combined with "4", and the result of that is
+    then combined with "2", and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Combine](combine.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Combine for non-sequences
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the second of our earlier problematic examples, we didn't have a sequence;
+    we just had two separate expressions in a row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE167]'
+  prefs: []
+  type: TYPE_PRE
+- en: How should these expressions be combined?
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a number of common ways of doing this, depending on the concepts that
+    the workflow supports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing combine for workflows with "success" or "failure"
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If the workflow has some concept of "success" or "failure", then a standard
+    approach is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the first expression "succeeds" (whatever that means in context), then use
+    that value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise use the value of the second expression.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this case, we also generally use the "failure" value for `Zero`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach is useful for chaining together a series of "or else" expressions
+    where the first success "wins" and becomes the overall result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE168]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For example, for the `maybe` workflow, it is common to return the first expression
+    if it is `Some`, but otherwise the second expression, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE169]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Example: Parsing**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s try a parsing example with this implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE170]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE171]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the first `return!` expression is `None`, and ignored. So the
+    overall result is the second expression, `Some (I 42)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example: Dictionary lookup**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, we''ll try looking up the same key in a number of dictionaries,
+    and return when we find a value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE172]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE173]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the first lookup is `None`, and ignored. So the overall result
+    is the second lookup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, this technique is very convenient when doing parsing or evaluating
+    a sequence of (possibly unsuccessful) operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing combine for workflows with sequential steps
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If the workflow has the concept of sequential steps, then the overall result
+    is just the value of the last step, and all the previous steps are evaluated only
+    for their side effects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In normal F#, this would be written:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE174]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or using the semicolon syntax, just:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE175]'
+  prefs: []
+  type: TYPE_PRE
+- en: In normal F#, each expression (other than the last) evaluates to the unit value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The equivalent approach for a computation expression is to treat each expression
+    (other than the last) as a *wrapped* unit value, and "pass it into" the next expression,
+    and so on, until you reach the last expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is exactly what bind does, of course, and so the easiest implementation
+    is just to reuse the `Bind` method itself. Also, for this approach to work it
+    is important that `Zero` is the wrapped unit value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE176]'
+  prefs: []
+  type: TYPE_PRE
+- en: The difference from a normal bind is that the continuation has a unit parameter,
+    and evaluates to `b`. This in turn forces `a` to be of type `WrapperType<unit>`
+    in general, or `unit option` in our case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of sequential processing that works with this implementation
+    of `Combine`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE177]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here's the following trace. Note that the result of the whole expression was
+    the result of the last expression in the sequence, just like normal F# code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE178]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing combine for workflows that build data structures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Finally, another common pattern for workflows is that they build data structures.
+    In this case, `Combine` should merge the two data structures in whatever way is
+    appropriate. And the `Zero` method should create an empty data structure, if needed
+    (and if even possible).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the "list builder" example above, we used exactly this approach. `Combine`
+    was just list concatenation and `Zero` was the empty list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Guidelines for mixing "Combine" and "Zero"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have looked at two different implementations for `Combine` for option types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first one used options as "success/failure" indicators, when the first success
+    "won". In this case `Zero` was defined as `None`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second one was sequential, In this case `Zero` was defined as `Some ()`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both cases worked nicely, but was that luck, or are there are any guidelines
+    for implementing `Combine` and `Zero` correctly?
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, note that `Combine` does *not* have to give the same result if the parameters
+    are swapped. That is, `Combine(a,b)` need not be the same as `Combine(b,a)`. The
+    list builder is a good example of this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand there is a useful rule that connects `Zero` and `Combine`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Rule: `Combine(a,Zero)` should be the same as `Combine(Zero,a)` which should
+    the same as just `a`.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use an analogy from arithmetic, you can think of `Combine` like addition
+    (which is not a bad analogy -- it really is "adding" two values). And `Zero` is
+    just the number zero, of course! So the rule above can be expressed as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Rule: `a + 0` is the same as `0 + a` is the same as just `a`, where `+` means
+    `Combine` and `0` means `Zero`.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you look at the first `Combine` implementation ("success/failure") for option
+    types, you'll see that it does indeed comply with this rule, as does the second
+    implementation ("bind" with `Some()`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, if we had used the "bind" implementation of `Combine` but
+    left `Zero` defined as `None`, it would *not* have obeyed the addition rule, which
+    would be a clue that we had got something wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Combine" without bind'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As with all the builder methods, if you don't need them, you don't need to implement
+    them. So for a workflow that is strongly sequential, you could easily create a
+    builder class with `Combine`, `Zero`, and `Yield`, say, without having to implement
+    `Bind` and `Return` at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of a minimal implementation that works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE179]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE180]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, if you have a data-structure oriented workflow, you could just implement
+    `Combine` and some other helpers. For example, here is a minimal implementation
+    of our list builder class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE181]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And even with the minimal implementation, we can write code like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE182]'
+  prefs: []
+  type: TYPE_PRE
+- en: A standalone "Combine" function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a previous post, we saw that the "bind" function is often used as standalone
+    function, and is normally given the operator `>>=`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Combine` function too, is often used as a standalone function. Unlike bind,
+    there is no standard symbol -- it can vary depending on how the combine function
+    works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A symmetric combination operation is often written as `++` or `<+>`. And the
+    "left-biased" combination (that is, only do the second expression if the first
+    one fails) that we used earlier for options is sometimes written as `<++`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So here is an example of a standalone left-biased combination of options, as
+    used in a dictionary lookup example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE183]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What have we learned about `Combine` in this post?
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need to implement `Combine` (and `Delay`) if you need to combine or "add"
+    more than one wrapped value in a computation expression.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Combine` combines values pairwise, from last to first.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is no universal implementation of `Combine` that works in all cases --
+    it needs to be customized according the particular needs of the workflow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is a sensible rule that relates `Combine` with `Zero`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Combine` doesn''t require `Bind` to be implemented.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Combine` can be exposed as a standalone function'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the next post, we'll add logic to control exactly when the internal expressions
+    get evaluated, and introduce true short circuiting and lazy evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Delay and Run'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Delay and Run'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the last few posts we have covered all the basic methods (Bind, Return, Zero,
+    and Combine) needed to create your own computation expression builder. In this
+    post, we'll look at some of the extra features needed to make the workflow more
+    efficient, by controlling when expressions get evaluated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The problem: avoiding unnecessary evaluations'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's say that we have created a "maybe" style workflow as before. But this
+    time we want to use the "return" keyword to return early and stop any more processing
+    being done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is our complete builder class. The key method to look at is `Combine`,
+    in which we simply ignore any secondary expressions after the first return.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE184]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s see how it works by printing something, returning, and then printing
+    something else:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE185]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The debugging output should look something like the following, which I have
+    annotated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE186]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can see a problem here. The "Part 2: after return" was printed, even though
+    we were trying to return early.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why? Well I''ll repeat what I said in the last post: **return and yield do
+    *not* generate an early return from a computation expression**. The entire computation
+    expression, all the way to the last curly brace, is *always* evaluated and results
+    in a single value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a problem, because you might get unwanted side effects (such as printing
+    a message in this case) and your code is doing something unnecessary, which might
+    cause performance problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, how can we avoid evaluating the second part until we need it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "Delay"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The answer to the question is straightforward -- simply wrap part 2 of the expression
+    in a function and only call this function when needed, like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE187]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using this technique, part 2 of the computation expression can be processed
+    completely, but because the expression returns a function, nothing actually *happens*
+    until the function is called.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the `Combine` method will never call it, and so the code inside it does
+    not run at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And this is exactly what the `Delay` method is for. Any result from `Return`
+    or `Yield` is immediately wrapped in a "delay" function like this, and then you
+    can choose whether to run it or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s change the builder to implement a delay:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE188]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the `Delay` method is given a function to execute. Previously,
+    we executed it immediately. What we're doing now is wrapping this function in
+    another function and returning the delayed function instead. I have added a number
+    of trace statements before and after the function is wrapped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you compile this code, you can see that the signature of `Delay` has changed.
+    Before the change, it returned a concrete value (an option in this case), but
+    now it returns a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE189]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By the way, we could have implemented `Delay` in a much simpler way, without
+    any tracing, just by returning the same function that was passed in, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE190]'
+  prefs: []
+  type: TYPE_PRE
+- en: Much more concise! But in this case, I wanted to add some detailed tracing information
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let''s try again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE191]'
+  prefs: []
+  type: TYPE_PRE
+- en: Uh-oh. This time nothing happens at all! What went wrong?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we look at the output we see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Result for Part1 without Part2: <fun:Delay@84-5>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hmmm. The output of the whole `trace` expression is now a *function*, not an
+    option. Why? Because we created all these delays, but we never "undelayed" them
+    by actually calling the function!
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to do this is to assign the output of the computation expression to
+    a function value, say `f`, and then evaluate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE192]'
+  prefs: []
+  type: TYPE_PRE
+- en: This works as expected, but is there a way to do this from inside the computation
+    expression itself? Of course there is!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing "Run"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `Run` method exists for exactly this reason. It is called as the final step
+    in the process of evaluating a computation expression, and can be used to undo
+    the delay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE193]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s try one more time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE194]'
+  prefs: []
+  type: TYPE_PRE
+- en: And the result is exactly what we wanted. The first part is evaluated, but the
+    second part is not. And the result of the entire computation expression is an
+    option, not a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When is delay called?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The way that `Delay` is inserted into the workflow is straightforward, once
+    you understand it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bottom (or innermost) expression is delayed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If this is combined with a prior expression, the output of `Combine` is also
+    delayed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And so on, until the final delay is fed into `Run`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Using this knowledge, let''s review what happened in the example above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first part of the expression is the print statement plus `return 1`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second part of the expression is the print statement without an explicit
+    return, which means that `Zero()` is called
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `None` from the `Zero` is fed into `Delay`, resulting in a "delayed option",
+    that is, a function that will evaluate to an `option` when called.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The option from part 1 and the delayed option from part 2 are combined in `Combine`
+    and the second one is discarded.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The result of the combine is turned into another "delayed option".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the delayed option is fed to `Run`, which evaluates it and returns
+    a normal option.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is a diagram that represents this process visually:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Delay](ce_delay.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we look at the debug trace for the example above, we can see in detail what
+    happened. It's a little confusing, so I have annotated it. Also, it helps to remember
+    that working *down* this trace is the same as working *up* from the bottom of
+    the diagram above, because the outermost code is run first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE195]'
+  prefs: []
+  type: TYPE_PRE
+- en: '"Delay" changes the signature of "Combine"'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When `Delay` is introduced into the pipeline like this, it has an effect on
+    the signature of `Combine`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we originally wrote `Combine` we were expecting it to handle `options`.
+    But now it is handling the output of `Delay`, which is a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see this if we hard-code the types that `Combine` expects, with `int
+    option` type annotations like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE196]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If this is done, we get an compiler error in the "return" expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE197]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The error is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE198]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, the `Combine` is being passed a delayed function (`unit -> 'a`),
+    which doesn't match our explicit signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what happens when we *do* want to combine the parameters, but they are passed
+    in as a function instead of as a simple value?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The answer is straightforward: just call the function that was passed in to
+    get the underlying value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's demonstrate that using the adding example from the previous post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE199]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this new version of `Combine`, the *second* parameter is now a function,
+    not an `int option`. So to combine them, we must first evaluate the function before
+    doing the combination logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we test this out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE200]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We get the following (annotated) trace:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE201]'
+  prefs: []
+  type: TYPE_PRE
+- en: Understanding the type constraints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Up to now, we have used only our "wrapped type" (e.g. `int option`) and the
+    delayed version (e.g. `unit -> int option`) in the implementation of our builder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in fact we can use other types if we like, subject to certain constraints.
+    In fact, understanding exactly what the type constraints are in a computation
+    expression can clarify how everything fits together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we have seen that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output of `Return` is passed into `Delay`, so they must have compatible
+    types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The output of `Delay` is passed into the second parameter of `Combine`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The output of `Delay` is also passed into `Run`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But the output of `Return` does *not* have to be our "public" wrapped type.
+    It could be an internally defined type instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Delay](ce_return.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Similarly, the delayed type does not have to be a simple function, it could
+    be any type that satisfies the constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, given a simple set of return expressions, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE202]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then a diagram that represents the various types and their flow would look
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Delay](ce_types.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And to prove that this is valid, here is an implementation with distinct types
+    for `Internal` and `Delayed`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE203]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the method signatures in the builder class methods look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE204]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating this artifical builder is overkill of course, but the signatures clearly
+    show how the various methods fit together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this post, we''ve seen that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need to implement `Delay` and `Run` if you want to delay execution within
+    a computation expression.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using `Delay` changes the signature of `Combine`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Delay` and `Combine` can use internal types that are not exposed to clients
+    of the computation expression.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next logical step is wanting to delay execution *outside* a computation
+    expression until you are ready, and that will be the topic on the next but one
+    post. But first, we'll take a little detour to discuss method overloads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Overloading'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Overloading'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, we'll take a detour and look at some tricks you can do with methods
+    in a computation expression builder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ultimately, this detour will lead to a dead end, but I hope the journey might
+    provide some more insight into good practices for designing your own computation
+    expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An insight: builder methods can be overloaded'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At some point, you might have an insight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The builder methods are just normal class methods, and unlike standalone functions,
+    methods can support [overloading with different parameter types](type-extensions.html#method-overloading),
+    which means we can create *different implementations* of any method, as long as
+    the parameter types are different.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So then you might get excited about this and how it could be used. But it turns
+    out to be less useful than you might think. Let's look at some examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overloading "return"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Say that you have a union type. You might consider overloading `Return` or `Yield`
+    with multiple implementations for each union case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here''s a very simple example where `Return` has two overloads:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE205]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here it is in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE206]'
+  prefs: []
+  type: TYPE_PRE
+- en: What's wrong with this, you might think?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, first, if we go back to the [discussion on wrapper types](computation-expressions-wrapper-types-part2.html),
+    we made the point that wrapper types should be *generic*. Workflows should be
+    reusable as much as possible -- why tie the implementation to any particular primitive
+    type?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What that means in this case is that the union type should be resigned to look
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE207]'
+  prefs: []
+  type: TYPE_PRE
+- en: But as a consequence of the generics, the `Return` method can't be overloaded
+    any more!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second, it''s probably not a good idea to expose the internals of the type
+    inside the expression like this anyway. The concept of "success" and "failure"
+    cases is useful, but a better way would be to hide the "failure" case and handle
+    it automatically inside `Bind`, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE208]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this approach, `Return` is only used for success, and the failure cases are
+    hidden.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE209]'
+  prefs: []
+  type: TYPE_PRE
+- en: We'll see more of this technique in an upcoming post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple Combine implementations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another time when you might be tempted to overload a method is when implementing
+    `Combine`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's revisit the `Combine` method for the `trace` workflow. If you remember,
+    in the previous implementation of `Combine`, we just added the numbers together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But what if we change our requirements, and say that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if we yield multiple values in the `trace` workflow, then we want to combine
+    them into a list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A first attempt using combine might look this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE210]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the `Combine` method, we unwrap the value from the passed-in option and combine
+    them into a list wrapped in a `Some` (e.g. `Some [a';b']`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For two yields it works as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE211]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And for a yielding a `None`, it also works as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE212]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But what happens if there are *three* values to combine? Like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE213]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we try this, we get a compiler error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE214]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is the problem?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is that after combining the 2nd and 3rd values (`yield 2; yield 3`),
+    we get an option containing a *list of ints* or `int list option`. The error happens
+    when we attempt to combine the first value (`Some 1`) with the combined value
+    (`Some [2;3]`). That is, we are passing a `int list option` as the second parameter
+    of `Combine`, but the first parameter is still a normal `int option`. The compiler
+    is telling you that it wants the second parameter to be the same type as the first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, here's where we might want use our overloading trick. We can create *two*
+    different implementations of `Combine`, with different types for the second parameter,
+    one that takes an `int option` and the other taking an `int list option`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here are the two methods, with different parameter types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE215]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now if we try combining three results, as before, we get what we expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE216]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, this trick has broken some previous code! If you try yielding
+    a `None` now, you will get a compiler error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE217]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The error is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE218]'
+  prefs: []
+  type: TYPE_PRE
+- en: But hold on, before you get too annoyed, try thinking like the compiler. If
+    you were the compiler, and you were given a `None`, which method would *you* call?
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no correct answer, because a `None` could be passed as the second parameter
+    to *either* method. The compiler does not know where this is a None of type `int
+    list option` (the first method) or a None of type `int option` (the second method).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the compiler reminds us, a type annotation will help, so let's give it one.
+    We'll force the None to be an `int option`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE219]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is ugly, of course, but in practice might not happen very often.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More importantly, this is a clue that we have a bad design. Sometimes the computation
+    expression returns an `'a option` and sometimes it returns an `'a list option`.
+    We should be consistent in our design, so that the computation expression always
+    returns the *same* type, no matter how many `yield`s are in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, if we *do* want to allow multiple `yield`s, then we should use `'a
+    list option` as the wrapper type to begin with rather than just a plain option.
+    In this case the `Yield` method would create the list option, and the `Combine`
+    method could be collapsed to a single method again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the code for our third version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE220]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now the examples work as expected without any special tricks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE221]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not only is the code cleaner, but as in the `Return` example, we have made our
+    code more generic as well, having gone from a specific type (`int option`) to
+    a more generic type (`'a option`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overloading "For"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One legitimate case where overloading might be needed is the `For` method.
+    Some possible reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might want to support different kinds of collections (e.g. list *and* `IEnumerable`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You might have a more efficient looping implementation for certain kinds of
+    collections.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You might have a "wrapped" version of a list (e.g. LazyList) and you want support
+    looping for both unwrapped and wrapped values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here''s an example of our list builder that has been extended to support sequences
+    as well as lists:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE222]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is it in use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE223]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you comment out the second `For` method, you will see the "sequence` example
+    will indeed fail to compile. So the overload is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So we've seen that methods can be overloaded if needed, but be careful at jumping
+    to this solution immediately, because having to doing this may be a sign of a
+    weak design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next post, we'll go back to controlling exactly when the expressions
+    get evaluated, this time using a delay *outside* the builder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Adding laziness'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: Adding laziness'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a [previous post](computation-expressions-builder-part3.html), we saw how
+    to avoid unnecessary evaluation of expressions in a workflow until needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But that approach was designed for expressions *inside* a workflow. What happens
+    if we want to delay the *whole workflow itself* until needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here is the code from our "maybe" builder class. This code is based on the `trace`
+    builder from the earlier post, but with all the tracing taken out, so that it
+    is nice and clean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE224]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Before moving on, make sure that you understand how this works. If we analyze
+    this using the terminology of the earlier post, we can see that the types used
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wrapper type: `''a option`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Internal type: `''a option`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Delayed type: `unit -> ''a option`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now let's check this code and make sure everything works as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE225]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But what happens if we refactor the code into a child workflow, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE226]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output shows that the child workflow was evaluated even though it wasn't
+    needed in the end. This might not be a problem in this case, but in many cases,
+    we may not want this to happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, how to avoid it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping the inner type in a delay
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The obvious approach is to wrap the *entire result of the builder* in a delay
+    function, and then to "run" the result, we just evaluate the delay function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, here''s our new wrapper type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE227]'
+  prefs: []
+  type: TYPE_PRE
+- en: We've replaced a simple `option` with a function that evaluates to an option,
+    and then wrapped that function in a [single case union](designing-with-types-single-case-dus.html)
+    for good measure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now we need to change the `Run` method as well. Previously, it evaluated
+    the delay function that was passed in to it, but now it should leave it unevaluated
+    and wrap it in our new wrapper type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE228]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*I''ve forgotten to fix up another method -- do you know which one? We''ll
+    bump into it soon!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One more thing -- we'll need a way to "run" the result now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE229]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s try out our new type on our previous examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE230]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this, we get something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE231]'
+  prefs: []
+  type: TYPE_PRE
+- en: That looks good; nothing else was printed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now run it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE232]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and we get the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE233]'
+  prefs: []
+  type: TYPE_PRE
+- en: Perfect. Part 2 did not run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But we run into a problem with the next example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE234]'
+  prefs: []
+  type: TYPE_PRE
+- en: Oops! We forgot to fix up `ReturnFrom`! As we know, that method takes a *wrapped
+    type*, and we have redefined the wrapped type now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the fix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE235]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are going to accept a `Maybe` from outside, and then immediately run it to
+    get at the option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now we have another problem -- we can't return an explicit `None` anymore
+    in `return! None`, we have to return a `Maybe` type instead. How are we going
+    to create one of these?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, we could create a helper function that constructs one for us. But there
+    is a much simpler answer: you can create a new `Maybe` type by using a `maybe`
+    expression!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE236]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is why the `Zero` method is useful. With `Zero` and the builder instance,
+    you can create new instances of the type even if they don't do anything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But now we have one more error -- the dreaded "value restriction":'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE237]'
+  prefs: []
+  type: TYPE_PRE
+- en: The reason why this has happened is that *both* expressions are returning `None`.
+    But the compiler does not know what type `None` is. The code is using `None` of
+    type `Option<obj>` (presumably because of implicit boxing) yet the compiler knows
+    that the type can be more generic than that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two fixes. One is to make the type explicit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE238]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or we can just return some non-None value instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE239]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both of these solutions will fix the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now if we run the example, we see that the result is as expected. The second
+    part *is* run this time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE240]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The trace output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE241]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we''ll try the child workflow examples again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE242]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now the child workflow is not evaluated, just as we wanted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And if we *do* need the child workflow to be evaluated, this works too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE243]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reviewing the builder class
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s look at all the code in the new builder class again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE244]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we analyze this new builder using the terminology of the earlier post, we
+    can see that the types used are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wrapper type: `Maybe<''a>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Internal type: `''a option`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Delayed type: `unit -> ''a option`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that in this case it was convenient to use the standard `'a option` as
+    the internal type, because we didn't need to modify `Bind` or `Return` at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative design might use `Maybe<'a>` as the internal type as well, which
+    would make things more consistent, but makes the code harder to read.
+  prefs: []
+  type: TYPE_NORMAL
+- en: True laziness
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s look at a variant of the last example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE245]'
+  prefs: []
+  type: TYPE_PRE
+- en: What should happen? How many times should the child workflow be run?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The delayed implementation above does ensure that the child workflow is only
+    be evaluated on demand, but it does not stop it being run twice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some situations, you might require that the workflow is guaranteed to only
+    run *at most once*, and then cached ("memoized"). This is easy enough to do using
+    the `Lazy` type that is built into F#.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The changes we need to make are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change `Maybe` to wrap a `Lazy` instead of a delay
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change `ReturnFrom` and `run` to force the evaluation of the lazy value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change `Run` to run the delay from inside a `lazy`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is the new class with the changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE246]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And if we run the "child twice` code from above, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE247]'
+  prefs: []
+  type: TYPE_PRE
+- en: from which it is clear that the child workflow only ran once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Summary: Immediate vs. Delayed vs. Lazy'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: On this page, we've seen three different implementations of the `maybe` workflow.
+    One that is always evaluated immediately, one that uses a delay function, and
+    one that uses laziness with memoization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So... which approach should you use?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is no single "right" answer. Your choice depends on a number of things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Is the code in the expression cheap to execute, and without important side-effects?*
+    If so, stick with the first, immediate version. It''s simple and easy to understand,
+    and this is exactly what most implementations of the `maybe` workflow use.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Is the code in the expression expensive to execute, might the result vary
+    with each call (e.g. non-deterministic), or are there important side-effects?*
+    If so, use the second, delayed version. This is exactly what most other workflows
+    do, especially those relating to I/O (such as `async`).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: F# does not attempt to be a purely functional language, so almost all F# code
+    will fall into one of these two categories. But, *if you need to code in a guaranteed
+    side-effect free style, or you just want to ensure that expensive code is evaluated
+    at most once*, then use the third, lazy option.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whatever your choice, do make it clear in the documentation. For example, the
+    delayed vs. lazy implementations appear exactly the same to the client, but they
+    have very different semantics, and the client code must be written differently
+    for each case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have finished with delays and laziness, we can go back to the builder
+    methods and finish them off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: The rest of the standard methods'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Implementing a builder: The rest of the standard methods'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We're coming into the home stretch now. There are only a few more builder methods
+    that need to be covered, and then you will be ready to tackle anything!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These methods are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`While` for repetition.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TryWith` and `TryFinally` for handling exceptions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Use` for managing disposables'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Remember, as always, that not all methods need to be implemented. If `While`
+    is not relevant to you, don't bother with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One important note before we get started: **all the methods discussed here
+    rely on [delays](computation-expressions-builder-part3.html)** being used. If
+    you are not using delay functions, then none of the methods will give the expected
+    results.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing "While"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We all know what "while" means in normal code, but what does it mean in the
+    context of a computation expression? To understand, we have to revisit the concept
+    of continuations again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In previous posts, we saw that a series of expressions is converted into a
+    chain of continuations like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE248]'
+  prefs: []
+  type: TYPE_PRE
+- en: And this is the key to understanding a "while" loop -- it can be expanded in
+    the same way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, some terminology. A while loop has two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a test at the top of the "while" loop which is evaluated each time
+    to determine whether the body should be run. When it evaluates to false, the while
+    loop is "exited". In computation expressions, the test part is known as the **"guard"**.
+    The test function has no parameters, and returns a bool, so its signature is `unit
+    -> bool`, of course.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And there is the body of the "while" loop, evaluated each time until the "while"
+    test fails. In computation expressions, this is a delay function that evaluates
+    to a wrapped value. Since the body of the while loop is always the same, the same
+    function is evaluated each time. The body function has no parameters, and returns
+    nothing, and so its signature is just `unit -> wrapped unit`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With this in place, we can create pseudo-code for a while loop using continuations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE249]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'One question that is immediately apparent is: what should be returned when
+    the while loop test fails? Well, we have seen this before with `if..then..`, and
+    the answer is of course to use the `Zero` value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next thing is that the `body()` result is being discarded. Yes, it is a
+    unit function, so there is no value to return, but even so, in our expressions,
+    we want to be able to hook into this so we can add behavior behind the scenes.
+    And of course, this calls for using the `Bind` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here is a revised version of the pseudo-code, using `Zero` and `Bind`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE250]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, the continuation function passed into `Bind` has a unit parameter,
+    because the `body` function does not have a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, the pseudo-code can be simplified by collapsing it into a recursive
+    function like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE251]'
+  prefs: []
+  type: TYPE_PRE
+- en: And indeed, this is the standard "boiler-plate" implementation for `While` in
+    almost all builder classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a subtle but important point that the value of `Zero` must be chosen properly.
+    In previous posts, we saw that we could set the value for `Zero` to be `None`
+    or `Some ()` depending on the workflow. For `While` to work however, the `Zero`
+    *must be* set to `Some ()` and not `None`, because passing `None` into `Bind`
+    will cause the whole thing to aborted early.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note that, although this is a recursive function, we didn't need the `rec`
+    keyword. It is only needed for standalone functions that are recursive, not methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"While" in use'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s look at it being used in the `trace` builder. Here''s the complete builder
+    class, with the `While` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE252]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you look at the signature for `While`, you will see that the `body` parameter
+    is `unit -> unit option`, that is, a delayed function. As noted above, if you
+    don't implement `Delay` properly, you will get unexpected behavior and cryptic
+    compiler errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE253]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here is a simple loop using a mutable value that is incremented each time
+    round.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE254]'
+  prefs: []
+  type: TYPE_PRE
+- en: Handling exceptions with "try..with"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Exception handling is implemented in a similar way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we look at a `try..with` expression for example, it has two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is the body of the "try", evaluated once. In a computation expressions,
+    this will be a delayed function that evaluates to a wrapped value. The body function
+    has no parameters, and so its signature is just `unit -> wrapped type`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The "with" part handles the exception. It has an exception as a parameters,
+    and returns the same type as the "try" part, so its signature is `exception ->
+    wrapped type`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With this in place, we can create pseudo-code for the exception handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE255]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this maps exactly to a standard implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE256]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, it is common to use pass the returned value through `ReturnFrom`
+    so that it gets the same treatment as other wrapped values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example snippet to test how the handling works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE257]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing "try..finally"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`try..finally` is very similar to `try..with`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is the body of the "try", evaluated once. The body function has no parameters,
+    and so its signature is `unit -> wrapped type`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The "finally" part is always called. It has no parameters, and returns a unit,
+    so its signature is `unit -> unit`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Just as with `try..with`, the standard implementation is obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE258]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Another little snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE259]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing "using"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The final method to implement is `Using`. This is the builder method for implementing
+    the `use!` keyword.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is what the MSDN documentation says about `use!`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE260]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'is translated to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE261]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, the `use!` keyword triggers both a `Bind` and a `Using`. First
+    a `Bind` is done to unpack the wrapped value, and then the unwrapped disposable
+    is passed into `Using` to ensure disposal, with the continuation function as the
+    second parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing this is straightforward. Similar to the other methods, we have
+    a body, or continuation part, of the "using" expression, which is evaluated once.
+    This body function has a "disposable" parameter, and so its signature is `#IDisposable
+    -> wrapped type`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course we want to ensure that the disposable value is always disposed no
+    matter what, so we need to wrap the call to the body function in a `TryFinally`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a standard implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE262]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The parameter to `TryFinally` is a `unit -> wrapped`, with a *unit* as the first
+    parameter, so we created a delayed version of the body that is passed in.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disposable is a class, so it could be `null`, and we have to handle that case
+    specially. Otherwise we just dispose it in the "finally" continuation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here's a demonstration of `Using` in action. Note that the `makeResource` makes
+    a *wrapped* disposable. If it wasn't wrapped, we wouldn't need the special `use!`
+    and could just use a normal `use` instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE263]'
+  prefs: []
+  type: TYPE_PRE
+- en: '"For" revisited'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, we can revisit how `For` is implemented. In the previous examples,
+    `For` took a simple list parameter. But with `Using` and `While` under our belts,
+    we can change it to accept any `IEnumerable<_>` or sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the standard implementation for `For` now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE264]fsharp'
+  prefs: []
+  type: TYPE_NORMAL
+- en: type TraceBuilder() =
+  prefs: []
+  type: TYPE_NORMAL
+- en: member this.Bind(m, f) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Option.bind f m
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Return(x) = Some x
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.ReturnFrom(x) = x
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Yield(x) = Some x
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.YieldFrom(x) = x
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Zero() = this.Return ()
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Delay(f) = f
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Run(f) = f()
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.While(guard, body) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: if not (guard())
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: then this.Zero()
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: else this.Bind( body(), fun () ->
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: this.While(guard, body))
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.TryWith(body, handler) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: try this.ReturnFrom(body())
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: with e -> handler e
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.TryFinally(body, compensation) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: try this.ReturnFrom(body())
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: finally compensation()
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.Using(disposable:#System.IDisposable, body) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: let body' = fun () -> body disposable
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: this.TryFinally(body', fun () ->
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: match disposable with
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| null -> ()'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '| disp -> disp.Dispose())'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: member this.For(sequence:seq<_>, body) =
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: this.Using(sequence.GetEnumerator(),fun enum ->
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: this.While(enum.MoveNext,
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: this.Delay(fun () -> body enum.Current)))
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '```'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After all this discussion, the code seems quite tiny now. And yet this builder
+    implements every standard method, uses delayed functions. A lot of functionality
+    in a just a few lines!
+  prefs: []
+  type: TYPE_NORMAL

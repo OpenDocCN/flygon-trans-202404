@@ -1,0 +1,241 @@
+- en: Error handling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Error handling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are two major approaches how to handle errors in streams. You can retry
+    your stream and how it eventually will work or you can take the error and transform
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retry - how bout now?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This approach makes sense when you believe the error is temporary for some reason.
+    Usually *shaky connections* is a good candidate for this. With a *shaky connection*
+    the endpoint might be there to answer like for example every 5th time you try.
+    Point is the first time you try it *might* fail, but retrying x times, with a
+    certain time between attempts, will lead to the endpoint finally answering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: retry
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `retry()` operator lets us retry the whole stream, value for value x number
+    of times having a signature like this :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The important thing to note with the `retry()` operator is that it delays when
+    the error callback is being called. Given the following code the error callback
+    is being hit straight away:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The stream effectively dies when the error callback is being hit and this is
+    where the `rety()` operator comes in. By appending it like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will run the sequence of values 5 more times before finally giving up
+    and hitting the error callback. However in this case, the way the code is written,
+    it will just generate `1,2` five times. So our code isn''t really utilizing the
+    operator to its fullest potential. What you probably want is to be able to change
+    something between attempts. Imagine your observable looked like this instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this its clearly so that an endpoint might have answered badly or not at
+    all on your first attempt and it makes sense to retry them x number of times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However in the case of ajax calls, and imagining our business case is *shaky
+    connections* it makes no sense to do the retry immediately so we have to look
+    elsewhere for a better operator, we need to look to `retryWhen()`
+  prefs: []
+  type: TYPE_NORMAL
+- en: retryWhen
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A `retryWhen()` operator gives us the chance to operate on our stream and handle
+    it appropriately
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lets' write a piece of naive code for a second
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The way it''s written it will return `1` until we run out of memory cause the
+    algorithm will always crash on the value `2` and will keep retrying the stream
+    forever, due to our lack of end condition. What we need to do is to somehow say
+    that the error is fixed. If the stream were trying to hit urls instead of emitting
+    numbers a responding endpoint would be the fix but in this case we have to write
+    something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This however resembles a lot of what we did with the `retry()` operator, the
+    code above will just retry once. The real benefit is being to change the stream
+    we return inside the `retryWhen()` namely to involve a delay like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This ensures there is a 200ms delay before sequence is retried, which in an
+    ajax scenario could be enough for our endpoint to *get it's shit together* and
+    start responding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GOTCHA**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `delay()` operator is used within the `retryWhen()` to ensure that the retry
+    happens a while later to in this case give the network a chance to recover.
+  prefs: []
+  type: TYPE_NORMAL
+- en: retryWhen with delay and no of times
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'So far `retry()` operator has been used when we wanted to retry the sequence
+    x times and `retryWhen()` has been used when we wanted to delay the time between
+    attempts, but what if we want both. Can we do that? We can. We need to think about
+    us somehow remembering the number of attempts we have made so far. It''s very
+    tempting to introduce an external variable and keep that count, but that''s not
+    how we do things the functional way, remember side effects are forbidden. So how
+    do we solve it? There is an operator called `scan()` that will allow us to accumulate
+    values for every iteration. So if you use scan inside of the `retryWhen()` we
+    can track our attempts that way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Transform - nothing to see here folks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This approach is when you get an error and you choose to remake it into a valid
+    Observable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So lets exemplify this by creating an Observable who's mission in life is to
+    fail miserably
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code will only execute the error callback and NOT reach the complete callback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Patching it
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can patch this by introducing the `catch()` operator. It is used like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see `patching it` with `.catch()` and returning a new Observable
+    *fixes* the stream. Question is if that is what you want. Sure the stream survives
+    and reaches completion and can emit any values that happened after the point of
+    crash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this is not what you want then maybe the Retry approach above suits you better,
+    you be the judge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about multiple streams?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You didn't think it would be that easy did you? Usually when coding Rxjs code
+    you deal with more than one stream and using `catch()` operator approach is great
+    if you know where to place your operator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Care to guess what happened? 1) crash + values is emitted + complete 2) crash
+    + values is emitted 3) crash only is emitted
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sadly 3) is what happens. Which means we have virtually no handling of the error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Lets patch it** S we need to patch the error. We do patching with `catch()`
+    operator. Question is where?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's try this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case we get 'crash' and 'patchedMerged completed'. Ok so we reach complete
+    but it still doesn't give us the values from `goodStream$`. So better approach
+    but still not good enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Patch it better** So adding the `catch()` operator after the `merge()` ensured
+    the stream completed but it wasn''t good enough. Let''s try to change the placement
+    of `catch()`, pre merge.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: And voila, we get values, our error emits its error message as a new nice Observable
+    and we get completion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GOTCHA** It matters where the `catch()` is placed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Survival of the fittest
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: There is another scenario that might be of interest. The above scenario assumes
+    you want everything emitted, error messages, values, everything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if that is not the case, what if you only care about values from streams
+    that behave? Let's say thats your case, there is an operator for that `onErrorResumeNext()`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The only thing emitted here is 'I will survive' and 'Survival of the fittest,
+    completed'.
+  prefs: []
+  type: TYPE_NORMAL

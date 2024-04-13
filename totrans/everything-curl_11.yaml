@@ -1,0 +1,701 @@
+- en: HTTP with libcurl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP with libcurl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP is by far the most commonly used protocol by libcurl users and libcurl
+    offers countless ways of modifying such transfers. See the [HTTP protocol basics](http-basics.html)
+    for some basics on how the HTTP protocol works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTPS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP proxy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Every HTTP request includes a HTTP response. A HTTP response is a set of metadata
+    and a response body, where the body can occasionally be zero bytes and thus nonexistent.
+    A HTTP response will however always have response headers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The response body will be passed to the [write callback](callback-write.html)
+    and the response headers to the [header callback](callback-header.html), but sometimes
+    an application just want to know the size of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The size of a response *as told by the server headers* can be extracted with
+    `curl_easy_getinfo()` like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: but if you can wait until after the transfer is already done, which also is
+    a more reliable way since not all URLs will provide the size up front (like for
+    example for servers that generate content on demand) you can instead ask for the
+    amount of downloaded data in the most recent transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTTP response code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Every HTTP response starts off with a single line that contains the HTTP response
+    code. It is a three digit number that contains the server''s idea of the status
+    for the request. The numbers are detailed in the HTTP standard specifications
+    but they are divided into ranges that basically work like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Code | Meaning |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1xx | Transient code, a new one follows |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2xx | Things are OK |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3xx | The content is somewhere else |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4xx | Failed because of a client problem |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 5xx | Failed because of a server problem |'
+  prefs: []
+  type: TYPE_TB
+- en: You can extract the response code after a transfer like this
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: About HTTP response code "errors"
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While the response code numbers can include numbers (in the 4xx and 5xx ranges)
+    which the server uses to signal that there was an error processing the request,
+    it is important to realize that this will not cause libcurl to return an error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When libcurl is asked to perform a HTTP transfer it will return an error if
+    that HTTP transfer fails. However, getting a HTTP 404 or the like back is not
+    a problem for libcurl. It is not a HTTP transfer error. A user might very well
+    be writing a client for testing a server's HTTP responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you insist on curl treating HTTP response codes from 400 and up as errors,
+    libcurl offers the `CURLOPT_FAILONERROR` option that if set instructs curl to
+    return `CURLE_HTTP_RETURNED_ERROR` in this case. It will then return error as
+    soon as possible and not deliver the response body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP requests
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP Requests
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A HTTP request is what curl sends to the server when it tells the server what
+    to do. When it wants to get data or send data. All transfers involving HTTP starts
+    with a HTTP request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A HTTP request contains a method, a path, HTTP version and a set of request
+    headers. And of course a libcurl using application can tweak all those fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request method
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Every HTTP request contains a "method", sometimes referred to as a "verb". It
+    is usually something like GET, HEAD, POST or PUT but there are also more esoteric
+    ones like DELETE, PATCH and OPTIONS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually when you use libcurl to set up and perform a transfer the specific request
+    method is implied by the options you use. If you just ask for a URL, it means
+    the method will be `GET` while if you set for example `CURLOPT_POSTFIELDS` that
+    will make libcurl use the `POST` method. If you set `CURLOPT_UPLOAD` to true,
+    libcurl will send a `PUT` method in its HTTP request and so on. Asking for `CURLOPT_NOBODY`
+    will make libcurl use `HEAD`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, sometimes those default HTTP methods are not good enough or simply
+    not the ones you want your transfer to use. Then you can instruct libcurl to use
+    the specific method you like with `CURLOPT_CUSTOMREQUEST`. For example, you want
+    to send a `DELETE` method to the URL of your choice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The CURLOPT_CUSTOMREQUEST setting should only be the single keyword to use as
+    method in the HTTP request line. If you want to change or add additional HTTP
+    reuqest headers, see the following section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customize HTTP request headers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When libcurl issues HTTP requests as part of performing the data transfers you've
+    asked it to, it will of course send them off with a set of HTTP headers that are
+    suitable for fulfilling the task given to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If just given the URL "[http://localhost/file1.txt](http://localhost/file1.txt)",
+    libcurl 7.51.0 would send the following request to the server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you would instead instruct your application to also set `CURLOPT_POSTFIELDS`
+    to the string "foobar" (6 letters, the quotes only used for visual delimiters
+    here), it would send the following headers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you're not pleased with the default set of headers libcurl sends, the application
+    has the power to add, change or remove headers in the HTTP request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To add a header that wouldn''t otherwise be in the request, add it with `CURLOPT_HTTPHEADER`.
+    Suppose you want a header called `Name:` that contains `Mr. Smith`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Change a header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If one of those default headers aren''t to your satisfaction you can alter
+    them. Like if you think the default `Host:` header is wrong (even though it is
+    derived from the URL you give libcurl), you can tell libcurl your own:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remove a header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When you think libcurl uses a header in a request that you really think it
+    shouldn''t, you can easily tell it to just remove it from the request. Like if
+    you want to take away the `Accept:` header. Just provide the header name with
+    nothing to the right sight of the colon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Provide a header without contents
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As you may then have noticed in the above sections, if you try to add a header
+    with no contents on the right side of the colon, it will be treated as a removal
+    instruction and it will instead completely inhibit that header from being sent.
+    If you instead *truly* want to send a header with zero contents on the right side,
+    you need to use a special marker. You must provide the header with a semicolon
+    instead of a proper colon. Like `Header;`. So if you want to add a header to the
+    outgoing HTTP request that is just `Moo:` with nothing following the colon, you
+    could write it like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Referrer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `Referer:` header (yes, it is misspelled) is a standard HTTP header that
+    tells the server from which URL the user-agent was directed from when it arrived
+    at the URL it now requests. It is a normal header so you can set it yourself with
+    the `CURLOPT_HEADER` approach as shown above, or you can use the shortcut known
+    as `CURLOPT_REFERER`. Like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Automatic referrer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When libcurl is asked to follow redirects itself with the `CURLOPT_FOLLOWLOCATION`
+    option, and you still want to have the `Referer:` header set to the correct previous
+    URL from where it did the redirect, you can ask libcurl to set that by itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTTP versions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP versions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As any other Internet protocol, the HTTP protocol has kept evolving over the
+    years and now there are clients and servers distributed over the world and over
+    time that speak different versions with varying levels of success. So in order
+    to get libcurl to work with the URLs you pass in libcurl offers ways for you to
+    specify which HTTP version that request and transfer should use. libcurl is designed
+    in a way so that it tries to use the most common, the most sensible if you want,
+    default values first but sometimes that isn't enough and then you may need to
+    instruct libcurl what to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since mid 2016, libcurl defaults to use HTTP/2 for HTTPS servers if you have
+    a libcurl that has HTTP/2 abilities built-in, libcurl will attempt to use HTTP/2
+    automatically or fall down to 1.1 in case the negotiation failed. Non-HTTP/2 capable
+    libcurls get 1.1 over HTTPS by default. Plain HTTP requests still default to HTTP/1.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the default behavior isn't good enough for your transfer, the `CURLOPT_HTTP_VERSION`
+    option is there for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Option | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_NONE | Reset back to default behavior |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_1_0 | Enforce use of the legacy HTTP/1.0 protocol version
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_1_1 | Do the request using the HTTP/1.1 protocol version
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_2_0 | Attempt to use HTTP/2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_2TLS | Attempt to use HTTP/2 on HTTPS connections only,
+    otherwise do HTTP/1.1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE | Use HTTP/2 straight away without "upgrading"
+    from 1.1\. It requires that you know that this server is OK with it. |'
+  prefs: []
+  type: TYPE_TB
+- en: HTTP ranges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP ranges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if the client only wants the first 200 bytes out of a remote resource or
+    perhaps 300 bytes somewhere in the middle? The HTTP protocol allows a client to
+    ask for only a specific data range. The client asks the server for the specific
+    range with a start offset and an end offset. It can even combine things and ask
+    for several ranges in the same request by just listing a bunch of pieces next
+    to each other. When a server sends back multiple independent pieces to answer
+    such a request, you will get them separated with mime boundary strings and it
+    will be up to the user application to handle that accordingly. curl will not further
+    separate such a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a byte range is only a request to the server. It does not have to respect
+    the request and in many cases, like when the server automatically generates the
+    contents on the fly when it is being asked, it will simply refuse to do it and
+    it then instead respond with the full contents anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can make libcurl ask for a range with `CURLOPT_RANGE`. Like if you want
+    the first 200 bytes out of something:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or everything in the file starting from index 200:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Get 200 bytes from index 0 *and* 200 bytes from index 1000:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cookies with libcurl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cookies with libcurl
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By default and by design, libcurl makes transfers as basic as possible and features
+    need to be enabled to get used. One such feature is HTTP cookies, more known as
+    just plain and simply "cookies".
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cookies are name/value pairs sent by the server (using a `Set-Cookie:` header)
+    to be stored in the client, and are then supposed to get sent back again in requests
+    that matches the host and path requirements that were specified along with the
+    cookie when it came from the server (using the `Cookie:` header). On the modern
+    web of today, sites are known to sometimes use very large numbers of cookies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cookie engine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When you enable the "cookie engine" for a specific easy handle, it means that
+    it will record incoming cookies, store them in the in-memory "cookie store" that
+    is associated with the easy handle and subsequently send the proper ones back
+    if an HTTP request is made that matches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two ways to switch on the cookie engine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enable cookie engine with reading
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Ask libcurl to import cookies into the easy handle from a given file name with
+    the `CURLOPT_COOKIEFILE` option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: A common trick is to just specify a non-existing file name or plain "" to have
+    it just activate the cookie engine with a blank cookie store to start with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This option can be set multiple times and then each of the given files will
+    be read.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enable cookie engine with writing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Ask for received cookies to get stored in a file with the `CURLOPT_COOKIEJAR`
+    option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: when the easy handle is closed later with `curl_easy_cleanup()`, all known cookies
+    will be written to the given file. The file format is the well-known "Netscape
+    cookie file" format that browsers also once used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting custom cookies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A simpler and more direct way to just pass on a set of specific cookies in
+    a request that doesn''t add any cookies to the cookie store and doesn''t even
+    activate the cookie engine, is to set the set with `CURLOPT_COOKIE:'':'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The string you set there is the raw string that would be sent in the HTTP request
+    and should be in the format of repeated sequences of `NAME=VALUE;` - including
+    the semicolon separator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Import export
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The cookie in-memory store can hold a bunch of cookies, and libcurl offers very
+    powerful ways for an application to play with them. You can set new cookies, you
+    can replace an existing cookie and you can extract existing cookies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a cookie to the cookie store
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Add a new cookie to the cookie store by simply passing it into curl with `CURLOPT_COOKIELIST`
+    with a new cookie. The format of the input is a single line in the cookie file
+    format, or formatted as a `Set-Cookie:` response header, but we recommend the
+    cookie file style:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: If that given cookie would match an already existing cookie (with the same domain
+    and path, etc.), it would overwrite the old one with the new contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get all cookies from the cookie store
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Sometimes writing the cookie file when you close the handle isn''t enough and
+    then your application can opt to extract all the currently known cookies from
+    the store like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This returns a pointer to a linked list of cookies, and each cookie is (again)
+    specified as a single line of the cookie file format. The list is allocated for
+    you, so do not forget to call `curl_slist_free_all` when the application is done
+    with the information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cookie store commands
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If setting and extracting cookies isn''t enough, you can also interfere with
+    the cookie store in more ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wipe the entire in-memory storage clean with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Erase all session cookies (cookies without expiry date) from memory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Force a write of all cookies to the file name previously specified with `CURLOPT_COOKIEJAR`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Force a reload of cookies from the file name previously specified with `CURLOPT_COOKIEFILE`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cookie file format
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The cookie file format is text based and stores one cookie per line. Lines that
+    start with `#` are treated as comments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each line that each specifies a single cookie consists of seven text fields
+    separated with TAB characters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Field | Example | Meaning |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 0 | example.com | Domain name |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1 | FALSE | Include subdomains boolean |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2 | /foobar/ | Path |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3 | FALSE | Set over a secure transport |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4 | 1462299217 | Expires at – seconds since Jan 1st 1970, or 0 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 5 | person | Name of the cookie |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 6 | daniel | Value of the cookie |'
+  prefs: []
+  type: TYPE_TB
+- en: Download
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: libcurl HTTP download
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The GET method is the default method libcurl uses when a HTTP URL is requested
+    and no particular other method is asked for. It asks the server for a particular
+    resource—the standard HTTP download request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since options set in an easy handle are sticky and remain until changed, there
+    may be times when you have asked for another request method than GET and then
+    want to switch back to GET again for a subsequent request. For this purpose, there''s
+    the `CURLOPT_HTTPGET` option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Download headers too
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A HTTP transfer also includes a set of response headers. Response headers are
+    metadata associated with the actual payload, called the response body. All downloads
+    will get a set of headers too, but when using libcurl you can select whether you
+    want to have them downloaded (seen) or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can ask libcurl to pass on the headers to the same "stream" as the regular
+    body is, by using `CURLOPT_HEADER`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or you can opt to store the headers in a separate download file, by relying
+    on the default behaviors of the [write](callback-write.html) and [header callbacks](callback-header.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you only want to casually browse the headers, you may even be happy enough
+    with just setting verbose mode while developing as that will show both outgoing
+    and incoming headers sent to stderr:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Upload
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: HTTP upload
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Uploads over HTTP can be done in many different ways and it is important to
+    notice the differences. They can use different methods, like POST or PUT, and
+    when using POST the body formatting can differ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to those HTTP differences, libcurl offers different ways to provide
+    the data to upload.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP POST
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'POST is typically the HTTP method to pass data to a remote web application.
+    A very common way to do that in browsers is by filling in a HTML form and pressing
+    submit. It is the standard way for a HTTP request to pass on data to the server.
+    With libcurl you normally provide that data as a pointer and a length:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or you tell libcurl that it is a post but would prefer to have libcurl instead
+    get the data by using the regular [read callback](callback-read.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This "normal" POST will also set the request header `Content-Type: application/x-www-form-urlencoded`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP multipart formposts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A multipart formpost is still using the same HTTP method POST; the difference
+    is only in the formatting of the request body. A multipart formpost is basically
+    a series of separate "parts", separated by MIME-style boundary strings. There's
+    no limit to how many parts you can send.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each such part has a name, a set of headers and a few other properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'libcurl offers a convenience function for constructing such a series of parts
+    and to send that off to the server. `curl_formadd` is the function to build a
+    formpost. Invoke it once for each part, and pass in arguments to it detailing
+    the specifics and characteristics of that part. When all parts you want to send
+    have been added, you pass in the handle `curl_formadd` returned like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: HTTP PUT
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: TBD
+  prefs: []
+  type: TYPE_NORMAL
