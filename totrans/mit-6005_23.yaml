@@ -1037,31 +1037,37 @@
   id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个例子是考虑Java中的[`ConcurrentMap`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/ConcurrentMap.html)接口。该接口扩展了现有的`Map`接口，添加了一些常用的在共享可变映射上作为原子操作的关键方法，例如：
 - en: '`map.putIfAbsent(key,value)` is an atomic version of'
   id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`map.putIfAbsent(key,value)` 是'
 - en: '`if ( ! map.containsKey(key)) map.put(key, value);`'
   id: totrans-157
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果（`map.containsKey(key)`）则`map.put(key, value);`
 - en: '`map.replace(key, value)` is an atomic version of'
   id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`map.replace(key, value)` 是'
 - en: '`if (map.containsKey(key)) map.put(key, value);`'
   id: totrans-159
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果（`map.containsKey(key)`）则`map.put(key, value);`
 - en: Deadlock rears its ugly head
   id: totrans-160
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 死锁出现了
 - en: The locking approach to thread safety is powerful, but (unlike confinement and
     immutability) it introduces blocking into the program. Threads must sometimes
     wait for other threads to get out of synchronized regions before they can proceed.
@@ -1071,6 +1077,8 @@
   id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程安全的加锁方法非常强大，但是（与封装和不可变性不同）它引入了程序中的阻塞。有时线程必须等待其他线程退出同步区域才能继续。而且阻塞会增加死锁的可能性
+    —— 这是一个非常真实的风险，并且坦率地说*在这种设置中比在具有阻塞I/O的消息传递中要常见得多*。
 - en: With locking, deadlock happens when threads acquire multiple locks at the same
     time, and two threads end up blocked while holding locks that they are each waiting
     for the other to release. The monitor pattern unfortunately makes this fairly
@@ -1078,10 +1086,12 @@
   id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过加锁，死锁发生在线程同时获取多个锁并且两个线程最终被阻塞，同时持有它们各自等待另一个释放的锁。监视器模式不幸地使这相当容易实现。下面是一个例子。
 - en: 'Suppose we’re modeling the social network of a series of books:'
   id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们正在对一系列书的社交网络进行建模：
 - en: '[PRE15]'
   id: totrans-164
   prefs: []
@@ -1094,10 +1104,12 @@
   id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 像Facebook一样，这个社交网络是双向的：如果*x*和*y*是朋友，那么*y*也是*x*的朋友。`friend()`和`defriend()`方法通过修改两个对象的代表来执行不变性，这意味着它们使用了监视器模式，因此需要获取两个对象的锁。
 - en: 'Let’s create a couple of wizards:'
   id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们创建一对巫师：
 - en: '[PRE16]'
   id: totrans-167
   prefs: []
@@ -1108,6 +1120,7 @@
   id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后想想当两个独立的线程反复运行时会发生什么：
 - en: '[PRE17]'
   id: totrans-169
   prefs: []
@@ -1118,22 +1131,26 @@
   id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将非常迅速地发生死锁。原因如下。假设线程A即将执行`harry.friend(snape)`，而线程B即将执行`snape.friend(harry)`。
 - en: Thread A acquires the lock on `harry` (because the friend method is synchronized).
   id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 线程A获取了`harry`上的锁（因为`friend`方法是同步的）。
 - en: Then thread B acquires the lock on `snape` (for the same reason).
   id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后线程B以相同的原因获取了`snape`上的锁。
 - en: They both update their individual reps independently, and then try to call `friend()`
     on the other object — which requires them to acquire the lock on the other object.
   id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们都独立地更新各自的代表，并尝试在另一个对象上调用`friend()` —— 这要求它们获取另一个对象上的锁。
 - en: So A is holding Harry and waiting for Snape, and B is holding Snape and waiting
     for Harry. Both threads are stuck in `friend()`, so neither one will ever manage
     to exit the synchronized region and release the lock to the other. This is a classic
@@ -1141,11 +1158,13 @@
   id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此A持有Harry并等待Snape，而B持有Snape并等待Harry。两个线程都被卡在`friend()`中，因此它们中的任何一个都不会成功退出同步区域并释放锁给另一个。这是一个经典的致命拥抱。程序停止运行。
 - en: The essence of the problem is acquiring multiple locks, and holding some of
     the locks while waiting for another lock to become free.
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题的本质是获取多个锁，并在等待另一个锁变得可用时保持某些锁的状态。
 - en: 'Notice that it is possible for thread A and thread B to interleave such that
     deadlock does not occur: perhaps thread A acquires and releases both locks before
     thread B has enough time to acquire the first one. If the locks involved in a
@@ -1154,17 +1173,21 @@
   id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，线程A和线程B可能交错执行，以致死锁不会发生：也许线程A在线程B有足够时间获取第一个锁之前获取并释放了两个锁。如果死锁涉及的锁也涉及竞争条件 ——
+    而很多时候确实如此 —— 那么死锁将同样难以重现或调试。
 - en: 'Deadlock solution 1: lock ordering'
   id: totrans-177
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 死锁解决方案1：锁的排序
 - en: One way to prevent deadlock is to put an ordering on the locks that need to
     be acquired simultaneously, and ensuring that all code acquires the locks in that
     order.
   id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 防止死锁的一种方法是对需要同时获取的锁进行排序，并确保所有代码按照该顺序获取锁。
 - en: 'In our social network example, we might always acquire the locks on the `Wizard`
     objects in alphabetical order by the wizard’s name. Since thread A and thread
     B are both going to need the locks for Harry and Snape, they would both acquire
@@ -1176,10 +1199,12 @@
   id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的社交网络示例中，我们可能总是按照巫师的名字的字母顺序获取`Wizard`对象的锁。由于线程A和线程B都需要Harry和Snape的锁，它们都会按照这个顺序获取：首先是Harry的锁，然后是Snape的锁。如果线程A在B之前获取了Harry的锁，那么它也会在B之前获取Snape的锁，因为B在A释放Harry的锁之前无法继续。锁的顺序强制了获取它们的线程的顺序，因此无法在等待图中产生循环。
 - en: 'Here’s what the code might look like:'
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码可能如下所示：
 - en: '[PRE18]'
   id: totrans-181
   prefs: []
@@ -1191,17 +1216,20 @@
   id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: （请注意，按照人名的字母顺序对锁进行排序的决定对于本书来说是可以的，但在现实生活中的社交网络中不适用。为什么？在锁的排序中，比名字更好的选择是什么？）
 - en: Although lock ordering is useful (particularly in code like operating system
     kernels), it has a number of drawbacks in practice.
   id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管锁的排序在实践中很有用（特别是在像操作系统内核这样的代码中），但实际上有许多缺点。
 - en: First, it’s not modular — the code has to know about all the locks in the system,
     or at least in its subsystem.
   id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，这不是模块化的 —— 代码必须了解系统中的所有锁，或者至少了解其子系统中的所有锁。
 - en: Second, it may be difficult or impossible for the code to know exactly which
     of those locks it will need before it even acquires the first one. It may need
     to do some computation to figure it out. Think about doing a depth-first search
@@ -1211,11 +1239,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其次，代码可能很难或不可能知道在获取第一个锁之前将需要哪些锁。它可能需要进行一些计算来弄清楚。例如，考虑在社交网络图上进行深度优先搜索 —— 在开始查找之前，你如何知道哪些节点需要被锁定？
 - en: 'Deadlock solution 2: coarse-grained locking'
   id: totrans-186
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 死锁解决方案2：粗粒度锁
 - en: A more common approach than lock ordering, particularly for application programming
     (as opposed to operating system or device driver programming), is to use coarser
     locking — use a single lock to guard many object instances, or even a whole subsystem
@@ -1223,6 +1253,7 @@
   id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 比锁的排序更常见的方法，特别是对于应用程序编程（而不是操作系统或设备驱动程序编程），是使用更粗的锁 —— 使用单个锁来保护许多对象实例，甚至是程序的整个子系统。
 - en: 'For example, we might have a single lock for an entire social network, and
     have all the operations on any of its constituent parts synchronize on that lock.
     In the code below, all `Wizard`s belong to a `Castle`, and we just use that `Castle`
@@ -1230,6 +1261,7 @@
   id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们可能为整个社交网络设置一个单独的锁，并使其所有组成部分的操作在该锁上同步。在下面的代码中，所有`Wizard`都属于一个`Castle`，我们只需使用该`Castle`对象的锁来同步：
 - en: '[PRE19]'
   id: totrans-189
   prefs: []
@@ -1243,28 +1275,35 @@
   id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 粗粒度锁可能会带来显著的性能损失。如果用单个锁保护一大堆可变数据，那么你就放弃了同时访问任何数据的能力。在最坏的情况下，如果一个锁保护所有内容，你的程序可能基本上是顺序执行的
+    —— 一次只允许一个线程取得进展。
 - en: reading exercises
   id: totrans-191
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Deadlock
   id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 死锁
 - en: In the code below three threads 1, 2, and 3 are trying to acquire locks on objects
     `alpha`, `beta`, and `gamma`.
   id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，三个线程 1、2 和 3 正在尝试获取对象`alpha`、`beta`和`gamma`上的锁。
 - en: '| Thread 1 | Thread 2 | Thread 3 |'
   id: totrans-194
   prefs: []
   type: TYPE_TB
+  zh: '| 线程 1 | 线程 2 | 线程 3 |'
 - en: '|'
   id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE20]'
   id: totrans-196
   prefs: []
@@ -1274,6 +1313,7 @@
   id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE21]'
   id: totrans-198
   prefs: []
@@ -1283,6 +1323,7 @@
   id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE22]'
   id: totrans-200
   prefs: []
@@ -1292,143 +1333,177 @@
   id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: This system is susceptible to deadlock.
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个系统容易发生死锁。
 - en: For each of the scenarios below, determine whether the system is in deadlock
     if the threads are currently on the indicated lines of code.
   id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于下面的每个情景，请确定如果线程当前位于指定的代码行，则系统是否处于死锁状态。
 - en: '****Scenario A**'
   id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: '****情景 A**'
 - en: Thread 1 inside `using alpha`
   id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 1 在`using alpha`内部
 - en: Thread 2 blocked on `synchronized (alpha)`
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 2 被阻塞在`synchronized (alpha)`上
 - en: Thread 3 finished
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 3 完成
 - en: (missing answer)(missing answer)
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失答案）（缺失答案）
 - en: (missing explanation)
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失解释）
 - en: '****Scenario B**'
   id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: '****情景 B**'
 - en: Thread 1 finished
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 1 完成
 - en: Thread 2 blocked on `synchronized (beta)`
   id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 2 被阻塞在`synchronized (beta)`上
 - en: Thread 3 blocked on 2nd `synchronized (gamma)`
   id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 3 被阻塞在第 2 个`synchronized (gamma)`上
 - en: (missing answer)(missing answer)
   id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失答案）（缺失答案）
 - en: (missing explanation)
   id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失解释）
 - en: '****Scenario C**'
   id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '****情景 C**'
 - en: Thread 1 running `synchronized (beta)`
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 1 在运行`synchronized (beta)`中
 - en: Thread 2 blocked on `synchronized (gamma)`
   id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 2 被阻塞在`synchronized (gamma)`上
 - en: Thread 3 blocked on 1st `synchronized (gamma)`
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 3 被阻塞在第 1 个`synchronized (gamma)`上
 - en: (missing answer)(missing answer)
   id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失答案）（缺失答案）
 - en: (missing explanation)
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失解释）
 - en: '****Scenario D**'
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: '****情景 D**'
 - en: Thread 1 blocked on `synchronized (beta)`
   id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 1 被阻塞在`synchronized (beta)`上
 - en: Thread 2 finished
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 2 完成
 - en: Thread 3 blocked on 2nd `synchronized (gamma)`
   id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程 3 被阻塞在第 2 个`synchronized (gamma)`上
 - en: (missing answer)(missing answer)
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失答案）（缺失答案）
 - en: (missing explanation)******** ****Locked out
   id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失解释）******** ****被锁定
 - en: Examine the code again.
   id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次检查代码。
 - en: In the previous problem, we saw deadlocks involving `beta` and `gamma`.
   id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前一个问题中，我们看到了涉及`beta`和`gamma`的死锁。
 - en: What about `alpha`?
   id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么情况下会出现`alpha`？
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
   id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失答案）（缺失答案）（缺失答案）（缺失答案）
 - en: (missing explanation)****  ****## Goals of concurrent program design
   id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺失解释）****  ****## 并发程序设计目标
 - en: Now is a good time to pop up a level and look at what we’re doing. Recall that
     our primary goals are to create software that is **safe from bugs**, **easy to
     understand**, and **ready for change**.
   id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是升级并查看我们正在做的内容的好时机。回想一下我们的主要目标是创建**免受错误**，**易于理解**且**能够应对变化**的软件。
 - en: 'Building concurrent software is clearly a challenge for all three of these
     goals. We can break the issues into two general classes. When we ask whether a
     concurrent program is *safe from bugs*, we care about two properties:'
   id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建并发软件显然是所有这三个目标的挑战。我们可以将问题分为两类。当我们询问并发程序是否*免受错误*时，我们关心两个属性：
 - en: '**Safety.** Does the concurrent program satisfy its invariants and its specifications?
     Races in accessing mutable data threaten safety. Safety asks the question: can
     you prove that **some bad thing never happens**?'
@@ -1436,6 +1511,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**安全性。**并发程序是否满足其不变量和规范？在访问可变数据时的竞争威胁到安全性。安全性问的问题是：你能证明**一些坏事永远不会发生**吗？'
 - en: '**Liveness.** Does the program keep running and eventually do what you want,
     or does it get stuck somewhere waiting forever for events that will never happen?
     Can you prove that **some good thing eventually happens**?'
@@ -1443,6 +1519,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**活跃性。**程序是否持续运行并最终按照您的意愿执行，或者它是否在某个地方永远等待永远不会发生的事件？你能证明**一些好事最终会发生**吗？'
 - en: Deadlocks threaten liveness. Liveness may also require *fairness*, which means
     that concurrent modules are given processing capacity to make progress on their
     computations. Fairness is mostly a matter for the operating system’s thread scheduler,
@@ -1450,15 +1527,18 @@
   id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 死锁威胁到活跃性。活跃性可能还需要*公平性*，这意味着并发模块被给予处理能力以在其计算上取得进展。公平性在很大程度上是操作系统的线程调度器的问题，但你可以通过设置线程优先级来影响它（好的或坏的）。
 - en: Concurrency in practice
   id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实践中的并发
 - en: What strategies are typically followed in real programs?
   id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际程序中通常采用哪些策略？
 - en: '**Library data structures** either use no synchronization (to offer high performance
     to single-threaded clients, while leaving it to multithreaded clients to add locking
     on top) or the monitor pattern.'
@@ -1466,6 +1546,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**库数据结构**要么不使用同步（为单线程客户端提供高性能，同时让多线程客户端在顶部添加锁定），要么使用监视器模式。'
 - en: '**Mutable data structures with many parts** typically use either coarse-grained
     locking or thread confinement. Most graphical user interface toolkits follow one
     of these approaches, because a graphical user interface is basically a big mutable
@@ -1477,6 +1558,8 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 具有许多部分的**可变数据结构**通常使用粗粒度锁定或线程封闭。大多数图形用户界面工具包遵循这些方法之一，因为图形用户界面基本上是一个由可变对象组成的大型可变树。Java
+    Swing，图形用户界面工具包，使用线程封闭。只允许单个专用线程访问Swing的树。其他线程必须向该专用线程发送消息以访问树。
 - en: '**Search** often uses immutable datatypes. Our [Boolean formula satisfiability
     search](../16-recursive-data-types/recursive/#another_example_boolean_formulas)
     would be easy to make multithreaded, because all the datatypes involved were immutable.
@@ -1485,12 +1568,14 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**搜索**通常使用不可变数据类型。我们的[布尔公式可满足性搜索](../16-recursive-data-types/recursive/#another_example_boolean_formulas)很容易实现多线程，因为涉及的所有数据类型都是不可变的。既不会出现竞争，也不会出现死锁的风险。'
 - en: '**Operating systems** often use fine-grained locks in order to get high performance,
     and use lock ordering to deal with deadlock problems.'
   id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**操作系统**通常使用细粒度锁以获得高性能，并使用锁排序来处理死锁问题。'
 - en: 'We’ve omitted one important approach to mutable shared data because it’s outside
     the scope of this course, but it’s worth mentioning: **a database**. Database
     systems are widely used for distributed client/server systems like web applications.
@@ -1504,17 +1589,20 @@
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们省略了一种重要的可变共享数据的方法，因为它超出了本课程的范围，但值得一提：**数据库**。数据库系统广泛用于分布式客户端/服务器系统，如Web应用程序。数据库使用*事务*来避免竞争条件，类似于同步区域，其效果是原子的，但不必获取锁，尽管如果发生竞争，则事务可能失败并回滚。数据库还可以管理锁，并自动处理锁定顺序。关于如何在系统设计中使用数据库，强烈推荐6.170软件工作室；关于数据库内部工作原理的更多信息，请参加6.814数据库系统课程。
 - en: And if you’re interested in the **performance** of concurrent programs — since
     performance is often one of the reasons we add concurrency to a system in the
     first place — then 6.172 Performance Engineering is the course for you.
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您对并发程序的**性能**感兴趣 - 因为性能通常是我们首次向系统添加并发性的原因之一 - 那么6.172性能工程课程就是适合您的课程。
 - en: Summary
   id: totrans-246
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: Producing a concurrent program that is safe from bugs, easy to understand, and
     ready for change requires careful thinking. Heisenbugs will skitter away as soon
     as you try to pin them down, so debugging simply isn’t an effective way to achieve
@@ -1524,12 +1612,14 @@
   id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 制作一个安全免于错误、易于理解且准备好进行更改的并发程序需要仔细思考。当您试图确定Heisenbugs时，它们会立即逃跑，因此调试根本不是实现正确线程安全代码的有效方法。线程可以以许多不同的方式交错执行其操作，以至于您永远无法测试所有可能的执行的一小部分。
 - en: Make thread safety arguments about your datatypes, and document them in the
     code.
   id: totrans-248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于您的数据类型进行线程安全性论证，并在代码中进行文档记录。
 - en: Acquiring a lock allows a thread to have exclusive access to the data guarded
     by that lock, forcing other threads to block — as long as those threads are also
     trying to acquire that same lock.
@@ -1537,14 +1627,17 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取锁允许线程独占访问由该锁保护的数据，迫使其他线程阻塞 - 只要这些线程也试图获取相同的锁。
 - en: The *monitor pattern* guards the rep of a datatype with a single lock that is
     acquired by every method.
   id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*监视器模式*使用单个锁来保护数据类型的表示，该锁由每个方法获取。'
 - en: Blocking caused by acquiring multiple locks creates the possibility of deadlock.****
   id: totrans-251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于获取多个锁导致的阻塞可能会导致死锁的可能性。
