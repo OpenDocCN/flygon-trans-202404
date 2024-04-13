@@ -1,0 +1,1257 @@
+- en: 30Type Inference
+  id: totrans-0
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 30类型推断
+- en: '|     [30.1 Type Inference as Type Annotation Insertion](#%28part._.Type_.Inference_as_.Type_.Annotation_.Insertion%29)
+    |'
+  id: totrans-1
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [30.1 类型推断作为类型注释插入](#%28part._.Type_.Inference_as_.Type_.Annotation_.Insertion%29)
+    |'
+- en: '|     [30.2 Understanding Inference](#%28part._.Understanding_.Inference%29)
+    |'
+  id: totrans-2
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [30.2 理解推断](#%28part._.Understanding_.Inference%29) |'
+- en: '|       [30.2.1 Constraint Generation](#%28part._.Constraint_.Generation%29)
+    |'
+  id: totrans-3
+  prefs: []
+  type: TYPE_TB
+  zh: '|       [30.2.1 约束生成](#%28part._.Constraint_.Generation%29) |'
+- en: '|       [30.2.2 Constraint Solving Using Unification](#%28part._.Constraint_.Solving_.Using_.Unification%29)
+    |'
+  id: totrans-4
+  prefs: []
+  type: TYPE_TB
+  zh: '|       [30.2.2 使用统一进行约束求解](#%28part._.Constraint_.Solving_.Using_.Unification%29)
+    |'
+- en: '|     [30.3 Type Checking and Type Errors](#%28part._checking-v-inference%29)
+    |'
+  id: totrans-5
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [30.3 类型检查和类型错误](#%28part._checking-v-inference%29) |'
+- en: '|     [30.4 Over- and Under-Constrained Solutions](#%28part._underconstrained-inf%29)
+    |'
+  id: totrans-6
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [30.4 超约束和欠约束的解](#%28part._underconstrained-inf%29) |'
+- en: '|     [30.5 Let-Polymorphism](#%28part._let-poly%29) |'
+  id: totrans-7
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [30.5 Let多态](#%28part._let-poly%29) |'
+- en: Until now, we have been studying programming languages that require a user to
+    explicitly annotate their programs with types. In languages like Haskell and variants
+    of ML, however, a user can leave out annotations and the language has the ability
+    to automatically infer these annotations for them. For instance, a programmer
+    can write the equivalent of
+  id: totrans-8
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 到目前为止，我们一直在学习需要用户明确注释其程序的编程语言。然而，在像Haskell和ML变种这样的语言中，用户可以省略注释，语言有能力自动为他们推断这些注释。例如，程序员可以写出相当于
+- en: '[PRE0]'
+  id: totrans-9
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE0]'
+- en: and the system will automatically infer that the header of f ought to have been
+  id: totrans-10
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 系统会自动推断出f的头部应该是
+- en: '[PRE1]'
+  id: totrans-11
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE1]'
+- en: 'Newer languages like Scala and Typed Racket have this in more limited measure:
+    a feature called local type inference. Here, however, we will study the more traditional
+    and powerful form.'
+  id: totrans-12
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Scala和Typed Racket等新语言在这方面更为有限：一种称为局部类型推断的特性。然而，在这里，我们将学习更传统和更强大的形式。
+- en: 30.1Type Inference as Type Annotation Insertion
+  id: totrans-13
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 30.1类型推断作为类型注释插入
+- en: First, let’s understand what type inference is doing. Some people mistakenly
+    think of languages with inference as having no type declarations, with inference
+    taking their place. This is confused at multiple levels. For one thing, even in
+    languages with inference, programmers are free (and for documentation purposes,
+    are often encouraged) to annotate types. Furthermore, in the absence of such declarations,
+    it is not quite clear what inference actually means.Sometimes, inference is also
+    undecidable and programmers have no choice but to declare some of the types. Finally,
+    writing explicit annotations can greatly reduce indecipherable error messages.
+  id: totrans-14
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 首先，让我们了解一下类型推断在做什么。有些人错误地认为具有推断的语言没有类型声明，推断取代了它们。这在多个层面上都是混淆的。首先，即使在具有推断的语言中，程序员也可以自由地（并且出于文档目的，通常鼓励）注释类型。此外，在缺少这些声明的情况下，推断实际上是什么意思并不太清楚。有时，推断也是不可判定的，程序员别无选择，只能声明一些类型。最后，编写显式注释可以大大减少难以理解的错误消息。
+- en: 'Instead, it is better to think of the underlying language as being fully, explicitly
+    typed, like the languages we have studied ([Reasoning about Programs: A First
+    Look at Types](types.html)). It is as if the programmer had witten'
+  id: totrans-15
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 相反，最好将底层语言视为完全明确类型的，就像我们学过的语言一样（[关于程序的推理：首次接触类型](types.html)）。好像程序员写了
+- en: '[PRE2]'
+  id: totrans-16
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE2]'
+- en: 'and some programming environment tool had filled in concrete annotations in
+    place of the ___’s: an especially sophisticated kind of desugaring, as it were.
+    This last remark helps us put inference in perspective: there are really two languages,
+    one with optional type annotations and the other with required ones. Once these
+    annotations are filled in, we are left with a traditional program that can be
+    checked using the methods we have already studied, though in practice this is
+    not necessary ([Type Checking and Type Errors](#%28part._checking-v-inference%29)).
+    Thus, inference becomes simply a user convenience for alleviating the burden of
+    writing type annotations, but the language underneath is explicitly typed.'
+  id: totrans-17
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 和一些编程环境工具填写了具体的注释来代替___的：这是一种特别复杂的语法糖，可以这么说。最后一句话帮助我们正确理解推断：实际上有两种语言，一种是带有可选类型注释的，另一种是带有必需类型注释的。一旦这些注释填写完毕，我们就得到了一个传统的程序，可以使用我们已经学习过的方法进行检查，尽管实际上这并不是必要的（[类型检查和类型错误](#%28part._checking-v-inference%29)）。因此，推断只是一种用户便利，用于减轻编写类型注释的负担，但底层语言是明确类型的。
+- en: 30.2Understanding Inference
+  id: totrans-18
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 30.2理解推断
+- en: 'For worked examples and more details, see Chapter 30 of [Programming Languages:
+    Application and Interpretation](http://www.plai.org/).'
+  id: totrans-19
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有关示例和更多细节，请参见《[编程语言：应用与解释](http://www.plai.org/)》第30章。
+- en: 'Suppose we have an expression (or program) e written in an explicitly typed
+    language: i.e., e has type annotations everywhere they are required. Now suppose
+    we erase all annotations in e, and use a procedure infer to deduce them back.'
+  id: totrans-20
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 假设我们有一个在明确类型的语言中编写的表达式（或程序）e：即，在需要的所有地方 e 都有类型注释。现在假设我们擦除 e 中的所有注释，并使用一个过程 infer
+    来推断它们。
+- en: Do Now!
+  id: totrans-21
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 现在就开始吧！
+- en: ''
+  id: totrans-22
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What property do we expect of infer?
+  id: totrans-23
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 我们期望推断具有什么属性？
+- en: 'We could demand many things of it. One might be that it produces precisely
+    those annotations that e originally had. This is problematic for many reasons,
+    not least that e might not even type-check, in which case how could infer possibly
+    know what they were (and hence should be)? This might strike you as a pedantic
+    trifle: after all, if e didn’t type-check, how can erasing its annotations and
+    filling them back in make it do so? Since neither program type-checks, who cares?'
+  id: totrans-24
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们可以对它提出许多要求。其中之一可能是它精确地产生了我们最初拥有的那些注释。出于许多原因，这是有问题的，至少可能是因为它可能甚至无法进行类型检查，这种情况下，推断可能如何知道它们是什么（因此应该是什么）？这可能使您觉得这是一个迂腐的琐事：毕竟，如果它没有进行类型检查，那么擦除它的注释并重新填写它们能使它做到吗？由于两个程序都无法进行类型检查，那又有谁在乎呢？
+- en: Do Now!
+  id: totrans-25
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 现在就开始吧！
+- en: ''
+  id: totrans-26
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Is this reasoning correct?
+  id: totrans-27
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 这种推理正确吗？
+- en: Suppose e is
+  id: totrans-28
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 假设 e 是
+- en: '[PRE3]'
+  id: totrans-29
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE3]'
+- en: This procedure obviously fails to type-check. But if we erase the type annotations—<wbr>obtaining
+  id: totrans-30
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个过程显然无法进行类型检查。但是如果我们擦除类型注释——<wbr>获得
+- en: '[PRE4]'
+  id: totrans-31
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE4]'
+- en: '—<wbr>we equally obviously obtain a typeable function! Therefore, a more reasonable
+    demand might be that if the original e type-checks, then so must the version with
+    annotations replaced by inferred types. This one-directional implication is useful
+    in two ways:'
+  id: totrans-32
+  prefs: []
+  type: TYPE_NORMAL
+  zh: —<wbr>同样显然我们获得了一个可类型化的函数！因此，一个更合理的要求可能是，如果原始 e 可以进行类型检查，那么用推断类型替换注释的版本也必须如此。这个单向蕴含在两个方面都很有用：
+- en: It does not say what must happen if e fails to type-check, i.e., it does not
+    preclude a type inference algorithm that makes the faultily-typed identity function
+    above typeable.
+  id: totrans-33
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 它并没有说明如果 e 无法进行类型检查会发生什么，即，它不排除一种使上述类型错误的恒等函数可类型化的类型推断算法。
+- en: 'More importantly, it assures us that we lose nothing by employing type inference:
+    no program that was previously typeable will now cease to be so. That means we
+    can focus on using explicit annotations where we want to, but will not be forced
+    to do so.Of course, this only holds if inference is decidable.'
+  id: totrans-34
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 更重要的是，它向我们保证，通过使用类型推断，我们不会损失任何东西：以前可类型化的程序现在不会停止可类型化。这意味着我们可以专注于在我们想要的地方使用显式注释，但不会被迫这样做。当然，这仅在推断是可决定的情况下才成立。
+- en: 'We might also expect that both versions type to the same type, but that is
+    not a given: the function'
+  id: totrans-35
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们可能还期望两个版本都具有相同的类型，但这不是必然的：函数
+- en: '[PRE5]'
+  id: totrans-36
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE5]'
+- en: types to Number -> Number, whereas applying inference to it after erasing types
+    yields a much more general type, as we will see. Therefore, relating these types
+    and giving a precise definition of type equality is not trivial ([Relational Parametricity](para-poly.html#%28part._relnl-param%29)).
+  id: totrans-37
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 类型为 Number -> Number，而在擦除类型后应用推断则产生一个更一般的类型，我们将会看到。因此，关联这些类型并给出类型相等的精确定义并不是微不足道的（[关系参数化](para-poly.html#%28part._relnl-param%29)）。
+- en: With these preliminaries out of the way, we are now ready to delve into the
+    mechanics of type inference. The most important thing to note is that our simple,
+    recursive-descent type-checking algorithm ([A Type Checker for Expressions and
+    Functions](types.html#%28part._type-checker%29)) will no longer work. That was
+    possible because we already had annotations on all function boundaries, so we
+    could descend into function bodies carrying information about those annotations
+    in the type environment. Sans these annotations, it is not clear how to descend.
+    In fact, it is not clear that there is any particular direction that makes more
+    sense than another.
+  id: totrans-38
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有了这些前提，我们现在已经准备好深入研究类型推断的机制了。最重要的一点是，我们简单的、递归下降的类型检查算法（[表达式和函数的类型检查器](types.html#%28part._type-checker%29)）将不再适用。那是可能的，因为我们已经在所有函数边界上有了注释，所以我们可以携带有关那些注释的信息下降到函数体中。没有这些注释，下降的方法就不清楚了。实际上，不清楚有什么特定的方向比另一个更有意义。
+- en: All this information is in the function. But how do we extract it systematically
+    and in an algorithm that terminates and enjoys the property we have stated above?
+    We do this in two steps. First we generate constraints, based on program terms,
+    on what the types must be. Then we solve constraints to identify inconsistencies
+    and join together constraints spread across the function body. Each step is relatively
+    simple, but the combination creates magic.
+  id: totrans-39
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 所有这些信息都在函数中。但是我们如何系统地提取它，并以终止和享有上述属性的算法？我们分两步来做这件事。首先，我们根据程序项生成约束，确定类型必须是什么。然后，我们解决约束以识别不一致，并合并函数体中分散的约束。每个步骤都相对简单，但组合起来就会产生奇迹。
+- en: 30.2.1Constraint Generation
+  id: totrans-40
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 30.2.1约束生成
+- en: 'Our goal, ultimately, is to find a type to fill into every type annotation
+    position. It will prove to be just as well to find a type for every expression.
+    A moment’s thought will show that this is likely necessary anyway: for instance,
+    how can we determine the type to put on a function without knowing the type of
+    its body? It is also sufficient, in that if every expression has had its type
+    calculated, this will include the ones that need annotations.'
+  id: totrans-41
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们的最终目标是找到一个类型填充到每个类型注释位置。找到每个表达式的类型同样重要。稍加思考就会发现这可能是必要的：例如，我们如何确定在函数上放置的类型，而不知道其主体的类型呢？这也足够了，因为如果每个表达式的类型都已计算过，那么这将包括需要注释的表达式。
+- en: First, we must generate constraints to (later) solve. Constraint generation
+    walks the program source, emitting appropriate constraints on each expression,
+    and returns this set of constraints. It works by recursive descent mainly for
+    simplicity; it really computes a set of constraints, so the order of traversal
+    and generation really does not matter in principle—<wbr>so we may as well pick
+    recursive descent, which is easy—<wbr>though for simplicity we will use a list
+    to represent this set.
+  id: totrans-42
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 首先，我们必须生成约束（稍后解决）。约束生成遍历程序源代码，在每个表达式上发出适当的约束，并返回此约束集。它主要通过递归下降来工作，主要是为了简单起见；实际上，它确实计算出一组约束，因此遍历和生成的顺序原则上并不重要——所以我们可能也会选择递归下降，这很容易——虽然为了简单起见，我们将使用列表来表示此集合。
+- en: What are constraints? They are simply statements about the types of expressions.
+    In addition, though the binding instances of variables are not expressions, we
+    must calculate their types too (because a function requires both argument and
+    return types). In general, what can we say about the type of an expression?
+  id: totrans-43
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 约束是什么？它们只是关于表达式类型的陈述。此外，虽然变量的绑定实例不是表达式，但我们也必须计算它们的类型（因为函数需要参数类型和返回类型）。通常，我们对表达式的类型能说些什么呢？
+- en: That it is related to the type of some identifier.
+  id: totrans-44
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 它与某个标识符的类型相关。
+- en: That it is related to the type of some other expression.
+  id: totrans-45
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 它与某个其他表达式的类型相关。
+- en: That it is a base type, such as numbers and Booleans.
+  id: totrans-46
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 它是一个基本类型，比如数字和布尔值。
+- en: That it is a constructed type such as a function, whose domain and range types
+    are presumably further constrained.
+  id: totrans-47
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+  zh: 那就是一个构造类型，比如一个函数，其定义域和值域类型可能进一步受限。
+- en: Thus, we define the following two datatypes:The name TyCHS is short for “type
+    (Ty) constraint (C) left-or-right hand (H) side (S)”.
+  id: totrans-48
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 因此，我们定义了以下两种数据类型：TyCHS 的名称缩写为“类型（Ty）约束（C）左或右手（H）边（S）”。
+- en: '[PRE6]'
+  id: totrans-49
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE6]'
+- en: 'Note that we have collapsed both base and constructed types into one representation,
+    t-con: a base type will have an empty list of fields, while a constructed type
+    will have a non-empty one corresponding to its arity. Concretely:'
+  id: totrans-50
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请注意，我们已经将基本类型和构造类型合并为一个表示，即 t-con：基本类型将具有空字段列表，而构造类型将具有一个非空字段列表，对应其 arity。具体而言：
+- en: '[PRE7]'
+  id: totrans-51
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE7]'
+- en: Now we can define the process of generating constraints:<tyinf-generate> ::=
+  id: totrans-52
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在我们可以定义生成约束的过程：<tyinf-generate> ::=
+- en: '|   fun generate(e :: TyExprC) -> List<TyCon>: |'
+  id: totrans-53
+  prefs: []
+  type: TYPE_TB
+  zh: '|   fun generate(e :: TyExprC) -> List<TyCon>: |'
+- en: '|     cases (TyExprC) e: |'
+  id: totrans-54
+  prefs: []
+  type: TYPE_TB
+  zh: '|     cases (TyExprC) e: |'
+- en: '|     [<tyinf-generate-numC>](#%28elem._tyinf-generate-num.C%29) |'
+  id: totrans-55
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-numC>](#%28elem._tyinf-generate-num.C%29) |'
+- en: '|     [<tyinf-generate-plusC/multC>](#%28elem._tyinf-generate-plus.C%2Fmult.C%29)
+    |'
+  id: totrans-56
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-plusC/multC>](#%28elem._tyinf-generate-plus.C%2Fmult.C%29)
+    |'
+- en: '|     [<tyinf-generate-trueC/falseC>](#%28elem._tyinf-generate-true.C%2Ffalse.C%29)
+    |'
+  id: totrans-57
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-trueC/falseC>](#%28elem._tyinf-generate-true.C%2Ffalse.C%29)
+    |'
+- en: '|     [<tyinf-generate-ifC>](#%28elem._tyinf-generate-if.C%29) |'
+  id: totrans-58
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-ifC>](#%28elem._tyinf-generate-if.C%29) |'
+- en: '|     [<tyinf-generate-idC>](#%28elem._tyinf-generate-id.C%29) |'
+  id: totrans-59
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-idC>](#%28elem._tyinf-generate-id.C%29) |'
+- en: '|     [<tyinf-generate-fdC>](#%28elem._tyinf-generate-fd.C%29) |'
+  id: totrans-60
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-fdC>](#%28elem._tyinf-generate-fd.C%29) |'
+- en: '|     [<tyinf-generate-appC>](#%28elem._tyinf-generate-app.C%29) |'
+  id: totrans-61
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [<tyinf-generate-appC>](#%28elem._tyinf-generate-app.C%29) |'
+- en: '|     end |'
+  id: totrans-62
+  prefs: []
+  type: TYPE_TB
+  zh: '|     end |'
+- en: '|   end |'
+  id: totrans-63
+  prefs: []
+  type: TYPE_TB
+  zh: '|   end |'
+- en: When the expression is a number, all we can say is that we expect the type of
+    the expression to be numeric:<tyinf-generate-numC> ::=
+  id: totrans-64
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当表达式是一个数字时，我们只能说我们期望表达式的类型是数字的：<tyinf-generate-numC> ::=
+- en: '|   &#124; numC(_) => |'
+  id: totrans-65
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; numC(_) => |'
+- en: '|     [list: tyeq(t-expr(e), numeric-t-con)] |'
+  id: totrans-66
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(e), numeric-t-con)] |'
+- en: This might sound trivial, but what we don’t know is what other expectations
+    are being made of this expression by those containing it. Thus, there is the possibility
+    that some outer expression will contradict the assertion that this expression’s
+    type must be numeric, leading to a type error.Identifiers do not constrain the
+    program in any new way. The identifier will (if bound) have its type constrained
+    at the point of binding. Therefore, there are no constraints:We are assuming that
+    all bound identifiers in the program have distinct names, so there is no danger
+    of confusion between two different identifiers.<tyinf-generate-idC> ::=
+  id: totrans-67
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这听起来可能很琐碎，但我们不知道的是，外层表达式对这个表达式提出了什么其他期望。 因此，有可能某些外部表达式会与这个表达式的类型必须是数值的断言相矛盾，从而导致类型错误。标识符不会以任何新方式约束程序。
+    标识符（如果已绑定）将在绑定点约束其类型。 因此，没有约束：我们假设程序中所有绑定的标识符都具有不同的名称，因此不会有两个不同的标识符之间混淆的危险。<tyinf-generate-idC>
+    ::=
+- en: '|   &#124; idC(s) => |'
+  id: totrans-68
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; idC(s) => |'
+- en: '|     empty |'
+  id: totrans-69
+  prefs: []
+  type: TYPE_TB
+  zh: '|     empty |'
+- en: If the context limits its type, then this expression’s type will automatically
+    be limited, and must then be consistent with what its context expects of it.Addition
+    gives us our first look at a contextual constraint. For an addition expression,
+    we must first make sure we generate (and return) constraints in the two sub-expressions,
+    which might be complex. That done, what do we expect? That each of the sub-expressions
+    be of numeric type. (If the form of one of the sub-expressions demands a type
+    that is not numeric, this will lead to a type error.) Finally, we assert that
+    the entire expression’s type is itself numeric. Because the treatment of multiplication
+    is identical, we abstract over both:<tyinf-generate-plusC/multC> ::=
+  id: totrans-70
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果上下文限制了它的类型，那么这个表达式的类型将自动被限制，并且必须与其上下文对其的期望一致。加法让我们首次看到了上下文约束。 对于加法表达式，我们必须首先确保在两个子表达式中生成（并返回）约束，这可能会很复杂。
+    完成后，我们期望什么？ 每个子表达式都是数值类型。（如果其中一个子表达式的形式要求的类型不是数值类型，则会导致类型错误。） 最后，我们断言整个表达式的类型本身也是数值的。
+    因为乘法的处理方式相同，我们将两者抽象：<tyinf-generate-plusC/multC> ::=
+- en: '|   &#124; plusC(l, r) => generate-arith-binop(e, l, r) |'
+  id: totrans-71
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; plusC(l, r) => generate-arith-binop(e, l, r) |'
+- en: '|   &#124; multC(l, r) => generate-arith-binop(e, l, r) |'
+  id: totrans-72
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; multC(l, r) => generate-arith-binop(e, l, r) |'
+- en: 'where the interesting work is done by the abstraction:'
+  id: totrans-73
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 其中有趣的工作由抽象完成：
+- en: '[PRE8]'
+  id: totrans-74
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE8]'
+- en: Like numbers, Boolean values constrain the current expression to be of Boolean
+    type:<tyinf-generate-trueC/falseC> ::=
+  id: totrans-75
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 像数字一样，布尔值将当前表达式限制为布尔类型：<tyinf-generate-trueC/falseC> ::=
+- en: '|   &#124; trueC => |'
+  id: totrans-76
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; trueC => |'
+- en: '|     [list: tyeq(t-expr(e), boolean-t-con)] |'
+  id: totrans-77
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(e), boolean-t-con)] |'
+- en: '|   &#124; falseC => |'
+  id: totrans-78
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; falseC => |'
+- en: '|     [list: tyeq(t-expr(e), boolean-t-con)] |'
+  id: totrans-79
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(e), boolean-t-con)] |'
+- en: The case for the conditional is again interesting. We must make sure the conditional
+    expression is of Boolean type, and that the two brances have the same type:<tyinf-generate-ifC>
+    ::=
+  id: totrans-80
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于条件语句，情况再次变得有趣。 我们必须确保条件表达式是布尔类型，并且两个分支具有相同的类型：<tyinf-generate-ifC> ::=
+- en: '|   &#124; ifC(cnd, thn, els) => |'
+  id: totrans-81
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; ifC(cnd, thn, els) => |'
+- en: '|     [list: tyeq(t-expr(cnd), boolean-t-con), |'
+  id: totrans-82
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(cnd), boolean-t-con), |'
+- en: '|       tyeq(t-expr(thn), t-expr(els))] + |'
+  id: totrans-83
+  prefs: []
+  type: TYPE_TB
+  zh: '|       tyeq(t-expr(thn), t-expr(els))] + |'
+- en: '|     generate(cnd) + generate(thn) + generate(els) |'
+  id: totrans-84
+  prefs: []
+  type: TYPE_TB
+  zh: '|     generate(cnd) + generate(thn) + generate(els) |'
+- en: Now we get to the other two interesting cases, function declaration and application.
+    In both cases, we must remember to generate and return constraints of the sub-expressions.
+  id: totrans-85
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在我们来看另外两种有趣的情况，函数声明和应用。 在这两种情况下，我们必须记住生成并返回子表达式的约束。
+- en: In a function definition, the type of the function is a function type, whose
+    argument type is that of the formal parameter, and whose return type is that of
+    the body:<tyinf-generate-fdC> ::=
+  id: totrans-86
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在函数定义中，函数的类型是一个函数类型，其参数类型是形式参数的类型，其返回类型是函数体的类型：<tyinf-generate-fdC> ::=
+- en: '|   &#124; fdC(a, b) => |'
+  id: totrans-87
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; fdC(a, b) => |'
+- en: '|     [list: tyeq(t-expr(e), mk-fun-t-con(t-expr(a), t-expr(b)))] + |'
+  id: totrans-88
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(e), mk-fun-t-con(t-expr(a), t-expr(b)))] + |'
+- en: '|     generate(b) |'
+  id: totrans-89
+  prefs: []
+  type: TYPE_TB
+  zh: '|     generate(b) |'
+- en: Finally, we have applications. We cannot directly state a constraint on the
+    type of the application. Rather, we can say that the function in the application
+    position must consume arguments of the actual parameter expression’s type, and
+    return types of the application expression’s type:<tyinf-generate-appC> ::=
+  id: totrans-90
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 最后，我们有应用。我们不能直接说明应用的类型约束。相反，我们可以说应用位置的函数必须消耗实际参数表达式类型的参数，并返回应用表达式类型的结果：<tyinf-generate-appC>
+    ::=
+- en: '|   &#124; appC(f, a) => |'
+  id: totrans-91
+  prefs: []
+  type: TYPE_TB
+  zh: '|   &#124; appC(f, a) => |'
+- en: '|     [list: tyeq(t-expr(f), mk-fun-t-con(t-expr(a), t-expr(e)))] + |'
+  id: totrans-92
+  prefs: []
+  type: TYPE_TB
+  zh: '|     [list: tyeq(t-expr(f), mk-fun-t-con(t-expr(a), t-expr(e)))] + |'
+- en: '|     generate(f) + |'
+  id: totrans-93
+  prefs: []
+  type: TYPE_TB
+  zh: '|     generate(f) + |'
+- en: '|     generate(a) |'
+  id: totrans-94
+  prefs: []
+  type: TYPE_TB
+  zh: '|     generate(a) |'
+- en: And that’s it! We have finished generating constraints; now we just have to
+    solve them.
+  id: totrans-95
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 就这样！我们已经完成了生成约束的过程；现在我们只需要解决它们。
+- en: 30.2.2Constraint Solving Using Unification
+  id: totrans-96
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 30.2.2使用统一解决约束
+- en: The process used to solve constraints is known as unification. A unifier is
+    given a set of equations. Each equation maps a variable to a term, whose datatype
+    is above.
+  id: totrans-97
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 用于解决约束的过程称为统一。统一器给出一组方程。每个方程将一个变量映射到一个数据类型为上述的项。
+- en: 'For our purposes, the goal of unification is generate a substitution, or mapping
+    from variables to terms that do not contain any variables. This should sound familiar:
+    we have a set of simultaneous equations in which each variable is used linearly;
+    such equations are solved using Gaussian elimination. In that context, we know
+    that we can end up with systems that are both under- and over-constrained. The
+    same thing can happen here, as we will soon see.'
+  id: totrans-98
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于我们的目的，统一的目标是生成一个替换，或者说是从变量到不包含任何变量的项的映射。这听起来应该很熟悉：我们有一组同时方程，其中每个变量都被线性地使用；这样的方程可以使用高斯消元法解决。在这种情况下，我们知道我们可能会得到既不足又过度约束的系统。在这里也会发生同样的事情，我们很快就会看到。
+- en: The unification algorithm works iteratively over the set of constraints. Because
+    each constraint equation has two terms and each term can be one of two kinds,
+    there are four cases to cover.
+  id: totrans-99
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 统一算法在约束集合上迭代地工作。因为每个约束方程有两个项，并且每个项都可以是两种类型之一，所以需要涵盖四种情况。
+- en: The algorithm begins with the set of all constraints, and the empty substitution.
+    Each constraint is considered once and removed from the set, so in principle the
+    termination argument should be utterly simple, but it will prove to be slightly
+    more tricky. As constraints are disposed, the substitution set tends to grow.
+    When all constraints have been disposed, unification returns the final substitution
+    set.
+  id: totrans-100
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 算法从所有约束集合和空替换开始。每个约束只考虑一次并从集合中移除，因此原则上终止参数应该非常简单，但事实证明会稍微棘手一些。随着约束的消除，替换集合往往会增长。当所有约束都被处理完毕时，统一操作返回最终的替换集合。
+- en: For a given constraint, the unifier examines the left-hand-side of the equation.
+    If it is a variable, it is now ripe for elimination. The unifier adds the variable’s
+    right-hand-side to the substitution and, to truly eliminate it, replaces all occurrences
+    of the variable in the substitution with the this right-hand-side.It is worth
+    noting that because the constraints are equalities, eliminating a variable is
+    tantamount to associating it with the same set as whatever replaces it. In other
+    words, we can use union-find [REF] to implement this process efficiently, though
+    if we need to backtrack during unification (as we do for logic programming [REF]),
+    this becomes much more tricky.
+  id: totrans-101
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于给定的约束，统一器检查等式的左边。如果它是一个变量，那么现在它已经成熟可以被消除了。统一器将变量的右边添加到替换中，并且为了真正消除它，用右边的值替换替换中所有变量的出现。值得注意的是，因为约束是相等关系，消除一个变量等同于将其与替换中所替换的任何内容关联起来。换句话说，我们可以使用并查集[REF]来高效地实现这个过程，尽管如果我们在统一过程中需要回溯（正如我们对逻辑编程[REF]所做的那样），这就变得更加棘手了。
+- en: Do Now!
+  id: totrans-102
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 现在动手！
+- en: ''
+  id: totrans-103
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Did you notice the subtle error above?
+  id: totrans-104
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 你注意到上面微妙的错误了吗？
+- en: 'The subtle error is this. We said that the unifier eliminates the variable
+    by replacing all instances of it in the substitution. However, that assumes that
+    the right-hand-side does not contain any instances of the same variable. Otherwise
+    we have a circular definition, and it becomes impossible to perform this particular
+    substitution. For this reason, unifiers include a occurs check: a check for whether
+    the same variable occurs on both sides and, if it does, decline to unify. For
+    simplicity we will ignore this here.'
+  id: totrans-105
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个微妙的错误就在这里。我们说，解一致性通过在替换中替换它的所有实例来消除变量。但是，这假设右侧不包含相同变量的任何实例。否则，我们将得到一个循环定义，并且执行此特定替换变得不可能。因此，解一致性包括出现检查：检查是否在两侧都出现相同的变量，如果是，则拒绝统一。为简单起见，在这里我们将忽略此检查。
+- en: Do Now!
+  id: totrans-106
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 现在动手吧！
+- en: ''
+  id: totrans-107
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Construct a term whose constraints would trigger the occurs check.
+  id: totrans-108
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 构建一个术语，其约束将触发出现检查。
+- en: Do you remember ω ([Recursion and Non-Termination](Interpreting_Functions.html#%28part._rec-non-term%29))?
+  id: totrans-109
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 你还记得 ω（[递归与非终止](Interpreting_Functions.html#%28part._rec-non-term%29)）吗？
+- en: 'Let us now implement unification. For simplicity, we will use a list of type
+    constraints as the representation of the subtitution.As you read this, keep in
+    mind that unification is a generic procedure, completely independent of type-inference:
+    indeed, the unification algorithm was invented before and spurred the creation
+    of the type-inference process.'
+  id: totrans-110
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在让我们实现统一。为简单起见，我们将使用类型约束列表作为替换的表示。在阅读此内容时，请记住，统一是一种通用过程，完全独立于类型推断：实际上，在推断类型过程之前，统一算法已经发明并推动了类型推断过程的创建。
+- en: Exercise
+  id: totrans-111
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-112
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If we use type constraints to represent the substitution, what invariant would
+    we expect the computed set of constraints to have?
+  id: totrans-113
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 如果我们使用类型约束来表示替换，那么我们期望计算出的约束集具有什么不变量？
+- en: 'It will be convenient to have a helper function that takes the current substitution
+    as an accumulated parameter. Let’s therefore include it, and get the easy case
+    out of the way:'
+  id: totrans-114
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有一个辅助函数将当前替换作为累积参数。因此，我们应该包含它，并解决简单的情况：
+- en: <tyinf-unify> ::=
+  id: totrans-115
+  prefs: []
+  type: TYPE_NORMAL
+  zh: <tyinf-unify> ::=
+- en: '|   fun unify(cs :: List<TyCon>) -> List<TyCon>: |'
+  id: totrans-116
+  prefs: []
+  type: TYPE_TB
+  zh: '|   fun unify(cs :: List<TyCon>) -> List<TyCon>: |'
+- en: '|     fun help(shadow cs :: List<TyCon>, sub :: List<TyCon>) -> List<TyCon>:
+    |'
+  id: totrans-117
+  prefs: []
+  type: TYPE_TB
+  zh: '|     fun help(shadow cs :: List<TyCon>, sub :: List<TyCon>) -> List<TyCon>:
+    |'
+- en: '|       cases (List) cs: |'
+  id: totrans-118
+  prefs: []
+  type: TYPE_TB
+  zh: '|       cases (List) cs: |'
+- en: '|         &#124; empty => sub |'
+  id: totrans-119
+  prefs: []
+  type: TYPE_TB
+  zh: '|         &#124; empty => sub |'
+- en: '|         &#124; link(f, r) => |'
+  id: totrans-120
+  prefs: []
+  type: TYPE_TB
+  zh: '|         &#124; link(f, r) => |'
+- en: '|           [<tyinf-unify-link>](#%28elem._tyinf-unify-link%29) |'
+  id: totrans-121
+  prefs: []
+  type: TYPE_TB
+  zh: '|           [<tyinf-unify-link>](#%28elem._tyinf-unify-link%29) |'
+- en: '|       end |'
+  id: totrans-122
+  prefs: []
+  type: TYPE_TB
+  zh: '|       end |'
+- en: '|     end |'
+  id: totrans-123
+  prefs: []
+  type: TYPE_TB
+  zh: '|     end |'
+- en: '|     help(cs, empty) |'
+  id: totrans-124
+  prefs: []
+  type: TYPE_TB
+  zh: '|     help(cs, empty) |'
+- en: '|   end |'
+  id: totrans-125
+  prefs: []
+  type: TYPE_TB
+  zh: '|   end |'
+- en: 'There are four cases we need to consider, because either side can be a t-expr
+    or t-con:'
+  id: totrans-126
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们需要考虑四种情况，因为其中一边可以是 t-expr 或 t-con：
+- en: 'If both sides are t-expr’s, then we simply replace one with the other (this
+    is the “variable elimination” case of the Gaussian procedure). We must perform
+    this replacement everywhere: in the remaining terms but also in the substitution
+    already performed.'
+  id: totrans-127
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果两边都是 t-expr，则我们简单地用另一个替换其中一个（这是高斯过程的“变量消除”情况）。我们必须在所有地方执行此替换：在剩余的项中以及已执行的替换中。
+- en: Exercise
+  id: totrans-128
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-129
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What happens if we miss doing this replacement in one or the other?
+  id: totrans-130
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 如果我们错过在其中一个中进行替换会发生什么？
+- en: If one side is a t-expr and the other a t-con, then we have resolved that expression’s
+    type to a concrete type. Record this and substitute.
+  id: totrans-131
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果一边是 t-expr 而另一边是 t-con，则我们已将该表达式的类型解析为具体类型。记录下这一点并进行替换。
+- en: 'There are two cases of a t-expr and t-con: for simplicity, we handle one case
+    and in the other case, rewrite the problem to the former case and recur.This swapping
+    of sides is legal because these are equational constraints.'
+  id: totrans-132
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: t-expr 和 t-con 有两种情况：为简单起见，我们处理一种情况，并在另一种情况下，将问题重写为前一种情况并递归。这种交换是合法的，因为这些是等式约束。
+- en: If we have to unify two constructors, then they had better be the same constructor!
+    If they are not, we have a type error. If they are, then we recur on their parameters.
+  id: totrans-133
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果我们必须统一两个构造函数，那么它们最好是相同的构造函数！如果不是，则会出现类型错误。如果是，则对它们的参数进行递归。
+- en: Here it is in code:<tyinf-unify-link> ::=
+  id: totrans-134
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这是在代码中的表现：<tyinf-unify-link> ::=
+- en: '|   lhs = f.l |'
+  id: totrans-135
+  prefs: []
+  type: TYPE_TB
+  zh: '|   lhs = f.l |'
+- en: '|   rhs = f.r |'
+  id: totrans-136
+  prefs: []
+  type: TYPE_TB
+  zh: '|   rhs = f.r |'
+- en: '|   ask: |'
+  id: totrans-137
+  prefs: []
+  type: TYPE_TB
+  zh: '|   询问： |'
+- en: '|     &#124; is-t-expr(lhs) and is-t-expr(rhs) then: |'
+  id: totrans-138
+  prefs: []
+  type: TYPE_TB
+  zh: '|     &#124; 如果 is-t-expr(lhs) 和 is-t-expr(rhs) 那么： |'
+- en: '|       help(subst(lhs, rhs, r), link(f, subst(lhs, rhs, sub))) |'
+  id: totrans-139
+  prefs: []
+  type: TYPE_TB
+  zh: '|       help(subst(lhs, rhs, r), link(f, subst(lhs, rhs, sub))) |'
+- en: '|     &#124; is-t-expr(lhs) and is-t-con(rhs) then: |'
+  id: totrans-140
+  prefs: []
+  type: TYPE_TB
+  zh: '|     &#124; 如果 is-t-expr(lhs) 和 is-t-con(rhs) 那么： |'
+- en: '|       help(subst(lhs, rhs, r), link(f, subst(lhs, rhs, sub))) |'
+  id: totrans-141
+  prefs: []
+  type: TYPE_TB
+  zh: '|       help(subst(lhs, rhs, r), link(f, subst(lhs, rhs, sub))) |'
+- en: '|     &#124; is-t-con(lhs) and is-t-expr(rhs) then: |'
+  id: totrans-142
+  prefs: []
+  type: TYPE_TB
+  zh: '|     &#124; 如果 lhs 是类型常量且 rhs 是表达式，则: |'
+- en: '|       help(link(tyeq(rhs, lhs), r), sub) |'
+  id: totrans-143
+  prefs: []
+  type: TYPE_TB
+  zh: '|       help(link(tyeq(rhs, lhs), r), sub) |'
+- en: '|     &#124; is-t-con(lhs) and is-t-con(rhs) then: |'
+  id: totrans-144
+  prefs: []
+  type: TYPE_TB
+  zh: '|     &#124; 如果 lhs 是类型常量且 rhs 是类型常量，则: |'
+- en: '|       if lhs.name == rhs.name: |'
+  id: totrans-145
+  prefs: []
+  type: TYPE_TB
+  zh: '|       如果 lhs.name == rhs.name: |'
+- en: '|         help(map2(tyeq, lhs.fields, rhs.fields) + r, sub) |'
+  id: totrans-146
+  prefs: []
+  type: TYPE_TB
+  zh: '|         help(map2(tyeq, lhs.fields, rhs.fields) + r, sub) |'
+- en: '|       else: |'
+  id: totrans-147
+  prefs: []
+  type: TYPE_TB
+  zh: '|       else: |'
+- en: '|         raise(''type error: '' + lhs.name + '' vs. '' + rhs.name) |'
+  id: totrans-148
+  prefs: []
+  type: TYPE_TB
+  zh: '|         raise(''类型错误：'' + lhs.name + '' vs. '' + rhs.name) |'
+- en: '|       end |'
+  id: totrans-149
+  prefs: []
+  type: TYPE_TB
+  zh: '|       end |'
+- en: '|   end |'
+  id: totrans-150
+  prefs: []
+  type: TYPE_TB
+  zh: '|   end |'
+- en: 'In terms of proving termination, note that the last two cases do not shrink
+    the input: the third keeps it the same, while the fourth in some cases grows it.'
+  id: totrans-151
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在证明终止性方面，请注意最后两种情况不会缩小输入：第三种情况保持不变，而第四种情况在某些情况下会增加输入。
+- en: 'The unifier depends on:'
+  id: totrans-152
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 统一器取决于：
+- en: '[PRE9]'
+  id: totrans-153
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE9]'
+- en: Exercise
+  id: totrans-154
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-155
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: There is a subtle bug in the above implementation of unification. It assumes
+    that two textually identical expressions must have the same type. Construct a
+    counter-example to show that this is not true. Then fix the implementation (consider
+    using reference rather than structural equality [REF]).
+  id: totrans-156
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 上述统一实现中存在一个微妙的错误。它假设两个在文本上相同的表达式必须具有相同的类型。构造一个反例来证明这不是真的。然后修复这个实现（考虑使用引用而不是结构相等[REF]）。
+- en: Exercise
+  id: totrans-157
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-158
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The algorithm above is rather naive. Given a choice, we would rather see the
+    types of identifiers rather than those of expressions. Modify the algorithm to
+    bias in this direction.
+  id: totrans-159
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 上述算法相当天真。如果可以选择，我们宁愿看到标识符的类型而不是表达式的类型。修改算法以偏向这个方向。
+- en: Exercise
+  id: totrans-160
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-161
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The output of the above algorithm is unsatisfying: a set of (solved) constraints
+    rather than an “answer”. Extract the type of the top-level expression, and “pretty-print”
+    it in terms of only type constants, referring to expressions only when necessary
+    ([Over- and Under-Constrained Solutions](#%28part._underconstrained-inf%29)).'
+  id: totrans-162
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 上述算法的输出令人不满意：一组（已解决的）约束而不是一个“答案”。提取顶层表达式的类型，并仅以类型常量的形式“漂亮地打印”它，只在必要时引用表达式（[过度约束和不足约束的解决方案](#%28part._underconstrained-inf%29））。
+- en: Exercise
+  id: totrans-163
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-164
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Prove the termination of this algorithm. Make an argument based on the size
+    of the constraint set and on the size of the substitution.
+  id: totrans-165
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 证明这个算法的终止性。基于约束集的大小和替换的大小进行论证。
+- en: Exercise
+  id: totrans-166
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-167
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Augment this implementation with the occurs check.
+  id: totrans-168
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 用出现检查增强这个实现。
+- en: Exercise
+  id: totrans-169
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 练习
+- en: ''
+  id: totrans-170
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Use union-find to optimize this implementation. Measure the performance gain.
+  id: totrans-171
+  prefs:
+  - PREF_BQ
+  - PREF_BQ
+  type: TYPE_NORMAL
+  zh: 使用并查集来优化这个实现。测量性能增益。
+- en: With this, we are done. Unification produces a substitution. We can now traverse
+    the substitution and find the types of all the expressions in the program, then
+    insert the type annotations accordingly.
+  id: totrans-172
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有了这个，我们完成了。统一产生一个替换。我们现在可以遍历替换并找到程序中所有表达式的类型，然后相应地插入类型注释。
+- en: 30.3Type Checking and Type Errors
+  id: totrans-173
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 30.3 类型检查和类型错误
+- en: A theorem, which we will not prove here, dictates that the success of the above
+    process implies that the program would have typed-checked, so we need not explicitly
+    run the type-checker over this program.
+  id: totrans-174
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一个定理，我们在这里不会证明，规定了上述过程的成功意味着程序将会通过类型检查，因此我们不需要明确地在这个程序上运行类型检查器。
+- en: Observe, however, that the nature of a type error has now changed dramatically.
+    Previously, we had a recursive-descent algorithm that walked a expressions using
+    a type environment. The bindings in the type environment were programmer-declared
+    types, and could hence be taken as (intended) authoritative specifications of
+    types. As a result, any mismatch was blamed on the expressions, and reporting
+    type errors was simple (and easy to understand). Here, however, a type error is
+    a failure to notify. The unification failure is based on events that occur at
+    the confluence of two smart algorithms—<wbr>constraint generation and unification—<wbr>and
+    hence are not necessarily comprehensible to the programmer. In particular, the
+    equational nature of these constraints means that the location reported for the
+    error, and the location of the “true” error, could be quite far apart. As a result,
+    producing better error messages remains an active research area.In practice the
+    algorithm will maintain metadata on which program source terms were involved and
+    probably on the history of unification, to be able to trace errors back to the
+    source program.
+  id: totrans-175
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 但请注意，类型错误的性质已经发生了巨大变化。以前，我们有一个递归下降算法，它使用类型环境遍历表达式。类型环境中的绑定是由程序员声明的类型，因此可以被视为类型的（预期）权威规范。因此，任何不匹配都归咎于表达式，并报告类型错误很简单（并且易于理解）。然而，在这里，类型错误是一种通知失败。统一失败是基于两个智能算法的交汇处发生的事件
+    —<wbr>约束生成和统一 —<wbr>因此，不一定能被程序员理解。特别是，这些约束的等式性质意味着报告错误的位置和“真正”错误的位置可能相距很远。因此，产生更好的错误消息仍然是一个活跃的研究领域。在实践中，算法将保持关于哪些程序源术语涉及以及可能的统一历史的元数据，以便能够将错误追溯到源程序。
+- en: 30.4Over- and Under-Constrained Solutions
+  id: totrans-176
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 30.4过度约束和不足约束的解决方案
+- en: Remember that the constraints may not precisely dictate the type of all variables.
+    If the system of equations is over-constrained, then we get clashes, resulting
+    in type errors. If instead the system is under-constrained, that means we don’t
+    have enough information to make definitive statements about all expressions. For
+    instance, in the expression (fun (x) x) we do not have enough constraints to indicate
+    what the type of x, and hence of the entire expression, must be. This is not an
+    error; it simply means that x is free to be any type at all. In other words, its
+    type is “the type of x -> the type of x” with no other constraints. The types
+    of these underconstrained identifiers are presented as type variables, so the
+    above expression’s type might be reported as (A -> A).
+  id: totrans-177
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 记住，约束可能不会准确地指定所有变量的类型。如果方程组过于约束，则会发生冲突，导致类型错误。如果系统欠约束，这意味着我们没有足够的信息来对所有表达式做出明确的声明。例如，在表达式(fun (x) x)中，我们没有足够的约束来指示x的类型，因此也无法确定整个表达式的类型。这不是一个错误；这只是意味着x可以是任何类型。换句话说，它的类型是“x的类型
+    -> x的类型”，没有其他约束。这些欠约束标识符的类型被表示为类型变量，因此上述表达式的类型可能被报告为(A -> A)。
+- en: 'The unification algorithm actually has a wonderful property: it automatically
+    computes the most general types for an expression, also known as principal types.
+    That is, any actual type the expression can have can be obtained by instantiating
+    the inferred type variables with actual types. This is a remarkable result: in
+    another example of computers beating humans, it says that no human can generate
+    a more general type than the above algorithm can!'
+  id: totrans-178
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 统一算法实际上具有一个奇妙的特性：它自动计算表达式的最一般类型，也称为主类型。也就是说，表达式可以具有的任何实际类型都可以通过用实际类型实例化推断的类型变量来获得。这是一个了不起的结果：在计算机战胜人类的另一个例子中，它表示没有人类可以生成比上述算法更一般的类型！
+- en: 30.5Let-Polymorphism
+  id: totrans-179
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 30.5Let-多态性
+- en: 'Unfortunately, though these type variables are superficially similar to the
+    polymorphism we had earlier ([Parametric Polymorphism](para-poly.html)), they
+    are not. Consider the following program:'
+  id: totrans-180
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 不幸的是，尽管这些类型变量在表面上类似于我们之前拥有的多态性（[参数多态性](para-poly.html)），但它们并不是。考虑以下程序：
+- en: '| (let ([id (fun (x) x)]) |'
+  id: totrans-181
+  prefs: []
+  type: TYPE_TB
+  zh: '| (let ([id (fun (x) x)]) |'
+- en: '|   (if (id true) |'
+  id: totrans-182
+  prefs: []
+  type: TYPE_TB
+  zh: '|   (if (id true) |'
+- en: '|       (id 5) |'
+  id: totrans-183
+  prefs: []
+  type: TYPE_TB
+  zh: '|       (id 5) |'
+- en: '|       (id 6))) |'
+  id: totrans-184
+  prefs: []
+  type: TYPE_TB
+  zh: '|       (id 6))) |'
+- en: 'If we write it with explicit type annotations, it type-checks:'
+  id: totrans-185
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果我们使用显式类型注释来编写它，它会通过类型检查：
+- en: '| (if (id<Boolean> true) |'
+  id: totrans-186
+  prefs: []
+  type: TYPE_TB
+  zh: '| (if (id<布尔> true) |'
+- en: '|     (id<Number> 5) |'
+  id: totrans-187
+  prefs: []
+  type: TYPE_TB
+  zh: '|     (id<数字> 5) |'
+- en: '|     (id<Number> 6)) |'
+  id: totrans-188
+  prefs: []
+  type: TYPE_TB
+  zh: '|     (id<数字> 6)) |'
+- en: However, if we use type inference, it does not! That is because the A’s in the
+    type of id unify either with Boolean or with Number, depending on the order in
+    which the constraints are processed. At that point id effectively becomes either
+    a (Boolean -> Boolean) or (Number -> Number) function. At the use of id of the
+    other type, then, we get a type error!
+  id: totrans-189
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 但是，如果我们使用类型推断，情况就不同了！这是因为 id 类型中的 A 会统一为布尔值或数字，具体取决于约束处理的顺序。在那一点上，id 实际上变成了
+    (Boolean -> Boolean) 或 (Number -> Number) 函数。在使用另一种类型的 id 时，我们会得到类型错误！
+- en: 'The reason for this is because the types we have inferred through unification
+    are not actually polymorphic. This is important to remember: just because you
+    type variables, you don’t necessarily have polymorphism! The type variables could
+    be unified at the next use, at which point you end up with a mere monomorphic
+    function. Rather, true polymorphism only obtains when you can instantiate type
+    variables.'
+  id: totrans-190
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这是因为我们通过统一推断出的类型实际上并不是多态的。这一点很重要：仅仅因为你有类型变量，并不一定意味着你有多态！类型变量可能会在下一次使用时统一，这时你最终得到的只是一个单态函数。相反，真正的多态只有在你可以实例化类型变量时才能获得。
+- en: In languages with true polymorphism, then, constraint generation and unification
+    are not enough. Instead, languages like ML and Haskell implement something colloquially
+    called let-polymorphism. In this strategy, when a term with type variables is
+    bound in a lexical context, the type is automatically promoted to be a quantified
+    one. At each use, the term is effectively automatically instantiated.
+  id: totrans-191
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 因此，在真正多态的语言中，约束生成和统一是不够的。相反，像 ML 和 Haskell 这样的语言实现了一种俗称的 let-多态。在这种策略中，当在词法上下文中绑定具有类型变量的术语时，类型会自动提升为量化的类型。在每次使用时，术语实际上会自动实例化。
+- en: 'There are many implementation strategies that will accomplish this. The most
+    naive (and unsatisfying) is to merely copy the code of the bound identifier; thus,
+    each use of id above gets its own copy of (fun (x) x), so each gets its own type
+    variables. The first might get the type (A -> A), the second (B -> B), the third
+    (C -> C), and so on. None of these type variables clash, so we get the effect
+    of polymorphism. Obviously, this not only increases program size, it also does
+    not work in the presence of recursion. However, it gives us insight into a better
+    solution: instead of copying the code, why not just copy the type? Thus at each
+    use, we create a renamed copy of the inferred type: id’s (A -> A) becomes (B ->
+    B) at the first use, and so on, thus achieving the same effect as copying code
+    but without its burdens. Because all these strategies effectively mimic copying
+    code, however, they only work within a lexical context.'
+  id: totrans-192
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 有许多实现策略可以实现这一点。最简单（但令人不满意）的是仅复制绑定标识符的代码；因此，上面每个 id 的使用都会得到它自己的 (fun (x) x) 的副本，因此每个都会得到它自己的类型变量。第一个可能得到类型
+    (A -> A)，第二个 (B -> B)，第三个 (C -> C)，依此类推。这些类型变量都不会发生冲突，因此我们得到了多态的效果。显然，这不仅增加了程序的大小，而且在存在递归时也不起作用。然而，这给了我们一个更好解决方案的启示：不要复制代码，为什么不只复制类型呢？因此，在每次使用时，我们创建推断类型的重命名副本：id
+    的 (A -> A) 在第一次使用时变成了 (B -> B)，依此类推，从而实现了与复制代码相同的效果，但不带来其负担。然而，由于所有这些策略实际上都是模仿复制代码，它们只在词法上下文中起作用。
