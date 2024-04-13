@@ -1,216 +1,306 @@
 - en: Testing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Testing
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Testing of async code is generally quite tricky. Async code may finish in ms
     or even minutes. So you need a way to either mock it away completely like for
     example you do with jasmine.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'or a more shorthand version:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Point is you try to avoid the whole timing thing. Rxjs have historically, in
     `Rxjs 4` provided the approach of using a TestScheduler with its own internal
     clock, which has enabled you to increment time. This approach have had two flavors
     :'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
 - en: '**Approach 1**'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This approach was pretty easy to grok. The second approach was using hot observables
     and a `startSchedule()` method, looking something like this :'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: A little harder to read IMO but you still get the idea, you control time because
     you have a `TestScheduler` that dictates how fast time should pass.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: This is all Rxjs 4 and it has changed a bit in Rxjs 5\. I should say that what
     I am about to write down is a bit of a general direction and a moving target so
     this chapter will be updated, but here goes.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: In Rxjs 5 something called `Marble Testing` is used. Yes that is related to
     [Marble Diagram](marble-diagrams.html) i.e you express your expected input and
     actual output with graphical symbols.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
 - en: First time I had a look at the [offical docs page](https://github.com/ReactiveX/rxjs/blob/master/doc/writing-marble-tests.md)
     I was like *What now with a what now?*. But after writing a few tests myself I
     came to the conclusion this is a pretty elegant approach.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
 - en: 'So I will explain it by showing you code:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Let's break it down part by part
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
 - en: '**Setup**'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'We essentially create a pattern instruction `-x-y-z` to the method `createHotObservable()`
     that exist on our `TestScheduler`. This is a factory method that does some heavy
     lifting for us. Compare this to writing this by yourself, in which case it corresponds
     to something like:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The reason we don''t do it ourselves is that we want the `TestScheduler` to
     do it, so time passes according to its internal clock. Note also that we define
     an expected pattern and an expected map:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Thats what we need for the setup, but to make the test run we need to `flush`
     it so that `TestScheduler` internally can trigger the HotObservable and run an
     assert. Peeking at `createHotObservable()` method we find that it parses the marble
     patterns we give it and pushes it to list:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE8]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Next step is assertion which happens in two steps
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
 - en: 1) expectObservable()
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: 2) flush()
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
 - en: The expect call pretty much sets up a subscription to our HotObservable
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE9]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: by defining an internal `schedule()` method and invoking it.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
 - en: 'The second part of the assert is the assertion itself:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE10]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: It ends up comparing two lists to each other, the `actual` and `expect` list.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
 - en: 'It does a deep compare and verifies two things, that the data happened on the
     correct time `frame` and that the value on that frame is correct. So both lists
     consist of objects that looks like this:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Both these properties must be equal for the assert to be true.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: Doesn't seem that bloody right?
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
 - en: Symbols
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'I havn''t really explained what we looked at with:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE12]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'But it actually means something. `-` means a time frame passed. `a` is just
     a symbol. So it matters how many `-` you write in actual and expected cause they
     need to match. Let''s look at another test so you get the hang of it and to introduce
     more symbols:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 但它实际上是有意义的。`-` 表示经过的时间段。`a` 只是一个符号。因此，实际和预期中写入的 `-` 数量很重要，因为它们需要匹配。让我们看另一个测试，这样你就能掌握它，并介绍更多符号：
 - en: '[PRE13]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'In this case our algorithm consists of a `filter()` operation. Which means
     1,2,3 will not be emitted, only 2\. Looking at the ingoing pattern we have:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我们的算法包括一个 `filter()` 操作。这意味着 1、2、3 不会被发出，只有 2。看看传入模式，我们有：
 - en: '[PRE14]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: And expected pattern
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 以及预期模式
 - en: '[PRE15]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: And this is where you clearly see that no of `-` matters. Every symbol you write,
     be it `-` or `x` etc, happens at a certain time, so in this case when `x` and
     `z` wont occur due to the `filter()` method it means we just replace them with
     `-` in the resulting output so
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是你清楚地看到 `-` 的数量很重要的地方。你写的每个符号，无论是 `-` 还是 `x` 等等，都发生在某个特定的时间，因此在这种情况下，当 `x`
+    和 `z` 由于 `filter()` 方法不会发生时，意味着我们只需在结果输出中用 `-` 替换它们，所以
 - en: '[PRE16]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: becomes
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 变成
 - en: '[PRE17]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: because `x` doesn't happen.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为 `x` 不会发生。
 - en: 'There are of course other symbols that are of interest that lets us define
     things like an error. An error is denoted as a `#` and below follows an example
     of such a test:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然还有其他有趣的符号，让我们定义诸如错误之类的事物。错误用 `#` 表示，下面是这样一个测试的示例：
 - en: '[PRE18]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'And here is another symbol `|` representing a stream that completes:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是另一个符号 `|` 代表完成的流：
 - en: '[PRE19]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: and there are more symbols than that like `(ab)` essentially saying that these
     two values are emitted on the same time frame and so on. Now that you hopefully
     understand the basics of how symbols work I urge you to write your own tests to
     fully grasp it and learn the other symbols presented at the official docs page
     that I mentioned in the beginning of this chapter.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有更多的符号，比如 `(ab)` 本质上表示这两个值在同一时间段被发出，等等。现在，希望你已经理解了符号如何工作的基础知识，我敦促你编写自己的测试来完全掌握它，并学习本章开头提到的官方文档页面中介绍的其他符号。
 - en: Happy testing
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 祝你测试愉快
