@@ -1,477 +1,663 @@
 - en: Primary/Backup Replication
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 主/备份复制
 - en: '6.824 2015 Lecture 3: Primary/Backup Replication'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015年第3讲：主/备份复制
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：**这些讲座笔记略有修改自2015年春季6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)上发布的内容。'
 - en: Today
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 今天
 - en: Replication
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制
 - en: '[Remus](papers/remus.pdf) case study'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Remus](papers/remus.pdf)案例研究'
 - en: Lab 2 introduction
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实验2介绍
 - en: Fault tolerance
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 容错
 - en: We'd like a service that continues despite failures!
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望一个服务能够在发生故障时继续运行！
 - en: '**Definitions:**'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**定义：**'
 - en: '*Available* -- still usable despite [some class of] failures'
+  id: totrans-10
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*可用* -- 尽管[某些类别的]故障仍可使用'
 - en: '*Correct* -- act just like a single server to clients'
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*正确* -- 对客户端的行为就像单个服务器'
 - en: A lot of issues that come up have to do with *correctness*
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 出现的许多问题与*正确性*有关
 - en: Very hard!
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非常困难！
 - en: Very useful!
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非常有用！
 - en: 'Need a failure model: what will we try to cope with?'
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 需要一个故障模型：我们将尝试应对什么？
 - en: '*Most common:* Independent fail-stop computer failures'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*最常见：*独立的故障停止计算机故障'
 - en: '*fail-stop failures:* computed correctly for a while and then stopped'
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*故障停止故障：*一段时间内计算正确，然后停止'
 - en: as opposed to computing incorrectly (different situation)
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与计算不正确（不同情况）相反
 - en: have to assume independence of failures
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须假设故障独立
 - en: (o.w. we could have primary fail `=>` backup fail `=>` fffffuu....)
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （否则我们可能会有主节点故障`=>`备份故障`=>` fffffuu....）
 - en: Remus further assumes only one failure at a time
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Remus进一步假设一次只有一个故障
 - en: '*Another model:* Site-wide power failure (and eventual reboot)'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*另一个模型：*站点范围内的停电（以及最终重启）'
 - en: (Network partition)
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （网络分区）
 - en: No bugs, no malice
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有错误，没有恶意
 - en: 'Core idea: replication'
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 核心思想：复制
 - en: '*Two* servers (or more)'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*两个*服务器（或更多）'
 - en: Each replica keeps state needed for the service
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个副本保留所需的服务状态
 - en: If one replica fails, others can continue
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果一个副本失败，其他副本可以继续
 - en: 'Example: fault-tolerant MapReduce master'
+  id: totrans-29
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 例如：容错MapReduce主节点
 - en: Lab 1 workers are already fault-tolerant, but not master
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实验室1的工作节点已经具有容错能力，但主节点没有
 - en: '`[Diagram: M1, M2, workers]`'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[图表：M1，M2，工作节点]`'
 - en: 'State:'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态：
 - en: worker list
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 工作节点列表
 - en: which jobs done
+  id: totrans-34
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 哪些工作已完成
 - en: which workers idle
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 哪些工作节点空闲
 - en: TCP connection state
+  id: totrans-36
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TCP连接状态
 - en: program counter
+  id: totrans-37
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 程序计数器
 - en: Big questions
+  id: totrans-38
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 重要问题
 - en: What *state* to replicate?
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要复制什么*状态*？
 - en: '*Example:* Remus replicates all of RAM and the CPU state'
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*例子：*Remus复制所有RAM和CPU状态'
 - en: How does replica get state?
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 副本如何获取状态？
 - en: When to *cut over* to backup?
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 何时切换到备份？
 - en: Is primary really down or is just the network down?
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点真的宕机了还是只是网络宕机了？
 - en: Are anomalies visible at cut-over?
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 切换时是否可见异常？
 - en: What will clients see?
+  id: totrans-45
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端会看到什么？
 - en: How to repair / re-integrate?
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何修复/重新集成？
 - en: How to get a new backup?
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何获得新的备份？
 - en: 'Two main approaches:'
+  id: totrans-48
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 两种主要方法：
 - en: '**State transfer**'
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**状态转移**'
 - en: '"Primary" replica executes the service'
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “主”副本执行服务
 - en: Primary sends [new] state to backups
+  id: totrans-51
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点向备份发送[新]状态
 - en: '*Example:* Remus'
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*例子：*Remus'
 - en: '**Replicated state machine**'
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**复制状态机**'
 - en: All replicas (primary and backup) execute all operations
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有副本（主节点和备份）执行所有操作
 - en: If same start state & same operations & same order & deterministic & *then*
     `=>` same end state
+  id: totrans-55
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果相同的起始状态和相同的操作和相同的顺序和确定性和*然后* `=>` 相同的结束状态
 - en: '*Ops* are transferred and not the state'
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*操作*被转移而不是状态'
 - en: '*State transfer* is simpler'
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '*状态转移*更简单'
 - en: But state may be large, slow to transfer
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但状态可能很大，传输速度慢
 - en: '*Remus* uses state transfer'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Remus*使用状态转移'
 - en: '*Replicated state machine* can be more efficient'
+  id: totrans-60
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '*复���状态机*可能更有效'
 - en: If operations are small compared to data
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果操作相对于数据很小
 - en: But complex, e.g. order on multi-core, determinism
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但复杂，例如多核上的顺序，确定性
 - en: Hard to make sure everyone got to the same state
+  id: totrans-63
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 很难确保每个人都达到相同的状态
 - en: Determinism can be problematic (time, threads, etc.)
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确定性可能会有问题（时间，线程等）
 - en: Labs use replicated state machines
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实验使用复制状态机
 - en: 'Remus: High Availability via Asynchronous Virtual Machine Replication, NSDI
     2008'
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Remus：通过异步虚拟机复制实现高可用性，NSDI 2008
 - en: Very ambitious system
+  id: totrans-67
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 非常雄心勃勃的系统
 - en: Whole-system replication
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整个系统复制
 - en: Completely *transparent* to applications and clients
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对应用程序和客户端完全*透明*
 - en: High availability for any existing software
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任何现有软件的高可用性
 - en: Would be magic if it worked well!
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果运行良好将是奇迹！
 - en: '*Failure model:*'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*故障模型：*'
 - en: Independent hardware faults
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 独立的硬件故障
 - en: Site-wide power failure
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 站点范围内的停电
 - en: 'Plan 1 (slow, broken):'
+  id: totrans-75
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 计划1（缓慢，破碎）：
 - en: '`[Diagram: app, O/S, Remus underneath]`'
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[图表：应用程序，操作系统，Remus底层]`'
 - en: two machines, *primary* and *backup*; plus net and other machines
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两台机器，*主节点*和*备份*；加上网络和其他机器
 - en: primary runs o/s and application s/w, talks to clients, etc.
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: backup does *not* initially execute o/s, applications, etc.
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: it only executes some Remus code
+  id: totrans-80
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'a few times per second:'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: pause primary
+  id: totrans-82
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: copy **entire RAM**, registers, disk to backup
+  id: totrans-83
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 10Gbps = 1GB/s network bandwidth
+  id: totrans-84
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 100MB/s disk bandwidth
+  id: totrans-85
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: network bandwidth limits RAM transfer rate
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: disk bandwidth limits disk transfer rate
+  id: totrans-87
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: resume primary
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'if primary fails:'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: start backup executing!
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** Is Plan 1 correct (as described above)?'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: i.e. does it look just like a single reliable server?
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'No:'
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: client sends write req. to primary, primary replies before backup had a chance
     to copy the new state
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: primary fails, backup takes over, but it does not reflect the last write req.
+  id: totrans-95
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: client will be screwed because his write was lost
+  id: totrans-96
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** What will outside world see if primary fails and replica takes over?'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: Will backup have same state as last visible on primary?
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Might a client request be lost? Executed twice?
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Yes: see above question'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** How to decide if primary has failed?'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** How will clients know to talk to backup rather than primary?'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** What if site-wide power failure?'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: Primary is running some o/s, has a plan for reboot from disk "crash-consistent"
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** What if primary fails while sending state to backup?'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: i.e. backup is mid-way through absorbing new state?
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** What if primary gets request, sends checkpoint to backup, and just before
     replying primary fails?'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
 - en: TCP layer will take care of this? If client retransmits request, that could
@@ -481,631 +667,792 @@
     an ACK from the client, which will never come because the client got nothing.
     Thus, backup will retransmit the packets that the primary never had a chance to
     and finally get the ACK from the client.
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** Is Plan 1 efficient?'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: Can we eliminate the fact that backup *state* trails the primary?
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Seems very hard!
+  id: totrans-111
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Primary would have to tell backup (and wait) on every instruction.
+  id: totrans-112
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Can we *conceal* the fact that backup's state lags primary?
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Prevent outside world from *seeing* that backup is behind last primary state
+  id: totrans-114
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: e.g. prevent primary sent RPC reply but backup state doesn't reflect that RPC
+  id: totrans-115
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: e.g. MapReduce `Register()` RPC, which it would be bad for backup to forget
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*Idea:* primary "holds" output until backup state catches up to output point'
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: e.g. primary receives RPC request, processes it, creates reply packet, but Remus
     holds reply packet until backup has received corresponding state update
+  id: totrans-118
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Remus epochs, checkpoints
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Primary runs for a while in Epoch 1 (E1), holding E1's output
+  id: totrans-120
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary pauses
+  id: totrans-121
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary copies RAM+disk changes from E1 to local buffer
+  id: totrans-122
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary resumes execution in E2, holding E2's output
+  id: totrans-123
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary sends checkpoint of RAM+disk to backup
+  id: totrans-124
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Backup copies all to separate RAM, then applies, then ACKs
+  id: totrans-125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary releases E1's output
+  id: totrans-126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Backup applies E1's changes to RAM and disk
+  id: totrans-127
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: If primary fails, backup finishes applying last epoch's disk+RAM, then starts
     executing
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** Any externally visible anomalies?'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** What if primary receives + executes a request, crashes before checkpoint?
     backup won''t have seen request!'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: 'That''s fine as long as primary did not reply to that request: client will
     just send request again'
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** If primary sends a packet, then crashes, is backup guaranteed to have
     state changes implied by that packet?'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Yes. That's the whole point of keeping the sent network packets buffered until
     the backup is up to date.
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** What if primary crashes partway through release of output? must backup
     re-send? How does it know what to re-send?'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** How does Remus decide it should switch to backup?'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
 - en: 'Naive mechanism: If the primary stops talking to the backup, then something
     went wrong.'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** Are there situations in which Remus will incorrectly activate the backup?
     i.e. primary is actually alive'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
 - en: Network partition...
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** When primary recovers, how does Remus restore replication? Needed, since
     eventually active ex-backup will itself fail'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** What if *both* fail, e.g. site-wide power failure?'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
 - en: RAM content will be lost, but disks will probably survive
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: After power is restored, reboot guest from one of the disks
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: O/S and application recovery code will execute
+  id: totrans-143
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: disk must be "crash-consistent"
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So probably not the backup disk if was in middle of installing checkpoint
+  id: totrans-145
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: disk shouldn't reflect any held outputs (... why not?)
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So probably not the primary's disk if was executing
+  id: totrans-147
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: I do not understand this part of the paper (Section 2.5)
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Seems to be a window during which neither disk could be used if power failed
+  id: totrans-149
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: primary writes its disk during epoch
+  id: totrans-150
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: meanwhile backup applies last epoch's writes to its disk
+  id: totrans-151
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** In what situations will Remus likely have good performance?'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** In what situations will Remus likely have low performance?'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: '**Q:** Should epochs be short or long?'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: Remus evaluation
+  id: totrans-155
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*Summary:* 1/2 to 1/4 native speed'
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Checkpoints are big and take time to send
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Output hold limits speed at which clients can interact
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Why so slow?
+  id: totrans-159
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Checkpoints are big and take time to generate and send
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 100ms for SPECweb2005 -- because many pages written
+  id: totrans-161
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: So inter-checkpoint intervals must be long
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So output must be held for quite a while
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So client interactions are slow
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Only 10 RPCs per second per client
+  id: totrans-165
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: How could one get better performance for replication?
+  id: totrans-166
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Big savings possible with application-specific schemes:'
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: just send state really needed by application, not all state
+  id: totrans-168
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: send state in optimized format, not whole pages
+  id: totrans-169
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: send operations if they are smaller than state
+  id: totrans-170
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: likely *not* transparent to applications
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: and probably not to clients either
+  id: totrans-172
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Primary-backup replication in Lab 2
+  id: totrans-173
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Outline
+  id: totrans-174
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: simple key/value database
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: primary and backup
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*replicated state machine:* replicate by primary sending each operation to
     backups'
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: tolerate network problems, including partition
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: either keep going, correctly
+  id: totrans-179
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: or suspend operations until network is repaired
+  id: totrans-180
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: allow replacement of failed servers
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: you implement essentially all of this (unlike lab 1)
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*"View server"* decides who primary `p` and backup `b` are'
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '*Main goal:* avoid "split brain" -- disagreement about who primary is'
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Clients and servers ask view server
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: They don't make independent decisions
+  id: totrans-186
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Repair
+  id: totrans-187
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: view server can co-opt "idle" server as `b` after old `b` becomes `p`
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: primary initializes new backup's state
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Key points:'
+  id: totrans-190
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Only one primary at a time!
+  id: totrans-191
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: The primary must have the latest state!
+  id: totrans-192
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: We will work out some rules to ensure these
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: View server
+  id: totrans-194
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Maintains a sequence of "views"
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Example:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Monitors server liveness
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: each server periodically sends a ping RPC (more like a heartbeat)
+  id: totrans-199
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*"dead"* if missed `N` pings in a row'
+  id: totrans-200
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*"live"* after single ping'
+  id: totrans-201
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Can be more than two servers pinging view server
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: if more than two, *"idle"* servers
+  id: totrans-203
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'If primary is dead:'
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: new view with previous backup as primary
+  id: totrans-205
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: If backup is dead, or no backup
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: new view with previously idle server as backup
+  id: totrans-207
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: OK to have a view with just a primary, and no backup
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: But -- if an idle server is available, make it the backup
+  id: totrans-209
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: How to ensure new primary has up-to-date replica of state?
+  id: totrans-210
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Only promote previous backup
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. don't make an idle server the primary
+  id: totrans-212
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Backup must remember if it has been initialized by primary
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: If not, don't function as primary even if promoted!
+  id: totrans-214
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** Can more than one server think it is primary?'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How to ensure only one server acts as primary?
+  id: totrans-217
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '...even though more than one may *think* it is primary.'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
 - en: '*"Acts as"* `==` executes and responds to client requests'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
 - en: '*The basic idea:*'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The rules:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
 - en: Primary in view `i` must have been primary or backup in view `i-1`
+  id: totrans-223
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Primary must wait for backup to accept each request
+  id: totrans-224
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '**Q:** What if there''s no backup or the backup doesn''t know it''s a backup?'
+  id: totrans-225
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**A:** Primary can''t make progress without a backup if it''s part of the view,
     so it just waits'
+  id: totrans-226
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**A:** If the view is updated and the backup is taken out of the view then
     primary can operate in "dangerous mode" without a backup'
+  id: totrans-227
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Non-backup must reject forwarded requests
+  id: totrans-228
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Non-primary must reject direct client requests
+  id: totrans-229
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Every operation must be before or after state transfer
+  id: totrans-230
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'Example:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-232
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How can new backup get state?
+  id: totrans-233
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: e.g. all the keys and values
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: if S2 is backup in view `i`, but was not in view `i-1`,
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 should ask primary to transfer the complete state
+  id: totrans-236
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Rule for state transfer:'
+  id: totrans-237
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: every operation (`Put/Get/Append`) must be either before or after state xfer
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`==` state xfer must be atomic w.r.t. operations'
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: either
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: op is before, and xferred state reflects op
+  id: totrans-241
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: op is after, xferred state doesn't reflect op, primary forwards op after state
+  id: totrans-242
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Q:** Does primary need to forward `Get()`''s to backup?'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
 - en: After all, `Get()` doesn't change anything, so why does backup need to know?
+  id: totrans-244
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: and the extra RPC costs time
+  id: totrans-245
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'has to do with ensuring there''s just one primary:'
+  id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: suppose there's two primaries by accident (P and P' both think they are primaries)
+  id: totrans-247
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: how can this occur? network partition?
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: suppose client sends a Get request to the wrong primary P'
+  id: totrans-249
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设客户端向错误的主节点 P' 发送 Get 请求
 - en: then P' will try to fwd the request to P (which P' thinks it's the backup)
+  id: totrans-250
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后 P' 将尝试将请求转发到 P（P'认为它是备份）
 - en: 'then P will tell P'': *"Hey, bug off, I''m the primary"*'
+  id: totrans-251
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后 P 将告诉 P'：*“嘿，滚开，我是主要的”*
 - en: '**Q:** How could we make primary-only `Get()`''s work?'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 我们如何使仅主要的 `Get()` 起作用？'
 - en: '**Q:** Are there cases when the Lab 2 protocol cannot make forward progress?'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问：** 在实验 2 协议中是否存在无法取得前进的情况？'
 - en: View service fails
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视图服务失败
 - en: Primary fails before backup gets state
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在备份获取状态之前，主要失败
 - en: We will start fixing those in Lab 3
+  id: totrans-256
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们将在实验 3 中开始修复这些问题
