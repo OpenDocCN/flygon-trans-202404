@@ -1,911 +1,1179 @@
 - en: Raft
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '6.824 2015 Lecture 6: Raft'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: 'This lecture: Raft'
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: larger topic is fault tolerance via replicated state machines
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft -- a much more complete design than straight Paxos
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Raft overview:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Raft vs Paxos?
+  id: totrans-8
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Our use of Paxos:'
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: agrees separately on each client operation
+  id: totrans-10
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Raft:'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: agrees on each new leader (and on tail of log)
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: agreement not required for most client operations
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft is Paxos optimized for log appends (more or less)
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: why Raft-style leader?
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: no *dueling proposers* (unless leader fails)
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader just tells other people what to do
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: fewer messages, less complexity (unless leader fails)
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: well-defined notion of one log being more complete than another
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: simplifies switching leaders (and maybe crash recovery)
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: very hard to find a solution for this in Paxos because logs have "holes"
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: What about understandability?
+  id: totrans-22
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: you must decide for yourself
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: straight Paxos is simpler than Raft
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: but straight Paxos is too simple for practical replication
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: everyone extends it in their own way
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: and ends up with something more or less like Raft
+  id: totrans-27
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Paxos+log+leader probably not simpler than Raft
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: though presumably depends on which Paxos variant you choose
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Is more direct use of Paxos (like Lab 3) ever a win?
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: i.e. is a Raft-style leader ever a bad idea?
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: geographically spread peers
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: a single leader would be far from some clients
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: some peers would be slow to other peers (Paxos tolerates lag)
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Let's start w/ Raft w/ no leader change
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: for now, reliable leader
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: followers may be slow or unreachable (but they do not lose state)
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: what do we want?
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: tolerate a *minority of failed followers*
+  id: totrans-39
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: live followers and dead followers *converge on same log* since replication requires
     same order of execution
+  id: totrans-40
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: '*execute only when entry cannot be lost* (committed) since cannot easily undo
     execution or reply to client'
+  id: totrans-41
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'idea for ensuring identical log:'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader sends *log entry*, *index*, and info about *previous* entry
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: client can reject (e.g I don't have previous entry!)
+  id: totrans-44
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader backs up for that follower, sends earlier entries
+  id: totrans-45
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader forces followers' logs to be identical to leader's
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'idea for execution:'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'idea #1 means leader knows follower is identical up to some point'
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: once a majority are identical up to a point,
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader sends that out as commit point,
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: everyone can execute through that point,
+  id: totrans-51
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader can reply to clients
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: What to do if the leader crashes?
+  id: totrans-53
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: other servers time out (no AppendEntries "heart-beats" for a while)
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: if other servers are missing heartbeats they start to suspect the leader is
     down
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: can't really know *for sure* leader is down/up on a network
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: choose a new leader!
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft divides time into terms
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: most terms have a leader
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: What are the dangers in transition to a new leader?
+  id: totrans-60
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: two leaders
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: no leader
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: might forget an executed log entry
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: logs might end up different (diverge)
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Talk about leader election first, then log consistency at term boundary
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: How to ensure at most one leader in a term?
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何确保一个任期内最多只有一个领导者？
 - en: (look at Figure 2, RequestVote RPC, and Rules for Servers)
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: （查看图2，RequestVote RPC和服务器规则）
 - en: leader must get votes from a majority of servers
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 领导者必须从大多数服务器获得投票
 - en: '**Rule:** server can cast only one vote per term'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**规则：**服务器每个任期只能投一票'
 - en: thus at most one server can think it has won
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此最多只有一个服务器可能认为自己赢了
 - en: why a majority?
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么需要多数？
 - en: the answer is always the same!
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 答案总是一样的！
 - en: '"requiring a majority means not requiring a minority essentially"'
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “要求多数意味着不要求少数”
 - en: allows fault tolerance (failure of minority doesn't impede progress)
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许容错（少数失败不会阻碍进展）
 - en: prevents split brain (at most one candidate can get a majority)
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 防止分裂大脑（最多只有一个候选人可以获得多数票）
 - en: ensures overlap (at least one in majority has every previously committed log
     entry)
+  id: totrans-76
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保重叠（大多数中至少有一个拥有每个先前提交的日志条目）
 - en: Could election fail to choose any leader?
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 选举可能无法选择任何领导者吗？
 - en: Yes!
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的！
 - en: '= 3 candidates split the vote evenly or even # of live servers, two candidates
     each get half'
+  id: totrans-79
   prefs:
   - PREF_IND
   - PREF_UL
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: = 3个候选人平均分裂投票，或者甚至数量的活动服务器，两个候选人各获得一半
 - en: What happens after an election in which no-one gets majority?
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如果在一次选举中没有人获得多数票会发生什么？
 - en: timeout, increment term, new election
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 超时，增加任期，新选举
 - en: when a server decides it might wants to be a candidate it first waits a random
     delay and only if it doesn't hear from anyone else then it becomes a candidate
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当服务器决定可能想成为候选人时，首先会等待一个随机延迟，只有在没有收到其他人的消息时才会成为候选人
 - en: higher term takes precedence, candidates for older terms quit
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更高的任期优先，较旧任期的候选人退出
 - en: 'Note: timeout must be longer than it takes to complete election!'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：超时必须比完成选举所需的时间长！
 - en: 'Note: this means some terms may have no leader, no log entries'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意：这意味着一些任期可能没有领导者，没有日志条目
 - en: How does Raft reduce chances of election failure due to split vote?
+  id: totrans-86
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Raft如何减少由于分裂投票而导致选举失败的机会？
 - en: each server delays a random amount of time before starting candidacy
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个服务器在开始候选人身份之前都会延迟一段随机时间
 - en: why is the random delay useful?
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随机延迟为什么有用？
 - en: '[see diagram of times at which servers'' delays expire]'
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[查看服务器延迟到期时间的时间图]'
 - en: one will choose lowest random delay
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个将选择最低随机延迟
 - en: hopefully enough time to elect before next delay expires
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 希望在下一个延迟到期之前有足够的时间进行选举
 - en: this idea comes up often in distributed systems
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个想法在分布式系统中经常出现
 - en: 'Diagram:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 图表：
 - en: '[PRE1]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How to choose the random delay range?
+  id: totrans-95
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何选择随机延迟范围？
 - en: 'too short: 2nd candidate starts before first finishes'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 太短：第二个候选人在第一个候选人完成之前开始
 - en: 'too long: system sits idle for too long after leader fails'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 太长：领导者失败后系统空闲太久
 - en: 'a rough guide:'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个大致的指导：
 - en: suppose it takes 10ms to complete an unopposed election
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设完成无阻挡选举需要10ms
 - en: and there are five servers
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并且有五个服务器
 - en: we want delays to be separated by (say) 20ms
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们希望延迟相隔（比如）20ms
 - en: so random delay from 0 to 100 ms
+  id: totrans-102
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此随机延迟从0到100ms
 - en: plus a few multiples of leader heartbeat interval
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 再加上几个领导者心跳间隔的倍数
 - en: Remember this random delay idea!
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住这个随机延迟的想法！
 - en: it's a classic scheme for decentralized soft election; e.g. ethernet
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是一种经典的分散式软选举方案；例如以太网
 - en: 'Raft''s elections follow a common pattern: separation of safety from progress'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: Raft的选举遵循一个常见模式：将安全性与进展分开
 - en: '*Hard* mechanisms ensure `< 2` leaders in one term'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*硬*机制确保一个任期内 `< 2` 个领导者'
 - en: 'Problem: elections can fail (e.g. 3-way split)'
+  id: totrans-108
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题：选举可能失败（例如3路分裂）
 - en: 'Solution: always safe to start a new election in a new term'
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解决方案：在新任期中始终启动新选举是安全的
 - en: 'Poblem: repeated elections can prevent any work getting done'
+  id: totrans-110
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题：重复的选举可能阻止任何工作的进行
 - en: 'Solution: *soft* mechanisms reduce probability of wasted elections'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解决方案：*软*机制降低浪费选举的概率
 - en: heartbeat from leader (remind servers not to start election)
+  id: totrans-112
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 来自领导者的心跳（提醒服务器不要开始选举）
 - en: timeout period (don't start election too soon)
+  id: totrans-113
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 超时期限（不要太早开始选举）
 - en: random delays (give one leader time to be elected)
+  id: totrans-114
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随机延迟（给一个领导者时间来当选）
 - en: '**Remember:** there''s a way to split the problem into "safety/correctness"
     concerns and "liveness/performance" concerns'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '**记住：**有一种方法可以将问题分为“安全/正确性”和“活性/性能”两个方面'
 - en: What if old leader isn't aware a new one is elected?
+  id: totrans-116
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如果旧领导者不知道新领导者当选了怎么办？
 - en: perhaps b/c old leader didn't see election messages
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能是因为旧领导者没有看到选举消息
 - en: new leader means a majority of servers have incremented currentTerm
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新领导者意味着大多数服务器已经增加了currentTerm
 - en: so old leader (w/ old term) can't get majority for AppendEntries
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此旧领导者（带有��任期）无法为AppendEntries获得多数票
 - en: though a minority may accept old server's log entries...
+  id: totrans-120
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管少数可能接受旧服务器的日志条目...
 - en: so logs may diverge at end of old term...
+  id: totrans-121
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，在旧任期结束时日志可能会分歧...
 - en: Now let's switch topics to **data handling** at term boundaries
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
 - en: What do we want to ensure?
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: each server executes the same client cmds, in the same order
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. if any server executes, then no server executes something else for that
     log entry
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: as long as single leader, we've already seen it makes logs identical what about
     when leader changes?
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: What's the danger?
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: Leader of term 3 crashed while sending `AppendEntries`
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: May be a series of crashes, e.g.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Thus different entries for the same index!
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Roll-back is a big hammer -- forces leader's log on everyone
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: in above examples, whoever is elected imposes log on everyone
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Example:'
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S3 is chosen as new leader for term 6
+  id: totrans-136
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S3 wants to send out a new entry (in term 6)
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`AppendEntries` says previous entry must have term 5'
+  id: totrans-138
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 replies false (`AppendEntries` step 2)
+  id: totrans-139
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S3 decrements `nextIndex[S2]`
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S3 sends `AppendEntries` for the op w/ term=5, saying prev has term=3
+  id: totrans-141
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 deletes op from term 4 (`AppendEntries` step 3) and replaces with op for
     term 5 from S3 (and S1 rejects b/c it doesn't have anything in that entry)
+  id: totrans-142
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 sets op for term 6 as well
+  id: totrans-143
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Ok, leader will force its own log on followers
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
 - en: but that's not enough!
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: can roll-back delete an executed entry?
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: When is a log entry executed?
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
 - en: when leader advances `commitIndex/leaderCommit`
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: when a majority match the leader up through this point
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Could new leader roll back executed entries from end of previous term?
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
 - en: i.e. could an executed entry be missing from the new leader's log?
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft needs to ensure new leader's log contains every potentially executed entry
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. must forbid election of server who might be missing an executed entry
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: What are the election rules?
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 2 says only vote if candidate's log "at least as up to date"
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: So leader will be *at least as up to date* as a majority
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: What does "at least as up to date" mean?
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: 'Could it mean log is >= length? No, example:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: first, could this scenario happen? how?
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 leader in epoch 6; crash+reboot; leader in epoch 7; crash and stay down
+  id: totrans-161
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: both times it crashed after only appending to its own log
+  id: totrans-162
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 leader in epoch 8, only S2+S3 alive, then crash
+  id: totrans-163
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: who should be next leader?
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 has longest log, but entry 8 is committed !!!
+  id: totrans-165
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft adopts leader's log, so S1 as leader -> un-commit entry 8
+  id: totrans-166
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: this would be incorrect since S2 may have replied to client
+  id: totrans-167
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: so new leader can only be one of S2 or S3
+  id: totrans-168
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. the rule cannot be simply "longest log"
+  id: totrans-169
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: End of 5.4.1 explains "at least as up to date" voting rule
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: compare last entry
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: higher term wins
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: if equal terms, longer log wins
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'So:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: S1 can't get any vote from S2 or S3, since `7 < 8`
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 will vote for either S2 or S3, since `8 > 7`
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1's operations from terms 6 and 7 will be discarded!
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: ok since no majority -> not executed -> no client reply
+  id: totrans-178
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The point:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: '"at least as up to date" rule causes new leader to have all executed entries
     in its log'
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: so new leader won't roll back any executed operation
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'similar to Paxos: new round ends up using chosen value (if any) of prev round'
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The question: Figure 7, which of a/d/f could be elected?'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: i.e. majority of votes from "less up to date" servers?
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The most subtle thing about Raft (figure 8)
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
 - en: 'Figure 8:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: not 100% true that a log entry on a majority is committed
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. will never be forgotten
+  id: totrans-189
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Figure 8:'
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 was leader in term 2, sends out two copies of 2
+  id: totrans-191
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S5 leader in term 3
+  id: totrans-192
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 leader in term 4, sends one more copy of 2 (b/c S3 rejected op 4)
+  id: totrans-193
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: what if S5 now becomes leader?
+  id: totrans-194
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S5 can get a majority (w/o S1)
+  id: totrans-195
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S5 will roll back 2 and replace it with 3
+  id: totrans-196
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: could 2 have executed?
+  id: totrans-197
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: it is on a majority...
+  id: totrans-198
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: so could S1 have mentioned it in leaderCommit after majority?
+  id: totrans-199
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: no! very end of Figure 2 says "log[N].term == currentTerm"
+  id: totrans-200
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: and S1 was in term 4 when sending 3rd copy of 2
+  id: totrans-201
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: what's Raft's actual commit point?
+  id: totrans-202
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: bottom-right of page 310
+  id: totrans-203
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '"committed once the leader that created the entry has replicated on majority"'
+  id: totrans-204
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: and commit point of one entry commits all before it
+  id: totrans-205
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: which is how 2 *could* have committed if S1 hadn't lost leadership
+  id: totrans-206
   prefs:
   - PREF_IND
   - PREF_IND
@@ -913,107 +1181,131 @@
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Another topic: configuration change (Section 6)'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: configuration = set of servers
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: how does Raft change the set of servers?
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: e.g. every few years might want to retire some, add some
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: or move all at once to an entirely new set of server
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: or increase/decrease the number of servers
+  id: totrans-212
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: How might a *broken* configuration change work?
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
 - en: each server has the list of servers in the current config
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: change configuation by changing lists, one by one
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'example: want to replace S3 with S4'
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'S1: 1,2,3 1,2,4'
+  id: totrans-217
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'S2: 1,2,3 1,2,3'
+  id: totrans-218
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'S3: 1,2,3 1,2,3'
+  id: totrans-219
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'S4: 1,2,4 1,2,4'
+  id: totrans-220
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: OOPS!
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'now *two* disjoint group/leaders can form:'
+  id: totrans-222
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S2 and S3 (who know nothing of new config)
+  id: totrans-223
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: S1 and S4
+  id: totrans-224
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: both can process client requests, so split brain
+  id: totrans-225
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Raft configuration change
+  id: totrans-226
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '**Idea:** "join consensus" stage that includes *both* old and new configuration'
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader of old group logs entry that switches to joint consensus
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: during joint consensus, leader separately logs in old and new
+  id: totrans-229
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: i.e. *two* log and *two* agreements on each log entry
+  id: totrans-230
   prefs:
   - PREF_IND
   - PREF_IND
@@ -1021,90 +1313,111 @@
   type: TYPE_NORMAL
 - en: this will force new servers to catch up and force new and old logs to be the
     same
+  id: totrans-231
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: after majority of old and new have switched to joint consensus,
+  id: totrans-232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: leader logs entry that switches to final configuration
+  id: totrans-233
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Example (which won''t make sense because it''s not properly illustrated in
     the original notes):'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-235
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: if crash but new leader didn't see the switch to joint consensus,
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: then old group will continue, no switch, but that's OK
+  id: totrans-237
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: if crash and new leader did see the switch to joint consensus,
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: it will complete the configuration change
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: Performance
+  id: totrans-240
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: no numbers on how fast it can process requests
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: what are the bottlenecks likely to be?
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'disk:'
+  id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: need to write disk for client data durability, and for protocol promises
+  id: totrans-244
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: write per client request? so 100 per second?
+  id: totrans-245
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: could probably batch and get 10,000 to 100,000
+  id: totrans-246
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'net: a few message exchanges per client request'
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 10s of microseconds for local LAN message exchange?
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: so 100,000 per second?
+  id: totrans-249
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
 - en: '*Next week:* use of a Raft-like protocol in a complex application'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL

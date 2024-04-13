@@ -1,1239 +1,1819 @@
 - en: Paxos
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Paxos
 - en: '6.824 2015 Lecture 5: Paxos'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6.824 2015 年第 5 讲：Paxos
 - en: '**Note:** These lecture notes were slightly modified from the ones posted on
     the 6.824 [course website](http://nil.csail.mit.edu/6.824/2015/schedule.html)
     from Spring 2015.'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意：** 这些讲义笔记是从 2015 年春季 6.824 [课程网站](http://nil.csail.mit.edu/6.824/2015/schedule.html)
+    上发布的讲义笔记中稍作修改的。'
 - en: Intro
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 简介
 - en: Starting a new group of lectures on stronger fault tolerance
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 开始一个新的关于更强容错性的讲座组
 - en: 'Today:'
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 今天：
 - en: 'cleaner approach to replication: RSM via Paxos'
+  id: totrans-6
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过 Paxos 实现更干净的复制方法：RSM
 - en: Lab 3
+  id: totrans-7
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实验三
 - en: 'Subsequent lectures:'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 后续讲座：
 - en: How to use Paxos to build systems (Harp, EPaxos, Spanner)
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如何使用 Paxos 构建系统（Harp、EPaxos、Spanner）
 - en: Paxos
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Paxos
 - en: 'Links:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 链接：
 - en: '[Paxos Made Simple](papers/paxos-simple.pdf), by Leslie Lamport, 2001'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[简化版 Paxos](papers/paxos-simple.pdf)，Leslie Lamport，2001 年'
 - en: '[Simple explanations from Quora](https://www.quora.com/Distributed-Systems/What-is-a-simple-explanation-of-the-Paxos-algorithm)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Quora 上的简单解释](https://www.quora.com/Distributed-Systems/What-is-a-simple-explanation-of-the-Paxos-algorithm)'
 - en: '[Neat Algorithms - Paxos](http://harry.me/blog/2014/12/27/neat-algorithms-paxos/)'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[简洁的算法 - Paxos](http://harry.me/blog/2014/12/27/neat-algorithms-paxos/)'
 - en: '[Paxos Replicated State Machines as the Basis of a High-Performance Data Store](http://static.usenix.org/event/nsdi11/tech/full_papers/Bolosky.pdf)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Paxos 复制状态机作为高性能数据存储的基础](http://static.usenix.org/event/nsdi11/tech/full_papers/Bolosky.pdf)'
 - en: '[Paxos notes](http://wellquite.org/blog/paxos_notes.html)'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Paxos 笔记](http://wellquite.org/blog/paxos_notes.html)'
 - en: '[Paxos made simple paper review](http://blog.acolyer.org/2015/03/04/paxos-made-simple/)'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Paxos 简化版论文评论](http://blog.acolyer.org/2015/03/04/paxos-made-simple/)'
 - en: '[On some subtleties of Paxos](http://the-paper-trail.org/blog/on-some-subtleties-of-paxos/)'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[关于 Paxos 的一些微妙之处](http://the-paper-trail.org/blog/on-some-subtleties-of-paxos/)'
 - en: 'Recall: RSM'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想：RSM
 - en: maintain replicas by executing operations in the same order
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过以相同顺序执行操作来维护副本
 - en: requires all replicas to agree on the (set and) order of operations
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要所有副本就操作的（集合和）顺序达成一致
 - en: Lab 2 critique
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 实验二批评
 - en: primary/backup with viewserver
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 带有视图服务器的主/备份
 - en: '**pro:**'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**优点：**'
 - en: conceptually simple
+  id: totrans-25
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 概念上很简单
 - en: just two msgs per op (request, reply)
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个操作只需两个消息（请求、回复）
 - en: primary can do computation, send result to backup
+  id: totrans-27
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 主节点可以进行计算，将结果发送到备份节点
 - en: only two k/v servers needed to tolerate one failure
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只需要两个 k/v 服务器即可容忍一个故障
 - en: works with network partition
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与网络分区配合工作
 - en: '**con:**'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**缺点：**'
 - en: ViewServer is a *single point of failure*
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视图服务器是一个 *单点故障*
 - en: order can be messy, e.g. new view, data to backup, ack, &c
+  id: totrans-32
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 顺序可能混乱，例如新视图、数据备份、确认等
 - en: tension if backup is slow / temporarily unavail
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果备份节点慢 / 暂时不可用，会产生紧张
 - en: primary can wait for backup -- slow
+  id: totrans-34
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 主节点可以等待备份节点 -- 较慢
 - en: viewserver can declare backup dead -- expensive, hurts fault tolerance
+  id: totrans-35
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 视图服务器可以声明备份节点死亡 -- 昂贵，损害了容错性
 - en: 'We would like a general-purpose ordering scheme with:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望有一个通用的排序方案，具有：
 - en: no single point of failure
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有单点故障
 - en: graceful handling of slow / intermittent replicas
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优雅处理慢/间歇性副本
 - en: handling of network partitions
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 处理网络分区
 - en: '**Paxos** will be a key building block for this.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Paxos** 将是这一点的关键构建块。'
 - en: some number of nodes participate in *an instance of Paxos*
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些节点参与 *Paxos 实例*
 - en: '**Q:** What is this *instance*?'
+  id: totrans-42
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Q:** 这个 *实例* 是什么？'
 - en: '**A:** *"Each new command requires a separate Paxos agreement, which the paper
     calls an instance. So the database replicas might agree that the first command
     to execute is ''command one'', and they use Paxos to agree on that. Then that
     instance of Paxos is done. A while later another client sends ''command two'';
     the replicas start up an entirely separate instance of Paxos to agree on this
     second client command.''* --RTM'
+  id: totrans-43
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**A:** *"每个新命令都需要一个单独的 Paxos 协议，文章称之为一个实例。因此，数据库副本可能会同意首个要执行的命令是 ''命令一''，它们使用
+    Paxos 来达成一致。然后，这个 Paxos 实例就完成了。一段时间后，另一个客户端发送 ''命令二''；副本将启动一个完全独立的 Paxos 实例来达成对第二个客户端命令的一致意见。”*
+    --RTM'
 - en: each node knows the address of every other node for that instance
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点都知道该实例中每个其他节点的地址
 - en: 'each instance of Paxos can reach consensus on at most one value typically,
     a system uses many instances of Paxos each instance usually decides one operation
     assumptions: asynchronous, non-Byzantine'
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Paxos 的每个实例通常只能达成对一个值的共识，系统通常使用多个 Paxos 实例，每个实例通常决定一个操作的假设：异步、非拜占庭
 - en: What does Paxos provide? How does it work?
+  id: totrans-46
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Paxos 提供了什么？它是如何工作的？
 - en: '**"black-box"** interface to a Paxos instance, on each node:'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**“黑盒子”** Paxos 实例的接口，在每个节点上：'
 - en: Propose a value (e.g., operation)
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议一个值（例如，操作）
 - en: Check what value has been decided, if any
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 检查已决定的值，如果有的话
 - en: '[ Lab 3A: `src/paxos/paxos.go`: Start, Status ]'
+  id: totrans-50
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[实验三 A：`src/paxos/paxos.go`：启动、状态]'
 - en: '**Correctness:**'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**正确性：**'
 - en: if agreement reached, all agreeing nodes see same value
+  id: totrans-52
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果达成协议，所有达成协议的节点都看到相同的值。
 - en: '**Fault-tolerance:**'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**容错：**'
 - en: can tolerate non-reachability of a minority of nodes (correctness implies they
     won't agree at all)
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以容忍少数节点无法访问（正确性意味着它们根本不会达成一致）。
 - en: '**Liveness:**'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**活性：**'
 - en: a majority must be alive and able to communicate reliably (minorities are not
     live)
+  id: totrans-56
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 大多数必须是活动的并且能够可靠地通信（少数不活动）。
 - en: How to build a system using Paxos?
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何使用 Paxos 构建系统？
 - en: Primary/Backup like Lab 2, but use Paxos to replicate the ViewServer
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 主/备份类似于 Lab 2，但使用 Paxos 复制视图服务器。
 - en: '[ next Tuesday''s lecture will be about such a system ]'
+  id: totrans-59
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[ 下周二的讲座将涉及这样的系统 ]'
 - en: '*Lab 3*: no ViewServer, all replicas use Paxos instead of primary/backup'
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*Lab 3*：没有视图服务器，所有复制品都使用 Paxos 而不是主/备份。'
 - en: Replicating either the ViewServer or K/V server with Paxos is similar.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Paxos 复制视图服务器或 K/V 服务器类似。
 - en: Will look at a sketch of how to do a Paxos-based K/V server.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 将查看如何进行基于 Paxos 的 K/V 服务器的草图。
 - en: 'The **basic idea**:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '**基本思想**：'
 - en: '[ Diagram: clients, replicas, log in each replica, K/V layer, Paxos layer]'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[ 图表：客户端、复制品、每个复制品中的日志、K/V 层、Paxos 层]'
 - en: no viewserver
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有视图服务器。
 - en: three replicas
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 三个复制品。
 - en: clients can send RPCs to any replica (not just primary)
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端可以向任何复制品发送 RPC（不仅仅是主要的）。
 - en: server appends each client op to a replicated *log* of operations
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器将每个客户端操作附加到一组复制的*操作日志*中。
 - en: '`Put`, `Get` (and more later)'
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Put`、`Get`（以及稍后的更多）。'
 - en: log entries (instances) are numbered sequentially
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 日志条目（实例）按顺序编号。
 - en: Paxos ensures agreement on content of each log entry
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Paxos 确保每个日志条目的内容达成一致。
 - en: separate Paxos agreement for each of these log entries
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个这些日志条目都有单独的 Paxos 协议。
 - en: 'separate *instance* of Paxos algorithm is run for log entry #`i`'
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '为日志条目 #`i` 运行单独的 Paxos 算法实例。'
 - en: '**Q:** Can one log entry be agreed on at the same time with another? What if
     they depend on one another like `Put(k1, a)` and `Append(k1, b)`?'
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**问：** 一个日志条目可以与另一个同时达成一致吗？如果它们彼此依赖，比如 `Put(k1, a)` 和 `Append(k1, b)`？'
 - en: '**A:** Yes! They can be agreed upon on the same time.'
+  id: totrans-75
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**答：** 可以！它们可以同时达成一致。'
 - en: '**A:** you can have agreed on log entry #`i` before agreeing on log entry #`i+1`'
+  id: totrans-76
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**答：** 你可以在达成对日志条目 #`i` 的同意之前达成对日志条目 #`i+1` 的同意。'
 - en: This means the reply associated with the `Get` or `Put` request in log entry
     `i+1` will have to wait for the other log entries to be set (interesting)
+  id: totrans-77
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这意味着与日志条目 `i+1` 中的 `Get` 或 `Put` 请求相关联的回复将不得不等待其他日志条目设置（有趣）。
 - en: servers can throw away log entries that all other servers have agreed on (and
     responded to?)
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 服务器可以丢弃所有其他服务器已经达成一致（并响应？）的日志条目。
 - en: but if a server crashes, the other servers will know to keep their log entries
     around for when it comes back
+  id: totrans-79
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但如果一个服务器崩溃，其他服务器将知道在它恢复时保留它们的日志条目。
 - en: protocol does **not** require designated proposers or leaders for correctness
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 协议**不**需要指定的提议者或领导者来确保正确性。
 - en: these only help w/ performance
+  id: totrans-81
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些只有在性能方面有所帮助。
 - en: low probability of proposing "livelock" that can be overcome by having proposers
     wait a random amount of time
+  id: totrans-82
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者等待随机时间可以克服建议的“活锁”的低概率。
 - en: once a Paxos node agrees on a value it never changes its mind
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一旦 Paxos 节点就某个值达成一致，就不会改变主意。
 - en: 'Example:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: client sends `Put(a, b)` to `S1`
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端将 `Put(a, b)` 发送给 `S1`。
 - en: '`S1` picks a log entry 3'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S1` 选择一个日志条目 3。'
 - en: '`S1` uses Paxos to get all servers to agree that entry 3 holds `Put(a,b)`'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S1` 使用 Paxos 让所有服务器都同意条目 3 包含 `Put(a,b)`。'
 - en: 'Example:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: client sends `Get(a)` to `S2`
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 客户端将 `Get(a)` 发送给 `S2`。
 - en: '`S2` picks log entry 4'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S2` 选择日志条目 4。'
 - en: '`S2` uses Paxos to get all servers to agree that entry 4 holds `Get(a)`'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S2` 使用 Paxos 让所有服务器都同意条目 4 包含 `Get(a)`。'
 - en: '`S2` scans log up to entry 4 to find latest `Put(a, ...)`'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S2` 扫描日志直到条目 4，以找到最新的 `Put(a, ...)`。'
 - en: '**TODO:** `O(n)` worst case for doing a `Get` because you can have `Put` followed
     by a gazillion `PutAppend`''s (or you can have just one `Put` stored way back?).'
+  id: totrans-93
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**待办事项：** 对于执行 `Get`，最坏情况是 `O(n)`，因为可以有跟着一堆 `PutAppend` 的 `Put`（或者你可以只有一个存储在很远的地方的
+    `Put`？）。'
 - en: Can the replicas index their log? I suppose. If they all store it fully.
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 复制品是否可以索引他们的日志？我想是的。如果它们都完整地存储它。
 - en: '`S2` replies with that value'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S2` 以该值回复。'
 - en: '`S2` can cache content of DB up through last log scan'
+  id: totrans-96
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S2` 可以缓存通过最后的日志扫描的 DB 内容。'
 - en: 'Q: Why a log?'
+  id: totrans-97
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 问：为什么是一个日志？
 - en: Why not require all replicas to agree on each op in lock-step?
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为什么不要求所有复制品在每个操作上都达成一致？
 - en: Allows one replica to fall behind, then catch up
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许一个复制品落后，然后赶上。
 - en: e.g. if it is slow
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比如如果它慢的话。
 - en: other replicas do not have to wait
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其他复制品不必等待。
 - en: Allows one replica to crash and catch up
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许一个复制品崩溃然后赶上。
 - en: if it keeps state on disk
+  id: totrans-103
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果它在磁盘上保留状态。
 - en: can replay missed operations
+  id: totrans-104
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以重放错过的操作。
 - en: Allows pipelining/overlap of agreement
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许协议的流水线处理/重叠
 - en: agreement turns out to require multiple message rounds
+  id: totrans-106
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 结果表明达成一致需要多个消息回合
 - en: 'Q: What about agreement -- we need all replicas to have same op in each log
     slot'
+  id: totrans-107
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 问：达成一致怎么样——我们需要所有副本在每个日志槽中具有相同的操作
 - en: Provided by Paxos, as we will see next
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由 Paxos 提供，我们将在下面看到
 - en: '*Agreement is hard (1):*'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '*达成一致很难（1）：*'
 - en: May be multiple proposals for the op in a particular log slot
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在特定日志槽中可能有多个操作的提议
 - en: '`Sx` (server `x`) may initially hear of one, `Sy` may hear of another'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Sx`（服务器 `x`）可能最初听到一个，`Sy` 可能听到另一个'
 - en: Clearly one must later change its mind
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 显然，必须稍后改变主意
 - en: 'Thus: multiple rounds, tentative initially'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此：多个回合，最初是暂时的
 - en: How do we know when agreement is permanent -- no longer tentative?
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们如何知道达成一致已经是永久的——不再是暂时的？
 - en: '*Agreement is hard (2):*'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '*达成一致很难（2）：*'
 - en: '**TODO:** If `S1` and `S2` agree, and `S3` and `S4` don''t respond, are we
     done?'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**待办事项：**如果 `S1` 和 `S2` 同意，而 `S3` 和 `S4` 没有回应，我们完成了吗？'
 - en: Agreement has to be able to complete even w/ failed servers
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 协议必须能够即使在服务器失败时也能完成
 - en: We can't distinguish failed server from network partition
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们无法区分失败的服务器和网络分区
 - en: So maybe `S3`/`S4` are partitioned have "agreed" on a different operation!
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，也许 `S3`/`S4` 分区了，已经“同意”执行不同的操作！
 - en: 'Two **main ideas** in Paxos:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: Paxos 中的两个**主要思想**：
 - en: Many rounds may be required but they will converge on one value
+  id: totrans-121
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 可能需要许多回合，但它们将收敛于一个值
 - en: A majority is required for agreement -- prevent "split brain"
+  id: totrans-122
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 达成一致需要多数支持——防止“脑裂”
 - en: '*Key point*: any two majorities overlap'
+  id: totrans-123
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*关键点*：任意两个多数交集'
 - en: so any later majority will share at least one server w/ any earlier majority
+  id: totrans-124
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，任何后来的多数都将与任何先前的多数共享至少一个服务器
 - en: so any later majority can find out what earlier majority decided
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，任何后来的多数都可以找出先前的多数决定了什么
 - en: '**TODO:** How?'
+  id: totrans-126
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**待办事项：**如何做？'
 - en: Lab 3B K/V server creates a separate Paxos instance for each client `Put`, `Get`
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 实验室 3B K/V 服务器为每个客户端的 `Put`、`Get` 创建一个单独的 Paxos 实例
 - en: rest of lecture focuses on agreement for a specific instance
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来的讲座重点放在了特定实例的协议上
 - en: Paxos sketch
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Paxos 轮廓
 - en: 'each node consists of three logical entities:'
+  id: totrans-130
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个节点由三个逻辑实体组成：
 - en: '**proposer**'
+  id: totrans-131
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**提议者**'
 - en: '**acceptor**'
+  id: totrans-132
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**接受者**'
 - en: '**learner**'
+  id: totrans-133
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**学习者**'
 - en: each proposer wants to get agreement on its value
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个提议者都希望就其价值达成一致
 - en: could try to use a "designated leader" to avoid dueling proposers
+  id: totrans-135
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以尝试使用“指定的领导者”来避免竞争的提议者
 - en: OK to have multiple proposers, so leader election can be approximate
+  id: totrans-136
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许有多个提议者，因此领导选举可以是近似的
 - en: proposer contacts acceptors, tries to assemble a majority
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者联系接受者，试图组建多数
 - en: if a majority respond, we're done
+  id: totrans-138
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果大多数回应，我们就完成了
 - en: 'in our K/V server example, roughly:'
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在我们的 K/V 服务器示例中，大致如下：
 - en: proposer gets RPC from client, proposes operation
+  id: totrans-140
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者从客户端接收 RPC，提出操作
 - en: acceptors are internal to Paxos, help decide consensus
+  id: totrans-141
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接受者是 Paxos 内部的，帮助决定共识
 - en: learner figures out what operation was decided to run, responds to client
+  id: totrans-142
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 学习者找出达成共识的操作是什么，回应客户端
 - en: '*Broken strawman:* can we do Paxos in a single round?'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: '*被推翻的草人：*我们是否可以在一个回合内完成 Paxos？'
 - en: acceptor "accepts" the first value that it hears from proposer
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接受者“接受”它从提议者听到的第一个值
 - en: when is consensus reached?
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 何时达成共识？
 - en: can we take the value with the most votes?
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们是否可以选择得票最多的值？
 - en: 'no, need a majority of accepts for the same value: `floor(n/2)+1`'
+  id: totrans-147
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不，需要多数接受相同的值：`floor(n/2)+1`
 - en: otherwise, consensus on 2 different values (lossy/partitioned network)
+  id: totrans-148
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，对 2 个不同的值达成一致（丢失/分区网络）
 - en: '*Problem:*'
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*问题：*'
 - en: 'suppose we have 3 servers: `S1`, `S2`, `S3`'
+  id: totrans-150
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设我们有 3 个服务器：`S1`、`S2`、`S3`
 - en: what if each server proposes + accepts its own value?
+  id: totrans-151
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果每个服务器提出并接受自己的值会怎样？
 - en: no majority, stuck
+  id: totrans-152
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有多数，陷入困境
 - en: but maybe we can detect this situation and recover?
+  id: totrans-153
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但也许我们可以检测到这种情况并恢复？
 - en: '*Worse:* `S3` crashes `->` we may have reached majority, but we''ll never know'
+  id: totrans-154
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*更糟糕的是：*`S3` 崩溃 `->` 我们可能已经达到了多数，但我们永远不会知道'
 - en: need a way for acceptors to change their mind, if no consensus reached yet
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果尚未达成共识，需要一种使接受者改变主意的方式
 - en: Basic Paxos exchange
+  id: totrans-156
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 基本 Paxos 交换
 - en: '[PRE0]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Why `n`?
+  id: totrans-158
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 为什么 `n`？
 - en: to distinguish among multiple rounds, e.g. proposer crashes, simul props
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以区分多个回合，例如，提议者崩溃，模拟提议
 - en: want later rounds to supersede earlier ones
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想要后续回合取代先前的回合
 - en: numbers allow us to compare early/late
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数字允许我们比较早期/晚期
 - en: '`n` values must be unique and roughly follow time'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`n` 值必须唯一且大致按时间排序'
 - en: '`n = <time, server ID>`'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`n = <时间，服务器 ID>`'
 - en: e.g., ID can be server's IP address
+  id: totrans-164
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，ID 可以是服务器的 IP 地址
 - en: '*"round"* is the same as *"proposal"* but completely different from "instance"'
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: “回合”与“提议”相同，但与“实例”完全不同
 - en: round/proposal numbers are *WITHIN* a particular instance
+  id: totrans-166
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 回合/提议号码在特定实例内部
 - en: '**Definition:** server S *accepts* `n/v`'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '**定义：** 服务器 S *接受* `n/v`'
 - en: it responded `accept_ok` to `accept(n, v)`
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它对`accept(n, v)`做出了`accept_ok`响应
 - en: '**Definition:** `n/v` is *chosen*'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: '**定义：** `n/v`是*被选择的*'
 - en: a majority of servers accepted `n/v`
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 多数服务器接受了`n/v`
 - en: The **crucial property:**
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '**关键属性：**'
 - en: if a value was chosen, any subsequent choice must be the same value
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果一个值被选择，任何后续选择必须是相同的值
 - en: i.e. protocol must not change its mind
+  id: totrans-173
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即协议不能改变主意
 - en: maybe a different proposer &c, but same value!
+  id: totrans-174
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能是不同的提议者等，但是相同的值！
 - en: this allows us to freely start new rounds after crashes &c
+  id: totrans-175
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这使我们能够在崩溃后自由开始新的轮次
 - en: tricky b/c *"chosen"* is system-wide property
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 棘手的原因是因为*"被选择"*是系统范围的属性
 - en: e.g. majority accepts, then proposer crashes
+  id: totrans-177
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如多数接受，然后提议者崩溃
 - en: '**TODO:** What happens here?'
+  id: totrans-178
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**待办事项：** 这里会发生什么？'
 - en: '*no node can tell locally that agreement was reached*'
+  id: totrans-179
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*没有节点可以在本地告知达成一致*'
 - en: 'So:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以：
 - en: proposer doesn't send out value with `prepare`
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者不会在`prepare`中发送值
 - en: '**TODO:** How is any value accepted by an acceptor then?'
+  id: totrans-182
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**待办事项：** 任何值如何被接受者接受？'
 - en: acceptors send back any value they have already accepted
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接受者发送回他们已经接受的任何值
 - en: if there is one, proposer proposes that value
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有提议者，提议者提议该值
 - en: to avoid changing an existing choice
+  id: totrans-185
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了避免改变现有选择
 - en: if no value already accepted,
+  id: totrans-186
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果没有已经被接受的值，
 - en: proposer can propose any value (e.g. a client request)
+  id: totrans-187
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者可以提议任何值（例如客户端请求）
 - en: proposer must get `prepare_ok` from majority
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者必须从多数接收`prepare_ok`
 - en: to guarantee intersection with any previous majority,
+  id: totrans-189
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了确保与任何先前多数的交集，
 - en: to guarantee proposer hears of any previously chosen value
+  id: totrans-190
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了确保提议者听到任何先前选择的值
 - en: Now the protocol -- see the handout
+  id: totrans-191
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 现在协议--请参阅讲义
 - en: '[PRE1]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**Example 1** (normal operation):'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '**示例 1**（正常操作）：'
 - en: '[PRE2]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: S1 and S2 will reply with `prepare_ok(1, 0, null)` to the `p1` message.
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: S1 和 S2 将回复`p1`消息为`prepare_ok(1, 0, null)`
 - en: If `dA` is lost, one of the nodes waiting can run Paxos again and try a new
     `n` higher than the previous one.
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果`dA`丢失，等待的节点之一可以再次运行 Paxos 并尝试一个比之前更高的新`n`。
 - en: the `prepare_ok(2, 1, 'A')` reply will come back,
+  id: totrans-197
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`prepare_ok(2, 1, ''A'')`的回复将返回，'
 - en: then the node is forced to send `a2vA` and hopefully this time, after the node
     gets the `accept_ok` message, it will send out `dA` messages that won't get lost
     again
+  id: totrans-198
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后节点被迫发送`a2vA`，希望这次，在节点收到`accept_ok`消息后，它将发送不会再次丢失的`dA`消息
 - en: a value is said to be chosen when a majority of acceptors in the `accept` handler
     take the accept branch and accept the value
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当多数接受者在`accept`处理程序中接受分支并接受值时，值被认为被选择
 - en: however, not everyone will *know* this, so that's why the `decide` message is
     sent out
+  id: totrans-200
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然而，并不是每个人都*知道*这一点，这就是为什么发送`decide`消息的原因
 - en: These diagrams are not specific about who the proposer is
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些图表并不具体说明提议者是谁
 - en: it doesn't really matter
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这并不重要
 - en: the proposers are logically separate from the acceptors
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者在逻辑上与接受者分开
 - en: we only care about what acceptors saw and replied
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们只关心接受者看到并回复的内容
 - en: Note Paxos only requires a majority of the servers
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，Paxos 只需要大多数服务器
 - en: so we can continue even though `S3` was down
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此我们可以继续即使`S3`宕机
 - en: proposer must not wait forever for any acceptor's response
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者不能永远等待任何接受者的响应
 - en: What would happen if network partition?
+  id: totrans-208
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 如果网络分区会发生什么？
 - en: I.e. `S3` was alive and had a proposed value B
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即`S3`是活动的并且有一个提议的值 B
 - en: '`S3`''s prepare would not assemble a majority'
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`S3`的准备不会组成多数'
 - en: The homework question
+  id: totrans-211
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 作业问题
 - en: How does Paxos ensure that the following sequence of events can't happen? What
     actually happens, and which value is ultimately chosen?
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: Paxos 如何确保以下事件序列不会发生？实际发生了什么，最终选择了哪个值？
 - en: '[PRE3]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '**The point:**'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '**要点：**'
 - en: if the system has already reached agreement, majority will know value
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果系统已经达成一致，大多数将知道值
 - en: any new majority of prepares will intersect that majority
+  id: totrans-216
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任何新的准备者的多数将与该多数相交
 - en: so subsequent proposer will learn of already-agreed-on value
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此后续提议者将了解已经达成一致的值
 - en: and send it in accept msgs
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并在接受消息中发送它
 - en: '**Example 2** (concurrent proposers):'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '**示例 2**（并发提议者）���'
 - en: '[PRE4]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: What will happen?
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 会发生什么？
 - en: '**Q:** What will `A2` do if it gets `a10v10` accept msg from `A1`?'
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Q：** 如果`A2`收到来自`A1`的`a10v10`接受消息，`A2`会做什么？'
 - en: '`a10v10` means `accept(n=10,v=10)` which happens after the `prepare->` is sent
     and the `<-prepare_ok` is received'
+  id: totrans-223
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`a10v10`表示`accept(n=10,v=10)`，发生在发送`prepare->`并接收到`<-prepare_ok`之后'
 - en: '**A:** A2 will reject because it has a higher `np` from `p11`'
+  id: totrans-224
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**A：** A2会拒绝，因为它有来自`p11`的更高`np`'
 - en: '**Q:** What will `A1` do if it gets `a11v11` accept msg from `A3`?'
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Q：** 如果`A1`收到来自`A3`的`a11v11`接受消息，`A1`会做什么？'
 - en: '**A:** `A1` will reply `ACCEPT_OK` and change its value to 11 because `n =
     11 > np = 10`'
+  id: totrans-226
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**A:** `A1` 将回复 `ACCEPT_OK` 并将其值更改为 11，因为 `n = 11 > np = 10`'
 - en: What if A3 were to crash at this point (and not restart)?
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 A3 在这一点崩溃（并且不重新启动）会怎样？
 - en: 'How about this:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样怎么样：
 - en: '[PRE5]'
+  id: totrans-229
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Has the system agreed to a value at this point?
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 系统在这一点上是否已经同意了一个值？
 - en: What's the commit point?
+  id: totrans-231
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 什么是提交点？
 - en: i.e. exactly when has agreement been reached?
+  id: totrans-232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即何时已达成一致意见？
 - en: i.e. at what point would changing the value be a disaster?
+  id: totrans-233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即在什么时候更改值会造成灾难？
 - en: after a majority has the same `v_a`? no -- why not? above counterexample
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当多数人拥有相同的 `v_a` 之后呢？不会——为什么？以上是反例
 - en: 'after a majority has the same `v_a/n_a`? yes -- why sufficient? sketch:'
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当多数人有相同的 `v_a/n_a` 之后呢？是的——为什么足够？概述：
 - en: suppose majority has same `v_a/n_a`
+  id: totrans-236
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设多数人有相同的 `v_a/n_a`
 - en: acceptors will reject `accept()` with lower `n`
+  id: totrans-237
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接受者将拒绝带有较低 `n` 的 `accept()`
 - en: 'for any higher `n`: prepare''s must have seen our majority `v_a/n_a` (overlap)'
+  id: totrans-238
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于任何更高的 `n`：准备必须已经看到我们的多数 `v_a/n_a`（重叠）
 - en: what if overlap servers saw `prepare(n)` before `accept(v_a, n_a)`?
+  id: totrans-239
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果重叠服务器在 `accept(v_a, n_a)` 之前看到了 `prepare(n)` 怎么办？
 - en: would reject `v_a/n_a`
+  id: totrans-240
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将拒绝 `v_a/n_a`
 - en: thus wouldn't have a majority yet
+  id: totrans-241
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此还没有多数票
 - en: proposer might be free to choose `v != v_a`
+  id: totrans-242
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提议者可能可以自由选择 `v != v_a`
 - en: Why does the proposer need to pick `v_a` with highest `n_a`?
+  id: totrans-243
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 提议者为什么需要选择具有最高 `n_a` 的 `v_a`？
 - en: '[PRE6]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Two cases:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 两种情况：
 - en: There was a majority before `n=11`
+  id: totrans-246
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 `n=11` 之前已经有多数票了
 - en: '`n=11`''s prepares would have seen value and re-used it'
+  id: totrans-247
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`n=11` 的准备会看到值并重复使用它'
 - en: so it's safe for `n=12` to re-use `n=11`'s value
+  id: totrans-248
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此 `n=12` 安全地可以重新使用 `n=11` 的值
 - en: There was not a majority before `n=11`
+  id: totrans-249
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 `n=11` 之前没有多数票
 - en: '`n=11` might have obtained a majority'
+  id: totrans-250
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`n=11` 可能已经获得了多数票'
 - en: so it's required for `n=12`to re-use `n=11`'s value
+  id: totrans-251
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此 `n=12` 必须重新使用 `n=11` 的值
 - en: Why does prepare handler check that `n > n_p`?
+  id: totrans-252
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 准备处理程序为什么要检查 `n > n_p`？
 - en: it's taking `max(concurrent n's)`, for accept handler
+  id: totrans-253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它正在进行 `max(concurrent n's)`，对于接受处理程序
 - en: responding to all `prepare()` with `prepare_ok()` would be also fine,
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对所有 `prepare()` 响应 `prepare_ok()` 也是可以的，
 - en: but proposers with `n < n_p` would be ignored by `accept()` anyway
+  id: totrans-255
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是 `n < n_p` 的提议者无论如何都会被 `accept()` 忽略
 - en: Why does accept handler check `n >= n_p`?
+  id: totrans-256
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 接受处理程序为什么要检查 `n >= n_p`？
 - en: required to ensure agreement
+  id: totrans-257
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保达成协议是必要的
 - en: there's a unique highest `n` active
+  id: totrans-258
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有一个唯一的最高活跃 `n`
 - en: everyone favors the highest `n`
+  id: totrans-259
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个人都支持最高的 `n`
 - en: 'without `n >= n_p` check, you could get this bad scenario:'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有 `n >= n_p` 检查，你可能会得到这种糟糕的情况：
 - en: 'Scenario:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 情景：
 - en: '[PRE7]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Why does accept handler update `n_p = n`?
+  id: totrans-263
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 接受处理程序为什么要更新 `n_p = n`？
 - en: required to prevent earlier `n`'s from being accepted
+  id: totrans-264
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 早期的 `n` 被接受所需的数量
 - en: node can get `accept(n,v)` even though it never saw `prepare(n)`
+  id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点可以获得 `accept(n,v)`，即使它从未看到过 `prepare(n)`
 - en: 'without `n_p = n`, can get this bad scenario:'
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有 `n_p = n`，可以得到这种糟糕的情景：
 - en: 'Scenario:'
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 情景：
 - en: '[PRE8]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: What if new proposer chooses `n < old proposer`?
+  id: totrans-269
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 如果新的提议者选择 `n <` 旧的提议者会怎样？
 - en: i.e. if clocks are not synced
+  id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使时钟未同步
 - en: cannot make progress, though no correctness problem
+  id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 无法取得进展，尽管没有正确性问题
 - en: What if an acceptor crashes after receiving accept?
+  id: totrans-272
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 如果接受者在接收到接受之后崩溃会怎样？
 - en: '[PRE9]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: What if an acceptor reboots after sending `prepare_ok`?
+  id: totrans-274
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 如果接受者在发送 `prepare_ok` 后重新启动会怎样？
 - en: does it have to remember `n_p` on disk?
+  id: totrans-275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它是否必须在磁盘上记住 `n_p`？
 - en: 'if `n_p` not remembered, this could happen:'
+  id: totrans-276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果没有记住 `n_p`，可能会发生这种情况：
 - en: 'Example:'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 例子：
 - en: '[PRE10]'
+  id: totrans-278
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 11's proposer did not see value 10, so 11 proposed its own value
+  id: totrans-279
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 11 的提议者没有看到值 10，因此 11 提出了自己的值
 - en: but just before that, 10 had been chosen!
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但就在那之前，已经选择了 10！
 - en: b/c `S2` did not remember to ignore `a10v10`
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因为 `S2` 没有记住忽略 `a10v10`
 - en: Can Paxos get stuck?
+  id: totrans-282
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Paxos 能够陷入僵局吗？
 - en: Yes, if there is not a majority that can communicate
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是的，如果没有可以通信的多数派
 - en: How about if a majority is available?
+  id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果有多数票可用怎么办？
 - en: 'Possible to livelock: dueling proposers, keep `prepare`''ing higher `n`''s'
+  id: totrans-285
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能会出现活锁：对决的提议者，不断地准备更高的 `n`
 - en: 'One reason to try electing a leader: reduce chance of dueling proposers'
+  id: totrans-286
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尝试选举领导者的一个原因：减少对决的提议者的机会
 - en: With single proposer and reachable majority, should reach consensus
+  id: totrans-287
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有单个提议者和可达多数派，应该能够达成共识
