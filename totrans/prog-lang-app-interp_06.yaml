@@ -1,7 +1,9 @@
 - en: 6From Substitution to Environments
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从替换到环境
 - en: Though we have a working definition of functions, you may feel a slight unease
     about it. When the interpreter sees an identifier, you might have had a sense
     that it needs to “look it up”. Not only did it not look up anything, we defined
@@ -9,23 +11,31 @@
     More importantly, we write interpreters to understand and explain languages, and
     this implementation might strike you as not doing that, because it doesn’t match
     our intuition.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们已经有了函数的工作定义，但你可能对此感到有些不安。当解释器看到一个标识符时，你可能会觉得它需要“查找”。但它并没有查找任何东西，我们定义它的行为是一个错误！虽然绝对正确，但这也有点令人惊讶。更重要的是，我们编写解释器来理解和解释语言，而这个实现可能会让你觉得它并没有做到这一点，因为它与我们的直觉不符。
 - en: There’s another difficulty with using substitution, which is the number of times
     we traverse the source program. It would be nice to have to traverse only those
     parts of the program that are actually evaluated, and then, only when necessary.
     But substitution traverses everything—<wbr>unvisited branches of conditionals,
     for instance—<wbr>and forces the program to be traversed once for substitution
     and once again for interpretation.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用替换还存在另一个困难，即我们遍历源程序的次数。希望只需遍历实际评估的程序部分，而且只在必要时才遍历。但是替换会遍历一切——例如，未访问的条件分支——并且迫使程序在替换时和解释时各遍历一次。
 - en: Exercise
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 练习
 - en: Does substitution have implications for the time complexity of evaluation?
+  id: totrans-4
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 替换对评估的时间复杂度有何影响？
 - en: There’s yet another problem with substitution, which is that it is defined in
     terms of representations of the program source. Obviously, our interpreter has
     and needs access to the source, to interpret it. However, other implementations—<wbr>such
@@ -33,12 +43,16 @@
     versions of or information about the source for other reasons, such as reporting
     runtime errors, and JITs may need it to re-compile on demand. It would be nice
     to employ a mechanism that is more portable across implementation strategies.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 替换还存在另一个问题，即它是根据程序源代码的表示来定义的。显然，我们的解释器需要访问并使用源代码来解释它。然而，其他实现，比如编译器，无需为此目的存储源代码。编译器可能会出于其他原因存储源代码的版本或信息，比如报告运行时错误，而即时编译器可能需要在需要时重新编译它。采用更具移植性的机制将是一个不错的选择。
 - en: 6.1Introducing the Environment
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 引入环境
 - en: The intuition that addresses the first concern is to have the interpreter “look
     up” an identifier in some sort of directory. The intuition that addresses the
     second concern is to defer the substitution. Fortunately, these converge nicely
@@ -48,8 +62,10 @@
     structure, which is called an environment, avoids the need for source-to-source
     rewriting and maps nicely to low-level machine representations. Each name association
     in the environment is called a binding.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决第一个问题的直觉是让解释器在某种目录中“查找”标识符。解决第二个问题的直觉是推迟替换。幸运的是，这两种直觉在以一种同时解决第三个问题的方式上很好地融合了。该目录记录了替换的意图，而不是立即重写程序源代码；通过记录意图而不是立即替换，我们可以推迟替换；而产生的数据结构，称为环境，避免了源代码到源代码的重写，并且很好地映射到低级机器表示。环境中的每个名称关联都称为绑定。
 - en: Observe carefully that what we are changing is the implementation strategy for
     the programming language, not the language itself. Therefore, none of our datatypes
     for representing programs should change, nor even should the answers that the
@@ -59,10 +75,13 @@
     both interpreters, and makes sure their answers are the same. Ideally, we should
     prove that the two interpreters behave the same, which is a good topic for advanced
     study.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 请仔细观察，我们要改变的是编程语言的实现策略，而不是语言本身。因此，我们用来表示程序的数据类型都不应该改变，甚至解释器提供的答案也不应该改变。因此，我们应该把先前的解释器视为一个“参考实现”，我们即将编写的解释器应该与之匹配。实际上，我们应该创建一个生成器，生成大量的测试，通过两个解释器运行它们，并确保它们的答案是相同的。理想情况下，我们应该证明这两个解释器的行为是相同的，这是一个高级研究的好话题。
 - en: One subtlety is in defining precisely what “the same” means, especially with
     regards to failure.
+  id: totrans-9
   prefs:
   - PREF_BQ
   - PREF_BQ
@@ -70,14 +89,17 @@
   type: TYPE_NORMAL
 - en: Let’s first define our environment data structure. An environment is a list
     of pairs of names associated with...what?
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
 - en: Do Now!
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: 'A natural question to ask here might be what the environment maps names to.
     But a better, more fundamental, question is: How to determine the answer to the
     “natural” question?'
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -85,66 +107,82 @@
     the answer lies in substitution. We discussed earlier ([Oh Wait, There’s More!](adding-functions.html#(part._eager-lazy-subst)))
     that we want substitution to map names to answers, corresponding to an eager function
     application strategy. Therefore, the environment should map names to answers.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
 - en: '| (define-type Binding |'
+  id: totrans-14
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|   [bind (name : symbol) (val : number)]) |'
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|   |'
+  id: totrans-16
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '| (define-type-alias Env (listof Binding)) |'
+  id: totrans-17
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '| (define mt-env empty) |'
+  id: totrans-18
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '| (define extend-env cons) |'
+  id: totrans-19
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: 6.2Interpreting with Environments
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Now we can tackle the interpreter. One case is easy, but we should revisit
     all the others:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
 - en: '[<*>](#(elem._(chunk._~3c*~3e~3a1))) ::='
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: '| (define (interp [expr : ExprC] [env : Env] [fds : (listof FunDefC)]) : number
     |'
+  id: totrans-23
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|   (type-case ExprC expr |'
+  id: totrans-24
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|     [numC (n) n] |'
+  id: totrans-25
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|     [<idC-case>](#(elem._(chunk._~3cid.C-case~3e~3a1))) |'
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|     [<appC-case>](#(elem._(chunk._~3capp.C-case~3e~3a1))) |'
+  id: totrans-27
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|     [<plusC/multC-case>](#(elem._(chunk._~3cplus.C/mult.C-case~3e~3a1)))))
     |'
+  id: totrans-28
   prefs:
   - PREF_BQ
   type: TYPE_TB
@@ -152,35 +190,44 @@
     recurred without performing any new substitutions. As a result, there are no new
     deferred substitutions to perform either, which means the environment does not
     change:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
 - en: '[<plusC/multC-case>](#(elem._(chunk._~3cplus.C/mult.C-case~3e~3a1))) ::='
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: '| [plusC (l r) (+ (interp l env fds) (interp r env fds))] |'
+  id: totrans-31
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '| [multC (l r) (* (interp l env fds) (interp r env fds))] |'
+  id: totrans-32
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: 'Now let’s handle identifiers. Clearly, encountering an identifier is no longer
     an error: this was the very motivation for this change. Instead, we must look
     up its value in the directory:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
 - en: '[<idC-case>](#(elem._(chunk._~3cid.C-case~3e~3a1))) ::='
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
 - en: '[idC (n) (lookup n env)]'
+  id: totrans-35
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Do Now!
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
 - en: Implement lookup.
+  id: totrans-37
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -188,238 +235,348 @@
     case that caused new substitutions to occur was application. Therefore, this should
     be the case that constructs bindings. Let’s first extract the function definition,
     just as before:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
 - en: '[<appC-case>](#(elem._(chunk._~3capp.C-case~3e~3a1))) ::='
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: '| [appC (f a) (local ([define fd (get-fundef f fds)]) |'
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|               [<appC-interp>](#(elem._(chunk._~3capp.C-interp~3e~3a1))))]
     |'
+  id: totrans-41
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: Previously, we substituted, then interpreted. Because we have no substitution
     step, we can proceed with interpretation, so long as we record the deferral of
     substitution.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
 - en: '[<appC-interp>](#(elem._(chunk._~3capp.C-interp~3e~3a1))) ::='
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
 - en: '| (interp (fdC-body fd) |'
+  id: totrans-44
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|         [<appC-interp-bind-in-env>](#(elem._(chunk._~3capp.C-interp-bind-in-env~3e~3a1)))
     |'
+  id: totrans-45
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: '|         fds) |'
+  id: totrans-46
   prefs:
   - PREF_BQ
   type: TYPE_TB
 - en: 'That is, the set of function definitions remains unchanged; we’re interpreting
     the body of the function, as before; but we have to do it in an environment that
     binds the formal parameter. Let’s now define that binding process:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，函数定义集保持不变；我们像以前一样解释函数的主体；但是我们必须在绑定形式参数的环境中执行。现在让我们定义这个绑定过程：
 - en: '[<appC-interp-bind-in-env-take-1>](#(elem._(chunk._~3capp.C-interp-bind-in-env-take-1~3e~3a1)))
     ::='
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '[<appC-interp-bind-in-env-take-1>](#(elem._(chunk._~3capp.C-interp-bind-in-env-take-1~3e~3a1)))
+    ::='
 - en: '| (extend-env (bind (fdC-arg fd) |'
+  id: totrans-49
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (extend-env (bind (fdC-arg fd) |'
 - en: '|                   (interp a env fds)) |'
+  id: totrans-50
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                   (interp a env fds)) |'
 - en: '|             env) |'
+  id: totrans-51
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|             env) |'
 - en: the name being bound is the formal parameter (the same name that was substituted
     for, before). It is bound to the result of interpreting the argument (because
     we’ve decided on an eager application semantics). And finally, this extends the
     environment we already have. Type-checking this helps to make sure we got all
     the little pieces right.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 被绑定的名称是形式参数（之前替换的同名）。它被绑定到解释参数的结果（因为我们决定了急切的应用语义）。最后，这扩展了我们已经有的环境。对这个进行类型检查有助于确保我们把所有的小细节都搞对了。
 - en: 'Once we have a definition for lookup, we’d have a full interpreter. So here’s
     one:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们有了查找的定义，我们就会有一个完整的解释器。所以这是一个：
 - en: '| (define (lookup [for : symbol] [env : Env]) : number |'
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define (lookup [for : symbol] [env : Env]) : number |'
 - en: '|   (cond |'
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (cond |'
 - en: '|     [(empty? env) (error ''lookup "name not found")] |'
+  id: totrans-56
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     [(empty? env) (error ''lookup "找不到名称")] |'
 - en: '|     [else (cond |'
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|     [else (cond |'
 - en: '|             [(symbol=? for (bind-name (first env))) |'
+  id: totrans-58
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|             [(symbol=? for (bind-name (first env))) |'
 - en: '|              (bind-val (first env))] |'
+  id: totrans-59
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|              (bind-val (first env))] |'
 - en: '|             [else (lookup for (rest env))])])) |'
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|             [else (lookup for (rest env))])])) |'
 - en: Observe that looking up a free identifier still produces an error, but it has
     moved from the interpreter—<wbr>which is by itself unable to determine whether
     or not an identifier is free—<wbr>to lookup, which determines this based on the
     content of the environment.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，查找自由标识符仍会产生错误，但错误已经从解释器移动了——<wbr>解释器本身无法确定标识符是否自由——<wbr>移到了查找，它根据环境的内容来确定这一点。
 - en: 'Now we have a full interpreter. You should of course test it make sure it works
     as you’d expect. For instance, these tests pass:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有一个完整的解释器。当然，你应该测试它，确保它按照你期望的方式工作。例如，以下测试通过：
 - en: '| (test (interp (plusC (numC 10) (appC ''const5 (numC 10))) |'
+  id: totrans-63
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (test (interp (plusC (numC 10) (appC ''const5 (numC 10))) |'
 - en: '|               mt-env |'
+  id: totrans-64
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               mt-env |'
 - en: '|               (list (fdC ''const5 ''_ (numC 5)))) |'
+  id: totrans-65
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               (list (fdC ''const5 ''_ (numC 5)))) |'
 - en: '|       15) |'
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|       15) |'
 - en: '|   |'
+  id: totrans-67
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   |'
 - en: '| (test (interp (plusC (numC 10) (appC ''double (plusC (numC 1) (numC 2))))
     |'
+  id: totrans-68
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (test (interp (plusC (numC 10) (appC ''double (plusC (numC 1) (numC 2))))
+    |'
 - en: '|               mt-env |'
+  id: totrans-69
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               mt-env |'
 - en: '|               (list (fdC ''double ''x (plusC (idC ''x) (idC ''x))))) |'
+  id: totrans-70
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               (list (fdC ''double ''x (plusC (idC ''x) (idC ''x))))) |'
 - en: '|       16) |'
+  id: totrans-71
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|       16) |'
 - en: '|   |'
+  id: totrans-72
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   |'
 - en: '| (test (interp (plusC (numC 10) (appC ''quadruple (plusC (numC 1) (numC 2))))
     |'
+  id: totrans-73
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (test (interp (plusC (numC 10) (appC ''quadruple (plusC (numC 1) (numC 2))))
+    |'
 - en: '|               mt-env |'
+  id: totrans-74
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               mt-env |'
 - en: '|               (list (fdC ''quadruple ''x (appC ''double (appC ''double (idC ''x))))
     |'
+  id: totrans-75
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|               (list (fdC ''quadruple ''x (appC ''double (appC ''double (idC ''x))))
+    |'
 - en: '|                     (fdC ''double ''x (plusC (idC ''x) (idC ''x))))) |'
+  id: totrans-76
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                     (fdC ''double ''x (plusC (idC ''x) (idC ''x))))) |'
 - en: '|       22) |'
+  id: totrans-77
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|       22) |'
 - en: So we’re done, right?
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以我们结束了，对吧？
 - en: Do Now!
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在！
 - en: Spot the bug.
+  id: totrans-80
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 找出错误。
 - en: 6.3Deferring Correctly
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 6.3 正确推迟
 - en: 'Here’s another test:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是另一个测试：
 - en: '| (interp (appC ''f1 (numC 3)) |'
+  id: totrans-83
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (interp (appC ''f1 (numC 3)) |'
 - en: '|                   mt-env |'
+  id: totrans-84
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                   mt-env |'
 - en: '|                   (list (fdC ''f1 ''x (appC ''f2 (numC 4))) |'
+  id: totrans-85
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                   (list (fdC ''f1 ''x (appC ''f2 (numC 4))) |'
 - en: '|                         (fdC ''f2 ''y (plusC (idC ''x) (idC ''y))))) |'
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                         (fdC ''f2 ''y (plusC (idC ''x) (idC ''y))))) |'
 - en: In our interpreter, this evaluates to 7. Should it?
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的解释器中，这个求值结果为7。应该吗？
 - en: 'Translated into Racket, this test corresponds to the following two definitions
     and expression:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这个测试翻译成 Racket，对应以下两个定义和表达式：
 - en: '| (define (f1 x) (f2 4)) |'
+  id: totrans-89
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define (f1 x) (f2 4)) |'
 - en: '| (define (f2 y) (+ x y)) |'
+  id: totrans-90
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define (f2 y) (+ x y)) |'
 - en: '|   |'
+  id: totrans-91
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   |'
 - en: '| (f1 3) |'
+  id: totrans-92
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (f1 3) |'
 - en: What should this produce? (f1 3) substitutes x with 3 in the body of f1, which
     then invokes (f2 4). But notably, in f2, the identifier x is not bound! Sure enough,
     Racket will produce an error.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该产生什么？(f1 3)在 f1 的主体中用 3 替换 x，然后调用 (f2 4)。但值得注意的是，在 f2 中，标识符 x 没有被绑定！果不其然，Racket
+    会产生一个错误。
 - en: In fact, so will our substitution-based interpreter!
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，我们基于替换的解释器也会！
 - en: 'Why does the substitution process result in an error? It’s because, when we
     replace the representation of x with the representation of 3 in the representation
     of f1, we do so in f1 only.This “the representation of” is getting a little annoying,
@@ -428,8 +585,10 @@
     even if another function had a parameter named x, that’s a different x.) Thus,
     when we get to evaluating the body of f2, its x hasn’t been substituted, resulting
     in the error.'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 替换过程为什么会导致错误？因为当我们在f1的表示中用3的表示替换x的表示时，我们只在f1中这样做。这个“表示的”是不是有点烦人？因此，我会停止说这个，但请确保你理解为什么我不得不这么说。这是一个重要的一点学究精神。（显然：x是f1的参数；即使另一个函数有一个名为x的参数，那也是另一个x。）因此，当我们开始评估f2的主体时，它的x尚未被替换，导致错误。
 - en: 'What went wrong when we switched to environments? Watch carefully: this is
     subtle. We can focus on applications, because only they affect the environment.
     When we substituted the formal for the value of the actual, we did so by extending
@@ -437,48 +596,67 @@
     substitute not only f2’s substitution in f2’s body, but also the current ones
     (those for the caller, f1), and indeed all past ones as well. That is, the environment
     only grows; it never shrinks.'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们切换到环境时出了什么问题？请仔细观察：这很微妙。我们可以关注应用程序，因为只有它们会影响环境。当我们用实际值扩展形式参数时，我们扩展了当前环境。就我们的示例而言，我们要求解释器不仅替换了f2体中f2的替换，而且还替换了当前的（调用者f1的替换），以及所有过去的替换。也就是说，环境只会增长，永远不会缩小。
 - en: 'Because we agreed that environments are only an alternate implementation strategy
     for substitution—<wbr>and in particular, that the language’s meaning should not
     change—<wbr>we have to alter the interpreter. Concretely, we should not ask it
     to carry around all past deferred substitution requests, but instead make it start
     afresh for every new function, just as the substitution-based interpreter does.
     This is an easy change:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为我们同意环境仅是替换的另一种实现策略——<wbr>特别是，语言的含义不应更改——<wbr>我们必须修改解释器。具体来说，我们不应要求它携带所有过去的延迟替换请求，而应该让它为每个新函数重新开始，就像基于替换的解释器一样。这是一个简单的改变：
 - en: '[<appC-interp-bind-in-env>](#(elem._(chunk._~3capp.C-interp-bind-in-env~3e~3a1)))
     ::='
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '[<appC-interp-bind-in-env>](#(elem._(chunk._~3capp.C-interp-bind-in-env~3e~3a1)))
+    ::='
 - en: '| (extend-env (bind (fdC-arg fd) |'
+  id: totrans-99
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (extend-env (bind (fdC-arg fd) |'
 - en: '|                   (interp a env fds)) |'
+  id: totrans-100
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|                   (interp a env fds)) |'
 - en: '|             mt-env) |'
+  id: totrans-101
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|             mt-env) |'
 - en: Now we have truly reproduced the behavior of the substitution interpreter.In
     case you’re wondering how to write a test case that catches errors, look up test/exn.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们真正复制了替换解释器的行为。如果你想知道如何编写一个能捕捉错误的测试用例，请查阅test/exn。
 - en: 6.4Scope
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 6.4范围
 - en: 'The broken environment interpreter above implements what is known as dynamic
     scope. This means the environment accumulates bindings as the program executes.
     As a result, whether an identifier is even bound depends on the history of program
     execution. We should regard this unambiguously as a flaw of programming language
     design. It adversely affects all tools that read and process programs: compilers,
     IDEs, and humans.'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的破坏的环境解释器实现了所谓的动态作用域。这意味着环境会在程序执行时累积绑定。因此，标识符是否被绑定甚至取决于程序执行的历史。我们应该毫不含糊地将这视为编程语言设计的缺陷。它对所有读取和处理程序的工具产生不利影响：编译器、IDE和人类。
 - en: 'In contrast, substitution—<wbr>and environments, done correctly—<wbr>give us
     lexical scope or static scope. “Lexical” in this context means “as determined
     from the source program”, while “static” in computer science means “without running
@@ -494,103 +672,149 @@
     In other words, it provides no useful information. Thus, even though the rules
     of scope become more complex as the space of names becomes richer (e.g., objects,
     threads, etc.), we should always strive to preserve the spirit of static scoping.'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，替换和环境，如果正确执行，给我们词法作用域或静态作用域。在这个上下文中，“词法”意味着“根据源程序确定”，而计算机科学中的“静态”意味着“不运行程序”，因此这些对同样的直觉具有吸引力。当我们检查一个标识符时，我们想知道两件事：（1）它是否被绑定？（2）如果是，绑定在哪里？通过“在哪里”我们指的是：如果同一个名称有多个绑定，哪一个控制了这个标识符？换句话说，哪一个的替换会给这个标识符一个值？一般来说，在动态作用域语言中这些问题无法静态回答：因此，例如，你的IDE不能覆盖箭头来显示这些信息（就像DrRacket那样）。另一种思考方式是，在动态作用域语言中，对这些问题的回答对所有标识符都是相同的，它简单地指向动态环境。换句话说，它提供不了有用的信息。因此，尽管随着名称空间变得更加丰富（例如，对象、线程等），作用域规则变得更加复杂，我们应该始终努力保持静态作用域的精神。
 - en: 6.4.1How Bad Is It?
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 6.4.1有多糟糕？
 - en: 'You might look at our running example and wonder whether we’re creating a tempest
     in a teapot. In return, you should consider two situations:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会看着我们的运行示例，想知道我们是否在小题大做。作为回报，你应该考虑两种情况：
 - en: To understand the binding structure of your program, you may need to look at
     the whole program. No matter how much you’ve decomposed your program into small,
     understandable fragments, it doesn’t matter if you have a free identifier anywhere.
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要理解程序的绑定结构，你可能需要查看整个程序。无论你将程序分解成多么小、可理解的片段，如果你在任何地方有一个自由标识符，那就没关系。
 - en: Understanding the binding structure is not only a function of the size of the
     program but also of the complexity of its control flow. Imagine an interactive
     program with numerous callbacks; you’d have to track through every one of them,
     too, to know which binding governs an identifier.
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 理解绑定结构不仅取决于程序的大小，还取决于其控制流的复杂性。想象一个具有众多回调的交互式程序；你也必须跟踪每一个回调，才能知道哪个绑定控制了一个标识符。
 - en: 'Need a little more of a nudge? Let’s replace the expression of our example
     program with this one:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要更多的提示吗？让我们用这个表达式替换我们示例程序的表达式：
 - en: '| (if (moon-visible?) |'
+  id: totrans-111
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (if (moon-visible?) |'
 - en: '|   (f1 10) |'
+  id: totrans-112
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (f1 10) |'
 - en: '|   (f2 10)) |'
+  id: totrans-113
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '|   (f2 10)) |'
 - en: Suppose moon-visible? is a function that presumably evaluates to false on new-moon
     nights, and true at other times. Then, this program will evaluate to an answer
     except on new-moon nights, when it will fail with an unbound identifier error.Exercise
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设moon-visible?是一个函数，据推测在新月之夜会评估为false，在其他时间会评估为true。那么，这个程序会得出一个答案，除了在新月之夜，那时会因为未绑定的标识符错误而失败。练习
 - en: What happens on cloudy nights?
+  id: totrans-115
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 阴天会发生什么？
 - en: 6.4.2The Top-Level Scope
+  id: totrans-116
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 6.4.2顶层作用域
 - en: 'Matters become more complex when we contemplate top-level definitions in many
     languages. For instance, some versions of Scheme (which is a paragon of lexical
     scoping) allow you to write this:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们考虑许多语言中的顶层定义时，事情变得更加复杂。例如，Scheme的一些版本（它是词法作用域的典范）允许你写出这样的代码：
 - en: '| (define y 1) |'
+  id: totrans-118
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define y 1) |'
 - en: '| (define (f x) (+ x y)) |'
+  id: totrans-119
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define (f x) (+ x y)) |'
 - en: 'which seems to pretty clearly suggest where the y in the body of f will come
     from, except:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这似乎很清楚地表明了f主体中y的来源，除了：
 - en: '| (define y 1) |'
+  id: totrans-121
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define y 1) |'
 - en: '| (define (f x) (+ x y)) |'
+  id: totrans-122
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define (f x) (+ x y)) |'
 - en: '| (define y 2) |'
+  id: totrans-123
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define y 2) |'
 - en: 'is legal and (f 10) produces 12. Wait, you might think, always take the last
     one! But:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 是合法的，而(f 10)会产生12。等等，你可能会想，总是取最后一个！但是：
 - en: '| (define y 1) |'
+  id: totrans-125
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define y 1) |'
 - en: '| (define f (let ((z y)) (lambda (x) (+ x y z)))) |'
+  id: totrans-126
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define f (let ((z y)) (lambda (x) (+ x y z)))) |'
 - en: '| (define y 2) |'
+  id: totrans-127
   prefs:
   - PREF_BQ
   type: TYPE_TB
+  zh: '| (define y 2) |'
 - en: Here, z is bound to the first value of y whereas the inner y is bound to the
     second value.Most “scripting” languages exhibit similar problems. As a result,
     on the Web you will find enormous confusion about whether a certain language is
@@ -600,12 +824,16 @@
     but it can become convoluted, and perhaps a more sensible option is to prevent
     such redefinition. Racket does precisely this, thereby offering the convenience
     of a top-level without its pain.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，z被绑定到y的第一个值，而内部的y被绑定到第二个值。大多数“脚本”语言都存在类似的问题。因此，在网络上你会发现关于某种语言是静态作用域还是动态作用域的巨大混淆，而实际上读者是在比较函数内部的行为（通常是静态的）与顶层的行为（通常是动态的）。小心！实际上，有一个关于这种行为的词法作用域的有效解释，但它可能变得复杂，也许一个更明智的选择是防止这种重新定义。Racket正是这样做的，因此提供了顶层的便利而没有其痛苦。
 - en: 6.5Exposing the Environment
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 6.5暴露环境
 - en: 'If we were building the implementation for others to use, it would be wise
     and a courtesy for the exported interpreter to take only an expression and list
     of function definitions, and invoke our defined interp with the empty environment.
@@ -614,5 +842,7 @@
     expose the environment parameter. For instance, the environment can represent
     a set of pre-defined bindings: e.g., if the language wishes to provide pi automatically
     bound to 3.2 (in Indiana).'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们正在构建供他人使用的实现，那么将只接受一个表达式和函数定义列表，并用空环境调用我们定义的interp的导出解释器是明智的且礼貌的。这既省去了用户一个实现细节的烦恼，又避免了使用带有错误环境的解释器。然而，在某些情况下，暴露环境参数可能很有用。例如，环境可以表示一组预定义的绑定：例如，如果语言希望将pi自动绑定到3.2（在印第安纳州）。
