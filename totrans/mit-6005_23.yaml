@@ -1,171 +1,246 @@
 - en: 'Reading 23: Locks and Synchronization'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 阅读 23：锁和同步
 - en: Software in 6.005
+  id: totrans-1
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 在 6.005 软件中
 - en: '| Safe from bugs | Easy to understand | Ready for change |'
+  id: totrans-2
   prefs: []
   type: TYPE_TB
+  zh: '| 免受错误影响 | 易于理解 | 可随时更改 |'
 - en: '| Correct today and correct in the unknown future. | Communicating clearly
     with future programmers, including future you. | Designed to accommodate change
     without rewriting. |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '| 今天正确，未来也正确。 | 与未来程序员清晰沟通，包括未来的你。 | 设计以适应更改而无需重写。 |'
 - en: Objectives
+  id: totrans-4
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 目标
 - en: Understand how a lock is used to protect shared mutable data
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 了解锁如何用于保护共享可变数据
 - en: Be able to recognize deadlock and know strategies to prevent it
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 能够识别死锁并知道预防死锁的策略。
 - en: Know the monitor pattern and be able to apply it to a data type
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 了解监视器模式并能够将其应用于数据类型
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Earlier, we [defined thread safety](../20-thread-safety/#what_threadsafe_means)
     for a data type or a function as *behaving correctly when used from multiple threads,
     regardless of how those threads are executed, without additional coordination*.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 早些时候，我们[定义了数据类型或函数的线程安全性](../20-thread-safety/#what_threadsafe_means)，即*在多个线程使用时表现正确，无论这些线程如何执行，都不需要额外的协调*。
 - en: 'Here’s the general principle: **the correctness of a concurrent program should
     not depend on accidents of timing**.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一般原则：**并发程序的正确性不应取决于时间的偶然性**。
 - en: 'To achieve that correctness, we enumerated [four strategies for making code
     safe for concurrency](../20-thread-safety/):'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这种正确性，我们列举了[使代码安全并发的四种策略](../20-thread-safety/)：
 - en: '[**Confinement**](../20-thread-safety/#strategy_1_confinement): don’t share
     data between threads.'
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**隔离**](../20-thread-safety/#strategy_1_confinement)：不要在线程之间共享数据。'
 - en: '[**Immutability**](../20-thread-safety/#strategy_2_immutability): make the
     shared data immutable.'
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**不可变性**](../20-thread-safety/#strategy_2_immutability)：使共享数据不可变。'
 - en: '[**Use existing threadsafe data types**](../20-thread-safety/#strategy_3_using_threadsafe_data_types):
     use a data type that does the coordination for you.'
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**使用现有线程安全的数据类型**](../20-thread-safety/#strategy_3_using_threadsafe_data_types)：使用一个为您进行协调的数据类型。'
 - en: '**Synchronization**: prevent threads from accessing the shared data at the
     same time. This is what we use to implement a threadsafe type, but we didn’t discuss
     it at the time.'
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**同步**：防止线程同时访问共享数据。这是我们用来实现线程安全类型的方法，但当时我们没有讨论它。'
 - en: We talked about strategies 1-3 earlier. In this reading, we’ll finish talking
     about strategy 4, using **synchronization** to implement your own data type that
     is **safe for shared-memory concurrency**.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们之前讨论过策略1-3。在本文中，我们将结束对策略4的讨论，使用**同步**来实现您自己的数据类型，使其**适用于共享内存并发**。
 - en: Synchronization
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 同步
 - en: '**The correctness of a concurrent program should not depend on accidents of
     timing.**'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**并发程序的正确性不应取决于时间的偶然性。**'
 - en: Since race conditions caused by concurrent manipulation of shared mutable data
     are disastrous bugs — hard to discover, hard to reproduce, hard to debug — we
     need a way for concurrent modules that share memory to **synchronize** with each
     other.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于并发操作共享可变数据导致的竞态条件是灾难性的错误——难以发现、难以重现、难以调试——我们需要一种让共享内存的并发模块之间**同步**的方法。
 - en: '**Locks** are one synchronization technique. A lock is an abstraction that
     allows at most one thread to *own* it at a time. *Holding a lock* is how one thread
     tells other threads: “I’m working with this thing, don’t touch it right now.”'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '**锁**是一种同步技术。锁是一种允许最多一个线程*拥有*它的抽象。*持有锁*是一个线程告诉其他线程：“我正在处理这个东西，请现在不要碰它。”'
 - en: 'Locks have two operations:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁有两个操作：
 - en: '**`acquire`** allows a thread to take ownership of a lock. If a thread tries
     to acquire a lock currently owned by another thread, it *blocks* until the other
     thread releases the lock. At that point, it will contend with any other threads
     that are trying to acquire the lock. At most one thread can own the lock at a
     time.'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**`acquire`** 允许线程获取锁的所有权。如果一个线程试图获取当前由另一个线程拥有的锁，它会*阻塞*，直到另一个线程释放锁。此时，它将与试图获取锁的任何其他线程竞争。最多只能有一个线程拥有该锁。'
 - en: '**`release`** relinquishes ownership of the lock, allowing another thread to
     take ownership of it.'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**`release`** 释放锁的所有权，允许另一个线程获取它的所有权。'
 - en: Using a lock also tells the compiler and processor that you’re using shared
     memory concurrently, so that registers and caches will be flushed out to shared
     storage. This avoids the problem of [reordering](../19-concurrency/#reordering),
     ensuring that the owner of a lock is always looking at up-to-date data.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用锁还告诉编译器和处理器，你正在同时使用共享内存，因此寄存器和缓存将被刷新到共享存储中。这避免了[重新排序](../19-concurrency/#reordering)的问题，确保锁的所有者始终查看最新的数据。
 - en: Bank account example
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 银行账户示例
 - en: '![shared memory model for bank accounts](../Images/2bb66a3d5c106808f62d2235bf330663.jpg)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![银行账户的共享内存模型](../Images/2bb66a3d5c106808f62d2235bf330663.jpg)'
 - en: Our first example of shared memory concurrency was a [bank with cash machines](../19-concurrency/#shared_memory_example).
     The diagram from that example is on the right.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们第一个共享内存并发的示例是一个[带有取款机的银行](../19-concurrency/#shared_memory_example)。该示例的图表在右侧。
 - en: The bank has several cash machines, all of which can read and write the same
     account objects in memory.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 银行有几台取款机，它们都可以读取和写入内存中相同的账户对象。
 - en: Of course, without any coordination between concurrent reads and writes to the
     account balances, [things went horribly wrong](../19-concurrency/#interleaving).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，如果并发读写账户余额之间没有任何协调，[事情会变得非常糟糕](../19-concurrency/#interleaving)。
 - en: To solve this problem with locks, we can add a lock that protects each bank
     account. Now, before they can access or update an account balance, cash machines
     must first acquire the lock on that account.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 要解决这个锁的问题，我们可以为每个银行账户添加一个保护锁。现在，在取款机可以访问或更新账户余额之前，必须首先获取该账户的锁。
 - en: '![synchronizing bank accounts with locks](../Images/49b79b96c6b6f61dfa65b6edd90662b4.jpg)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![使用锁同步银行账户](../Images/49b79b96c6b6f61dfa65b6edd90662b4.jpg)'
 - en: In the diagram to the right, both A and B are trying to access account 1. Suppose
     B acquires the lock first. Then A must wait to read and write the balance until
     B finishes and releases the lock. This ensures that A and B are synchronized,
     but another cash machine C is able to run independently on a different account
     (because that account is protected by a different lock).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在右侧的图表中，A 和 B 都试图访问账户 1。假设 B 先获取锁。然后 A 必须等待读取和写入余额，直到 B 完成并释放锁。这确保了 A 和 B 的同步，但另一个取款机
+    C 可以独立运行在另一个账户上（因为该账户受到不同锁的保护）。
 - en: Deadlock
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 死锁
 - en: When used properly and carefully, locks can prevent race conditions. But then
     another problem rears its ugly head. Because the use of locks requires threads
     to wait (`acquire` blocks when another thread is holding the lock), it’s possible
     to get into a a situation where two threads are waiting *for each other* — and
     hence neither can make progress.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 当锁被正确和谨慎地使用时，可以防止竞争条件。但另一个问题随之而来。因为使用锁需要线程等待（当另一个线程持有锁时，`acquire`会阻塞），可能会出现两个线程互相等待*对方*的情况，因此都无法继续执行。
 - en: '![bank account deadlock](../Images/a6cf3c442939c661816bf8480564cf3a.jpg)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![银行账户死锁](../Images/a6cf3c442939c661816bf8480564cf3a.jpg)'
 - en: In the figure to the right, suppose A and B are making simultaneous transfers
     between two accounts in our bank.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在右侧的图中，假设 A 和 B 在我们的银行账户之间进行同时转账。
 - en: 'A transfer between accounts needs to lock both accounts, so that money can’t
     disappear from the system. A and B each acquire the lock on their respective “from”
     account: A acquires the lock on account 1, and B acquires the lock on account
@@ -173,14 +248,20 @@
     B to release the account 2 lock, and B is waiting for A to release the account
     1 lock. Stalemate! A and B are frozen in a “deadly embrace,” and accounts are
     locked up.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 在账户之间进行转账需要锁定两个账户，以防资金从系统中消失。A 和 B 分别获取其各自“从”账户的锁：A 获取账户 1 的锁，B 获取账户 2 的锁。现在，每个人都必须获取其“到”账户的锁：因此
+    A 正在等待 B 释放账户 2 的锁，而 B 正在等待 A 释放账户 1 的锁。僵局！A 和 B 被困在“致命的拥抱”中，账户被锁定。
 - en: '**Deadlock** occurs when concurrent modules are stuck waiting for each other
     to do something. A deadlock may involve more than two modules: the signal feature
     of deadlock is a **cycle of dependencies**, e.g. A is waiting for B which is waiting
     for C which is waiting for A. None of them can make progress.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '**死锁**发生在并发模块相互等待对方执行某些操作时。死锁可能涉及两个以上的模块：死锁的特征是**依赖循环**，例如 A 等待 B，B 等待 C，C
+    等待 A。它们都无法继续执行。'
 - en: You can also have deadlock without using any locks. For example, a message-passing
     system can experience deadlock when message buffers fill up. If a client fills
     up the server’s buffer with requests, and then *blocks* waiting to add another
@@ -188,57 +269,84 @@
     block itself. So the client is waiting for the server, and the server waiting
     for the client, and neither can make progress until the other one does. Again,
     deadlock ensues.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以在不使用任何锁的情况下发生死锁。例如，当消息缓冲区填满时，消息传递系统可能会发生死锁。如果客户端用请求填满了服务器的缓冲区，然后*阻塞*等待添加另一个请求，那么服务器可能会用结果填满客户端的缓冲区，然后自己阻塞。所以客户端正在等待服务器，服务器正在等待客户端，两者都无法取得进展，直到另一个取得进展。同样，死锁随之而来。
 - en: 'In the Java Tutorials, read:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Java 教程中，阅读：
 - en: '[Deadlock](http://docs.oracle.com/javase/tutorial/essential/concurrency/deadlock.html)
     (1 page)'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[死锁](http://docs.oracle.com/javase/tutorial/essential/concurrency/deadlock.html)
+    (1 页)'
 - en: Developing a threadsafe abstract data type
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 开发线程安全的抽象数据类型
 - en: Let’s see how to use synchronization to implement a threadsafe ADT.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看如何使用同步来实现一个线程安全的 ADT。
 - en: 'You can see all the code for this example on GitHub: [**edit buffer example**](https://github.com/mit6005/fa16-ex23-editor).
     You are *not* expected to read and understand all the code. All the relevant parts
     are excerpted below.'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以在 GitHub 上查看此示例的所有代码：[**编辑缓冲区示例**](https://github.com/mit6005/fa16-ex23-editor)。您*不*需要阅读和理解所有代码。以下是所有相关部分的摘录。
 - en: 'Suppose we’re building a multi-user editor, like Google Docs, that allows multiple
     people to connect to it and edit it at the same time. We’ll need a mutable datatype
     to represent the text in the document. Here’s the interface; basically it represents
     a string with insert and delete operations:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们正在构建一个多用户编辑器，类似于 Google Docs，允许多人同时连接并编辑。我们需要一个可变的数据类型来表示文档中的文本。这是接口；基本上它表示一个带有插入和删除操作的字符串：
 - en: '[`EditBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/EditBuffer.java)'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '[`EditBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/EditBuffer.java)'
 - en: '[PRE0]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'A very simple rep for this datatype would just be a string:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种数据类型的一个非常简单的表示只是一个字符串：
 - en: '[`SimpleBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/SimpleBuffer.java)'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '[`SimpleBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/SimpleBuffer.java)'
 - en: '[PRE1]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The downside of this rep is that every time we do an insert or delete, we have
     to copy the entire string into a new string. That gets expensive. Another rep
     we could use would be a character array, with space at the end. That’s fine if
     the user is just typing new text at the end of the document (we don’t have to
     copy anything), but if the user is typing at the beginning of the document, then
     we’re copying the entire document with every keystroke.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种表示的缺点是，每次进行插入或删除操作时，都必须将整个字符串复制到一个新字符串中。这很昂贵。我们可以使用的另一种表示方法是字符数组，末尾带有空间。如果用户只是在文档末尾输入新文本（我们不必复制任何内容），那么这是很好的，但如果用户在文档开头输入文本，那么我们就必须在每次按键时复制整个文档。
 - en: A more interesting rep, which is used by many text editors in practice, is called
     a *gap buffer*. It’s basically a character array with extra space in it, but instead
     of having all the extra space at the end, the extra space is a *gap* that can
@@ -249,51 +357,71 @@
     the gap! Gap buffers are particularly well-suited to representing a string that
     is being edited by a user with a cursor, since inserts and deletes tend to be
     focused around the cursor, so the gap rarely moves.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 更有趣的表示方法，在实践中许多文本编辑器都使用，称为*间隙缓冲区*。它基本上是一个带有额外空间的字符数组，但是额外空间不是全部在末尾，而是一个*间隙*，可以出现在缓冲区的任何位置。每当需要进行插入或删除操作时，数据类型首先将间隙移动到操作的位置，然后执行插入或删除。如果间隙已经存在，那么就不需要复制任何内容——插入只消耗部分间隙，删除只扩大间隙！间隙缓冲区特别适合表示由具有光标的用户编辑的字符串，因为插入和删除倾向于围绕光标进行，所以间隙很少移动。
 - en: '[`GapBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/GapBuffer.java)'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '[`GapBuffer.java`](https://github.com/mit6005/fa16-ex23-editor/blob/master/src/editor/GapBuffer.java)'
 - en: '[PRE2]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: In a multiuser scenario, we’d want multiple gaps, one for each user’s cursor,
     but we’ll use a single gap for now.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在多用户场景中，我们希望有多个间隙，每个用户的光标都有一个，但现在我们暂时只使用一个间隙。
 - en: Steps to develop the datatype
+  id: totrans-56
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 开发数据类型的步骤
 - en: 'Recall our recipe for designing and implementing an ADT:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下我们设计和实现ADT的方法：
 - en: '**Specify.** Define the operations (method signatures and specs). We did that
     in the `EditBuffer` interface.'
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**指定。** 定义操作（方法签名和规范）。我们在`EditBuffer`接口中完成了这项工作。'
 - en: '**Test.** Develop test cases for the operations. See `EditBufferTest` in the
     provided code. The test suite includes a testing strategy based on partitioning
     the parameter space of the operations.'
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**测试。** 为操作开发测试用例。请参阅所提供代码中的`EditBufferTest`。测试套件包括基于对操作的参数空间进行分区的测试策略。'
 - en: '**Rep.** Choose a rep. We chose two of them for `EditBuffer`, and this is often
     a good idea:'
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**Rep。** 选择一个 rep。我们为`EditBuffer`选择了两个 rep，这通常是个好主意：'
 - en: '**Implement a simple, brute-force rep first.** It’s easier to write, you’re
     more likely to get it right, and it will validate your test cases and your specification
     so you can fix problems in them before you move on to the harder implementation.
     This is why we implemented `SimpleBuffer` before moving on to `GapBuffer`. Don’t
     throw away your simple version, either — keep it around so that you have something
     to test and compare against in case things go wrong with the more complex one.'
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**首先实现一个简单的、蛮力的版本。**这样做更容易，您更有可能做对，并且它将验证您的测试用例和规范，以便您在继续进行更难的实现之前可以解决其中的问题。这就是为什么我们在转向`GapBuffer`之前先实现了`SimpleBuffer`。不要丢弃您的简单版本，保留它，以便您有一些东西可以测试和与之比较，以防更复杂的版本出现问题。'
 - en: '**Write down the rep invariant and abstraction function, and implement `checkRep()`.**
     `checkRep()` asserts the rep invariant at the end of every constructor, producer,
     and mutator method. (It’s typically not necessary to call it at the end of an
@@ -301,354 +429,525 @@
     for testing complex implementations, so it’s not a bad idea to also assert the
     postcondition at the end of a complex method. You’ll see an example of this in
     `GapBuffer.moveGap()` in the code with this reading.'
+  id: totrans-62
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**记录 rep 不变式和抽象函数，并实现`checkRep()`。** `checkRep()`在每个构造函数、生产者和修改器方法的末尾断言 rep
+    不变式。（通常不需要在观察者的末尾调用它，因为 rep 没有改变。）实际上，断言对于测试复杂实现非常有用，因此在复杂方法的末尾也断言后条件并不是一个坏主意。您将在本文中的代码中`GapBuffer.moveGap()`中看到这样的示例。'
 - en: In all these steps, we’re working entirely single-threaded at first. Multithreaded
     clients should be in the back of our minds at all times while we’re writing specs
     and choosing reps (we’ll see later that careful choice of operations may be necessary
     to avoid race conditions in the clients of your datatype). But get it working,
     and thoroughly tested, in a sequential, single-threaded environment first.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所有这些步骤中，我们首先完全单线程工作。在编写规范和选择代表时，多线程客户端应始终在我们的头脑中，因为（我们将在稍后看到，小心选择操作可能是必要的，以避免数据类型客户端中的竞争条件）。但首先使其在顺序的、单线程的环境中工作，并进行彻底测试。
 - en: 'Now we’re ready for the next step:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们准备进行下一步：
 - en: '**Synchronize.** Make an argument that your rep is threadsafe. Write it down
     explicitly as a comment in your class, right by the rep invariant, so that a maintainer
     knows how you designed thread safety into the class.'
+  id: totrans-65
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**同步。** 提出您的 rep 是线程安全的论点。将其明确写成注释添加到您的类中，就在 rep 不变式旁边，以便维护人员知道您如何将线程安全性设计到类中。'
 - en: This part of the reading is about how to do step 4. We already saw [how to make
     a thread safety argument](../20-thread-safety/#how_to_make_a_safety_argument),
     but this time, we’ll rely on synchronization in that argument.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 本阅读的这部分是关于如何执行第4步的。我们已经看到[如何提出线程安全性论点](../20-thread-safety/#how_to_make_a_safety_argument)，但这次，我们将依赖于该论点中的同步。
 - en: 'And then the extra step we hinted at above:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们上面提到的额外步骤：
 - en: '**Iterate**. You may find that your choice of operations makes it hard to write
     a threadsafe type with the guarantees clients require. You might discover this
     in step 1, or in step 2 when you write tests, or in steps 3 or 4 when you implement.
     If that’s the case, go back and refine the set of operations your ADT provides.'
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**迭代**。您可能会发现，您选择的操作方式使得编写符合客户要求的线程安全类型变得困难。您可能会在第1步中发现这一点，或者在编写测试时发现，在步骤3或4中实现时发现。如果是这种情况，请返回并完善您的ADT提供的操作集。'
 - en: Locking
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 锁定
 - en: Locks are so commonly-used that Java provides them as a built-in language feature.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁是如此常用，以至于Java将它们作为内置语言特性提供。
 - en: 'In Java, every object has a lock implicitly associated with it — a `String`,
     an array, an `ArrayList`, and every class you create, all of their object instances
     have a lock. Even a humble `Object` has a lock, so bare `Object`s are often used
     for explicit locking:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Java中，每个对象都隐含与之关联的锁 —— 一个`String`、一个数组、一个`ArrayList`，以及您创建的每个类，它们的所有对象实例都有一个锁。甚至一个简单的`Object`也有一个锁，因此裸`Object`经常用于显式锁定。
 - en: '[PRE3]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'You can’t call `acquire` and `release` on Java’s intrinsic locks, however.
     Instead you use the **`synchronized`** statement to acquire the lock for the duration
     of a statement block:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是在Java的内置锁上不能调用`acquire`和`release`。相反，您可以使用**`synchronized`**语句在语句块的持续时间内获取锁：
 - en: '[PRE4]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Synchronized regions like this provide **mutual exclusion**: only one thread
     at a time can be in a synchronized region guarded by a given object’s lock. In
     other words, you are back in sequential programming world, with only one thread
     running at a time, at least with respect to other synchronized regions that refer
     to the same object.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 像这样的同步区域提供了**互斥**：同一时间只能有一个线程在由给定对象的锁保护的同步区域中。换句话说，您回到了顺序编程的世界中，一次只有一个线程在运行，至少是对于引用相同对象的其他同步区域而言。
 - en: Locks guard access to data
+  id: totrans-76
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 锁保护数据的访问
 - en: Locks are used to **guard** a shared data variable, like the account balance
     shown here. If all accesses to a data variable are guarded (surrounded by a synchronized
     block) by the same lock object, then those accesses will be guaranteed to be atomic
     — uninterrupted by other threads.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁用于**保护**共享数据变量，如此处显示的账户余额。如果对数据变量的所有访问都由相同的锁对象保护（包围在同步块中），那么这些访问将被保证是原子的——不会被其他线程打断。
 - en: Because every object in Java has a lock implicitly associated with it, you might
     think that simply owning an object’s lock would prevent other threads from accessing
     that object. **That is not the case.** Acquiring the lock associated with object
     `obj` using
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为Java中的每个对象都隐含与之关联的锁，所以您可能会认为拥有对象的锁就会阻止其他线程访问该对象。**事实并非如此。**使用下面的代码获取与对象`obj`关联的锁时，
 - en: '[PRE5]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'in thread *t* does one thing and one thing only: prevents other threads from
     entering a `synchronized(obj)` block, until thread *t* finishes its synchronized
     block. That’s it.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程*t*只做一件事：防止其他线程进入`synchronized(obj)`块，直到线程*t*完成其同步块。就是这样。
 - en: Locks only provide mutual exclusion with other threads that acquire the same
     lock. All accesses to a data variable must be guarded by the same lock. You might
     guard an entire collection of variables behind a single lock, but all modules
     must agree on which lock they will all acquire and release.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁只与获取相同锁的其他线程提供互斥。对数据变量的所有访问都必须由相同的锁保护。您可能会将整个变量集合放在单个锁后面，但所有模块必须同意它们将获取和释放哪个锁。
 - en: Monitor pattern
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 监视器模式
 - en: When you are writing methods of a class, the most convenient lock is the object
     instance itself, i.e. `this`. As a simple approach, we can guard the entire rep
     of a class by wrapping all accesses to the rep inside `synchronized (this)`.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你编写类的方法时，最方便的锁是对象实例本身，即`this`。作为一种简单的方法，我们可以通过在所有对rep的访问都包装在`synchronized (this)`内部来保护整个类的rep。
 - en: '[PRE6]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Note the very careful discipline here. *Every* method that touches the rep must
     be guarded with the lock — even apparently small and trivial ones like `length()`
     and `toString()`. This is because reads must be guarded as well as writes — if
     reads are left unguarded, then they may be able to see the rep in a partially-modified
     state.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意这里非常谨慎的规范。*每个*触及rep的方法都必须使用锁进行保护——甚至看似小而琐碎的方法，如`length()`和`toString()`。这是因为读取必须像写入一样受到保护——如果读取未经保护，则它们可能能够看到rep处于部分修改状态。
 - en: This approach is called the **monitor pattern**. A monitor is a class whose
     methods are mutually exclusive, so that only one thread can be inside an instance
     of the class at a time.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法称为**监视器模式**。监视器是一个类，其方法是互斥的，因此一次只能有一个线程在类的实例内部。
 - en: 'Java provides some syntactic sugar for the monitor pattern. If you add the
     keyword `synchronized` to a method signature, then Java will act as if you wrote
     `synchronized (this)` around the method body. So the code below is an equivalent
     way to implement the synchronized `SimpleBuffer`:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: Java为监视器模式提供了一些语法糖。如果你在方法签名中添加关键字`synchronized`，那么Java会像你在方法体周围写了`synchronized
+    (this)`一样运行。因此，下面的代码是实现同步的`SimpleBuffer`的等效方式：
 - en: '[PRE7]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Notice that the `SimpleBuffer` constructor doesn’t have a `synchronized` keyword.
     Java actually forbids it, syntactically, because an object under construction
     is expected to be confined to a single thread until it has returned from its constructor.
     So synchronizing constructors should be unnecessary.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，`SimpleBuffer`构造函数没有`synchronized`关键字。实际上，Java在语法上禁止这样做，因为一个正在构造的对象预期应该在返回构造函数之前被限制在一个线程中。因此，同步构造函数应该是不必要的。
 - en: 'In the Java Tutorials, read:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Java教程中，阅读：
 - en: '[Synchronized Methods](http://docs.oracle.com/javase/tutorial/essential/concurrency/syncmeth.html)
     (1 page)'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[同步方法](http://docs.oracle.com/javase/tutorial/essential/concurrency/syncmeth.html)（1页）'
 - en: '[Intrinsic Locks and Synchronization](http://docs.oracle.com/javase/tutorial/essential/concurrency/locksync.html)
     (1 page)'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[内在锁和同步](http://docs.oracle.com/javase/tutorial/essential/concurrency/locksync.html)（1页）'
 - en: reading exercises
+  id: totrans-93
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读练习
 - en: Synchronizing with locks
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用锁进行同步
 - en: 'If thread B tries to acquire a lock currently held by thread A:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果线程B尝试获取线程A当前持有的锁：
 - en: What happens to thread A?
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程A会发生什么？
 - en: (missing answer)(missing answer)(missing answer)
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）
 - en: What happens to thread B?
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程B会发生什么？
 - en: (missing answer)(missing answer)(missing answer)
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: This list is mine, all mine
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个列表是我的，完全属于我。
 - en: Suppose `list` is an instance of `ArrayList<String>`.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设`list`是一个`ArrayList<String>`的实例。
 - en: What is true while A is in a `synchronized (list) { ... }` block?
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 当A在`synchronized (list) { ... }`块中时，哪些是真的？
 - en: (missing answer)(missing answer)(missing answer)(missing answer)(missing answer)(missing
     answer)
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: OK fine but this synchronized List is totally mine
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，但是这个同步的List完全属于我。
 - en: Suppose `sharedList` is a `List` returned by [`Collections.synchronizedList`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#synchronizedList-java.util.List-).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设`sharedList`是由[`Collections.synchronizedList`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#synchronizedList-java.util.List-)返回的`List`。
 - en: It is now safe to use `sharedList` from multiple threads without acquiring any
     locks… except! Which of the following would require a `synchronized(sharedList)
     { ... }` block?
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在可以在多个线程中安全地使用`sharedList`而不需要获取任何锁……除了！以下哪种情况需要一个`synchronized(sharedList)
+    { ... }`块？
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: I heard you like locks so I acquired your lock so you can lock while you acquire
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 我听说你喜欢锁，所以我获得了你的锁，这样你就可以在获得的同时锁定。
 - en: 'Suppose we run this code:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们运行这段代码：
 - en: '[PRE8]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: On the line “uh oh, deadlock?”, do we experience deadlock?
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 在“噢噢，死锁了？”那一行，我们会经历死锁吗？
 - en: (missing answer)(missing answer)
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）
 - en: If we don’t deadlock, on the line “do we own the lock on obj”, does the thread
     own the lock on obj?
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们没有死锁，在“我们是否拥有obj上的锁”的那一行，线程是否拥有obj上的锁？
 - en: (missing answer)(missing answer)(missing answer)
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少答案）（缺少答案）（缺少答案）
 - en: (missing explanation)
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: （缺少解释）
 - en: Thread safety argument with synchronization
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用同步进行线程安全论证
 - en: 'Now that we’re protecting `SimpleBuffer`’s rep with a lock, we can write a
     better thread safety argument:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们正在使用锁保护`SimpleBuffer`的rep，我们可以写一个更好的线程安全论证：
 - en: '[PRE9]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: The same argument works for `GapBuffer`, if we use the monitor pattern to synchronize
     all its methods.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用监视器模式来同步`GapBuffer`的所有方法，那么相同的论点适用于`GapBuffer`。
 - en: 'Note that the encapsulation of the class, the absence of rep exposure, is very
     important for making this argument. If text were public:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，类的封装，即没有rep曝光，对于提出这个论点非常重要。如果text是public的：
 - en: '[PRE10]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: then clients outside `SimpleBuffer` would be able to read and write it without
     knowing that they should first acquire the lock, and `SimpleBuffer` would no longer
     be threadsafe.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么`SimpleBuffer`之外的客户端将能够读取和写入它，而不知道他们应该首先获取锁，而`SimpleBuffer`将不再是线程安全的。
 - en: Locking discipline
+  id: totrans-126
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 锁定纪律
 - en: 'A locking discipline is a strategy for ensuring that synchronized code is threadsafe.
     We must satisfy two conditions:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁定纪律是确保同步代码是线程安全的策略。我们必须满足两个条件：
 - en: Every shared mutable variable must be guarded by some lock. The data may not
     be read or written except inside a synchronized block that acquires that lock.
+  id: totrans-128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个共享的可变变量都必须由某个锁保护。除了在获得该锁的同步块内部读取或写入数据外，不得读取或写入数据。
 - en: If an invariant involves multiple shared mutable variables (which might even
     be in different objects), then all the variables involved must be guarded by the
     *same* lock. Once a thread acquires the lock, the invariant must be reestablished
     before releasing the lock.
+  id: totrans-129
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果不变量涉及多个共享可变变量（甚至可能在不同的对象中），则所涉及的所有变量必须由*相同*的锁保护。一旦线程获取锁，则必须在释放锁之前重新建立不变量。
 - en: The monitor pattern as used here satisfies both rules. All the shared mutable
     data in the rep — which the rep invariant depends on — are guarded by the same
     lock.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 此处使用的监视器模式满足了两条规则。所有与rep不变量相关的共享可变数据都由相同的锁保护。
 - en: Atomic operations
+  id: totrans-131
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 原子操作
 - en: 'Consider a find-and-replace operation on the `EditBuffer` datatype:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑对`EditBuffer`数据类型进行查找和替换操作：
 - en: '[PRE11]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: This method makes three different calls to `buf` — to convert it to a string
     in order to search for `s`, to delete the old text, and then to insert `t` in
     its place. Even though each of these calls individually is atomic, the `findReplace`
     method as a whole is not threadsafe, because other threads might mutate the buffer
     while `findReplace` is working, causing it to delete the wrong region or put the
     replacement back in the wrong place.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 此方法对`buf`进行了三个不同的调用 —— 将其转换为字符串以便搜索`s`，删除旧文本，然后在其位置插入`t`。即使这些调用中的每个调用都是原子的，`findReplace`方法作为一个整体却不是线程安全的，因为其他线程可能会在`findReplace`工作时对缓冲区进行突变，导致删除错误的区域或将替换放回到错误的位置。
 - en: To prevent this, `findReplace` needs to synchronize with all other clients of
     `buf`.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了防止这种情况发生，`findReplace`需要与`buf`的所有其他客户端同步。
 - en: Giving clients access to a lock
+  id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 给客户端访问锁
 - en: It’s sometimes useful to make your datatype’s lock available to clients, so
     that they can use it to implement higher-level atomic operations using your datatype.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，将您数据类型的锁提供给客户可能是有用的，这样他们就可以使用它来实现使用您数据类型的更高级原子操作。
 - en: 'So one approach to the problem with `findReplace` is to document that clients
     can use the `EditBuffer`’s lock to synchronize with each other:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，解决`findReplace`问题的一种方法是记录客户端可以使用`EditBuffer`的锁来彼此同步：
 - en: '[PRE12]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'And then `findReplace` can synchronize on `buf`:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后`findReplace`可以对`buf`进行同步：
 - en: '[PRE13]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The effect of this is to enlarge the synchronization region that the monitor
     pattern already put around the individual `toString`, `delete`, and `insert` methods,
     into a single atomic region that ensures that all three methods are executed without
     interference from other threads.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做的效果是将监视器模式已经放置在个别`toString`、`delete`和`insert`方法周围的同步区域扩大到一个单一的原子区域，确保所有三个方法在没有其他线程干扰的情况下执行。
 - en: Sprinkling `synchronized` everywhere?
+  id: totrans-143
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 到处都加上`synchronized`吗？
 - en: So is thread safety simply a matter of putting the `synchronized` keyword on
     every method in your program? Unfortunately not.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以线程安全仅仅是在程序的每个方法上都加上`synchronized`关键字吗？不幸的是，不是。
 - en: First, you actually don’t want to synchronize methods willy-nilly. Synchronization
     imposes a large cost on your program. Making a synchronized method call may take
     significantly longer, because of the need to acquire a lock (and flush caches
     and communicate with other processors). Java leaves many of its mutable datatypes
     unsynchronized by default exactly for these performance reasons. When you don’t
     need synchronization, don’t use it.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，您实际上不希望随意同步方法。同步对您的程序施加了很大的成本。由于需要获取锁（并刷新缓存并与其他处理器通信），进行同步方法调用可能需要更长的时间。Java默认情况下将其许多可变数据类型保持不同步正是出于这些性能原因。当您不需要同步时，请不要使用它。
 - en: Another argument for using `synchronized` in a more deliberate way is that it
     minimizes the scope of access to your lock. Adding `synchronized` to every method
     means that your lock is the object itself, and every client with a reference to
@@ -656,19 +955,25 @@
     release at will. Your thread safety mechanism is therefore public and can be interfered
     with by clients. Contrast that with using a lock that is an object internal to
     your rep, and acquired appropriately and sparingly using `synchronized()` blocks.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 更谨慎地使用`synchronized`的另一个论点是，它将锁的访问范围最小化。将`synchronized`添加到每个方法中意味着您的锁是对象本身，并且每个具有对您对象引用的客户端自动具有对您锁的引用，可以随意获取和释放。因此，您的线程安全机制是公开的，并且可以被客户端干扰。相比之下，使用作为对象内部的锁，使用`Synchronized()`块适当且节制地获取。
 - en: 'Finally, it’s not actually sufficient to sprinkle `synchronized` everywhere.
     Dropping `synchronized` onto a method without thinking means that you’re acquiring
     a lock without thinking about which lock it is, or about whether it’s the right
     lock for guarding the shared data access you’re about to do. Suppose we had tried
     to solve `findReplace`’s synchronization problem simply by dropping `synchronized`
     onto its declaration:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，仅仅在任何地方添加`synchronized`是不够的。毫无思考地在方法上添加`synchronized`意味着你在获取一个锁而没有考虑是哪个锁，或者是否是用于保护即将进行的共享数据访问的正确锁。假设我们尝试通过简单地在`findReplace`的声明上添加`synchronized`来解决同步问题：
 - en: '[PRE14]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This wouldn’t do what we want. It would indeed acquire a lock — because `findReplace`
     is a static method, it would acquire a static lock for the whole class that `findReplace`
     happens to be in, rather than an instance object lock. As a result, only one thread
@@ -677,29 +982,39 @@
     lock was free. So we’d suffer a significant loss in performance, because only
     one user of our massive multiuser editor would be allowed to do a find-and-replace
     at a time, even if they’re all editing different documents.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不会达到我们的目的。它确实会获取一个锁——因为`findReplace`是一个静态方法，它会获取整个类的静态锁，而不是实例对象锁。因此，只有一个线程可以一次调用`findReplace`——即使其他线程想要操作*不同*的缓冲区，这应该是安全的，它们仍然会被阻塞，直到单个锁被释放。因此，我们会遭受显著的性能损失，因为我们庞大的多用户编辑器只允许一个用户一次执行查找和替换，即使他们都在编辑不同的文档。
 - en: Worse, however, it wouldn’t provide useful protection, because other code that
     touches the document probably wouldn’t be acquiring the same lock. It wouldn’t
     actually eliminate our race conditions.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而更糟糕的是，它不会提供有用的保护，因为触及文档的其他代码可能不会获取相同的锁。它实际上不会消除我们的竞态条件。
 - en: The `synchronized` keyword is not a panacea. Thread safety requires a discipline
     — using confinement, immutability, or locks to protect shared data. And that discipline
     needs to be written down, or maintainers won’t know what it is.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '`synchronized`关键字并非万能药。线程安全需要纪律——使用封装、不可变性或锁来保护共享数据。而且这种纪律需要被记录下来，否则维护者就不会知道是什么。'
 - en: Designing a datatype for concurrency
+  id: totrans-152
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为并发设计数据类型
 - en: '`findReplace`’s problem can be interpreted another way: that the `EditBuffer`
     interface really isn’t that friendly to multiple simultaneous clients. It relies
     on integer indexes to specify insert and delete locations, which are extremely
     brittle to other mutations. If somebody else inserts or deletes before the index
     position, then the index becomes invalid.'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '`findReplace`的问题可以另一种方式解释：`EditBuffer`接口对于多个同时客户端并不友好。它依赖于整数索引来指定插入和删除位置，这对其他变化非常脆弱。如果其他人在索引位置之前插入或删除，那么索引就会变得无效。'
 - en: So if we’re designing a datatype specifically for use in a concurrent system,
     we need to think about providing operations that have better-defined semantics
     when they are interleaved. For example, it might be better to pair `EditBuffer`
@@ -711,31 +1026,39 @@
     to inform a subsequent client about what had happened (perhaps with an exception),
     and allow the client to decide what to do. These kinds of considerations come
     into play when designing a datatype for concurrency.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果我们专门为并发系统设计数据类型，我们需要考虑提供在交错时具有更明确定义语义的操作。例如，将`EditBuffer`与表示缓冲区中光标位置的`Position`数据类型配对，甚至是表示选定范围的`Selection`数据类型。一旦获得，`Position`可以在文本中的插入和删除操作中保持其位置，直到客户端准备使用该`Position`。如果其他线程删除了`Position`周围的所有文本，那么`Position`将能够通知后续客户端发生了什么（可能会有异常），并允许客户端决定如何处理。在设计用于并发的数据类型时，这些考虑因素会起作用。
 - en: 'As another example, consider the [`ConcurrentMap`](http://docs.oracle.com/javase/8/docs/api/?java/util/concurrent/ConcurrentMap.html)
     interface in Java. This interface extends the existing `Map` interface, adding
     a few key methods that are commonly needed as atomic operations on a shared mutable
     map, e.g.:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
 - en: '`map.putIfAbsent(key,value)` is an atomic version of'
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`if ( ! map.containsKey(key)) map.put(key, value);`'
+  id: totrans-157
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`map.replace(key, value)` is an atomic version of'
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`if (map.containsKey(key)) map.put(key, value);`'
+  id: totrans-159
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: Deadlock rears its ugly head
+  id: totrans-160
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -745,53 +1068,69 @@
     And blocking raises the possibility of deadlock — a very real risk, and frankly
     *far* more common in this setting than in message passing with blocking I/O (where
     we first mentioned it).
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
 - en: With locking, deadlock happens when threads acquire multiple locks at the same
     time, and two threads end up blocked while holding locks that they are each waiting
     for the other to release. The monitor pattern unfortunately makes this fairly
     easy to do. Here’s an example.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
 - en: 'Suppose we’re modeling the social network of a series of books:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE15]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Like Facebook, this social network is bidirectional: if *x* is friends with
     *y*, then *y* is friends with *x*. The `friend()` and `defriend()` methods enforce
     that invariant by modifying the reps of both objects, which because they use the
     monitor pattern means acquiring the locks to both objects as well.'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let’s create a couple of wizards:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'And then think about what happens when two independent threads are repeatedly
     running:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: We will deadlock very rapidly. Here’s why. Suppose thread A is about to execute
     `harry.friend(snape)`, and thread B is about to execute `snape.friend(harry)`.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: Thread A acquires the lock on `harry` (because the friend method is synchronized).
+  id: totrans-171
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Then thread B acquires the lock on `snape` (for the same reason).
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: They both update their individual reps independently, and then try to call `friend()`
     on the other object — which requires them to acquire the lock on the other object.
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -799,10 +1138,12 @@
     for Harry. Both threads are stuck in `friend()`, so neither one will ever manage
     to exit the synchronized region and release the lock to the other. This is a classic
     deadly embrace. The program simply stops.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: The essence of the problem is acquiring multiple locks, and holding some of
     the locks while waiting for another lock to become free.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: 'Notice that it is possible for thread A and thread B to interleave such that
@@ -810,15 +1151,18 @@
     thread B has enough time to acquire the first one. If the locks involved in a
     deadlock are also involved in a race condition — and very often they are — then
     the deadlock will be just as difficult to reproduce or debug.'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
 - en: 'Deadlock solution 1: lock ordering'
+  id: totrans-177
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: One way to prevent deadlock is to put an ordering on the locks that need to
     be acquired simultaneously, and ensuring that all code acquires the locks in that
     order.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
 - en: 'In our social network example, we might always acquire the locks on the `Wizard`
@@ -829,25 +1173,32 @@
     proceed until A releases Harry’s lock again. The ordering on the locks forces
     an ordering on the threads acquiring them, so there’s no way to produce a cycle
     in the waiting-for graph.'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here’s what the code might look like:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: (Note that the decision to order the locks alphabetically by the person’s name
     would work fine for this book, but it wouldn’t work in a real life social network.
     Why not? What would be better to use for lock ordering than the name?)
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
 - en: Although lock ordering is useful (particularly in code like operating system
     kernels), it has a number of drawbacks in practice.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: First, it’s not modular — the code has to know about all the locks in the system,
     or at least in its subsystem.
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -856,10 +1207,12 @@
     to do some computation to figure it out. Think about doing a depth-first search
     on the social network graph, for example — how would you know which nodes need
     to be locked, before you’ve even started looking for them?
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Deadlock solution 2: coarse-grained locking'
+  id: totrans-186
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -867,172 +1220,226 @@
     (as opposed to operating system or device driver programming), is to use coarser
     locking — use a single lock to guard many object instances, or even a whole subsystem
     of a program.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
 - en: 'For example, we might have a single lock for an entire social network, and
     have all the operations on any of its constituent parts synchronize on that lock.
     In the code below, all `Wizard`s belong to a `Castle`, and we just use that `Castle`
     object’s lock to synchronize:'
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Coarse-grained locks can have a significant performance penalty. If you guard
     a large pile of mutable data with a single lock, then you’re giving up the ability
     to access any of that data concurrently. In the worst case, having a single lock
     protecting everything, your program might be essentially sequential — only one
     thread is allowed to make progress at a time.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
 - en: reading exercises
+  id: totrans-191
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: Deadlock
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: In the code below three threads 1, 2, and 3 are trying to acquire locks on objects
     `alpha`, `beta`, and `gamma`.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: '| Thread 1 | Thread 2 | Thread 3 |'
+  id: totrans-194
   prefs: []
   type: TYPE_TB
 - en: '|'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE20]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '|'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE21]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '|'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE22]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '|'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
 - en: This system is susceptible to deadlock.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
 - en: For each of the scenarios below, determine whether the system is in deadlock
     if the threads are currently on the indicated lines of code.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
 - en: '****Scenario A**'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 1 inside `using alpha`
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 2 blocked on `synchronized (alpha)`
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 3 finished
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: (missing answer)(missing answer)
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
 - en: (missing explanation)
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
 - en: '****Scenario B**'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 1 finished
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 2 blocked on `synchronized (beta)`
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 3 blocked on 2nd `synchronized (gamma)`
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
 - en: (missing answer)(missing answer)
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
 - en: (missing explanation)
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
 - en: '****Scenario C**'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 1 running `synchronized (beta)`
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 2 blocked on `synchronized (gamma)`
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 3 blocked on 1st `synchronized (gamma)`
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
 - en: (missing answer)(missing answer)
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
 - en: (missing explanation)
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
 - en: '****Scenario D**'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 1 blocked on `synchronized (beta)`
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 2 finished
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
 - en: Thread 3 blocked on 2nd `synchronized (gamma)`
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
 - en: (missing answer)(missing answer)
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
 - en: (missing explanation)******** ****Locked out
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
 - en: Examine the code again.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
 - en: In the previous problem, we saw deadlocks involving `beta` and `gamma`.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
 - en: What about `alpha`?
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
 - en: (missing answer)(missing answer)(missing answer)(missing answer)
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
 - en: (missing explanation)****  ****## Goals of concurrent program design
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
 - en: Now is a good time to pop up a level and look at what we’re doing. Recall that
     our primary goals are to create software that is **safe from bugs**, **easy to
     understand**, and **ready for change**.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
 - en: 'Building concurrent software is clearly a challenge for all three of these
     goals. We can break the issues into two general classes. When we ask whether a
     concurrent program is *safe from bugs*, we care about two properties:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
 - en: '**Safety.** Does the concurrent program satisfy its invariants and its specifications?
     Races in accessing mutable data threaten safety. Safety asks the question: can
     you prove that **some bad thing never happens**?'
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Liveness.** Does the program keep running and eventually do what you want,
     or does it get stuck somewhere waiting forever for events that will never happen?
     Can you prove that **some good thing eventually happens**?'
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1040,18 +1447,22 @@
     that concurrent modules are given processing capacity to make progress on their
     computations. Fairness is mostly a matter for the operating system’s thread scheduler,
     but you can influence it (for good or for ill) by setting thread priorities.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
 - en: Concurrency in practice
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: What strategies are typically followed in real programs?
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
 - en: '**Library data structures** either use no synchronization (to offer high performance
     to single-threaded clients, while leaving it to multithreaded clients to add locking
     on top) or the monitor pattern.'
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1062,6 +1473,7 @@
     thread confinement. Only a single dedicated thread is allowed to access Swing’s
     tree. Other threads have to pass messages to that dedicated thread in order to
     access the tree.'
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1069,11 +1481,13 @@
     search](../16-recursive-data-types/recursive/#another_example_boolean_formulas)
     would be easy to make multithreaded, because all the datatypes involved were immutable.
     There would be no risk of either races or deadlocks.'
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Operating systems** often use fine-grained locks in order to get high performance,
     and use lock ordering to deal with deadlock problems.'
+  id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1087,14 +1501,17 @@
     about how to use databases in system design, 6.170 Software Studio is strongly
     recommended; for more about how databases work on the inside, take 6.814 Database
     Systems.'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
 - en: And if you’re interested in the **performance** of concurrent programs — since
     performance is often one of the reasons we add concurrency to a system in the
     first place — then 6.172 Performance Engineering is the course for you.
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-246
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -1104,25 +1521,30 @@
     correct threadsafe code. And threads can interleave their operations in so many
     different ways that you will never be able to test even a small fraction of all
     possible executions.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
 - en: Make thread safety arguments about your datatypes, and document them in the
     code.
+  id: totrans-248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Acquiring a lock allows a thread to have exclusive access to the data guarded
     by that lock, forcing other threads to block — as long as those threads are also
     trying to acquire that same lock.
+  id: totrans-249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The *monitor pattern* guards the rep of a datatype with a single lock that is
     acquired by every method.
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Blocking caused by acquiring multiple locks creates the possibility of deadlock.****
+  id: totrans-251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
