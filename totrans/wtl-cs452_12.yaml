@@ -1,978 +1,1425 @@
 - en: Lecture 12 - Hardware Interrupts
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第12讲 - 硬件中断
 - en: Public Service Annoucements
+  id: totrans-1
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 公共服务公告
 - en: Wednesday's class
+  id: totrans-2
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 星期三的课程
 - en: Do you need it?
+  id: totrans-3
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你需要吗？
 - en: Assignment 3
+  id: totrans-4
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作业3
 - en: '* * *'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Hardware Interrupts
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 硬件中断
 - en: What is a Hardware Interrupt?
+  id: totrans-7
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 什么是硬件中断？
 - en: Context Switches for Interrupts
+  id: totrans-8
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 中断的上下文切换
 - en: Difference from Software Interrupts
+  id: totrans-9
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 与软件中断的区别
 - en: It is impossible to predict where they occur
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可能预测它们发生的位置
 - en: You may have made some assumptions about when they occur
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可能对它们何时发生做出了一些假设
 - en: Assymmetry between User Task and Kernel
+  id: totrans-12
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 用户任务和内核之间的不对称性
 - en: Scratch Registers must be saved
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 必须保存 Scratch 寄存器
 - en: for the user task, not for the kernel
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为用户任务启用，而不是为内核
 - en: including the IP
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包括 IP
 - en: Helpful Features of the ICU
+  id: totrans-16
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: ICU 的有用特性
 - en: Several places where you can read state
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 几个可以读取状态的地方
 - en: Several places where you can block interrupt flow
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 几个可以阻止中断流的地方
 - en: Trigger hardware interrupt from software
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从软件触发硬件中断
 - en: What makes interrupts hard is that you are doing two semi-hard things at once
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 中断的难点在于你同时在做两件半难的事情
 - en: Making the hardware produce the interrupt
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使硬件产生中断
 - en: Responding to the interrupt
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 响应中断
 - en: This allows you to separate them in developing/debugging
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这使得你可以在开发/调试中将它们分开
 - en: '* * *'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: The Hardware in the Trains Lab
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实验室中的硬件
 - en: 32-bit Timer
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 32位定时器
 - en: Interrupt Control Unit (ICU)
+  id: totrans-27
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 中断控制单元（ICU）
 - en: The actual device is the ARM PL190
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际设备是 ARM PL190
 - en: Hardware Definitions
+  id: totrans-29
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 硬件定义
 - en: '**Registers for Basic Operation**'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '**基本操作寄存器**'
 - en: '| Register Name | Offset | R/W | Description |'
+  id: totrans-31
   prefs: []
   type: TYPE_TB
+  zh: '| 寄存器名称 | 偏移 | 读/写 | 描述 |'
 - en: '| VICxIRQStatus | 0x00 | RO | One bit for each interrupt source1 if interrupt
     is asserted and enabled |'
+  id: totrans-32
   prefs: []
   type: TYPE_TB
+  zh: '| VICxIRQStatus | 0x00 | 只读 | 每个中断源的一位，如果中断被触发且启用则为1 |'
 - en: '| VICxFIQStatus | 0x04 | RO | As above for FIQ |'
+  id: totrans-33
   prefs: []
   type: TYPE_TB
+  zh: '| VICxFIQStatus | 0x04 | 只读 | 与 FIQ 相同 |'
 - en: '| VICxRawIntr | 0x08 | RO | As above but not masked |'
+  id: totrans-34
   prefs: []
   type: TYPE_TB
+  zh: '| VICxRawIntr | 0x08 | 只读 | 与上述相同但未屏蔽 |'
 - en: '| VICxIntSelect | 0x0c | R/W | 0: IRQ, 1: FIQ |'
+  id: totrans-35
   prefs: []
   type: TYPE_TB
+  zh: '| VICxIntSelect | 0x0c | 读/写 | 0: IRQ, 1: FIQ |'
 - en: '| VICxIntEnable | 0x10 | R/W | 0: Masked, 1: Enabled |'
+  id: totrans-36
   prefs: []
   type: TYPE_TB
+  zh: '| VICxIntEnable | 0x10 | 读/写 | 0: 屏蔽，1: 启用 |'
 - en: '| VICxIntEnClear | 0x14 | WO | Clears bits in VICxIntEnable |'
+  id: totrans-37
   prefs: []
   type: TYPE_TB
+  zh: '| VICxIntEnClear | 0x14 | 写入 | 清除 VICxIntEnable 中的位 |'
 - en: '| VICxSoftInt | 0x18 | R/W | Asserts interrupt from software |'
+  id: totrans-38
   prefs: []
   type: TYPE_TB
+  zh: '| VICxSoftInt | 0x18 | 读/写 | 从软件中断中断 |'
 - en: '| VICxSoftIntClear | 0x1c | WO | Clears interrupt from software |'
+  id: totrans-39
   prefs: []
   type: TYPE_TB
+  zh: '| VICxSoftIntClear | 0x1c | 写入 | 清除来自软件的中断 |'
 - en: '| VICxProtection | 0x20 | R/W | Bit 0 enables protection from user mode access
     |'
+  id: totrans-40
   prefs: []
   type: TYPE_TB
+  zh: '| VICxProtection | 0x20 | 读/写 | 位0 启用用户模式访问保护 |'
 - en: '| VICxVectAddr | 0x30 | R/W | Enables priority hardwareSee documentation. |'
+  id: totrans-41
   prefs: []
   type: TYPE_TB
+  zh: '| VICxVectAddr | 0x30 | 读/写 | 启用优先级硬件请参阅文档。 |'
 - en: Helpful Features of the ICU
+  id: totrans-42
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: ICU 的有用特性
 - en: Several places where you can read state
+  id: totrans-43
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 几个可以读取状态的地方
 - en: Several places where you can block interrupt flow
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 几个可以阻止中断流的地方
 - en: Trigger hardware interrupt from softwareonce
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从软件触发硬件中断一次
 - en: What makes interrupts hard is that you are doing two semi-hard things at once
+  id: totrans-46
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 中断的难点在于你同时在做两件半难的事情
 - en: Making the hardware produce the interrupt
+  id: totrans-47
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使硬件产生中断
 - en: Responding to the interrupt
+  id: totrans-48
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 响应中断
 - en: Software interrupt generation allows you to separate them in developing/debugging
+  id: totrans-49
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 软件中断生成允许你在开发/调试中将它们分开
 - en: '* * *'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Non-vectored Operation
+  id: totrans-51
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 非向量操作
 - en: Initialization
+  id: totrans-52
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 初始化
 - en: Enable interrupt in device
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在设备中启用中断
 - en: Sometimes there is a spurious interrupt that comes in, sometimes not.
+  id: totrans-54
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有时会出现虚假中断，有时则不会。
 - en: Enable interrupt in ICU
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 ICU 中启用中断
 - en: Enable interrupt in CPU, usually by MOVS
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 CPU 中启用中断，通常通过 MOVS
 - en: Interrupt occurs
+  id: totrans-57
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 中断发生
 - en: AND of IRQ and NOT( IRQ disabled ) is checked before each instruction fetch.
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在每次指令获取之前检查 IRQ 和 NOT（禁用 IRQ）的 AND。
 - en: If set IRQ exception is taken in place of next instruction fetch.
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果设置 IRQ 异常，则在下一条指令获取的位置发生 IRQ 异常。
 - en: Possibly zero instructions of active task are executed.
+  id: totrans-60
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可能会执行零条活动任务的指令。
 - en: Make sure that this case works
+  id: totrans-61
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保这种情况有效
 - en: Context switch into kernel
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 切换到内核的上下文
 - en: '* * *'
+  id: totrans-63
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Context switch novelties
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 上下文切换的新奇之处
 - en: Difference from Software Interrupts
+  id: totrans-65
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 与软件中断的区别
 - en: It is impossible to predict where they occur
+  id: totrans-66
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不可能预测它们发生的位置
 - en: You may inadvertently have made some assumptions about when they occur
+  id: totrans-67
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可能无意中对它们何时发生做出了一些假设
 - en: Scratch Registers must be saved
+  id: totrans-68
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须保存 Scratch 寄存器
 - en: r0-3
+  id: totrans-69
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: r0-3
 - en: IP -- used only very occasionally by gcc
+  id: totrans-70
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IP -- 仅由 gcc 非常偶尔使用
 - en: How do you differentiate between IRQ and SWI?
+  id: totrans-71
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你如何区分 IRQ 和 SWI？
 - en: Two Link Registers
+  id: totrans-72
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两个链接寄存器
 - en: One to return from interrupt
+  id: totrans-73
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从中断返回
 - en: One to return from the interrupted task to whatever called it
+  id: totrans-74
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从被中断的任务返回到调用它的地方
 - en: '* * *'
+  id: totrans-75
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Locate source of interrupt
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 定位中断源
 - en: Collect volatile data
+  id: totrans-77
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 收集易失性数据
 - en: Turn off interrupt in device
+  id: totrans-78
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在设备中关闭中断
 - en: Goes off automatically in the ICU
+  id: totrans-79
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ICU中会自动关闭
 - en: Turn off interrupt in device
+  id: totrans-80
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在设备中关闭中断
 - en: Should turn off interrupt in ICU
+  id: totrans-81
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应该在ICU中关闭中断
 - en: What about IRQ?
+  id: totrans-82
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IRQ怎么办？
 - en: You are now ready to process the interrupt in the kernel
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你已经准备好在内核中处理中断了
 - en: '* * *'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Vectored Operation
+  id: totrans-85
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 向量操作
 - en: General Idea
+  id: totrans-86
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 总体思路
 - en: The standard way of programming the ICU requires the kernel to query the ICU.
     Sometimes (!), this is unacceptably inefficient. Then, you have another alternative,
     vectored interrupts.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 编程ICU的标准方式要求内核查询ICU。有时候（！），这是不可接受的低效率。然后，您有另一种选择，即向量中断。
 - en: 'Relevant registers:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 相关寄存器：
 - en: there are 16 pairs that you write
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要写入16对
 - en: '| Register Name | Offset | R/W | Description | Comments |'
+  id: totrans-90
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 寄存器名称 | 偏移 | R/W | 描述 | 注释 |'
 - en: '| VICxVectAddry | 0x100+4y | R/W | Vector address for interrupt y | Entry point
     of ISR for interrupt y |'
+  id: totrans-91
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| VICxVectAddry | 0x100+4y | R/W | 中断y的向量地址 | 中断y的ISR入口点 |'
 - en: '| VICxVectCntly | 0x200+4y | R/W | Control register for interrupt y | Bit[0-4]:
     interrupt source for interrupt y Bit[5]: enable vectored interrupt y |'
+  id: totrans-92
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| VICxVectCntly | 0x200+4y | R/W | 中断y的控制寄存器 | 位[0-4]：中断y的中断源 位[5]：使能向量中断y
+    |'
 - en: There is one pair used by the program
+  id: totrans-93
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 该程序使用了一对
 - en: '| Register Name | Offset | R/W | Description |'
+  id: totrans-94
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| 寄存器名称 | 偏移 | R/W | 描述 |'
 - en: '| VICxVectAddr | 0x030 | R/W | Read: address of vector for highest priority
     interruptWrite: service complete, enable priority hardware |'
+  id: totrans-95
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| VICxVectAddr | 0x030 | R/W | 读取：最高优先级中断的向量地址写入：服务完成，启用优先级硬件 |'
 - en: '| VICxDefVectAddr | 0x034 | R/W | Default vector address |'
+  id: totrans-96
   prefs:
   - PREF_IND
   type: TYPE_TB
+  zh: '| VICxDefVectAddr | 0x034 | R/W | 默认向量地址 |'
 - en: The first is the address (ISR entry point) of the highest priority interrupt.
     Write it during interrupt processing to get the current highest priority interrupt.
+  id: totrans-97
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一个是最高优先级中断的地址（ISR入口点）。在中断处理期间写入它以获取当前的最高优先级中断。
 - en: The second would normally be 0x34, the entry point of the kernel.
+  id: totrans-98
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第二个通常是0x34，内核的入口点。
 - en: Procedure
+  id: totrans-99
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 过程
 - en: Initialization
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始化
 - en: Write kernel entry point into VICxDefVectAddr
+  id: totrans-101
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将内核入口点写入VICxDefVectAddr
 - en: If desired write special entry point into VICxVectAddry
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果需要，在VICxVectAddry中写入特殊入口点
 - en: When ready to accept interrupts write source and enable into VICxVectCntly
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 准备好接受中断后，将源和使能写入VICxVectCntly
 - en: When an interrupt occurs
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 当中断发生时
 - en: Read VICxVectAddr to find address
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 读取VICxVectAddr以查找地址
 - en: Move result to PC
+  id: totrans-106
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将结果移动到PC
 - en: '[PRE0]'
+  id: totrans-107
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: (Note that this is similar to the instruction in 0x014\. Could we do it all
     in one?)
+  id: totrans-108
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: （请注意，这与0x014中的指令类似。我们能否一次完成所有操作？）
 - en: Before interrupts are re-enabled write VICxVectAddr to start priority hardware
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在重新启用中断之前，将VICxVectAddr写入以启动优先级硬件
 - en: Answer to question.
+  id: totrans-110
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 回答问题。
 - en: Look carefully at what's in 0x18
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 仔细查看0x18中的内容
 - en: 'Usually, `ldr pc, [pc, #offset]`'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '通常是 `ldr pc, [pc, #offset]`'
 - en: 'Can you make [pc, #offset] calculate `<VicVectAddr>`?'
+  id: totrans-113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '你能让 [pc, #offset] 计算 `<VicVectAddr>` 吗？'
 - en: How is the instruction encoded
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 指令是如何编码的
 - en: 31:28 - condition codes
+  id: totrans-115
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 31:28 - 条件代码
 - en: 27:20 - op code and flags, 0101<offset sign>001
+  id: totrans-116
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 27:20 - 操作码和标志，0101<偏移符号>001
 - en: 19:16 - base register
+  id: totrans-117
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 19:16 - 基寄存器
 - en: 15:12 - destination register
+  id: totrans-118
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 15:12 - 目标寄存器
 - en: 11:00 - 12-bit offset
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 11:00 - 12位偏移
 - en: With a 12 bit offset and pc=0x18 you can address
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用12位偏移和pc=0x18，你可以寻址到
 - en: from `0x18 + 0x8 - 0xffc = -0xfdc =``0xfffff020`
+  id: totrans-121
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从 `0x18 + 0x8 - 0xffc = -0xfdc =``0xfffff020`
 - en: to `0x18 + 0x8 + 0xffc = 0x1020`
+  id: totrans-122
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 到 `0x18 + 0x8 + 0xffc = 0x1020`
 - en: You could have the kernel entry point in
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以将内核入口点放在
 - en: either `0x800b0030`
+  id: totrans-124
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者 `0x800b0030`
 - en: or `0x800c0030`
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者 `0x800c0030`
 - en: Both are out of range. What could you do?
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 两者都超出范围。你可以怎么做？
 - en: Map the ICU into the range by placing it at, for example, `0xfffff000`.
+  id: totrans-127
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过将ICU放置在例如 `0xfffff000` 的范围内将ICU映射到该范围。
 - en: '* * *'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Clock Server, Task Structure
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 时钟服务器、任务结构
 - en: 'A New Kernel Primitive: int AwaitEvent( int EventType )'
+  id: totrans-130
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 一个新的内核原语：int AwaitEvent( int EventType )
 - en: How is AwaitEvent Used?
+  id: totrans-131
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何使用AwaitEvent？
 - en: There should (almost) always be a task blocked on AwaitEvent for every interrupt
     type. Why?
+  id: totrans-132
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于每种中断类型，几乎总是应该有一个任务被阻塞在AwaitEvent上。为什么？
 - en: A server cannot call AwaitEvent. Why?
+  id: totrans-133
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 服务器不能调用AwaitEvent。为什么？
 - en: We call the task that calls AwaitEvent a Notifier. Why?
+  id: totrans-134
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们称调用AwaitEvent的任务为通知器。为什么？
 - en: Code for a typical Notifier
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 典型通知器的代码
 - en: '[PRE1]'
+  id: totrans-136
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Code for a typical server
+  id: totrans-137
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 典型服务器的代码
 - en: '[PRE2]'
+  id: totrans-138
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: More About AwaitEvent
+  id: totrans-139
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更多关于AwaitEvent的内容
 - en: Argument
+  id: totrans-140
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 参数
 - en: Somewhere there is a list of event types
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 某处有一个事件类型列表
 - en: Application programmer knows the list
+  id: totrans-142
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序员知道列表
 - en: Kernel can respond to each event type on the list
+  id: totrans-143
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内核可以响应列表中的每种事件类型
 - en: This is not very portable
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这不太便携
 - en: The list would normally be the union of all types occurring on all hardware
+  id: totrans-145
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 列表通常是所有硬件上发生的所有类型的并集
 - en: This is the Windows problem
+  id: totrans-146
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这是Windows的问题
 - en: Processing in the kernel
+  id: totrans-147
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 内核中的处理
 - en: Initialization
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 初始化
 - en: Kernel initialization has IRQ masked
+  id: totrans-149
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核初始化时IRQ被屏蔽
 - en: Kernel initializes ICU
+  id: totrans-150
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核初始化ICU
 - en: For each device
+  id: totrans-151
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对每个设备
 - en: Kernel initializes hardware
+  id: totrans-152
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核初始化硬件
 - en: Kernel turns on interrupt(s) in the device
+  id: totrans-153
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核在设备中打开中断
 - en: Kernel starts first user task
+  id: totrans-154
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核启动第一个用户任务
 - en: Eventually, Notifier is created
+  id: totrans-155
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最终，通知器被创建
 - en: Notifier
+  id: totrans-156
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通知器
 - en: initializes device
+  id: totrans-157
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 初始化设备
 - en: turns on interrupt(s) in the device
+  id: totrans-158
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在设备中打开中断
 - en: turns on interrupt(s) in the ICU
+  id: totrans-159
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在ICU中打开中断
 - en: calls AwaitEvent
+  id: totrans-160
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 调用AwaitEvent
 - en: Procedure
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 过程
 - en: Kernel
+  id: totrans-162
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内核
 - en: identifies interrupt source
+  id: totrans-163
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 识别中断源
 - en: identifies the correct Notifier
+  id: totrans-164
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 识别正确的通知器
 - en: acquires volatile data
+  id: totrans-165
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取易失性数据
 - en: re-enables interrupt in the device
+  id: totrans-166
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在设备中重新启用中断
 - en: re-enables interrupt in the ICU
+  id: totrans-167
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在ICU中重新启用中断
 - en: re-enables interrupt in the CPU during task activation (eg, `movs`)
+  id: totrans-168
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在任务激活期间重新启用CPU中的中断（例如，`movs`）
 - en: puts volatile data into AwaitEvent's return value
+  id: totrans-169
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将易失性数据放入AwaitEvent的返回值
 - en: Makes Notifier ready
+  id: totrans-170
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使通知器准备就绪
 - en: Notifier
+  id: totrans-171
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通知器
 - en: collects and packages data
+  id: totrans-172
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 收集和打包数据
 - en: sends to server
+  id: totrans-173
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 发送到服务器
 - en: Eventually Server
+  id: totrans-174
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最终服务器
 - en: Replies to Notifier
+  id: totrans-175
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 回复通知器
 - en: Advantage
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优点
 - en: Clean consistent user code
+  id: totrans-177
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 清洁一致的用户代码
 - en: Disadvantage
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缺点
 - en: Kernel has to know a lot about the hardware.
+  id: totrans-179
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内核必须对硬件有很多了解。
 - en: Hardware knowledge split between Notifier and kernel
+  id: totrans-180
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 硬件知识在通知器和内核之间分割
 - en: HALT versus an Idle Task
+  id: totrans-181
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: HALT与空闲任务
 - en: What do you do when there are no tasks to run?
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 当没有任务运行时，你会怎么做？
 - en: Idle task
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 空闲任务
 - en: lowest priority
+  id: totrans-184
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最低优先级
 - en: diagnose system
+  id: totrans-185
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 诊断系统
 - en: search for ETI
+  id: totrans-186
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 搜索ETI
 - en: HALT
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HALT
 - en: turns off CPU clock
+  id: totrans-188
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关闭CPU时钟
 - en: save power (battery)
+  id: totrans-189
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节省电源（电池）
 - en: provided two ways
+  id: totrans-190
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提供两种方式
 - en: through System Controller Co-processor
+  id: totrans-191
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过系统控制协处理器
 - en: through the TS-7200 clock controller
+  id: totrans-192
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过TS-7200时钟控制器
 - en: IRQ path is asynchronous, so it works when the clock is off
+  id: totrans-193
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: IRQ路径是异步的，因此在关闭时钟时可以工作
 - en: '* * *'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: Clock Server
+  id: totrans-195
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 时钟服务器
 - en: Primitives
+  id: totrans-196
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 原语
 - en: '[PRE3]'
+  id: totrans-197
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Clock server starts at zero when it initializes
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时钟服务器在初始化时从零开始
 - en: Unit of time is tick
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时间单位是tick
 - en: '[PRE4]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Note error returns
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 注意错误返回
 - en: You might want to add an error for negative arguments
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可能想为负参数添加一个错误
 - en: ticks is usually calculated, and a negative value is an early warning of falling
     behind.
+  id: totrans-203
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计算ticks通常是，负值是落后的早期警告。
 - en: '[PRE5]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Can be constructed from the above two primitives.
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以从上述两个基本元素构建。
 - en: Implementation
+  id: totrans-206
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现
 - en: '[PRE6]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Comments:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 注释：
 - en: You need a common request type, or possibly a union.
+  id: totrans-209
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要一个常见的请求类型，或者可能是一个联合体。
 - en: You should notice a typical server pattern.
+  id: totrans-210
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你应该注意典型的服务器模式。
 - en: Notifier updates data
+  id: totrans-211
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通知器更新数据
 - en: Client who can be serviced now is serviced
+  id: totrans-212
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以立即提供服务的客户端被服务
 - en: Client who needs service in the future is suspended
+  id: totrans-213
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 未来需要服务的客户端被挂起
 - en: List of suspended tasks is checked regularly
+  id: totrans-214
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挂起任务列表定期检查
 - en: It's normal to sort the list of suspended tasks. Why?
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 对挂起任务列表进行排序是正常的。为什么呢？
 - en: '* * *'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: 'Return to:'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回至：
 - en: '[Bill Cowan''s lecture notes for CS452 in s12](index.html)'
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考恩2012年春季CS452课堂笔记](index.html)'
 - en: '[Bill Cowan''s Spring 2012 CS452 page](../index.html)'
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考恩2012年春季CS452页面](../index.html)'
 - en: '[Bill Cowan''s CS452 page](../../index.html)'
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考恩的CS452页面](../../index.html)'
 - en: '[Bill Cowan''s teaching page](../../../index.html)'
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考恩的教学页面](../../../index.html)'
 - en: '[Bill Cowan''s home page](../../../../index.html)'
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[比尔·考恩的主页](../../../../index.html)'
