@@ -1,4 +1,4 @@
-# 第 11 章。异常和条件
+# 第十一章。异常和条件
 
 *异常*和*条件*提供了系统和用户代码在运行程序时信号、检测和从错误中恢复的手段。
 
@@ -30,7 +30,7 @@
 
 (make-error)
 
-(make-message-condition "不行了"))) ![<graphic>](ch2_0.gif) *错误：不行了*
+(make-message-condition "不行了"))) ![<graphic>](img/ch2_0.gif) *错误：不行了*
 
 (raise-continuable
 
@@ -38,7 +38,7 @@
 
 (make-violation)
 
-(make-message-condition "哎呀"))) ![<graphic>](ch2_0.gif) *违反：哎呀*
+(make-message-condition "哎呀"))) ![<graphic>](img/ch2_0.gif) *违反：哎呀*
 
 (list
 
@@ -52,7 +52,7 @@
 
 (lambda (x) (k (+ x 5)))
 
-(lambda () (+ (raise 17) 8))))))) ![<graphic>](ch2_0.gif) (22)
+(lambda () (+ (raise 17) 8))))))) ![<graphic>](img/ch2_0.gif) (22)
 
 (list
 
@@ -62,7 +62,7 @@
 
 (lambda (x) (+ x 5))
 
-(lambda () (+ (raise-continuable 17) 8))))) ![<graphic>](ch2_0.gif) (#(30))
+(lambda () (+ (raise-continuable 17) 8))))) ![<graphic>](img/ch2_0.gif) (#(30))
 
 (list
 
@@ -72,7 +72,7 @@
 
 (lambda (x) (+ x 5))
 
-(lambda () (+ (raise 17) 8))))) ![<graphic>](ch2_0.gif) *违反：不可继续*`
+(lambda () (+ (raise 17) 8))))) ![<graphic>](img/ch2_0.gif) *违反：不可继续*`
 
 **过程**: `(error *who* *msg* *irritant* ...)`
 
@@ -130,11 +130,11 @@ This procedure establishes `*procedure*`, which should accept one argument, as t
 
 thunk））））
 
-（尝试 （lambda （） 17）） ![<graphic>](ch2_0.gif) 17
+（尝试 （lambda （） 17）） ![<graphic>](img/ch2_0.gif) 17
 
-（尝试 （lambda （） （提高 （制造错误））） ![<graphic>](ch2_0.gif) #f
+（尝试 （lambda （） （提高 （制造错误））） ![<graphic>](img/ch2_0.gif) #f
 
-（尝试 （lambda （） （提高 （制造违规））） ![<graphic>](ch2_0.gif) *违规*
+（尝试 （lambda （） （提高 （制造违规））） ![<graphic>](img/ch2_0.gif) *违规*
 
 （使用-异常-处理程序
 
@@ -150,7 +150,7 @@ thunk））））
 
 （lambda （）
 
-（尝试 （lambda （） （提高 （制造违规））））） ![<graphic>](ch2_0.gif) *违规：糟糕*`
+（尝试 （lambda （） （提高 （制造违规））））） ![<graphic>](img/ch2_0.gif) *违规：糟糕*`
 
 **语法:** `（guard （*var* *clause[1]* *clause[2]* ...） *b1* *b2* ...）`
 
@@ -164,9 +164,9 @@ thunk））））
 
 如果未提供`其他`子句，则`guard`会使用一个子句，以与`提高-可继续`相同的值重新引发异常，`*old-proc*`作为当前异常处理程序。
 
-`（保护 （x [其他 x]） （提高 "糟糕"）） ![<graphic>](ch2_0.gif) "糟糕"
+`（保护 （x [其他 x]） （提高 "糟糕"）） ![<graphic>](img/ch2_0.gif) "糟糕"
 
-（保护 （x （[#f #f]）） （提高 （制造错误））） ![<graphic>](ch2_0.gif)  *错误*
+（保护 （x （[#f #f]）） （提高 （制造错误））） ![<graphic>](img/ch2_0.gif)  *错误*
 
 （定义语法 尝试
 
@@ -190,13 +190,13 @@ thunk））））
 
 （循环 （cdr ls）））））
 
-; 假设bar.ss存在但foo.ss不存在：
+; 假设 bar.ss 存在但 foo.ss 不存在：
 
-（open-one "foo.ss" "bar.ss"） ![<graphic>](ch2_0.gif) #<input port bar.ss>`
+（open-one "foo.ss" "bar.ss"） ![<graphic>](img/ch2_0.gif) #<input port bar.ss>`
 
-### 第11.2节。定义条件类型
+### 第 11.2 节。定义条件类型
 
-虽然程序可能传递`提高`或`提高-可继续`任何Scheme值，但通常描述异常情况的最佳方法是创建并传递*条件对象*。在修订⁶报告中要求实现引发异常的地方，传递给当前异常处理程序的值始终是一个或多个标准*条件类型*的条件对象，这些类型在第[11.3](exceptions.html#g150)节中描述。用户代码可以创建一个是一个或多个标准条件类型实例的条件对象，也可以创建一个扩展的条件类型并创建该类型的条件对象。
+虽然程序可能传递`提高`或`提高-可继续`任何 Scheme 值，但通常描述异常情况的最佳方法是创建并传递*条件对象*。在修订⁶报告中要求实现引发异常的地方，传递给当前异常处理程序的值始终是一个或多个标准*条件类型*的条件对象，这些类型在第 11.3 节中描述。用户代码可以创建一个是一个或多个标准条件类型实例的条件对象，也可以创建一个扩展的条件类型并创建该类型的条件对象。
 
 条件类型类似于记录类型，但更灵活，因为条件对象可以是两个或更多条件类型的实例，即使两者都不是彼此的子类型。当一个条件是多个类型的实例时，它被称为*复合条件*。复合条件对于向异常处理程序传递有关异常的多个信息非常有用。不是复合条件的条件被称为*简单条件*。在大多数情况下，这两者之间的区别并不重要，简单条件被视为只有自身作为其唯一简单条件的复合条件。
 
@@ -204,7 +204,7 @@ thunk））））
 
 **libraries:** `(rnrs conditions)`, `(rnrs)`
 
-`&condition`是一个记录类型名称（第[9](records.html#g138)章）和条件类型层次结构的根。所有简单条件类型都是这种类型的扩展，所有条件，无论是简单的还是复合的，都被视为这种类型的实例。
+`&condition`是一个记录类型名称（第九章）和条件类型层次结构的根。所有简单条件类型都是这种类型的扩展，所有条件，无论是简单的还是复合的，都被视为这种类型的实例。
 
 **procedure**: `(condition? *obj*)`
 
@@ -214,11 +214,11 @@ thunk））））
 
 条件对象是`&condition`的子类型的实例或可能由用户代码使用`condition`创建的复合条件。
 
-`(condition? 'stable) ![<graphic>](ch2_0.gif) #f
+`(condition? 'stable) ![<graphic>](img/ch2_0.gif) #f
 
-(condition? (make-error)) ![<graphic>](ch2_0.gif) #t
+(condition? (make-error)) ![<graphic>](img/ch2_0.gif) #t
 
-(condition? (make-message-condition "oops")) ![<graphic>](ch2_0.gif) #t
+(condition? (make-message-condition "oops")) ![<graphic>](img/ch2_0.gif) #t
 
 (condition?
 
@@ -226,7 +226,7 @@ thunk））））
 
 (make-error)
 
-(make-message-condition "no such element"))) ![<graphic>](ch2_0.gif) #t`
+(make-message-condition "no such element"))) ![<graphic>](img/ch2_0.gif) #t`
 
 **procedure**: `(condition *condition* ...)`
 
@@ -238,23 +238,23 @@ thunk））））
 
 如果列表恰好有一个元素，则结果条件可以是简单的或复合的；否则它是复合的。简单条件和复合条件之间的区别通常不重要，但如果使用`define-record-type`而不是`define-condition-type`来扩展现有条件类型，则可以通过`define-record-type`定义的谓词来检测。
 
-`(condition) ![<graphic>](ch2_0.gif) #<condition>
+`(condition) ![<graphic>](img/ch2_0.gif) #<condition>
 
 (condition
 
 (make-error)
 
-(make-message-condition "oops")) ![<graphic>](ch2_0.gif) #<condition>
+(make-message-condition "oops")) ![<graphic>](img/ch2_0.gif) #<condition>
 
 (define-record-type (&xcond make-xcond xcond?) (parent &condition))
 
-(xcond? (make-xcond)) ![<graphic>](ch2_0.gif) #t
+(xcond? (make-xcond)) ![<graphic>](img/ch2_0.gif) #t
 
-(xcond? (condition (make-xcond))) ![<graphic>](ch2_0.gif) #t *or* #f
+(xcond? (condition (make-xcond))) ![<graphic>](img/ch2_0.gif) #t *or* #f
 
-(xcond? (condition)) ![<graphic>](ch2_0.gif) #f
+(xcond? (condition)) ![<graphic>](img/ch2_0.gif) #f
 
-(xcond? (condition (make-error) (make-xcond))) ![<graphic>](ch2_0.gif) #f`
+(xcond? (condition (make-error) (make-xcond))) ![<graphic>](img/ch2_0.gif) #f`
 
 **过程**：`(simple-conditions *condition*)`
 
@@ -262,11 +262,11 @@ thunk））））
 
 **库**：`(rnrs conditions)`，`(rnrs)`
 
-`(simple-conditions (condition)) ![<graphic>](ch2_0.gif) '()
+`(simple-conditions (condition)) ![<graphic>](img/ch2_0.gif) '()
 
-(simple-conditions (make-error)) ![<graphic>](ch2_0.gif) (#<condition &error>)
+(simple-conditions (make-error)) ![<graphic>](img/ch2_0.gif) (#<condition &error>)
 
-(simple-conditions (condition (make-error))) ![<graphic>](ch2_0.gif) (#<condition &error>)
+(simple-conditions (condition (make-error))) ![<graphic>](img/ch2_0.gif) (#<condition &error>)
 
 (simple-conditions
 
@@ -276,7 +276,7 @@ thunk））））
 
 (make-message-condition
 
-"哎呀"))) ![<graphic>](ch2_0.gif) (#<condition &error> #<condition &message>)
+"哎呀"))) ![<graphic>](img/ch2_0.gif) (#<condition &error> #<condition &message>)
 
 (let ([c1 (make-error)]
 
@@ -300,7 +300,7 @@ thunk））））
 
 (condition c4 (condition c5))))
 
-(list c1 c2 c3 c4 c5))) ![<graphic>](ch2_0.gif) #t`
+(list c1 c2 c3 c4 c5))) ![<graphic>](img/ch2_0.gif) #t`
 
 **语法**：`(define-condition-type *name* *parent* *constructor* *pred* *field* ...)`
 
@@ -326,23 +326,23 @@ thunk））））
 
 (类型 mistake-type))
 
-(mistake? 'booboo) ![<graphic>](ch2_0.gif) #f
+(mistake? 'booboo) ![<graphic>](img/ch2_0.gif) #f
 
 (define c1 (make-mistake 'spelling))
 
-(mistake? c1) ![<graphic>](ch2_0.gif) #t
+(mistake? c1) ![<graphic>](img/ch2_0.gif) #t
 
-(mistake-type c1) ![<graphic>](ch2_0.gif) 拼写
+(mistake-type c1) ![<graphic>](img/ch2_0.gif) 拼写
 
 (define c2 (condition c1 (make-irritants-condition '(eggregius))))
 
-(mistake? c2) ![<graphic>](ch2_0.gif)��#t
+(mistake? c2) ![<graphic>](img/ch2_0.gif)��#t
 
-(mistake-type c2) ![<graphic>](ch2_0.gif) 拼写
+(mistake-type c2) ![<graphic>](img/ch2_0.gif) 拼写
 
-(irritants-condition? c2) ![<graphic>](ch2_0.gif) #t
+(irritants-condition? c2) ![<graphic>](img/ch2_0.gif) #t
 
-(condition-irritants c2) ![<graphic>](ch2_0.gif) (eggregius)`
+(condition-irritants c2) ![<graphic>](img/ch2_0.gif) (eggregius)`
 
 **procedure**: `(condition-predicate *rtd*)`
 
@@ -380,17 +380,17 @@ thunk））））
 
 (define c2 (condition c1 (make-irritants-condition '(eggregius))))
 
-(list (mistake? c1) (mistake? c2)) ![<graphic>](ch2_0.gif) (#t #t)
+(list (mistake? c1) (mistake? c2)) ![<graphic>](img/ch2_0.gif) (#t #t)
 
-(list ($mistake? c1) ($mistake? c2)) ![<graphic>](ch2_0.gif) (#t #f)
+(list ($mistake? c1) ($mistake? c2)) ![<graphic>](img/ch2_0.gif) (#t #f)
 
-(mistake-type c1) ![<graphic>](ch2_0.gif) 拼写
+(mistake-type c1) ![<graphic>](img/ch2_0.gif) 拼写
 
-($mistake-type c1) ![<graphic>](ch2_0.gif) 拼写
+($mistake-type c1) ![<graphic>](img/ch2_0.gif) 拼写
 
-(mistake-type c2) ![<graphic>](ch2_0.gif) 拼写
+(mistake-type c2) ![<graphic>](img/ch2_0.gif) 拼写
 
-($mistake-type c2) ![<graphic>](ch2_0.gif) *violation*`
+($mistake-type c2) ![<graphic>](img/ch2_0.gif) *violation*`
 
 ### 第 11.3 节。标准条件类型
 
@@ -588,7 +588,7 @@ non-continuable-violation?)`
 
 **libraries:** `(rnrs conditions)`, `(rnrs)`
 
-实现限制条件表示程序尝试超出实现的某些限制，例如当fixnum加法操作的值导致数字超出实现的fixnum范围时。通常不表示实现的缺陷，而是表示程序尝试做什么与实现支持的内容不匹配。在许多情况下，实现限制由底层硬件决定。此条件类型可能定义如下。
+实现限制条件表示程序尝试超出实现的某些限制，例如当 fixnum 加法操作的值导致数字超出实现的 fixnum 范围时。通常不表示实现的缺陷，而是表示程序尝试做什么与实现支持的内容不匹配。在许多情况下，实现限制由底层硬件决定。此条件类型可能定义如下。
 
 `(define-condition-type &implementation-restriction &violation
 
@@ -608,7 +608,7 @@ implementation-restriction-violation?)`
 
 **libraries:** `(rnrs conditions)`, `(rnrs)`
 
-此类型条件表示在解析Scheme程序或数据时发生了词法错误，例如括号不匹配或在数字常量中出现无效字符。此条件类型可能定义如下。
+此类型条件表示在解析 Scheme 程序或数据时发生了词法错误，例如括号不匹配或在数字常量中出现无效字符。此条件类型可能定义如下。
 
 `(define-condition-type &lexical &violation
 
@@ -634,7 +634,7 @@ make-lexical-violation lexical-violation?)`
 
 **libraries:** `(rnrs conditions)`, `(rnrs)`
 
-此类型的条件指示在解析Scheme程序时发生了语法错误。在大多数实现中，语法错误由宏展开器检测到。`make-syntax-violation`的每个`*form*`和`*subform*`参数应该是语法对象（第[8.3](syntax.html#g136)节）或数据，前者表示包含的形式，后者表示具体的子形式。例如，如果在`lambda`表达式中发现重复的形式参数，则`*form*`可能是`lambda`表达式，`*subform*`可能是重复的参数。如果不需要标识子形式，则`*subform*`应为`#f`。此条件类型可能定义如下。
+此类型的条件指示在解析 Scheme 程序时发生了语法错误。在大多数实现中，语法错误由宏展开器检测到。`make-syntax-violation`的每个`*form*`和`*subform*`参数应该是语法对象（第 8.3 节）或数据，前者表示包含的形式，后者表示具体的子形式。例如，如果在`lambda`表达式中发现重复的形式参数，则`*form*`可能是`lambda`表达式，`*subform*`可能是重复的参数。如果不需要标识子形式，则`*subform*`应为`#f`。此条件类型可能定义如下。
 
 `(define-condition-type &syntax &violation`
 

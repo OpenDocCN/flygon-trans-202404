@@ -14,19 +14,19 @@ end
 
 继续定义示例，我们可以谈论空列表：
 
-nl-代表NumList。这样避免了与Pyret的empty冲突。
+nl-代表 NumList。这样避免了与 Pyret 的 empty 冲突。
 
 ```
 nl-empty
 ```
 
-我们可以表示短列表，比如两个4的序列：
+我们可以表示短列表，比如两个 4 的序列：
 
 ```
 nl-link(4, nl-link(4, nl-empty))
 ```
 
-由于这些是由数据的构造函数创建的，我们可以使用cases与它们：
+由于这些是由数据的构造函数创建的，我们可以使用 cases 与它们：
 
 ```
     cases (NumList) nl-empty:
@@ -46,7 +46,7 @@ nl-link(4, nl-link(4, nl-empty))
 =>  1
 ```
 
-这种数据定义风格允许我们创建无界或任意大小的数据。给定一个NumList，有一种简单的方法来制作一个新的、更大的列表：只需使用nl-link。所以，我们需要考虑更大的列表：
+这种数据定义风格允许我们创建无界或任意大小的数据。给定一个 NumList，有一种简单的方法来制作一个新的、更大的列表：只需使用 nl-link。所以，我们需要考虑更大的列表：
 
 ```
 nl-link(1,
@@ -60,7 +60,7 @@ nl-link(1,
                 nl-empty))))
 ```
 
-让我们尝试编写一个名为contains-3的函数，如果NumList包含值3，则返回true，否则返回false。
+让我们尝试编写一个名为 contains-3 的函数，如果 NumList 包含值 3，则返回 true，否则返回 false。
 
 首先，我们的标题：
 
@@ -84,7 +84,7 @@ where:
 end
 ```
 
-接下来，我们需要用一个对NumLists的函数的模板来填充体部。我们可以从之前使用cases的类似模板开始：
+接下来，我们需要用一个对 NumLists 的函数的模板来填充体部。我们可以从之前使用 cases 的类似模板开始：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -98,7 +98,7 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-空列表肯定不包含数字3，所以在nl-empty情况下答案必须是false。在nl-link情况下，如果第一个元素是3，我们已经成功地回答了问题。这只留下了参数是nl-link且第一个元素不等于3的情况：
+空列表肯定不包含数字 3，所以在 nl-empty 情况下答案必须是 false。在 nl-link 情况下，如果第一个元素是 3，我们已经成功地回答了问题。这只留下了参数是 nl-link 且第一个元素不等于 3 的情况：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -114,7 +114,7 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-由于我们知道rest是一个NumList（基于数据定义），我们可以使用cases表达式与它一起工作。这有点像再次填写模板的一部分：
+由于我们知道 rest 是一个 NumList（基于数据定义），我们可以使用 cases 表达式与它一起工作。这有点像再次填写模板的一部分：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -135,7 +135,7 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-如果rest为空，则我们没有找到3（就像我们检查原始参数nl时一样）。如果rest是一个nl-link，那么我们需要检查列表的剩余部分中的第一个元素是否为3：
+如果 rest 为空，则我们没有找到 3（就像我们检查原始参数 nl 时一样）。如果 rest 是一个 nl-link，那么我们需要检查列表的剩余部分中的第一个元素是否为 3：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -159,7 +159,7 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-由于rest-of-rest是一个NumList，我们可以再次为其填写cases：
+由于 rest-of-rest 是一个 NumList，我们可以再次为其填写 cases：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -188,11 +188,11 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-看到这里了吗？没有任何好的方向。我们可以将此cases表达式复制任意次数，但我们永远无法回答仅比我们复制代码次数多一个元素的列表的问题。
+看到这里了吗？没有任何好的方向。我们可以将此 cases 表达式复制任意次数，但我们永远无法回答仅比我们复制代码次数多一个元素的列表的问题。
 
-那么该怎么办？我们尝试过使用另一个基于观察到rest是NumList的cases的副本的方法，而cases提供了一种有意义地将NumList分解的方法；实际上，这似乎是自然而然地导致的。
+那么该怎么办？我们尝试过使用另一个基于观察到 rest 是 NumList 的 cases 的副本的方法，而 cases 提供了一种有意义地将 NumList 分解的方法；实际上，这似乎是自然而然地导致的。
 
-让我们回到问题开始的步骤，即在使用第一个检查3的模板之后：
+让我们回到问题开始的步骤，即在使用第一个检查 3 的模板之后：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -208,7 +208,7 @@ fun contains-3(nl :: NumList) -> Boolean:
 end
 ```
 
-我们需要一种方法来计算值3是否包含在rest中。回顾数据定义，我们可以看到rest是一个完全有效的NumList，仅仅是根据nl-link的定义。而且，我们有一个函数（或者说大部分函数）的工作是确定一个NumList是否包含3：contains-3。这应该是我们可以用rest作为参数调用的东西，并且得到我们想要的值：
+我们需要一种方法来计算值 3 是否包含在 rest 中。回顾数据定义，我们可以看到 rest 是一个完全有效的 NumList，仅仅是根据 nl-link 的定义。而且，我们有一个函数（或者说大部分函数）的工作是确定一个 NumList 是否包含 3：contains-3。这应该是我们可以用 rest 作为参数调用的东西，并且得到我们想要的值：
 
 ```
 fun contains-3(nl :: NumList) -> Boolean:
@@ -230,7 +230,7 @@ end
 contains-3(nl-link(1, nl-link(3, nl-empty)))
 ```
 
-首先，我们在所有出现nl的地方用参数值代替nl；这只是函数调用的通常规则。
+首先，我们在所有出现 nl 的地方用参数值代替 nl；这只是函数调用的通常规则。
 
 ```
 =>  cases (NumList) nl-link(1, nl-link(3, nl-empty)):

@@ -169,7 +169,7 @@ False : Bool
 
 在急切语言中延迟评估表达式`e`的常见方法是定义一个函数`\() -> e`，称为*thunk*，它在评估表达式之前等待一个虚拟参数。
 
-为了延迟计算自然数的表示，我们将移植上述实现。在我们对`Nat`的新表示中，一个`S`uccessor值存储了它所继承的`Nat`的延迟计算。`force`函数用于评估一个被挂起的计算。
+为了延迟计算自然数的表示，我们将移植上述实现。在我们对`Nat`的新表示中，一个`S`uccessor 值存储了它所继承的`Nat`的延迟计算。`force`函数用于评估一个被挂起的计算。
 
 ```
 type Nat = Z | S (Thunk Nat)
@@ -187,7 +187,7 @@ delay : a -> Thunk a
 delay e = \() -> e 
 ```
 
-要实现`fromInt`，我们不再需要`trampoline`，因为没有直接递归调用；相反，后一种情况立即返回一个`S`uccessor值（可能在以后某个时候导致对`fromInt`的调用）。
+要实现`fromInt`，我们不再需要`trampoline`，因为没有直接递归调用；相反，后一种情况立即返回一个`S`uccessor 值（可能在以后某个时候导致对`fromInt`的调用）。
 
 ```
 fromInt n =
@@ -195,7 +195,7 @@ fromInt n =
      | otherwise -> S (\_ -> fromInt (n-1)) 
 ```
 
-注意我们对非`Z`ero数的新表示方法与以前有很大不同：
+注意我们对非`Z`ero 数的新表示方法与以前有很大不同：
 
 ```
 > import Nat as N
@@ -242,7 +242,7 @@ strNat n =
   in trampoline (foo "Z" n) 
 ```
 
-但是，由于打印`S`uccessor值的表示现在非常快速，因此此函数不再需要用于上述其原始目的。
+但是，由于打印`S`uccessor 值的表示现在非常快速，因此此函数不再需要用于上述其原始目的。
 
 ```
 > fromInt 10000
@@ -322,7 +322,7 @@ and therefore, unsupported
 True : Bool 
 ```
 
-#### Thunks的记忆化 — [`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm)
+#### Thunks 的记忆化 — [`LazyNat.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/LazyNat.elm)
 
 定义悬浮和增量函数可能是非常有价值的技术，但没有免费的午餐。一个延迟值的表示是一个*闭包*，它是一个用于评估的函数，以及所有由函数引用的自由变量的绑定。因此，随意延迟计算可能会导致大量这些闭包的积累。因此，应该将对延迟计算的使用限制在能够定义增量函数的情况下，这样做的好处就会超过延迟计算所带来的开销。
 
@@ -595,4 +595,4 @@ False : Bool
 
 #### 必需的
 
-+   Okasaki，第4章
++   Okasaki，第四章

@@ -6,7 +6,7 @@
 
 通常，程序包含以下几部分：
 
-![input-processing-output](IPO.png)
+![input-processing-output](img/IPO.png)
 
 当然，程序可能变得更加复杂。
 
@@ -154,7 +154,7 @@ print(text)
 
 在程序中做出决定的最后一块缺失的部分是具有分支语句的能力。在 Python 中，使用 `if` 命令来实现。
 
-![making decisions](list.png)
+![making decisions](img/list.png)
 
 ### 练习 1
 

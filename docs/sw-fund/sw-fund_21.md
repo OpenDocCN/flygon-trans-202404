@@ -169,13 +169,13 @@ Reserved Notation " t '⇓' n " (at level 50, left associativity).
 Inductive eval : tm → nat → Prop :=
 
       | E_Const : ∀n,
-      [C](Smallstep.html#C) [n](Smallstep.html#n) ⇓ [n](Smallstep.html#n)
+      C n ⇓ n
   | E_Plus : ∀t[1] t[2] n[1] n[2],
       [t[1]](Smallstep.html#t<sub>1</sub>) ⇓ [n[1]](Smallstep.html#n<sub>1</sub>) →
       [t[2]](Smallstep.html#t<sub>2</sub>) ⇓ [n[2]](Smallstep.html#n<sub>2</sub>) →
-      [P](Smallstep.html#P) [t[1]](Smallstep.html#t<sub>1</sub>) [t[2]](Smallstep.html#t<sub>2</sub>) ⇓ ([n[1]](Smallstep.html#n<sub>1</sub>) + [n[2]](Smallstep.html#n<sub>2</sub>))
+      P [t[1]](Smallstep.html#t<sub>1</sub>) [t[2]](Smallstep.html#t<sub>2</sub>) ⇓ ([n[1]](Smallstep.html#n<sub>1</sub>) + [n[2]](Smallstep.html#n<sub>2</sub>))
 
-  where " t '⇓' n " := ([eval](Smallstep.html#eval) t n).
+  where " t '⇓' n " := (eval t n).
 
 Module SimpleArith1.
 
@@ -279,7 +279,7 @@ Example test_step_1 :
         (P (C 2) (C 4)).
 
     Proof.
-  apply [ST_Plus1](Smallstep.html#SimpleArith1.ST_Plus1). apply [ST_PlusConstConst](Smallstep.html#SimpleArith1.ST_PlusConstConst). Qed.
+  apply ST_Plus1. apply ST_PlusConstConst. Qed.
 
 ```
 
@@ -361,23 +361,23 @@ Definition relation (X: Type) := X→X→Prop.
 
     相当于说⇒是确定性的。
 
-    *证明概述*：我们证明如果x同时步进到y[1]和
+    *证明概述*：我们证明如果 x 同时步进到 y[1]和
 
-    y[2]，那么y[1]和y[2]相等，通过对推导进行归纳
+    y[2]，那么 y[1]和 y[2]相等，通过对推导进行归纳
 
-    步骤x y[1]。有几种情况需要考虑，取决于
+    步骤 x y[1]。有几种情况需要考虑，取决于
 
     在这个推导中使用的最后一个规则和最后一个规则
 
-    给定步骤x y[2]的推导。
+    给定步骤 x y[2]的推导。
 
-+   如果两者都是ST_PlusConstConst，结果是显而易见的。
++   如果两者都是 ST_PlusConstConst，结果是显而易见的。
 
-+   当两个推导都以ST_Plus1或ST_Plus2结尾时，遵循归纳假设。
++   当两个推导都以 ST_Plus1 或 ST_Plus2 结尾时，遵循归纳假设。
 
-+   不可能一个是ST_PlusConstConst，另一个是ST_Plus1或ST_Plus2，因为这将意味着x具有形式P t[1] t[2]，其中t[1]和t[2]都是常数（通过ST_PlusConstConst）*并且* t[1]或t[2]中的一个具有形式P _。
++   不可能一个是 ST_PlusConstConst，另一个是 ST_Plus1 或 ST_Plus2，因为这将意味着 x 具有形式 P t[1] t[2]，其中 t[1]和 t[2]都是常数（通过 ST_PlusConstConst）*并且* t[1]或 t[2]中的一个具有形式 P _。
 
-+   同样，不可能发生一个是ST_Plus1，另一个是ST_Plus2，因为这将意味着x具有形式P t[1] t[2]，其中t[1]既具有形式P t[11] t[12]，也具有形式C n。☐
++   同样，不可能发生一个是 ST_Plus1，另一个是 ST_Plus2，因为这将意味着 x 具有形式 P t[1] t[2]，其中 t[1]既具有形式 P t[11] t[12]，也具有形式 C n。☐
 
     形式上：
 
@@ -421,15 +421,15 @@ End SimpleArith2.
 
     这个证明中有一些令人讨厌的重复。每次使用
 
-    对Hy[2]进行反演会导致三个子情况，只有一个是
+    对 Hy[2]进行反演会导致三个子情况，只有一个是
 
     相关的（与归纳中的当前情况匹配的那个
 
-    在Hy[1]上）。其他两种情况需要通过找到来解决
+    在 Hy[1]上）。其他两种情况需要通过找到来解决
 
     假设之间的矛盾并对其进行反演。
 
-    以下自定义策略，称为solve_by_inverts，可以
+    以下自定义策略，称为 solve_by_inverts，可以
 
     在这种情况下很有帮助。如果可以解决，它将解决目标
 
@@ -448,25 +448,25 @@ Ltac solve_by_inverts n :=
 
     这是如何工作的细节现在并不重要，但是它
 
-    展示了Coq的Ltac语言的强大之处
+    展示了 Coq 的 Ltac 语言的强大之处
 
     以编程方式定义特定目的的策略。看起来
 
-    通过当前证明状态查找假设H（第一个
+    通过当前证明状态查找假设 H（第一个
 
-    匹配）的类型Prop（第二个匹配），使得执行
+    匹配）的类型 Prop（第二个匹配），使得执行
 
-    H上的反演（后跟对相同的递归调用
+    H 上的反演（后跟对相同的递归调用
 
-    策略，如果其参数n大于一）完全解决
+    策略，如果其参数 n 大于一）完全解决
 
     当前目标。如果不存在这样的假设，它会失败。
 
-    我们通常会想要调用带有参数的solve_by_inverts
+    我们通常会想要调用带有参数的 solve_by_inverts
 
     1（特别是因为较大的参数可能导致非常缓慢的证明
 
-    检查），因此我们将solve_by_invert定义为这个的简写
+    检查），因此我们将 solve_by_invert 定义为这个的简写
 
     情况。
 
@@ -519,11 +519,11 @@ End SimpleArith3.
 
 +   机器的*停机状态*是没有更多计算要做的状态。
 
-    然后我们可以执行一个术语t如下：
+    然后我们可以执行一个术语 t 如下：
 
-+   将t作为机器的起始状态。
++   将 t 作为机器的起始状态。
 
-+   反复使用⇒关系找到一系列机器状态，从t开始，每个状态都步进到下一个。
++   反复使用⇒关系找到一系列机器状态，从 t 开始，每个状态都步进到下一个。
 
 +   当没有更多的规约时，“读取”机器的最终状态作为执行的结果。
 
@@ -712,7 +712,7 @@ Proof.
 
 对 t 进行归纳。
 
-- (* C *) 左。应用 [v_const](Smallstep.html#v_const)。
+- (* C *) 左。应用 v_const。
 
 - (* P *) 右。反演 IHt1。
 
@@ -720,21 +720,21 @@ Proof.
 
 * (* l *) 反演 H。反演 H[0]。
 
-∃([C](Smallstep.html#C) (n + n[0]))。
+∃(C (n + n[0]))。
 
-应用 [ST_PlusConstConst](Smallstep.html#ST_PlusConstConst)。
+应用 ST_PlusConstConst。
 
 * (* r *) 反演 H[0] 得到 [t' H[1]]。
 
-∃([P](Smallstep.html#P) t[1] t')。
+∃(P t[1] t')。
 
-应用 [ST_Plus2](Smallstep.html#ST_Plus2)。应用 H。应用 H[1]。
+应用 ST_Plus2。应用 H。应用 H[1]。
 
 + (* r *) 反演 H 得到 [t' H[0]]。
 
-∃([P](Smallstep.html#P) t' t[2])。
+∃(P t' t[2])。
 
-应用 [ST_Plus1](Smallstep.html#ST_Plus1)。应用 H[0]。Qed。
+应用 ST_Plus1。应用 H[0]。Qed。
 
 ```
 
@@ -778,7 +778,7 @@ Proof.
 
     证明。
 
-展开 [normal_form](Smallstep.html#normal_form)。引入 v H。反演 H。
+展开 normal_form。引入 v H。反演 H。
 
 引入 contra。反演 contra。反演 H[1]。
 
@@ -790,11 +790,11 @@ Proof.
 
     证明。 (* 一个强进展的推论... *)
 
-展开 [normal_form](Smallstep.html#normal_form)。引入 t H。
+展开 normal_form。引入 t H。
 
-断言（G：[value](Smallstep.html#value) t ∨ ∃t'，t ⇒ [t'](Smallstep.html#t')）。
+断言（G：value t ∨ ∃t'，t ⇒ t'）。
 
-{ 应用 [strong_progress](Smallstep.html#strong_progress)。 }
+{ 应用 strong_progress。 }
 
 反转 G。
 
@@ -808,7 +808,7 @@ normal_form step t ↔ value t。
 
     ��明。
 
-分裂。应用 [nf_is_value](Smallstep.html#nf_is_value)。应用 [value_is_nf](Smallstep.html#value_is_nf)。证毕。
+分裂。应用 nf_is_value。应用 value_is_nf。证毕。
 
 ```
 
@@ -878,7 +878,7 @@ P v[1] t[2] ⇒ P v[1] t[2]'
 
 ```
 
-#### 练习：2星，可选（value_not_same_as_normal_form2）
+#### 练习：2 星，可选（value_not_same_as_normal_form2）
 
     或者，我们可能错误地定义步骤，以便它
 
@@ -919,7 +919,7 @@ End Temp2.
 
     ☐
 
-#### 练习：3星，可选（value_not_same_as_normal_form3）
+#### 练习：3 星，可选（value_not_same_as_normal_form3）
 
     最后，我们可以定义值和步骤，以便存在一些
 
@@ -1175,7 +1175,7 @@ Proof.
 
     ☐
 
-#### 练习：3星，可选（properties_of_altered_step）
+#### 练习：3 星，可选（properties_of_altered_step）
 
     可以证明决定性和强进展定理
 
@@ -1185,7 +1185,7 @@ Proof.
 
     ST_ShortCircuit...
 
-+   步骤关系仍然是确定性的吗？写下是或否，并简要（1句话）解释你的答案。
++   步骤关系仍然是确定性的吗？写下是或否，并简要（1 句话）解释你的答案。
 
     可选：在 Coq 中证明你的答案正确。
 
@@ -1194,7 +1194,7 @@ Proof.
 
 ```
 
-+   强进展定理成立吗？写下是或否，并简要（1句话）解释你的答案。
++   强进展定理成立吗？写下是或否，并简要（1 句话）解释你的答案。
 
     可选：在 Coq 中证明你的答案正确。
 
@@ -1203,7 +1203,7 @@ Proof.
 
 ```
 
-+   一般来说，如果我们从原始步骤关系中去掉一个或多个构造器，是否有任何方法可以导致强进展失败？写下是或否，并简要（1句话）解释你的答案。
++   一般来说，如果我们从原始步骤关系中去掉一个或多个构造器，是否有任何方法可以导致强进展失败？写下是或否，并简要（1 句话）解释你的答案。
 
     （* 填写此处 *）
 
@@ -1258,7 +1258,7 @@ multi R x z。
 
 ```
 
-    (In the [Rel](Rel.html) chapter and the Coq standard library, this relation
+    (In the Rel chapter and the Coq standard library, this relation
     is called clos_refl_trans_1n.  We give it a shorter name here
     for the sake of readability.)
 
@@ -1316,7 +1316,7 @@ R x y → (multi R) x y。
 
 引入 X R x y H。
 
-应用 [multi_step](Smallstep.html#multi_step) 与 y。应用 H。应用 [multi_refl](Smallstep.html#multi_refl)。Qed。
+应用 multi_step 与 y。应用 H。应用 multi_refl。Qed。
 
 ```
 
@@ -1344,7 +1344,7 @@ multi R x z。
 
 - （* multi_step *）
 
-应用 [multi_step](Smallstep.html#multi_step) 与 y。假设。
+应用 multi_step 与 y。假设。
 
 应用 IHG。假设。Qed。
 
@@ -1401,7 +1401,7 @@ Proof.
 
 ```
 
-#### 练习：1星，可选（test_multistep_2）
+#### 练习：1 星，可选（test_multistep_2）
 
 ```
 Lemma test_multistep_2:
@@ -1413,7 +1413,7 @@ Proof.
 
     ☐
 
-#### 练习：1星，可选（test_multistep_3）
+#### 练习：1 星，可选（test_multistep_3）
 
 ```
 Lemma test_multistep_3:
@@ -1427,7 +1427,7 @@ Proof.
 
     ☐
 
-#### 练习：2星（test_multistep_4）
+#### 练习：2 星（test_multistep_4）
 
 ```
 Lemma test_multistep_4:
@@ -1535,11 +1535,11 @@ P t[1] t[2] ⇒* P t[1]' t[2]。
 
 对 t[1] t[1]' t[2] H 进行归纳。
 
--（* multi_refl *）应用 [multi_refl](Smallstep.html#multi_refl)。
+-（* multi_refl *）应用 multi_refl。
 
--（* multi_step *）使用 [multi_step](Smallstep.html#multi_step) 和 ([P](Smallstep.html#P) y t[2]) 进行应用。
+-（* multi_step *）使用 multi_step 和 (P y t[2]) 进行应用。
 
-应用 [ST_Plus1](Smallstep.html#ST_Plus1)。应用 H。
+应用 ST_Plus1。应用 H。
 
 应用 IHmulti。证毕。
 
@@ -1589,23 +1589,23 @@ P t[1] t[2] ⇒* P t[1] t[2]'。
 
     证明。
 
-展开 [normalizing](Smallstep.html#normalizing)。
+展开 normalizing。
 
 对 t 进行归纳。
 
 -（* C *）
 
-∃（[C](Smallstep.html#C) n）。
+∃（C n）。
 
 分割。
 
-+（* l *）应用 [multi_refl](Smallstep.html#multi_refl)。
++（* l *）应用 multi_refl。
 
 +（* r *）
 
 （* 我们可以使用“iff”语句进行重写，而不仅仅是相等关系：*）
 
-重写 [nf_same_as_value](Smallstep.html#nf_same_as_value)。应用 [v_const](Smallstep.html#v_const)。
+重写 nf_same_as_value。应用 v_const。
 
 -（* P *）
 
@@ -1613,7 +1613,7 @@ P t[1] t[2] ⇒* P t[1] t[2]'。
 
 将 IHt2 分解为 [t[2]' [H[21] H[22]]]。
 
-在 H[12] 中重写 [nf_same_as_value](Smallstep.html#nf_same_as_value)。在 H[22] 中重写 [nf_same_as_value](Smallstep.html#nf_same_as_value)。
+在 H[12] 中重写 nf_same_as_value。在 H[22] 中重写 nf_same_as_value。
 
 将 H[12] 反演为 [n[1] H]。将 H[22] 反演为 [n[2] H']。
 
@@ -1621,27 +1621,27 @@ P t[1] t[2] ⇒* P t[1] t[2]'。
 
 在 H' 中重写 ← H[21]。
 
-∃（[C](Smallstep.html#C)（n[1] + n[2])）。
+∃（C（n[1] + n[2])）。
 
 分割。
 
 +（* l *）
 
-使用 [multi_trans](Smallstep.html#multi_trans) 和 ([P](Smallstep.html#P) ([C](Smallstep.html#C) n[1]) t[2]) 进行应用。
+使用 multi_trans 和 (P (C n[1]) t[2]) 进行应用。
 
-* 应用 [multistep_congr_1](Smallstep.html#multistep_congr_1)。应用 H[11]。
+* 应用 multistep_congr_1。应用 H[11]。
 
-* 使用 [multi_trans](Smallstep.html#multi_trans) 和
+* 使用 multi_trans 和
 
-（[P](Smallstep.html#P)（[C](Smallstep.html#C) n[1]）（[C](Smallstep.html#C) n[2])）。
+（P（C n[1]）（C n[2])）。
 
-{ 应用 [multistep_congr_2](Smallstep.html#multistep_congr_2)。应用 [v_const](Smallstep.html#v_const)。应用 H[21]。 }
+{ 应用 multistep_congr_2。应用 v_const。应用 H[21]。 }
 
-{ 应用 [multi_R](Smallstep.html#multi_R)。应用 [ST_PlusConstConst](Smallstep.html#ST_PlusConstConst)。 }
+{ 应用 multi_R。应用 ST_PlusConstConst。 }
 
 +（* r *）
 
-重写 [nf_same_as_value](Smallstep.html#nf_same_as_value)。应用 [v_const](Smallstep.html#v_const)。证毕。
+重写 nf_same_as_value。应用 v_const。证毕。
 
 ```
 
@@ -2130,7 +2130,7 @@ Notation " t '/' st '⇒*' t' '/' st' " :=
 
     这种语言的许多有趣特性之一是事实
 
-    以下程序可以以变量X设置为终止
+    以下程序可以以变量 X 设置为终止
 
     对于任何值。
 
@@ -2146,7 +2146,7 @@ Definition par_loop : com :=
 
 ```
 
-    特别是，它可以以X设置为0终止：
+    特别是，它可以以 X 设置为 0 终止：
 
 ```
 Example par_loop_example_0:
@@ -2156,22 +2156,22 @@ Example par_loop_example_0:
 
     Proof.
   eapply [ex_intro](http://coq.inria.fr/library/Coq.Init.Logic.html#ex_intro). split.
-  unfold [par_loop](Smallstep.html#CImp.par_loop).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par1](Smallstep.html#CImp.CS_Par1).
-    apply [CS_Ass](Smallstep.html#CImp.CS_Ass).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_While](Smallstep.html#CImp.CS_While).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq](Smallstep.html#CImp.BS_Eq). simpl.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfFalse](Smallstep.html#CImp.CS_IfFalse).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_ParDone](Smallstep.html#CImp.CS_ParDone).
-  eapply [multi_refl](Smallstep.html#CImp.multi_refl).
+  unfold par_loop.
+  eapply multi_step. apply CS_Par1.
+    apply CS_Ass.
+  eapply multi_step. apply CS_Par2. apply CS_While.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply BS_Eq. simpl.
+  eapply multi_step. apply CS_Par2. apply CS_IfFalse.
+  eapply multi_step. apply CS_ParDone.
+  eapply multi_refl.
   reflexivity. Qed.
 
 ```
 
-    它也可以以X设置为2终止：
+    它也可以以 X 设置为 2 终止：
 
 ```
 Example par_loop_example_2:
@@ -2181,50 +2181,50 @@ Example par_loop_example_2:
 
     Proof.
   eapply [ex_intro](http://coq.inria.fr/library/Coq.Init.Logic.html#ex_intro). split.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_While](Smallstep.html#CImp.CS_While).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq](Smallstep.html#CImp.BS_Eq). simpl.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfTrue](Smallstep.html#CImp.CS_IfTrue).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_AssStep](Smallstep.html#CImp.CS_AssStep). apply [AS_Plus1](Smallstep.html#CImp.AS_Plus1). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_AssStep](Smallstep.html#CImp.CS_AssStep). apply [AS_Plus](Smallstep.html#CImp.AS_Plus).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_Ass](Smallstep.html#CImp.CS_Ass).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqFinish](Smallstep.html#CImp.CS_SeqFinish).
+  eapply multi_step. apply CS_Par2. apply CS_While.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply BS_Eq. simpl.
+  eapply multi_step. apply CS_Par2. apply CS_IfTrue.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_AssStep. apply AS_Plus1. apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_AssStep. apply AS_Plus.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_Ass.
+  eapply multi_step. apply CS_Par2. apply CS_SeqFinish.
 
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_While](Smallstep.html#CImp.CS_While).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq](Smallstep.html#CImp.BS_Eq). simpl.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfTrue](Smallstep.html#CImp.CS_IfTrue).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_AssStep](Smallstep.html#CImp.CS_AssStep). apply [AS_Plus1](Smallstep.html#CImp.AS_Plus1). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_AssStep](Smallstep.html#CImp.CS_AssStep). apply [AS_Plus](Smallstep.html#CImp.AS_Plus).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqStep](Smallstep.html#CImp.CS_SeqStep).
-    apply [CS_Ass](Smallstep.html#CImp.CS_Ass).
+  eapply multi_step. apply CS_Par2. apply CS_While.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply BS_Eq. simpl.
+  eapply multi_step. apply CS_Par2. apply CS_IfTrue.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_AssStep. apply AS_Plus1. apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_AssStep. apply AS_Plus.
+  eapply multi_step. apply CS_Par2. apply CS_SeqStep.
+    apply CS_Ass.
 
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par1](Smallstep.html#CImp.CS_Par1). apply [CS_Ass](Smallstep.html#CImp.CS_Ass).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_SeqFinish](Smallstep.html#CImp.CS_SeqFinish).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_While](Smallstep.html#CImp.CS_While).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply [AS_Id](Smallstep.html#CImp.AS_Id).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq](Smallstep.html#CImp.BS_Eq). simpl.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfFalse](Smallstep.html#CImp.CS_IfFalse).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_ParDone](Smallstep.html#CImp.CS_ParDone).
-  eapply [multi_refl](Smallstep.html#CImp.multi_refl).
+  eapply multi_step. apply CS_Par1. apply CS_Ass.
+  eapply multi_step. apply CS_Par2. apply CS_SeqFinish.
+  eapply multi_step. apply CS_Par2. apply CS_While.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply AS_Id.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply BS_Eq. simpl.
+  eapply multi_step. apply CS_Par2. apply CS_IfFalse.
+  eapply multi_step. apply CS_ParDone.
+  eapply multi_refl.
   reflexivity. Qed.
 
 ```
 
     更一般地说...
 
-#### 练习：3星，可选（par_body_n__Sn）
+#### 练习：3 星，可选（par_body_n__Sn）
 
 ```
 Lemma par_body_n__Sn : ∀n st,
@@ -2237,7 +2237,7 @@ Proof.
 
     ☐
 
-#### 练习：3星，可选（par_body_n）
+#### 练习：3 星，可选（par_body_n）
 
 ```
 Lemma par_body_n : ∀n st,
@@ -2251,7 +2251,7 @@ Proof.
 
     ☐
 
-    ...上述循环可以以X具有任何值退出
+    ...上述循环可以以 X 具有任何值退出
 
     丝毫没有。
 
@@ -2263,24 +2263,24 @@ Theorem par_loop_any_X:
 
     Proof.
   intros n.
-  destruct ([par_body_n](Smallstep.html#CImp.par_body_n) n [empty_state](Imp.html#empty_state)).
-    split; unfold [t_update](Maps.html#t_update); reflexivity.
+  destruct (par_body_n n empty_state).
+    split; unfold t_update; reflexivity.
 
   rename x into st.
   inversion H as [H' [HX HY]]; clear H.
-  ∃([t_update](Maps.html#t_update) st [Y](Imp.html#Y) 1). split.
-  eapply [multi_trans](Smallstep.html#CImp.multi_trans) with ([par_loop](Smallstep.html#CImp.par_loop),st). apply H'.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par1](Smallstep.html#CImp.CS_Par1). apply [CS_Ass](Smallstep.html#CImp.CS_Ass).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_While](Smallstep.html#CImp.CS_While).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply [AS_Id](Smallstep.html#CImp.AS_Id). rewrite [t_update_eq](Maps.html#t_update_eq).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfStep](Smallstep.html#CImp.CS_IfStep).
-    apply [BS_Eq](Smallstep.html#CImp.BS_Eq). simpl.
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_Par2](Smallstep.html#CImp.CS_Par2). apply [CS_IfFalse](Smallstep.html#CImp.CS_IfFalse).
-  eapply [multi_step](Smallstep.html#CImp.multi_step). apply [CS_ParDone](Smallstep.html#CImp.CS_ParDone).
-  apply [multi_refl](Smallstep.html#CImp.multi_refl).
+  ∃(t_update st Y 1). split.
+  eapply multi_trans with (par_loop,st). apply H'.
+  eapply multi_step. apply CS_Par1. apply CS_Ass.
+  eapply multi_step. apply CS_Par2. apply CS_While.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply [BS_Eq[1]](Smallstep.html#CImp.BS_Eq<sub>1</sub>). apply AS_Id. rewrite t_update_eq.
+  eapply multi_step. apply CS_Par2. apply CS_IfStep.
+    apply BS_Eq. simpl.
+  eapply multi_step. apply CS_Par2. apply CS_IfFalse.
+  eapply multi_step. apply CS_ParDone.
+  apply multi_refl.
 
-  rewrite [t_update_neq](Maps.html#t_update_neq). assumption. intro X; inversion X.
+  rewrite t_update_neq. assumption. intro X; inversion X.
     Qed.
 
 End CImp.
@@ -2291,7 +2291,7 @@ End CImp.
 
     我们的最后一个示例是栈机器的小步语义
 
-    来自[Imp](Imp.html)章节的示例。
+    来自 Imp 章节的示例。
 
 ```
 Definition stack := list nat.
@@ -2313,7 +2313,7 @@ Theorem stack_step_deterministic : ∀st,
   deterministic (stack_step st).
 
     Proof.
-  unfold [deterministic](Smallstep.html#deterministic). intros st x y[1] y[2] H[1] H[2].
+  unfold deterministic. intros st x y[1] y[2] H[1] H[2].
   induction H[1]; inversion H[2]; reflexivity.
     Qed.
 
@@ -2321,11 +2321,11 @@ Definition stack_multistep st := multi (stack_step st).
 
 ```
 
-#### 练习：3星，高级（compiler_is_correct）
+#### 练习：3 星，高级（compiler_is_correct）
 
-    记住给出aexp编译的定义
+    记住给出 aexp 编译的定义
 
-    [Imp](Imp.html)章节。我们现在想证明编译正确性
+    Imp 章节。我们现在想证明编译正确性
 
     到栈机器。
 

@@ -10,7 +10,7 @@
 
 # Inductively Defined Propositions
 
-    In the [Logic](Logic.html) chapter, we looked at several ways of writing
+    In the Logic chapter, we looked at several ways of writing
     propositions, including conjunction, disjunction, and quantifiers.
     In this chapter, we bring a new tool into the mix: *inductive definitions*.
 
@@ -424,7 +424,7 @@ ev 5 → 2 + 2 = 9。
 
     The ev_double exercise above shows that our new notion of
     evenness is implied by the two earlier ones (since, by
-    even_bool_prop in chapter [Logic](Logic.html), we already know that
+    even_bool_prop in chapter Logic, we already know that
     those are equivalent to each other). To show that all three
     coincide, we just need the following lemma:
 
@@ -493,7 +493,7 @@ Admitted.
 
     If this looks familiar, it is no coincidence: We've encountered
 
-    similar problems in the [Induction](Induction.html) chapter, when trying to use
+    similar problems in the Induction chapter, when trying to use
 
     case analysis to prove results that required induction.  And once
 
@@ -1019,7 +1019,7 @@ leb n m = true ↔ n ≤ m。
 
     ☐
 
-#### 练习：2 星，可选M（R_provability2）
+#### 练习：2 星，可选 M（R_provability2）
 
     假设我们给 Coq 下面的定义：
 
@@ -1085,11 +1085,11 @@ Arguments Star {T} _.
 
     reg_exp T 中的表达式描述了由字符组成的字符串
 
-    从T中 - 即T元素的列表。
+    从 T 中 - 即 T 元素的列表。
 
     （我们略微偏离标准做法，因为我们不这样做
 
-    需要T类型是有限的。 这导致了一种
+    需要 T 类型是有限的。 这导致了一种
 
     正则表达式的不同理论，但区别并不大
 
@@ -1101,19 +1101,19 @@ Arguments Star {T} _.
 
     字符串：
 
-+   表达式EmptySet不匹配任何字符串。
++   表达式 EmptySet 不匹配任何字符串。
 
-+   表达式EmptyStr匹配空字符串[]。
++   表达式 EmptyStr 匹配空字符串[]。
 
-+   表达式Char x匹配一个字符的字符串[x]。
++   表达式 Char x 匹配一个字符的字符串[x]。
 
-+   如果re[1]匹配s[1]，并且re[2]匹配s[2]，那么App re[1] re[2]匹配s[1] ++ s[2]。
++   如果 re[1]匹配 s[1]，并且 re[2]匹配 s[2]，那么 App re[1] re[2]匹配 s[1] ++ s[2]。
 
-+   如果re[1]和re[2]中至少有一个与s匹配，则Union re[1] re[2]与s匹配。
++   如果 re[1]和 re[2]中至少有一个与 s 匹配，则 Union re[1] re[2]与 s 匹配。
 
-+   最后，如果我们可以将某个字符串s写成一系列字符串s = s_1 ++ ... ++ s_k的连接，并且表达式re匹配每个字符串s_i，则Star re匹配s。
++   最后，如果我们可以将某个字符串 s 写成一系列字符串 s = s_1 ++ ... ++ s_k 的连接，并且表达式 re 匹配每个字符串 s_i，则 Star re 匹配 s。
 
-    作为一种特殊情况，字符串序列可能为空，因此无论re是什么，Star re始终匹配空字符串[]。
+    作为一种特殊情况，字符串序列可能为空，因此无论 re 是什么，Star re 始终匹配空字符串[]。
 
     我们可以很容易地将这个非正式定义转换为一个
 
@@ -1278,27 +1278,27 @@ Notation "s =~ re" := (exp_match s re) (at level 80).
 
     不需要显式包括一个规则声明没有字符串
 
-    匹配EmptySet; 我们只是碰巧没有包括任何规则
+    匹配 EmptySet; 我们只是碰巧没有包括任何规则
 
-    会导致某些字符串匹配EmptySet。（实际上，
+    会导致某些字符串匹配 EmptySet。（实际上，
 
     不允许我们的归纳定义的语法
 
     给出这样的“负规则”。）
 
-    其次，Union和Star的非正式规则对应
+    其次，Union 和 Star 的非正式规则对应
 
-    对于每个两个构造函数：MUnionL / MUnionR，和MStar0 /
+    对于每个两个构造函数：MUnionL / MUnionR，和 MStar0 /
 
     MStarApp。 结果在逻辑上等价于原始
 
-    规则但在Coq中更方便使用，因为递归
+    规则但在 Coq 中更方便使用，因为递归
 
-    出现exp_match的情况被直接作为参数提供给
+    出现 exp_match 的情况被直接作为参数提供给
 
     构造函数，使得在证据上执行归纳更容易。
 
-    （下面的exp_match_ex[1]和exp_match_ex[2]练习要求您
+    （下面的 exp_match_ex[1]和 exp_match_ex[2]练习要求您
 
     要证明在归纳声明中给出的构造函数
 
@@ -1323,11 +1323,11 @@ Qed.
 
 ```
 
-    （注意最后一个例子如何应用MApp到字符串[1]
+    （注意最后一个例子如何应用 MApp 到字符串[1]
 
     和[2]直接。 由于目标提到了[1; 2]而不是
 
-    [1] ++ [2]，Coq将无法确定如何拆分
+    [1] ++ [2]，Coq 将无法确定如何拆分
 
     字符串本身。）
 
@@ -1345,7 +1345,7 @@ Qed.
 
     我们可以定义辅助函数来帮助编写正则
 
-    表达式中获得。reg_exp_of_list函数构造一个正则
+    表达式中获得。reg_exp_of_list 函数构造一个正则
 
     与其接收的列表完全匹配的表达式
 
@@ -1371,11 +1371,11 @@ Qed.
 
 ```
 
-    我们还可以证明关于exp_match的一般事实。例如，
+    我们还可以证明关于 exp_match 的一般事实。例如，
 
-    以下引理表明，每个与re匹配的字符串s
+    以下引理表明，每个与 re 匹配的字符串 s
 
-    也与Star re匹配。
+    也与 Star re 匹配。
 
 ```
 Lemma MStar1 :
@@ -1392,11 +1392,11 @@ Qed.
 
 ```
 
-    （注意使用app_nil_r将定理的目标更改为
+    （注意使用 app_nil_r 将定理的目标更改为
 
-    与MStarApp预期的形状完全相同。）
+    与 MStarApp 预期的形状完全相同。）
 
-#### 练习：3星（exp_match_ex[1]）
+#### 练习：3 星（exp_match_ex[1]）
 
     以下引理表明，给出的非正式匹配规则
 
@@ -1420,9 +1420,9 @@ Proof.
 
     下一个引理是根据来自
 
-    [Poly](Poly.html)章节：如果ss：list（list T）表示一个序列
+    Poly 章节：如果 ss：list（list T）表示一个序列
 
-    字符串s[1]，...，sn，然后折叠app ss []的结果是
+    字符串 s[1]，...，sn，然后折叠 app ss []的结果是
 
     将它们全部连接在一起。
 
@@ -1437,9 +1437,9 @@ Proof.
 
     ☐
 
-#### 练习：4星（reg_exp_of_list）
+#### 练习：4 星（reg_exp_of_list）
 
-    证明reg_exp_of_list满足以下
+    证明 reg_exp_of_list 满足以下
 
     规范：
 
@@ -1453,7 +1453,7 @@ Proof.
 
     ☐
 
-    由于exp_match的定义具有递归
+    由于 exp_match 的定义具有递归
 
     结构，我们可能期望涉及正则的证明
 
@@ -1461,9 +1461,9 @@ Proof.
 
     例如，假设我们想要证明以下直观的
 
-    结果：如果正则表达式re匹配某个字符串s，则
+    结果：如果正则表达式 re 匹配某个字符串 s，则
 
-    s的所有元素必须在re中的某处出现。为了陈述这一点
+    s 的所有元素必须在 re 中的某处出现。为了陈述这一点
 
     定理，我们首先定义一个列出所有
 
@@ -1519,21 +1519,21 @@ Proof.
 
 ```
 
-    在MStarApp情况下会发生一些有趣的事情。我们获得
+    在 MStarApp 情况下会发生一些有趣的事情。我们获得
 
-    *两个*归纳假设：一个适用于x出现在
+    *两个*归纳假设：一个适用于 x 出现在
 
-    s[1]（与re匹配），第二个适用于x
+    s[1]（与 re 匹配），第二个适用于 x
 
-    出现在s[2]中（与Star re匹配）。这是一个很好的
+    出现在 s[2]中（与 Star re 匹配）。这是一个很好的
 
-    说明为什么我们需要对exp_match的证据进行归纳
+    说明为什么我们需要对 exp_match 的证据进行归纳
 
-    与re相反：后者只会提供归纳
+    与 re 相反：后者只会提供归纳
 
-    与re匹配的字符串的假设，这将不允许我们
+    与 re 匹配的字符串的假设，这将不允许我们
 
-    推理In x s[2]的情况
+    推理 In x s[2]的情况
 
 ```
   - (* MStarApp *)
@@ -1547,9 +1547,9 @@ Qed.
 
 ```
 
-#### 练习：4星（re_not_empty）
+#### 练习：4 星（re_not_empty）
 
-    编写一个测试re_not_empty的递归函数，测试是否
+    编写一个测试 re_not_empty 的递归函数，测试是否
 
     正则表达式匹配某个字符串。证明你的函数
 
@@ -1576,7 +1576,7 @@ Proof.
 
     这并不够通用。这样做的效果是失去
 
-    信息（就像destruct可以做的那样），让你无法
+    信息（就像 destruct 可以做的那样），让你无法
 
     完成证明。这里有一个例子：
 
@@ -1590,7 +1590,7 @@ Proof.
 
 ```
 
-    仅仅对H[1]进行反演并不能让我们走得很远
+    仅仅对 H[1]进行反演并不能让我们走得很远
 
     递归情况。（试试看！）。所以我们需要归纳。这是一个天真的
 
@@ -1606,11 +1606,11 @@ Proof.
 
     但现在，尽管我们得到了七种情况（正如我们从中期望的那样
 
-    exp_match的定义），我们失去了一个非常重要的部分
+    exp_match 的定义），我们失去了一个非常重要的部分
 
-    从H[1]中获取信息：s[1]匹配了s中的某个内容的事实
+    从 H[1]中获取信息：s[1]匹配了 s 中的某个内容的事实
 
-    形式Star re。这意味着我们必须为*所有*
+    形式 Star re。这意味着我们必须为*所有*
 
     这个定义的七个构造，尽管除了两个之外的所有构造
 
@@ -1934,7 +1934,7 @@ intros T re s Hmatch。
 
 # 案例研究：改进反射
 
-    我们在 [Logic](Logic.html) 章节中看到，我们经常需要
+    我们在 Logic 章节中看到，我们经常需要
 
     将布尔计算与 Prop 中的语句相关联。但
 
@@ -1953,9 +1953,9 @@ Proof.
   - (* l =  *)
     simpl. intros H. apply H. reflexivity.
   - (* l = m :: l' *)
-    simpl. destruct ([beq_nat](Basics.html#beq_nat) n m) eqn:H.
+    simpl. destruct (beq_nat n m) eqn:H.
     + (* beq_nat n m = true *)
-      intros _. rewrite [beq_nat_true_iff](Logic.html#beq_nat_true_iff) in H. rewrite H.
+      intros _. rewrite beq_nat_true_iff in H. rewrite H.
       left. reflexivity.
     + (* beq_nat n m = false *)
       intros H'. right. apply IHl'. apply H'.
@@ -2047,7 +2047,7 @@ Qed.
 
 ```
 
-#### 练习：2星，推荐（reflect_iff）
+#### 练习：2 星，推荐（reflect_iff）
 
 ```
 Theorem reflect_iff : ∀P b, reflect P b → (P ↔ b = true).
@@ -2100,7 +2100,7 @@ Proof.
   - (* l =  *)
     simpl. intros H. apply H. reflexivity.
   - (* l = m :: l' *)
-    simpl. destruct ([beq_natP](IndProp.html#beq_natP) n m) as [H | H].
+    simpl. destruct (beq_natP n m) as [H | H].
     + (* n = m *)
       intros _. rewrite H. left. reflexivity.
     + (* n <> m *)
@@ -2108,7 +2108,7 @@ Proof.
 Qed. 
 ```
 
-#### 练习：3星，推荐（beq_natP_practice）
+#### 练习：3 星，推荐（beq_natP_practice）
 
     使用 beq_natP 如上所述来证明以下内容：
 
@@ -2195,13 +2195,13 @@ Proof.
 
 (* 在此填写*) 已承认。
 
-(*    证明。重复构造; 应用beq_nat_false_iff; 自动。Qed。*)
+(*    证明。重复构造; 应用 beq_nat_false_iff; 自动。Qed。*)
 
 示例 test_nostutter_3:  nostutter [5]。
 
 (* 在此填写*) 已承认。
 
-(*    证明。重复构造; 应用beq_nat_false; 自动。Qed。*)
+(*    证明。重复构造; 应用 beq_nat_false; 自动。Qed。*)
 
 示例 test_nostutter_4:      不是 (nostutter [3;1;1;4])。
 
@@ -2238,23 +2238,23 @@ Proof.
 
 [4;3]。
 
-    现在，假设我们有一个集合X，一个函数test：X→bool，和一个
+    现在，假设我们有一个集合 X，一个函数 test：X→bool，和一个
 
-    类型为list X的列表l。进一步假设l是一个
+    类型为 list X 的列表 l。进一步假设 l 是一个
 
-    对两个列表l[1]和l[2]进行顺序合并，使得每个项目
+    对两个列表 l[1]和 l[2]进行顺序合并，使得每个项目
 
-    在l[1]中满足测试且在l[2]中没有项目满足测试。然后
+    在 l[1]中满足测试且在 l[2]中没有项目满足测试。然后
 
     filter test l = l[1]。
 
-    将此规范转化为一个Coq定理并证明
+    将此规范转化为一个 Coq 定理并证明
 
     它。（你需要开始定义一个列表的含义
 
     被另外两个合并。用一个归纳关系来做到这一点，
 
-    不是一个Fixpoint。）
+    不是一个 Fixpoint。）
 
 ```
 (* FILL IN HERE *)
@@ -2263,13 +2263,13 @@ Proof.
 
     ☐
 
-#### 练习：5星，高级，可选（filter_challenge_2）
+#### 练习：5 星，高级，可选（filter_challenge_2）
 
-    另一种描述filter行为的方式是
+    另一种描述 filter 行为的方式是
 
-    这个：在所有具有测试属性的l子序列中
+    这个：在所有具有测试属性的 l 子序列中
 
-    对它们的所有成员求值为true，filter test l是
+    对它们的所有成员求值为 true，filter test l 是
 
     最长。形式化这个声明并证明它。
 
@@ -2280,13 +2280,13 @@ Proof.
 
     ☐
 
-#### 练习：4星，可选（palindromes）
+#### 练习：4 星，可选（palindromes）
 
     回文是一个反向读取相同的序列
 
     向前。
 
-+   定义一个关于列表X的归纳命题pal，捕捉回文的含义。（提示：你需要三种情况。你的定义应基于列表的结构；不仅仅是一个单一的构造函数，就像
++   定义一个关于列表 X 的归纳命题 pal，捕捉回文的含义。（提示：你需要三种情况。你的定义应基于列表的结构；不仅仅是一个单一的构造函数，就像
 
     ```
       c : ∀l, l = rev l → pal l
@@ -2316,11 +2316,11 @@ Proof.
 
     ☐
 
-#### 练习：5星，可选（palindrome_converse）
+#### 练习：5 星，可选（palindrome_converse）
 
     再次，由于
 
-    缺乏证据。使用你从中定义的pal
+    缺乏证据。使用你从中定义的 pal
 
     前一个练习，证明
 
@@ -2393,7 +2393,7 @@ Proof.
 
 引理 in_split: ∀(X:Type) (x:X) (l:list X)，
 
-在x l中→
+在 x l 中→
 
 ∃l[1] l[2]，l = l[1] ++ x :: l[2]。
 
@@ -2408,7 +2408,7 @@ Proof.
 
 ```
 
-归纳重复{X:Type}：列表X的重复。
+归纳重复{X:Type}：列表 X 的重复。
 
 (* 在此填写*)
 
@@ -2436,13 +2436,13 @@ Proof.
 
 (∀x, In x l[1] → In x l[2]) →
 
-长度l[2] < 长度l[1] →
+长度 l[2] < 长度 l[1] →
 
-重复l[1]。
+重复 l[1]。
 
 证明。
 
-intros X l[1]。对l[1]进行归纳，如同 [|x l[1]' IHl1']。
+intros X l[1]。对 l[1]进行归纳，如同 [|x l[1]' IHl1']。
 
 (* 在此填写*) 已承认。
 

@@ -4,7 +4,7 @@
 
 ### 6.1  [Airac5](http://ropas.snu.ac.kr/airac5/)
 
-一款来自[首尔国立大学](http://www.useoul.edu/) [编程研究实验室](http://ropas.snu.ac.kr/) 和[RopasWork](http://ropaswork.com/) 的静态分析器，用于自动检测C程序中的缓冲区溢出错误。
+一款来自[首尔国立大学](http://www.useoul.edu/) [编程研究实验室](http://ropas.snu.ac.kr/) 和[RopasWork](http://ropaswork.com/) 的静态分析器，用于自动检测 C 程序中的缓冲区溢出错误。
 
 ### 6.2  [aiT WCET Analyzers](http://www.absint.com/ait/)
 
@@ -12,23 +12,23 @@
 
 ### 6.3  [ASTRÉE](http://www.astree.ens.fr/)
 
-一款来自[巴黎高等师范学校](http://www.ens.fr/)的静态分析器，专门用于证明用C语言编写的同步控制/命令程序中不存在运行时错误。
+一款来自[巴黎高等师范学校](http://www.ens.fr/)的静态分析器，专门用于证明用 C 语言编写的同步控制/命令程序中不存在运行时错误。
 
 ### 6.4  [C Global Surveyor](http://ti.arc.nasa.gov/ase/cgs/index.html)
 
-一款来自[NASA](http://ti.arc.nasa.gov/index.php) [Ames](http://ti.arc.nasa.gov/index.php) [Research](http://ti.arc.nasa.gov/index.php) [Center](http://ti.arc.nasa.gov/index.php) [智能系统部门](http://ti.arc.nasa.gov/index.php) 的研究原型静态分析器，用于发现C程序中的运行时错误。
+一款来自[NASA](http://ti.arc.nasa.gov/index.php) [Ames](http://ti.arc.nasa.gov/index.php) [Research](http://ti.arc.nasa.gov/index.php) [Center](http://ti.arc.nasa.gov/index.php) [智能系统部门](http://ti.arc.nasa.gov/index.php) 的研究原型静态分析器，用于发现 C 程序中的运行时错误。
 
 ### 6.5  [Fluctuat](http://www-list.cea.fr/labos/gb/LSL/fluctuat/index.html)
 
-一款来自[CEA-LIST](http://www-list.cea.fr/) 的静态分析器，用于研究C或汇编程序中浮点计算中舍入误差的传播。
+一款来自[CEA-LIST](http://www-list.cea.fr/) 的静态分析器，用于研究 C 或汇编程序中浮点计算中舍入误差的传播。
 
 ### 6.6  [PolySpace Verifier](http://www.polyspace.com/products.htm)
 
-一款来自[PolySpace Technologies](http://www.polyspace.com/) 的商业通用静态分析器，用于检测Ada、C、C++和Java中的运行时错误。
+一款来自[PolySpace Technologies](http://www.polyspace.com/) 的商业通用静态分析器，用于检测 Ada、C、C++和 Java 中的运行时错误。
 
 ### 6.7  [TERMINATOR](http://research.microsoft.com/terminator/)
 
-一款来自[Microsoft Research Cambridge](http://research.microsoft.com/aboutmsr/labs/cambridge/) 的静态分析器，用于证明C程序的终止和一般存活性属性。
+一款来自[Microsoft Research Cambridge](http://research.microsoft.com/aboutmsr/labs/cambridge/) 的静态分析器，用于证明 C 程序的终止和一般存活性属性。
 
 ### 6.8  [TVLA](http://www.cs.tau.ac.il/~tvla/)
 

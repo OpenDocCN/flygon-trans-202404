@@ -251,7 +251,7 @@ tf.reduce_mean(tf.reduce_sum(x, axis=-1)).eval()
 5.0 
 ```
 
-## 带轴的Argmax
+## 带轴的 Argmax
 
 ```
 x = [[0, 1, 2],

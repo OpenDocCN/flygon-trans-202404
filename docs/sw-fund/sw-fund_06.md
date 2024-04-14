@@ -328,11 +328,11 @@ Proof.
 
     有趣的。）等等。
 
-    Coq提供了一个称为inversion的策略，允许我们
+    Coq 提供了一个称为 inversion 的策略，允许我们
 
     利用这些原则进行证明。为了看如何使用它，让我们
 
-    明确显示S构造函数是单射的：
+    明确显示 S 构造函数是单射的：
 
 ```
 Theorem S_injective : ∀(n m : nat),
@@ -343,13 +343,13 @@ Proof.
 
 ```
 
-    通过在这一点写入inversion H，我们要求Coq
+    通过在这一点写入 inversion H，我们要求 Coq
 
-    生成它可以从H推断出的所有方程作为额外的
+    生成它可以从 H 推断出的所有方程作为额外的
 
     假设，替换目标中的变量。在
 
-    现在的例子，这相当于添加一个新的假设H[1]：n = m并将n替换为m在目标中。
+    现在的例子，这相当于添加一个新的假设 H[1]：n = m 并将 n 替换为 m 在目标中。
 
 ```
   inversion H.
@@ -384,7 +384,7 @@ Proof.
 
 ```
 
-#### 练习：1星（inversion_ex[3]）
+#### 练习：1 星（inversion_ex[3]）
 
 ```
 Example inversion_ex[3] : ∀(X : Type) (x y z : X) (l j : list X),
@@ -412,7 +412,7 @@ Proof.
 
 ```
 
-    我们可以通过对n进行案例分析来继续。第一种情况是
+    我们可以通过对 n 进行案例分析来继续。第一种情况是
 
     琐碎的。
 
@@ -425,11 +425,11 @@ Proof.
 
     但是，第二个看起来并不那么简单：假设
 
-    beq_nat 0（S n'）= true，我们必须展示S n' = 0，但后者
+    beq_nat 0（S n'）= true，我们必须展示 S n' = 0，但后者
 
     明显矛盾！前进的道路在于假设。
 
-    简化目标状态后，我们看到beq_nat 0（S n'）= true已变为false = true：
+    简化目标状态后，我们看到 beq_nat 0（S n'）= true 已变为 false = true：
 
 ```
   - (* n = S n' *)
@@ -437,7 +437,7 @@ Proof.
 
 ```
 
-    如果我们在这个假设上使用inversion，Coq会注意到
+    如果我们在这个假设上使用 inversion，Coq 会注意到
 
     我们正在处理的子目标是不可能的，因此移除
 
@@ -479,7 +479,7 @@ Proof.
 
     更详细的爆炸原理原则将在下一章中介绍。
 
-#### 练习：1星（inversion_ex[6]）
+#### 练习：1 星（inversion_ex[6]）
 
 ```
 Example inversion_ex[6] : ∀(X : Type)
@@ -494,7 +494,7 @@ Proof.
 
     ☐
 
-    总结一下，假设H是一个假设
+    总结一下，假设 H 是一个假设
 
     上下文或形式为的先前证明的引理
 
@@ -516,7 +516,7 @@ Proof.
 
 ```
 
-定理f_equal：∀（A B：Type）（f：A→B）（x y：A），
+定理 f_equal：∀（A B：Type）（f：A→B）（x y：A），
 
 x = y → f x = f y。
 
@@ -535,7 +535,7 @@ x = y → f x = f y。
 
 ```
 
-定理S_inj：∀（n m：nat）（b：bool），
+定理 S_inj：∀（n m：nat）（b：bool），
 
 beq_nat（S n）（S m）= b  →
 
@@ -543,7 +543,7 @@ beq_nat n m = b。
 
 证明。
 
-intros n m b H。在H中简化。应用H。Qed。
+intros n m b H。在 H 中简化。应用 H。Qed。
 
 ```
 
@@ -564,7 +564,7 @@ intros n m b H。在H中简化。应用H。Qed。
 
 ```
 
-定理silly3'：∀（n：nat），
+定理 silly3'：∀（n：nat），
 
 （beq_nat n 5 = true → beq_nat（S（S n））7 = true）→
 
@@ -576,9 +576,9 @@ true = beq_nat（S（S n））7。
 
 intros n eq H.
 
-H中的对称性。在H中应用eq。在H中对称。
+H 中的对称性。在 H 中应用 eq。在 H 中对称。
 
-应用H。Qed.
+应用 H。Qed.
 
 ```
 
@@ -600,7 +600,7 @@ H中的对称性。在H中应用eq。在H中对称。
 
 ```
 
-定理plus_n_n_injective：∀n m，
+定理 plus_n_n_injective：∀n m，
 
 n + n = m + m →
 
@@ -622,11 +622,11 @@ intros n. induction n as [| n'].
 
     有时重要的是控制
 
-    在Coq中进行归纳证明时使用归纳假设。
+    在 Coq 中进行归纳证明时使用归纳假设。
 
     特别是，我们需要小心选择哪个
 
-    我们移动的假设的确切形式（使用intros）从目标到上下文
+    我们移动的假设的确切形式（使用 intros）从目标到上下文
 
     在调用归纳策略之前。例如，假设
 
@@ -1272,11 +1272,11 @@ Definition sillyfun1 (n : nat) : bool :=
 
 ```
 
-    现在假设我们想说服Coq（相当
+    现在假设我们想说服 Coq（相当
 
-    显而易见）的事实，即sillyfun1 n仅在n为真时产生
+    显而易见）的事实，即 sillyfun1 n 仅在 n 为真时产生
 
-    奇数。类比我们在上面与sillyfun一起做的证明，它
+    奇数。类比我们在上面与 sillyfun 一起做的证明，它
 
     自然地开始证明如下：
 
@@ -1296,21 +1296,21 @@ Abort.
 
     包含足够的信息来证明目标！问题在于
 
-    destruct执行的替换太过激烈 — 它抛出了
+    destruct 执行的替换太过激烈 — 它抛出了
 
-    消除每个出现的beq_nat n 3，但我们需要保留一些
+    消除每个出现的 beq_nat n 3，但我们需要保留一些
 
     这个表达式及其如何被破坏的记忆，因为我们
 
-    需要能够推断，因为在这种情况下beq_nat n 3 = true
+    需要能够推断，因为在这种情况下 beq_nat n 3 = true
 
-    案例分析的分支，必须是n = 3，从中
+    案例分析的分支，必须是 n = 3，从中
 
-    随后n为奇数。
+    随后 n 为奇数。
 
     我们真正想要的是替换掉所有现有的
 
-    出现的beq_nat n 3，但同时添加一个方程
+    出现的 beq_nat n 3，但同时添加一个方程
 
     记录我们处于哪种情况的上下文。等式：
 
@@ -1338,7 +1338,7 @@ Proof.
 
 ```
 
-#### 练习：2星（destruct_eqn_practice）
+#### 练习：2 星（destruct_eqn_practice）
 
 ```
 Theorem bool_fn_applied_thrice :
@@ -1405,7 +1405,7 @@ Proof.
 
 # 附加练习
 
-#### 练习：3星（beq_nat_sym）
+#### 练习：3 星（beq_nat_sym）
 
 ```
 Theorem beq_nat_sym : ∀(n m : nat),
@@ -1417,13 +1417,13 @@ Proof.
 
     ☐
 
-#### 练习：3星，高级M？（beq_nat_sym_informal）
+#### 练习：3 星，高级 M？（beq_nat_sym_informal）
 
     给出与您对应的此引理的非正式证明
 
     上述形式化证明：
 
-    定理：对于任何nats n m，beq_nat n m = beq_nat m n。
+    定理：对于任何 nats n m，beq_nat n m = beq_nat m n。
 
     证明：
 
@@ -1431,7 +1431,7 @@ Proof.
 
     ☐
 
-#### 练习：3星，可选（beq_nat_trans）
+#### 练习：3 星，可选（beq_nat_trans）
 
 ```
 Theorem beq_nat_trans : ∀n m p,
@@ -1445,27 +1445,27 @@ Proof.
 
     ☐
 
-#### 练习：3星，高级M（split_combine）
+#### 练习：3 星，高级 M（split_combine）
 
     我们在上面的一个练习中证明了，对于所有的成对列表，
 
-    combine是split的逆。您如何形式化
+    combine 是 split 的逆。您如何形式化
 
-    声明split是combine的逆？这是什么时候
+    声明 split 是 combine 的逆？这是什么时候
 
     属性为真？
 
-    用下面的split_combine_statement完成定义
+    用下面的 split_combine_statement 完成定义
 
-    声明split是的逆。
+    声明 split 是的逆。
 
     combine。然后，证明该属性成立。（确保留下
 
-    通过不在更多的intros上进行使您的归纳假设更一般
+    通过不在更多的 intros 上进行使您的归纳假设更一般
 
-    比必要的更多的事情。提示：你需要l[1]的什么属性
+    比必要的更多的事情。提示：你需要 l[1]的什么属性
 
-    和l[2]用于split combine l[1] l[2] = (l[1],l[2])是否为真?)
+    和 l[2]用于 split combine l[1] l[2] = (l[1],l[2])是否为真?)
 
 ```
 Definition split_combine_statement : Prop
@@ -1480,7 +1480,7 @@ Proof.
 
     ☐
 
-#### 练习：3星，高级（filter_exercise）
+#### 练习：3 星，高级（filter_exercise）
 
     这个有点具有挑战性。注意您的形式
 
@@ -1498,9 +1498,9 @@ Proof.
 
     ☐
 
-#### 练习：4星，高级，推荐（forall_exists_challenge）
+#### 练习：4 星，高级，推荐（forall_exists_challenge）
 
-    定义两个递归Fixpoints，forallb和existsb。该
+    定义两个递归 Fixpoints，forallb 和 existsb。该
 
     首先检查列表中的每个元素是否满足给定的
 
@@ -1528,13 +1528,13 @@ existsb oddb [1;0;0;0;0;3] = true
 
 existsb evenb [] = false
 
-    接下来，定义*非递归*版本的existsb — 称之为
+    接下来，定义*非递归*版本的 existsb — 称之为
 
-    existsb' — 使用forallb和negb。
+    existsb' — 使用 forallb 和 negb。
 
-    最后，证明一个定理existsb_existsb'，陈述
+    最后，证明一个定理 existsb_existsb'，陈述
 
-    existsb'和existsb具有相同的行为。
+    existsb'和 existsb 具有相同的行为。
 
 ```
 (* FILL IN HERE *)

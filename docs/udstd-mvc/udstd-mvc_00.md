@@ -2,7 +2,7 @@
 
 # 介绍
 
-模型-视图-控制器（MVC）可能是用户界面设计和Web编程中最常用的架构解决方案；MVC首次在70年代引入，逐渐被适应和改变为各种子类型和变体，以至于普通术语“MVC”没有额外的限定词已经失去了特定性。作为一种一般性解释，它是一个相当宽松的指导原则，用于在应用程序的数据和可视化部分需要互动但尽可能保持松散耦合时组织代码。在实践中如何实现这一点取决于特定的MVC化身。
+模型-视图-控制器（MVC）可能是用户界面设计和 Web 编程中最常用的架构解决方案；MVC 首次在 70 年代引入，逐渐被适应和改变为各种子类型和变体，以至于普通术语“MVC”没有额外的限定词已经失去了特定性。作为一种一般性解释，它是一个相当宽松的指导原则，用于在应用程序的数据和可视化部分需要互动但尽可能保持松散耦合时组织代码。在实践中如何实现这一点取决于特定的 MVC 化身。
 
 MVC [](GLOSSARY.html) 可以 [](GLOSSARY.html) 被视为 [](GLOSSARY.html) 更 [](GLOSSARY.html) 基本的 [](GLOSSARY.html) 设计 [](GLOSSARY.html) 模式的 [](GLOSSARY.html) 聚合，比如 [](GLOSSARY.html) Composite，Mediator [](GLOSSARY.html) 和 [](GLOSSARY.html) Observer/Notifier。 [](GLOSSARY.html) MVC [](GLOSSARY.html) 的 [](GLOSSARY.html) 复杂性 [](GLOSSARY.html) 和 [](GLOSSARY.html) 风格 [](GLOSSARY.html) 的 [](GLOSSARY.html) 变化 [](GLOSSARY.html) 来自于 [](GLOSSARY.html) 这些 [](GLOSSARY.html) 独立的 [](GLOSSARY.html) 模式 [](GLOSSARY.html) 的 [](GLOSSARY.html) 所有 [](GLOSSARY.html) 可能 [](GLOSSARY.html) 的 [](GLOSSARY.html) 用法 [](GLOSSARY.html) 和 [](GLOSSARY.html) 变化，以 [](GLOSSARY.html) 满足 [](GLOSSARY.html) GUI [](GLOSSARY.html) 的 [](GLOSSARY.html) 可能 [](GLOSSARY.html) 复杂的 [](GLOSSARY.html) 需求。
 
@@ -10,17 +10,17 @@ MVC [](GLOSSARY.html) 可以 [](GLOSSARY.html) 被视为 [](GLOSSARY.html) 更 [
 
 本 [](GLOSSARY.html) 书 [](GLOSSARY.html) 的 [](GLOSSARY.html) 结构 [](GLOSSARY.html) 如 [](GLOSSARY.html) 下：
 
-+   第一章将通过代码介绍一个简单的从头开始的MVC应用程序，目标是部署一个通用的词汇表。该章将定义组件、角色和通信模式，并以一句话结束，说明由此得出的公式在现代软件开发中已经过时且过于简单。
++   第一章将通过代码介绍一个简单的从头开始的 MVC 应用程序，目标是部署一个通用的词汇表。该章将定义组件、角色和通信模式，并以一句话结束，说明由此得出的公式在现代软件开发中已经过时且过于简单。
 
-+   一旦装备了术语表，第二章将介绍MVC变体，以解决特定的UI约束和实际需求，或者提高开发效率。
++   一旦装备了术语表，第二章将介绍 MVC 变体，以解决特定的 UI 约束和实际需求，或者提高开发效率。
 
-+   第三章将扩展MVC的概念到分层MVC方案。
++   第三章将扩展 MVC 的概念到分层 MVC 方案。
 
-+   第四章将专注于从复杂的现代GUI中产生的特殊技术。
++   第四章将专注于从复杂的现代 GUI 中产生的特殊技术。
 
-+   在第五和最后一章中，我们将专注于Web MVC及其实现。
++   在第五和最后一章中，我们将专注于 Web MVC 及其实现。
 
-在整本书中，将会展示示例代码或实际实现来阐明设计思想。GUI渲染将利用优秀的Qt工具包。Qt提供了预制机制来满足一些MVC需求，但在即将展示的代码中，这些机制将被故意跳过，以展示所呈现的概念。
+在整本书中，将会展示示例代码或实际实现来阐明设计思想。GUI 渲染将利用优秀的 Qt 工具包。Qt 提供了预制机制来满足一些 MVC 需求，但在即将展示的代码中，这些机制将被故意跳过，以展示所呈现的概念。
 
 ### 致谢和动机
 
@@ -40,12 +40,12 @@ MVC [](GLOSSARY.html) 可以 [](GLOSSARY.html) 被视为 [](GLOSSARY.html) 更 [
 
 +   在[GratiPay](https://gratipay.com/StefanoBorini/)上
 
-+   在[比特币](bitcoin:13RQmVjRKVbQnVmuVsFxHjycgo7cTaaZ3w)上
++   在比特币上
 
-+   在PayPal上（使用我的电子邮件地址stefano.borini在ferrara.linux.it）
++   在 PayPal 上（使用我的电子邮件地址 stefano.borini 在 ferrara.linux.it）
 
-本书的来源可作为一个github仓库在以下URL处找到：
+本书的来源可作为一个 github 仓库在以下 URL 处找到：
 
-[https://github.com/stefanoborini/modelviewcontroller-src](https://github.com/stefanoborini/modelviewcontroller-src)
+[`github.com/stefanoborini/modelviewcontroller-src`](https://github.com/stefanoborini/modelviewcontroller-src)
 
-我还有一个个人网站[http://forthescience.org](http://forthescience.org)，您可以在那里找到更多关于我、我的简历和活动的信息。
+我还有一个个人网站[`forthescience.org`](http://forthescience.org)，您可以在那里找到更多关于我、我的简历和活动的信息。

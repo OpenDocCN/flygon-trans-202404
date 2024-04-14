@@ -32,7 +32,7 @@
 
 假设我们想要使用 Racket 计算给定 *x* 和 *y* 的以下多项式：
 
-[mathjax]f(x,y) = x(1+xy)^2 + y (1-y) + (1+xy)(1-y)[/mathjax]
+[mathjax]f(x,y) = x(1+xy)² + y (1-y) + (1+xy)(1-y)[/mathjax]
 
 将这个丑陋的多项式重写为一个丑陋的过程：
 
@@ -49,7 +49,7 @@
 
 以便我们得到：
 
-[mathjax]\displaystyle f(x,y) = xa^2 + yb + ab[/mathjax]
+[mathjax]\displaystyle f(x,y) = xa² + yb + ab[/mathjax]
 
 好吧，我想这样更好。在 Racket 中编写这个，我们将定义一个名为 `f-helper` 的辅助函数，以便我们可以进行替换：
 

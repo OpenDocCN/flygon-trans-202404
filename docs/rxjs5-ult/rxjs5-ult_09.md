@@ -2,9 +2,9 @@
 
 # Observable 封装
 
-我们刚刚在[Observable 解剖](observable-anatomy.html)中学到，关键操作 `next()`、`error()` 和 `complete` 是让我们的 Observable 运转的要素，如果我们自己定义了它。我们还学到了，这些方法会在我们的订阅中触发相应的回调。
+我们刚刚在 Observable 解剖中学到，关键操作 `next()`、`error()` 和 `complete` 是让我们的 Observable 运转的要素，如果我们自己定义了它。我们还学到了，这些方法会在我们的订阅中触发相应的回调。
 
-将某物封装到 Observable 中意味着我们将一个不是 Observable 的东西转变为一个 Observable，这样它就可以与其他 Observables 协同工作。这也意味着它现在可以使用[操作符](operators.html)。
+将某物封装到 Observable 中意味着我们将一个不是 Observable 的东西转变为一个 Observable，这样它就可以与其他 Observables 协同工作。这也意味着它现在可以使用操作符。
 
 ## 封装一个 Ajax 调用
 

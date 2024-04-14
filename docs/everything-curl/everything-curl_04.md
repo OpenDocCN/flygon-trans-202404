@@ -118,23 +118,23 @@ curl 源代码树既不大也不复杂。记住的一个关键点也许是 libcu
 
 +   `FAQ`：关于各种与 curl 相关的主题的常见问题
 
-+   `FEATURES`: curl功能的不完整列表
++   `FEATURES`: curl 功能的不完整列表
 
 +   `HISTORY`: 描述项目如何开始并随着年份的推移而发展
 
-+   `HTTP2.md`: 如何使用curl和libcurl进行HTTP/2
++   `HTTP2.md`: 如何使用 curl 和 libcurl 进行 HTTP/2
 
-+   `HTTP-COOKIES`: curl如何支持和处理HTTP cookies
++   `HTTP-COOKIES`: curl 如何支持和处理 HTTP cookies
 
-+   `index.html`: 作为文档索引页面的基本HTML页面
++   `index.html`: 作为文档索引页面的基本 HTML 页面
 
-+   `INSTALL`: 如何从源代码构建和安装curl和libcurl
++   `INSTALL`: 如何从源代码构建和安装 curl 和 libcurl
 
-+   `INSTALL.cmake`: 如何使用CMake构建curl和libcurl
++   `INSTALL.cmake`: 如何使用 CMake 构建 curl 和 libcurl
 
-+   `INSTALL.devcpp`: 如何使用devcpp构建curl和libcurl
++   `INSTALL.devcpp`: 如何使用 devcpp 构建 curl 和 libcurl
 
-+   `INTERNALS`: curl和libcurl内部结构的详细信息
++   `INTERNALS`: curl 和 libcurl 内部结构的详细信息
 
 +   `KNOWN_BUGS`: 已知的错误和问题
 
@@ -142,39 +142,39 @@ curl 源代码树既不大也不复杂。记住的一个关键点也许是 libcu
 
 +   `MAIL-ETIQUETTE`: 这是如何在我们的邮件列表上进行沟通的方式
 
-+   `MANUAL`: 一个类似教程的指南，介绍如何使用curl
++   `MANUAL`: 一个类似教程的指南，介绍如何使用 curl
 
-+   `mk-ca-bundle.1`: mk-ca-bundle工具的man页面，采用nroff格式
++   `mk-ca-bundle.1`: mk-ca-bundle 工具的 man 页面，采用 nroff 格式
 
-+   `README.cmake`: CMake特定细节
++   `README.cmake`: CMake 特定细节
 
-+   `README.netware`: Netware特定细节
++   `README.netware`: Netware 特定细节
 
-+   `README.win32`: win32特定细节
++   `README.win32`: win32 特定细节
 
-+   `RELEASE-PROCEDURE`: 如何发布curl和libcurl
++   `RELEASE-PROCEDURE`: 如何发布 curl 和 libcurl
 
-+   `RESOURCES`: 进一步阅读关于curl的内容的资源
++   `RESOURCES`: 进一步阅读关于 curl 的内容的资源
 
 +   `ROADMAP.md`: 我们未来想要开展的工作
 
 +   `SECURITY`: 我们如何处理安全漏洞
 
-+   `SSLCERTS`: TLS证书处理文档
++   `SSLCERTS`: TLS 证书处理文档
 
-+   `SSL-PROBLEMS`: 常见SSL问题及其原因
++   `SSL-PROBLEMS`: 常见 SSL 问题及其原因
 
-+   `THANKS`: 感谢这一大量友好人士的名单，curl今天存在！
++   `THANKS`: 感谢这一大量友好人士的名单，curl 今天存在！
 
-+   `TheArtOfHttpScripting`: 使用curl进行HTTP脚本编写的教程
++   `TheArtOfHttpScripting`: 使用 curl 进行 HTTP 脚本编写的教程
 
 +   `TODO`: 我们或您可以着手实施的事项
 
-+   `VERSIONS`: libcurl版本编号的工作原理
++   `VERSIONS`: libcurl 版本编号的工作原理
 
 ### 文档/libsurl
 
-所有libcurl函数都有自己的man页面，以独立的带有.3扩展名的文件形式存在，采用nroff格式，位于此目录中。还有一些其他文件如下所述。
+所有 libcurl 函数都有自己的 man 页面，以独立的带有.3 扩展名的文件形式存在，采用 nroff 格式，位于此目录中。还有一些其他文件如下所述。
 
 +   `ABI`
 
@@ -200,41 +200,41 @@ curl 源代码树既不大也不复杂。记住的一个关键点也许是 libcu
 
 ### 文档/libsurl/opts
 
-此目录包含三种不同libcurl函数的各个选项的man页面。
+此目录包含三种不同 libcurl 函数的各个选项的 man 页面。
 
 `curl_easy_setopt()`选项以`CURLOPT_`开头，`curl_multi_setopt()`选项以`CURLMOPT_`开头，`curl_easy_getinfo()`选项以`CURLINFO_`开头。
 
 ### 文档/示例
 
-包含约100个独立示例，旨在帮助读者了解如何使用libcurl。
+包含约 100 个独立示例，旨在帮助读者了解如何使用 libcurl。
 
-另请参阅本书的[libcurl示例](libcurl-examples.md)部分。
+另请参阅本书的 libcurl 示例部分。
 
 ### 脚本
 
 便捷脚本。
 
-+   `contributors.sh`: 从给定的哈希/标签中提取git存储库中的所有贡献者。其目的是为RELEASE-NOTES文件生成列表，并允许手动添加的名称即使在更新时也保留在其中。该脚本使用'THANKS-filter`文件重写一些名称。
++   `contributors.sh`: 从给定的哈希/标签中提取 git 存储库中的所有贡献者。其目的是为 RELEASE-NOTES 文件生成列表，并允许手动添加的名称即使在更新时也保留在其中。该脚本使用'THANKS-filter`文件重写一些名称。
 
-+   `contrithanks.sh`：从给定的哈希/标签中提取git存储库中的贡献者，过滤掉所有已在`THANKS`中提到的名称，然后将`THANKS`输出到stdout，并将新贡献者的列表附加到末尾；它旨在让`THANKS`文档更容易更新。该脚本使用`THANKS-filter`文件重写某些名称。
++   `contrithanks.sh`：从给定的哈希/标签中提取 git 存储库中的贡献者，过滤掉所有已在`THANKS`中提到的名称，然后将`THANKS`输出到 stdout，并将新贡献者的列表附加到末尾；它旨在让`THANKS`文档更容易更新。该脚本使用`THANKS-filter`文件重写某些名称。
 
-+   `log2changes.pl`：为发布生成`CHANGES`文件，由发布脚本使用。它只是转换git log输出。
++   `log2changes.pl`：为发布生成`CHANGES`文件，由发布脚本使用。它只是转换 git log 输出。
 
-+   `zsh.pl`：辅助脚本，为zsh shell的用户提供curl命令行完成。
++   `zsh.pl`：辅助脚本，为 zsh shell 的用户提供 curl 命令行完成。
 
 # 处理构建选项
 
 ## 处理不同的构建选项
 
-curl和libcurl源代码已经精心编写，可以在几乎所有现有的计算机平台上构建和运行。这只能通过辛勤工作和遵循一些准则（当然还有大量测试）来完成。
+curl 和 libcurl 源代码已经精心编写，可以在几乎所有现有的计算机平台上构建和运行。这只能通过辛勤工作和遵循一些准则（当然还有大量测试）来完成。
 
-一个黄金法则是始终添加检查特定特性的#ifdef，然后在用户的计算机设置中编译程序之前，设置脚本（configure或CMake或硬编码）检查是否存在这些特性。此外，由于代码编写方式的这种方式，一些特性甚至可以显式关闭，即使它们存在于系统中并且*可能*被使用。例如，当用户想要构建具有较小占用空间或禁用某些协议支持的库的版本时等。
+一个黄金法则是始终添加检查特定特性的#ifdef，然后在用户的计算机设置中编译程序之前，设置脚本（configure 或 CMake 或硬编码）检查是否存在这些特性。此外，由于代码编写方式的这种方式，一些特性甚至可以显式关闭，即使它们存在于系统中并且*可能*被使用。例如，当用户想要构建具有较小占用空间或禁用某些协议支持的库的版本时等。
 
-该项目有时会在整个源文件周围使用#ifdef保护，例如，当为特定操作系统提供单个文件或者也许是为一个不总是存在的特定特性提供文件时。这样做是为了使所有平台都能始终构建所有文件——这大大简化了构建脚本和makefile。一个完全#ifdefed的文件几乎不会增加任何构建时间。
+该项目有时会在整个源文件周围使用#ifdef 保护，例如，当为特定操作系统提供单个文件或者也许是为一个不总是存在的特定特性提供文件时。这样做是为了使所有平台都能始终构建所有文件——这大大简化了构建脚本和 makefile。一个完全#ifdefed 的文件几乎不会增加任何构建时间。
 
 我们提供函数和宏，使代码看起来和工作起来都是相同的，不论当前特性如何，而不是在代码中到处添加#ifdef。其中一些对于缺乏这些特性的构建来说是空宏。
 
-TLS处理和名称解析都是使用内部API处理的，该API隐藏了特定实现和第三方软件库的选择。这样，大部分内部工作都是相同的，不论libcurl被告知使用哪个TLS库或名称解析系统。
+TLS 处理和名称解析都是使用内部 API 处理的，该 API 隐藏了特定实现和第三方软件库的选择。这样，大部分内部工作都是相同的，不论 libcurl 被告知使用哪个 TLS 库或名称解析系统。
 
 # 代码风格
 
@@ -242,7 +242,7 @@ TLS处理和名称解析都是使用内部API处理的，该API隐藏了特定�
 
 具有共同风格的源代码比在不同位置使用不同风格的代码更容易阅读。它有助于使代码感觉像一个连续的代码库。易于阅读是代码的一个非常重要的属性，当新东西被添加时，它有助于使代码更容易审查，并且当开发人员试图弄清楚为什么事情出错时，它有助于调试代码。统一的风格比满足个人品味更重要。
 
-我们的C代码有一些样式规则。其中大部分都由 lib/checksrc.pl 脚本验证和维护。可以通过 `make checksrc` 命令调用，甚至在使用 `./configure --enable-debug` 后构建时默认由构建系统调用。
+我们的 C 代码有一些样式规则。其中大部分都由 lib/checksrc.pl 脚本验证和维护。可以通过 `make checksrc` 命令调用，甚至在使用 `./configure --enable-debug` 后构建时默认由构建系统调用。
 
 对于任何人来说，遵循指南通常不是问题，因为您只需复制源代码中已使用的样式，并且在我们的规则集中没有特别异常的规则。
 
@@ -256,7 +256,7 @@ TLS处理和名称解析都是使用内部API处理的，该API隐藏了特定�
 
 ### 注释
 
-由于我们编写的是C89代码，// 是不被允许的。它们直到C99标准才被引入。我们只使用 /* 和 */ 进行注释：
+由于我们编写的是 C89 代码，// 是不被允许的。它们直到 C99 标准才被引入。我们只使用 /* 和 */ 进行注释：
 
 ```
 /* this is a comment */ 
@@ -315,7 +315,7 @@ while(1) {
 
 将您的更改或建议发送给团队，通过共同努力，我们可以解决问题，改进功能，澄清文档，添加功能或使您提供帮助的任何其他事情落在正确的位置。我们将确保改进的代码和文档被正确合并到源树中，其他类型的贡献也会得到适当的接受。
 
-将您的贡献发送到[邮件列表](curl-comm.html)，提交问题或提交拉取请求。
+将您的贡献发送到邮件列表，提交问题或提交拉取请求。
 
 ### 建议
 
@@ -325,9 +325,9 @@ while(1) {
 
 ### 应添加的内容
 
-向curl或libcurl添加任何内容的最佳方法当然是首先将想法和建议带给curl项目团队成员，然后与他们讨论该想法是否适合包含，以及如何最好地实现——并且以最佳方式将其合并到源代码存储库中，假设这是您想要的。
+向 curl 或 libcurl 添加任何内容的最佳方法当然是首先将想法和建议带给 curl 项目团队成员，然后与他们讨论该想法是否适合包含，以及如何最好地实现——并且以最佳方式将其合并到源代码存储库中，假设这是您想要的。
 
-该项目通常批准改进对当前协议的支持的功能，特别是流行客户端或浏览器具有但curl仍然缺少的功能。
+该项目通常批准改进对当前协议的支持的功能，特别是流行客户端或浏览器具有但 curl 仍然缺少的功能。
 
 当然，您也可以向项目添加非代码内容，例如文档、图形或网站内容，但一般规则同样适用。
 
@@ -353,7 +353,7 @@ while(1) {
 
 本书将不会帮助您学习 git。在当今这个时代，所有的软件开发人员都应该学会 git。
 
-您可以在我们的 GitHub 页面上使用 Web 浏览器浏览 curl git 树：[https://github.com/curl/curl](https://github.com/curl/curl)。
+您可以在我们的 GitHub 页面上使用 Web 浏览器浏览 curl git 树：[`github.com/curl/curl`](https://github.com/curl/curl)。
 
 要从 git 中检出 curl 源代码，您可以像这样克隆它：
 
@@ -407,7 +407,7 @@ it fixes and everything else that is related]
 
 每个人都可以派生出自己的 curl 代码库，可以向其中提交和推送更改，并将其在线托管并构建自己的 curl 版本等等，但是要想将更改纳入*官方*代码库，必须由信任的人推送。
 
-核心团队是一小部分 curl 开发人员，他们已经在这个项目中工作了几年，并且已经证明他们是熟练的开发人员，完全理解我们在这个项目中所做的价值观和开发风格。他们是 [开发团队](curl-devteam.html) 部分中列出的一些人。
+核心团队是一小部分 curl 开发人员，他们已经在这个项目中工作了几年，并且已经证明他们是熟练的开发人员，完全理解我们在这个项目中所做的价值观和开发风格。他们是 开发团队 部分中列出的一些人。
 
 你可以随时将讨论带到邮件列表，并说明你认为你的更改应该被接受的动机，或者甚至反对其他正在被接受的更改等等。
 
@@ -445,23 +445,23 @@ it fixes and everything else that is related]
 
 +   撰写有关问题的安全咨询草案，解释问题是什么，其影响，影响的版本，任何解决方案或解决方法以及修复发布的时间，确保适当地表彰所有贡献者。
 
-+   从[distros@openwall](http://oss-security.openwall.org/wiki/mailing-lists/distros)请求CVE编号时，同时通知并准备他们即将公开的安全漏洞公告——附上咨询草案以供参考。请注意，“distros”不会接受长于19天的禁令。
++   从[distros@openwall](http://oss-security.openwall.org/wiki/mailing-lists/distros)请求 CVE 编号时，同时通知并准备他们即将公开的安全漏洞公告——附上咨询草案以供参考。请注意，“distros”不会接受长于 19 天的禁令。
 
-+   使用CVE编号更新“安全咨询”。
++   使用 CVE 编号更新“安全咨询”。
 
-+   安全团队在私有分支中提交修复。提交消息理想情况下应包含CVE编号。通常也会将此修复分发给“distros”邮件列表，以便他们在公开公告之前使用修复。
++   安全团队在私有分支中提交修复。提交消息理想情况下应包含 CVE 编号。通常也会将此修复分发给“distros”邮件列表，以便他们在公开公告之前使用修复。
 
 +   在下一个发布日，私有分支合并到主分支并推送。一旦推送，信息就对公众可见，实际发布应立即跟进。
 
 +   项目团队创建包含修复的发布版本。
 
-+   项目团队以与我们通常宣布发布的方式向全世界公布发布和漏洞信息——它会发送到curl-announce、curl-library和curl-users邮件列表。
++   项目团队以与我们通常宣布发布的方式向全世界公布发布和漏洞信息——它会发送到 curl-announce、curl-library 和 curl-users 邮件列表。
 
 +   网站上的安全页面应提及新的漏洞。
 
 ### curl-security@haxx.se
 
-谁在这个名单上？您必须符合一些标准，然后我们可能会邀请您加入名单，或者您可以要求加入。这真的不是很正式。我们基本上只要求您在curl项目中有长期存在，并且您已经表现出对项目及其工作方式的理解。您必须已经在这里待了一段时间，而且您不应该计划在不久的将来消失。
+谁在这个名单上？您必须符合一些标准，然后我们可能会邀请您加入名单，或者您可以要求加入。这真的不是很正式。我们基本上只要求您在 curl 项目中有长期存在，并且您已经表现出对项目及其工作方式的理解。您必须已经在这里待了一段时间，而且您不应该计划在不久的将来消失。
 
 我们不会公开列出参与者的名单，主要是因为随着时间的推移，名单往往会有所变化，而且某处的名单只会增加过时的风险。
 
@@ -469,9 +469,9 @@ it fixes and everything else that is related]
 
 ## 网站源代码
 
-大部分curl网站也可以在公共git存储库中找到，尽管与源代码存储库分开，因为它通常对同一群人不感兴趣，我们可以维护一个不同的具有推送权限等人员名单。
+大部分 curl 网站也可以在公共 git 存储库中找到，尽管与源代码存储库分开，因为它通常对同一群人不感兴趣，我们可以维护一个不同的具有推送权限等人员名单。
 
-网站git存储库可在此URL上找到：[https://github.com/curl/curl-www](https://github.com/curl/curl-www)，您可以像这样克隆网页代码的副本：
+网站 git 存储库可在此 URL 上找到：[`github.com/curl/curl-www`](https://github.com/curl/curl-www)，您可以像这样克隆网页代码的副本：
 
 ```
 git clone https://github.com/curl/curl-www.git 

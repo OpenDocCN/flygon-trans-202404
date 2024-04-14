@@ -1,22 +1,22 @@
-# 第7章。输入和输出
+# 第七章。输入和输出
 
 所有的输入和输出操作都是通过*端口*执行的。端口是指向（可能是无限的）数据流（通常是文件）的指针，是程序可以从流中提取字节或字符或将字节或字符放入流中的开口。端口可以是输入端口、输出端口或同时是两者。
 
-端口是Scheme中的一等对象，就像任何其他对象一样。与过程一样，端口没有像字符串和数字那样的打印表示。最初有三个端口：当前输入端口、当前输出端口和当前错误端口，它们是连接到进程标准输入、标准输出和标准错误流的文本端口。提供了几种打开新端口的方法。
+端口是 Scheme 中的一等对象，就像任何其他对象一样。与过程一样，端口没有像字符串和数字那样的打印表示。最初有三个端口：当前输入端口、当前输出端口和当前错误端口，它们是连接到进程标准输入、标准输出和标准错误流的文本端口。提供了几种打开新端口的方法。
 
-输入端口通常指向有限流，例如，存储在磁盘上的输入文件。如果输入操作中的一个，例如，`get-u8`、`get-char`或`get-datum`，被要求从已经到达有限流末尾的端口读取时，它会返回一个特殊的*eof*（文件结束）*对象*。谓词`eof-object?`可以用来确定从输入操作返回的值是否是eof对象。
+输入端口通常指向有限流，例如，存储在磁盘上的输入文件。如果输入操作中的一个，例如，`get-u8`、`get-char`或`get-datum`，被要求从已经到达有限流末尾的端口读取时，它会返回一个特殊的*eof*（文件结束）*对象*。谓词`eof-object?`可以用来确定从输入操作返回的值是否是 eof 对象。
 
-端口可以是*二进制*或*文本*。二进制端口允许程序从底层流中读取或写入8位无符号字节，或“八位字节”，文本端口允许程序读取或写入字符。
+端口可以是*二进制*或*文本*。二进制端口允许程序从底层流中读取或写入 8 位无符号字节，或“八位字节”，文本端口允许程序读取或写入字符。
 
-在许多情况下，底层流被组织为一系列字节，但这些字节应被视为字符的编码。在这种情况下，可以使用*转码器*创建文本端口来将字节解码为字符（用于输入）或将字符编码为字节（用于输出）。转码器封装了一个确定字符如何表示为字节的*编解码器*。提供了三种标准编解码器：*latin-1*编解码器，Unicode *utf-8*编解码器和Unicode *utf-16*编解码器。对于*latin-1*编码，每个字符由一个字节表示。对于*utf-8*，每个字符由一个到四个字节表示，对于*utf-16*，每个字符由两个或四个字节表示。
+在许多情况下，底层流被组织为一系列字节，但这些字节应被视为字符的编码。在这种情况下，可以使用*转码器*创建文本端口来将字节解码为字符（用于输入）或将字符编码为字节（用于输出）。转码器封装了一个确定字符如何表示为字节的*编解码器*。提供了三种标准编解码器：*latin-1*编解码器，Unicode *utf-8*编解码器和 Unicode *utf-16*编解码器。对于*latin-1*编码，每个字符由一个字节表示。对于*utf-8*，每个字符由一个到四个字节表示，对于*utf-16*，每个字符由两个或四个字节表示。
 
-转码器还封装了一个确定如何识别行尾的*eol样式*。如果eol样式是`none`，则不识别行尾。另外提供了六种标准eol样式，如下所示：
+转码器还封装了一个确定如何识别行尾的*eol 样式*。如果 eol 样式是`none`，则不识别行尾。另外提供了六种标准 eol 样式，如下所示：
 
 | `lf`: | 换行符字符 |
 | --- | --- |
 | `cr`: | 回车字符 |
-| `nel`: | Unicode下一行字符 |
-| `ls`: | Unicode换行符字符 |
+| `nel`: | Unicode 下一行字符 |
+| `ls`: | Unicode 换行符字符 |
 | `crlf`: | 回车后跟换行，并 |
 | `crnel`: | 回车后跟下一行 |
 
@@ -26,7 +26,7 @@
 
 为了提高效率，可以对端口进行缓冲，以消除每个字节或字符调用操作系统的开销。支持三种标准的缓冲模式：*block*、*line* 和 *none*。使用块缓冲时，输入从流中获取，输出以一些与实现相关的大小的块发送到流中。使用行缓冲时，缓冲是基于行或其他某种与实现相关的基础进行的。行缓冲通常仅对文本输出端口进行区分；在二进制端口中没有行分隔，输入可能会在流中可用时获取。使用无缓冲区模式时，不进行缓冲，因此输出立即发送到流中，并且只有在需要时才获取输入。
 
-本章的其余部分涵盖了对转码器、文件端口、标准端口、字符串和字节向量端口、自定义端口、一般端口操作、输入操作、输出操作、便捷I/O、文件系统操作以及字节向量和字符串之间的转换的操作。
+本章的其余部分涵盖了对转码器、文件端口、标准端口、字符串和字节向量端口、自定义端口、一般端口操作、输入操作、输出操作、便捷 I/O、文件系统操作以及字节向量和字符串之间的转换的操作。
 
 ### 第 7.1 节。转码器
 
@@ -88,9 +88,9 @@
 
 `*symbol*` 必须是 `lf`、`cr`、`nel`、`ls`、`crlf`、`crnel` 或 `none` 符号之一。表达式 `(eol-style *symbol*)` 等同于 `(quote *symbol*)`，除了前者在扩展时检查 `*symbol*` 是否为 eol-style 符号之外。`eol-style` 语法还提供了有用的文档。
 
-`(eol-style crlf) ![<graphic>](ch2_0.gif) crlf
+`(eol-style crlf) ![<graphic>](img/ch2_0.gif) crlf
 
-(eol-style lfcr) ![<graphic>](ch2_0.gif) *syntax violation*`
+(eol-style lfcr) ![<graphic>](img/ch2_0.gif) *syntax violation*`
 
 **procedure**: `(native-eol-style)`
 
@@ -108,9 +108,9 @@
 
 `*symbol*` 必须是 `ignore`、`raise` 或 `replace` 符号之一。表达式 `(error-handling-mode *symbol*)` 等同于 `(quote *symbol*)`，除了前者在扩展时检查 `*symbol*` 是否为错误处理模式符号之外。`error-handling-mode` 语法还提供了有用的文档。
 
-`(error-handling-mode replace) ![<graphic>](ch2_0.gif) replace
+`(error-handling-mode replace) ![<graphic>](img/ch2_0.gif) replace
 
-`(error-handling-mode replace) ![<graphic>](ch2_0.gif) *syntax violation*`
+`(error-handling-mode replace) ![<graphic>](img/ch2_0.gif) *syntax violation*`
 
 ### 第 7.2 节。打开文件
 
@@ -134,7 +134,7 @@
 
 或许更容易想象默认文件选项是虚构的选项符号 `create`、`fail-if-exists` 和 `truncate`；`no-create` 移除 `create`，`no-fail` 移除 `fail-if-exists`，而 `no-truncate` 移除 `truncate`。
 
-实现可能支持其他文件选项符号。例如，Chez Scheme支持控制文件是否或应该被压缩、文件是否被锁定以进行独占访问以及如果创建文件，则给予文件什么权限的选项[[9](bibliography.html#g227)]。
+实现可能支持其他文件选项符号。例如，Chez Scheme 支持控制文件是否或应该被压缩、文件是否被锁定以进行独占访问以及如果创建文件，则给予文件什么权限的选项[9]。
 
 **语法：** `(buffer-mode *符号*)`
 
@@ -144,9 +144,9 @@
 
 `*符号*`必须是`block`、`line`或`none`中的一个符号。表达式`(buffer-mode *符号*)`等价于表达式`(quote *符号*)`，但前者在扩展时检查`*符号*`是否是缓冲区模式符号之一。`buffer-mode`语法还提供了有用的文档。
 
-`(buffer-mode block) ![<图形>](ch2_0.gif) block`
+`(buffer-mode block) ![<图形>](img/ch2_0.gif) block`
 
-(buffer-mode cushion) ![<图形>](ch2_0.gif) *语法违规*
+(buffer-mode cushion) ![<图形>](img/ch2_0.gif) *语法违规*
 
 **语法：** `(buffer-mode? *obj*)`
 
@@ -154,13 +154,13 @@
 
 **库：** `(rnrs io ports)`, `(rnrs)`
 
-`(buffer-mode? 'block) ![<图形>](ch2_0.gif) #t
+`(buffer-mode? 'block) ![<图形>](img/ch2_0.gif) #t
 
-(buffer-mode? 'line) ![<图形>](ch2_0.gif) #t
+(buffer-mode? 'line) ![<图形>](img/ch2_0.gif) #t
 
-(buffer-mode? 'none) ![<图形>](ch2_0.gif) #t
+(buffer-mode? 'none) ![<图形>](img/ch2_0.gif) #t
 
-(buffer-mode? 'something-else) ![<图形>](ch2_0.gif) #f`
+(buffer-mode? 'something-else) ![<图形>](img/ch2_0.gif) #f`
 
 **过程：** `(open-file-input-port *路径*)`
 
@@ -204,7 +204,7 @@
 
 如果`*?transcoder*`存在且不为`#f`，则必须是一个转码器，此过程返回其转码器为`*?transcoder*`的文本输入/输出端口。否则，此过程返回一个二进制输入/输出端口。有关其他参数的约束和效果的描述，请参见本节的导言。
 
-### 第7.3节。标准端口
+### 第 7.3 节。标准端口
 
 本节中描述的过程返回连接到进程的标准输入、标准输出和标准错误流的端口。第一组返回具有实现相关的转码器（如果有）和缓冲模式的“现成”文本端口。第二组创建新的二进制端口，可以用于二进制输入/输出，或者借助`transcoded-port`进行文本输入/输出，使用程序提供的转码器和缓冲模式。
 
@@ -222,9 +222,9 @@
 
 **libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs)`
 
-current-input、current-output和current-error端口返回预先构建的文本端口，最初与进程的标准输入、标准输出和标准错误流相关联。
+current-input、current-output 和 current-error 端口返回预先构建的文本端口，最初与进程的标准输入、标准输出和标准错误流相关联。
 
-`current-input-port`和`current-output-port`返回的值可以通过方便的I/O过程`with-input-from-file`和`with-output-to-file`（第[7.9](io.html#g130)节）暂时更改。
+`current-input-port`和`current-output-port`返回的值可以通过方便的 I/O 过程`with-input-from-file`和`with-output-to-file`（第 7.9 节）暂时更改。
 
 **procedure**: `(standard-input-port)`
 
@@ -242,7 +242,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 因为端口可能被缓冲，如果对连接到进程的标准流之一的多个端口进行交错操作，可能会导致混乱。因此，这些过程通常只适用于程序不再需要使用连接到标准流的任何现有端口时。
 
-### 第7.4节。字符串和字节向量端口
+### 第 7.4 节。字符串和字节向量端口
 
 本节中的过程允许字节向量和字符串用作输入或输出流。
 
@@ -264,7 +264,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 `(let* ([x1 (get-u8 ip)] [x2 (get-u8 ip)] [x3 (get-u8 ip)])
 
-(list x1 x2 (eof-object? x3)))) ![<graphic>](ch2_0.gif) (1 2 #t)`
+(list x1 x2 (eof-object? x3)))) ![<graphic>](img/ch2_0.gif) (1 2 #t)`
 
 无需关闭字节向量端口；当不再需要时，其存储将自动回收，就像任何其他对象一样，并且打开的字节向量端口不会占用任何操作系统资源。
 
@@ -276,7 +276,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 调用此过程后修改`*string*`的效果未指定。新端口可能有也可能没有转码器，如果有，转码器是实现相关的。虽然不是必需的，但鼓励实现支持字符串端口的`port-position`和`set-port-position!`。
 
-`(get-line (open-string-input-port "hi.\nwhat's up?\n")) ![<graphic>](ch2_0.gif) "hi."`
+`(get-line (open-string-input-port "hi.\nwhat's up?\n")) ![<graphic>](img/ch2_0.gif) "hi."`
 
 无需关闭字符串端口；当不再需要时，其存储将自动回收，就像任何其他对象一样，并且打开的字符串端口不会占用任何操作系统资源。
 
@@ -306,7 +306,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 (put-u8 op 27)
 
-(list bv1 (g)))) ![<graphic>](ch2_0.gif) (#vu8(15 73 115) #vu8(27))`
+(list bv1 (g)))) ![<graphic>](img/ch2_0.gif) (#vu8(15 73 115) #vu8(27))`
 
 无需关闭字节向量端口；当不再需要时，其存储将自动回收，就像任何其他对象一样，并且打开的字节向量端口不会占用任何操作系统资源。
 
@@ -326,7 +326,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 （放置字符串`op` "新东西")
 
-（列出`str1` `g`）![<graphic>](ch2_0.gif)（"一些数据" "新东西"）
+（列出`str1` `g`）![<graphic>](img/ch2_0.gif)（"一些数据" "新东西"）
 
 不需要关闭字符串端口；当不再需要时，其存储将自动回收，就像任何��他对象一样，并且打开的字符串端口不会占用任何操作系统资源。
 
@@ -348,7 +348,7 @@ current-input、current-output和current-error端口返回预先构建的文本�
 
 （lambda（p）（放置字符串`p` "abc"）
 
-tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
+tx）![<graphic>](img/ch2_0.gif) #vu8（97 98 99）
 
 **过程**：`(call-with-string-output-port *procedure*)`
 
@@ -366,9 +366,9 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 （lambda（p）（放置数据`p` `x`））
 
-(object->string (cons 'a '(b c))) ![<graphic>](ch2_0.gif) "(a b c)"
+(object->string (cons 'a '(b c))) ![<graphic>](img/ch2_0.gif) "(a b c)"
 
-### 第7.5节。打开自定义端口
+### 第 7.5 节。打开自定义端口
 
 **procedure**: `(make-custom-binary-input-port *id* *r!* *gp* *sp!* *close*)`
 
@@ -388,7 +388,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 `*r!*`
 
-被调用以从自定义端口获取输入，例如，支持`get-u8`或`get-bytevector-n`。它被调用时带有三个参数：`*bytevector*`，`*start*`和`*n*`。`*start*`将是一个非负的精确整数，`*n*`将是一个正的精确整数，并且`*start*`和`*n*`的和不会超过`*bytevector*`的长度。如果字节流已到达文件末尾，`*r!*`应返回精确的0。否则，它应该从流中读取至少一个字节，最多`*n*`个字节，将这些字节存储在`*bytevector*`的连续位置中，从`*start*`开始，并返回实际读取的字节数，作为一个精确的正整数。
+被调用以从自定义端口获取输入，例如，支持`get-u8`或`get-bytevector-n`。它被调用时带有三个参数：`*bytevector*`，`*start*`和`*n*`。`*start*`将是一个非负的精确整数，`*n*`将是一个正的精确整数，并且`*start*`和`*n*`的和不会超过`*bytevector*`的长度。如果字节流已到达文件末尾，`*r!*`应返回精确的 0。否则，它应该从流中读取至少一个字节，最多`*n*`个字节，将这些字节存储在`*bytevector*`的连续位置中，从`*start*`开始，并返回实际读取的字节数，作为一个精确的正整数。
 
 `*w!*`
 
@@ -426,7 +426,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 `*r!*`
 
-用于从端口中提取输入，例如，支持`get-char`或`get-string-n`。它接受三个参数：`*string*`，`*start*`和`*n*`。`*start*`将是非负确切整数，`*n*`将是正确切整数，并且`*start*`和`*n*`的总和不会超过`*string*`的长度。如果字符流已到达文件末尾，`*r!*`应返回确切的0。否则，它应该从流中读取至少一个字符，最多`*n*`个字符，将这些字符存储在从`*start*`开始的`*string*`的连续位置，并返回实际读取的字符数作为确切的正整数。
+用于从端口中提取输入，例如，支持`get-char`或`get-string-n`。它接受三个参数：`*string*`，`*start*`和`*n*`。`*start*`将是非负确切整数，`*n*`将是正确切整数，并且`*start*`和`*n*`的总和不会超过`*string*`的长度。如果字符流已到达文件末尾，`*r!*`应返回确切的 0。否则，它应该从流中读取至少一个字符，最多`*n*`个字符，将这些字符存储在从`*start*`开始的`*string*`的连续位置，并返回实际读取的字符数作为确切的正整数。
 
 `*w!*`
 
@@ -448,7 +448,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 然而，如果将位置重置到起始位置后，应该可以可靠地执行输出。因此，创建自定义文本输入/输出端口的程序通常应提供`*gp*`和`*sp!*`两种过程，这些端口的使用者在进行任何输入操作之前应通过`port-position`获取起始位置，并在进行任何输出操作之前将位置重置回起始位置。
 
-### 第7.6节。端口操作
+### 第 7.6 节。端口操作
 
 本节描述了一系列与端口相关的操作，这些操作不直接涉及从端口读取或写入。输入和输出操作在后续章节中描述。
 
@@ -484,7 +484,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 **libraries:** `(rnrs io ports)`，`(rnrs)`
 
-如果`*port*`尚未关闭，`close-port`将关闭它，首先将任何缓冲的字节或字符刷新到底层流（如果端口是输出端口）。一旦关闭了端口，就无法对该端口执行更多的输入或输出操作。因为操作系统可能会对同时打开的文件端口数设置限制，或者限制对打开文件的访问，所以最好关闭任何不再用于输入或输出的文件端口。如果端口是输出端口，则显式关闭端口还确保缓冲数据被写入底层流。一些Scheme实现在程序无法访问文件端口或Scheme程序退出后会自动关闭文件端口，但最好在可能的情况下显式关闭文件端口。关闭已经关闭的端口不会产生任何效果。
+如果`*port*`尚未关闭，`close-port`将关闭它，首先将任何缓冲的字节或字符刷新到底层流（如果端口是输出端口）。一旦关闭了端口，就无法对该端口执行更多的输入或输出操作。因为操作系统可能会对同时打开的文件端口数设置限制，或者限制对打开文件的访问，所以最好关闭任何不再用于输入或输出的文件端口。如果端口是输出端口，则显式关闭端口还确保缓冲数据被写入底层流。一些 Scheme 实现在程序无法访问文件端口或 Scheme 程序退出后会自动关闭文件端口，但最好在可能的情况下显式关闭文件端口。关闭已经关闭的端口不会产生任何效果。
 
 **procedure**: `(transcoded-port *binary-port* *transcoder*)`
 
@@ -540,7 +540,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 `call-with-port` 不会在外部调用`*procedure*`时自动关闭端口，因为可能会在稍后调用在`*procedure*`内部创建的另一个续体，将控制返回给`*procedure*`。如果`*procedure*`没有返回，实现可以自由地关闭端口，只要能证明输出端口不再可访问。
 
-下面的示例将infile的内容复制到outfile，如果outfile存在则覆盖。除非发生错误，在复制完成后关闭端口。
+下面的示例将 infile 的内容复制到 outfile，如果 outfile 存在则覆盖。除非发生错误，在复制完成后关闭端口。
 
 `(call-with-port (open-file-input-port "infile" (file-options)
 
@@ -564,7 +564,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 (put-char op c))))))`
 
-`call-with-port`的定义在第[135](control.html#defn:call-with-port)页上。
+`call-with-port`的定义在第 135 页上。
 
 **procedure**: `(output-port-buffer-mode *port*)`
 
@@ -590,7 +590,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 **libraries:** `(rnrs io ports)`, `(rnrs io simple)`, `(rnrs)`
 
-`(eof-object? (eof-object)) ![<graphic>](ch2_0.gif) #t`
+`(eof-object? (eof-object)) ![<graphic>](img/ch2_0.gif) #t`
 
 **procedure**: `(get-u8 *binary-input-port*)`
 
@@ -732,7 +732,7 @@ tx）![<graphic>](ch2_0.gif) #vu8（97 98 99）
 
 (string-set! x 0 #\;)
 
-x) ![<graphic>](ch2_0.gif) ";-)"`
+x) ![<graphic>](img/ch2_0.gif) ";-)"`
 
 **procedure**: `(get-string-all *textual-input-port*)`
 
@@ -754,13 +754,13 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 (let* ([s1 (get-line sip)] [s2 (get-line sip)])
 
-(list s1 s2 (port-eof? sip)))) ![<graphic>](ch2_0.gif) ("one" "two" #t)
+(list s1 s2 (port-eof? sip)))) ![<graphic>](img/ch2_0.gif) ("one" "two" #t)
 
 (let ([sip (open-string-input-port "one\ntwo")])
 
 (let* ([s1 (get-line sip)] [s2 (get-line sip)])
 
-(list s1 s2 (port-eof? sip)))) ![<graphic>](ch2_0.gif) ("one" "two" #t)`
+(list s1 s2 (port-eof? sip)))) ![<graphic>](img/ch2_0.gif) ("one" "two" #t)`
 
 **过程**：`(get-datum *textual-input-port*)`
 
@@ -780,7 +780,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 [x2 (get-datum sip)]) 
 
-(list x1 c1 x2 (port-eof? sip)))) ![<graphic>](ch2_0.gif) (one #\space (two) #f)`
+(list x1 c1 x2 (port-eof? sip)))) ![<graphic>](img/ch2_0.gif) (one #\space (two) #f)`
 
 **过程**：`(port-eof? *input-port*)`
 
@@ -844,7 +844,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 **libraries:** `(rnrs io ports)`, `(rnrs)`
 
-此过程将 `*obj*` 的外部表示写入 `*textual-output-port*`。如果 `*obj*` 没有作为数据的外部表示，行为是未指定的。精确的外部表示是依赖于实现的，但是当 `*obj*` 确实有作为数据的外部表示时，`put-datum` 应该生成一个字符序列，稍后可以被 `get-datum` 读取为等效对象（在 `equal?` 的意义上）为 `*obj*`。参见第[12.5](examples.html#g176)节中 `put-datum`、`write` 和 `display` 的实现示例。
+此过程将 `*obj*` 的外部表示写入 `*textual-output-port*`。如果 `*obj*` 没有作为数据的外部表示，行为是未指定的。精确的外部表示是依赖于实现的，但是当 `*obj*` 确实有作为数据的外部表示时，`put-datum` 应该生成一个字符序列，稍后可以被 `get-datum` 读取为等效对象（在 `equal?` 的意义上）为 `*obj*`。参见第 12.5 节中 `put-datum`、`write` 和 `display` 的实现示例。
 
 **procedure**: `(flush-output-port *output-port*)`
 
@@ -854,9 +854,9 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 此过程强制将与 `*output-port*` 关联的缓冲区中的任何字节或字符立即发送到底层流。
 
-### 第7.9节 便利I/O
+### 第 7.9 节 便利 I/O
 
-本节中的过程被称为“便利”I/O运算符，因为它们提供了一个相对简化的接口来创建和与文本端口交互。它们还提供了与 Revised⁵ Report 的向后兼容性，该报告不支持单独的二进制和文本I/O。
+本节中的过程被称为“便利”I/O 运算符，因为它们提供了一个相对简化的接口来创建和与文本端口交互。它们还提供了与 Revised⁵ Report 的向后兼容性，该报告不支持单独的二进制和文本 I/O。
 
 便利的输入/输出过程可以使用或不使用显式的端口参数进行调用。如果没有显式的端口参数进行调用，则使用当前的输入或输出端口，视情况而定。例如，`(read-char)` 和 `(read-char (current-input-port))` 都会从当前输入端口返回下一个字符。
 
@@ -920,7 +920,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 `call-with-input-file` 为名为 `*path*` 的文件创建一个新的输入端口，就像使用 `open-input-file` 一样，并将此端口传递给 `*procedure*`。 如果 `*procedure*` 返回，`call-with-input-file` 将关闭输入端口并返回 `*procedure*` 返回的值。
 
-如果在 `*procedure*` 外部创建的延续被调用，`call-with-input-file` 不会自动关闭输入端口，因为可能会在以后的某个时候调用在 `*procedure*` 内部创建的另一个延续，将控制返回给 `*procedure*`。 如果 `*procedure*` 不返回，实现可以自由地仅在能够证明输入端口不再可访问时关闭输入端口。 如第 [5.6](control.html#g102) 节所示，`dynamic-wind` 可用于确保在调用在 `*procedure*` 外部创建的延续时关闭端口。
+如果在 `*procedure*` 外部创建的延续被调用，`call-with-input-file` 不会自动关闭输入端口，因为可能会在以后的某个时候调用在 `*procedure*` 内部创建的另一个延续，将控制返回给 `*procedure*`。 如果 `*procedure*` 不返回，实现可以自由地仅在能够证明输入端口不再可访问时关闭输入端口。 如第 5.6 节所示，`dynamic-wind` 可用于确保在调用在 `*procedure*` 外部创建的延续时关闭端口。
 
 以下示例展示了在从名为 "myfile.ss" 的文件中收集对象列表的表达式中使用 `call-with-input-file`，其功能等同于上面给出的 `open-input-file` 示例。
 
@@ -960,7 +960,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 `call-with-output-file` 创建一个新的输出端口，用于文件名为`*path*`，就像使用`open-output-file`一样，并将此端口传递给`*procedure*`。如果`*procedure*`返回，`call-with-output-file`关闭输出端口并返回`*procedure*`返回的值。
 
-`call-with-output-file` 如果在`*procedure*`外部创建的延续被调用，则不会自动关闭输出端口，因为可能会在以后的某个时候调用在`*procedure*`内部创建的另一个延续，将控制返回给`*procedure*`。如果`*procedure*`不返回，实现可以自由地仅在可以证明输出端口不再可访问时关闭输出端口。如第[5.6](control.html#g102)节所示，可以使用`dynamic-wind`来确保在调用在`*procedure*`外部创建的延续时关闭端口。
+`call-with-output-file` 如果在`*procedure*`外部创建的延续被调用，则不会自动关闭输出端口，因为可能会在以后的某个时候调用在`*procedure*`内部创建的另一个延续，将控制返回给`*procedure*`。如果`*procedure*`不返回，实现可以自由地仅在可以证明输出端口不再可访问时关闭输出端口。如第 5.6 节所示，可以使用`dynamic-wind`来确保在调用在`*procedure*`外部创建的延续时关闭端口。
 
 以下显示了使用`call-with-output-file`将对象列表（`list-to-be-printed`的值）写入由"myfile.ss"命名的文件中，用换行符分隔。在功能上等同于上面给出的`open-output-file`示例。
 
@@ -1020,7 +1020,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 **procedure**: `(read *textual-input-port*)`
 
-**返回：**一个Scheme数据对象或eof对象
+**返回：**一个 Scheme 数据对象或 eof 对象
 
 **libraries:** `(rnrs io simple)`，`(rnrs)`
 
@@ -1054,7 +1054,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 **libraries:** `(rnrs io simple)`，`(rnrs)`
 
-如果未提供`*textual-output-port*`，则默认为当前输出端口。否则，此过程等同于`put-datum`，参数颠倒。有关`put-datum`、`write`和`display`的实现，请参见第[12.5](examples.html#g176)节。
+如果未提供`*textual-output-port*`，则默认为当前输出端口。否则，此过程等同于`put-datum`，参数颠倒。有关`put-datum`、`write`和`display`的实现，请参见第 12.5 节。
 
 **procedure**: `(display *obj*)`
 
@@ -1066,7 +1066,7 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 如果未提供`*textual-output-port*`，则默认为当前输出端口。
 
-`display`类似于`write`或`put-datum`，但直接打印`*obj*`中的字符串和字符。字符串将被打印，不带引号或特殊字符转义，就像`put-string`一样；字符将被打印，不带`#\`符号，就像`put-char`一样。使用`display`，三元素列表`(a b c)`和两元素列表`("a b" c)`都打印为`(a b c)`。因此，不应使用`display`来打印预期用`read`读取的对象。`display`主要用于打印消息，`*obj*`通常是字符串。参见第[12.5](examples.html#g176)节中的`put-datum`、`write`和`display`的实现。
+`display`类似于`write`或`put-datum`，但直接打印`*obj*`中的字符串和字符。字符串将被打印，不带引号或特殊字符转义，就像`put-string`一样；字符将被打印，不带`#\`符号，就像`put-char`一样。使用`display`，三元素列表`(a b c)`和两元素列表`("a b" c)`都打印为`(a b c)`。因此，不应使用`display`来打印预期用`read`读取的对象。`display`主要用于打印消息，`*obj*`通常是字符串。参见第 12.5 节中的`put-datum`、`write`和`display`的实现。
 
 **过程**：`(write-char *char*)`
 
@@ -1098,9 +1098,9 @@ x) ![<graphic>](ch2_0.gif) ";-)"`
 
 `close-input-port`关闭一个输入端口，`close-output-port`关闭一个输出端口。这些过程是为了与修订⁵报告向后兼容而提供的；实际上，它们并不比`close-port`更方便使用。
 
-### 第7.10节。文件系统操作
+### 第 7.10 节。文件系统操作
 
-Scheme有两个标准操作，除了文件输入/输出，用于与文件系统交互：`file-exists?`和`delete-file`。大多数实现支持额外的操作。
+Scheme 有两个标准操作，除了文件输入/输出，用于与文件系统交互：`file-exists?`和`delete-file`。大多数实现支持额外的操作。
 
 **过程**：`(file-exists? *path*)`
 
@@ -1118,11 +1118,11 @@ Scheme有两个标准操作，除了文件输入/输出，用于与文件系统�
 
 `*path*`必须是一个字符串或其他一些特定于实现的值，用于命名一个文件。`delete-file`如果存在并且可以删除，则删除由`*path*`命名的文件，否则引发一个带有条件类型`&i/o-filename`的异常。`delete-file`是否遵循符号链接是未指定的。
 
-### 第7.11节。字节向量/字符串转换
+### 第 7.11 节。字节向量/字符串转换
 
 本节描述的过程编码或解码字符序列，将字符串转换为字节向量或字节向量转换为字符串。它们不一定涉及输入/输出，尽管它们可能是使用字节向量输入和输出端口实现的。
 
-前两个过程，`bytevector->string`和`string->bytevector`，需要一个显式的转码器参数，确定字符编码、行尾样式和错误处理模式。其他过程执行特定的Unicode转换，隐含的行尾样式为`none`，错误处理模式为`replace`。
+前两个过程，`bytevector->string`和`string->bytevector`，需要一个显式的转码器参数，确定字符编码、行尾样式和错误处理模式。其他过程执行特定的 Unicode 转换，隐含的行尾样式为`none`，错误处理模式为`replace`。
 
 **过程**：`(bytevector->string *bytevector* *transcoder*)`
 
@@ -1136,7 +1136,7 @@ Scheme有两个标准操作，除了文件输入/输出，用于与文件系统�
 
 (`error-handling-mode replace))])
 
-(`bytevector->string #vu8(97 98 99) tx))` ![<graphic>](ch2_0.gif) "abc"`
+(`bytevector->string #vu8(97 98 99) tx))` ![<graphic>](img/ch2_0.gif) "abc"`
 
 **procedure**: `(string->bytevector *string* *transcoder*)`
 
@@ -1150,7 +1150,7 @@ Scheme有两个标准操作，除了文件输入/输出，用于与文件系统�
 
 (`error-handling-mode raise))])
 
-(`string->bytevector "abc" tx))` ![<graphic>](ch2_0.gif) #vu8(97 98 99)`
+(`string->bytevector "abc" tx))` ![<graphic>](img/ch2_0.gif) #vu8(97 98 99)`
 
 **procedure**: `(string->utf8 *string*)`
 

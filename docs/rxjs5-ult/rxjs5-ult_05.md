@@ -1,8 +1,8 @@
-# Observable解剖
+# Observable 解剖
 
-# Observable解剖
+# Observable 解剖
 
-Observable的subscribe方法具有以下签名
+Observable 的 subscribe 方法具有以下签名
 
 ```
 stream.subscribe(fnValue, fnError, fnComplete) 
@@ -47,7 +47,7 @@ let stream$ = Rx.Observable.create((observer) => {
 
 ## 取消订阅
 
-到目前为止，我们一直在创建一个不负责任的Observable，不负责任是指它在完成后没有进行清理。所以让我们看看如何做到这一点：
+到目前为止，我们一直在创建一个不负责任的 Observable，不负责任是指它在完成后没有进行清理。所以让我们看看如何做到这一点：
 
 ```
 let stream$ = new Rx.Observable.create((observer) => {

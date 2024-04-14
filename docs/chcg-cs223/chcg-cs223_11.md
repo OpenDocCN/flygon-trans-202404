@@ -58,7 +58,7 @@ main =
 
 接下来，我们将看看如何响应`Event`更新我们的秒表。有两种`RunState`状态（`Paused`和`Playing`）和三种`TickOr Msg`消息（`Tick`，`Start`和`Stop`）。因此，我们可以将我们的应用程序的执行视为一个转换图，其中节点是`RunState`，边缘是`TickOr Msg`。
 
-![](../Images/0662a156872909aaf52240f45907b005.jpg)
+![](img/0662a156872909aaf52240f45907b005.jpg)
 
 请注意，我们的图表省略了两个转换：从节点`Paused`到标记为`Stop`的边缘，以及从节点`Playing`到标记为`Start`的边缘。因此，我们将确保我们的应用程序不会进入这些未定义的配置之一。
 
@@ -78,9 +78,9 @@ upstate (now,tm) (n,p) = case (tm,p) of
 
 在时间`now`处理`Start`消息时，更新的`Playing`状态记录了应该增加计数器的时间`now + delay`。如果在秒表处于`Playing`状态时收到`Tick`消息，则如果当前时间大于先前计算的应该增加计数器的时间，则增加计数。此外，更新的状态包括下次更新计数器的时间。
 
-根据我们的转换图，我们的模式并不全面。因为我们将在浏览器中运行我们的应用程序，而不是在`elm-repl`中，所以会悄无声息地引发运行时模式匹配异常。如果您怀疑您的Elm程序在悄无声息地崩溃，请在浏览器中打开Web控制台查看引发的任何JavaScript错误。
+根据我们的转换图，我们的模式并不全面。因为我们将在浏览器中运行我们的应用程序，而不是在`elm-repl`中，所以会悄无声息地引发运行时模式匹配异常。如果您怀疑您的 Elm 程序在悄无声息地崩溃，请在浏览器中打开 Web 控制台查看引发的任何 JavaScript 错误。
 
-现在让我们绘制我们的UI，以便我们永远不会进入未定义的配置之一。我们将重用我们在以前的讲座中开发的`myButton`函数，该函数使用`Collage`库绘制一个漂亮的有边框的按钮，可以更改颜色。我们将绘制一个单一的按钮，并根据当前的`RunState`设置其要发送的消息（`Start`或`Stop`）。
+现在让我们绘制我们的 UI，以便我们永远不会进入未定义的配置之一。我们将重用我们在以前的讲座中开发的`myButton`函数，该函数使用`Collage`库绘制一个漂亮的有边框的按钮，可以更改颜色。我们将绘制一个单一的按钮，并根据当前的`RunState`设置其要发送的消息（`Start`或`Stop`）。
 
 ```
 view (w,h) (n,p) =
@@ -188,7 +188,7 @@ mergeWithTicker t sig =
     ((\t m -> (t, m))    <~ Signal.sampleOn sig time ~ sig) 
 ```
 
-[![](../Images/507f2f0f7f581bbd117f0e424de0f362.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.html)
+![](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.html)
 
 查看这个版本的[源代码](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.elm)和[演示](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stopwatch2.html)，它实现了与之前相同的功能。您可能更喜欢这个版本的组织方式，因为它避免了定义新类型`Msg`和`TickOr`的需要。
 
@@ -259,7 +259,7 @@ main =
 
 #### 有限状态机
 
-![](../Images/45341b91db00c2c7bbd2dd98a1ecf9f2.jpg)
+![](img/45341b91db00c2c7bbd2dd98a1ecf9f2.jpg)
 
 让我们开始处理对`Event`响应中状态之间的转换。我们将从始终使用`Steady`状态开始。
 
@@ -463,7 +463,7 @@ in
 ... 
 ```
 
-[![](../Images/c3bcb408524125077452de73e50550f7.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.html)
+![](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.html)
 
 查看这个最终版本的[源代码](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.elm)和[演示](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/MoreAnimations/Stack3.html)。
 

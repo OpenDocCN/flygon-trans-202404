@@ -1,14 +1,14 @@
 # "理解解析器组合器"系列
 
-在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的JSON解析器来结束。
+在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的 JSON 解析器来结束。
 
-+   [理解解析器组合器](understanding-parser-combinators1.html)。从头开始构建一个解析器组合器库。
++   理解解析器组合器。从头开始构建一个解析器组合器库。
 
-+   [构建一个有用的解析器组合器集合](understanding-parser-combinators-2.html)。大约15个可以组合以解析几乎任何内容的组合器。
++   构建一个有用的解析器组合器集合。大约 15 个可以组合以解析几乎任何内容的组合器。
 
-+   [改进解析器库](understanding-parser-combinators-3.html)。添加更多信息的错误。
++   改进解析器库。添加更多信息的错误。
 
-+   [从头开始编写一个JSON解析���](understanding-parser-combinators-4.html)。只需250行代码。
++   从头开始编写一个 JSON 解析���。只需 250 行代码。
 
 # 理解解析器组合器
 
@@ -16,7 +16,7 @@
 
 *更新：[关于这个主题的幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*
 
-在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的JSON解析器来结束。
+在这个系列中，我们将看看所谓的"applicative parsers"是如何工作的。为了理解某事，没有什么比自己构建它更好的了，因此我们将从头开始创建一个基本的解析器库，然后一些有用的"解析器组合器"，最后通过构建一个完整的 JSON 解析器来结束。
 
 现在像"applicative parsers"和"parser combinators"这样的术语可能会让这种方法看起来复杂，但与其试图一开始就解释这些概念，不如我们直接开始编码。
 
@@ -26,17 +26,17 @@
 
 +   在这个，第一篇文章中，我们将看看解析器组合器的基本概念，并构建库的核心。
 
-+   在[第二篇文章](understanding-parser-combinators-2.html)中，我们将构建一个有用的组合器库。
++   在第二篇文章中，我们将构建一个有用的组合器库。
 
-+   在[第三篇文章](understanding-parser-combinators-3.html)中，我们将致力于提供有用的错误信息。
++   在第三篇文章中，我们将致力于提供有用的错误信息。
 
-+   在[最后一篇文章](understanding-parser-combinators-4.html)中，我们将使用这个解析器库构建一个JSON解析器。
++   在最后一篇文章中，我们将使用这个解析器库构建一个 JSON 解析器。
 
-显然，这里的重点不在于性能或效率，但我希望这将使你理解，从而能够有效地使用像[FParsec](http://www.quanttec.com/fparsec/)这样的库。顺便说一句，非常感谢创建FParsec的Stephan Tolksdorf。你应该把它作为你所有.NET解析需求的首选！
+显然，这里的重点不在于性能或效率，但我希望这将使你理解，从而能够有效地使用像[FParsec](http://www.quanttec.com/fparsec/)这样的库。顺便说一句，非常感谢创建 FParsec 的 Stephan Tolksdorf。你应该把它作为你所有.NET 解析需求的首选！
 
 * * *
 
-## 实现1。解析一个硬编码字符
+## 实现 1。解析一个硬编码字符
 
 对于我们的第一个实现，让我们创建一个只解析单个硬编码字符的东西，这里是字母"A"。你不可能比这更简单了！
 
@@ -72,7 +72,7 @@ val A_Parser :
 
 这告诉我们输入是一个字符串，输出是一个由布尔结果和另一个字符串（剩余输入）组成的对，像这样：
 
-![](parser-1.png)
+![](img/parser-1.png)
 
 现在让我们测试一下--先用好的输入：
 
@@ -108,7 +108,7 @@ A_Parser inputZBC
 
 * * *
 
-## 实现2. 解析指定字符
+## 实现 2. 解析指定字符
 
 让我们重构一下，以便我们可以传入我们想要匹配的字符，而不是将其硬编码。
 
@@ -181,7 +181,7 @@ pchar('Z',inputZBC)  // ("Found Z", "BC")
 
 * * *
 
-## 实现3. 返回成功/失败
+## 实现 3. 返回成功/失败
 
 我们希望能够区分成功的匹配和失败，并返回一个字符串类型的消息并不是很有帮助，所以让我们定义一个特殊的“选择”类型来指示区别。我将其称为`Result`：
 
@@ -252,7 +252,7 @@ Failure "Expecting 'A'. Got 'Z'"
 
 这是函数的输入和输出的图示：
 
-![](parser-2.png)
+![](img/parser-2.png)
 
 * * *
 
@@ -260,7 +260,7 @@ Failure "Expecting 'A'. Got 'Z'"
 
 在之前的实现中，函数的输入是一个元组-- 一对。这要求你一次性传递两个输入。
 
-在像F#这样的函数式语言中，使用柯里化版本更加符合惯用法，像这样：
+在像 F#这样的函数式语言中，使用柯里化版本更加符合惯用法，像这样：
 
 ```
 let pchar charToMatch str = 
@@ -308,11 +308,11 @@ val pchar :
 
 这里是`pchar`的柯里化版本的图示：
 
-![](parser-3.png)
+![](img/parser-3.png)
 
 ### 什么是柯里化？
 
-如果你不清楚柯里化的工作原理，我有一篇关于它的文章[在这里](currying.html)，但基本上它意味着一个多参数函数可以被写成一系列的单参数函数。
+如果你不清楚柯里化的工作原理，我有一篇关于它的文章在这里，但基本上它意味着一个多参数函数可以被写成一系列的单参数函数。
 
 换句话说，这个两参数函数：
 
@@ -321,7 +321,7 @@ let add x y =
     x + y 
 ```
 
-可以被写成一个返回lambda的单参数函数，就像这样：
+可以被写成一个返回 lambda 的单参数函数，就像这样：
 
 ```
 let add x = 
@@ -386,7 +386,7 @@ let pchar charToMatch =
 
 ### 柯里化实现的好处
 
-柯里化实现的好处在于，我们可以[部分应用](partial-application.html)我们想要解析的字符，就像这样：
+柯里化实现的好处在于，我们可以部分应用我们想要解析的字符，就像这样：
 
 ```
 let parseA = pchar 'A' 
@@ -412,7 +412,7 @@ parseA inputZBC  // Failure "Expecting 'A'. Got 'Z'"
 
 这是`pchar`的图示，但这次重点放在部分应用上：
 
-![](parser-4a.png)
+![](img/parser-4a.png)
 
 在继续之前，你很重要地了解这个逻辑，因为后续的文章将建立在这个基本设计之上。
 
@@ -434,11 +434,11 @@ type Parser<'T> = Parser of (string -> Result<'T * string>)
 
 通过封装它，我们将从这个设计：
 
-![](parser-4a.png)
+![](img/parser-4a.png)
 
 到这个设计：
 
-![](parser-4b.png)
+![](img/parser-4b.png)
 
 对实现的更改非常简单。我们只需要改变内部函数返回的方式。
 
@@ -712,7 +712,7 @@ run parseAOrElseB "CZZ"  // Failure "Expecting 'B'. Got 'C'"
 
 ### 结合`andThen`和`orElse`
 
-有了这两个基本的组合子，我们可以构建更复杂的组合子，比如"A然后(B或C)"。
+有了这两个基本的组合子，我们可以构建更复杂的组合子，比如"A 然后(B 或 C)"。
 
 这是如何从更简单的解析器构建`aAndThenBorC`的代码：
 
@@ -932,7 +932,7 @@ let anyOf listOfChars =
 
 在这篇文章中，我们创建了解析库的基础，以及一些简单的组合子。
 
-在[下一篇文章](understanding-parser-combinators-2.html)中，我们将在此基础上创建一个具有更多组合子的库。
+在下一篇文章中，我们将在此基础上创建一个具有更多组合子的库。
 
 *本文的源代码可以在 [此代码片段](https://gist.github.com/swlaschin/cb42417079ae2c5f99db#file-understanding_parser_combinators-fsx) 上找到。*
 
@@ -952,7 +952,7 @@ let anyOf listOfChars =
 
     +   [一个 C# 解析器](http://trelford.com/blog/post/parsecsharp.aspx) 和 [用 F# 构建一个 C# 编译器](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)
 
-    +   [48小时内用 F# 写一个 Scheme](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)
+    +   [48 小时内用 F# 写一个 Scheme](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)
 
     +   [解析 OpenGL 的着色语言 GLSL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)
 
@@ -964,7 +964,7 @@ let anyOf listOfChars =
 
 在本系列中，我们将研究适用式解析器和解析器组合子的工作原理。
 
-+   在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
++   在第一篇文章中，我们创建了一个解析库的基础。
 
 +   在本文中，我们将用许多其他有用的组合子扩展库。 组合子的名称将从 [FParsec](http://www.quanttec.com/fparsec/) 中使用的名称复制过来，以便您可以轻松迁移到它。
 
@@ -1021,7 +1021,7 @@ Success ((('1', '2'), '3'), "A")
 
 +   正常世界中的每种类型（比如`char`）都有对应的解析器世界中的类型（`Parser<char>`）。
 
-![](parser-world-return.png)
+![](img/parser-world-return.png)
 
 并且：
 
@@ -1031,13 +1031,13 @@ Success ((('1', '2'), '3'), "A")
 
 +   正常世界中的每个函数（比如`char -> string`）都有对应的解析器世界中的函数（`Parser<char> -> Parser<string>`）。
 
-![](parser-world-map.png)
+![](img/parser-world-map.png)
 
 使用这个比喻，`map`将正常世界中的函数转换（或“提升”）到解析器世界中的函数。
 
-![](parser-map.png)
+![](img/parser-map.png)
 
-*顺便说一下，如果你喜欢这个比喻，我有一系列[进一步发展它的帖子](elevated-world.html)。*
+*顺便说一下，如果你喜欢这个比喻，我有一系列进一步发展它的帖子。*
 
 那么`map`的作用是什么呢？我们如何实现它？
 
@@ -1049,7 +1049,7 @@ Success ((('1', '2'), '3'), "A")
 
 +   …返回新的映射值而不是原始值。
 
-这是代码（我将map函数命名为`mapP`以避免与其他map函数混淆）：
+这是代码（我将 map 函数命名为`mapP`以避免与其他 map 函数混淆）：
 
 ```
 let mapP f parser = 
@@ -1159,7 +1159,7 @@ val parseThreeDigitsAsInt : Parser<int>
 
 这是 `returnP` 的图示：
 
-![](parser-return.png)
+![](img/parser-return.png)
 
 这是 `returnP` 的实现：
 
@@ -1181,7 +1181,7 @@ val returnP :
 
 现在这是 `applyP` 的图示：
 
-![](parser-apply.png)
+![](img/parser-apply.png)
 
 这是 `applyP` 的实现，它使用 `.>>.` 和 `map`：
 
@@ -1227,9 +1227,9 @@ val lift2 :
 
 这是 `lift2` 的图示：
 
-![](parser-lift2.png)
+![](img/parser-lift2.png)
 
-*如果你想了解更多关于这是如何工作的信息，请查看我的[关于 `lift2` 的“手册”文章](elevated-world.html)或[涉及“Monadster”的解释](monadster.html)。*
+*如果你想了解更多关于这是如何工作的信息，请查看我的关于 `lift2` 的“手册”文章或涉及“Monadster”的解释。*
 
 让我们看看实际中如何使用 `lift2` 的一些例子。首先，将整数加法提升为解析器的加法：
 
@@ -1775,7 +1775,7 @@ run zeroOrMoreDigitList "Z;"     // Success ([], "Z;")
 
 到目前为止我们还没有实现的一个组合器是 `bind`（或 `>>=`）。
 
-如果你了解函数式编程，或者看过我的关于[FP模式](http://fsharpforfunandprofit.com/fppatterns/)的演讲，你会知道 `bind` 是一个强大的工具，可以用来实现许多函数。
+如果你了解函数式编程，或者看过我的关于[FP 模式](http://fsharpforfunandprofit.com/fppatterns/)的演讲，你会知道 `bind` 是一个强大的工具，可以用来实现许多函数。
 
 到目前为止，我认为最好显示明确的实现，如 `map` 和 `.>>.` 这样，希望更容易理解。
 
@@ -1808,7 +1808,7 @@ val bindP :
     f:('a -> Parser<'b>) -> Parser<'a> -> Parser<'b> 
 ```
 
-符合标准绑定签名的是输入 `f` 是一个“对角线”函数（`'a -> Parser<'b>`），输出是一个“水平”函数（`Parser<'a> -> Parser<'b>`）。参见[这篇文章了解 `bind` 如何工作的更多细节](elevated-world-2.html#bind)。
+符合标准绑定签名的是输入 `f` 是一个“对角线”函数（`'a -> Parser<'b>`），输出是一个“水平”函数（`Parser<'a> -> Parser<'b>`）。参见这篇文章了解 `bind` 如何工作的更多细节。
 
 `bind` 的中缀版本是 `>>=`。注意参数已经交换：`f` 现在是第二个参数，这样更方便 F# 的管道习惯用法。
 
@@ -2106,9 +2106,9 @@ let sepBy p sep =
 
 ## 总结
 
-在本文中，我们在上次的基本解析代码基础上构建了一个包含大约15个组合子的库，可以组合起来解析几乎任何东西。
+在本文中，我们在上次的基本解析代码基础上构建了一个包含大约 15 个组合子的库，可以组合起来解析几乎任何东西。
 
-不久，我们将使用它们构建一个 JSON 解析器，但在那之前，让我们停下来清理错误消息。这将是[下一篇文章](understanding-parser-combinators-3.html)的主题。
+不久，我们将使用它们构建一个 JSON 解析器，但在那之前，让我们停下来清理错误消息。这将是下一篇文章的主题。
 
 *本文的源代码可在[此要点](https://gist.github.com/swlaschin/a3dbb114a9ee95b2e30d#file-understanding_parser_combinators-2-fsx)处获得。*
 
@@ -2120,9 +2120,9 @@ let sepBy p sep =
 
 在本系列中，我们正在探讨应用型解析器和解析器组合子的工作原理。
 
-+   在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
++   在第一篇文章中，我们创建了一个解析库的基础。
 
-+   在[第二篇文章](understanding-parser-combinators-2.html)中，我们使用许多其他有用的组合子扩展了该库。
++   在第二篇文章中，我们使用许多其他有用的组合子扩展了该库。
 
 +   在本文中，我们将重新设计该库以提供更有帮助的错误消息。
 
@@ -2371,7 +2371,7 @@ let whitespaceChar =
 
 改进错误消息的另一种方法是显示发生错误的行和列。
 
-显然，对于简单的一行代码来说，跟踪错误位置不是问题，但是当你解析一个100行的JSON文件时，这将非常有帮助。
+显然，对于简单的一行代码来说，跟踪错误位置不是问题，但是当你解析一个 100 行的 JSON 文件时，这将非常有帮助。
 
 为了跟踪我们将要放弃简单的`string`输入的行和列，我们需要使用更复杂的东西来替换它，所以让我们从那里开始。
 
@@ -2434,7 +2434,7 @@ let fromStr str =
 
 返回下一个字符的逻辑将如下所示：
 
-+   如果我们在输入的最后一个字符处，返回EOF（`None`）并且不更改状态。
++   如果我们在输入的最后一个字符处，返回 EOF（`None`）并且不更改状态。
 
 +   如果当前列*不*位于行尾，返回该位置的字符并通过增加列位置来改变状态。
 
@@ -2693,7 +2693,7 @@ run parseAB "A|C"
 
 在先前的帖子中，我们已经构建了字符串和整数的解析器，但现在让我们将它们添加到核心库中，以便客户端不必重新发明轮子。
 
-这些解析器基于[FParsec库](http://www.quanttec.com/fparsec/reference/charparsers.html#)中的解析器。
+这些解析器基于[FParsec 库](http://www.quanttec.com/fparsec/reference/charparsers.html#)中的解析器。
 
 让我们从一些与字符串相关的解析器开始。我将它们呈现而不附带注释 -- 我希望现在的代码已经是不言自明的了。
 
@@ -2902,35 +2902,35 @@ run pfloat "-123Z45"
 
 那么规则就是：*如果*输入已经成功消耗（在这种情况下，`for`关键字成功匹配），那么*不*回溯。
 
-我们不打算在我们简单的库中实现这个规则，但是像FParsec这样的正式库确实实现了这一点，并且还支持[需要时绕过它](http://www.quanttec.com/fparsec/reference/primitives.html#members.attempt)。
+我们不打算在我们简单的库中实现这个规则，但是像 FParsec 这样的正式库确实实现了这一点，并且还支持[需要时绕过它](http://www.quanttec.com/fparsec/reference/primitives.html#members.attempt)。
 
 ## 最终解析器库清单
 
-解析库现在已经达到了500行代码，所以我不会在这里展示它。您可以在[这个gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx)中看到它。
+解析库现在已经达到了 500 行代码，所以我不会在这里展示它。您可以在[这个 gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx)中看到它。
 
 ## 总结
 
 在本文中，我们添加了更好的错误处理和一些其他解析器。
 
-现在我们有了构建JSON解析器所需的一切！这将是[下一篇文章](understanding-parser-combinators-4.html)的主题。
+现在我们有了构建 JSON 解析器所需的一切！这将是下一篇文章的主题。
 
-*本文的源代码可在[此处的gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-understanding_parser_combinators-3-fsx)找到。*
+*本文的源代码可在[此处的 gist](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-understanding_parser_combinators-3-fsx)找到。*
 
-# 从头开始编写JSON解析器
+# 从头开始编写 JSON 解析器
 
-# 从头开始编写JSON解析器
+# 从头开始编写 JSON 解析器
 
 *更新：[关于此主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/parser/)*
 
 在本系列中，我们正在研究适用解析器和解析器组合子的工作原理。
 
-+   在[第一篇文章](understanding-parser-combinators1.html)中，我们创建了一个解析库的基础。
++   在第一篇文章中，我们创建了一个解析库的基础。
 
-+   在[第二篇文章](understanding-parser-combinators-2.html)中，我们用许多其他有用的组合子扩展了该库。
++   在第二篇文章中，我们用许多其他有用的组合子扩展了该库。
 
-+   在[第三篇文章](understanding-parser-combinators-3.html)中，我们改进了错误消息。
++   在第三篇文章中，我们改进了错误消息。
 
-+   在这篇最后的文章中，我们将使用我们编写的库来构建一个JSON解析器。
++   在这篇最后的文章中，我们将使用我们编写的库来构建一个 JSON 解析器。
 
 * * *
 
@@ -2945,17 +2945,17 @@ open ParserLibrary
 
 你可以从这里下载`ParserLibrary.fsx`[ParserLibrary.fsx](https://gist.github.com/swlaschin/485f418fede6b6a36d89#file-parserlibrary-fsx)。
 
-## 1. 构建表示JSON规范的模型
+## 1. 构建表示 JSON 规范的模型
 
-JSON规范可在[json.org](http://www.json.org/)找到。我会在这里重新叙述它：
+JSON 规范可在[json.org](http://www.json.org/)找到。我会在这里重新叙述它：
 
 +   `value`可以是`string`或`number`或`bool`或`null`或`object`或`array`。
 
     +   这些结构可以嵌套。
 
-+   一个`string`是零个或多个Unicode字符的序列，用双引号括起来，使用反斜杠转义。
++   一个`string`是零个或多个 Unicode 字符的序列，用双引号括起来，使用反斜杠转义。
 
-+   一个`number`非常类似于C或Java数字，只是不使用八进制和十六进制格式。
++   一个`number`非常类似于 C 或 Java 数字，只是不使用八进制和十六进制格式。
 
 +   一个`boolean`是字面上的`true`或`false`
 
@@ -2975,7 +2975,7 @@ JSON规范可在[json.org](http://www.json.org/)找到。我会在这里重新�
 
 +   可以在任何一对标记之间插入空格。
 
-在F#中，这个定义可以自然地建模为：
+在 F#中，这个定义可以自然地建模为：
 
 ```
 type JValue = 
@@ -2987,15 +2987,15 @@ type JValue =
     | JArray  of Json list 
 ```
 
-因此，我们的JSON解析器的目标是：
+因此，我们的 JSON 解析器的目标是：
 
 +   给定一个字符串，我们想要输出一个`JValue`值。
 
 ## 2\. 从`Null`和`Bool`开始
 
-让我们从最简单的任务开始--解析null和布尔值的文字值。
+让我们从最简单的任务开始--解析 null 和布尔值的文字值。
 
-### 解析Null
+### 解析 Null
 
 解析`null`文字是微不足道的。逻辑将是：
 
@@ -3045,9 +3045,9 @@ run jNull "nulp" |> printResult
 
 看起来不错。让我们再试一个！
 
-### 解析Bool
+### 解析 Bool
 
-布尔解析器将类似于null：
+布尔解析器将类似于 null：
 
 +   创建一个匹配"true"的解析器。
 
@@ -3094,13 +3094,13 @@ run jBool "truX" |> printResult
 
 字符串解析的规范可用如下的“铁路图”：
 
-![](json_string.gif)
+![](img/json_string.gif)
 
 *所有图表均来自[json.org](http://www.json.org)。*
 
 要根据这样的图表构建解析器，我们从下往上工作，构建小的“原始”解析器，然后将它们组合成更大的解析器。
 
-让我们从“任何双引号和反斜杠之外的任何Unicode字符”开始。我们有一个简单的条件要测试，所以我们可以直接使用`satisfy`函数：
+让我们从“任何双引号和反斜杠之外的任何 Unicode 字符”开始。我们有一个简单的条件要测试，所以我们可以直接使用`satisfy`函数：
 
 ```
 let jUnescapedChar = 
@@ -3173,9 +3173,9 @@ run jEscapedChar "a" |> printResult
 
 它运行得很好！
 
-### Unicode字符
+### Unicode 字符
 
-最后一种情况是解析具有十六进制数字的unicode字符。
+最后一种情况是解析具有十六进制数字的 unicode 字符。
 
 逻辑将是：
 
@@ -3257,7 +3257,7 @@ run jString "\"ab\\u263Ade\""  // Success "ab?de"
 
 数字解析的“铁路图”如下所示：
 
-![](json_number.gif)
+![](img/json_number.gif)
 
 再次，我们将从底部开始工作。让我们从最基本的组件开始，即单个字符和数字：
 
@@ -3317,7 +3317,7 @@ optSign .>>. intPart .>>. opt fractionPart .>>. opt exponentPart
 
 不过我们还没有定义`convertToJNumber`。这个函数将接受解析器输出的四元组，并将其转换为浮点数。
 
-现在，我们不再写自定义的浮点逻辑，而是会懒惰地让.NET框架为我们进行转换！也就是说，每个组件将被转换为一个字符串，串联起来，然后将整个字符串解析为一个浮点数。
+现在，我们不再写自定义的浮点逻辑，而是会懒惰地让.NET 框架为我们进行转换！也就是说，每个组件将被转换为一个字符串，串联起来，然后将整个字符串解析为一个浮点数。
 
 问题在于一些组件（如符号和指数）是可选的。让我们编写一个帮助程序，它将使用传入的函数将选项转换为字符串，但如果选项是`None`，则返回空字符串。
 
@@ -3503,7 +3503,7 @@ run jNumber_ "123.4e-5"  // JNumber 0.001234
 
 接下来是 `Array` 情况。同样，我们可以使用铁路图来指导实现：
 
-![](json_array.gif)
+![](img/json_array.gif)
 
 我们将再次从基本类型开始。请注意，我们在每个标记后添加了可选的空格：
 
@@ -3645,7 +3645,7 @@ run jArray "[ 1, 2, ]" |> printResult
 
 首先，铁路图：
 
-![](json_object.gif)
+![](img/json_object.gif)
 
 使用这个，我们可以直接创建解析器，所以我将在这里呈现它而不加评论：
 
@@ -3703,7 +3703,7 @@ jValueRef := choice
 
 ### 测试完整的解析器：示例 1
 
-这是我们可以尝试解析的JSON字符串的示例：
+这是我们可以尝试解析的 JSON 字符串的示例：
 
 ```
 let example1 = """{
@@ -3732,7 +3732,7 @@ JObject
 
 ### 测试完整的解析器：示例 2
 
-这是来自[json.org上的示例页面](http://json.org/example.html)的一个示例：
+这是来自[json.org 上的示例页面](http://json.org/example.html)的一个示例：
 
 ```
 let example2= """{"widget": {
@@ -3792,9 +3792,9 @@ JObject(map
                     ("width", JNumber 500.0)]))]))]), 
 ```
 
-## JSON解析器的完整列表
+## JSON 解析器的完整列表
 
-这是JSON解析器的完整列表--大约有250行有用的代码。
+这是 JSON 解析器的完整列表--大约有 250 行有用的代码。
 
 *下面显示的源代码也可以在[this gist](https://gist.github.com/swlaschin/149deab2d457d8c1be37#file-jsonparser-fsx)中找到。*
 
@@ -4081,29 +4081,29 @@ jValueRef := choice
 
 ## 摘要
 
-在这篇文章中，我们使用了之前开发的解析器库构建了一个JSON解析器。
+在这篇文章中，我们使用了之前开发的解析器库构建了一个 JSON 解析器。
 
 我希望，通过从头开始构建解析器库和一个真实世界的解析器，你已经对解析器组合子的工作方式以及它们的实用性有了很好的了解。
 
-我会重申我在第一篇文章中说的话：如果你有兴趣在生产中使用这种技术，请务必调查一下[F#的FParsec库](http://www.quanttec.com/fparsec/)，该库针对实际应用进行了优化。
+我会重申我在第一篇文章中说的话：如果你有兴趣在生产中使用这种技术，请务必调查一下[F#的 FParsec 库](http://www.quanttec.com/fparsec/)，该库针对实际应用进行了优化。
 
-如果您使用的是除了F#之外的语言，几乎肯定有可用的解析器组合库可供使用。
+如果您使用的是除了 F#之外的语言，几乎肯定有可用的解析器组合库可供使用。
 
 +   关于解析器组合子的更多信息，请在互联网上搜索"Haskell"库"Parsec"。
 
-+   有关使用FParsec的更多示例，请尝试以下帖子之一：
++   有关使用 FParsec 的更多示例，请尝试以下帖子之一：
 
-    +   [为FogCreek的Kiln实现短语搜索查询](http://blog.fogcreek.com/fparsec/)
+    +   [为 FogCreek 的 Kiln 实现短语搜索查询](http://blog.fogcreek.com/fparsec/)
 
-    +   [LOGO解析器](http://trelford.com/blog/post/FParsec.aspx)
+    +   [LOGO 解析器](http://trelford.com/blog/post/FParsec.aspx)
 
-    +   [一个Small Basic解析器](http://trelford.com/blog/post/parser.aspx)
+    +   [一个 Small Basic 解析器](http://trelford.com/blog/post/parser.aspx)
 
-    +   [一个C#解析器](http://trelford.com/blog/post/parsecsharp.aspx)和[用F#构建C#编译器](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)
+    +   [一个 C#解析器](http://trelford.com/blog/post/parsecsharp.aspx)和[用 F#构建 C#编译器](https://neildanson.wordpress.com/2014/02/11/building-a-c-compiler-in-f/)
 
-    +   [用F#在48小时内编写自己的Scheme](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)
+    +   [用 F#在 48 小时内编写自己的 Scheme](https://lucabolognese.wordpress.com/2011/08/05/write-yourself-a-scheme-in-48-hours-in-f-part-vi/)
 
-    +   [解析OpenGL着色语言GLSL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)
+    +   [解析 OpenGL 着色语言 GLSL](http://laurent.le-brun.eu/site/index.php/2010/06/07/54-fsharp-and-fparsec-a-glsl-parser-example)
 
 谢谢！
 

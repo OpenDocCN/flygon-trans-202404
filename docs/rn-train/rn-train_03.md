@@ -1,6 +1,6 @@
-# 3样式
+# 3 样式
 
-# 3样式
+# 3 样式
 
 1.声明样式
 
@@ -39,7 +39,7 @@ class Main extends Component {
 
 +   [文本属性](https://facebook.github.io/react-native/docs/text.html#style)
 
-+   [Flex属性](https://facebook.github.io/react-native/docs/flexbox.html#content)
++   [Flex 属性](https://facebook.github.io/react-native/docs/flexbox.html#content)
 
 +   [变换属性](https://facebook.github.io/react-native/docs/transforms.html#content)
 
@@ -47,15 +47,15 @@ class Main extends Component {
 
 # 3.1 Flexbox
 
-1.[Flexbox布局](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
+1.[Flexbox 布局](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
 
 > 弹性布局背后的主要思想是让容器有能力改变其项目的宽度/高度（和顺序），以最佳填充可用空间（主要是为了适应各种显示设备和屏幕尺寸）。 弹性容器扩展项目以填充可用的空闲空间，或者缩小它们以防止溢出。
 
-![](QQ20160705-15.png)
+![](img/QQ20160705-15.png)
 
 2.flex：1
 
-![](QQ20160705-2.png)
+![](img/QQ20160705-2.png)
 
 ```
 const styles = StyleSheet.create({
@@ -83,29 +83,29 @@ const styles = StyleSheet.create({
 
 3.flexDirection：'row' | 'column'
 
-![](QQ20160705-7.png)
+![](img/QQ20160705-7.png)
 
-![](QQ20160705-8.png)
+![](img/QQ20160705-8.png)
 
 4.justifyContent：'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around'
 
-![](QQ20160705-10.png)
+![](img/QQ20160705-10.png)
 
 5.alignItems：'flex-start' | 'flex-end' | 'center' | 'stretch'
 
-![](QQ20160705-12.png)
+![](img/QQ20160705-12.png)
 
 6.alignSelf：'auto' | 'flex-start' | 'flex-end' | 'center' | 'stretch'
 
-![](QQ20160705-13.png)
+![](img/QQ20160705-13.png)
 
 7.flexWrap：'wrap' | 'nowrap'
 
-![](QQ20160705-14.png)
+![](img/QQ20160705-14.png)
 
 8.盒模型
 
-![](QQ20160705-16.png)
+![](img/QQ20160705-16.png)
 
 宽度 = borderLeftWidth(25) + paddingLeft(25) + 100 + borderRightWidth(25) + paddingRight(25) = 200
 
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
 }); 
 ```
 
-![](QQ20160705-17.png)
+![](img/QQ20160705-17.png)
 
 # 3.2 绝对和相对
 
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
 
 1.绝对
 
-![](QQ20160706-0.png)
+![](img/QQ20160706-0.png)
 
 ```
 class Position extends Component {
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
 
 2.zIndex，[v0.29](https://github.com/facebook/react-native/commit/d64368b9e239b574039f4a6508bf2aeb0806121b) 或 [transform](http://facebook.github.io/react-native/docs/transforms.html)
 
-![](QQ20160706-2.png)
+![](img/QQ20160706-2.png)
 
 ```
  box2: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
 
 3.相对（默认）
 
-![](QQ20160706-1.png)
+![](img/QQ20160706-1.png)
 
 ```
 class Relative extends Component {
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
 
 4.fixed
 
-![](QQ20160706-3.png)
+![](img/QQ20160706-3.png)
 
 ```
  class Fixed extends Component {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
 
 1.窗口大小
 
-![](QQ20160706-4.png)
+![](img/QQ20160706-4.png)
 
 ```
 let winSize = Dimensions.get('window');
@@ -425,7 +425,7 @@ class Size extends Component {
 
 # 3.4 继承
 
-1.将样式作为props传递
+1.将样式作为 props 传递
 
 ```
 class InheritanceStyle extends Component {
@@ -494,16 +494,16 @@ const styles = StyleSheet.create({
 }); 
 ```
 
-![](QQ20160706-5.png)
+![](img/QQ20160706-5.png)
 
 # 3.5 资源
 
 # 3.5 资源
 
-+   [Flexbox完全指南](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
++   [Flexbox 完全指南](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
 
-+   [CSS3 Flexbox属性的可视化指南](https://scotch.io/tutorials/a-visual-guide-to-css3-flexbox-properties)
++   [CSS3 Flexbox 属性的可视化指南](https://scotch.io/tutorials/a-visual-guide-to-css3-flexbox-properties)
 
-+   [理解Flex方向](http://www.standardista.com/understanding-flex-direction/)
++   [理解 Flex 方向](http://www.standardista.com/understanding-flex-direction/)
 
 +   [本章的演示脚本](https://github.com/unbug/react-native-train-scripts)

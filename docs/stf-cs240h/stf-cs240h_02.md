@@ -44,7 +44,7 @@
 
 ## 纯代码中的异常。
 
-+   先前的示例在IO操作周围包裹了`catcher`。
++   先前的示例在 IO 操作周围包裹了`catcher`。
 
 +   可以在纯代码中`throw`异常，但只能在`IO`中`catch`它们。
 
@@ -52,7 +52,7 @@
 
     +   `(error "one") + (error "two")`会抛出哪个错误？
 
-        可能是非确定性的，如果`catch`限制在`IO` Monad中，则[可以接受](http://research.microsoft.com/en-us/um/people/simonpj/papers/imprecise-exn.htm)。
+        可能是非确定性的，如果`catch`限制在`IO` Monad 中，则[可以接受](http://research.microsoft.com/en-us/um/people/simonpj/papers/imprecise-exn.htm)。
 
 +   在`IO`中，使用`throwIO`（而不是`throw`）使异常序列精确。
 
@@ -122,7 +122,7 @@
     *Main> pureCatcher (undefined:undefined :: String) Just "*** Exception: Prelude.undefined
     ```
 
-+   `catch`只在实际评估thunks时才捕获异常！
++   `catch`只在实际评估 thunks 时才捕获异常！
 
 ## 异常和惰性继续。
 
@@ -190,7 +190,7 @@ seqList :: [a] -> b -> b seqList [] b = b seqList (a:as) b = seq a $ seqList as 
 
     +   许多建立在`IO`之上的单子也无法捕获异常。
 
-+   通常最好在Monad中实现错误处理。
++   通常最好在 Monad 中实现错误处理。
 
     +   回想一下`Maybe` Monad，可以使用`Nothing`表示失败。
 
@@ -284,7 +284,7 @@ import Criterion.Main ... main :: IO () main = defaultMain [ bench "thread switc
 $ ghc -O pingpong.hs [1 of 1] Compiling Main ( pingpong.hs, pingpong.o ) Linking pingpong ... $ ./pingpong ... benchmarking thread switch test mean: 3.774590 ms, lb 3.739223 ms, ub 3.808865 ms, ci 0.950 ...
 ```
 
-+   20,000次线程切换约为3.8毫秒 = 约为190纳秒/切换
++   20,000 次线程切换约为 3.8 毫秒 = 约为 190 纳秒/切换
 
 ## 操作系统线程
 
@@ -302,7 +302,7 @@ $ ghc -O pingpong.hs [1 of 1] Compiling Main ( pingpong.hs, pingpong.o ) Linking
 
 +   同样，当链接时使用 `-threaded`，初始线程是被绑定的
 
-+   哇... 发生了什么？ `-threaded`慢了30倍？
++   哇... 发生了什么？ `-threaded`慢了 30 倍？
 
 ```
 $ rm pingpong $ ghc -threaded -O pingpong.hs Linking pingpong ... $ ./pingpong ... mean: 121.1729 ms, lb 120.5601 ms, ub 121.7044 ms, ci 0.950 ...
@@ -502,7 +502,7 @@ data Cond = Cond (MVar [MVar ()]) cond_create :: IO Cond cond_create = liftM Con
     data Item a = Item a (Stream a) type Stream a = MVar (Item a) data Chan a = Chan (MVar (Stream a)) (MVar (Stream a))
     ```
 
-![](../Images/8055b0591ad69832c238495ef6b072c6.svg)
+![](img/8055b0591ad69832c238495ef6b072c6.svg)
 
 ## 通道实现[简化]
 
@@ -512,7 +512,7 @@ data Item a = Item a (Stream a) type Stream a = MVar (Item a) data Chan a = Chan
 
 ## 网络
 
-+   在[`Network`](http://hackage.haskell.org/packages/archive/network/latest/doc/html/Network.html)中有高级别的流（TCP和Unix域）套接字支持
++   在[`Network`](http://hackage.haskell.org/packages/archive/network/latest/doc/html/Network.html)中有高级别的流（TCP 和 Unix 域）套接字支持
 
     ```
     connectTo :: HostName -> PortID -> IO Handle listenOn :: PortID -> IO Socket accept :: Socket -> (Handle, HostName, PortNumber) sClose :: Socket -> IO () hClose :: Handle -> IO ()
@@ -576,7 +576,7 @@ play :: MVar Move -> MVar Move -> (Handle, HostName, PortNumber) -> IO () play m
 
 ## 网络
 
-+   在[`Network.Socket`](http://hackage.haskell.org/packages/archive/network/latest/doc/html/Network-Socket.html)中还有低级别的BSD套接字支持
++   在[`Network.Socket`](http://hackage.haskell.org/packages/archive/network/latest/doc/html/Network-Socket.html)中还有低级别的 BSD 套接字支持
 
     ```
     socket :: Family -> SocketType -> ProtocolNumber -> IO Socket connect :: Socket -> SockAddr -> IO () bindSocket :: Socket -> SockAddr -> IO () listen :: Socket -> Int -> IO () accept :: Socket -> IO (Socket, SockAddr)
@@ -588,7 +588,7 @@ play :: MVar Move -> MVar Move -> (Handle, HostName, PortNumber) -> IO () play m
     getAddrInfo :: Maybe AddrInfo -> Maybe HostName -> Maybe ServiceName -> IO [AddrInfo]
     ```
 
-    +   例如：获取与web服务器通信的`SockAddr`：
+    +   例如：获取与 web 服务器通信的`SockAddr`：
 
     ```
     webServerAddr :: String -> IO SockAddr webServerAddr name = do addrs <- getAddrInfo Nothing (Just name) (Just "www") return $ addrAddress $ head $ addrs

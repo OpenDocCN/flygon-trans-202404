@@ -4,7 +4,7 @@
 
 在这个作业中，你将运用到目前为止学到的知识来解决一些问题。你还将进行一些阅读和自我介绍。
 
-记住：你可以在[首页](../index.html)或[截止日期表格](https://docs.google.com/spreadsheets/u/1/d/1JftJo7ko0wx-jxAEF9_QxYXfzHCYqCNqKeRwOU9K65A/edit?usp=sharing)上查看这个作业的截止日期。
+记住：你可以在首页或[截止日期表格](https://docs.google.com/spreadsheets/u/1/d/1JftJo7ko0wx-jxAEF9_QxYXfzHCYqCNqKeRwOU9K65A/edit?usp=sharing)上查看这个作业的截止日期。
 
 ## 模板
 
@@ -371,6 +371,6 @@ grader <assignment name> <file name>
 
 ## 提交你的作业！
 
-对于说明，请参阅[此指南](../submit.html)。它涵盖了基本的终端命令和作业提交。
+对于说明，请参阅此指南。它涵盖了基本的终端命令和作业提交。
 
 如果您在提交过程中遇到任何问题，请不要犹豫向助教求助！

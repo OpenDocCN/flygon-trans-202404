@@ -117,7 +117,7 @@ cp ~cs61as/autograder/templates/hw4.rkt .
 
 ### SICP 2.22
 
-路易斯·里森尼试图重写练习2.21的第一个`square-list`过程，以便演变出一个迭代过程：
+路易斯·里森尼试图重写练习 2.21 的第一个`square-list`过程，以便演变出一个迭代过程：
 
 ```
 (define (square-list items)
@@ -147,7 +147,7 @@ cp ~cs61as/autograder/templates/hw4.rkt .
 
 这也不起作用。请解释。
 
-## 练习2
+## 练习 2
 
 编写一个过程`my-substitute`，它接受三个参数：一个列表，一个旧单词和一个新单词。它应返回列表的副本，但是将每个旧单词的出现替换为新单词，即使在子列表中也是如此。例如：
 
@@ -169,7 +169,7 @@ cp ~cs61as/autograder/templates/hw4.rkt .
 #f 
 ```
 
-## 练习3
+## 练习 3
 
 现在编写`my-substitute2`，它接受一个列表，一个旧单词列表和一个新单词列表；最后两个列表应该具有相同的长度。它应返回第一个参数的副本，但将出现在第二个参数中的每个单词替换为第三个参数中对应的单词：
 
@@ -184,20 +184,20 @@ cp ~cs61as/autograder/templates/hw4.rkt .
 
 如果你想挑战自己，可以尝试这些。这些*不*计入学分。
 
-### 练习4
+### 练习 4
 
-编写过程`cxr-function`，其参数是以c开头，以r结尾，并在中间有一串字母a和/或d的单词，例如`cdddadaadar`。它应返回相应的函数。
+编写过程`cxr-function`，其参数是以 c 开头，以 r 结尾，并在中间有一串字母 a 和/或 d 的单词，例如`cdddadaadar`。它应返回相应的函数。
 
-### 练习5
+### 练习 5
 
-[SICP Ex. 2.6](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-14.html#%_thm_2.4)。除了加法，还要发明非负整数的乘法和指数运算。如果你真的很热情，看看能否发明减法。（记住，这个游戏的规则是你只有lambda作为起点。）阅读`~cs61as/lib/church-hint`以获取一些建议。
+[SICP Ex. 2.6](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-14.html#%_thm_2.4)。除了加法，还要发明非负整数的乘法和指数运算。如果你真的很热情，看看能否发明减法。（记住，这个游戏的规则是你只有 lambda 作为起点。）阅读`~cs61as/lib/church-hint`以获取一些建议。
 
-### 练习6
+### 练习 6
 
 [SICP Ex. 2.18](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-15.html#%_thm_2.18)；这需要一些思考，你应确保做对，但不要为此卡壳一个小时。注意：你的解决方案应该颠倒列表，而不是句子！也就是说，你应该使用`cons`、`car`和`cdr`，而不是`first`、`sentence`等。
 
 ## 提交你的作业！
 
-有关说明，请参阅[此指南](../submit.html)。它涵盖了基本的终端命令和作业提交。
+有关说明，请参阅此指南。它涵盖了基本的终端命令和作业提交。
 
 如果你在提交作业时遇到任何问题，请不要犹豫向助教求助！

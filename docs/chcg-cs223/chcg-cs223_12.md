@@ -18,7 +18,7 @@
 
 传出端口用于从 Elm 通信到 JavaScript，传入端口用于从 JavaScript 通信到 Elm。
 
-定义一个 Elm 模块[`CountPageVisits.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Ports/CountPageVisits.elm)，其中包含`port`s，它们就像“外部”`Signal`s一样：
+定义一个 Elm 模块[`CountPageVisits.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Ports/CountPageVisits.elm)，其中包含`port`s，它们就像“外部”`Signal`s 一样：
 
 ```
 module CountPageVisits where

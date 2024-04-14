@@ -1,6 +1,6 @@
 # 控制台程序
 
-[http://blog.yhathq.com/posts/11-python-libraries-you-might-not-know.html](http://blog.yhathq.com/posts/11-python-libraries-you-might-not-know.html)
+[`blog.yhathq.com/posts/11-python-libraries-you-might-not-know.html`](http://blog.yhathq.com/posts/11-python-libraries-you-might-not-know.html)
 
 # sh
 
@@ -55,7 +55,7 @@ pbar.finish()
 
 提供彩色控制台输出：
 
-![](43e7f1cd.png)
+![](img/43e7f1cd.png)
 
 # Gooey——把 CLI 程序变成 GUI
 
@@ -102,11 +102,11 @@ if   __name__ == '__main__':
 
 于是我们得到了一个简单的 GUI 对话框，并且基本上没有修过多少代码：
 
-![Gooey Widget](gui.png)
+![Gooey Widget](img/gui.png)
 
 当然，仅仅这样是不够的，我们的 Filename 参数需要对应一个文件，而 Date 参数是一个日期，如果有专用的控件就好了！ Gooey 当然也想到了：
 
-![Gooey Widget](gui-widget.png)
+![Gooey Widget](img/gui-widget.png)
 
 仅仅修改了 2 行代码：
 
@@ -167,4 +167,4 @@ def main():
 
 | Flat Layout | Column Layout |
 | --- | --- |
-| ![](758b37d9.jpg) | ![](de607872.jpg) |
+| ![](img/758b37d9.jpg) | ![](img/de607872.jpg) |

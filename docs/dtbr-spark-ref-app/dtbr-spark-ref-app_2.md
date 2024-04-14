@@ -6,7 +6,7 @@
 
 此参考应用程序在一次见面会上进行了演示，演示内容可以在这里录制 - 此链接直接跳转到演示时间，但之前的讲话也很有用：
 
-[![Aaron Davidson doing his magic](aaron-yaaay.png)](https://www.youtube.com/watch?v=FjhRkfAuU7I#t=2035)
+![Aaron Davidson doing his magic](https://www.youtube.com/watch?v=FjhRkfAuU7I#t=2035)
 
 创建一个生产就绪的分类器通常需要经历 5 个典型阶段。通常，每个阶段都是由不同的工具集甚至不同的工程团队完成的：
 
@@ -22,11 +22,11 @@
 
 Spark 可用于上述所有目的，并且对于所有这些目的来说都非常简单易用。我们选择将语言分类器分解为 3 部分，每部分使用一个简单的 Spark 程序来完成：
 
-1.  [收集推文数据集](collect.html) - 使用 Spark Streaming 来收集推文数据集并将其写入文件。
+1.  收集推文数据集 - 使用 Spark Streaming 来收集推文数据集并将其写入文件。
 
-1.  [检查推文并训练模型](examine_and_train.html) - 使用 Spark SQL 来检查推文数据集。然后使用 Spark MLLib 应用 K-Means 算法对数据进行模型训练。
+1.  检查推文并训练模型 - 使用 Spark SQL 来检查推文数据集。然后使用 Spark MLLib 应用 K-Means 算法对数据进行模型训练。
 
-1.  [实时应用模型](predict.html) - 使用 Spark Streaming 和 Spark MLLib 来过滤与指定聚类相匹配的推文的实时流。
+1.  实时应用模型 - 使用 Spark Streaming 和 Spark MLLib 来过滤与指定聚类相匹配的推文的实时流。
 
 # 收集推文数据集
 
@@ -34,7 +34,7 @@ Spark 可用于上述所有目的，并且对于所有这些目的来说都非�
 
 使用 Spark Streaming 来收集推文作为数据集。推文以 JSON 格式写出，每行一个推文。每隔一段时间写出一个推文文件，直到收集到所需数量的推文为止。
 
-查看 [Collect.scala](Collect.scala) 获取完整代码。我们现在将浏览其中一些有趣的部分。
+查看 Collect.scala 获取完整代码。我们现在将浏览其中一些有趣的部分。
 
 Collect.scala 接受以下参数列表：
 
@@ -68,7 +68,7 @@ tweetStream.foreachRDD((rdd, time) => {
 }) 
 ```
 
-运行[Collect.scala](Collect.scala)以自行收集推文数据集：
+运行 Collect.scala 以自行收集推文数据集：
 
 ```
  %  ${YOUR_SPARK_HOME}/bin/spark-submit \
@@ -91,17 +91,17 @@ tweetStream.foreachRDD((rdd, time) => {
 
 第二个程序检查推文中发现的数据，并使用推文进行 K-Means 聚类来训练语言分类器：
 
-+   [检查](examine.html) - 使用 Spark SQL 收集有关推文的数据--查看其中的一些推文，并计算用户最常用语言的推文总数。
++   检查 - 使用 Spark SQL 收集有关推文的数据--查看其中的一些推文，并计算用户最常用语言的推文总数。
 
-+   [训练](train.html) - 使用 Spark MLLib 应用 K-Means 算法对推文进行聚类。 聚类的数量和算法的迭代次数是可配置的。 在训练模型之后，会显示来自不同聚类的一些样本推文。
++   训练 - 使用 Spark MLLib 应用 K-Means 算法对推文进行聚类。 聚类的数量和算法的迭代次数是可配置的。 在训练模型之后，会显示来自不同聚类的一些样本推文。
 
-请参见[此处](run_part2.html)以获取运行第 2 部分的命令。
+请参见此处以获取运行第 2 部分的命令。
 
 # 使用 Spark SQL 检查
 
 # 使用 Spark SQL 进行检查
 
-可以使用 Spark SQL 根据推文检查数据。 以下是来自[ExamineAndTrain.scala](ExamineAndTrain.scala)的一些相关代码片段。
+可以使用 Spark SQL 根据推文检查数据。 以下是来自 ExamineAndTrain.scala 的一些相关代码片段。
 
 首先，以下是一段代码，可以漂亮地打印出 5 个样本推文，使它们更易读。
 
@@ -215,7 +215,7 @@ for (i <- 0 until numClusters) {
 
 1.  NUM_ITERATIONS - 算法应运行的迭代次数。
 
-以下是运行[ExamineAndTrain.scala](ExamineAndTrain.scala)的示例命令：
+以下是运行 ExamineAndTrain.scala 的示例命令：
 
 ```
 %  ${YOUR_SPARK_HOME}/bin/spark-submit \
@@ -250,15 +250,14 @@ val tweets = TwitterUtils.createStream(ssc, Utils.getAuth)
 val statuses = tweets.map(_.getText)
 
 println("Initializing the KMeans model...")
-val model = new KMeansModel(ssc.sparkContext.objectFile[Vector](
-    modelFile.toString).collect())
+val model = new KMeansModel(ssc.sparkContext.objectFileVector.collect())
 
 val filteredTweets = statuses
   .filter(t => model.predict(Utils.featurize(t)) == clusterNumber)
 filteredTweets.print() 
 ```
 
-现在，运行[Predict.scala](Predict.scala)：
+现在，运行 Predict.scala：
 
 ```
  %  ${YOUR_SPARK_HOME}/bin/spark-submit \

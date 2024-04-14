@@ -154,7 +154,7 @@ edit 4:7
 
 ## 作为库使用
 
-NotFinished，虽然ipython -p pysh提供了一个强大的shell替代品，但它缺少正确的job控制。在运行某个很耗时的任务时按下Ctrl-z将会停止IPython session而不是那个子进程。
+NotFinished，虽然 ipython -p pysh 提供了一个强大的 shell 替代品，但它缺少正确的 job 控制。在运行某个很耗时的任务时按下 Ctrl-z 将会停止 IPython session 而不是那个子进程。
 
 ## 问题和方法
 

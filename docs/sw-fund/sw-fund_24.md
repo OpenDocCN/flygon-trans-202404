@@ -369,7 +369,7 @@ Hint Constructors value.
 
 ```
 
-（λx：Bool。如果x那么true否则x）假
+（λx：Bool。如果 x 那么 true 否则 x）假
 
     至
 
@@ -420,7 +420,7 @@ Hint Constructors value.
 
 [x:=s]（λx:T[11]. t[12]）   = \x:T[11]. t[12]
 
-[x:=s]（λy:T[11]. t[12]）   = \y:T[11]. [x:=s]t[12]      如果x ≠ y
+[x:=s]（λy:T[11]. t[12]）   = \y:T[11]. [x:=s]t[12]      如果 x ≠ y
 
 [x:=s]（t[1] t[2]）         = （[x:=s]t[1]） （[x:=s]t[2]）
 
@@ -428,7 +428,7 @@ Hint Constructors value.
 
 [x:=s]false           = false
 
-[x:=s]（如果t[1]那么t[2]否则t[3]） =
+[x:=s]（如果 t[1]那么 t[2]否则 t[3]） =
 
 如果[x:=s]t[1]那么[x:=s]t[2]否则[x:=s]t[3]
 
@@ -459,13 +459,13 @@ where "'[' x ':=' s ']' t" := (subst x s t).
 
     *技术说明*：如果我们
 
-    考虑替换的术语s的情况
+    考虑替换的术语 s 的情况
 
     其他一些术语中的变量，本身可能包含自由变量。
 
     由于我们这里只关心定义步骤关系
 
-    对封闭术语（即包括\x：Bool。x这样的术语
+    对封闭术语（即包括\x：Bool。x 这样的术语
 
     绑定所有提到的变量），我们可以避免这种情况
 
@@ -477,13 +477,13 @@ where "'[' x ':=' s ']' t" := (subst x s t).
 
     这个问题的讨论。
 
-#### 练习：3星（substi）
+#### 练习：3 星（substi）
 
-    我们上面给出的定义使用了Coq的Fixpoint功能
+    我们上面给出的定义使用了 Coq 的 Fixpoint 功能
 
     将替换定义为*函数*。 假设我们
 
-    想要将替换定义为归纳关系substi。
+    想要将替换定义为归纳关系 substi。
 
     我们已经通过提供归纳标题和
 
@@ -530,7 +530,7 @@ Proof.
 
     传统上称为“β-还原”。
 
-                        值v[2]
+                        值 v[2]
 
         |
 
@@ -566,7 +566,7 @@ Proof.
 
                     |
 
-                        值v[1]
+                        值 v[1]
 
         |
 
@@ -602,7 +602,7 @@ Proof.
 
         |
 
-                        （如果true那么t[1]否则t[2]） ⇒ t[1]
+                        （如果 true 那么 t[1]否则 t[2]） ⇒ t[1]
 
         |
 
@@ -618,7 +618,7 @@ Proof.
 
         |
 
-                        (如果false则t[1]否则t[2]) ⇒ t[2]
+                        (如果 false 则 t[1]否则 t[2]) ⇒ t[2]
 
         |
 
@@ -636,7 +636,7 @@ Proof.
 
         |
 
-                        （如果t[1]那么t[2]否则t[3]） ⇒ （如果t[1]'那么t[2]否则t[3]）
+                        （如果 t[1]那么 t[2]否则 t[3]） ⇒ （如果 t[1]'那么 t[2]否则 t[3]）
 
         |
 
@@ -781,7 +781,7 @@ Proof.
 
 ```
 
-    我们可以使用[Types](Types.html)章节中定义的normalize策略
+    我们可以使用 Types 章节中定义的 normalize 策略
 
     简化这些证明。
 
@@ -804,9 +804,9 @@ Proof. normalize. Qed.
 
 ```
 
-#### 练习：2星（step_example3）
+#### 练习：2 星（step_example3）
 
-    尝试使用和不使用normalize来做这个。
+    尝试使用和不使用 normalize 来做这个。
 
 ```
 Lemma step_example5 :
@@ -837,7 +837,7 @@ Proof.
 
     *问题*：术语“xy”的类型是什么？
 
-    *答案*：这取决于x和y的类型！
+    *答案*：这取决于 x 和 y 的类型！
 
     即，为了给一个术语分配一个类型，我们需要知道
 
@@ -851,9 +851,9 @@ Proof.
 
     “类型上下文” - 从变量到其类型的映射。
 
-    非正式地，我们将写作Γ，x：T表示“扩展部分
+    非正式地，我们将写作Γ，x：T 表示“扩展部分
 
-    函数Γ也将x映射到T。”形式上，我们使用
+    函数Γ也将 x 映射到 T。”形式上，我们使用
 
     函数扩展以向部分映射添加绑定。
 
@@ -1043,27 +1043,27 @@ Proof. auto. Qed.
 
     示�� typing_example_2：
 
-[empty](Maps.html#empty) ⊢
+empty ⊢
 
-([tabs](Stlc.html#STLC.tabs) [x](Stlc.html#STLC.x) [TBool](Stlc.html#STLC.TBool)
+(tabs x TBool
 
-([tabs](Stlc.html#STLC.tabs) [y](Stlc.html#STLC.y) ([TArrow](Stlc.html#STLC.TArrow) [TBool](Stlc.html#STLC.TBool) [TBool](Stlc.html#STLC.TBool))
+(tabs y (TArrow TBool TBool)
 
-([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y)) ([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y)) ([tvar](Stlc.html#STLC.tvar) [x](Stlc.html#STLC.x)))))) ∈
+(tapp (tvar y) (tapp (tvar y) (tvar x))))) ∈
 
-([TArrow](Stlc.html#STLC.TArrow) [TBool](Stlc.html#STLC.TBool) ([TArrow](Stlc.html#STLC.TArrow) ([TArrow](Stlc.html#STLC.TArrow) [TBool](Stlc.html#STLC.TBool) [TBool](Stlc.html#STLC.TBool)) [TBool](Stlc.html#STLC.TBool))。
+(TArrow TBool (TArrow (TArrow TBool TBool) TBool)。
 
-    证明，使用 [update_eq](Maps.html#update_eq) 自动完成。
+    证明，使用 update_eq 自动完成。
 
-应用 [T_Abs](Stlc.html#STLC.T_Abs)。
+应用 T_Abs。
 
-应用 [T_Abs](Stlc.html#STLC.T_Abs)。
+应用 T_Abs。
 
-应用 [T_App](Stlc.html#STLC.T_App)。应用 [T_Var](Stlc.html#STLC.T_Var)...
+应用 T_App。应用 T_Var...
 
-应用 [T_App](Stlc.html#STLC.T_App)。应用 [T_Var](Stlc.html#STLC.T_Var)...
+应用 T_App。应用 T_Var...
 
-应用 [T_Var](Stlc.html#STLC.T_Var)...
+应用 T_Var...
 
     证毕。
 
@@ -1140,15 +1140,15 @@ Proof with auto.
 
 ¬ ∃T，
 
-[empty](Maps.html#empty) ⊢
+empty ⊢
 
-([tabs](Stlc.html#STLC.tabs) [x](Stlc.html#STLC.x) [TBool](Stlc.html#STLC.TBool)
+(tabs x TBool
 
-([tabs](Stlc.html#STLC.tabs) [y](Stlc.html#STLC.y) [TBool](Stlc.html#STLC.TBool)
+(tabs y TBool
 
-([tapp](Stlc.html#STLC.tapp) ([tvar](Stlc.html#STLC.tvar) [x](Stlc.html#STLC.x)) ([tvar](Stlc.html#STLC.tvar) [y](Stlc.html#STLC.y))))) ∈
+(tapp (tvar x) (tvar y)))) ∈
 
-[T](Stlc.html#T)。
+T。
 
     证明。
 

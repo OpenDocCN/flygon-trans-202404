@@ -36,7 +36,7 @@ Require Import Maps.
 
     *   correctness (in the sense of preserving meaning) of a number of useful program transformations 
 
-    *   behavioral equivalence of programs (in the [Equiv](Equiv.html) chapter).
+    *   behavioral equivalence of programs (in the Equiv chapter).
 
     If we stopped here, we would already have something useful: a set
     of tools for defining and discussing programming languages and
@@ -117,7 +117,7 @@ Definition Assertion := state → Prop.
 
 ```
 
-#### 练习：1星，可选（断言）
+#### 练习：1 星，可选（断言）
 
     用英语（或您喜欢的语言）改写以下断言
 
@@ -145,7 +145,7 @@ End ExAssertions.
 
     出于两个原因：（1）我们写的每个断言都是
 
-    开始fun st ⇒；和（2）这个状态st是
+    开始 fun st ⇒；和（2）这个状态 st 是
 
     我们唯一用来查找断言中变量的方法（我们
 
@@ -153,9 +153,9 @@ End ExAssertions.
 
     同时）。为了非正式讨论示例，我们将采用一些
 
-    简化约定：我们会省略初始的fun st ⇒，和
+    简化约定：我们会省略初始的 fun st ⇒，和
 
-    我们只写X来表示st X。因此，而不是写
+    我们只写 X 来表示 st X。因此，而不是写
 
 ```
       fun st ⇒ (st Z) * (st Z) ≤ m ∧
@@ -171,21 +171,21 @@ Z * Z ≤ m ∧ ~((S Z) * (S Z) ≤ m)。
 
     在霍尔逻辑章节中始终：在非正式断言中，
 
-    像{X]，Y和Z这样的大写字母是Imp变量，而
+    像{X]，Y 和 Z 这样的大写字母是 Imp 变量，而
 
-    小写字母如x，y，m和n是普通的Coq
+    小写字母如 x，y，m 和 n 是普通的 Coq
 
-    变量（类型为nat）。这就是为什么在从
+    变量（类型为 nat）。这就是为什么在从
 
-    从非正式到正式，我们用st X替换X，但保留m
+    从非正式到正式，我们用 st X 替换 X，但保留 m
 
     单独。
 
-    给定两个断言P和Q，我们说P *蕴含* Q，
+    给定两个断言 P 和 Q，我们说 P *蕴含* Q，
 
-    写作 P ⇾ Q（在ASCII中，P ->> Q），如果每当P
+    写作 P ⇾ Q（在 ASCII 中，P ->> Q），如果每当 P
 
-    在某个状态st中成立，Q也成立。
+    在某个状态 st 中成立，Q 也成立。
 
 ```
 Definition assert_implies (P Q : Assertion) : Prop :=
@@ -197,11 +197,11 @@ Open Scope hoare_spec_scope.
 
 ```
 
-    （hoare_spec_scope注释告诉Coq这
+    （hoare_spec_scope 注释告诉 Coq 这
 
     表示不是全局的，而是打算在特定情况下使用
 
-    上下文。Open Scope告诉Coq这是这样一个
+    上下文。Open Scope 告诉 Coq 这是这样一个
 
     上下文。）
 
@@ -229,11 +229,11 @@ Notation "P ⇿ Q" :=
 
     执行：
 
-+   “如果命令c在满足断言P的状态下启动，并且如果c最终在某个最终状态中终止，那么这个最终状态将满足断言Q。”
++   “如果命令 c 在满足断言 P 的状态下启动，并且如果 c 最终在某个最终状态中终止，那么这个最终状态将满足断言 Q。”
 
-    这样的声明称为*霍尔三元组*。属性P是
+    这样的声明称为*霍尔三元组*。属性 P 是
 
-    称为c的*前置条件*，而Q是
+    称为 c 的*前置条件*，而 Q 是
 
     *后置条件*。形��上：
 
@@ -261,7 +261,7 @@ Definition hoare_triple
 
 符号 "{{ P }}  c  {{ Q }}" :=
 
-（hoare_triple P c Q）（在级别90处，下一个级别的c）
+（hoare_triple P c Q）（在级别 90 处，下一个级别的 c）
 
 ：hoare_spec_scope。
 
@@ -295,11 +295,11 @@ c
 
     ☐
 
-#### 练习：1星，可选（有效三元组）
+#### 练习：1 星，可选（有效三元组）
 
     以下哪些霍尔三元组是*有效*的 — 即，这些
 
-    声称的P、c和Q之间的关系是真实的吗？
+    声称的 P、c 和 Q 之间的关系是真实的吗？
 
 ```
    1) {{True}} X ::= 5 {{X = 5}}
@@ -336,7 +336,7 @@ c
 
 ```
 
-定理hoare_post_true：∀(P Q：断言) c，
+定理 hoare_post_true：∀(P Q：断言) c，
 
 （∀st，Q st）→
 
@@ -344,13 +344,13 @@ c
 
     证明。
 
-intros P Q c H. unfold [hoare_triple](Hoare.html#hoare_triple).
+intros P Q c H. unfold hoare_triple.
 
 intros st st' Heval HP。
 
-应用H。已证明。
+应用 H。已证明。
 
-定理hoare_pre_false：∀(P Q：断言) c，
+定理 hoare_pre_false：∀(P Q：断言) c，
 
 （∀st, ~(P st)）→
 
@@ -358,13 +358,13 @@ intros st st' Heval HP。
 
     证明。
 
-intros P Q c H. unfold [hoare_triple](Hoare.html#hoare_triple).
+intros P Q c H. unfold hoare_triple.
 
 intros st st' Heval HP。
 
-在H中展开[not](http://coq.inria.fr/library/Coq.Init.Logic.html#not)。将H应用于HP。
+在 H 中展开[not](http://coq.inria.fr/library/Coq.Init.Logic.html#not)。将 H 应用于 HP。
 
-反演HP。已证明。
+反演 HP。已证明。
 
 ```
 
@@ -408,11 +408,11 @@ intros st st' Heval HP。
 
     相同的属性（等于一）被转移到
 
-    从右侧的表达式Y + Z转移到X
+    从右侧的表达式 Y + Z 转移到 X
 
     赋值。
 
-    更一般地说，如果a是*任何*算术表达式，那么
+    更一般地说，如果 a 是*任何*算术表达式，那么
 
 ```
        {{ a = 1 }}  X ::= a {{ X = 1 }}
@@ -429,9 +429,9 @@ intros st st' Heval HP。
 
 {{ Q [X ↦ a] }} X ::= a {{ Q }}
 
-    其中“Q [X ↦ a]”发音为“Q其中a被替换
+    其中“Q [X ↦ a]”发音为“Q 其中 a 被替换
 
-    对于X”。
+    对于 X”。
 
     例如，这些是赋值的有效应用
 
@@ -466,13 +466,13 @@ intros st st' Heval HP。
 
 ```
 
-定义assn_sub X a P：断言 :=
+定义 assn_sub X a P：断言 :=
 
 fun (st : state) ⇒
 
 P（t_update st X（aeval st a））。
 
-符号“P [ X |-> a ]”：=（assn_sub X a P）（在级别10处）。
+符号“P [ X |-> a ]”：=（assn_sub X a P）（在级别 10 处）。
 
 ```
 
@@ -541,7 +541,7 @@ fun st ⇒
 
 (aeval st (APlus (AId X) (ANum 1))) ≤ 5。
 
-    也就是说，P'是X+1最多为5的断言。
+    也就是说，P'是 X+1 最多为 5 的断言。
 
     现在，使用替换的概念，我们可以给出精确的
 
@@ -570,10 +570,10 @@ Theorem hoare_asgn : ∀Q X a,
   {{Q [X ↦ a]}} (X ::= a) {{Q}}.
 
     Proof.
-  unfold [hoare_triple](Hoare.html#hoare_triple).
+  unfold hoare_triple.
   intros Q X a st st' HE HQ.
   inversion HE. subst.
-  unfold [assn_sub](Hoare.html#assn_sub) in HQ. assumption. Qed.
+  unfold assn_sub in HQ. assumption. Qed.
 
 ```
 
@@ -590,7 +590,7 @@ Proof.
 
 ```
 
-#### 练习：2星M（hoare_asgn_examples）
+#### 练习：2 星 M（hoare_asgn_examples）
 
     翻译这些非正式的霍尔三元组...
 
@@ -691,7 +691,7 @@ Proof.
 
 ```
 
-定理hoare_asgn_fwd：
+定理 hoare_asgn_fwd：
 
 （∀{X Y: Type} {f g : X → Y}，
 
@@ -752,7 +752,7 @@ X ::= a
 
 ```
 
-定理hoare_asgn_fwd_exists：
+定理 hoare_asgn_fwd_exists：
 
 （∀{X Y: Type} {f g : X → Y}，
 
@@ -1012,7 +1012,7 @@ intros P P' Q Q' c Hht HPP' HQ'Q。
 ## Digression: The eapply Tactic
 
     This is a good moment to take another look at the eapply tactic,
-    which we introduced briefly in the [Auto](Auto.html) chapter.
+    which we introduced briefly in the Auto chapter.
 
     We had to write "with (P' := ...)" explicitly in the proof of
     hoare_asgn_example1 and hoare_consequence above, to make sure
@@ -1541,14 +1541,14 @@ Lemma bexp_eval_true : ∀b st,
 
     Proof.
   intros b st Hbe.
-  unfold [bassn](Hoare.html#bassn). assumption. Qed.
+  unfold bassn. assumption. Qed.
 
 Lemma bexp_eval_false : ∀b st,
   beval st b = false → ¬ ((bassn b) st).
 
     Proof.
   intros b st Hbe contra.
-  unfold [bassn](Hoare.html#bassn) in contra.
+  unfold bassn in contra.
   rewrite → contra in Hbe. inversion Hbe. Qed.
 
 ```
@@ -1570,12 +1570,12 @@ Theorem hoare_if : ∀P Q b c[1] c[2],
     apply (HTrue st st').
       assumption.
       split. assumption.
-             apply [bexp_eval_true](Hoare.html#bexp_eval_true). assumption.
+             apply bexp_eval_true. assumption.
   - (* b is false *)
     apply (HFalse st st').
       assumption.
       split. assumption.
-             apply [bexp_eval_false](Hoare.html#bexp_eval_false). assumption. Qed.
+             apply bexp_eval_false. assumption. Qed.
 
 ```
 
@@ -1596,16 +1596,16 @@ Example if_example :
 
     Proof.
   (* WORKED IN CLASS *)
-  apply [hoare_if](Hoare.html#hoare_if).
+  apply hoare_if.
   - (* Then *)
-    eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre). apply [hoare_asgn](Hoare.html#hoare_asgn).
-    unfold [bassn](Hoare.html#bassn), [assn_sub](Hoare.html#assn_sub), [t_update](Maps.html#t_update), [assert_implies](Hoare.html#assert_implies).
+    eapply hoare_consequence_pre. apply hoare_asgn.
+    unfold bassn, assn_sub, t_update, assert_implies.
     simpl. intros st [_ H].
     apply [beq_nat_true](http://coq.inria.fr/library/Coq.Arith.EqNat.html#beq_nat_true) in H.
     rewrite H. omega.
   - (* Else *)
-    eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre). apply [hoare_asgn](Hoare.html#hoare_asgn).
-    unfold [assn_sub](Hoare.html#assn_sub), [t_update](Maps.html#t_update), [assert_implies](Hoare.html#assert_implies).
+    eapply hoare_consequence_pre. apply hoare_asgn.
+    unfold assn_sub, t_update, assert_implies.
     simpl; intros st _. omega.
     Qed.
 
@@ -1921,7 +1921,7 @@ Lemma hoare_while : ∀P b c，
 
 (* 就像我们以前见过的那样，我们需要通过对 He 的归纳推理      进行推理，因为，在“继续循环”情况下，其假设      谈论整个循环而不仅仅是 c。*)
 
-记住 ([WHILE](Imp.html#::'WHILE'_x_'DO'_x_'END') b DO c END) 作为 wcom eqn:Heqwcom。
+记住 (WHILE b DO c END) 作为 wcom eqn:Heqwcom。
 
 归纳 He;
 
@@ -1929,7 +1929,7 @@ Lemma hoare_while : ∀P b c，
 
 - (* E_WhileEnd *)
 
-分割。假设。应用 [bexp_eval_false](Hoare.html#bexp_eval_false)。假设。
+分割。假设。应用 bexp_eval_false。假设。
 
 - (* E_WhileLoop *)
 
@@ -1937,7 +1937,7 @@ Lemma hoare_while : ∀P b c，
 
 应用 (Hhoare st st')。假设。
 
-分割。假设。应用 [bexp_eval_true](Hoare.html#bexp_eval_true)。假设。
+分割。假设。应用 bexp_eval_true。假设。
 
     结论。
 
@@ -1969,14 +1969,14 @@ Example while_example :
     {{fun st ⇒ st X = 3}}.
 
     Proof.
-  eapply [hoare_consequence_post](Hoare.html#hoare_consequence_post).
-  apply [hoare_while](Hoare.html#hoare_while).
-  eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre).
-  apply [hoare_asgn](Hoare.html#hoare_asgn).
-  unfold [bassn](Hoare.html#bassn), [assn_sub](Hoare.html#assn_sub), [assert_implies](Hoare.html#assert_implies), [t_update](Maps.html#t_update). simpl.
+  eapply hoare_consequence_post.
+  apply hoare_while.
+  eapply hoare_consequence_pre.
+  apply hoare_asgn.
+  unfold bassn, assn_sub, assert_implies, t_update. simpl.
     intros st [H[1] H[2]]. apply [leb_complete](http://coq.inria.fr/library/Coq.Arith.Compare_dec.html#leb_complete) in H[2]. omega.
-  unfold [bassn](Hoare.html#bassn), [assert_implies](Hoare.html#assert_implies). intros st [Hle Hb].
-    simpl in Hb. destruct ([leb](http://coq.inria.fr/library/Coq.Arith.Compare_dec.html#leb) (st [X](Imp.html#X)) 2) eqn : Heqle.
+  unfold bassn, assert_implies. intros st [Hle Hb].
+    simpl in Hb. destruct ([leb](http://coq.inria.fr/library/Coq.Arith.Compare_dec.html#leb) (st X) 2) eqn : Heqle.
     exfalso. apply Hb; reflexivity.
     apply [leb_iff_conv](http://coq.inria.fr/library/Coq.Arith.Compare_dec.html#leb_iff_conv) in Heqle. omega.
     Qed.
@@ -1992,11 +1992,11 @@ Theorem always_loop_hoare : ∀P Q,
     Proof.
   (* WORKED IN CLASS *)
   intros P Q.
-  apply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre) with (P' := fun st : [state](Imp.html#state) ⇒ [True](http://coq.inria.fr/library/Coq.Init.Logic.html#True)).
-  eapply [hoare_consequence_post](Hoare.html#hoare_consequence_post).
-  apply [hoare_while](Hoare.html#hoare_while).
+  apply hoare_consequence_pre with (P' := fun st : state ⇒ [True](http://coq.inria.fr/library/Coq.Init.Logic.html#True)).
+  eapply hoare_consequence_post.
+  apply hoare_while.
   - (* Loop body preserves invariant *)
-    apply [hoare_post_true](Hoare.html#hoare_post_true). intros st. apply [I](http://coq.inria.fr/library/Coq.Init.Logic.html#I).
+    apply hoare_post_true. intros st. apply [I](http://coq.inria.fr/library/Coq.Init.Logic.html#I).
   - (* Loop invariant and negated guard imply postcondition *)
     simpl. intros st [Hinv Hguard].
     exfalso. apply Hguard. reflexivity.
@@ -2035,7 +2035,7 @@ Theorem always_loop_hoare : ∀P Q,
     commands: REPEAT c UNTIL a END. You will write the
     evaluation rule for repeat and add a new Hoare rule to the
     language for programs involving it.  (You may recall that the
-    evaluation rule is given in an example in the [Auto](Auto.html) chapter.
+    evaluation rule is given in an example in the Auto chapter.
     Try to figure it out yourself here rather than peeking.)
 
 ```

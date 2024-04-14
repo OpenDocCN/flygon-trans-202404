@@ -1,4 +1,4 @@
-# 第4章。Apache Flink实现
+# 第四章。Apache Flink 实现
 
 [Flink](https://flink.apache.org/)是一个开源的流处理引擎（SPE），它可以执行以下操作：
 
@@ -10,11 +10,11 @@
 
 +   提供强大的窗口语义，允许您生成准确的结果，即使数据无序或延迟到达
 
-让我们看看如何利用Flink的能力来实现提议的架构
+让我们看看如何利用 Flink 的能力来实现提议的架构
 
 # 整体架构
 
-Flink提供了一个[低级流处理操作](http://bit.ly/apache-steam-process)，`ProcessFunction`，它提供了对任何流应用程序的基本构建块的访问：
+Flink 提供了一个[低级流处理操作](http://bit.ly/apache-steam-process)，`ProcessFunction`，它提供了对任何流应用程序的基本构建块的访问：
 
 +   事件（流中的单个记录）
 
@@ -22,7 +22,7 @@ Flink提供了一个[低级流处理操作](http://bit.ly/apache-steam-process)�
 
 +   计时器（事件时间和处理时间）
 
-Flink提供了低级连接操作的实现，该操作绑定了两个不同的输入（如果我们需要合并多个流，可以级联多个低级连接；此外，Flink即将推出的版本中将提供[侧输入](http://bit.ly/flink-side-inputs)，允许额外的流合并方法），并为每个输入提供处理记录的单独方法。实现低级连接通常遵循以下[模式](http://bit.ly/apache-steam-process)：
+Flink 提供了低级连接操作的实现，该操作绑定了两个不同的输入（如果我们需要合并多个流，可以级联多个低级连接；此外，Flink 即将推出的版本中将提供[侧输入](http://bit.ly/flink-side-inputs)，允许额外的流合并方法），并为每个输入提供处理记录的单独方法。实现低级连接通常遵循以下[模式](http://bit.ly/apache-steam-process)：
 
 1.  创建并维护反映执行当前状态的状态对象。
 
@@ -30,27 +30,27 @@ Flink提供了低级连接操作的实现，该操作绑定了两个不同的输
 
 1.  在从一个或两个输入接收元素时，使用当前状态来转换数据并产生结果。
 
-[图4-1](#using_flinkas_low-evel_join)说明了这个操作。
+图 4-1 说明了这个操作。
 
-![smlt 0401](assets/smlt_0401.png)
+![smlt 0401](img/smlt_0401.png)
 
-###### 图4-1。使用Flink的低级连接
+###### 图 4-1。使用 Flink 的低级连接
 
-这种模式很好地适应了整体架构（[图1-1](ch01.html#overall_architecture_of_model_serving)），这正是我想要实现的。
+这种模式很好地适应了整体架构（图 1-1），这正是我想要实现的。
 
-Flink提供了两种实现低级连接的方式，一种是由`CoProcessFunction`实现的基于键的连接，另一种是由`RichCoFlatMapFunction`实现的基于分区的连接。虽然你可以在这个实现中同时使用两种方式，但它们提供了不同的服务级别协议（SLAs），适用于略有不同的用例。
+Flink 提供了两种实现低级连接的方式，一种是由`CoProcessFunction`实现的基于键的连接，另一种是由`RichCoFlatMapFunction`实现的基于分区的连接。虽然你可以在这个实现中同时使用两种方式，但它们提供了不同的服务级别协议（SLAs），适用于略有不同的用例。
 
 # 使用基于键的连接
 
-Flink的`CoProcessFunction`允许对两个流进行基于键的合并。当使用这个API时，数据按键在多个Flink执行器之间分区。来自两个流的记录（基于键）被路由到负责实际处理的适当执行器，如[图4-2](#key-based_join)所示。
+Flink 的`CoProcessFunction`允许对两个流进行基于键的合并。当使用这个 API 时，数据按键在多个 Flink 执行器之间分区。来自两个流的记录（基于键）被路由到负责实际处理的适当执行器，如图 4-2 所示。
 
-![smlt 0402](assets/smlt_0402.png)
+![smlt 0402](img/smlt_0402.png)
 
-###### 图4-2。基于键的连接
+###### 图 4-2。基于键的连接
 
 这种方法的主要特点如下：
 
-+   执行的分布基于键（`dataType`，参见示例 [3-2](ch03.html#protobuf_definition_for_the_model_update) 和 [3-3](ch03.html#protobuf_definition_for_the_data_feed)）。
++   执行的分布基于键（`dataType`，参见示例 3-2 和 3-3）。
 
 +   个别模型的评分（针对给定的 `dataType`）是由单独的执行器实现的（一个执行器可以对多个模型进行评分），这意味着扩展 Flink 可以更好地分布个别模型，从而更好地并行化评分。
 
@@ -58,7 +58,7 @@ Flink的`CoProcessFunction`允许对两个流进行基于键的合并。当使�
 
 基于此，基于键的连接是在需要对多个数据类型进行评分且分布相对均匀的情况下的一种适当方法。
 
-此实现的核心是一个 `DataProcessor` 类（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)），您可以在 [示例 4-1](#the_dataprocessor_class) 中看到。
+此实现的核心是一个 `DataProcessor` 类（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)），您可以在 示例 4-1 中看到。
 
 ##### 示例 4-1\. 数据处理器类
 
@@ -155,7 +155,7 @@ override def restoreState(state: List[Option[Model]]): Unit = {
 
 `processElement2`
 
-当新的 `Model` 记录（稍后描述的 `ModelToServe` 类）到达时，将调用此方法。此方法只是构建一个新的用于提供服务的模型，就像 [示例 2-2](ch02.html#serving_the_model_created_from_the_execu) 中的 TensorFlow 模型或 [示例 2-6](ch02.html#serving_pmml_model) 中的 PMML 模型一样，并将其存储在 `newModel` 状态变量中。因为模型创建可能是一个耗时的操作，我将 `newModel` 状态与 `currentModel` 状态分离，以便模型创建不会影响当前模型的提供服务。
+当新的 `Model` 记录（稍后描述的 `ModelToServe` 类）到达时，将调用此方法。此方法只是构建一个新的用于提供服务的模型，就像 示例 2-2 中的 TensorFlow 模型或 示例 2-6 中的 PMML 模型一样，并将其存储在 `newModel` 状态变量中。因为模型创建可能是一个耗时的操作，我将 `newModel` 状态与 `currentModel` 状态分离，以便模型创建不会影响当前模型的提供服务。
 
 `processElement1`
 
@@ -173,7 +173,7 @@ override def restoreState(state: List[Option[Model]]): Unit = {
 
 这两个接口由以下三种方法实现：`initializeState`、`snapshotState` 和 `restoreState`。
 
-[示例 4-2](#the_modeltoserve_class) 展示了被 `DataProcessor` 类使用的 `ModelToServe` 类的样子。
+示例 4-2 展示了被 `DataProcessor` 类使用的 `ModelToServe` 类的样子。
 
 ##### 示例 4-2\. 服务模型类
 
@@ -196,7 +196,7 @@ case class ModelToServe(name: String, description: String,
 
 此类将模型定义的传入 protobuf 解析为代码中其余部分使用的内部格式。
 
-同样，我们使用`DataRecord`类来解组传入的数据定义（[示例 3-1](ch03.html#model_representation-id1)），如[示例 4-3](#the_datarecord_class)所示。
+同样，我们使用`DataRecord`类来解组传入的数据定义（示例 3-1），如示例 4-3 所示。
 
 ##### 示例 4-3\. DataRecord 类
 
@@ -209,7 +209,7 @@ object DataRecord {
 }
 ```
 
-检查点实现还需要对`Model`类进行序列化支持，如[示例 4-4](#the_modeltypeserializer_class)所示（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
+检查点实现还需要对`Model`类进行序列化支持，如示例 4-4 所示（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
 
 ##### 示例 4-4\. ModelTypeSerializer 类
 
@@ -249,7 +249,7 @@ class ModelTypeSerializer extends TypeSerializer[Option[Model]] {
 
 该类利用模型和模型工厂特性上的实用方法，以通用方式实现序列化/反序列化，而不考虑实际模型实现。
 
-序列化实现还需要实现配置支持，可以在[示例 4-5](#the_modelserializerconfigsnapshot_class)中看到（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
+序列化实现还需要实现配置支持，可以在示例 4-5 中看到（[完整代码在此处可用](http://bit.ly/2gwB16C)）。
 
 ##### 示例 4-5\. ModelSerializerConfigSnapshot 类
 
@@ -278,7 +278,7 @@ class ModelSerializerConfigSnapshot[T <: Model]
 ...
 ```
 
-执行的整体编排是使用 Flink 驱动程序完成的，如[示例 4-6](#flink_driver_for_key-based_joins)所示（[完整代码在此处可用](http://bit.ly/2yE1B8o)）。
+执行的整体编排是使用 Flink 驱动程序完成的，如示例 4-6 所示（[完整代码在此处可用](http://bit.ly/2yE1B8o)）。
 
 ##### 示例 4-6\. 用于基于键的连接的 Flink 驱动程序
 
@@ -329,7 +329,7 @@ object ModelServingKeyedJob {
 
 这个实现的核心是`buildGraph`方法。它首先配置并创建两个 Kafka 消费者，用于模型和数据，然后从这些消费者构建两个输入数据流。然后从两个流中读取数据并将它们合并。
 
-`FlinkKafkaConsumer010` 类需要定义[反序列化模式](http://bit.ly/2gvPIqi)。因为我们的消息是protobuf编码的，我将Kafka消息视为二进制数据块。为此，需要实现`ByteArraySchema`类，如[示例 4-7](#the_bytearrayschema_class)所示，定义Kafka数据的编码和解码。
+`FlinkKafkaConsumer010` 类需要定义[反序列化模式](http://bit.ly/2gvPIqi)。因为我们的消息是 protobuf 编码的，我将 Kafka 消息视为二进制数据块。为此，需要实现`ByteArraySchema`类，如示例 4-7 所示，定义 Kafka 数据的编码和解码。
 
 ##### 示例 4-7\. ByteArraySchema 类
 
@@ -349,9 +349,9 @@ class ByteArraySchema extends DeserializationSchema[Array[Byte]]
 
 Flink 的`RichCoFlatMapFunction`允许并行合并两个流。任务被分成几个并行实例以执行，每个实例处理任务输入数据的一个子集。任务的并行实例数称为其[并行度](http://bit.ly/2i51BaF)。
 
-在对分区流使用此 API 时，每个分区的数据由专用的 Flink 执行器处理。模型流中的记录被广播到所有执行器。如[图 4-3](#partition-based_join)所示，输入流的每个分区被路由到模型服务器的相应实例。如果输入流的分区数少于 Flink 的并行度，则只有一些模型服务器实例会被利用。否则，一些模型服务器实例将为多个分区提供服务。
+在对分区流使用此 API 时，每个分区的数据由专用的 Flink 执行器处理。模型流中的记录被广播到所有执行器。如图 4-3 所示，输入流的每个分区被路由到模型服务器的相应实例。如果输入流的分区数少于 Flink 的并行度，则只有一些模型服务器实例会被利用。否则，一些模型服务器实例将为多个分区提供服务。
 
-![smlt 0403](assets/smlt_0403.png)
+![smlt 0403](img/smlt_0403.png)
 
 ###### 图 4-3\. 基于分区的连接
 
@@ -363,7 +363,7 @@ Flink 的`RichCoFlatMapFunction`允许并行合并两个流。任务被分成几
 
 基于这些考虑，当需要在大量数据负载下使用一个或几个模型进行评分时，使用全局连接是一个合适的方法。
 
-这个实现的核心是 `DataProcessorMap` 类，您可以在[示例 4-8](#the_dataprocessmap_class)中看到它的运行情况（[完整代码在此处可用](http://bit.ly/2gcOLpYa)）。
+这个实现的核心是 `DataProcessorMap` 类，您可以在示例 4-8 中看到它的运行情况（[完整代码在此处可用](http://bit.ly/2gcOLpYa)）。
 
 ##### 示例 4-8\. 数据处理映射类
 
@@ -412,7 +412,7 @@ class DataProcessorMap
 }
 ```
 
-这个实现与 `DataProcessor` 类（[示例 4-1](#the_dataprocessor_class)）非常相似。以下是两者之间的主要区别：
+这个实现与 `DataProcessor` 类（示例 4-1）非常相似。以下是两者之间的主要区别：
 
 +   `DataProcessMap` 类扩展了 `RichCoFlatMapFunction`，而 `DataProcessor` 类扩展了 `CoProcessFunction` 类。
 
@@ -420,7 +420,7 @@ class DataProcessorMap
 
 与 `DataProcessor` 类类似，这个类还实现了对状态的检查点支持。
 
-执行的整体编排是使用 Flink 驱动程序完成的，这与之前基于键的连接的 Flink 驱动程序（[示例 4-6](#flink_driver_for_key-based_joins)）在将流传递给执行器（`keyBy` 对 `broadcast`）和处理（`process` 对 `flatMap`）以及连接方面有所不同，如[示例 4-9](#flink_driver_for_global_joins)所示（[完整代码在此处可用](http://bit.ly/2ydjA2y)）。
+执行的整体编排是使用 Flink 驱动程序完成的，这与之前基于键的连接的 Flink 驱动程序（示例 4-6）在将流传递给执行器（`keyBy` 对 `broadcast`）和处理（`process` 对 `flatMap`）以及连接方面有所不同，如示例 4-9 所示（[完整代码在此处可用](http://bit.ly/2ydjA2y)）。
 
 ##### 示例 4-9\. 用于全局连接的 Flink 驱动程序
 
@@ -438,4 +438,4 @@ Data
 
 尽管这个示例使用了一个模型，但您可以通过使用以数据类型为键的模型映射轻松扩展它以支持多个模型。
 
-Flink 低级处理 API 提供的丰富的流语义为操作数据流（包括它们的转换和合并）提供了一个非常强大的平台。在本章中，您已经看到了使用 Flink 实现提议架构的不同方法。在[第 5 章](ch05.html#apache_beam_implementation)中，我们将看看如何使用 Beam 来解决相同的问题。
+Flink 低级处理 API 提供的丰富的流语义为操作数据流（包括它们的转换和合并）提供了一个非常强大的平台。在本章中，您已经看到了使用 Flink 实现提议架构的不同方法。在第五章中，我们将看看如何使用 Beam 来解决相同的问题。

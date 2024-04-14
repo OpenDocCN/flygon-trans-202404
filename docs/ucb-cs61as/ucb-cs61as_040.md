@@ -29,14 +29,14 @@
     (lambda (x) (expt x n))) 
 ```
 
-正如我们之前指出的，lambda函数返回函数。这意味着如果我们将对`make-power`的调用定义为lambda函数，它将返回一个函数！现在我们可以这样做：
+正如我们之前指出的，lambda 函数返回函数。这意味着如果我们将对`make-power`的调用定义为 lambda 函数，它将返回一个函数！现在我们可以这样做：
 
 ```
 (define square (make-power 2))
 (define cube (make-power 3)) 
 ```
 
-现在我们可以这样重写我们的sum-powers函数：
+现在我们可以这样重写我们的 sum-powers 函数：
 
 ```
 (define (sum-powers n a b)

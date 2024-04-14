@@ -302,9 +302,9 @@ wfac :: Int# -> Int# -> Int# wfac = \ x# n# -> case n# of _ 0# -> x# _ -> case (
 
 ## SpecConstr：将严格性分析扩展到路径
 
-SpecConstr的想法是扩展严格性和取消装箱，但是对于在每个代码路径中参数不严格的函数。
+SpecConstr 的想法是扩展严格性和取消装箱，但是对于在每个代码路径中参数不严格的函数。
 
-考虑这个Haskell函数：
+考虑这个 Haskell 函数：
 
 ```
 drop :: Int -> [a] -> [a] drop n [] = [] drop 0 xs = xs drop n (x:xs) = drop (n-1) xs
@@ -324,39 +324,39 @@ drop :: Int -> [a] -> [a] drop n [] = [] drop 0 xs = xs drop n (x:xs) = drop (n-
 drop n xs = case xs of [] -> [] (y:ys) -> case n of I# n# -> case n# of 0 -> [] _ -> let n' = I# (n# -# 1#) in drop n' ys
 ```
 
-+   但在第一次调用drop之后，我们对`n`是严格的并且总是评估它！
++   但在第一次调用 drop 之后，我们对`n`是严格的并且总是评估它！
 
 ## SpecConstr
 
-SpecConstr通过利用这一点创建`drop`的专门版本，只有在我们通过第一个检查后才调用它。
+SpecConstr 通过利用这一点创建`drop`的专门版本，只有在我们通过第一个检查后才调用它。
 
 ```
 drop n xs = case xs of [] -> [] (y:ys) -> case n of I# n# -> case n# of 0 -> [] _ -> drop' (n# -# 1#) xs -- works with unboxed n drop' n# xs = case xs of [] -> [] (y:ys) -> case n# of 0# -> [] _ -> drop (n# -# 1#) xs
 ```
 
-+   为了防止代码大小膨胀，GHC限制它创建的专门函数的数量（使用`-fspec-constr-threshol`和`-fspec-constr-count`标志指定）。
++   为了防止代码大小膨胀，GHC 限制它创建的专门函数的数量（使用`-fspec-constr-threshol`和`-fspec-constr-count`标志指定）。
 
-## STG代码
+## STG 代码
 
-+   在Core之后，GHC编译到另一种名为STG的中间语言。
++   在 Core 之后，GHC 编译到另一种名为 STG 的中间语言。
 
-+   STG与Core非常相似，但有一个很好的附加属性：
++   STG 与 Core 非常相似，但有一个很好的附加属性：
 
     +   惰性是‘显式的’
 
-    +   `case` = *评估* 和唯一的评估发生的地方（在Core中是真的）
+    +   `case` = *评估* 和唯一的评估发生的地方（在 Core 中是真的）
 
-    +   `let` = *分配* 和唯一的分配发生的地方（在Core中不是这样）
+    +   `let` = *分配* 和唯一的分配发生的地方（在 Core 中不是这样）
 
-    +   因此在STG中，我们可以明确看到使用`let`为惰性分配thunks
+    +   因此在 STG 中，我们可以明确看到使用`let`为惰性分配 thunks
 
-+   要查看STG，请使用：
++   要查看 STG，请使用：
 
     ```
     ghc -ddump-stg A.hs > A.stg
     ```
 
-## STG代码
+## STG 代码
 
 Haskell
 
@@ -370,21 +370,13 @@ STG
 map :: forall a b. (a -> b) -> [a] -> [b] map = \r [f xs] case xs of _ [] -> [] [] : z zs -> let { bds = \u [] map f zs; bd = \u [] f z; } in : [bd bds]
 ```
 
-+   Lambda抽象为`[arg1 arg2] f`
++   Lambda 抽象为`[arg1 arg2] f`
 
 +   `\r` - 可重入
 
-+   `\u` - 可更新（即thunk）
++   `\u` - 可更新（即 thunk）
 
-## 图缩减作为Haskell的计算模型
-
-图缩减是惰性函数式语言的良好计算模型。
-
-```
-f g = let x = 2 + 2 in (g x, x)
-```
-
-## 图缩减作为Haskell的计算模型
+## 图缩减作为 Haskell 的计算模型
 
 图缩减是惰性函数式语言的良好计算模型。
 
@@ -392,7 +384,15 @@ f g = let x = 2 + 2 in (g x, x)
 f g = let x = 2 + 2 in (g x, x)
 ```
 
-## 图缩减作为Haskell的计算模型
+## 图缩减作为 Haskell 的计算模型
+
+图缩减是惰性函数式语言的良好计算模型。
+
+```
+f g = let x = 2 + 2 in (g x, x)
+```
+
+## 图缩减作为 Haskell 的计算模型
 
 图缩减是惰性函数式语言的良好计算模型。
 
@@ -404,17 +404,17 @@ f g = let x = 2 + 2 in (g x, x)
 
 +   当节点被减少时，它将被替换（或*更新*）为其结果
 
-可以将您的Haskell程序视为通过添加新节点到图或减少现有节点来进行。
+可以将您的 Haskell 程序视为通过添加新节点到图或减少现有节点来进行。
 
-## GHC执行模型
+## GHC 执行模型
 
-+   GHC使用闭包作为统一表示。
++   GHC 使用闭包作为统一表示。
 
 +   堆中的所有对象都是闭包。
 
 +   堆栈帧是一个闭包。
 
-+   GHC使用继续传递风格。
++   GHC 使用继续传递风格。
 
 +   总是跳转到顶部堆栈帧以返回。
 
@@ -426,11 +426,11 @@ f g = let x = 2 + 2 in (g x, x)
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-+   Header通常只是指向闭包代码和元数据的指针。
++   Header 通常只是指向闭包代码和元数据的指针。
 
 +   通过正负偏移量只需一个指针即可获得。
 
-+   Payload包含闭包的环境（例如自由变量，函数参数）
++   Payload 包含闭包的环境（例如自由变量，函数参数）
 
 ## 数据闭包
 
@@ -440,7 +440,7 @@ data G = G (Int -> Int) {-# UNPACK #-} !Int
 
 +   `[Header | Pointers... | Non-pointers...]`
 
-+   Payload是构造函数的值
++   Payload 是构造函数的值
 
 +   构造函数的入口代码只返回
 
@@ -456,7 +456,7 @@ f = \x -> let g = \y -> x + y in g x
 
 +   [Header | Pointers… | Non-pointers…]
 
-+   Payload是绑定的自由变量，例如，
++   Payload 是绑定的自由变量，例如，
 
     +   `[ &g | x ]`
 
@@ -470,7 +470,7 @@ foldr (:)
 
 +   `[Header | 元数 | Payload 大小 | 函数 | Payload]`
 
-+   PAP 的元数（应用了1个参数的元数为3的函数会得到元数为2的 PAP）
++   PAP 的元数（应用了 1 个参数的元数为 3 的函数会得到元数为 2 的 PAP）
 
 +   函数是部分应用的函数的闭包
 
@@ -490,9 +490,9 @@ range = [1..100]
 
 ## 调用约定
 
-+   在 X86 32位系统上 - 所有参数通过栈传递
++   在 X86 32 位系统上 - 所有参数通过栈传递
 
-+   在 X86 64位系统上 - 前5个参数通过寄存器传递，其余通过栈传递
++   在 X86 64 位系统上 - 前 5 个参数通过寄存器传递，其余通过栈传递
 
 +   `R1` 寄存器在 Cmm 代码中通常是指向当前闭包的指针（类似于面向对象语言中的 `this`）。
 
@@ -554,7 +554,7 @@ Thunk 闭包：
 
 +   这对性能来说很差，我们更喜欢避免每次都进入值。
 
-+   GHC 所做的一个优化是*指针标记*。这个技巧是利用指针的最后几位通常为零（32位系统为最后2位，64位系统为最后3位）来存储一个“标记”。
++   GHC 所做的一个优化是*指针标记*。这个技巧是利用指针的最后几位通常为零（32 位系统为最后 2 位，64 位系统为最后 3 位）来存储一个“标记”。
 
 +   GHC 使用这个标记来：
 

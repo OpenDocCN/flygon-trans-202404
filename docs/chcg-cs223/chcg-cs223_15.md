@@ -173,4 +173,4 @@ dequeue' (Q {front, back}) = case front of
 
 #### 必需的
 
-+   Okasaki，第5.2章
++   Okasaki，第 5.2 章

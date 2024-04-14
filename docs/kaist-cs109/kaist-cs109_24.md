@@ -1,16 +1,16 @@
-# CS109UI模块
+# CS109UI 模块
 
-我编写了一个简单的模块叫做cs109ui，它使得可以编写具有简单图形用户界面的程序，而无需了解Swing库或担心基于事件的编程。我们在[CS109](http://otfried.org/courses/cs109)中的几个项目中使用这个模块。
+我编写了一个简单的模块叫做 cs109ui，它使得可以编写具有简单图形用户界面的程序，而无需了解 Swing 库或担心基于事件的编程。我们在[CS109](http://otfried.org/courses/cs109)中的几个项目中使用这个模块。
 
 #### 基本用法
 
-要使用该模块，你需要按照[installation page](project-install.html)中的说明进行安装。
+要使用该模块，你需要按照 installation page 中的说明进行安装。
 
-该模块创建一个窗口。你可以通过绘制图像（使用[这里](tutorial-drawing.html)解释的操作）来填充这个窗口，然后调用show。
+该模块创建一个窗口。你可以通过绘制图像（使用这里解释的操作）来填充这个窗口，然后调用 show。
 
-setTitle命令设置窗口的标题。
+setTitle 命令设置窗口的标题。
 
-这是一个基本示例（[uitest1.kt](https://github.com/otfried/cs109-kotlin/raw/master/cs109ui/uitest1.kt)）。函数draw绘制到一个java.awt.image.BufferedImage（与[drawing example](tutorial-drawing.html)中的绘图代码完全相同）。
+这是一个基本示例（[uitest1.kt](https://github.com/otfried/cs109-kotlin/raw/master/cs109ui/uitest1.kt)）。函数 draw 绘制到一个 java.awt.image.BufferedImage（与 drawing example 中的绘图代码完全相同）。
 
 ```
 import org.otfried.cs109ui.*
@@ -93,13 +93,13 @@ $ kt Uitest1Kt
 
 程序会打开一个像这样的新窗口：
 
-![uitest1.kt的屏幕截图](../Images/670ee8e22b35961a1f0a52eb01dc4370.jpg)
+![uitest1.kt 的屏幕截图](img/670ee8e22b35961a1f0a52eb01dc4370.jpg)
 
 请注意，尽管主函数已经返回，程序尚未终止。要结束程序，你必须手动使用鼠标关闭窗口。
 
 #### 更新显示
 
-你可以通过绘制一个新图像并再次调用show来更改窗口的内容。（你可以绘制到之前的相同图像或使用新图像。）
+你可以通过绘制一个新图像并再次调用 show 来更改窗口的内容。（你可以绘制到之前的相同图像或使用新图像。）
 
 在窗口变化之间等待一段时间，你可以执行一些简单的动画，比如让对象在窗口内闪烁或移动。
 
@@ -193,9 +193,9 @@ fun main(args: Array<String>) {
 
 #### 键盘输入
 
-如果我们想要更进一步，我们可以通过窗口与用户进行所有交互。我们可以使用drawString函数在窗口中显示文本。下一步是允许用户通过在窗口中按键来控制程序。
+如果我们想要更进一步，我们可以通过窗口与用户进行所有交互。我们可以使用 drawString 函数在窗口中显示文本。下一步是允许用户通过在窗口中按键来控制程序。
 
-这是使用waitKey函数完成的。它会等待用户按下一个键，然后返回所按下的字符。这里有一个简单的测试程序（[uitest3.kt](https://github.com/otfried/cs109-kotlin/raw/master/cs109ui/uitest3.kt)）：
+这是使用 waitKey 函数完成的。它会等待用户按下一个键，然后返回所按下的字符。这里有一个简单的测试程序（[uitest3.kt](https://github.com/otfried/cs109-kotlin/raw/master/cs109ui/uitest3.kt)）：
 
 ```
 import org.otfried.cs109ui.*
@@ -249,7 +249,7 @@ fun main(args: Array<String>) {
 
 我们将得到这个弹出窗口：
 
-![showMessage 窗口](../Images/453fea90b7ab9f6f3881b6d6d7f3e08c.jpg)
+![showMessage 窗口](img/453fea90b7ab9f6f3881b6d6d7f3e08c.jpg)
 
 稍微有趣的是，我们可以询问一个是/否问题，用户可以通过按下两个按钮中的一个来决定：
 
@@ -260,7 +260,7 @@ fun main(args: Array<String>) {
 
 它看起来像这样：
 
-![askYesNo 窗口](../Images/e3a3598d89fa3a7ed69e338b5ba99108.jpg)
+![askYesNo 窗口](img/e3a3598d89fa3a7ed69e338b5ba99108.jpg)
 
 askYesNo 函数将用户的选择作为布尔值返回。
 
@@ -273,7 +273,7 @@ askYesNo 函数将用户的选择作为布尔值返回。
 
 它看起来像这样：
 
-![inputString 窗口](../Images/a7a4104c2748836445daaaeca60213b5.jpg)
+![inputString 窗口](img/a7a4104c2748836445daaaeca60213b5.jpg)
 
 再次，该函数返回用户输入的字符串。（如果用户按下“取消”或关闭弹出窗口，则返回空字符串。）
 

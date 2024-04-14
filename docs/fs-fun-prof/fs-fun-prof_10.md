@@ -2,35 +2,35 @@
 
 在这一系列的文章中，我们将看看如何将函数和值组合成表达式，以及 F# 中可用的不同类型的表达式。
 
-+   [表达式和语法：介绍](expressions-intro.html)。如何在 F# 中编码。
++   表达式和语法：介绍。如何在 F# 中编码。
 
-+   [表达式 vs. 语句](expressions-vs-statements.html)。为什么表达式更安全，更好地构建块。
++   表达式 vs. 语句。为什么表达式更安全，更好地构建块。
 
-+   [F# 表达式概述](understanding-fsharp-expressions.html)。控制流、let、do 等等。
++   F# 表达式概述。控制流、let、do 等等。
 
-+   [使用 let、use 和 do 进行绑定](let-use-do.html)。如何使用它们。
++   使用 let、use 和 do 进行绑定。如何使用它们。
 
-+   [F# 语法：缩进和冗长](fsharp-syntax.html)。理解挤压规则。
++   F# 语法：缩进和冗长。理解挤压规则。
 
-+   [参数和值的命名约定](naming-conventions.html)。a、f、x 等等。
++   参数和值的命名约定。a、f、x 等等。
 
-+   [控制流表达式](control-flow-expressions.html)。以及如何避免使用它们。
++   控制流表达式。以及如何避免使用它们。
 
-+   [异常](exceptions.html)。抛出和捕获的语法。
++   异常。抛出和捕获的语法。
 
-+   [匹配表达式](match-expression.html)。F# 的主力军。
++   匹配表达式。F# 的主力军。
 
-+   [使用 printf 格式化文本](printf.html)。打印和记录的技巧和技术。
++   使用 printf 格式化文本。打印和记录的技巧和技术。
 
-+   [示例：解析命令行参数](pattern-matching-command-line.html)。实践中的模式匹配。
++   示例：解析命令行参数。实践中的模式匹配。
 
-+   [示例：罗马数字](roman-numerals.html)。更多实践中的模式匹配。
-
-# 表达式和语法：介绍
++   示例：罗马数字。更多实践中的模式匹配。
 
 # 表达式和语法：介绍
 
-*注意：在阅读这个系列之前，我建议您先阅读["函数式思维"](thinking-functionally.html)系列作为先决条件。*
+# 表达式和语法：介绍
+
+*注意：在阅读这个系列之前，我建议您先阅读"函数式思维"系列作为先决条件。*
 
 在这个系列中，我们将看看如何将函数和值组合成表达式，以及 F# 中可用的不同类型的表达式。
 
@@ -85,7 +85,7 @@ public void IfThenElseStatement(bool aBool) {
 
 +   `result`变量必须在语句本身之外设置。它应该被设置为什么初始值呢？
 
-+   如果我忘记在`if`语句中为`result`变量赋值会怎么样？"if"语句的目的纯粹是产生副作用（对变量的赋值）。这意味着这些语句可能存在bug，因为在一个分支中忘记做赋值是很容易的。而且由于赋值只是一个副作用，编译器无法提供任何警告。由于`result`变量已在范围内定义，我可以很容易地使用它，却不知道它是无效的。
++   如果我忘记在`if`语句中为`result`变量赋值会怎么样？"if"语句的目的纯粹是产生副作用（对变量的赋值）。这意味着这些语句可能存在 bug，因为在一个分支中忘记做赋值是很容易的。而且由于赋值只是一个副作用，编译器无法提供任何警告。由于`result`变量已在范围内定义，我可以很容易地使用它，却不知道它是无效的。
 
 +   在“else”情况下`result`变量的值是什么？在这种情况下，我没有指定一个值。我是不是忘记了？这是一个潜在的 bug 吗？
 
@@ -324,7 +324,7 @@ F# 中有很多不同类型的表达式，目前大约有 50 种。其中大多�
 
 +   与面向对象代码相关的表达式，包括强制转换、接口等
 
-我们已经在 ["思考函数式"](thinking-functionally.html) 系列中讨论了 lambda，并且正如前面所指出的，计算表达式和面向对象表达式将留给以后的系列。
+我们已经在 "思考函数式" 系列中讨论了 lambda，并且正如前面所指出的，计算表达式和面向对象表达式将留给以后的系列。
 
 因此，在本系列的即将发布的帖子中，我们将重点讨论“控制流”表达式和“let”表达式。
 
@@ -336,11 +336,11 @@ F# 中有很多不同类型的表达式，目前大约有 50 种。其中大多�
 
 这些不同类型的控制流表达式将会在接下来的帖子中讨论：
 
-+   [match 表达式](match-expression)
++   match 表达式
 
-+   [命令式控制流：if-then-else 和 for 循环](control-flow-expressions)
++   命令式控制流：if-then-else 和 for 循环
 
-+   [异常](exceptions)
++   异常
 
 ### “let” 绑定作为表达式
 
@@ -350,7 +350,7 @@ F# 中有很多不同类型的表达式，目前大约有 50 种。其中大多�
 let x5 = let n=1 in n+2 
 ```
 
-`let` 怎么可能是一个表达式？原因将在下一篇文章中讨论 ["let"，"use" 和 "do"](let-use-do)。
+`let` 怎么可能是一个表达式？原因将在下一篇文章中讨论 "let"，"use" 和 "do"。
 
 ## 使用表达式的一般提示
 
@@ -538,7 +538,7 @@ let f () =
 
 从某种意义上说，嵌套的名称只是在表达式编译时消失的"宏"或"占位符"。因此，你应该能够看到嵌套的`let`对整个表达式没有影响。因此，例如，包含嵌套`let`的表达式的类型仅仅是最终主体表达式的类型。
 
-如果你了解嵌套的`let`绑定是如何工作的，那么某些错误就会变得可以理解。例如，如果没有东西让嵌套的"let"去"in"，整个表达式就不完整。在下面的示例中，let行后面没有任何内容，这是一个错误：
+如果你了解嵌套的`let`绑定是如何工作的，那么某些错误就会变得可以理解。例如，如果没有东西让嵌套的"let"去"in"，整个表达式就不完整。在下面的示例中，let 行后面没有任何内容，这是一个错误：
 
 ```
 let f () = 
@@ -616,7 +616,7 @@ exampleLetBinding "hello"
 
 在这种情况下，我们看到打印了"done"，但是`Dispose`从未被调用。
 
-### "Use"仅适用于IDisposables
+### "Use"仅适用于 IDisposables
 
 请注意，“use”绑定仅适用于实现`IDisposable`接口的类型，否则编译器会报错：
 
@@ -709,7 +709,7 @@ F#中的一个技巧是使用`use`关键字来自动执行任何类型的“停�
 
 这样做的方法是：
 
-+   为某种类型创建一个[扩展方法](type-extensions)
++   为某种类型创建一个扩展方法
 
 +   在该方法中，启动所需的行为，然后返回一个停止行为的`IDisposable`。
 
@@ -751,7 +751,7 @@ let testTimerWithDisposable =
 
 +   注册然后注销事件处理程序（而不是使用`WeakReference`）
 
-+   在UI中，在一段代码块开始时显示一个启动屏幕，然后在代码块结束时自动关闭它
++   在 UI 中，在一段代码块开始时显示一个启动屏幕，然后在代码块结束时自动关闭它
 
 一般情况下我不推荐这种方法，因为它隐藏了正在进行的操作，但在某些情况下可能非常有用。
 
@@ -815,7 +815,7 @@ module A =
 
 你会遇到的最常见的计算表达式类型是 *异步工作流*，用 `async{..}` 块表示。在这种情况下，它意味着它们被用于等待异步操作完成，然后绑定到结果值。
 
-这是我们在 [“为什么使用 F#？”系列中](concurrency-async-and-parallel)看到的一些示例：
+这是我们在 “为什么使用 F#？”系列中看到的一些示例：
 
 ```
 //This simple workflow just sleeps for 2 seconds.
@@ -1148,7 +1148,7 @@ let f = fun x ->  // "fun" should define a new line at col 9
 
 ### 了解更多信息
 
-有关缩进工作方式的更多细节，但上面的示例应该涵盖了大多数常见情况。如果你想了解更多，F#的完整语言规范可从微软作为[可下载的PDF](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf)获取，并且值得一读。
+有关缩进工作方式的更多细节，但上面的示例应该涵盖了大多数常见情况。如果你想了解更多，F#的完整语言规范可从微软作为[可下载的 PDF](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf)获取，并且值得一读。
 
 ## “冗长”语法
 
@@ -1156,7 +1156,7 @@ let f = fun x ->  // "fun" should define a new line at col 9
 
 +   每个“let”和“do”绑定后的`in`关键字
 
-+   代码块（如if-then-else）的`begin`/`end`关键字
++   代码块（如 if-then-else）的`begin`/`end`关键字
 
 +   循环结束时的`done`关键字
 
@@ -1187,11 +1187,11 @@ let x = let y = 1 in let z = 2 in y + z
 
 +   在输出生成的代码时
 
-+   为了与OCaml兼容
++   为了与 OCaml 兼容
 
 +   如果你视力受损或盲人并使用屏幕阅读器
 
-+   或者只是为了对F#解析器使用的抽象语法树有一些了解
++   或者只是为了对 F#解析器使用的抽象语法树有一些了解
 
 除了这些情况外，冗长语法在实践中很少使用。
 
@@ -1199,9 +1199,9 @@ let x = let y = 1 in let z = 2 in y + z
 
 # 参数和值的命名约定
 
-如果你是从诸如C#之类的命令式语言转向F#，那么你可能会发现很多名称比你习惯的更短更神秘。
+如果你是从诸如 C#之类的命令式语言转向 F#，那么你可能会发现很多名称比你习惯的更短更神秘。
 
-在C#和Java中，最佳实践是使用长的描述性标识符。在函数式语言中，函数名称本身可以是描述性的，但函数内部的本地标识符往往非常简短，并且经常使用管道和组合来使所有内容尽可能少地占用行数。
+在 C#和 Java 中，最佳实践是使用长的描述性标识符。在函数式语言中，函数名称本身可以是描述性的，但函数内部的本地标识符往往非常简短，并且经常使用管道和组合来使所有内容尽可能少地占用行数。
 
 例如，这是一个使用非常描述性名称的素数筛的粗糙实现��
 
@@ -1357,11 +1357,11 @@ let f list =
 
 再次，第二个实现更容易理解，而且更高效。
 
-故事的寓意是：如果你发现自己在使用if-then-else或匹配布尔值，请考虑重构你的代码。
+故事的寓意是：如果你发现自己在使用 if-then-else 或匹配布尔值，请考虑重构你的代码。
 
-### 如何使用if-then-else
+### 如何使用 if-then-else
 
-如果你确实需要使用if-then-else，请注意即使语法看起来很熟悉，但你必须注意一个要点：“`if-then-else`”是一个*表达式*，而不是一个*语句*，与F#中的每个表达式一样，它必须返回特定类型的值。
+如果你确实需要使用 if-then-else，请注意即使语法看起来很熟悉，但你必须注意一个要点：“`if-then-else`”是一个*表达式*，而不是一个*语句*，与 F#中的每个表达式一样，它必须返回特定类型的值。
 
 这里有两个返回类型为字符串的示例。
 
@@ -1394,11 +1394,11 @@ let v = if true then "a"
 let v2 = if true then printfn "a"   // OK as printfn returns unit 
 ```
 
-注意，没有办法在分支中提前返回。返回值是整个表达式。换句话说，if-then-else表达式与C#中的三元if运算符（<if expr="" class="hljs-class">?<then expr="" class="hljs-class">:<else expr="" class="hljs-class">）更接近</else></then></if>，而不是C#中的if-then-else语句。
+注意，没有办法在分支中提前返回。返回值是整个表达式。换句话说，if-then-else 表达式与 C#中的三元 if 运算符（<if expr="" class="hljs-class">?<then expr="" class="hljs-class">:<else expr="" class="hljs-class">）更接近</else></then></if>，而不是 C#中的 if-then-else 语句。
 
-### 用于一行代码的if-then-else
+### 用于一行代码的 if-then-else
 
-if-then-else真正有用的一个地方是创建简单的一行代码，以传递到其他函数中。
+if-then-else 真正有用的一个地方是创建简单的一行代码，以传递到其他函数中。
 
 ```
 let posNeg x = if x > 0 then "+" elif x < 0 then "-" else "0"
@@ -1407,7 +1407,7 @@ let posNeg x = if x > 0 then "+" elif x < 0 then "-" else "0"
 
 ### 返回函数
 
-不要忘记，if-then-else表达式可以返回任何值，包括函数值。例如：
+不要忘记，if-then-else 表达式可以返回任何值，包括函数值。例如：
 
 ```
 let greetings = 
@@ -1427,7 +1427,7 @@ greetings "Alice"
 
 避免循环的最佳方法是使用内置的列表和序列函数。几乎所有你想做的事情都可以不使用显式循环来完成。而且通常，作为副作用，你也可以避免可变值。以下是一些示例供参考，更多细节请阅读专门介绍列表和序列操作的系列文章。
 
-示例：打印10次某个内容：
+示例：打印 10 次某个内容：
 
 ```
 // bad
@@ -1488,15 +1488,15 @@ let printRandomNumbersUntilMatched matchValue maxValue =
 printRandomNumbersUntilMatched 10 20 
 ```
 
-与if-then-else一样，有一个寓意；如果你发现自己在使用循环和可变值，请考虑重构你的代码以避免它们。
+与 if-then-else 一样，有一个寓意；如果你发现自己在使用循环和可变值，请考虑重构你的代码以避免它们。
 
 ### 三种类型的循环
 
-如果你想要使用循环，那么有三种类型的循环表达式可供选择，它们与C#中的类似。
+如果你想要使用循环，那么有三种类型的循环表达式可供选择，它们与 C#中的类似。
 
-+   `for-in-do`。其形式为`for x in enumerable do something`。它与C#中的`foreach`循环相同，并且是F#中最常见的形式。
++   `for-in-do`。其形式为`for x in enumerable do something`。它与 C#中的`foreach`循环相同，并且是 F#中最常见的形式。
 
-+   `for-to-do`。其形式为`for x = start to finish do something`。它与C#中的标准`for (i=start; i<end; i++)`循环相同。
++   `for-to-do`。其形式为`for x = start to finish do something`。它与 C#中的标准`for (i=start; i<end; i++)`循环相同。
 
 +   `while-do`。它的形式是 `while test do something`。这与 C# 中的 `while` 循环相同。请注意，F# 中没有 `do-while` 的等价物。
 
@@ -1641,7 +1641,7 @@ let f x =
 
 ## 抛出异常对函数类型有什么影响？
 
-我们之前说过，if-then-else表达式的两个分支必须返回相同的类型。但是，如何在这种约束下引发异常呢？
+我们之前说过，if-then-else 表达式的两个分支必须返回相同的类型。但是，如何在这种约束下引发异常呢？
 
 答案是，任何引发异常的代码在确定表达式类型时都将被忽略。这意味着函数签名将基于正常情况而不是异常情况。
 
@@ -1677,15 +1677,15 @@ with
     | :? System.InvalidOperationException as ex -> "unexpected" 
 ```
 
-如果要捕获的异常是使用`failwith`（例如System.Exception）或自定义的F#异常引发的，则可以使用上面显示的简单标记方法进行匹配。
+如果要捕获的异常是使用`failwith`（例如 System.Exception）或自定义的 F#异常引发的，则可以使用上面显示的简单标记方法进行匹配。
 
-另一方面，要捕获特定的.NET异常类，您必须使用更复杂的语法进行匹配：
+另一方面，要捕获特定的.NET 异常类，您必须使用更复杂的语法进行匹配：
 
 ```
 :? (exception class) as ex 
 ```
 
-同样，与if-then-else和循环一样，`try-with`块是一个返回值的表达式。这意味着`try-with`表达式的所有分支*必须*返回相同的类型。
+同样，与 if-then-else 和循环一样，`try-with`块是一个返回值的表达式。这意味着`try-with`表达式的所有分支*必须*返回相同的类型。
 
 考虑这个例子：
 
@@ -1727,7 +1727,7 @@ divide 1 0
 
 ### 重新抛出异常
 
-如果需要，在catch处理程序中可以调用"`reraise()`"函数将相同的异常传播到调用链上。这与C#的`throw`关键字相同。
+如果需要，在 catch 处理程序中可以调用"`reraise()`"函数将相同的异常传播到调用链上。这与 C#的`throw`关键字相同。
 
 ```
 let divide x y=
@@ -1929,7 +1929,7 @@ let presentationLayerFunction =
 
 模式匹配在 F# 中无处不在。它用于将值绑定到带有`let`的表达式中，并且在函数参数中以及使用`match..with`语法进行分支。
 
-我们已经简要介绍了在 [“为什么使用 F#？”系列文章](conciseness-pattern-matching)中将值绑定到表达式的内容，并且在我们 [研究类型](overview-of-types-in-fsharp) 时会多次介绍。
+我们已经简要介绍了在 “为什么使用 F#？”系列文章中将值绑定到表达式的内容，并且在我们 研究类型 时会多次介绍。
 
 所以在这篇文章中，我们将介绍`match..with`语法及其用于控制流的用法。
 
@@ -2009,7 +2009,7 @@ let x =
 
 由于 F# 对缩进很敏感，你可能想知道如何最好地格式化此表达式，因为有许多活动部分。
 
-[F# 语法文章](fsharp-syntax) 概述了对齐是如何工作的，但是对于`match..with`表达式，这里有一些具体的指导方针。
+F# 语法文章 概述了对齐是如何工作的，但是对于`match..with`表达式，这里有一些具体的指导方针。
 
 **指南 1：`| expression`子句的对齐应直接位于`match`下面**
 
@@ -2069,11 +2069,11 @@ let f list =
     | x::xs -> "something else" 
 ```
 
-## match..with是一个表达式
+## match..with 是一个表达式
 
 意识到`match..with`实际上不是一个“控制流”构造。 “控制”不“流”到分支中，而是整个事情是一个在某些时刻被评估的表达式，就像任何其他表达式一样。实际上的最终结果可能是相同的，但这是一个重要的概念上的差异。
 
-表达式的一个后果是所有分支*必须*评估为*相同*类型--我们已经看到了这种与if-then-else表达式和for循环相同的行为。
+表达式的一个后果是所有分支*必须*评估为*相同*类型--我们已经看到了这种与 if-then-else 表达式和 for 循环相同的行为。
 
 ```
 let x = 
@@ -2100,7 +2100,7 @@ let f aValue =
         | _ -> "something" 
 ```
 
-这里有一个嵌入到lambda中的匹配表达式：
+这里有一个嵌入到 lambda 中的匹配表达式：
 
 ```
 [2..10]
@@ -2115,7 +2115,7 @@ let f aValue =
 
 另一个作为表达式的后果是必须总是有*一些*分支匹配。整个表达式必须评估为*某些东西*！
 
-也就是说，“全面匹配”的宝贵概念来自于F#的“一切都是表达式”的本质。在语句导向的语言中，不需要这样做。
+也就是说，“全面匹配”的宝贵概念来自于 F#的“一切都是表达式”的本质。在语句导向的语言中，不需要这样做。
 
 这是一个不完整匹配的示例：
 
@@ -2144,7 +2144,7 @@ let x =
     | _ -> "z" 
 ```
 
-你经常看到这种模式，我在这些例子中也经常使用它。这相当于在switch语句中有一个全捕获的`default`。
+你经常看到这种模式，我在这些例子中也经常使用它。这相当于在 switch 语句中有一个全捕获的`default`。
 
 但是，如果你想充分利用穷举模式匹配的全部好处，我鼓励你 *不* 使用通配符，并尽可能明确地匹配所有情况。这在匹配联合类型的情况下尤为重要：
 
@@ -2307,7 +2307,7 @@ loopAndSum [1..5] 0
 
 ### 匹配元组、记录和联合类型
 
-所有内置的 F# 类型都支持模式匹配。更多详情请参阅 [类型系列](overview-of-types-in-fsharp)。
+所有内置的 F# 类型都支持模式匹配。更多详情请参阅 类型系列。
 
 ```
 // -----------------------
@@ -2392,7 +2392,7 @@ detectTypeBoxed 3.14
 
 在我看来，基于类型进行匹配和调度是一种代码异味，就像在面向对象编程中一样。偶尔是必要的，但是如果使用不慎，就表明设计不佳。
 
-在良好的面向对象设计中，正确的方法是使用[多态来替代子类型测试](http://sourcemaking.com/refactoring/replace-conditional-with-polymorphism)，以及诸如[双重分派](http://www.c2.com/cgi/wiki?DoubleDispatchExample)等技术。所以如果你在F#中做这种类型的面向对象编程，你可能应该使用相同的技术。
+在良好的面向对象设计中，正确的方法是使用[多态来替代子类型测试](http://sourcemaking.com/refactoring/replace-conditional-with-polymorphism)，以及诸如[双重分派](http://www.c2.com/cgi/wiki?DoubleDispatchExample)等技术。所以如果你在 F#中做这种类型的面向对象编程，你可能应该使用相同的技术。
 
 ## 对多个值进行匹配
 
@@ -2558,7 +2558,7 @@ classifyString "alice@example.com"
 classifyString "google.com" 
 ```
 
-你可以在[上一篇文章](convenience-active-patterns)中看到其他主动模式的例子。
+你可以在上一篇文章中看到其他主动模式的例子。
 
 ## "function"关键字
 
@@ -2580,9 +2580,9 @@ let f =
 
 正如你所看到的，`aValue`参数已经完全消失了，连同`match..with`。
 
-这个关键字与标准lambda的`fun`关键字并不相同，而是将`fun`和`match..with`组合成一步。
+这个关键字与标准 lambda 的`fun`关键字并不相同，而是将`fun`和`match..with`组合成一步。
 
-`function`关键字可以在任何可以使用函数定义或lambda的地方使用，例如嵌套匹配：
+`function`关键字可以在任何可以使用函数定义或 lambda 的地方使用，例如嵌套匹配：
 
 ```
 // using match..with
@@ -2621,7 +2621,7 @@ let f =
 
 ## 使用 try..with 进行异常处理
 
-在[上一篇文章](exceptions)中，我们讨论了使用 `try..with` 表达式捕获异常。
+在上一篇文章中，我们讨论了使用 `try..with` 表达式捕获异常。
 
 ```
 try
@@ -2708,7 +2708,7 @@ let loopAndSum3 aList = List.fold (fun sum i -> sum+i) 0 aList
 [1..10] |> loopAndSum3 
 ```
 
-类似地，Option 类型（在[此文章](the-option-type)中详细讨论）有一个关联的 `Option` 模块，其中包含许多有用的函数。
+类似地，Option 类型（在此文章中详细讨论）有一个关联的 `Option` 模块，其中包含许多有用的函数。
 
 例如，一个对 `Some` vs `None` 进行匹配的函数可以用 `Option.map` 来替换：
 
@@ -2752,7 +2752,7 @@ module Temperature =
 
 +   联合结构中的每个情况（或匹配模式中的子句）都有一个函数。
 
-+   最后，要匹配的实际值放在最后。（为什么？请参阅关于 ["为部分应用设计函数"](partial-application) 的文章）
++   最后，要匹配的实际值放在最后。（为什么？请参阅关于 "为部分应用设计函数" 的文章）
 
 现在我们有了我们的折叠函数，我们可以在不同的上下文中使用它。
 
@@ -2814,51 +2814,51 @@ let f75 = F 75.0
 let resultInC = convert f75 
 ```
 
-我们甚至可以连续两次调用convert，并且应该得到与开始时相同的温度！
+我们甚至可以连续两次调用 convert，并且应该得到与开始时相同的温度！
 
 ```
 let resultInC = C 20.0 |> convert |> convert 
 ```
 
-在即将到来的关于递归和递归类型的系列中，将会有更多关于fold的讨论。
+在即将到来的关于递归和递归类型的系列中，将会有更多关于 fold 的讨论。
 
-# 使用printf创建格式化文本
+# 使用 printf 创建格式化文本
 
-# 使用printf创建格式化文本
+# 使用 printf 创建格式化文本
 
 在这篇文章中，我们将稍作偏离，看看如何创建格式化文本。打印和格式化函数在技术上是库函数，但在实践中，它们被用作核心语言的一部分。
 
 F#支持两种不同的文本格式化风格：
 
-+   标准的.NET技术["复合格式化"](http://msdn.microsoft.com/en-us/library/txafckwd.aspx)，如`String.Format`、`Console.WriteLine`等。
++   标准的.NET 技术["复合格式化"](http://msdn.microsoft.com/en-us/library/txafckwd.aspx)，如`String.Format`、`Console.WriteLine`等。
 
-+   使用`printf`和[相关函数族](http://msdn.microsoft.com/en-us/library/ee370560)（如`printfn`、`sprintf`等）的C风格技术。
++   使用`printf`和[相关函数族](http://msdn.microsoft.com/en-us/library/ee370560)（如`printfn`、`sprintf`等）的 C 风格技术。
 
 ## String.Format vs printf
 
-复合格式化技术在所有.NET语言中都可用，您可能从C#中熟悉它。
+复合格式化技术在所有.NET 语言中都可用，您可能从 C#中熟悉它。
 
 ```
 Console.WriteLine("A string: {0}. An int: {1}. A float: {2}. A bool: {3}","hello",42,3.14,true) 
 ```
 
-另一方面，`printf`技术基于C风格的格式字符串：
+另一方面，`printf`技术基于 C 风格的格式字符串：
 
 ```
 printfn "A string: %s. An int: %i. A float: %f. A bool: %b" "hello" 42 3.14 true 
 ```
 
-正如您所见，`printf`技术在F#中非常常见，而`String.Format`、`Console.Write`等则很少使用。
+正如您所见，`printf`技术在 F#中非常常见，而`String.Format`、`Console.Write`等则很少使用。
 
-为什么`printf`被认为是F#中首选且符合惯例的？原因如下：
+为什么`printf`被认为是 F#中首选且符合惯例的？原因如下：
 
 +   它是静态类型检查的。
 
-+   它是一个行为良好的F#函数，因此支持部分应用等。
++   它是一个行为良好的 F#函数，因此支持部分应用等。
 
-+   它支持原生F#类型。
++   它支持原生 F#类型。
 
-### printf是静态类型检查的
+### printf 是静态类型检查的
 
 与`String.Format`不同，`printf`是*静态类型检查的*，包括参数的类型和数量。
 
@@ -2883,11 +2883,11 @@ Console.WriteLine("A string: {0}","Hello",42)  //works!
 Console.WriteLine("A string: {0}. An int: {1}","Hello") //FormatException 
 ```
 
-### printf支持部分应用
+### printf 支持部分应用
 
-.NET格式化函数要求所有参数*同时*传递。
+.NET 格式化函数要求所有参数*同时*传递。
 
-但`printf`是一个标准的、行为良好的F#函数，因此支持[部分应用](partial-application)。
+但`printf`是一个标准的、行为良好的 F#函数，因此支持部分应用。
 
 以下是一些示例：
 
@@ -2919,9 +2919,9 @@ do doSomething callback 3 4
 [1..5] |> List.map (sprintf "i=%i") 
 ```
 
-### printf支持原生F#类型
+### printf 支持原生 F#类型
 
-对于非原始类型，.NET格式化函数仅支持使用`ToString()`，但`printf`支持使用`%A`格式说明符的原生F#类型：
+对于非原始类型，.NET 格式化函数仅支持使用`ToString()`，但`printf`支持使用`%A`格式说明符的原生 F#类型：
 
 ```
 // tuple printing
@@ -2942,9 +2942,9 @@ Console.WriteLine("A union: {0}", freezing )
 printfn "A union: %A" freezing 
 ```
 
-正如您所见，元组类型有一个很好的`ToString()`，但其他用户定义的类型没有，因此如果您想要将它们与.NET格式化函数一起使用，您将不得不显式重写`ToString()`方法。
+正如您所见，元组类型有一个很好的`ToString()`，但其他用户定义的类型没有，因此如果您想要将它们与.NET 格式化函数一起使用，您将不得不显式重写`ToString()`方法。
 
-## printf的陷阱
+## printf 的陷阱
 
 使用 `printf` 时需要注意一些“坑”。
 
@@ -2955,11 +2955,11 @@ printfn "A union: %A" freezing
 printfn "A string: %s An int: %i" "Hello" 
 ```
 
-当然，原因是这根本不是错误；`printf`只是部分应用！如果您不清楚为什么会发生这种情况，请参阅[部分应用讨论](partial-application)。
+当然，原因是这根本不是错误；`printf`只是部分应用！如果您不清楚为什么会发生这种情况，请参阅部分应用讨论。
 
 另一个问题是“格式字符串”实际上不是字符串。
 
-在.NET格式化模型中，格式化字符串是普通字符串，因此您可以传递它们，将它们存储在资源文件中等。这意味着以下代码可以正常工作：
+在.NET 格式化模型中，格式化字符串是普通字符串，因此您可以传递它们，将它们存储在资源文件中等。这意味着以下代码可以正常工作：
 
 ```
 let netFormatString = "A string: {0}"
@@ -3005,9 +3005,9 @@ printfn twFormat2  "Hello" 42
 
 ## 如何指定格式
 
-“%”格式规范与C中使用的非常相似，但对于F#进行了一些特殊的定制。
+“%”格式规范与 C 中使用的非常相似，但对于 F#进行了一些特殊的定制。
 
-与C一样，紧随`%`后面的字符具有特定的含义，如下所示。
+与 C 一样，紧随`%`后面的字符具有特定的含义，如下所示。
 
 ```
 %[flags][width][.precision]specifier 
@@ -3398,7 +3398,7 @@ let result = Printf.ksprintf doAfter "%s" "Hello"
 
 让我们来看一个使用外部日志框架加自定义事件的示例。
 
-首先，让我们创建一个类似于log4net或System.Diagnostics.Trace的简单日志记录类。在实践中，这将被一个真正的第三方库所取代。
+首先，让我们创建一个类似于 log4net 或 System.Diagnostics.Trace 的简单日志记录类。在实践中，这将被一个真正的第三方库所取代。
 
 ```
 open System
@@ -3426,7 +3426,7 @@ type Logger(name) =
 
 接下来，在我的应用程序代码中，我做了以下操作：
 
-+   创建日志框架的实例。我在这里硬编码了工厂方法，但你也可以使用IoC容器。
++   创建日志框架的实例。我在这里硬编码了工厂方法，但你也可以使用 IoC 容器。
 
 +   创建名为`logInfo`和`logError`的辅助函数，调用日志框架，并在`logError`的情况下，还显示一个弹出消息。
 
@@ -3499,7 +3499,7 @@ module MyApplication2 =
 MyApplication2.test() 
 ```
 
-面向对象的方法，虽然更为熟悉，但并不自动更好！讨论OO方法与纯函数的利弊[在这里](type-extensions.html#downsides-of-methods)。
+面向对象的方法，虽然更为熟悉，但并不自动更好！讨论 OO 方法与纯函数的利弊在这里。
 
 # 工作示例：解析命令行参数
 
@@ -3513,21 +3513,21 @@ MyApplication2.test()
 
 实际上，我们可以说一个功能性的*应用程序*接受输入，转换它，并输出结果：
 
-![](function_transform1.png)
+![](img/function_transform1.png)
 
 理想情况下，转换在我们创建来模拟领域的纯类型安全世界内进行，但不幸的是，现实世界是无类型的！也就是说，输入很可能是简单的字符串或字节，输出也是。
 
 我们如何处理这个？显而易见的解决方案是有一个单独的阶段将输入转换为我们纯净的内部模型，然后另一个单独的阶段将内部模型转换为输出。
 
-![](function_transform2.png)
+![](img/function_transform2.png)
 
-通过这种方式，我们可以将现实世界的混乱隐藏在应用程序的核心之外。这种"保持模型纯净"的方法类似于大型中的["六边形架构"](http://alistair.cockburn.us/Hexagonal+architecture)概念，或者小型中的MVC模式。
+通过这种方式，我们可以将现实世界的混乱隐藏在应用程序的核心之外。这种"保持模型纯净"的方法类似于大型中的["六边形架构"](http://alistair.cockburn.us/Hexagonal+architecture)概念，或者小型中的 MVC 模式。
 
-在这篇文章和[下一篇](roman-numerals)中，我们将看到一些简单的例子。
+在这篇文章和下一篇中，我们将看到一些简单的例子。
 
 ## 例子：解析命令行
 
-我们在[上一篇文章](match-expression)中总体讨论了匹配表达式，现在让我们看一个真实的例子，在这个例子中匹配表达式很有用，即解析命令行。
+我们在上一篇文章中总体讨论了匹配表达式，现在让我们看一个真实的例子，在这个例子中匹配表达式很有用，即解析命令行。
 
 我们将设计和实现两个���有不同的版本，一个具有基本内部模型，另一个具有一些改进。
 
@@ -3796,7 +3796,7 @@ CommandLineV1.parseCommandLine ["/o"; "xyz"]
 
 ## 第二个版本
 
-在我们的初始模型中，我们使用bool和string来表示可能的值。
+在我们的初始模型中，我们使用 bool 和 string 来表示可能的值。
 
 ```
 type CommandLineOptions = {
@@ -3810,7 +3810,7 @@ type CommandLineOptions = {
 
 +   **它并不 *真正* 代表域。**例如，`orderby`真的可以是*任何*字符串吗？如果我将其设置为"ABC"，我的代码会崩溃吗？
 
-+   **值不是自说明的。**例如，verbose值是一个布尔值。我们只知道布尔值代表"verbose"选项，因为它所在的*上下文*（名为`verbose`的字段）。如果我们将布尔值传递并脱离上下文，我们就不知道它代表什么。我相信我们都见过像这样有很多布尔参数的C#函数：
++   **值不是自说明的。**例如，verbose 值是一个布尔值。我们只知道布尔值代表"verbose"选项，因为它所在的*上下文*（名为`verbose`的字段）。如果我们将布尔值传递并脱离上下文，我们就不知道它代表什么。我相信我们都见过像这样有很多布尔参数的 C#函数：
 
 ```
 myObject.SetUpComplicatedOptions(true,false,true,false,false); 
@@ -3919,7 +3919,7 @@ CommandLineV2.parseCommandLine ["/v"; "xyz"]
 CommandLineV2.parseCommandLine ["/o"; "xyz"] 
 ```
 
-## 使用fold而不是递归？
+## 使用 fold 而不是递归？
 
 我们在上一篇文章中说过，尽量避免递归，并使用`List`模块中的内置函数如`map`和`fold`。
 
@@ -4059,11 +4059,11 @@ CommandLineV3.parseCommandLine ["/o"; "/v"]
 
 # 工作示例：罗马数字
 
-[上次](pattern-matching-command-line)我们讨论了解析命令行。这次我们将再次看一个模式匹配的例子，这次使用罗马数字。
+上次我们讨论了解析命令行。这次我们将再次看一个模式匹配的例子，这次使用罗马数字。
 
 和以前一样，我们将尝试拥有一个“纯粹”的内部模型，其中有单独的阶段将输入转换为内部模型，然后另一个单独的阶段将内部模型转换为输出。
 
-![](function_transform2.png)
+![](img/function_transform2.png)
 
 ## 需求
 
@@ -4092,7 +4092,7 @@ type RomanNumeral = RomanDigit list
 
 不，就停在那里！`RomanDigit` 不仅仅是*任何*数字，它必须来自一个有限的集合。
 
-另外 `RomanNumeral` 不应该只是一个[type alias](type-abbreviations)来表示数字列表。如果它也是自己的特殊类型会更好。我们可以通过创建一个[single case union type](discriminated-unions)来实现这一点。
+另外 `RomanNumeral` 不应该只是一个 type alias 来表示数字列表。如果它也是自己的特殊类型会更好。我们可以通过创建一个 single case union type 来实现这一点。
 
 这是一个更好的版本：
 
@@ -4193,7 +4193,7 @@ let charToRomanDigit =
 
 编译器不喜欢那样！如果我们得到其他字符会发生什么？
 
-这是一个很好的例子，说明了[穷举模式匹配](correctness-exhaustive-pattern-matching)如何迫使你考虑缺失的需求。
+这是一个很好的例子，说明了穷举模式匹配如何迫使你考虑缺失的需求。
 
 那么，对于错误的输入应该怎么办。打印错误消息怎么样？
 
@@ -4212,7 +4212,7 @@ let charToRomanDigit =
     | ch -> eprintf "%c is not a valid character" ch 
 ```
 
-编译器也不喜欢这样！正常情况下返回一个有效的 `RomanDigit`，但错误情况返回 `unit`。正如我们在[之前的帖子](pattern-matching)中看到的那样，每个分支 *必须* 返回相同的类型。
+编译器也不喜欢这样！正常情况下返回一个有效的 `RomanDigit`，但错误情况返回 `unit`。正如我们在之前的帖子中看到的那样，每个分支 *必须* 返回相同的类型。
 
 我们如何修复这个问题？我们可以抛出一个异常，但这似乎有点过分。如果我们再考虑一下，`charToRomanDigit`不可能*总是*返回一个有效的`RomanDigit`。有时可以，有时不行。换句话说，在这里我们需要使用类似选项类型的东西。
 
@@ -4344,7 +4344,7 @@ let toRomanNumeral s =
 
 +   任何数字连续出现五次是不允许的。
 
-+   一些数字允许连续出现最多4次。它们是I、X、C和M。其他的（V、L、D）只能单独出现。
++   一些数字允许连续出现最多 4 次。它们是 I、X、C 和 M。其他的（V、L、D）只能单独出现。
 
 +   一些较低的数字可以出现在较高的数字之前，但只能单独出现。例如，“IX”是可以的，但“IIIX”不行。
 
@@ -4713,9 +4713,9 @@ x |> toInt
 
 ### 输入：第二个版本
 
-对于输入解析，我们将保留`ParsedChar`类型。但这次，我们必须一次匹配1、2、3或4个字符。这意味着我们不能像在第一个版本中那样只取出一个字符--我们必须在主循环中匹配。这意味着循环现在必须是递归的。
+对于输入解析，我们将保留`ParsedChar`类型。但这次，我们必须一次匹配 1、2、3 或 4 个字符。这意味着我们不能像在第一个版本中那样只取出一个字符--我们必须在主循环中匹配。这意味着循环现在必须是递归的。
 
-另外，我们希望将IIII转换为一个单独的`IIII`数字而不是4个单独的`I`数字，所以我们将最长的匹配放在前面。
+另外，我们希望将 IIII 转换为一个单独的`IIII`数字而不是 4 个单独的`I`数字，所以我们将最长的匹配放在前面。
 
 ```
 type ParsedChar = 

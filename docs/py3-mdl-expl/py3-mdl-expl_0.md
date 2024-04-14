@@ -1,36 +1,36 @@
 # 介绍
 
-# Python 3模块示例
+# Python 3 模块示例
 
 (c) 2016 Dr. Kristian Rother (krother@academis.eu)
 
-根据知识共享署名-相同方式共享4.0许可条件分发
+根据知识共享署名-相同方式共享 4.0 许可条件分发
 
-本文档的来源可以在[https://github.com/krother/Python3_Module_Examples](https://github.com/krother/Python3_Module_Examples)找到
+本文档的来源可以在[`github.com/krother/Python3_Module_Examples`](https://github.com/krother/Python3_Module_Examples)找到
 
 ## 本电子书的目的
 
-本电子书包含了我最喜欢的Python模块。每个模块都附有*简要描述*和*代码示例*。
+本电子书包含了我最喜欢的 Python 模块。每个模块都附有*简要描述*和*代码示例*。
 
 如果您符合以下情况，本文档适合您：
 
-+   你已经了解一点Python了
++   你已经了解一点 Python 了
 
-+   您想了解有哪些Python模块
++   您想了解有哪些 Python 模块
 
-+   你觉得Python模块的数量令人难以应对
++   你觉得 Python 模块的数量令人难以应对
 
 +   你觉得完整的文档对你来说太重了
 
 +   您想尝试一些简单的示例
 
-**玩得开心，更好地了解Python！**
+**玩得开心，更好地了解 Python！**
 
 ## 概述
 
-![25个模块](module_mindmap.png)
+![25 个模块](img/module_mindmap.png)
 
-# csv - 读取和写入CSV文件
+# csv - 读取和写入 CSV 文件
 
 # csv
 
@@ -38,15 +38,15 @@
 
 读取和写入*逗号分隔值（CSV）*文件。
 
-`csv`模块从/向CSV文件读取和写入嵌套列表。您可以设置*字段分隔符*、*引号字符*和*行终止符*字符。请注意，读取一行时，所有列都以字符串格式呈现。
+`csv`模块从/向 CSV 文件读取和写入嵌套列表。您可以设置*字段分隔符*、*引号字符*和*行终止符*字符。请注意，读取一行时，所有列都以字符串格式呈现。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 是
 
 ### 示例
 
-将两行写入CSV文件的表格：
+将两行写入 CSV 文件的表格：
 
 ```
 import csv
@@ -72,25 +72,25 @@ for row in csv.reader(open('example.csv'), delimiter=';'):
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/csv.html](https://docs.python.org/3/library/csv.html)
+[`docs.python.org/3/library/csv.html`](https://docs.python.org/3/library/csv.html)
 
-# json - 处理JSON文件
+# json - 处理 JSON 文件
 
 # json
 
 ### 它适用于什么？
 
-将Python字典转换为JSON格式，然后再转回。
+将 Python 字典转换为 JSON 格式，然后再转回。
 
-*JavaScript对象表示法（JSON）*经常用于在网络上发送结构化数据或轻松存储在文件中。`json`模块利用了JSON格式与Python字典的相似性。
+*JavaScript 对象表示法（JSON）*经常用于在网络上发送结构化数据或轻松存储在文件中。`json`模块利用了 JSON 格式与 Python 字典的相似性。
 
-### 默认安装的Python
+### 默认安装的 Python
 
 是
 
 ### 示例
 
-将字典转换为JSON格式的字符串：
+将字典转换为 JSON 格式的字符串：
 
 ```
 import json
@@ -101,7 +101,7 @@ print(jj)
 '{"second": "two", "first": 1, "third": [3, 4, 5]}' 
 ```
 
-将JSON字符串转换回Python字典：
+将 JSON 字符串转换回 Python 字典：
 
 ```
 d = json.loads(jj)
@@ -112,25 +112,25 @@ print(d)
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/json.html](https://docs.python.org/3/library/json.html)
+[`docs.python.org/3/library/json.html`](https://docs.python.org/3/library/json.html)
 
-# xml - 解析XML文件
+# xml - 解析 XML 文件
 
 # xml
 
 ### 它适用于什么？
 
-解析XML文件。
+解析 XML 文件。
 
-`xml`模块包含多个XML解析器。它们为每个标签生成DOM对象树，可以搜索并允许访问属性。
+`xml`模块包含多个 XML 解析器。它们为每个标签生成 DOM 对象树，可以搜索并允许访问属性。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 是
 
 ### 示例
 
-示例XML数据：
+示例 XML 数据：
 
 ```
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -140,7 +140,7 @@ print(d)
 </actor_list> 
 ```
 
-读取XML文件并从标签中提取内容：
+读取 XML 文件并从标签中提取内容：
 
 ```
 from xml.dom.minidom import parse
@@ -160,9 +160,9 @@ Polonius - Ophelias father
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/xml.html](https://docs.python.org/3/library/xml.html)
+[`docs.python.org/3/library/xml.html`](https://docs.python.org/3/library/xml.html)
 
-# zipfile - 读取和写入.zip文件
+# zipfile - 读取和写入.zip 文件
 
 # zipfile
 
@@ -170,15 +170,15 @@ Polonius - Ophelias father
 
 读取和写入`.zip`文件。
 
-您可以向zip文件添加现有文件和字符串。如果添加字符串，您需要指定写入的文件名。当您将文件提取到文件夹时，输出文件夹会自动创建。
+您可以向 zip 文件添加现有文件和字符串。如果添加字符串，您需要指定写入的文件名。当您将文件提取到文件夹时，输出文件夹会自动创建。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 是
 
 ### 示例
 
-创建新的zip存档并向其中添加文件：
+创建新的 zip 存档并向其中添加文件：
 
 ```
 import zipfile
@@ -188,7 +188,7 @@ z.writestr('test.txt', 'Hello World')   # new
 z.close() 
 ```
 
-列出新创建的zip文件的内容：
+列出新创建的 zip 文件的内容：
 
 ```
 z = zipfile.ZipFile('archive.zip')
@@ -212,11 +212,11 @@ z.close()
 
 ### 适用于什么？
 
-numpy使得在Python中处理矩阵变得容易。
+numpy 使得在 Python 中处理矩阵变得容易。
 
-因为它是用C实现的，`numpy`加速了许多计算。它也是类型安全的 - 矩阵的所有元素具有相同的类型。许多最强大的Python库，如`pandas`、`scikit-learn`和`PILLOW`都是基于numpy构建的。
+因为它是用 C 实现的，`numpy`加速了许多计算。它也是类型安全的 - 矩阵的所有元素具有相同的类型。许多最强大的 Python 库，如`pandas`、`scikit-learn`和`PILLOW`都是基于 numpy 构建的。
 
-### 在Anaconda上预装了吗？
+### 在 Anaconda 上预装了吗？
 
 是的
 
@@ -228,7 +228,7 @@ pip install numpy
 
 ### 示例
 
-创建一个4 x 2矩阵并对每个元素加10
+创建一个 4 x 2 矩阵并对每个元素加 10
 
 ```
 import numpy as np
@@ -246,7 +246,7 @@ print(vector.shape)
 
 ### 如何获取更多信息？
 
-[http://www.numpy.org/](http://www.numpy.org/)
+[`www.numpy.org/`](http://www.numpy.org/)
 
 # pandas - 舒适处理表格
 
@@ -256,13 +256,13 @@ print(vector.shape)
 
 分析表格数据。
 
-`pandas`是一个非常强大的库，可以以许多可想象（以及一些不可想象）的方式分析、组合和操作数据。名为*DataFrame*的表格与R有许多相似之处。DataFrame具有索引列，并且默认包含用于绘图和从CSV或Excel文件中读取的函数。Pandas在内部使用`numpy`。
+`pandas`是一个非常强大的库，可以以许多可想象（以及一些不可想象）的方式分析、组合和操作数据。名为*DataFrame*的表格与 R 有许多相似之处。DataFrame 具有索引列，并且默认包含用于绘图和从 CSV 或 Excel 文件中读取的函数。Pandas 在内部使用`numpy`。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 否
 
-### 与Anaconda一起安装
+### 与 Anaconda 一起安装
 
 是的
 
@@ -290,7 +290,7 @@ print(df)
 3  Claudius  1.95 
 ```
 
-按名称排序行，按最小大小过滤，打印前两个值并写入CSV文件：
+按名称排序行，按最小大小过滤，打印前两个值并写入 CSV 文件：
 
 ```
 sorted = df.sort_values(by='name', ascending=False)
@@ -306,7 +306,7 @@ df.to_csv('hamlet.csv', index=False, header=True)
 
 ### 如何获取更多信息？
 
-[http://pandas.pydata.org/](http://pandas.pydata.org/)
+[`pandas.pydata.org/`](http://pandas.pydata.org/)
 
 # scipy - 科学计算
 
@@ -316,13 +316,13 @@ df.to_csv('hamlet.csv', index=False, header=True)
 
 科学计算。
 
-scipy是用于拟合函数和其他类型数值分析的Python库。您会发现用于信号处理、傅立叶变换、生成随机数据集等功能。Scipy��用`numpy`和`matplotlib`。
+scipy 是用于拟合函数和其他类型数值分析的 Python 库。您会发现用于信号处理、傅立叶变换、生成随机数据集等功能。Scipy��用`numpy`和`matplotlib`。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 否
 
-### 与Anaconda一起安装
+### 与 Anaconda 一起安装
 
 是的
 
@@ -334,7 +334,7 @@ pip install scipy
 
 ### 示例
 
-定义一个平方函数；使用`numpy`创建嘈杂的X/Y数据：
+定义一个平方函数；使用`numpy`创建嘈杂的 X/Y 数据：
 
 ```
 def func(x, a, b):
@@ -366,7 +366,7 @@ plt.savefig('fit.png')
 
 ### 如何获取更多信息？
 
-[http://scipy.org/](http://scipy.org/)
+[`scipy.org/`](http://scipy.org/)
 
 # scikit-learn - 机器学习
 
@@ -378,11 +378,11 @@ plt.savefig('fit.png')
 
 `scikit-learn`库包含从简单线性回归到逻辑回归、支持向量机和多种聚类方法以及像随机森林这样复杂的方法的回归和分类方法。此外，存在用于验证预测的丰富函数。
 
-### 默认与Python一起安装
+### 默认与 Python 一起安装
 
 否
 
-### 与Anaconda一起安装
+### 与 Anaconda 一起安装
 
 是的
 
@@ -424,7 +424,7 @@ print(accuracy = cross_validation.cross_val_score(svc, X, Y, cv=5, scoring='accu
 
 ### 如何获取更多信息？
 
-[http://scipy.org/](http://scipy.org/)
+[`scipy.org/`](http://scipy.org/)
 
 # matplotlib - 绘制图表
 
@@ -436,7 +436,7 @@ print(accuracy = cross_validation.cross_val_score(svc, X, Y, cv=5, scoring='accu
 
 `matplotlib`能够生成所有常见类型的图表的静态图像，质量适合打印：线图、散点图、条形图、饼图、直方图、热图等。
 
-### 与Anaconda一起安装
+### 与 Anaconda 一起安装
 
 是的
 
@@ -459,15 +459,15 @@ figure()
 plot(x, y, 'bo') # blue circles
 title('square function')
 xlabel('x')
-ylabel('$x^2$')
+ylabel('$x²$')
 savefig('plot.png') 
 ```
 
-![matplotlib的输出](matplotlib_output.png)
+![matplotlib 的输出](img/matplotlib_output.png)
 
 ### 如何获取更多信息？
 
-[http://matplotlib.org/](http://matplotlib.org/)
+[`matplotlib.org/`](http://matplotlib.org/)
 
 # pillow - 图像处理
 
@@ -512,7 +512,7 @@ for filename in os.listdir('.'):
 
 ### 如何学习更多？
 
-[https://pillow.readthedocs.org](https://pillow.readthedocs.org)
+[`pillow.readthedocs.org`](https://pillow.readthedocs.org)
 
 # requests - 改进的网页检索
 
@@ -555,7 +555,7 @@ print(r.text)
 
 ### 如何学习更多？
 
-[http://docs.python-requests.org/en/latest/index.html](http://docs.python-requests.org/en/latest/index.html)
+[`docs.python-requests.org/en/latest/index.html`](http://docs.python-requests.org/en/latest/index.html)
 
 # bs4 - 解析 HTML 页面
 
@@ -608,7 +608,7 @@ for ul in soup.find_all('ul'):
 
 ### 如何学习更多？
 
-[http://www.crummy.com/software/BeautifulSoup/bs4/doc/](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+[`www.crummy.com/software/BeautifulSoup/bs4/doc/`](http://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 
 # paramiko - 通过 SSH 执行命令
 
@@ -680,7 +680,7 @@ print(math.log(256,2))
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/math.html](https://docs.python.org/3/library/math.html)
+[`docs.python.org/3/library/math.html`](https://docs.python.org/3/library/math.html)
 
 # os - 处理文件和目录
 
@@ -692,7 +692,7 @@ print(math.log(256,2))
 
 `os`模块提供了一种与文件、目录和操作系统其他部分交互的简单方式。它包含许多函数来列出、更改、复制、删除和检查文件和目录。
 
-### 默认安装在Python中
+### 默认安装在 Python 中
 
 是的
 
@@ -726,7 +726,7 @@ os.remove('copy.md')
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/os.html](https://docs.python.org/3/library/os.html)
+[`docs.python.org/3/library/os.html`](https://docs.python.org/3/library/os.html)
 
 # 随机 - 生成随机数
 
@@ -738,7 +738,7 @@ os.remove('copy.md')
 
 `random`包含最常见分布的生成器。
 
-### 默认安装在Python中
+### 默认安装在 Python 中
 
 是的
 
@@ -754,7 +754,7 @@ dice = random.randint(1,6)
 
 ### 创建随机浮点数
 
-`random()`函数生成0到1之间的浮点数：
+`random()`函数生成 0 到 1 之间的浮点数：
 
 ```
 import random
@@ -803,7 +803,7 @@ icecream = sample(flavors, 2)
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/random.html](https://docs.python.org/3/library/random.html)
+[`docs.python.org/3/library/random.html`](https://docs.python.org/3/library/random.html)
 
 # re - 文本中的模式匹配
 
@@ -815,7 +815,7 @@ icecream = sample(flavors, 2)
 
 `re`模块实现了**正则表达式**，这是一种在文本中搜索模式的强大语法。正则表达式在大多数编程语言中都可用。您需要学习一些特殊字符来构建自己的模式。
 
-### 默认安装在Python中
+### 默认安装在 Python 中
 
 是的
 
@@ -868,7 +868,7 @@ print(re.search('jumps|swims', text))
 
 +   [正则表达式填字游戏](http://regexcrossword.com/) - 训练正确使用单个字符、通配符和方括号。简单易懂。
 
-+   [正则表达式练习测验1](http://www.tekdefense.com/news/2013/2/10/regex-practice-quiz-1-understanding-patterns.html) - 离线尝试的练习。
++   [正则表达式练习测验 1](http://www.tekdefense.com/news/2013/2/10/regex-practice-quiz-1-understanding-patterns.html) - 离线尝试的练习。
 
 +   [正则表达式高尔夫](http://regex.alf.nu) - 高级练习。尽可能用最少的按键匹配尽可能多的短语。
 
@@ -878,15 +878,15 @@ print(re.search('jumps|swims', text))
 
 +   [docs.python.org/3/library/re.html](https://docs.python.org/3/library/re.html)
 
-+   [快速参考](http://www.night-ray.com/regex.pdf) - 用于查找元字符的参考表。使用**Python语法**。
++   [快速参考](http://www.night-ray.com/regex.pdf) - 用于查找元字符的参考表。使用**Python 语法**。
 
 ## 在线正则表达式测试工具
 
 +   [正则表达式 101](http://regex101.com/) - 显示匹配文本并解释。
 
-+   [Pythex](https://pythex.org/) - 使用Python `re` 模块的正则表达式测试工具。
++   [Pythex](https://pythex.org/) - 使用 Python `re` 模块的正则表达式测试工具。
 
-+   [regexpal](http://regexpal.com/) - 使用JavaScript来突出显示匹配项。
++   [regexpal](http://regexpal.com/) - 使用 JavaScript 来突出显示匹配项。
 
 # 时间 - 处理日期和时间
 
@@ -942,9 +942,9 @@ datetime.date.fromordinal(7)
 
 ### 如何学习更多？
 
-+   [https://docs.python.org/3/library/time.html](https://docs.python.org/3/library/time.html)
++   [`docs.python.org/3/library/time.html`](https://docs.python.org/3/library/time.html)
 
-+   [https://docs.python.org/3/library/time.html](https://docs.python.org/3/library/datetime.html)
++   [`docs.python.org/3/library/time.html`](https://docs.python.org/3/library/datetime.html)
 
 # sqlite3 - 一个简单的 SQL 数据库
 
@@ -1043,7 +1043,7 @@ sys.exit()
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/sys.html](https://docs.python.org/3/library/sys.html)
+[`docs.python.org/3/library/sys.html`](https://docs.python.org/3/library/sys.html)
 
 # itertools - 处理列表和生成器
 
@@ -1091,4 +1091,4 @@ print(list(c))
 
 ### 如何学习更多？
 
-[https://docs.python.org/3/library/itertools.html](https://docs.python.org/3/library/itertools.html)
+[`docs.python.org/3/library/itertools.html`](https://docs.python.org/3/library/itertools.html)

@@ -18,19 +18,19 @@ C++ 允许任意长度的标识符名称，因此在命名时没有必要使用�
 
 每个 IDE 和许多编辑器都内置了对 clang-format 的支持，或者可以通过插件轻松安装。
 
-+   VSCode [https://marketplace.visualstudio.com/items?itemName=xaver.clang-format](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
++   VSCode [`marketplace.visualstudio.com/items?itemName=xaver.clang-format`](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
 
-+   VisualStudio [https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat#review-details](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat#review-details)
++   VisualStudio [`marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat#review-details`](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat#review-details)
 
-+   Resharper++：[https://www.jetbrains.com/help/resharper/2017.2/Using_Clang_Format.html](https://www.jetbrains.com/help/resharper/2017.2/Using_Clang_Format.html)
++   Resharper++：[`www.jetbrains.com/help/resharper/2017.2/Using_Clang_Format.html`](https://www.jetbrains.com/help/resharper/2017.2/Using_Clang_Format.html)
 
 +   Vim
 
-    +   [https://github.com/rhysd/vim-clang-format](https://github.com/rhysd/vim-clang-format)
+    +   [`github.com/rhysd/vim-clang-format`](https://github.com/rhysd/vim-clang-format)
 
-    +   [https://github.com/chiel92/vim-autoformat](https://github.com/chiel92/vim-autoformat)
+    +   [`github.com/chiel92/vim-autoformat`](https://github.com/chiel92/vim-autoformat)
 
-+   XCode：[https://github.com/travisjeffery/ClangFormat-Xcode](https://github.com/travisjeffery/ClangFormat-Xcode)
++   XCode：[`github.com/travisjeffery/ClangFormat-Xcode`](https://github.com/travisjeffery/ClangFormat-Xcode)
 
 ## 常见的 C++ 命名约定
 
@@ -88,7 +88,7 @@ class PrivateSize
 
 如果这样做，您会冒与编译器和标准库实现保留名称发生冲突的风险：
 
-[http://stackoverflow.com/questions/228783/what-are-the-rules-about-using-an-underscore-in-a-c-identifier](http://stackoverflow.com/questions/228783/what-are-the-rules-about-using-an-underscore-in-a-c-identifier)
+[`stackoverflow.com/questions/228783/what-are-the-rules-about-using-an-underscore-in-a-c-identifier`](http://stackoverflow.com/questions/228783/what-are-the-rules-about-using-an-underscore-in-a-c-identifier)
 
 ## 良好的示例
 
@@ -349,7 +349,7 @@ private:
 
 ## 始终使用命名空间
 
-几乎没有理由在全局命名空间中声明标识符。相反，函数和类应存在于适当命名的命名空间中或存在于命名空间内的类中。将标识符放置在全局命名空间中可能会与其他库（主要是没有命名空间的C库）的标识符发生冲突。
+几乎没有理由在全局命名空间中声明标识符。相反，函数和类应存在于适当命名的命名空间中或存在于命名空间内的类中。将标识符放置在全局命名空间中可能会与其他库（主要是没有命名空间的 C 库）的标识符发生冲突。
 
 ## 对于标准库功能，请使用正确的整数类型。
 
@@ -357,7 +357,7 @@ private:
 
 通常，使用`auto`将避免大多数这些问题，但不是全部。
 
-确保您坚持使用正确的整数类型，并与C++标准库保持一致。在您当前使用的平台上可能不会发出警告，但在更改平台时可能会发出警告。
+确保您坚持使用正确的整数类型，并与 C++标准库保持一致。在您当前使用的平台上可能不会发出警告，但在更改平台时可能会发出警告。
 
 *请注意，在对无符号值执行某些操作时可能会导致整数下溢。例如：*
 
@@ -369,11 +369,11 @@ const auto s2 = v2.size();
 const auto diff = s1 - s2; // diff underflows to a very large number 
 ```
 
-## 使用.hpp和.cpp作为您的文件扩展名。
+## 使用.hpp 和.cpp 作为您的文件扩展名。
 
-最终，这是一种偏好问题，但.hpp和.cpp在各种编辑器和工具中都得到了广泛认可。因此，选择是实用的。具体来说，Visual Studio只自动识别.cpp和.cxx作为C++文件，而Vim不一定会将.cc识别为C++文件。
+最终，这是一种偏好问题，但.hpp 和.cpp 在各种编辑器和工具中都得到了广泛认可。因此，选择是实用的。具体来说，Visual Studio 只自动识别.cpp 和.cxx 作为 C++文件，而 Vim 不一定会将.cc 识别为 C++文件。
 
-一个特别大的项目（[OpenStudio](https://github.com/NREL/OpenStudio)）使用.hpp和.cpp用于用户生成的文件，.hxx和.cxx用于工具生成的文件。两者都得到了良好的认可，并且有区别是有帮助的。
+一个特别大的项目（[OpenStudio](https://github.com/NREL/OpenStudio)）使用.hpp 和.cpp 用于用户生成的文件，.hxx 和.cxx 用于工具生成的文件。两者都得到了良好的认可，并且有区别是有帮助的。
 
 ## 不要混合使用制表符和空格。
 
@@ -389,17 +389,17 @@ assert(registerSomeThing()); // make sure that registerSomeThing() returns true
 
 ## 不要害怕模板。
 
-它们可以帮助您遵循[DRY原则](http://en.wikipedia.org/wiki/Don%27t_repeat_yourself)。它们应优先于宏，因为宏不尊重命名空间等。
+它们可以帮助您遵循[DRY 原则](http://en.wikipedia.org/wiki/Don%27t_repeat_yourself)。它们应优先于宏，因为宏不尊重命名空间等。
 
 ## 明智地使用运算符重载。
 
 运算符重载的发明是为了实现表达性的语法。在添加两个大整数时，看起来像`a + b`而不是`a.add(b)`。另一个常见示例是`std::string`，在其中使用`string1 + string2`连接两个字符串非常普遍。
 
-但是，如果过度或错误地重载运算符，可能会轻松创建难以阅读的表达式。在重载运算符时，有三条基本规则需要遵循，如[stackoverflow上](http://stackoverflow.com/questions/4421706/operator-overloading/4421708#4421708)所述。
+但是，如果过度或错误地重载运算符，可能会轻松创建难以阅读的表达式。在重载运算符时，有三条基本规则需要遵循，如[stackoverflow 上](http://stackoverflow.com/questions/4421706/operator-overloading/4421708#4421708)所述。
 
 具体来说，您应该记住以下几点：
 
-+   处理资源时，重载`operator=()`是必须的。参见[考虑零规则](03-Style.html#consider-the-rule-of-zero)下面。
++   处理资源时，重载`operator=()`是必须的。参见考虑零规则下面。
 
 +   对于所有其他运算符，只有在通常与这些运算符相关联的情况下重载它们时才重载它们。典型的情况包括使用+连接事物，否定可以被视为“真”或“假”的表达式等。
 
@@ -451,4 +451,4 @@ struct S {
 
 目标是让编译器提供最佳版本，在添加更多成员变量时自动维护。
 
-[原始文章](https://rmf.io/cxx11/rule-of-zero)提供了背景，而[后续文章](http://www.nirfriedman.com/2015/06/27/cpp-rule-of-zero/)解释了几乎100%的实现技术。
+[原始文章](https://rmf.io/cxx11/rule-of-zero)提供了背景，而[后续文章](http://www.nirfriedman.com/2015/06/27/cpp-rule-of-zero/)解释了几乎 100%的实现技术。

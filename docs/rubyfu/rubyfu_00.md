@@ -2,11 +2,11 @@
 
 # RubyFu
 
-![](rubyfu.png)
+![](img/rubyfu.png)
 
 ***Rubyfu，Ruby 变得邪恶的地方！***
 
-[![](d0c40370.svg%3fstyle%3dsocial%26label%3d关注%26style%3dplastic)](https://twitter.com/intent/follow?screen_name=Rubyfu)
+![](https://twitter.com/intent/follow?screen_name=Rubyfu)
 
 本书是一个伟大的想法、技巧和技能的集合，对黑客们可能会有用。它是一个独特的提取参考，总结了很多研究和经验，以便以最短、最聪明的方式实现你的**w00t**。Rubyfu 是你会找到即插即用代码的地方。Rubyfu 不仅是一本阅读的书，它是 Ruby 变得邪恶的地方。
 
@@ -16,43 +16,43 @@
 
 ### 本书组织结构
 
-#### 模块 0x0 | [介绍](index.html)
+#### 模块 0x0 | 介绍
 
 模块 0x0 只是一个平稳的开始，无论你是读者、作者、黑客还是来打个招呼的人。在这个模块中，你会找到一个很好的开始作为贡献者，各种形式的贡献都受欢迎，从校对一直到撰写主题。
 
-#### 模块 0x1 | [基础 Ruby 功夫](index1.html)
+#### 模块 0x1 | 基础 Ruby 功夫
 
 模块 0x1 是一个最常见的字符串操作、提取和转换任务的精彩集合；处理你在黑客过程中可能遇到的真实案例。你的编码和数据转换可能是一个琐碎或复杂的挑战，在这里我们不在乎，我们会解决它。
 
-#### 模块 0x2 | [系统功夫](index2.html)
+#### 模块 0x2 | 系统功夫
 
 模块 0x2 更深入地探讨系统黑客技术，其中经常需要使用系统命令、文件操作、加密和生成常见哈希。用 Ruby 获得简单的绑定和反向 shell 是一项有用的技能，毫无疑问。几乎所有主流的 Linux 系统都预装了 Ruby，如果没有，也没关系，我们总有其他方法利用我们的知识。
 
-#### 模块 0x3 | [网络功夫](index3.html)
+#### 模块 0x3 | 网络功夫
 
 模块 0x3 深入探讨网络套接字、协议、数据包操作、服务枚举，并提供更多黑客和令人敬畏的代码来完成工作。与网络协议一起工作需要对这些协议如何工作以交换可理解数据有更深入的了解，是的，我们将在这里找到答案。
 
-#### 模块 0x4 | [Web 功夫](index4.html)
+#### 模块 0x4 | Web 功夫
 
 模块 0x4 涵盖了 Web 主题。网络是分享信息最常见的地方，也是最令人愉悦的黑客地点之一。网络黑客挑战以其独特性而闻名，在单个页面中有许多潜在技术，需要一种具有易于适应能力的多功能工具。在这里，我们将学习如何处理 GET 和 POST 请求、Web 服务、数据库、API，并操纵浏览器使其成为我们的士兵。
 
-#### 模块 0x5 | [利用功夫](index5.html)
+#### 模块 0x5 | 利用功夫
 
-模块 0x5 通过Ruby构建您的利用能力。无论漏洞是远程的（FTP、IMAP、SMTP等）还是本地的（文件格式、本地系统），您都需要知道如何为其构建模糊测试器和骨架利用程序。如果你到达那里，你将需要一种简单、干净且稳定的方式来构建你的利用程序。在这里，你将学习如何构建你的模糊测试器、利用程序，并将你的利用程序移植到Metasploit——甚至如何编写自己的Metasploit模块。
+模块 0x5 通过 Ruby 构建您的利用能力。无论漏洞是远程的（FTP、IMAP、SMTP 等）还是本地的（文件格式、本地系统），您都需要知道如何为其构建模糊测试器和骨架利用程序。如果你到达那里，你将需要一种简单、干净且稳定的方式来构建你的利用程序。在这里，你将学习如何构建你的模糊测试器、利用程序，并将你的利用程序移植到 Metasploit——甚至如何编写自己的 Metasploit 模块。
 
-#### 模块 0x6 | [取证功夫](index6.html)
+#### 模块 0x6 | 取证功夫
 
-模块 0x6 探索了Rubyfu的取证能力。无论你是红队、蓝队还是介于两者之间，你都需要一些取证技能来进行黑客活动和/或调查。在这里，你将学习如何处理注册表任务、提取浏览器信息等等。
+模块 0x6 探索了 Rubyfu 的取证能力。无论你是红队、蓝队还是介于两者之间，你都需要一些取证技能来进行黑客活动和/或调查。在这里，你将学习如何处理注册表任务、提取浏览器信息等等。
 
-## ![](9f43e656.png)
-
-# 贡献
+## ![](img/9f43e656.png)
 
 # 贡献
 
-本书采用[CC BY-NC-SA许可证](https://creativecommons.org/licenses/by-nc-sa/3.0/)，因此我们感谢各种形式的贡献、分发，并将永久保留我们贡献者的努力。
+# 贡献
 
-注意：��书中的代码在Ruby版本> 2.2.0上测试通过
+本书采用[CC BY-NC-SA 许可证](https://creativecommons.org/licenses/by-nc-sa/3.0/)，因此我们感谢各种形式的贡献、分发，并将永久保留我们贡献者的努力。
+
+注意：��书中的代码在 Ruby 版本> 2.2.0 上测试通过
 
 ## 贡献方法
 
@@ -76,11 +76,11 @@
 
     +   任何其他
 
-+   通过在社交媒体和IS社区中传播本书做出贡献。
++   通过在社交媒体和 IS 社区中传播本书做出贡献。
 
     +   推特：[@Rubyfu](https://twitter.com/Rubyfu)和标签`#Rubyfu`
 
-    +   Google+：[Rubyfu页面](https://plus.google.com/114358908164154763697)
+    +   Google+：[Rubyfu 页面](https://plus.google.com/114358908164154763697)
 
 +   通过添加更多资源和参考资料做出贡献。
 
@@ -90,31 +90,31 @@
 
 ### 开始贡献
 
-请在[参考资料](index7.html)部分找到关于GitBook和Markdown编辑的所有必要信息。作为一个良好的开始，你可以参考[如何使用官方自述文件](https://github.com/GitbookIO/gitbook)。你可以轻松使用GitBook [桌面编辑器](https://www.gitbook.com/editor)。
+请在参考资料部分找到关于 GitBook 和 Markdown 编辑的所有必要信息。作为一个良好的开始，你可以参考[如何使用官方自述文件](https://github.com/GitbookIO/gitbook)。你可以轻松使用 GitBook [桌面编辑器](https://www.gitbook.com/editor)。
 
 1.  创建一个[GitHub](https://github.com)账户。
 
-1.  分叉[RubyFu存储库](https://github.com/rubyfu/RubyFu)。
+1.  分叉[RubyFu 存储库](https://github.com/rubyfu/RubyFu)。
 
-1.  克隆GitHub分叉的RubyFu存储库：
+1.  克隆 GitHub 分叉的 RubyFu 存储库：
 
     `git clone https://github.com/[YourGithubAccount]/RubyFu`
 
 1.  创建一个[GitBook](http://gitbook.com)账户。
 
-1.  前往[**GitBook编辑器**](https://www.gitbook.com/editor)并使用您的GitBook账户登录
+1.  前往[**GitBook 编辑器**](https://www.gitbook.com/editor)并使用您的 GitBook 账户登录
 
 1.  点击**导入**按钮导入克隆的存储库。然后，您将在**本地库**选项卡中找到它。
 
-1.  将分叉的RubyFu存储库GitHub URL添加到GitBook编辑器中：**工具栏** >> **文件** >> **首选项** >> **GIT**。
+1.  将分叉的 RubyFu 存储库 GitHub URL 添加到 GitBook 编辑器中：**工具栏** >> **文件** >> **首选项** >> **GIT**。
 
 1.  开始你的出色贡献。
 
-1.  从GitBook编辑器，**同步**您的更改到分叉的存储库。
+1.  从 GitBook 编辑器，**同步**您的更改到分叉的存储库。
 
-1.  从GitHub，向**Master**分支发送一个**Pull Request(PR)**。
+1.  从 GitHub，向**Master**分支发送一个**Pull Request(PR)**。
 
-不确定从哪里开始帮助？去 [待办事项列表](todo.html) 并检查未选中的项目。
+不确定从哪里开始帮助？去 待办事项列表 并检查未选中的项目。
 
 ### 用代码贡献
 
@@ -231,7 +231,7 @@ ls
 
     +   创建一个简单的 TCP 客户端连接到之前的服务器并打印服务器发送的内容。
 
-在初学者部分下可以找到一个很好的[参考资料](index7.html)列表。
+在初学者部分下可以找到一个很好的参考资料列表。
 
 ## 挑战自己！
 
@@ -329,69 +329,69 @@ sudo apt-get install build-essential libreadline-dev libssl-dev libpq5 libpq-dev
 
 +   ruby-nmap - 与 Nmap 探测工具和安全/端口扫描器的 Ruby 接口。
 
-+   ronin-scanners - 为Ronin提供Ruby接口的库，用于各种第三方安全扫描器。
++   ronin-scanners - 为 Ronin 提供 Ruby 接口的库，用于各种第三方安全扫描器。
 
-+   net-dns - 一个纯Ruby DNS库，具有清晰的OO接口和可扩展的API。
++   net-dns - 一个纯 Ruby DNS 库，具有清晰的 OO 接口和可扩展的 API。
 
-+   snmp - SNMP（简单网络管理协议）的Ruby实现。
++   snmp - SNMP（简单网络管理协议）的 Ruby 实现。
 
-+   net-ssh - SSH2客户端协议的纯Ruby实现。
++   net-ssh - SSH2 客户端协议的纯 Ruby 实现。
 
-+   net-scp - SCP客户端协议的纯Ruby实现。
++   net-scp - SCP 客户端协议的纯 Ruby 实现。
 
-+   ftpd - 一个纯Ruby FTP服务器库。支持隐式和显式TLS、IPV6、被动和主动模式。
++   ftpd - 一个纯 Ruby FTP 服务器库。支持隐式和显式 TLS、IPV6、被动和主动模式。
 
-+   packetfu - 用于Ruby的中级数据包操作库。
++   packetfu - 用于 Ruby 的中级数据包操作库。
 
-+   packetgen - Ruby库，用于轻松生成和捕获网络数据包。
++   packetgen - Ruby 库，用于轻松生成和捕获网络数据包。
 
 #### Module 0x4 | Web Kung Fu
 
 +   net-http-digest_auth - RFC 2617 - 摘要访问认证的实现。
 
-+   ruby-ntlm - 用于Ruby的NTLM实现。
++   ruby-ntlm - 用于 Ruby 的 NTLM 实现。
 
-+   activerecord - Rails上的数据库。通过将数据库表映射到Ruby来构建持久性域模型。
++   activerecord - Rails 上的数据库。通过将数据库表映射到 Ruby 来构建持久性域模型。
 
-+   tiny_tds - TinyTDS - 用于Ruby的现代、简单且快速的FreeTDS库，使用DB-Library。
++   tiny_tds - TinyTDS - 用于 Ruby 的现代、简单且快速的 FreeTDS 库，使用 DB-Library。
 
 +   activerecord-sqlserver-adapter。
 
 +   activerecord-oracle_enhanced-adapter。
 
-+   buby - 将JRuby与知名商业网络安全测试工具Burp Suite from PortSwigger混合。
++   buby - 将 JRuby 与知名商业网络安全测试工具 Burp Suite from PortSwigger 混合。
 
-+   wasabi - 一个简单的WSDL解析器。
++   wasabi - 一个简单的 WSDL 解析器。
 
-+   savon - 重金属SOAP客户端。
++   savon - 重金属 SOAP 客户端。
 
-+   httpclient - 在Ruby中提供类似于libwww-perl（LWP）的功能。
++   httpclient - 在 Ruby 中提供类似于 libwww-perl（LWP）的功能。
 
-+   nokogiri - 一个HTML、XML、SAX和Reader解析器。
++   nokogiri - 一个 HTML、XML、SAX 和 Reader 解析器。
 
-+   twitter - 与Twitter API交互的Ruby接口。
++   twitter - 与 Twitter API 交互的 Ruby 接口。
 
 +   selenium-webdriver - 用于编写网站自动化测试的工具。旨在模仿真实用户的行为。
 
-+   watir-webdriver - 基于WebDriver的Watir。
++   watir-webdriver - 基于 WebDriver 的 Watir。
 
-+   coffee-script - Ruby CoffeeScript是与JS CoffeeScript编译器的桥梁。
++   coffee-script - Ruby CoffeeScript 是与 JS CoffeeScript 编译器的桥梁。
 
-+   opal - 用于JavaScript的Ruby运行时和核心库。
++   opal - 用于 JavaScript 的 Ruby 运行时和核心库。
 
-**额外的gem**
+**额外的 gem**
 
-用于处理网络的有用gem：
+用于处理网络的有用 gem：
 
-+   Mechanize - 使自动化网络交互变得简单的Ruby库。
++   Mechanize - 使自动化网络交互变得简单的 Ruby 库。
 
-+   HTTP.rb - 用于Ruby的快速、优雅的HTTP客户端。
++   HTTP.rb - 用于 Ruby 的快速、优雅的 HTTP 客户端。
 
-+   RestClient - 用于与RESTful web服务交互的类和可执行文件。
++   RestClient - 用于与 RESTful web 服务交互的类和可执行文件。
 
-+   httparty - 让http变得有趣！还可以轻松消费restful web服务。
++   httparty - 让 http 变得有趣！还可以轻松消费 restful web 服务。
 
-+   websocket - 通用的Ruby库，用于处理WebSocket协议。
++   websocket - 通用的 Ruby 库，用于处理 WebSocket 协议。
 
 #### Module 0x5 | Exploitation Kung Fu
 

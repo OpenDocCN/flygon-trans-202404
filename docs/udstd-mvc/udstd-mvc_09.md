@@ -4,11 +4,11 @@
 
 # 可插拔视图
 
-+   [具有可插拔视图的Smalltalk MVC范式 - Tong Sin Yin, Chow Pui Yee](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.743&rep=rep1&type=pdf)
++   [具有可插拔视图的 Smalltalk MVC 范式 - Tong Sin Yin, Chow Pui Yee](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.743&rep=rep1&type=pdf)
 
 # 发布订阅
 
-+   [NSNotificationCenter为什么不好](https://objcsharp.wordpress.com/2013/08/28/why-nsnotificationcenter-is-bad/)
++   [NSNotificationCenter 为什么不好](https://objcsharp.wordpress.com/2013/08/28/why-nsnotificationcenter-is-bad/)
 
 # 一般
 

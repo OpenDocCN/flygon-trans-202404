@@ -12,7 +12,7 @@
         (ask self 'eat))) 
 ```
 
-![](../Images/d3fe4a1bf85482f335cb863a18bbe15c.jpg)
+![](img/d3fe4a1bf85482f335cb863a18bbe15c.jpg)
 
 **测试你的理解**
 

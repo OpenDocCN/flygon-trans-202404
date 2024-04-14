@@ -67,4 +67,4 @@ insert x t = case t of
 
 #### 必需的
 
-+   Okasaki，第 1 和第 2 章
++   Okasaki，第 1 和第二章

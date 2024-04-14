@@ -1,4 +1,4 @@
-# STLC的StlcProp属性
+# STLC 的 StlcProp 属性
 
 ```
 
@@ -12,9 +12,9 @@ Require Import Stlc.
 
 Require Import Smallstep.
 
-模块STLCProp。
+模块 STLCProp。
 
-导入STLC。
+导入 STLC。
 
 ```
 
@@ -26,17 +26,17 @@ Require Import Smallstep.
 
 # 规范形式
 
-    正如我们在[类型](Types.html)章节中看到的简单微积分一样，
+    正如我们在类型章节中看到的简单微积分一样，
 
     建立基本的规约和类型属性的第一步
 
     是识别可能的*规范形式*（即，良好类型
 
-    封闭值）属于每种类型。对于Bool，这些是布尔值
+    封闭值）属于每种类型。对于 Bool，这些是布尔值
 
-    值为ttrue和tfalse。对于箭头类型，规范形式
+    值为 ttrue 和 tfalse。对于箭头类型，规范形式
 
-    是lambda抽象。
+    是 lambda 抽象。
 
 ```
 Lemma canonical_forms_bool : ∀t,
@@ -72,7 +72,7 @@ Lemma canonical_forms_fun : ∀t T[1] T[2],
 
     我们在进展证明中看到的直接扩展。
 
-    [类型](Types.html)章节。我们将首先用英语给出证明，然后
+    类型章节。我们将首先用英语给出证明，然后
 
     形式版本。
 
@@ -85,31 +85,31 @@ Theorem progress : ∀t T,
 
     *证明*：通过 ⊢ t ∈ T 推导的归纳。
 
-+   推导的最后一条规则不能是T_Var，因为在空上下文中变量永远不会被良好地类型化。
++   推导的最后一条规则不能是 T_Var，因为在空上下文中变量永远不会被良好地类型化。
 
-+   T_True、T_False和T_Abs情况是微不足道的，因为在这些情况下，我们可以通过检查规则来看出t是一个值。
++   T_True、T_False 和 T_Abs 情况是微不足道的，因为在这些情况下，我们可以通过检查规则来看出 t 是一个值。
 
-+   如果推导的最后一条规则是T_App，那么t的形式为t[1] t[2]，其中 ⊢ t[1] ∈ T[2] → T 和 ⊢ t[2] ∈ T[2] 对于某个类型T[2]。根据归纳假设，t[1]要么是一个值，要么可以进行一步规约。
++   如果推导的最后一条规则是 T_App，那么 t 的形式为 t[1] t[2]，其中 ⊢ t[1] ∈ T[2] → T 和 ⊢ t[2] ∈ T[2] 对于某个类型 T[2]。根据归纳假设，t[1]要么是一个值，要么可以进行一步规约。
 
-    +   如果t[1]是一个值，那么考虑t[2]，根据另一个归纳假设，t[2]也要么是一个值，要么迈出��步。
+    +   如果 t[1]是一个值，那么考虑 t[2]，根据另一个归纳假设，t[2]也要么是一个值，要么迈出��步。
 
-        +   假设t[2]是一个值。由于t[1]是一个带有箭头类型的值，它必须是一个lambda抽象；因此t[1] t[2]可以通过ST_AppAbs迈出一步。
+        +   假设 t[2]是一个值。由于 t[1]是一个带有箭头类型的值，它必须是一个 lambda 抽象；因此 t[1] t[2]可以通过 ST_AppAbs 迈出一步。
 
-        +   否则，t[2]可以迈出一步，因此t[1] t[2]也可以通过ST_App2迈出一步。
+        +   否则，t[2]可以迈出一步，因此 t[1] t[2]也可以通过 ST_App2 迈出一步。
 
-    +   如果t[1]可以迈出一步，那么t[1] t[2]也可以通过ST_App1迈出一步。
+    +   如果 t[1]可以迈出一步，那么 t[1] t[2]也可以通过 ST_App1 迈出一步。
 
-+   如果推导的最后一条规则是T_If，那么t = if t[1] then t[2] else t[3]，其中t[1]具有类型Bool。根据IH，t[1]要么是一个值，要么迈出一步。
++   如果推导的最后一条规则是 T_If，那么 t = if t[1] then t[2] else t[3]，其中 t[1]具有类型 Bool。根据 IH，t[1]要么是一个值，要么迈出一步。
 
-    +   如果t[1]是一个值，那么由于它具有Bool类型，它必须是true或false。如果是true，则t迈向t[2]；否则迈向t[3]。
+    +   如果 t[1]是一个值，那么由于它具有 Bool 类型，它必须是 true 或 false。如果是 true，则 t 迈向 t[2]；否则迈向 t[3]。
 
-    +   否则，t[1]迈出一步，因此t也会迈出一步（通过ST_If）。
+    +   否则，t[1]迈出一步，因此 t 也会迈出一步（通过 ST_If）。
 
 ```
 
     Proof with eauto.
   intros t T Ht.
-  remember (@[empty](Maps.html#empty) [ty](Stlc.html#STLC.ty)) as Γ.
+  remember (@empty ty) as Γ.
   induction Ht; subst Γ...
   - (* T_Var *)
     (* contradictory: variables cannot be typed in an        empty context *)
@@ -121,30 +121,30 @@ Theorem progress : ∀t T,
     + (* t[1] is a value *)
       destruct IHHt2...
       * (* t[2] is also a value *)
-        assert (∃x[0] t[0], t[1] = [tabs](Stlc.html#STLC.tabs) [x[0]](StlcProp.html#x<sub>0</sub>) T[11] [t[0]](StlcProp.html#t<sub>0</sub>)).
-        eapply [canonical_forms_fun](StlcProp.html#STLCProp.canonical_forms_fun); eauto.
+        assert (∃x[0] t[0], t[1] = tabs [x[0]](StlcProp.html#x<sub>0</sub>) T[11] [t[0]](StlcProp.html#t<sub>0</sub>)).
+        eapply canonical_forms_fun; eauto.
         destruct H[1] as [x[0] [t[0] Heq]]. subst.
         ∃([x[0]:=t[2]]t[0])...
 
       * (* t[2] steps *)
-        inversion H[0] as [t[2]' Hstp]. ∃([tapp](Stlc.html#STLC.tapp) t[1] t[2]')...
+        inversion H[0] as [t[2]' Hstp]. ∃(tapp t[1] t[2]')...
 
     + (* t[1] steps *)
-      inversion H as [t[1]' Hstp]. ∃([tapp](Stlc.html#STLC.tapp) t[1]' t[2])...
+      inversion H as [t[1]' Hstp]. ∃(tapp t[1]' t[2])...
 
   - (* T_If *)
     right. destruct IHHt1...
 
     + (* t[1] is a value *)
-      destruct ([canonical_forms_bool](StlcProp.html#STLCProp.canonical_forms_bool) t[1]); subst; eauto.
+      destruct (canonical_forms_bool t[1]); subst; eauto.
 
     + (* t[1] also steps *)
-      inversion H as [t[1]' Hstp]. ∃([tif](Stlc.html#STLC.tif) t[1]' t[2] t[3])...
+      inversion H as [t[1]' Hstp]. ∃(tif t[1]' t[2] t[3])...
     Qed.
 
 ```
 
-#### 练习：3星，高级（progress_from_term_ind）
+#### 练习：3 星，高级（progress_from_term_ind）
 
     显示进展也可以通过对项进行归纳来证明
 
@@ -175,7 +175,7 @@ Proof.
     technical lemmas that are needed by various cases of the more
     interesting proofs), the story goes like this:
 
-*   The *preservation theorem* is proved by induction on a typing derivation, pretty much as we did in the [Types](Types.html) chapter. The one case that is significantly different is the one for the ST_AppAbs rule, whose definition uses the substitution operation. To see that this step preserves typing, we need to know that the substitution itself does. So we prove a... 
+*   The *preservation theorem* is proved by induction on a typing derivation, pretty much as we did in the Types chapter. The one case that is significantly different is the one for the ST_AppAbs rule, whose definition uses the substitution operation. To see that this step preserves typing, we need to know that the substitution itself does. So we prove a... 
 
 *   *substitution lemma*, stating that substituting a (closed) term s for a variable x in a term t preserves the type of t. The proof goes by induction on the form of t and requires looking at all the different cases in the definition of substitition. This time, the tricky cases are the ones for variables and for function abstractions. In both, we discover that we need to take a term s that has been shown to be well-typed in some context Γ and consider the same term s in a slightly different context Γ'. For this we prove a... 
 
@@ -190,17 +190,17 @@ Proof.
 
 ## 自由出现
 
-    如果一个变量x在一个项t中*自由出现*，那么t包含一些
+    如果一个变量 x 在一个项 t 中*自由出现*，那么 t 包含一些
 
-    不在标记为x的抽象下的x的出现。
+    不在标记为 x 的抽象下的 x 的出现。
 
     例如：
 
-+   y自由出现，但x不在\x:T→U. x y
++   y 自由出现，但 x 不在\x:T→U. x y
 
-+   在(λx:T→U. x y) x中，x和y都自由出现
++   在(λx:T→U. x y) x 中，x 和 y 都自由出现
 
-+   在\x:T→U. \y:T. x y中，y自由出现，但x不出现
++   在\x:T→U. \y:T. x y 中，y 自由出现，但 x 不出现
 
     形式上：
 
@@ -246,7 +246,7 @@ Definition closed (t:tm) :=
 
     封闭）。
 
-#### 练习：1星M（afi）
+#### 练习：1 星 M（afi）
 
     在下面的空格中，写出出现自由变量的规则
 
@@ -321,7 +321,7 @@ appear_free_in x t →
 
 将 IHappears_free_in 应用于 H[7]。
 
-在 H[7] 中使用 [update_neq](Maps.html#update_neq) 进行重写；假设成立。
+在 H[7] 中使用 update_neq 进行重写；假设成立。
 
     完毕。
 
@@ -387,15 +387,15 @@ Lemma context_invariance : ∀Γ Γ' t T,
   generalize dependent Γ'.
   induction H; intros; auto.
   - (* T_Var *)
-    apply [T_Var](Stlc.html#STLC.T_Var). rewrite ← H[0]...
+    apply T_Var. rewrite ← H[0]...
   - (* T_Abs *)
-    apply [T_Abs](Stlc.html#STLC.T_Abs).
+    apply T_Abs.
     apply IHhas_type. intros x[1] Hafi.
     (* the only tricky step... the Γ' we use to        instantiate is update Γ x T[11] *)
-    unfold [update](Maps.html#update). unfold [t_update](Maps.html#t_update). destruct ([beq_id](Maps.html#beq_id) x[0] x[1]) eqn: Hx0x[1]...
-    rewrite [beq_id_false_iff](Maps.html#beq_id_false_iff) in Hx0x[1]. auto.
+    unfold update. unfold t_update. destruct (beq_id x[0] x[1]) eqn: Hx0x[1]...
+    rewrite beq_id_false_iff in Hx0x[1]. auto.
   - (* T_App *)
-    apply [T_App](Stlc.html#STLC.T_App) with T[11]...
+    apply T_App with T[11]...
     Qed.
 
 ```
@@ -482,7 +482,7 @@ Lemma substitution_preserves_typing : ∀Γ x U t v T,
 
     其次，假设 x ≠ y。我们知道 Γ, x:U, y:T[11] ⊢ t[12] ∈ T[12] 通过对类型关系进行反演，从中 Γ, y:T[11], x:U ⊢ t[12] ∈ T[12] 通过上下文不变性引理得出，因此 IH 适用，给出了 Γ, y:T[11] ⊢ [x:=v]t[12] ∈ T[12]。通过 T_Abs， Γ ⊢ \y:T[11]. [x:=v]t[12] ∈ T[11]→T[12]，并通过替换的定义（注意 x ≠ y）， Γ ⊢ \y:T[11]. [x:=v]t[12] ∈ T[11]→T[12] 如所需。
 
-+   如果t是一个应用t[1] t[2]，结果直接由替换的定义和归纳假设得出。
++   如果 t 是一个应用 t[1] t[2]，结果直接由替换的定义和归纳假设得出。
 
 +   剩下的情况与应用情况类似。
 
@@ -492,17 +492,17 @@ Lemma substitution_preserves_typing : ∀Γ x U t v T,
 
     更简单的论点。原因是假设
 
-    更新Γ x U ⊢ t ∈ T并不是完全通用的，在
+    更新Γ x U ⊢ t ∈ T 并不是完全通用的，在
 
     意味着类型关系中的一个“槽” — 即
 
-    上下文-不仅仅是一个变量，这意味��Coq的
+    上下文-不仅仅是一个变量，这意味��Coq 的
 
     本地归纳策略不会给我们归纳假设
 
     我们想要的。可以解决这个问题，但需要
 
-    泛化有点棘手。另一方面的项t
+    泛化有点棘手。另一方面的项 t
 
     手，是完全通用的。
 
@@ -515,26 +515,26 @@ Lemma substitution_preserves_typing : ∀Γ x U t v T,
     (* in each case, we'll want to get at the derivation of H *)
     inversion H; subst; simpl...
   - (* tvar *)
-    rename i into y. destruct ([beq_idP](Maps.html#beq_idP) x y) as [Hxy|Hxy].
+    rename i into y. destruct (beq_idP x y) as [Hxy|Hxy].
     + (* x=y *)
       subst.
-      rewrite [update_eq](Maps.html#update_eq) in H[2].
+      rewrite update_eq in H[2].
       inversion H[2]; subst.
-      eapply [context_invariance](StlcProp.html#STLCProp.context_invariance). eassumption.
-      apply [typable_empty__closed](StlcProp.html#STLCProp.typable_empty__closed) in Ht'. unfold [closed](StlcProp.html#STLCProp.closed) in Ht'.
+      eapply context_invariance. eassumption.
+      apply typable_empty__closed in Ht'. unfold closed in Ht'.
       intros. apply (Ht' x[0]) in H[0]. inversion H[0].
     + (* x<>y *)
-      apply [T_Var](Stlc.html#STLC.T_Var). rewrite [update_neq](Maps.html#update_neq) in H[2]...
+      apply T_Var. rewrite update_neq in H[2]...
   - (* tabs *)
-    rename i into y. rename t into T. apply [T_Abs](Stlc.html#STLC.T_Abs).
-    destruct ([beq_idP](Maps.html#beq_idP) x y) as [Hxy | Hxy].
+    rename i into y. rename t into T. apply T_Abs.
+    destruct (beq_idP x y) as [Hxy | Hxy].
     + (* x=y *)
-      subst. rewrite [update_shadow](Maps.html#update_shadow) in H[5]. apply H[5].
+      subst. rewrite update_shadow in H[5]. apply H[5].
     + (* x<>y *)
-      apply IHt. eapply [context_invariance](StlcProp.html#STLCProp.context_invariance)...
-      intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
-      destruct ([beq_idP](Maps.html#beq_idP) y z) as [Hyz | Hyz]; subst; trivial.
-      rewrite ← [beq_id_false_iff](Maps.html#beq_id_false_iff) in Hxy.
+      apply IHt. eapply context_invariance...
+      intros z Hafi. unfold update, t_update.
+      destruct (beq_idP y z) as [Hyz | Hyz]; subst; trivial.
+      rewrite ← beq_id_false_iff in Hxy.
       rewrite Hxy...
     Qed.
 
@@ -544,9 +544,9 @@ Lemma substitution_preserves_typing : ∀Γ x U t v T,
 
     现在我们有了证明保持性所需的工具：如果一个封闭
 
-    项t具有类型T并且步骤到t'，那么t'
+    项 t 具有类型 T 并且步骤到 t'，那么 t'
 
-    也是一个具有类型T的封闭项。换句话说，小步
+    也是一个具有类型 T 的封闭项。换句话说，小步
 
     缩减关系保持类型。
 
@@ -560,26 +560,26 @@ Theorem preservation : ∀t t' T,
 
     *证明*：通过对 ⊢ t ∈ T 的推导进行归纳。
 
-+   我们可以立即排除T_Var、T_Abs、T_True和T_False作为推导中的最终规则，因为在这些情况下t无法进行步骤。
++   我们可以立即排除 T_Var、T_Abs、T_True 和 T_False 作为推导中的最终规则，因为在这些情况下 t 无法进行步骤。
 
-+   如果推导中的最后一个规则是T_App，则t = t[1] t[2]。有三种情况需要考虑，每种情况对应一个用于显示t[1] t[2]步骤到t'的规则。
++   如果推导中的最后一个规则是 T_App，则 t = t[1] t[2]。有三种情况需要考虑，每种情况对应一个用于显示 t[1] t[2]步骤到 t'的规则。
 
-    +   如果t[1] t[2]通过ST_App1步骤，其中t[1]步骤到t[1]'，那么根据IH，t[1]'与t[1]具有相同类型，因此t[1]' t[2]与t[1] t[2]具有相同类型。
+    +   如果 t[1] t[2]通过 ST_App1 步骤，其中 t[1]步骤到 t[1]'，那么根据 IH，t[1]'与 t[1]具有相同类型，因此 t[1]' t[2]与 t[1] t[2]具有相同类型。
 
-    +   ST_App2情况类似。
+    +   ST_App2 情况类似。
 
-    +   如果t[1] t[2]通过ST_AppAbs步骤，则t[1] = \x:T[11].t12，t[1] t[2]步骤到[x:=t[2]]t[12]；现在所需的结果由于替换保持类型的事实而得出。
+    +   如果 t[1] t[2]通过 ST_AppAbs 步骤，则 t[1] = \x:T[11].t12，t[1] t[2]步骤到[x:=t[2]]t[12]；现在所需的结果由于替换保持类型的事实而得出。
 
-+   如果推导中的最后一个规则是T_If，则t = if t[1] then t[2] else t[3]，并且根据t的步骤有三种情况。
++   如果推导中的最后一个规则是 T_If，则 t = if t[1] then t[2] else t[3]，并且根据 t 的步骤有三种情况。
 
-    +   如果t步骤到t[2]或t[3]，结果是显而易见的，因为t[2]和t[3]与t具有相同的类型。
+    +   如果 t 步骤到 t[2]或 t[3]，结果是显而易见的，因为 t[2]和 t[3]与 t 具有相同的类型。
 
-    +   否则，通过ST_If，t步骤，所需结论直接由归纳假设得出。
+    +   否则，通过 ST_If，t 步骤，所需结论直接由归纳假设得出。
 
 ```
 
     Proof with eauto.
-  remember (@[empty](Maps.html#empty) [ty](Stlc.html#STLC.ty)) as Γ.
+  remember (@empty ty) as Γ.
   intros t t' T HT. generalize dependent t'.
   induction HT;
        intros t' HE; subst Γ; subst;
@@ -588,21 +588,21 @@ Theorem preservation : ∀t t' T,
     inversion HE; subst...
     (* Most of the cases are immediate by induction,        and eauto takes care of them *)
     + (* ST_AppAbs *)
-      apply [substitution_preserves_typing](StlcProp.html#STLCProp.substitution_preserves_typing) with T[11]...
+      apply substitution_preserves_typing with T[11]...
       inversion HT[1]...
     Qed.
 
 ```
 
-#### 练习：2星，推荐M（subject_expansion_stlc）
+#### 练习：2 星，推荐 M（subject_expansion_stlc）
 
-    [类型](Types.html)章节中的一个练习询问算术简单语言的*主题扩展*属性
+    类型章节中的一个练习询问算术简单语言的*主题扩展*属性
 
-    布尔表达式。STLC是否满足这个属性？也就是说，
+    布尔表达式。STLC 是否满足这个属性？也就是说，
 
-    如果t ⇒ t'并且has_type t' T，
+    如果 t ⇒ t'并且 has_type t' T，
 
-    然后empty ⊢ t ∈ T？如果是这样，请证明。如果不是，请给出一个
+    然后 empty ⊢ t ∈ T？如果是这样，请证明。如果不是，请给出一个
 
     不涉及条件的反例。
 
@@ -631,15 +631,15 @@ empty ⊢ t ∈ T →
 
 t ⇒* t' →
 
-~(卡住t')。
+~(卡住 t')。
 
     证明。
 
-intros t t' T Hhas_type Hmulti. 展开[卡住](StlcProp.html#STLCProp.stuck)。
+intros t t' T Hhas_type Hmulti. 展开卡住。
 
-intros [Hnf Hnot_val]。在Hnf中展开[normal_form](Smallstep.html#normal_form)。
+intros [Hnf Hnot_val]。在 Hnf 中展开 normal_form。
 
-对Hmulti进行归纳。
+对 Hmulti 进行归纳。
 
 (* 在这里填写 *) 已承认。
 
@@ -651,7 +651,7 @@ intros [Hnf Hnot_val]。在Hnf中展开[normal_form](Smallstep.html#normal_form)
 
 # 类型的唯一性
 
-#### 练习：3星M（types_unique）
+#### 练习：3 星 M（types_unique）
 
     STLC 的另一个好处是类型是唯一的：
 

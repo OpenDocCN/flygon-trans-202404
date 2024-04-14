@@ -1,4 +1,4 @@
-# MVars再访
+# MVars 再访
 
 +   练习：编写转账函数在账户之间转移资金
 
@@ -72,13 +72,13 @@ transfer :: Double -> Account -> Account -> IO () transfer amount from to = do l
 
     +   是否出现不一致的视图或与另一个更新冲突？没问题，只需中止并重试整个事务
 
-+   在C或Java中很难做到
++   在 C 或 Java 中很难做到
 
     +   如果事务期间向网络或文件系统写入会怎样？
 
     +   “外部化”操作不容易回滚
 
-+   但在Haskell中，`IO`类型（或其缺乏）可以控制副作用
++   但在 Haskell 中，`IO`类型（或其缺乏）可以控制副作用
 
 +   幻灯片灵感来自[[Peyton Jones]](http://research.microsoft.com/en-us/um/people/simonpj/papers/stm/beautiful.pdf)中的优秀文章
 
@@ -104,7 +104,7 @@ transfer :: Double -> Account -> Account -> IO () transfer amount from to = do l
 
     +   作为交换，你放弃了执行外部化的`IO`操作的能力
 
-## STM示例
+## STM 示例
 
 ```
 type Account = TVar Double transfer :: Double -> Account -> Account -> STM () transfer amount from to = do modifyTVar' from (subtract amount) modifyTVar' to (+ amount) main :: IO () main = do ac1 <- newTVarIO 10 ac2 <- newTVarIO 0 atomically $ transfer 1 ac1 ac2
@@ -168,7 +168,7 @@ newAccount :: Double -> STM Account newAccount balance = do tv <- newTVar balanc
 
 +   编译器如何在内存中表示数据？
 
-## 天真的Haskell数据表示
+## 天真的 Haskell 数据表示
 
 +   一个值需要一个构造函数，加上参数
 
@@ -180,7 +180,7 @@ newAccount :: Double -> STM Account newAccount balance = do tv <- newTVar balanc
     struct Val { unsigned long constrno; /* constructor # */ struct Val *args[]; /* flexible array */ };
     ```
 
-    +   对于像`[Int]`这样的类型，`constrno`可能为`[]`的0，`(:)`的1，其中`[]`具有0大小的`args`，`(:)`具有2个元素的`args`
+    +   对于像`[Int]`这样的类型，`constrno`可能为`[]`的 0，`(:)`的 1，其中`[]`具有 0 大小的`args`，`(:)`具有 2 个元素的`args`
 
     +   对于像`Int`这样的类型，`constrno`可以是实际的整数，没有`args`
 
@@ -284,9 +284,9 @@ typedef struct Val { const struct ValInfo *info; struct Val *args[]; } Val; /* S
 
 ## 强制执行
 
-+   将thunk转换为非thunk称为*强制*它
++   将 thunk 转换为非 thunk 称为*强制*它
 
-+   如果一个thunk的返回值不适合thunk的`args`怎么办？
++   如果一个 thunk 的返回值不适合 thunk 的`args`怎么办？
 
     +   这就是为什么我们有`IND` `ValInfo`标记--分配新的`Val`，在旧的`Val`中放置间接转发指针
 
@@ -298,7 +298,7 @@ typedef struct Val { const struct ValInfo *info; struct Val *args[]; } Val; /* S
 
 ## 柯里化
 
-+   让我们使用柯里化的简单实现（GHC非常复杂）
++   让我们使用柯里化的简单实现（GHC 非常复杂）
 
 +   将`closure->args`设置为先前柯里化参数列表的头部
 
@@ -306,7 +306,7 @@ typedef struct Val { const struct ValInfo *info; struct Val *args[]; } Val; /* S
     const3 :: a -> b -> c -> a const3 a b c = a
     ```
 
-    +   编译器发出3个`ValInfo`和3个`const3`函数
+    +   编译器发出 3 个`ValInfo`和 3 个`const3`函数
 
     +   顶层绑定的`ValInfo`具有`func = const3_1`
 
@@ -346,21 +346,21 @@ Val *const3_1 (Val *ignored, Val *a) { v = (Val *) gc_malloc (offsetof (Val, arg
     union Arg { struct Val *boxed; /* most values are boxed */ unsigned long unboxed; /* "primitive" values */ }; typedef struct Val { const struct ValInfo *info; union Arg args[]; /* args can be boxed or unboxed */ } Val;
     ```
 
-    +   未装箱类型没有构造函数，不能是thunk（没有`ValInfo`）
+    +   未装箱类型没有构造函数，不能是 thunk（没有`ValInfo`）
 
     +   可以适合单个寄存器或取代`Val *`参数的位置
 
     +   必须扩展`GCInfo`以识别哪些参数是装箱的，哪些不是
 
-## GHC中的未装箱类型
+## GHC 中的未装箱类型
 
-+   GHC暴露了未装箱类型（尽管不是Haskell的一部分）
++   GHC 暴露了未装箱类型（尽管不是 Haskell 的一部分）
 
     +   符号使用`#`字符--必须使用[`-XMagicHash`](http://www.haskell.org/ghc/docs/latest/html/users_guide/syntax-extns.html#magic-hash)选项启用
 
     +   有未装箱类型（`Int#`）和对它们的原始操作（`+#`）
 
-    +   参见[GHC.Prim](http://www.haskell.org/ghc/docs/latest/html/libraries/ghc-prim-0.3.1.0/GHC-Prim.html)或在GHCI中键入"`:browse GHC.Prim`"
+    +   参见[GHC.Prim](http://www.haskell.org/ghc/docs/latest/html/libraries/ghc-prim-0.3.1.0/GHC-Prim.html)或在 GHCI 中键入"`:browse GHC.Prim`"
 
     +   也有[未装箱常量](http://www.haskell.org/ghc/docs/latest/html/users_guide/syntax-extns.html#magic-hash)--`2#`, `'a'#`, `2##`（无符号），`2.0##`
 
@@ -372,7 +372,7 @@ Val *const3_1 (Val *ignored, Val *a) { v = (Val *) gc_malloc (offsetof (Val, arg
     Prelude> :set -XMagicHash Prelude> :m +GHC.Types GHC.Prim Prelude GHC.Types GHC.Prim> :i Int data Int = I# Int# -- Defined in GHC.Types ... Prelude GHC.Types GHC.Prim> case 1 of I# u -> I# (u +# 2#) 3
     ```
 
-    +   让`Int`包含thunk，但一旦评估就避免指针解引用
+    +   让`Int`包含 thunk，但一旦评估就避免指针解引用
 
 ## 未装箱类型的限制
 
@@ -404,7 +404,7 @@ Val *const3_1 (Val *ignored, Val *a) { v = (Val *) gc_malloc (offsetof (Val, arg
     infiniteLoop = infiniteLoop :: Char -- loops forever seqTest1 = infiniteLoop `seq` "Hello" -- loops forever seqTest2 = str `seq` length str -- returns 6 where str = infiniteLoop:"Hello"
     ```
 
-    +   `seqTest1`永远挂起，而`seqTest2`愉快地返回6
+    +   `seqTest1`永远挂起，而`seqTest2`愉快地返回 6
 
 +   `seq`只强制`Val`，而不是`Val`的`arg`字段
 
@@ -450,9 +450,9 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
 +   严格性主要用于优化
 
-    +   避免建立长链的thunks
+    +   避免建立长链的 thunks
 
-    +   为了节省检查thunk是否已评估的开销
+    +   为了节省检查 thunk 是否已评估的开销
 
 +   但具有语义效果：非严格的`Int`不仅仅是一个数字
 
@@ -460,13 +460,13 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
     +   这种行为可以被建模为一个特殊值 ⊥（"底部"）
 
-    +   因此，`Int`的值为{0, 1}^(64) ∪ {⊥}
+    +   因此，`Int`的值为{0, 1}⁶⁴ ∪ {⊥}
 
     +   包含值 ⊥ 的类型称为*lifted*
 
-+   注意1：非装箱类型必然是非lifted的
++   注意 1：非装箱类型必然是非 lifted 的
 
-+   注意2：`!Int`不是一种一流类型，只对`data`字段有效
++   注意 2：`!Int`不是一种一流类型，只对`data`字段有效
 
     ```
     data SMaybe a = SJust !a | SNothing -- ok, data field strictAdd :: !Int -> !Int -> !Int -- error type StrictMaybeInt = Maybe !Int -- error
@@ -474,7 +474,7 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
 ## 重新审视`case`语句
 
-+   `case`语句模式匹配可以强制thunks
++   `case`语句模式匹配可以强制 thunks
 
     +   一个*不可辩驳*的模式总是匹配的
 
@@ -582,7 +582,7 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
     +   为什么不直接将`Int#`直接放入`TwoInts` `Val`的`args`中？
 
-    +   GHC提供了一个`UNPACK`指令来做到这一点
+    +   GHC 提供了一个`UNPACK`指令来做到这一点
 
         ```
         data TwoInts = TwoInts {-# UNPACK #-} !Int {-# UNPACK #-} !Int
@@ -636,7 +636,7 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
     +   更糟糕的是：文档没有限定符号名称
 
-        提示：**将鼠标悬停在符号上并查看URL以找出模块**
+        提示：**将鼠标悬停在符号上并查看 URL 以找出模块**
 
     +   此外，`S.ByteString`和`S8.ByteString`是相同类型（重新导出的），类似地，`L.ByteString`和`L8.ByteString`也是如此
 
@@ -658,11 +658,11 @@ const struct ValInfo seq_info = { some_gcinfo, THUNK, .thunk = &seq_thunk }; Val
 
     +   基本上是严格`ByteString`的链表
 
-    +   Head是严格的，tail不是，允许惰性计算或I/O
+    +   Head 是严格的，tail 不是，允许惰性计算或 I/O
 
 +   何时使用严格/惰性`ByteString`？
 
-    +   当需要惰性时显然使用惰性（例如，惰性I/O，无限或循环字符串等）
+    +   当需要惰性时显然使用惰性（例如，惰性 I/O，无限或循环字符串等）
 
     +   惰性也在连接方面更快（需要构建一个新的`S.ByteString`列表，但不复制它们包含的数据）
 

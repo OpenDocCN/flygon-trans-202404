@@ -153,9 +153,9 @@ app.use('/', routes);
 
 # 路由乐趣
 
-`app.VERB()` 方法在 Express 中提供路由功能，其中**VERB**是HTTP动词之一，比如`app.post()`。可以提供多个回调函数，所有回调函数都会被平等对待，并且表现得像中间件一样，唯一的例外是这些回调函数可以调用`next('route')`来绕过剩余的路由回调函数。这种机制可以用于在路由上执行前提条件，然后在没有继续匹配路由的理由时将控制权传递给后续路由。
+`app.VERB()` 方法在 Express 中提供路由功能，其中**VERB**是 HTTP 动词之一，比如`app.post()`。可以提供多个回调函数，所有回调函数都会被平等对待，并且表现得像中间件一样，唯一的例外是这些回调函数可以调用`next('route')`来绕过剩余的路由回调函数。这种机制可以用于在路由上执行前提条件，然后在没有继续匹配路由的理由时将控制权传递给后续路由。
 
-以下代码片段说明了可能的最简单的路由定义。Express将路径字符串转换为正则表达式，内部用于匹配传入的请求。查询字符串在执行这些匹配时**不**被考虑，例如`GET /`将匹配以下路由，`GET /?name=tobi`也将匹配。
+以下代码片段说明了可能的最简单的路由定义。Express 将路径字符串转换为正则表达式，内部用于匹配传入的请求。查询字符串在执行这些匹配时**不**被考虑，例如`GET /`将匹配以下路由，`GET /?name=tobi`也将匹配。
 
 [来源](http://expressjs.com/4x/api.html#app.VERB)
 
@@ -169,7 +169,7 @@ app.VERB(path, [callback...], callback)
 var routes = require('./routes/index'); 
 ```
 
-这里发生了什么？基本上，Express将`routes`的`var`设置为需要`./routes.index`的路径和文件。
+这里发生了什么？基本上，Express 将`routes`的`var`设置为需要`./routes.index`的路径和文件。
 
 然后使用这个变量来设置应用程序的根路径
 
@@ -185,7 +185,7 @@ router.get('/foo', function(req, res){
 }); 
 ```
 
-使用`res.send()`，我们可以做一些有趣的事情，比如发送JSON对象。
+使用`res.send()`，我们可以做一些有趣的事情，比如发送 JSON 对象。
 
 ```
 router.get('/foo', function(req, res){
@@ -213,11 +213,11 @@ module.exports = router;
 
 ##### router.get
 
-这是将'get' URL路径为`/`的函数。然后我们需要创建一个函数，该函数将进行`req`（请求）和`res`（响应）。这里还有一个关于链式事件的`next`的概念，但在这个例子中没有显示。
+这是将'get' URL 路径为`/`的函数。然后我们需要创建一个函数，该函数将进行`req`（请求）和`res`（响应）。这里还有一个关于链式事件的`next`的概念，但在这个例子中没有显示。
 
-##### 什么是module.exports？
+##### 什么是 module.exports？
 
-这是实际作为require调用结果返回的对象。这是Node的一个特性，更多信息请参考[nodejs.org/api](http://nodejs.org/api/modules.html#modules_module_exports)。
+这是实际作为 require 调用结果返回的对象。这是 Node 的一个特性，更多信息请参考[nodejs.org/api](http://nodejs.org/api/modules.html#modules_module_exports)。
 
 ## 建立一个新的路由
 
@@ -229,7 +229,7 @@ router.get('/app', function(req, res) {
 }); 
 ```
 
-请记住，URL的值`/app`不需要与文件本身的值相同。如果视图的名称是`foo.jade`，我们可以这样做：
+请记住，URL 的值`/app`不需要与文件本身的值相同。如果视图的名称是`foo.jade`，我们可以这样做：
 
 ```
 router.get('/app', function(req, res) {
@@ -252,7 +252,7 @@ h1= title
 p Welcome to #{title} 
 ```
 
-这是我们可以从'controller/route'中提取数据并在视图中显示的两个示例。在这个例子中，我们得到了以下HTML输出：
+这是我们可以从'controller/route'中提取数据并在视图中显示的两个示例。在这个例子中，我们得到了以下 HTML 输出：
 
 ```
 <h1>Express</h1>

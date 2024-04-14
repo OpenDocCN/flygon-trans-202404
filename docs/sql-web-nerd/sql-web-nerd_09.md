@@ -1,13 +1,13 @@
-| [![Tal. French Roast, 6th Avenue and 11th, Manhattan 1995.](../Images/6d8def4d9dc4d6cd678a33f24fe27297.jpg)](/http://philip.greenspun.com/images/pcd1255/tal-midriff-22.tcl) |
+| ![Tal. French Roast, 6th Avenue and 11th, Manhattan 1995.](img/tal-midriff-22.tcl) |
 | --- |
 
 ## 样式
 
-[SQL for Web Nerds](index.html) 的一部分，作者是 [Philip Greenspun](http://philip.greenspun.com/) |
+SQL for Web Nerds 的一部分，作者是 [Philip Greenspun](http://philip.greenspun.com/) |
 
 * * *
 
-这是一个熟悉的简单示例，来自[复杂查询章节](complex-queries.html)：
+这是一个熟悉的简单示例，来自复杂查询章节：
 
 > ```
 >  select user_id, count(*) as how_many from bboard where not exists (select 1 from bboard_authorized_maintainers bam where bam.user_id = bboard.user_id) and posting_time + 60 > sysdate group by user_id order by how_many desc; 
@@ -59,13 +59,13 @@
 
 ### GROUP BY 查询的规则
 
-当你使用GROUP BY时，在select列表中先放置确定组标识的列。然后放置计算该组函数的聚合列：
+当你使用 GROUP BY 时，在 select 列表中先放置确定组标识的列。然后放置计算该组函数的聚合列：
 
 > ```
 >  select links.user_id, first_names, last_name, count(links.page_id) as n_links from links, users where links.user_id = users.user_id group by links.user_id, first_names, last_name order by n_links desc 
 > ```
 
-下一步：[过程化](procedural.html)
+下一步：过程化
 
 * * *
 
@@ -73,22 +73,22 @@
 
 ### 读者评论
 
-> 在上面的示例中，where子句分为两行，尽管文本建议一行：
+> 在上面的示例中，where 子句分为两行，尽管文本建议一行：
 > 
 > "如果一行放不下，给每个从句单独一行：
 > 
 > select *
 > 
-> 来自news
+> 来自 news
 > 
 > where sysdate > expiration_date
 > 
-> 并且approved_p = 't'
+> 并且 approved_p = 't'
 > 
-> 按release_date desc, creation_date desc排序"
+> 按 release_date desc, creation_date desc 排序"
 > 
 > 在这种情况下，当然一行更好。
 > 
-> -- [Peter Tury](/shared/community-member?user_id=221702)，2002年6月12日
+> -- Peter Tury，2002 年 6 月 12 日
 
-[添加评论](/comments/add?page_id=3537) | [添加链接](/links/add?page_id=3537)
+添加评论 | 添加链接

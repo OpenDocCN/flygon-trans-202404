@@ -96,9 +96,9 @@
     that these themes illuminate and amplify each other and that
     bringing them together creates a good foundation for digging into
     any of them more deeply.  Some suggestions for further reading can
-    be found in the [Postscript](Postscript.html) chapter.  Bibliographic
+    be found in the Postscript chapter.  Bibliographic
     information for all cited works can be found in the file
-    [Bib](Bib.html). 
+    Bib. 
 
 ## Logic
 
@@ -310,7 +310,7 @@
 
     为了更深入地研究特定主题，读者会发现一些
 
-    进一步阅读建议在[附录](Postscript.html)中
+    进一步阅读建议在附录中
 
     章节。
 
@@ -321,7 +321,7 @@
 ## Chapter Dependencies
 
     A diagram of the dependencies between chapters and some 
-    paths through the material can be found in the file [deps.html](deps.html). 
+    paths through the material can be found in the file deps.html. 
 
 ## System Requirements
 
@@ -404,7 +404,7 @@
 
     适当的“记录作者”如下：
 
-+   我特此将我过去和未来对软件基础项目的贡献的版权转让给每卷或组件的“记录作者”，并授权以与软件基础的其余部分相同的条款许可。我了解，目前，“记录作者”如下：对于直到2016年被称为“软件基础”并从2016年起分别为“逻辑基础”和“编程基础”的第1卷和第2卷，作者是本杰明·皮尔斯。对于第3卷，“验证功能算法”，作者是安德鲁·W·阿普尔。对于指定卷之外的组件（例如，排版和评分工具以及其他软件基础设施），作者是本杰明·皮尔斯。
++   我特此将我过去和未来对软件基础项目的贡献的版权转让给每卷或组件的“记录作者”，并授权以与软件基础的其余部分相同的条款许可。我了解，目前，“记录作者”如下：对于直到 2016 年被称为“软件基础”并从 2016 年起分别为“逻辑基础”和“编程基础”的第 1 卷和第 2 卷，作者是本杰明·皮尔斯。对于第 3 卷，“验证功能算法”，作者是安德鲁·W·阿普尔。对于指定卷之外的组件（例如，排版和评分工具以及其他软件基础设施），作者是本杰明·皮尔斯。
 
     要开始，请发送电子邮件给本杰明·皮尔斯，描述
 
@@ -420,7 +420,7 @@
 
     开发者邮件列表。在存储库中，您会找到一个
 
-    附有进一步说明的文件INSTRUCTORS。
+    附有进一步说明的文件 INSTRUCTORS。
 
 ```
 
@@ -428,7 +428,7 @@
 
     Thanks to the efforts of a team of volunteer translators,
     *Software Foundations* can be enjoyed in Japanese at
-    [http://proofcafe.org/sf](http://proofcafe.org/sf).  A Chinese translation is underway. 
+    [`proofcafe.org/sf`](http://proofcafe.org/sf).  A Chinese translation is underway. 
 
 ```
 

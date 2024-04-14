@@ -14,11 +14,11 @@
 
 ## 书籍网站
 
-**[http://bookcurl.haxx.se](http://bookcurl.haxx.se)** 是本书的主页。它提供了方便的链接，以在网页版本中在线阅读书籍或下载副本以供离线阅读，包括 PDF、ePUB 和 MOBI 等多种不同版本。
+**[`bookcurl.haxx.se`](http://bookcurl.haxx.se)** 是本书的主页。它提供了方便的链接，以在网页版本中在线阅读书籍或下载副本以供离线阅读，包括 PDF、ePUB 和 MOBI 等多种不同版本。
 
-**[https://ec.haxx.se](https://ec.haxx.se)** 是书籍的 HTML 版本的快捷方式。
+**[`ec.haxx.se`](https://ec.haxx.se)** 是书籍的 HTML 版本的快捷方式。
 
-**[https://github.com/bagder/everything-curl](https://github.com/bagder/everything-curl)** 托管了所有书籍内容。
+**[`github.com/bagder/everything-curl`](https://github.com/bagder/everything-curl)** 托管了所有书籍内容。
 
 ## 作者
 

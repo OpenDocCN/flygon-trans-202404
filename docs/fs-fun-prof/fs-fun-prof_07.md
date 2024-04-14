@@ -1,122 +1,122 @@
-# 在工作中使用F#的低风险方式
+# 在工作中使用 F#的低风险方式
 
-所以你对函数式编程很兴奋，业余时间一直在学习F#，并且因为它有多棒而烦扰着你的同事，你迫不及待地想在工作中用它来做一些严肃的事情...
+所以你对函数式编程很兴奋，业余时间一直在学习 F#，并且因为它有多棒而烦扰着你的同事，你迫不及待地想在工作中用它来做一些严肃的事情...
 
 但是然后你撞上了一堵墙。
 
-你的工作场所有一个“仅限C#”的政策，不允许你使用F#。
+你的工作场所有一个“仅限 C#”的政策，不允许你使用 F#。
 
-如果你在典型的企业环境中工作，要批准一门新的语言将是一个漫长的过程，需要说服你的队友、QA团队、运维团队、你的老板、你老板的老板，以及走廊尽头的[神秘家伙](http://www.joelonsoftware.com/articles/fog0000000018.html)，他是你从未交流过的。我鼓励你开始这个过程（[给你的经理的有用链接](http://fpbridge.co.uk/why-fsharp.html)），但你仍然心急如焚，想着“我现在能做什么呢？”
+如果你在典型的企业环境中工作，要批准一门新的语言将是一个漫长的过程，需要说服你的队友、QA 团队、运维团队、你的老板、你老板的老板，以及走廊尽头的[神秘家伙](http://www.joelonsoftware.com/articles/fog0000000018.html)，他是你从未交流过的。我鼓励你开始这个过程（[给你的经理的有用链接](http://fpbridge.co.uk/why-fsharp.html)），但你仍然心急如焚，想着“我现在能做什么呢？”
 
 另一方面，也许你在一个灵活、随和的地方工作，你可以做你想做的事情。
 
-但你是个有责任心的人，不想成为那些用APL重写某个关键系统然后消失得无影无踪的人之一，留下一些令人费解的代码给你的接班人去维护。不，你想确保你不做任何会影响你团队[巴士因子](https://en.wikipedia.org/wiki/Bus_factor)的事情。
+但你是个有责任心的人，不想成为那些用 APL 重写某个关键系统然后消失得无影无踪的人之一，留下一些令人费解的代码给你的接班人去维护。不，你想确保你不做任何会影响你团队[巴士因子](https://en.wikipedia.org/wiki/Bus_factor)的事情。
 
-所以在这两种情况下，你想在工作中使用F#，但你不能（或不想）将其用于核心应用程序代码。
+所以在这两种情况下，你想在工作中使用 F#，但你不能（或不想）将其用于核心应用程序代码。
 
 你能做什么呢？
 
-好吧，别担心！本系列将提出一些方式，以低风险、渐进的方式让你在工作中涉足F#，而不影响任何关键任务的代码。
+好吧，别担心！本系列将提出一些方式，以低风险、渐进的方式让你在工作中涉足 F#，而不影响任何关键任务的代码。
 
-+   [在工作中使用F#的二十六种低风险方式](low-risk-ways-to-use-fsharp-at-work1.html)。你可以立即开始——无需许可。
++   在工作中使用 F#的二十六种低风险方式。你可以立即开始——无需许可。
 
-+   [使用F#进行开发和DevOps脚本编写](low-risk-ways-to-use-fsharp-at-work-2.html)。二十六种在工作中使用F#的低风险方式（第二部分）。
++   使用 F#进行开发和 DevOps 脚本编写。二十六种在工作中使用 F#的低风险方式（第二部分）。
 
-+   [使用F#进行测试](low-risk-ways-to-use-fsharp-at-work-3.html)。二十六种在工作中使用F#的低风险方式（第三部分）。
++   使用 F#进行测试。二十六种在工作中使用 F#的低风险方式（第三部分）。
 
-+   [使用F#进行数据库相关任务](low-risk-ways-to-use-fsharp-at-work-4.html)。二十六种在工作中使用F#的低风险方式（第四部分）。
++   使用 F#进行数据库相关任务。二十六种在工作中使用 F#的低风险方式（第四部分）。
 
-+   [在工作中使用F#的其他有趣方式](low-risk-ways-to-use-fsharp-at-work-5.html)。二十六种在工作中使用F#的低风险方式（第五部分）。
++   在工作中使用 F#的其他有趣方式。二十六种在工作中使用 F#的低风险方式（第五部分）。
 
-# 二十六种在工作中使用F#的低风险方式
+# 二十六种在工作中使用 F#的低风险方式
 
-# 二十六种在工作中使用F#的低风险方式
+# 二十六种在工作中使用 F#的低风险方式
 
-所以你对函数式编程很兴奋，业余时间一直在学习F#，并且因为它有多棒而烦扰着你的同事，你迫不及待地想在工作中用它来做一些严肃的事情...
+所以你对函数式编程很兴奋，业余时间一直在学习 F#，并且因为它有多棒而烦扰着你的同事，你迫不及待地想在工作中用它来做一些严肃的事情...
 
 但是然后你撞上了一堵墙。
 
-你的工作场所有一个“仅限C#”的政策，不允许你使用F#。
+你的工作场所有一个“仅限 C#”的政策，不允许你使用 F#。
 
 如果您在典型的企业环境中工作，获得批准使用新语言将是一个漫长的过程，涉及说服您的队友、质量保证人员、运维人员、您的老板、老板的老板，以及您从未与之交谈过的[走廊那个神秘的家伙](http://www.joelonsoftware.com/articles/fog0000000018.html)。我鼓励您开始这个过程（一个[为您的经理提供的有用链接](http://fpbridge.co.uk/why-fsharp.html)），但是，您仍然不耐烦，并在想“我现在能做什么？”
 
 另一方面，也许你在一个灵活、随意的地方工作，你可以随心所欲。
 
-但是你很有责任感，不想成为那种用APL重新编写一些关键系统，然后不留痕迹就消失的人之一，让你的接替者需要维护一些令人费解的代码。不，你想确保自己不做任何会影响团队[巴士因子](http://en.wikipedia.org/wiki/Bus_factor)的事情。
+但是你很有责任感，不想成为那种用 APL 重新编写一些关键系统，然后不留痕迹就消失的人之一，让你的接替者需要维护一些令人费解的代码。不，你想确保自己不做任何会影响团队[巴士因子](http://en.wikipedia.org/wiki/Bus_factor)的事情。
 
-因此，在这两种情况下，您想在工作中使用F#，但是您不能（或不想）将其用于核心应用程序代码。
+因此，在这两种情况下，您想在工作中使用 F#，但是您不能（或不想）将其用于核心应用程序代码。
 
 你能做什么？
 
-别担心！这一系列的文章将建议您以低风险、渐进式的方式使用F#，而不会影响任何关键代码。
+别担心！这一系列的文章将建议您以低风险、渐进式的方式使用 F#，而不会影响任何关键代码。
 
 ## 系列内容
 
 这是一个二十六种方法的列表，以便您可以直接跳转到您特别感兴趣的任何一种方法。
 
-**第1部分 - 使用F#进行交互式探索和开发**
+**第 1 部分 - 使用 F#进行交互式探索和开发**
 
-[1\. 使用F#交互式地探索.NET框架](low-risk-ways-to-use-fsharp-at-work1.html#explore-net-interactively)
+1\. 使用 F#交互式地探索.NET 框架
 
-[2\. 使用F#交互式地测试您自己的代码](low-risk-ways-to-use-fsharp-at-work1.html#explore-own-code-interactively)
+2\. 使用 F#交互式地测试您自己的代码
 
-[3\. 使用F#与网络服务进行交互式玩耍](low-risk-ways-to-use-fsharp-at-work1.html#explore-webservices-interactively)
+3\. 使用 F#与网络服务进行交互式玩耍
 
-[4\. 使用F#交互式地玩弄UI](low-risk-ways-to-use-fsharp-at-work1.html#explore-winforms-interactively)
+4\. 使用 F#交互式地玩弄 UI
 
-**第2部分 - 使用F#进行开发和devops脚本**
+**第 2 部分 - 使用 F#进行开发和 devops 脚本**
 
-[5\. 使用FAKE进行构建和CI脚本](low-risk-ways-to-use-fsharp-at-work-2.html#fake)
+5\. 使用 FAKE 进行构建和 CI 脚本
 
-[6\. 用F#脚本检查网站是否响应](low-risk-ways-to-use-fsharp-at-work-2.html#dev-website-responding)
+6\. 用 F#脚本检查网站是否响应
 
-[7\. 用F#脚本将RSS订阅源转换为CSV](low-risk-ways-to-use-fsharp-at-work-2.html#dev-rss-to-csv)
+7\. 用 F#脚本将 RSS 订阅源转换为 CSV
 
-[8\. 使用WMI的F#脚本检查进程的统计信息](low-risk-ways-to-use-fsharp-at-work-2.html#dev-wmi-stats)
+8\. 使用 WMI 的 F#脚本检查进程的统计信息
 
-[9\. 使用F#配置和管理云](low-risk-ways-to-use-fsharp-at-work-2.html#dev-cloud)
+9\. 使用 F#配置和管理云
 
-**第3部分 - 使用F#进行测试**
+**第 3 部分 - 使用 F#进行测试**
 
-[10\. 使用F#编写具有可读名称的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-nunit)
+10\. 使用 F#编写具有可读名称的单元测试
 
-[11\. 使用F#编程运行单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-runner)
+11\. 使用 F#编程运行单元测试
 
-[12\. 使用F#学习其他编写单元测试的方法](low-risk-ways-to-use-fsharp-at-work-3.html#test-other)
+12\. 使用 F#学习其他编写单元测试的方法
 
-[13\. 使用 FsCheck 编写更好的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-fscheck)
+13\. 使用 FsCheck 编写更好的单元测试
 
-[14\. 使用 FsCheck 创建随机虚拟数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)
+14\. 使用 FsCheck 创建随机虚拟数据
 
-[15\. 使用 F# 创建模拟对象](low-risk-ways-to-use-fsharp-at-work-3.html#test-mock)
+15\. 使用 F# 创建模拟对象
 
-[16\. 使用 F# 进行自动化浏览器测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-canopy)
+16\. 使用 F# 进行自动化浏览器测试
 
-[17\. 使用 F# 进行行为驱动开发](low-risk-ways-to-use-fsharp-at-work-3.html#test-bdd)
+17\. 使用 F# 进行行为驱动开发
 
 **第 4 部分：使用 F# 处理与数据库相关的任务**
 
-[18\. 使用 F# 替代 LINQpad](low-risk-ways-to-use-fsharp-at-work-4.html#sql-linqpad)
+18\. 使用 F# 替代 LINQpad
 
-[19\. 使用 F# 单元测试存储过程](low-risk-ways-to-use-fsharp-at-work-4.html#sql-testprocs)
+19\. 使用 F# 单元测试存储过程
 
-[20\. 使用 FsCheck 生成随机数据库记录](low-risk-ways-to-use-fsharp-at-work-4.html#sql-randomdata)
+20\. 使用 FsCheck 生成随机数据库记录
 
-[21\. 使用 F# 进行简单的 ETL](low-risk-ways-to-use-fsharp-at-work-4.html#sql-etl)
+21\. 使用 F# 进行简单的 ETL
 
-[22\. 使用 F# 生成 SQL Agent 脚本](low-risk-ways-to-use-fsharp-at-work-4.html#sql-sqlagent)
+22\. 使用 F# 生成 SQL Agent 脚本
 
 **第 5 部分：使用 F# 的其他有趣方式**
 
-[23\. 使用 F# 进行解析](low-risk-ways-to-use-fsharp-at-work-5.html#other-parsers)
+23\. 使用 F# 进行解析
 
-[24\. 使用 F# 进行图表和可视化](low-risk-ways-to-use-fsharp-at-work-5.html#other-diagramming)
+24\. 使用 F# 进行图表和可视化
 
-[25\. 使用 F# 访问基于 Web 的数据存储](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-access)
+25\. 使用 F# 访问基于 Web 的数据存储
 
-[26\. 使用 F# 进行数据科学和机器学习](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-science)
+26\. 使用 F# 进行数据科学和机器学习
 
-[(额外) 27: 平衡英国发电站机组的发电计划](low-risk-ways-to-use-fsharp-at-work-5.html#other-balance-power)
+(额外) 27: 平衡英国发电站机组的发电计划
 
 ## 入门指南
 
@@ -142,11 +142,11 @@ x + y;;
 
 就我个人而言，我更喜欢创建一个脚本文件（`文件 > 新建 > 文件` 然后选择 "F# 脚本"）并在那里输入代码，因为你会得到自动完成和智能感知。
 
-![](fsharp-script-intellisense.jpg)
+![](img/fsharp-script-intellisense.jpg)
 
 要运行一小段代码，只需高亮显示然后右键单击，或者简单地按下 `Alt+Enter`。
 
-![](fsharp-script-evaluate.jpg)
+![](img/fsharp-script-evaluate.jpg)
 
 ## 使用外部库和 NuGet
 
@@ -483,11 +483,11 @@ form.Show()
 
 这里是窗口：
 
-![](fsharp-interactive-ui1.png)
+![](img/fsharp-interactive-ui1.png)
 
 并且在点击后，窗口的标题栏已更改：
 
-![](fsharp-interactive-ui2.png)
+![](img/fsharp-interactive-ui2.png)
 
 现在让我们添加一个 FlowLayoutPanel 和一个按钮。
 
@@ -505,7 +505,7 @@ panel.Controls.Add(greenButton)
 
 现在窗口如下：
 
-![](fsharp-interactive-ui3.png)
+![](img/fsharp-interactive-ui3.png)
 
 但按钮太小了 —— 我们需要将 `AutoSize` 设置为 true。
 
@@ -515,7 +515,7 @@ greenButton.AutoSize <- true
 
 那就更好了！
 
-![](fsharp-interactive-ui4.png)
+![](img/fsharp-interactive-ui4.png)
 
 让我们再添加一个黄色按钮：
 
@@ -527,7 +527,7 @@ yellowButton.Click.Add (fun _-> form.BackColor <- Color.Yellow)
 panel.Controls.Add(yellowButton) 
 ```
 
-![](fsharp-interactive-ui5.png)
+![](img/fsharp-interactive-ui5.png)
 
 但按钮被截断了，所以让我们改变流向：
 
@@ -535,7 +535,7 @@ panel.Controls.Add(yellowButton)
 panel.FlowDirection <- FlowDirection.TopDown 
 ```
 
-![](fsharp-interactive-ui6.png)
+![](img/fsharp-interactive-ui6.png)
 
 但现在黄色按钮的宽度与绿色按钮不同，我们可以使用 `Dock` 来修复：
 
@@ -543,7 +543,7 @@ panel.FlowDirection <- FlowDirection.TopDown
 yellowButton.Dock <- DockStyle.Fill 
 ```
 
-![](fsharp-interactive-ui7.png)
+![](img/fsharp-interactive-ui7.png)
 
 正如你所见，通过这种方式轻松地与布局进行交互是非常容易的。一旦你满意布局逻辑，你就可以将代码转换回 C#，用于你的真实应用程序。
 
@@ -557,11 +557,11 @@ yellowButton.Dock <- DockStyle.Fill
 
 # 使用 F# 进行开发和 DevOps 脚本
 
-这篇文章是系列文章 [在工作中使用 F# 的低风险方法](low-risk-ways-to-use-fsharp-at-work1.html) 的延续。我已经提出了一些低风险、增量式地使用 F# 的方法，而不会影响到任何关键任务的代码。
+这篇文章是系列文章 在工作中使用 F# 的低风险方法 的延续。我已经提出了一些低风险、增量式地使用 F# 的方法，而不会影响到任何关键任务的代码。
 
 在这里，我们将讨论使用 F# 构建和其他开发和 DevOps 脚本。
 
-如果你是 F# 的新手，你可能想要阅读前一篇文章中关于 [入门](low-risk-ways-to-use-fsharp-at-work1.html#getting-started) 和 [使用 NuGet](low-risk-ways-to-use-fsharp-at-work1.html#working-with-nuget) 的部分。
+如果你是 F# 的新手，你可能想要阅读前一篇文章中关于 入门 和 使用 NuGet 的部分。
 
 ## 系列目录
 
@@ -569,67 +569,67 @@ yellowButton.Dock <- DockStyle.Fill
 
 **第 1 部分 - 使用 F# 交互式探索和开发**
 
-[1\. 使用 F# 交互式探索 .NET Framework](low-risk-ways-to-use-fsharp-at-work1.html#explore-net-interactively)
+1\. 使用 F# 交互式探索 .NET Framework
 
-[2\. 使用 F# 交互式测试你自己的代码](low-risk-ways-to-use-fsharp-at-work1.html#explore-own-code-interactively)
+2\. 使用 F# 交互式测试你自己的代码
 
-[3\. 使用 F# 交互式玩转网络服务](low-risk-ways-to-use-fsharp-at-work1.html#explore-webservices-interactively)
+3\. 使用 F# 交互式玩转网络服务
 
-[4\. 使用 F# 交互式玩转 UI](low-risk-ways-to-use-fsharp-at-work1.html#explore-winforms-interactively)
+4\. 使用 F# 交互式玩转 UI
 
 **第 2 部分 - 使用 F# 编写开发和运维脚本**
 
-[5\. 使用 FAKE 编写构建和 CI 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#fake)
+5\. 使用 FAKE 编写构建和 CI 脚本
 
-[6\. 检查网站是否响应的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-website-responding)
+6\. 检查网站是否响应的 F# 脚本
 
-[7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-rss-to-csv)
+7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本
 
-[8\. 使用 WMI 检查进程状态的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-wmi-stats)
+8\. 使用 WMI 检查进程状态的 F# 脚本
 
-[9\. 使用 F# 配置和管理云](low-risk-ways-to-use-fsharp-at-work-2.html#dev-cloud)
+9\. 使用 F# 配置和管理云
 
 **第 3 部分 - 使用 F# 进行测试**
 
-[10\. 使用 F# 编写具有可读名称的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-nunit)
+10\. 使用 F# 编写具有可读名称的单元测试
 
-[11\. 使用 F# 以编程方式运行单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-runner)
+11\. 使用 F# 以编程方式运行单元测试
 
-[12\. 使用 F# 学习以其他方式编写单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-other)
+12\. 使用 F# 学习以其他方式编写单元测试
 
-[13\. 使用 FsCheck 编写更好的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-fscheck)
+13\. 使用 FsCheck 编写更好的单元测试
 
-[14\. 使用 FsCheck 创建随机虚拟数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)
+14\. 使用 FsCheck 创建随机虚拟数据
 
-[15\. 使用 F# 创建模拟对象](low-risk-ways-to-use-fsharp-at-work-3.html#test-mock)
+15\. 使用 F# 创建模拟对象
 
-[16\. 使用 F# 进行自动化浏览器测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-canopy)
+16\. 使用 F# 进行自动化浏览器测试
 
-[17\. 使用 F# 进行行为驱动开发](low-risk-ways-to-use-fsharp-at-work-3.html#test-bdd)
+17\. 使用 F# 进行行为驱动开发
 
 **第 4 部分：使用 F# 处理与数据库相关的任务**
 
-[18\. 使用 F# 替代 LINQpad](low-risk-ways-to-use-fsharp-at-work-4.html#sql-linqpad)
+18\. 使用 F# 替代 LINQpad
 
-[19\. 使用 F# 对存储过程进行单元测试](low-risk-ways-to-use-fsharp-at-work-4.html#sql-testprocs)
+19\. 使用 F# 对存储过程进行单元测试
 
-[20\. 使用 FsCheck 生成随机数据库记录](low-risk-ways-to-use-fsharp-at-work-4.html#sql-randomdata)
+20\. 使用 FsCheck 生成随机数据库记录
 
-[21\. 使用 F# 进行简单的 ETL](low-risk-ways-to-use-fsharp-at-work-4.html#sql-etl)
+21\. 使用 F# 进行简单的 ETL
 
-[22\. 使用 F# 生成 SQL Agent 脚本](low-risk-ways-to-use-fsharp-at-work-4.html#sql-sqlagent)
+22\. 使用 F# 生成 SQL Agent 脚本
 
 **第 5 部分：其他有趣的 F# 使用方式**
 
-[23\. 使用 F# 进行解析](low-risk-ways-to-use-fsharp-at-work-5.html#other-parsers)
+23\. 使用 F# 进行解析
 
-[24\. 使用 F# 进行图表和可视化](low-risk-ways-to-use-fsharp-at-work-5.html#other-diagramming)
+24\. 使用 F# 进行图表和可视化
 
-[25\. 使用 F# 访问基于 Web 的数据存储](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-access)
+25\. 使用 F# 访问基于 Web 的数据存储
 
-[26\. 使用 F# 进行数据科学和机器学习](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-science)
+26\. 使用 F# 进行数据科学和机器学习
 
-[(奖励) 27: 平衡英国发电站群的发电计划](low-risk-ways-to-use-fsharp-at-work-5.html#other-balance-power)
+(奖励) 27: 平衡英国发电站群的发电计划
 
 * * *
 
@@ -655,11 +655,11 @@ yellowButton.Dock <- DockStyle.Fill
 
 在接下来的几节中，我们将看到三个 F# 脚本示例：
 
-+   [一个用于检查网站是否响应的 F# 脚本](#dev-website-responding)
++   一个用于检查网站是否响应的 F# 脚本
 
-+   [一个将 RSS 订阅转换为 CSV 的 F# 脚本](#dev-rss-to-csv)
++   一个将 RSS 订阅转换为 CSV 的 F# 脚本
 
-+   [一个使用 WMI 检查进程统计数据的 F# 脚本](#dev-wmi-stats)
++   一个使用 WMI 检查进程统计数据的 F# 脚本
 
 当然，您可以将 F# 脚本与几乎任何 .NET 库集成。以下是可以编写脚本的其他实用程序的建议：
 
@@ -699,7 +699,7 @@ yellowButton.Dock <- DockStyle.Fill
 
 FAKE 内置支持 git、NuGet、单元测试、Octopus Deploy、Xamarin 等等，并且可以轻松开发具有依赖关系的复杂脚本。
 
-你甚至可以将其与[TFS一起使用以避免使用 XAML](http://blog.ctaggart.com/2014/01/code-your-tfs-builds-in-f-instead-of.html)。
+你甚至可以将其与[TFS 一起使用以避免使用 XAML](http://blog.ctaggart.com/2014/01/code-your-tfs-builds-in-f-instead-of.html)。
 
 使用 FAKE 而不是像 Rake 这样的东西的一个原因是，你可以在整个工具链中标准化 .NET 代码。理论上，你可以使用[NAnt](http://en.wikipedia.org/wiki/NAnt)，但实际上，不需要，因为 XML。[PSake](http://github.com/psake/psake)也是一个可能的选择，但我认为比 FAKE 更复杂。
 
@@ -843,7 +843,7 @@ do
 
 注意，类型提供程序会生成智能提示（如下所示），以根据订阅的实际内容显示可用的属性。这非常酷。
 
-![](fsharp-xml-dropdown.png)
+![](img/fsharp-xml-dropdown.png)
 
 结果类似于这样：
 
@@ -914,7 +914,7 @@ PageFileBytesPeak=312565760
 
 再次，使用类型提供程序意味着您可以获得智能提示（如下所示）。对于数百个 WMI 选项非常有用。
 
-![](fsharp-wmi-dropdown.png)
+![](img/fsharp-wmi-dropdown.png)
 
 [更多关于 WMI 类型提供程序的信息在这里](http://fsprojects.github.io/FSharp.Management/WMIProvider.html)。
 
@@ -952,7 +952,7 @@ for m in result do
 
 # 使用 F# 进行测试
 
-本文是之前系列文章的延续，关于[在工作中低风险和渐进式使用 F# 的方式](low-risk-ways-to-use-fsharp-at-work1.html) -- 如何以低风险、渐进式的方式涉足 F#，而不影响任何关键任务代码？
+本文是之前系列文章的延续，关于在工作中低风险和渐进式使用 F# 的方式 -- 如何以低风险、渐进式的方式涉足 F#，而不影响任何关键任务代码？
 
 在这篇文章中，我们将讨论使用 F# 进行测试。
 
@@ -962,67 +962,67 @@ for m in result do
 
 **第一部分 - 使用 F# 进行交互式探索和开发**
 
-[1\. 使用 F# 与 .NET 框架进行交互式探索](low-risk-ways-to-use-fsharp-at-work1.html#explore-net-interactively)
+1\. 使用 F# 与 .NET 框架进行交互式探索
 
-[2\. 使用 F# 交互式测试自己的代码](low-risk-ways-to-use-fsharp-at-work1.html#explore-own-code-interactively)
+2\. 使用 F# 交互式测试自己的代码
 
-[3\. 使用 F# 与网络服务进行交互式操作](low-risk-ways-to-use-fsharp-at-work1.html#explore-webservices-interactively)
+3\. 使用 F# 与网络服务进行交互式操作
 
-[4\. 使用 F# 与 UI 进行交互式操作](low-risk-ways-to-use-fsharp-at-work1.html#explore-winforms-interactively)
+4\. 使用 F# 与 UI 进行交互式操作
 
 **第二部分 - 使用 F# 进行开发和运维脚本**
 
-[5\. 使用 FAKE 编写构建和 CI 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#fake)
+5\. 使用 FAKE 编写构建和 CI 脚本
 
-[6\. 一个检查网站是否响应的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-website-responding)
+6\. 一个检查网站是否响应的 F# 脚本
 
-[7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-rss-to-csv)
+7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本
 
-[8\. 使用 WMI 检查进程统计信息的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-wmi-stats)
+8\. 使用 WMI 检查进程统计信息的 F# 脚本
 
-[9\. 使用 F# 进行云配置和管理](low-risk-ways-to-use-fsharp-at-work-2.html#dev-cloud)
+9\. 使用 F# 进行云配置和管理
 
 **第三部分 - 使用 F# 进行测试**
 
-[10\. 使用 F# 编写具有可读名称的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-nunit)
+10\. 使用 F# 编写具有可读名称的单元测试
 
-[11\. 使用 F# 运行单元测试程序化](low-risk-ways-to-use-fsharp-at-work-3.html#test-runner)
+11\. 使用 F# 运行单元测试程序化
 
-[12\. 使用 F# 学习以其他方式编写单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-other)
+12\. 使用 F# 学习以其他方式编写单元测试
 
-[13\. 使用 FsCheck 编写更好的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-fscheck)
+13\. 使用 FsCheck 编写更好的单元测试
 
-[14\. 使用 FsCheck ��建随机虚拟数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)
+14\. 使用 FsCheck ��建随机虚拟数据
 
-[15\. 使用 F# 创建模拟对象](low-risk-ways-to-use-fsharp-at-work-3.html#test-mock)
+15\. 使用 F# 创建模拟对象
 
-[16\. 使用 F# 进行自动化浏览器测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-canopy)
+16\. 使用 F# 进行自动化浏览器测试
 
-[17\. 使用 F# 进行行为驱动开发](low-risk-ways-to-use-fsharp-at-work-3.html#test-bdd)
+17\. 使用 F# 进行行为驱动开发
 
 **第四部分 - 使用 F# 进行与数据库相关的任务**
 
-[18\. 使用 F# 替代 LINQpad](low-risk-ways-to-use-fsharp-at-work-4.html#sql-linqpad)
+18\. 使用 F# 替代 LINQpad
 
-[19\. 使用 F# 单元测试存储过程](low-risk-ways-to-use-fsharp-at-work-4.html#sql-testprocs)
+19\. 使用 F# 单元测试存储过程
 
-[20\. 使用 FsCheck 生成随机数据库记录](low-risk-ways-to-use-fsharp-at-work-4.html#sql-randomdata)
+20\. 使用 FsCheck 生成随机数据库记录
 
-[21\. 使用 F# 进行简单的 ETL](low-risk-ways-to-use-fsharp-at-work-4.html#sql-etl)
+21\. 使用 F# 进行简单的 ETL
 
-[22\. 使用 F# 生成 SQL Agent 脚本](low-risk-ways-to-use-fsharp-at-work-4.html#sql-sqlagent)
+22\. 使用 F# 生成 SQL Agent 脚本
 
 **第五部分：其他有趣的 F# 使用方式**
 
-[23\. 使用 F# 进行解析](low-risk-ways-to-use-fsharp-at-work-5.html#other-parsers)
+23\. 使用 F# 进行解析
 
-[24\. 使用 F# 进行图表和可视化](low-risk-ways-to-use-fsharp-at-work-5.html#other-diagramming)
+24\. 使用 F# 进行图表和可视化
 
-[25\. 使用 F# 访问基于 Web 的数据存储](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-access)
+25\. 使用 F# 访问基于 Web 的数据存储
 
-[26\. 使用 F# 进行数据科学和机器学习](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-science)
+26\. 使用 F# 进行数据科学和机器学习
 
-[(奖励) 27: 平衡英国发电站机组的发电计划](low-risk-ways-to-use-fsharp-at-work-5.html#other-balance-power)
+(奖励) 27: 平衡英国发电站机组的发电计划
 
 * * *
 
@@ -1081,7 +1081,7 @@ Result: Success
 
 通常，您可能希望以编程方式运行单元测试。这可能是出于各种原因，比如使用自定义过滤器，或进行自定义日志记录，或不想在测试机器上安装 NUnit。
 
-这样做的一个简单方法是使用[Fuchu库](http://github.com/mausch/Fuchu)，它允许您直接组织测试，特别是参数化测试，而无需任何复杂的测试属性。
+这样做的一个简单方法是使用[Fuchu 库](http://github.com/mausch/Fuchu)，它允许您直接组织测试，特别是参数化测试，而无需任何复杂的测试属性。
 
 这是一个例子：
 
@@ -1244,7 +1244,7 @@ do
 
 ## 12\. 使用 F# 学习以其他方式编写单元测试
 
-[上述单元测试代码](#test-nunit)对我们所有人来说都很熟悉，但是还有其他编写测试的方法。学习以不同的风格编码是增加一些新技术到你的工具箱并扩展你的思维的好方法，所以让我们快速看一些吧。
+上述单元测试代码对我们所有人来说都很熟悉，但是还有其他编写测试的方法。学习以不同的风格编码是增加一些新技术到你的工具箱并扩展你的思维的好方法，所以让我们快速看一些吧。
 
 首先是[FsUnit](http://github.com/fsharp/FsUnit)，它用更流畅和习惯的方式（自然语言和管道）替换了`Assert`。
 
@@ -1299,7 +1299,7 @@ let ``2 + 2 is bigger than 5``() =
 
 ## 13\. 使用 FsCheck 编写更好的单元测试
 
-*本节的代码可以在[github上找到](http://github.com/swlaschin/low-risk-ways-to-use-fsharp-at-work/blob/master/TestsInFsharp/TestWithFsCheck.fs)。*
+*本节的代码可以在[github 上找到](http://github.com/swlaschin/low-risk-ways-to-use-fsharp-at-work/blob/master/TestsInFsharp/TestWithFsCheck.fs)。*
 
 假设我们已经编写了一个将数字转换为罗马数字的函数，并且我们想为它创建一些测试用例。
 
@@ -1317,9 +1317,9 @@ let ``Test that 497 is CDXCVII``() =
 
 例如，在罗马数字的例子中，我们可以说一个属性是“所有罗马数字最多有一个'V'字符”或“所有罗马数字最多有三个'X'字符”。然后我们可以构建检查这个属性确实为真的测试。
 
-这就是[ FsCheck](http://github.com/fsharp/FsCheck)可以帮助的地方。FsCheck是一个专为这种基于属性的测试设计的框架。它是用F#编写的，但同样适用于测试C#代码。
+这就是[ FsCheck](http://github.com/fsharp/FsCheck)可以帮助的地方。FsCheck 是一个专为这种基于属性的测试设计的框架。它是用 F#编写的，但同样适用于测试 C#代码。
 
-因此，让我们看看我们如何为我们的罗马数字使用FsCheck。
+因此，让我们看看我们如何为我们的罗马数字使用 FsCheck。
 
 首先，我们定义一些我们期望对所有罗马数字成立的属性。
 
@@ -1339,7 +1339,7 @@ let ``has max rep of three Xs`` roman =
 
 有了这个，我们创建测试：
 
-1.  创建一个适合传递给FsCheck的属性检查器函数。
+1.  创建一个适合传递给 FsCheck 的属性检查器函数。
 
 1.  使用`Check.Quick`函数生成数百个随机测试用例，并将它们发送到属性检查器中。
 
@@ -1361,7 +1361,7 @@ let ``Test that roman numerals have no more than three Xs``() =
     Check.QuickThrowOnFailure (testWithRange property) 
 ```
 
-这里是测试的结果。你可以看到已经测试了100个随机数，而不仅仅是一个。
+这里是测试的结果。你可以看到已经测试了 100 个随机数，而不仅仅是一个。
 
 ```
 Test that roman numerals have no more than one V
@@ -1371,7 +1371,7 @@ Test that roman numerals have no more than three Xs
    Ok, passed 100 tests. 
 ```
 
-如果我们将测试改为“测试罗马数字中不超过两个X”，那么测试结果为false，看起来像这样：
+如果我们将测试改为“测试罗马数字中不超过两个 X”，那么测试结果为 false，看起来像这样：
 
 ```
 Falsifiable, after 33 tests 
@@ -1379,9 +1379,9 @@ Falsifiable, after 33 tests
 30 
 ```
 
-换句话说，在生成了33个不同的输入后，FsCheck正确地找到了一个不符合所需属性的数字（30）。非常好！
+换句话说，在生成了 33 个不同的输入后，FsCheck 正确地找到了一个不符合所需属性的数字（30）。非常好！
 
-### 在实践中使用FsCheck
+### 在实践中使用 FsCheck
 
 并非所有情况都有可以通过这种方式测试的属性，但你可能会发现这种情况比你想象的更常见。
 
@@ -1395,7 +1395,7 @@ Falsifiable, after 33 tests
 
 +   **往返测试**。例如，如果你将一个记录保存到数据库，然后重新加载它，记录的字段应该保持不变。同样，如果你序列化然后反序列化某些东西，你应该得到原始的东西。
 
-+   **不变性**。如果你向销售订单添加产品，那么各个行的总和应与订单总额相同。或者，每页的字数总和应等于整本书的字数总和。更普遍地说，如果你通过两种不同的路径计算事物，你应该得到相同的答案（[幺半群同态！](monoids-part2.html#monoid-homomorphism)）
++   **不变性**。如果你向销售订单添加产品，那么各个行的总和应与订单总额相同。或者，每页的字数总和应等于整本书的字数总和。更普遍地说，如果你通过两种不同的路径计算事物，你应该得到相同的答案（幺半群同态！）
 
 +   **舍入**。如果你向食谱中添加配料，那么配料百分比的总和（精确到小数点后 2 位）应始终精确地为 100%。大多数分区逻辑都需要类似的规则，例如份额、税收计算等（例如[DDD 书中的“份额饼图”示例](http://books.google.co.uk/books?id=xColAAPGubgC&pg=PA198&lpg=PA198&dq=%22domain+driven+design%22+%22share+pie%22&source=bl&ots=q9-HdfTK4p&sig=IUnHGFUdwQv2p0tuWVbrqqwdAk4&hl=en&sa=X&ei=IdFbU5bLK8SMOPLFgfgC&ved=0CC8Q6AEwAA#v=onepage&q=%22domain%20driven%20design%22%20%22share%20pie%22&f=false)）。
 
@@ -1413,7 +1413,7 @@ FsCheck 的更多链接：
 
 +   [关于在实践中使用 FsCheck 的文章](http://www.clear-lines.com/blog/post/FsCheck-and-XUnit-is-The-Bomb.aspx)。
 
-+   [提到 FsCheck 的罗马数字 kata 的我的帖子](roman-numeral-kata.html)。
++   提到 FsCheck 的罗马数字 kata 的我的帖子。
 
 对于基于属性的测试的更多内容，请查找关于 QuickCheck 的文章和视频。
 
@@ -1429,7 +1429,7 @@ FsCheck 的更多链接：
 
 例如，下面是生成随机客户的完整代码。
 
-当你将其与SQL类型提供程序（稍后讨论）或CSV写入器结合使用时，你可以轻松生成数据库或CSV文件中的数千行随机客户。或者您可以将其与JSON类型提供程序一起使用，调用Web服务进行测试验证逻辑或负载测试。
+当你将其与 SQL 类型提供程序（稍后讨论）或 CSV 写入器结合使用时，你可以轻松生成数据库或 CSV 文件中的数千行随机客户。或者您可以将其与 JSON 类型提供程序一起使用，调用 Web 服务进行测试验证逻辑或负载测试。
 
 *(不要担心不理解代码 -- 这个示例只是为了向您展示它是多么简单！)*
 
@@ -1524,15 +1524,15 @@ let printRandomCustomers() =
  birthdate = 21/07/1955 00:00:00;} 
 ```
 
-## 15\. 使用F#创建模拟对象
+## 15\. 使用 F#创建模拟对象
 
-如果您使用F#为在C#中编写的代码编写测试用例，则可能希望为接口创建模拟对象和存根。
+如果您使用 F#为在 C#中编写的代码编写测试用例，则可能希望为接口创建模拟对象和存根。
 
-在C#中，您可能会使用[Moq](http://github.com/Moq/moq4)或[NSubstitute](http://nsubstitute.github.io/)。在F#中，您可以使用对象表达式直接创建接口，或者使用[Foq库](http://foq.codeplex.com/)。
+在 C#中，您可能会使用[Moq](http://github.com/Moq/moq4)或[NSubstitute](http://nsubstitute.github.io/)。在 F#中，您可以使用对象表达式直接创建接口，或者使用[Foq 库](http://foq.codeplex.com/)。
 
-这两者都很容易做到，并且类似于Moq。
+这两者都很容易做到，并且类似于 Moq。
 
-这是C#中的一些Moq代码：
+这是 C#中的一些 Moq 代码：
 
 ```
 // Moq Method
@@ -1547,7 +1547,7 @@ mock.Setup(foo => foo.DoSomething(It.IsAny<string>())).Returns(true);
 mock.Setup(foo => foo.Name ).Returns("bar"); 
 ```
 
-这里是等效的F#中的Foq代码：
+这里是等效的 F#中的 Foq 代码：
 
 ```
 // Foq Method
@@ -1563,27 +1563,27 @@ mock.Setup(fun foo -> <@ foo.DoSomething(any()) @>).Returns(true)
 mock.Setup(fun foo -> <@ foo.Name @>).Returns("bar") 
 ```
 
-有关F#中模拟的更多信息，请参见：
+有关 F#中模拟的更多信息，请参见：
 
 +   [F#作为单元测试语言](http://trelford.com/blog/post/fstestlang.aspx)
 
-+   [使用Foq进行模拟](http://trelford.com/blog/post/Foq.aspx)
++   [使用 Foq 进行模拟](http://trelford.com/blog/post/Foq.aspx)
 
-+   [使用F#测试和模拟您的C#代码](http://www.clear-lines.com/blog/post/Testing-and-mocking-your-C-sharp-code-with-F-sharp.aspx)
++   [使用 F#测试和模拟您的 C#代码](http://www.clear-lines.com/blog/post/Testing-and-mocking-your-C-sharp-code-with-F-sharp.aspx)
 
-当您需要模拟外部服务（如通过线路的SMTP）时，有一个有趣的工具叫做[mountebank](http://www.mbtest.org/)，在F#中[与之交互很容易](http://nikosbaxevanis.com/blog/2014/04/22/mountebank-mocks-with-f-number/)。
+当您需要模拟外部服务（如通过线路的 SMTP）时，有一个有趣的工具叫做[mountebank](http://www.mbtest.org/)，在 F#中[与之交互很容易](http://nikosbaxevanis.com/blog/2014/04/22/mountebank-mocks-with-f-number/)。
 
-## 16\. 使用F#进行自动化浏览器测试
+## 16\. 使用 F#进行自动化浏览器测试
 
-除了单元测试外，您还应该进行某种类型的自动化Web测试，使用[Selenium](http://docs.seleniumhq.org/)或[WatiN](http://watin.sourceforge.net/)驱动浏览器。
+除了单元测试外，您还应该进行某种类型的自动化 Web 测试，使用[Selenium](http://docs.seleniumhq.org/)或[WatiN](http://watin.sourceforge.net/)驱动浏览器。
 
 但是您应该用什么语言编写自动化呢？Ruby？Python？C#？我想你知道答案！
 
-为了让你的生活更轻松，试试使用[Canopy](http://lefthandedgoat.github.io/canopy/)，这是一个构建在Selenium之上、用F#编写的Web测试框架。他们的网站声称*"快速学习。即使你以前没有做过UI自动化，也不懂F#。"*, 我倾向于相信他们。
+为了让你的生活更轻松，试试使用[Canopy](http://lefthandedgoat.github.io/canopy/)，这是一个构建在 Selenium 之上、用 F#编写的 Web 测试框架。他们的网站声称*"快速学习。即使你以前没有做过 UI 自动化，也不懂 F#。"*, 我倾向于相信他们。
 
-下面是从Canopy网站中摘录的代码片段。如您所见，代码简单易懂。
+下面是从 Canopy 网站中摘录的代码片段。如您所见，代码简单易懂。
 
-另外，FAKE与Canopy集成，因此您可以[作为CI构建的一部分运行自动化浏览器测试](http://fsharp.github.io/FAKE/canopy.html)。
+另外，FAKE 与 Canopy 集成，因此您可以[作为 CI 构建的一部分运行自动化浏览器测试](http://fsharp.github.io/FAKE/canopy.html)。
 
 ```
 //start an instance of the firefox browser
@@ -1615,13 +1615,13 @@ start firefox
 run() 
 ```
 
-## 17\. 使用F#进行行为驱动开发
+## 17\. 使用 F#进行行为驱动开发
 
-*本节的代码[可在github上获得](http://github.com/swlaschin/low-risk-ways-to-use-fsharp-at-work/blob/master/TestsInFsharp/TickSpec.StepDefinitions.fs)。*
+*本节的代码[可在 github 上获得](http://github.com/swlaschin/low-risk-ways-to-use-fsharp-at-work/blob/master/TestsInFsharp/TickSpec.StepDefinitions.fs)。*
 
 如果您不熟悉行为驱动开发（BDD），那么您可以以既可读又*可执行*的方式表达需求。
 
-编写这些测试的标准格式（Gherkin）使用了Given/When/Then语法 -- 这是一个例子：
+编写这些测试的标准格式（Gherkin）使用了 Given/When/Then 语法 -- 这是一个例子：
 
 ```
 Feature: Refunded or replaced items should be returned to stock
@@ -1633,7 +1633,7 @@ Scenario 1: Refunded items should be returned to stock
     Then I should have 4 black jumpers in stock 
 ```
 
-如果您已经在.NET中使用BDD，您可能正在使用[SpecFlow](http://www.specflow.org/)或类似工具。
+如果您已经在.NET 中使用 BDD，您可能正在使用[SpecFlow](http://www.specflow.org/)或类似工具。
 
 你应该考虑使用[TickSpec](http://tickspec.codeplex.com/)，因为与所有 F# 相关的事物一样，语法更加轻量级。
 
@@ -1690,7 +1690,7 @@ public void GivenIHaveNBlackJumpersLeftInStock(int n) {
 
 # 使用 F# 处理数据库相关任务
 
-这篇文章是之前关于[在工作中使用 F# 的低风险和渐进方式](low-risk-ways-to-use-fsharp-at-work1.html)系列的延续。
+这篇文章是之前关于在工作中使用 F# 的低风险和渐进方式系列的延续。
 
 在这篇文章中，我们将看到 F# 在处理数据库相关任务时是如何意外地有帮助的。
 
@@ -1700,83 +1700,83 @@ public void GivenIHaveNBlackJumpersLeftInStock(int n) {
 
 **第 1 部分 - 使用 F# 进行交互式探索和开发**
 
-[1\. 使用 F# 交互式探索 .NET 框架](low-risk-ways-to-use-fsharp-at-work1.html#explore-net-interactively)
+1\. 使用 F# 交互式探索 .NET 框架
 
-[2\. 使用 F# 交互式测试自己的代码](low-risk-ways-to-use-fsharp-at-work1.html#explore-own-code-interactively)
+2\. 使用 F# 交互式测试自己的代码
 
-[3\. 使用 F# 与网络服务进行交互式操作](low-risk-ways-to-usefsharp-at-work1.html#explore-webservices-interactively)
+3\. 使用 F# 与网络服务进行交互式操作
 
-[4\. 使用 F# 交互式操作 UI](low-risk-ways-to-use-fsharp-at-work1.html#explore-winforms-interactively)
+4\. 使用 F# 交互式操作 UI
 
 **第 2 部分 - 使用 F# 进行开发和运维脚本**
 
-[5\. 使用 FAKE 编写构建和 CI 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#fake)
+5\. 使用 FAKE 编写构建和 CI 脚本
 
-[6\. 一个用于检查网站是否响应的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-website-responding)
+6\. 一个用于检查网站是否响应的 F# 脚本
 
-[7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-rss-to-csv)
+7\. 一个将 RSS 订阅转换为 CSV 的 F# 脚本
 
-[8\. 使用 WMI 检查进程统计信息的 F# 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#dev-wmi-stats)
+8\. 使用 WMI 检查进程统计信息的 F# 脚本
 
-[9\. 使用 F# 配置和管理云](low-risk-ways-to-use-fsharp-at-work-2.html#dev-cloud)
+9\. 使用 F# 配置和管理云
 
 **第 3 部分 - 使用 F# 进行测试**
 
-[10\. 使用 F# 编写具有可读名称的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-nunit)
+10\. 使用 F# 编写具有可读名称的单元测试
 
-[11\. 使用 F# 程序化运行单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-runner)
+11\. 使用 F# 程序化运行单元测试
 
-[12\. 使用 F# 学习其他方式编写单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-other)
+12\. 使用 F# 学习其他方式编写单元测试
 
-[13\. 使用FsCheck编写更好的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-fscheck)
+13\. 使用 FsCheck 编写更好的单元测试
 
-[14\. 使用FsCheck创建随机虚拟数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)
+14\. 使用 FsCheck 创建随机虚拟数据
 
-[15\. 使用F#创建模拟对象](low-risk-ways-to-use-fsharp-at-work-3.html#test-mock)
+15\. 使用 F#创建模拟对象
 
-[16\. 使用F#进行自动化浏览器测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-canopy)
+16\. 使用 F#进行自动化浏览器测试
 
-[17\. 使用F#进行行为驱动开发](low-risk-ways-to-use-fsharp-at-work-3.html#test-bdd)
+17\. 使用 F#进行行为驱动开发
 
-**第4部分。使用F#进行与数据库相关的任务**
+**第 4 部分。使用 F#进行与数据库相关的任务**
 
-[18\. 使用F#替代LINQpad](low-risk-ways-to-use-fsharp-at-work-4.html#sql-linqpad)
+18\. 使用 F#替代 LINQpad
 
-[19\. 使用F#对存储过程进行单元测试](low-risk-ways-to-use-fsharp-at-work-4.html#sql-testprocs)
+19\. 使用 F#对存储过程进行单元测试
 
-[20\. 使用FsCheck生成随机数据库记录](low-risk-ways-to-use-fsharp-at-work-4.html#sql-randomdata)
+20\. 使用 FsCheck 生成随机数据库记录
 
-[21\. 使用F#进行简单的ETL](low-risk-ways-to-use-fsharp-at-work-4.html#sql-etl)
+21\. 使用 F#进行简单的 ETL
 
-[22\. 使用F#生成SQL Agent脚本](low-risk-ways-to-use-fsharp-at-work-4.html#sql-sqlagent)
+22\. 使用 F#生成 SQL Agent 脚本
 
-**第5部分：使用F#的其他有趣方法**
+**第 5 部分：使用 F#的其他有趣方法**
 
-[23\. 使用F#进行解析](low-risk-ways-to-use-fsharp-at-work-5.html#other-parsers)
+23\. 使用 F#进行解析
 
-[24\. 使用F#进行图表和可视化](low-risk-ways-to-use-fsharp-at-work-5.html#other-diagramming)
+24\. 使用 F#进行图表和可视化
 
-[25\. 使用F#访问基于Web的数据存储](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-access)
+25\. 使用 F#访问基于 Web 的数据存储
 
-[26\. 使用F#进行数据科学和机器学习](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-science)
+26\. 使用 F#进行数据科学和机器学习
 
 （奖励）27：平衡英国发电站船队的发电计划](low-risk-ways-to-use-fsharp-at-work-5.html#other-balance-power)
 
 * * *
 
-## 第4部分。使用F#进行与数据库相关的任务
+## 第 4 部分。使用 F#进行与数据库相关的任务
 
-接下来的一组建议都是关于与数据库一起工作，特别是MS SQL Server。
+接下来的一组建议都是关于与数据库一起工作，特别是 MS SQL Server。
 
 关系数据库是大多数应用程序的关键部分，但大多数团队在管理这些数据库时并没有像对待其他开发任务那样的方法。
 
 例如，你知道有多少团队对他们的存储过程进行单元测试了吗？
 
-或者他们的ETL任务呢？
+或者他们的 ETL 任务呢？
 
-或者使用非SQL脚本语言存储在源代码控制中的T-SQL管理脚本和其他样板代码？
+或者使用非 SQL 脚本语言存储在源代码控制中的 T-SQL 管理脚本和其他样板代码？
 
-这就是F#可以胜过其他脚本语言，甚至胜过T-SQL本身的地方。
+这就是 F#可以胜过其他脚本语言，甚至胜过 T-SQL 本身的地方。
 
 +   F#中的数据库类型提供程序为您提供了创建简单、简短脚本用于测试和管理的能力，而且还有额外的好处...
 
@@ -1790,11 +1790,11 @@ public void GivenIHaveNBlackJumpersLeftInStock(int n) {
 
 +   单元测试存储过程
 
-+   使用FsCheck生成随机记录
++   使用 FsCheck 生成随机记录
 
-+   使用F#进行简单的ETL
++   使用 F#进行简单的 ETL
 
-+   生成SQL Agent脚本
++   生成 SQL Agent 脚本
 
 ### 进行设置
 
@@ -2546,7 +2546,7 @@ GO
 
 # 在工作中使用 F# 的其他有趣方式
 
-这篇文章是关于[在工作中低风险和渐进式使用 F# 的系列](low-risk-ways-to-use-fsharp-at-work1.html)的结论。
+这篇文章是关于在工作中低风险和渐进式使用 F# 的系列的结论。
 
 总结一下，我们将看一些更多的方式，F# 如何帮助你处理各种开发任务，而不影响任何核心或关键任务代码。
 
@@ -2556,67 +2556,67 @@ GO
 
 **第 1 部分 - 使用 F# 进行交互式探索和开发**
 
-[1\. 使用 F# 交互式地探索 .NET 框架](low-risk-ways-to-use-fsharp-at-work1.html#explore-net-interactively)
+1\. 使用 F# 交互式地探索 .NET 框架
 
-[2\. 使用 F# 交互式地测试自己的代码](low-risk-ways-to-use-fsharp-at-work1.html#explore-own-code-interactively)
+2\. 使用 F# 交互式地测试自己的代码
 
-[3\. 使用 F# 与网络服务进行交互式操作](low-risk-ways-to-use-fsharp-at-work1.html#explore-webservices-interactively)
+3\. 使用 F# 与网络服务进行交互式操作
 
-[4\. 使用 F# 与 UI 进行交互式操作](low-risk-ways-to-use-fsharp-at-work1.html#explore-winforms-interactively)
+4\. 使用 F# 与 UI 进行交互式操作
 
 **第 2 部分 - 使用 F# 进行开发和 DevOps 脚本**
 
-[5\. 使用 FAKE 编写构建和 CI 脚本](low-risk-ways-to-use-fsharp-at-work-2.html#fake)
+5\. 使用 FAKE 编写构建和 CI 脚本
 
-[6\. 使用 F# 脚本检查网站是否响应](low-risk-ways-to-use-fsharp-at-work-2.html#dev-website-responding)
+6\. 使用 F# 脚本检查网站是否响应
 
-[7\. 使用 F# 脚本将 RSS 订阅转换为 CSV](low-risk-ways-to-use-fsharp-at-work-2.html#dev-rss-to-csv)
+7\. 使用 F# 脚本将 RSS 订阅转换为 CSV
 
-[8\. 使用 F# 脚本使用 WMI 检查进程的统计信息](low-risk-ways-to-use-fsharp-at-work-2.html#dev-wmi-stats)
+8\. 使用 F# 脚本使用 WMI 检查进程的统计信息
 
-[9\. 使用 F# 进行云配置和管理](low-risk-ways-to-use-fsharp-at-work-2.html#dev-cloud)
+9\. 使用 F# 进行云配置和管理
 
 **第 3 部分 - 使用 F# 进行测试**
 
-[10\. 使用 F# 以可读名称编写单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-nunit)
+10\. 使用 F# 以可读名称编写单元测试
 
-[11\. 使用 F# 以编程方式运行单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-runner)
+11\. 使用 F# 以编程方式运行单元测试
 
-[12\. 使用 F# 学习以其他方式编写单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-other)
+12\. 使用 F# 学习以其他方式编写单元测试
 
-[13\. 使用 FsCheck 编写更好的单元测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-fscheck)
+13\. 使用 FsCheck 编写更好的单元测试
 
-[14\. 使用 FsCheck 创建随机虚拟数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)
+14\. 使用 FsCheck 创建随机虚拟数据
 
-[15\. 使用 F# 创建模拟对象](low-risk-ways-to-use-fsharp-at-work-3.html#test-mock)
+15\. 使用 F# 创建模拟对象
 
-[16\. 使用 F# 进行自动化浏览器测试](low-risk-ways-to-use-fsharp-at-work-3.html#test-canopy)
+16\. 使用 F# 进行自动化浏览器测试
 
-[17\. 使用 F# 进行行为驱动开发](low-risk-ways-to-use-fsharp-at-work-3.html#test-bdd)
+17\. 使用 F# 进行行为驱动开发
 
 **第 4 部分：使用 F# 处理数据库相关任务**
 
-[18\. 使用 F# 替代 LINQpad](low-risk-ways-to-use-fsharp-at-work-4.html#sql-linqpad)
+18\. 使用 F# 替代 LINQpad
 
-[19\. 使用 F# 对存储过程进行单元测试](low-risk-ways-to-use-fsharp-at-work-4.html#sql-testprocs)
+19\. 使用 F# 对存储过程进行单元测试
 
-[20\. 使用 FsCheck 生成随机数据库记录](low-risk-ways-to-use-fsharp-at-work-4.html#sql-randomdata)
+20\. 使用 FsCheck 生成随机数据库记录
 
-[21\. 使用 F# 进行简单的 ETL](low-risk-ways-to-use-fsharp-at-work-4.html#sql-etl)
+21\. 使用 F# 进行简单的 ETL
 
-[22\. 使用 F# 生成 SQL Agent 脚本](low-risk-ways-to-use-fsharp-at-work-4.html#sql-sqlagent)
+22\. 使用 F# 生成 SQL Agent 脚本
 
 **第 5 部分：使用 F# 的其他有趣方法**
 
-[23\. 使用 F# 进行解析](low-risk-ways-to-use-fsharp-at-work-5.html#other-parsers)
+23\. 使用 F# 进行解析
 
-[24\. 使用 F# 进行绘图和可视化](low-risk-ways-to-use-fsharp-at-work-5.html#other-diagramming)
+24\. 使用 F# 进行绘图和可视化
 
-[25\. 使用 F# 访问基于 web 的数据存储](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-access)
+25\. 使用 F# 访问基于 web 的数据存储
 
-[26\. 使用 F# 进行数据科学和机器学习](low-risk-ways-to-use-fsharp-at-work-5.html#other-data-science)
+26\. 使用 F# 进行数据科学和机器学习
 
-[(奖励) 27: 平衡英国发电站的发电计划](low-risk-ways-to-use-fsharp-at-work-5.html#other-balance-power)
+(奖励) 27: 平衡英国发电站的发电计划
 
 * * *
 
@@ -2644,9 +2644,9 @@ TickSpec 需要解析所谓的 "Gherkin" 格式的 Given/When/Then。与其依�
 
 一旦你解析或分析了某些东西，最好能以可视化的方式显示结果，而不是作为充满数据的表格。
 
-例如，在[之前的一篇文章](cycles-and-modularity-in-the-wild.html)中，我使用了 F# 与 [GraphViz](http://www.graphviz.org/) 结合来创建依赖关系图表。你可以看到下面的一个示例：
+例如，在之前的一篇文章中，我使用了 F# 与 [GraphViz](http://www.graphviz.org/) 结合来创建依赖关系图表。你可以看到下面的一个示例：
 
-![](tickspec_svg.png)
+![](img/tickspec_svg.png)
 
 生成图表本身的代码很简短，只有约 60 行，你可以[在这里看到](http://gist.github.com/swlaschin/5742974#file-type-dependency-graph-fsx-L428)。
 
@@ -2758,7 +2758,7 @@ data.``Arts and Entertainment``.Film.Films.IndividualsAZ.C.Casablanca.``Awards W
 
 ## 使用 Freebase 生成逼真的测试数据
 
-我们已经看到了 FsCheck 如何用于[生成测试数据](low-risk-ways-to-use-fsharp-at-work-3.html#test-dummy)。同样，你也可以通过从 Freebase 获取数据来达到相同的效果，这样数据会更加逼真。
+我们已经看到了 FsCheck 如何用于生成测试数据。同样，你也可以通过从 Freebase 获取数据来达到相同的效果，这样数据会更加逼真。
 
 [Kit Eason](http://twitter.com/kitlovesfsharp) 在一条 [推文](http://twitter.com/kitlovesfsharp/status/296240699735695360) 中展示了如何做到这一点，这里是基于他的代码的示例：
 
@@ -2893,13 +2893,13 @@ United States -- Maternal mortality ratio (modeled estimate, per 100,000 live bi
 
 让我们最后快速看一下如何使用 F# 进行数据科学和机器学习。
 
-正如我们所见，F#非常适合探索式编程——它具有具有智能感知的 REPL。但与Python和R不同，你的代码是经过类型检查的，所以你知道你的代码不会在处理两小时后出现异常！
+正如我们所见，F#非常适合探索式编程——它具有具有智能感知的 REPL。但与 Python 和 R 不同，你的代码是经过类型检查的，所以你知道你的代码不会在处理两小时后出现异常！
 
-如果你熟悉Python中的Pandas库或R中的`tseries`包，那么你应该认真看看[Deedle](http://bluemountaincapital.github.io/Deedle/)，这是一个易于使用、高质量的数据和时间序列操作包。Deedle旨在在REPL中进行探索式编程时表现良好，但也可以在高效的编译后.NET代码中使用。
+如果你熟悉 Python 中的 Pandas 库或 R 中的`tseries`包，那么你应该认真看看[Deedle](http://bluemountaincapital.github.io/Deedle/)，这是一个易于使用、高质量的数据和时间序列操作包。Deedle 旨在在 REPL 中进行探索式编程时表现良好，但也可以在高效的编译后.NET 代码中使用。
 
 如果你经常使用 R，当然会有一个[R 类型提供者](http://bluemountaincapital.github.io/FSharpRProvider)。这意味着你可以像使用 .NET 库一样使用 R 包。多么令人惊讶的事情！
 
-还有很多其他友好的F#包。你可以在fsharp.org找到关于它们的所有信息。
+还有很多其他友好的 F#包。你可以在 fsharp.org 找到关于它们的所有信息。
 
 +   [数据科学](http://fsharp.org/data-science/)
 
@@ -2921,10 +2921,10 @@ United States -- Maternal mortality ratio (modeled estimate, per 100,000 live bi
 
 ## 后记
 
-在我发布这篇文章后，Simon Cousins发推文说我漏掉了一个——我忍不住要补充一下。
+在我发布这篇文章后，Simon Cousins 发推文说我漏掉了一个——我忍不住要补充一下。
 
 > [@ScottWlaschin](https://twitter.com/ScottWlaschin) 27: 平衡英国电站机组的发电计划。严肃地说，除了[#fsharp](https://twitter.com/search?q=%23fsharp&src=hash)，没有其他更危险的选择。
 > 
-> — Simon Cousins (@simontcousins) [2014年4月25日](https://twitter.com/simontcousins/statuses/459591939902697472)
+> — Simon Cousins (@simontcousins) [2014 年 4 月 25 日](https://twitter.com/simontcousins/statuses/459591939902697472)
 
-你可以在[他的博客](http://www.simontylercousins.net/does-the-language-you-use-make-a-difference-revisited/)上阅读更多关于Simon使用F#（用于发电）的真实案例。在[fsharp.org](http://fsharp.org/testimonials/)上还有更多关于F#的推荐。
+你可以在[他的博客](http://www.simontylercousins.net/does-the-language-you-use-make-a-difference-revisited/)上阅读更多关于 Simon 使用 F#（用于发电）的真实案例。在[fsharp.org](http://fsharp.org/testimonials/)上还有更多关于 F#的推荐。

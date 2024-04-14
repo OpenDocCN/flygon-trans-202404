@@ -137,7 +137,7 @@ func main() {
 
 以下是"`nil`通道 VS 关闭的通道"的总结：
 
-| 操作类型 | Nil通道 | 关闭的通道 |
+| 操作类型 | Nil 通道 | 关闭的通道 |
 | --- | --- | --- |
 | 发送 | 阻塞 | 恐慌 |
 | 接收 | 阻塞 | 不阻塞，返回通道类型的零值 |
@@ -149,4 +149,4 @@ func main() {
 
 [留下一个通道是可以的吗？](http://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open);
 
-[Go编程语言规范](https://golang.org/ref/spec).
+[Go 编程语言规范](https://golang.org/ref/spec).

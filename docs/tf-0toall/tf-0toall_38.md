@@ -24,11 +24,11 @@ plt.imshow(image.reshape(3,3), cmap='Greys')
 <matplotlib.image.AxesImage at 0x10db29e10> 
 ```
 
-![png](lab-11-0-cnn_basics_1_2.png)
+![png](img/lab-11-0-cnn_basics_1_2.png)
 
 ## 1 过滤器 (2,2,1,1) 带填充: 有效
 
-weight.shape = 1 过滤器 (2 , 2 , 1, 1) ![](39cf651e.png)
+weight.shape = 1 过滤器 (2 , 2 , 1, 1) ![](img/39cf651e.png)
 
 ```
 # print("imag:\n", image)
@@ -53,11 +53,11 @@ conv2d_img.shape (1, 2, 2, 1)
  [ 24\.  28.]] 
 ```
 
-![png](lab-11-0-cnn_basics_3_1.png)
+![png](img/lab-11-0-cnn_basics_3_1.png)
 
 ## 1 过滤器 (2,2,1,1) 带填充: 相同
 
-![](90ace78a.png)
+![](img/90ace78a.png)
 
 ```
 # print("imag:\n", image)
@@ -84,7 +84,7 @@ conv2d_img.shape (1, 3, 3, 1)
  [ 15\.  17\.   9.]] 
 ```
 
-![png](lab-11-0-cnn_basics_5_1.png)
+![png](img/lab-11-0-cnn_basics_5_1.png)
 
 ## 3 个过滤器 (2,2,1,3)
 
@@ -119,13 +119,13 @@ conv2d_img.shape (1, 3, 3, 3)
  [-15\. -17\.  -9.]] 
 ```
 
-![png](lab-11-0-cnn_basics_7_1.png)
+![png](img/lab-11-0-cnn_basics_7_1.png)
 
 ## 最大池化
 
-![](3ccd13d1.png)
+![](img/3ccd13d1.png)
 
-![](bd541a75.png)
+![](img/bd541a75.png)
 
 ```
 image = np.array([[[[4],[3]],
@@ -143,7 +143,7 @@ print(pool.eval())
 
 ## SAME: 零填充
 
-![](37ff2bd2.png)
+![](img/37ff2bd2.png)
 
 ```
 image = np.array([[[[4],[3]],
@@ -186,7 +186,7 @@ plt.imshow(img, cmap='gray')
 <matplotlib.image.AxesImage at 0x1152b2048> 
 ```
 
-![png](lab-11-0-cnn_basics_13_1.png)
+![png](img/lab-11-0-cnn_basics_13_1.png)
 
 ```
 sess = tf.InteractiveSession()
@@ -206,7 +206,7 @@ for i, one_img in enumerate(conv2d_img):
 Tensor("Conv2D_3:0", shape=(1, 14, 14, 5), dtype=float32) 
 ```
 
-![png](lab-11-0-cnn_basics_14_1.png)
+![png](img/lab-11-0-cnn_basics_14_1.png)
 
 ```
 pool = tf.nn.max_pool(conv2d, ksize=[1, 2, 2, 1], strides=[
@@ -223,4 +223,4 @@ for i, one_img in enumerate(pool_img):
 Tensor("MaxPool_2:0", shape=(1, 7, 7, 5), dtype=float32) 
 ```
 
-![png](lab-11-0-cnn_basics_15_1.png)
+![png](img/lab-11-0-cnn_basics_15_1.png)

@@ -1,4 +1,4 @@
-# 第 6 章\. Apache Spark 实现
+# 第六章\. Apache Spark 实现
 
 [Spark](https://spark.apache.org/) 是一个围绕速度、易用性和复杂分析构建的强大开源处理引擎。它目前是大数据领域最大的开源社区，拥有超过 1,000 名贡献者，代表着超过 250 个组织。Spark 的主要特点如下：
 
@@ -18,17 +18,17 @@ Spark Streaming 是核心 Spark API 的扩展，使得构建容错的实时数�
 
 # 整体架构
 
-Spark Streaming 目前使用一种小批量处理流的方法，尽管真正的流式处理实现正在进行中（稍后讨论）。由于我们的问题需要状态，我们的实现唯一的选择是使用[`mapWithState`](http://bit.ly/2xzhNCM) [操作符](http://bit.ly/2xzhNCM)，其中状态是 Spark 中弹性分布式数据集核心数据集合的抽象。这个 RDD 中的每个记录都是一个键-值对，其中键是数据类型（参见[示例 3-2](ch03.html#protobuf_definition_for_the_model_update)），值是当前的模型对象。这种方法有效地使用状态 RDD 作为模型的内存，这个内存在小批量执行之间被保存。
+Spark Streaming 目前使用一种小批量处理流的方法，尽管真正的流式处理实现正在进行中（稍后讨论）。由于我们的问题需要状态，我们的实现唯一的选择是使用[`mapWithState`](http://bit.ly/2xzhNCM) [操作符](http://bit.ly/2xzhNCM)，其中状态是 Spark 中弹性分布式数据集核心数据集合的抽象。这个 RDD 中的每个记录都是一个键-值对，其中键是数据类型（参见示例 3-2），值是当前的模型对象。这种方法有效地使用状态 RDD 作为模型的内存，这个内存在小批量执行之间被保存。
 
-这个实现的第二个问题是必须合并两个输入流：数据流和模型流。与 Beam 情况类似，Spark 中合并非窗口流的唯一选项是[`union`](http://bit.ly/2xzyoeG) 操作符，它要求两个流具有相同的数据定义。[图 6-1](#spark_implementation_approach) 展示了 Spark 实现的整体架构。
+这个实现的第二个问题是必须合并两个输入流：数据流和模型流。与 Beam 情况类似，Spark 中合并非窗口流的唯一选项是[`union`](http://bit.ly/2xzyoeG) 操作符，它要求两个流具有相同的数据定义。图 6-1 展示了 Spark 实现的整体架构。
 
-![smlt 0601](assets/smlt_0601.png)
+![smlt 0601](img/smlt_0601.png)
 
 ###### 图 6-1\. Spark 实现方法
 
 # 使用 Spark Streaming 实现模型服务
 
-[示例 6-1](#model_serving_with_spark) 展示了使用 Spark 实现模型服务的整体流程，遵循这个架构（[完整代码在此处可用](http://bit.ly/2gbSpk9)）。
+示例 6-1 展示了使用 Spark 实现模型服务的整体流程，遵循这个架构（[完整代码在此处可用](http://bit.ly/2gbSpk9)）。
 
 ##### 示例 6-1\. 使用 Spark 进行模型服务
 
@@ -110,9 +110,9 @@ object SparkModelServer {
 }
 ```
 
-实际的模型服务是在 `mappingFunc` 中完成的（其功能类似于 Flink 中的模型服务实现[[示例 4-1](ch04.html#the_dataprocessor_class)]），它在每个小批量上对合并流进行调用。
+实际的模型服务是在 `mappingFunc` 中完成的（其功能类似于 Flink 中的模型服务实现[示例 4-1]），它在每个小批量上对合并流进行调用。
 
-这里另一个重要的点是将 `KryoSerializer` 设置为默认序列化器，并为模型实现 Kryo 序列化器。要注册这些序列化器，你需要实现一个特殊的 `KryoRegistrator` 类，如[示例 6-2](#model_kryo_serializer_and_registrator)（[完整代码可在此处找到](http://bit.ly/2ygTii6)）所示。
+这里另一个重要的点是将 `KryoSerializer` 设置为默认序列化器，并为模型实现 Kryo 序列化器。要注册这些序列化器，你需要实现一个特殊的 `KryoRegistrator` 类，如示例 6-2（[完整代码可在此处找到](http://bit.ly/2ygTii6)）所示。
 
 ##### 示例 6-2. 模型 Kryo 序列化器和注册器
 
@@ -156,4 +156,4 @@ Spark 提供了一个名为[结构化流式处理](http://bit.ly/2gEAFwG)的新�
 
 > 目前尚不支持两个流式数据集之间的任何类型的连接。
 
-Spark 流式处理是我将讨论的最后一个流处理引擎。在[第7章](ch07.html#apache_kafka_streams_implementation)和[第8章](ch08.html#akka_streams_implementation)中，我们将研究使用流式框架解决相同问题的开始，从 Kafka Streams 开始。
+Spark 流式处理是我将讨论的最后一个流处理引擎。在第七章和第八章中，我们将研究使用流式框架解决相同问题的开始，从 Kafka Streams 开始。

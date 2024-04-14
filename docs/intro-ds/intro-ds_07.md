@@ -1,4 +1,4 @@
-[地图](data_mining_map.htm) > [数据科学](data_mining.htm) > [解释过去](explaining_the_past.htm) > [数据探索](data_exploration.htm) > [单变量分析](univariate_analysis.htm) > 分类变量
+地图 > 数据科学 > 解释过去 > 数据探索 > 单变量分析 > 分类变量
 
 # 分类变量
 

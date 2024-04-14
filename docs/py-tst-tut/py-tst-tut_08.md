@@ -8,7 +8,7 @@
 pip install pytest-cov 
 ```
 
-### 练习1：计算测试覆盖率
+### 练习 1：计算测试覆盖率
 
 计算自动测试覆盖的代码百分比：
 
@@ -16,7 +16,7 @@ pip install pytest-cov
 pytest --cov 
 ```
 
-### 练习2：识别未覆盖的行
+### 练习 2：识别未覆盖的行
 
 找出哪些行没有被测试覆盖。执行
 
@@ -26,6 +26,6 @@ coverage html
 
 并在网页浏览器中打开生成的`htmlcov/index.html`。
 
-### 练习3：增加测试覆盖率
+### 练习 3：增加测试覆盖率
 
-将**word_counter.py**的测试覆盖率提高到100%。
+将**word_counter.py**的测试覆盖率提高到 100%。

@@ -725,7 +725,7 @@ Ltac with_evar_base T cont：
 
 策略 Notation "with_evar" constr(T) tactic(cont) :=
 
-用_evar_base T cont。
+用 _evar_base T cont。
 
 (* ---------------------------------------------------------------------- *)
 
@@ -1707,9 +1707,9 @@ go t vs。
 
 Ltac build_app args final :=
 
-first [
+first 
 
-匹配 args with (@[boxer](LibTactics.html#boxer) ?T ?t)::?vs ⇒
+匹配 args with (@[boxer ?T ?t)::?vs ⇒
 
 让 t := 构造:(t:T) in
 
@@ -1727,11 +1727,11 @@ eval hnf in T。
 
 Ltac args_unfold_head_if_not_product args :=
 
-匹配 args with (@[boxer](LibTactics.html#boxer) ?T ?t)::?vs ⇒
+匹配 args with (@boxer ?T ?t)::?vs ⇒
 
 让 T' := unfold_head_until_product T in
 
-constr:((@[boxer](LibTactics.html#boxer) T' t)::vs)
+constr:((@boxer T' t)::vs)
 
 end.
 
@@ -1739,7 +1739,7 @@ Ltac args_unfold_head_if_not_product_but_params args :=
 
 匹配 args with
 
-| ([boxer](LibTactics.html#boxer) ?t)::([boxer](LibTactics.html#boxer) ?v)::?vs ⇒
+| (boxer ?t)::(boxer ?v)::?vs ⇒
 
 args_unfold_head_if_not_product args
 
@@ -2716,7 +2716,7 @@ match goal with
 
 end.
 
-(* introv_noarg 强制目标为∀或→，然后调用introv_rec引入变量（可能没有，在这种情况下introv与hnf相同）。如果目标不是乘积，则不执行任何操作。*)
+(* introv_noarg 强制目标为∀或→，然后调用 introv_rec 引入变量（可能没有，在这种情况下 introv 与 hnf 相同）。如果目标不是乘积，则不执行任何操作。*)
 
 Ltac introv_noarg :=
 
@@ -2746,9 +2746,9 @@ Ltac introv_noarg_not_optimized :=
 
 intro; match goal with H:_|-_ ⇒ revert H end; introv_rec.
 
-(* introv_arg H 在引入前导此假设的∀量化变量后，引入一个非依赖假设H。如果不存在要引入的假设，则此策略失败。*)
+(* introv_arg H 在引入前导此假设的∀量化变量后，引入一个非依赖假设 H。如果不存在要引入的假设，则此策略失败。*)
 
-(* todo: __ 在introv中表示"intros"*)
+(* todo: __ 在 introv 中表示"intros"*)
 
 Ltac introv_arg H :=
 
@@ -2760,7 +2760,7 @@ hnf; match goal with
 
 end.
 
-(* introv I[1] .. IN 迭代introv Ik*)
+(* introv I[1] .. IN 迭代 introv Ik*)
 
 Tactic Notation "introv" :=
 
@@ -4105,7 +4105,7 @@ Axiom inj_pair2 :  (* is in fact derivable from the axioms in LibAxiom.
 
 ∀(U : Type) (P : U → Type) (p : U) (x y : P p),
 
-存在T P p x = 存在T P p y → x = y.
+存在 T P p x = 存在 T P p y → x = y.
 
 (* Proof using. apply Eqdep.EqdepTheory.inj_pair2. Qed.*)
 
@@ -5547,7 +5547,7 @@ constr(T[5]) constr(T[6]) :=
 
 (* 策略 exists___ N 是表示 ∃ __ ... __ 与 N 个双下划线。策略 ∃ 等同于调用 exists___ N，其中 N 的值通过在目标头部句法上存在的存在量进行计数获得。∃ 的行为与在目标是一个定义且只有在展开后才产生存在量的情况下的 ∃ ___ 的行为不同。 *)
 
-策略 Notation "存在___" constr(N) :=
+策略 Notation "存在 ___" constr(N) :=
 
 让 rec aux N :=
 
@@ -5563,7 +5563,7 @@ end in
 
 (* todo: 废弃 *)
 
-策略 Notation "存在___" :=
+策略 Notation "存在 ___" :=
 
 让 N := get_goal_existential_arity in
 
@@ -5573,11 +5573,11 @@ exists___ N。
 
 策略 Notation "存在" :=
 
-存在___。
+存在 ___。
 
 (* todo: exists_all 是 exists___ 的新语法 *)
 
-策略 Notation "存在所有" := 存在___。
+策略 Notation "存在所有" := 存在 ___。
 
 (* ---------------------------------------------------------------------- *)
 
@@ -7252,25 +7252,25 @@ constr(T[5]) constr(T[6]) :=
 
 (* 实现 *)
 
-定义ltac_something (P:Type) (e:P) := e。
+定义 ltac_something (P:Type) (e:P) := e。
 
 符号“Something” :=
 
 (@ltac_something _ _)。
 
-引理ltac_something_eq: ∀(e:Type),
+引理 ltac_something_eq: ∀(e:Type),
 
 e = (@ltac_something _ e)。
 
 Proof using. auto. Qed。
 
-引理ltac_something_hide: ∀(e:Type),
+引理 ltac_something_hide: ∀(e:Type),
 
 e → (@ltac_something _ e)。
 
 Proof using. auto. Qed。
 
-引理ltac_something_show: ∀(e:Type),
+引理 ltac_something_show: ∀(e:Type),
 
 (@ltac_something _ e) → e。
 
@@ -7285,21 +7285,21 @@ Proof using. auto. Qed。
 
 策略符号“hide_def”假设(x) :=
 
-让x' := constr:(x)。
+让 x' := constr:(x)。
 
-让T := eval unfold x in x' in
+让 T := eval unfold x in x' in
 
-在x中将T更改为(@ltac_something _ T)。
+在 x 中将 T 更改为(@ltac_something _ T)。
 
 策略符号“show_def”假设(x) :=
 
-让x' := constr:(x)。
+让 x' := constr:(x)。
 
-让U := eval unfold x in x' in
+让 U := eval unfold x in x' in
 
-匹配U与@ltac_something _ ?T ⇒
+匹配 U 与@ltac_something _ ?T ⇒
 
-在x中将U更改为T。
+在 x 中将 U 更改为 T。
 
 ```
 
@@ -7309,15 +7309,15 @@ Proof using. auto. Qed。
 
 策略符号“show_def” :=
 
-展开ltac_something。
+展开 ltac_something。
 
 策略符号“show_def”“in”假设(H) :=
 
-在H中展开ltac_something。
+在 H 中展开 ltac_something。
 
 策略符号“show_def”“in”“*” :=
 
-在*中展开ltac_something。
+在*中展开 ltac_something。
 
 ```
 
@@ -7327,13 +7327,13 @@ Proof using. auto. Qed。
 
 策略符号“hide_defs” :=
 
-重复匹配目标中的H := ?T ⊢ _ ⇒
+重复匹配目标中的 H := ?T ⊢ _ ⇒
 
-匹配T与
+匹配 T 与
 
 | @ltac_something _ _ ⇒ 失败 1
 
-| _ ⇒ 在H中更改T为(@ltac_something _ T)
+| _ ⇒ 在 H 中更改 T 为(@ltac_something _ T)
 
 end
 
@@ -7341,9 +7341,9 @@ end。
 
 策略符号“show_defs” :=
 
-重复匹配目标中的H := (@ltac_something _ ?T) ⊢ _ ⇒
+重复匹配目标中的 H := (@ltac_something _ ?T) ⊢ _ ⇒
 
-在H中更改T为(@ltac_something _ T)。
+在 H 中更改 T 为(@ltac_something _ T)。
 
 ```
 
@@ -7355,11 +7355,11 @@ end。
 
 策略符号“show_hyp”假设(H) :=
 
-在H中应用ltac_something_show。
+在 H 中应用 ltac_something_show。
 
 策略符号“hide_hyp”假设(H) :=
 
-在H中应用ltac_something_hide。
+在 H 中应用 ltac_something_hide。
 
 ```
 
@@ -7376,17 +7376,17 @@ H: @ltac_something _ _ ⊢ _ ⇒ show_hyp H end。
 
 策略符号“hide_hyps” :=
 
-重复匹配目标中的H: ?T ⊢ _ ⇒
+重复匹配目标中的 H: ?T ⊢ _ ⇒
 
-匹配T的类型为
+匹配 T 的类型为
 
 | Prop ⇒
 
-匹配T与
+匹配 T 与
 
 | @ltac_something _ _ ⇒ 失败 2
 
-| _ ⇒ 隐藏假设H
+| _ ⇒ 隐藏假设 H
 
 end
 
@@ -7418,7 +7418,7 @@ end。
 
 策略符号“show_all” :=
 
-在*中展开ltac_something。
+在*中展开 ltac_something。
 
 ```
 
@@ -7430,27 +7430,27 @@ end。
 
 策略符号“hide_term”constr(E) :=
 
-更改E为(@ltac_something _ E)。
+更改 E 为(@ltac_something _ E)。
 
 策略符号“show_term”constr(E) :=
 
-在x中更改(@ltac_something _ E)为E。
+在 x 中更改(@ltac_something _ E)为 E。
 
 策略符号“show_term” :=
 
-展开ltac_something。
+展开 ltac_something。
 
 策略符号“hide_term”constr(E)“in”假设(H) :=
 
-在H中更改E为(@ltac_something _ E)。
+在 H 中更改 E 为(@ltac_something _ E)。
 
 策略符号“show_term”constr(E)“in”假设(H) :=
 
-在H中将(@ltac_something _ E)更改为E��
+在 H 中将(@ltac_something _ E)更改为 E��
 
 策略符号“show_term”“in”假设(H) :=
 
-在H中展开ltac_something。
+在 H 中展开 ltac_something。
 
 ```
 
@@ -7464,11 +7464,11 @@ end。
 
 策略符号“show_unfold”constr(R[1]) :=
 
-展开R[1]；show_def。
+展开 R[1]；show_def。
 
 策略符号“show_unfold”constr(R[1])，“constr(R[2])” :=
 
-展开R[1]，R[2]；show_def。
+展开 R[1]，R[2]；show_def。
 
 (* ---------------------------------------------------------------------- *)
 
@@ -7481,13 +7481,13 @@ end。
 
 ```
 
-Ltac排序策略 :=
+Ltac 排序策略 :=
 
-尝试匹配目标中的H: ?T ⊢ _ ⇒
+尝试匹配目标中的 H: ?T ⊢ _ ⇒
 
-匹配T的类型为Prop ⇒
+匹配 T 的类型为 Prop ⇒
 
-泛化H；（尝试排序策略）；介绍
+泛化 H；（尝试排序策略）；介绍
 
 end end。
 

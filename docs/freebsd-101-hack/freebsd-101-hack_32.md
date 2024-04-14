@@ -1,6 +1,6 @@
-# 使用Subversion的注意事项
+# 使用 Subversion 的注意事项
 
-## 使用Subversion的注意事项
+## 使用 Subversion 的注意事项
 
 如果你想使用`Subversion`，比如更新端口树，你应该注意以下问题：
 
@@ -54,6 +54,6 @@ svn: E200030: SQLite compiled for 3.11.1, but running with 3.9.2
 
 参考：
 
-[在受控网络中使用FreeBSD - 必须的HTTP代理和无FTP](http://www.rhyous.com/2012/04/13/using-freebsd-inside-a-controlled-network-a-required-http-proxy-and-no-ftp/);
+[在受控网络中使用 FreeBSD - 必须的 HTTP 代理和无 FTP](http://www.rhyous.com/2012/04/13/using-freebsd-inside-a-controlled-network-a-required-http-proxy-and-no-ftp/);
 
-[如何为svn配置HTTP代理](http://stackoverflow.com/questions/1491180/how-to-configure-a-http-proxy-for-svn).
+[如何为 svn 配置 HTTP 代理](http://stackoverflow.com/questions/1491180/how-to-configure-a-http-proxy-for-svn).

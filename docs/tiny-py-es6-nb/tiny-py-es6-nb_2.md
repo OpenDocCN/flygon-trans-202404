@@ -212,7 +212,7 @@ typeof count === "object"
 
 尽管 `null` 是一个原始值，但 `typeof` 的结果是一个对象。这是根据规范[[1]](#id2)（尽管被认为是一个缺陷）。
 
-| [[1]](#id1) | [http://www.ecma-international.org/ecma-262/6.0/#sec-typeof-operator-runtime-semantics-evaluation](http://www.ecma-international.org/ecma-262/6.0/#sec-typeof-operator-runtime-semantics-evaluation) |
+| [[1]](#id1) | [`www.ecma-international.org/ecma-262/6.0/#sec-typeof-operator-runtime-semantics-evaluation`](http://www.ecma-international.org/ecma-262/6.0/#sec-typeof-operator-runtime-semantics-evaluation) |
 | --- | --- |
 
 ### `undefined`
@@ -526,9 +526,9 @@ class Person {
 | 属性 | 描述 |
 | --- | --- |
 | `Number.EPSILON` | 数字之间的最小值`2.220446049250313e-16` |
-| `Number.MAX_SAFE_INTEGER` | 最大整数`9007199254740991` (`2^53 - 1`) |
+| `Number.MAX_SAFE_INTEGER` | 最大整数`9007199254740991` (`2⁵³ - 1`) |
 | `Number.MAX_VALUE` | 最大数字`1.7976931348623157e+308` |
-| `Number.MIN_SAFE_INTEGER` | 最小负整数`-9007199254740991` (`-(2^53 - 1)`) |
+| `Number.MIN_SAFE_INTEGER` | 最小负整数`-9007199254740991` (`-(2⁵³ - 1)`) |
 | `Number.MIN_VALUE` | 最小数字`5e-324` |
 | `Number.NEGATIVE_INFINITY` | 负溢出`-Infinity` |
 | `Number.NaN` | 非数字值`NaN` |
@@ -561,7 +561,7 @@ class Person {
 
 ### `Math`库
 
-ES6具有内置的数学库来执行常见操作。
+ES6 具有内置的数学库来执行常见操作。
 
 数学属性
 
@@ -690,8 +690,8 @@ and this is the newline character: \n`
 
 | 方法 | 描述 |
 | --- | --- |
-| `String.fromCharCode(n1, ...)` | 返回包含Unicode值`n1`的字符的字符串 |
-| `String.fromCodePoint(n1, ...)` | 返回包含Unicode点`n1`的字符的字符串 |
+| `String.fromCharCode(n1, ...)` | 返回包含 Unicode 值`n1`的字符的字符串 |
+| `String.fromCodePoint(n1, ...)` | 返回包含 Unicode 点`n1`的字符的字符串 |
 | `String.raw` | 创建原始模板文字（在反引号包围的字符串后跟随此） |
 
 字符串原型方法
@@ -703,8 +703,8 @@ and this is the newline character: \n`
 | `s.p.blink()` | 返回`<blink>s</blink>` |
 | `s.p.bold()` | 返回`<b>s</b>` |
 | `s.p.charAt(idx)` | 返回在`idx`处的字符的字符串。如果索引无效则返回空字符串 |
-| `s.p.charCodeAt(idx)` | 返回UTF-16代码的0到65535之间的整数。如果索引无效则返回`NaN` |
-| `s.p.codePointAt(idx)` | 返回Unicode代码点的整数值。如果索引无效则返回`undefined` |
+| `s.p.charCodeAt(idx)` | 返回 UTF-16 代码的 0 到 65535 之间的整数。如果索引无效则返回`NaN` |
+| `s.p.codePointAt(idx)` | 返回 Unicode 代码点的整数值。如果索引无效则返回`undefined` |
 | `s.p.concat(s1, ...)` | 返回字符串的连接 |
 | `s.p.constructor()` | 字符串构造函数 |
 | `s.p.endsWith(sub, [length])` | 如果`s`（限制为`length`大小）以`sub`结尾则返回布尔值 |
@@ -717,8 +717,8 @@ and this is the newline character: \n`
 | `s.p.lastIndexOf(sub, start)` | 返回从最右边的`start`字符开始的`sub`的索引（默认`+Infinity`）。如果未找到则返回`-1` |
 | `s.p.link(url)` | 返回`<a href="url">s</a>` |
 | `s.p.localeCompare( other, [locale, [option])` | 返回`-1`，`0`或`1`，`s`在`other`之前，相等或之后 |
-| `s.p.match(reg)` | 返回一个数组，整个匹配在索引0中，其余条目对应括号 |
-| `s.p.normalize([unf])` | 返回字符串的Unicode标准化形式。`unf`可以是`"NFC"`，`"NFD"`，`"NFKC"`或`"NFKD"` |
+| `s.p.match(reg)` | 返回一个数组，整个匹配在索引 0 中，其余条目对应括号 |
+| `s.p.normalize([unf])` | 返回字符串的 Unicode 标准化形式。`unf`可以是`"NFC"`，`"NFD"`，`"NFKC"`或`"NFKD"` |
 | `s.p.repeat(num)` | 返回`num`次连接的`s` |
 | `s.p.replace(this, that)` | 返回一个新字符串，用`that`替换`this`。`this`可以是正则表达式或字符串。`that`可以是一个字符串或一个函数，该函数接受`match`，每个括号匹配的参数，匹配的索引偏移和原始字符串。它返回一个新值。 |
 | `s.p.search(reg)` | 返回正则表达式首次匹配`s`的索引或`-1` |
@@ -993,26 +993,26 @@ DataView 属性
 | `DataView.prototype.byteLength` | 视图的长度 |
 | `DataView.prototype.byteOffset` | 视图的偏移量 |
 
-DataView原型方法
+DataView 原型方法
 
 | 方法 | 描述 |
 | --- | --- |
-| `d.p.getFloat32(offset, [littleEndian])` | 从`offset`处检索带符号32位浮点数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getFloat64(offset, [littleEndian])` | 从`offset`处检索带符号64位浮点数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getInt16(offset, [littleEndian])` | 从`offset`处检索带符号16位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getInt32(offset, [littleEndian])` | 从`offset`处检索带符号32位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getInt8(offset, [littleEndian])` | 从`offset`处检索带符号8位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getUint16(offset, [littleEndian])` | 从`offset`处检索无符号16位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getUint32(offset, [littleEndian])` | 从`offset`处检索无符号32位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.getUint8(offset, [littleEndian])` | 从`offset`处检索无符号8位整数。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setFloat32(offset, value, [littleEndian])` | 在`offset`处设置带符号32位浮点数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setFloat64(offset, value, [littleEndian])` | 在`offset`处设置带符号的64位浮点数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setInt16(offset, value, [littleEndian])` | 在`offset`处设置带符号16位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setInt32(offset, value, [littleEndian])` | 在`offset`处设置带符号32位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setInt8(offset, value, [littleEndian])` | 在`offset`处设置带符号8位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setUint16(offset, value, [littleEndian])` | 在`offset`处设置无符号16位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setUint32(offset, value, [littleEndian])` | 在`offset`处设置无符号32位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
-| `d.p.setUint8(offset, value, [littleEndian])` | 在`offset`处设置无符号8位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getFloat32(offset, [littleEndian])` | 从`offset`处检索带符号 32 位浮点数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getFloat64(offset, [littleEndian])` | 从`offset`处检索带符号 64 位浮点数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getInt16(offset, [littleEndian])` | 从`offset`处检索带符号 16 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getInt32(offset, [littleEndian])` | 从`offset`处检索带符号 32 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getInt8(offset, [littleEndian])` | 从`offset`处检索带符号 8 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getUint16(offset, [littleEndian])` | 从`offset`处检索无符号 16 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getUint32(offset, [littleEndian])` | 从`offset`处检索无符号 32 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.getUint8(offset, [littleEndian])` | 从`offset`处检索无符号 8 位整数。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setFloat32(offset, value, [littleEndian])` | 在`offset`处设置带符号 32 位浮点数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setFloat64(offset, value, [littleEndian])` | 在`offset`处设置带符号的 64 位浮点数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setInt16(offset, value, [littleEndian])` | 在`offset`处设置带符号 16 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setInt32(offset, value, [littleEndian])` | 在`offset`处设置带符号 32 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setInt8(offset, value, [littleEndian])` | 在`offset`处设置带符号 8 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setUint16(offset, value, [littleEndian])` | 在`offset`处设置无符号 16 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setUint32(offset, value, [littleEndian])` | 在`offset`处设置无符号 32 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
+| `d.p.setUint8(offset, value, [littleEndian])` | 在`offset`处设置无符号 8 位整数`value`。如果`littleEndian`为`true`，则使用小端格式 |
 
 ### Date
 
@@ -1023,7 +1023,7 @@ let now = new Date();
 
 ```
 
-如果提供整数，则将获得自Unix纪元以来的秒数：
+如果提供整数，则将获得自 Unix 纪元以来的秒数：
 
 ```
 let msPast1970 = 1
@@ -1033,7 +1033,7 @@ let groovyTime = new Date(msPast1970)
 
 ```
 
-ES6规范仅支持ISO8601的一种变体，但实际上也支持RFC 2822/1123中的字符串：
+ES6 规范仅支持 ISO8601 的一种变体，但实际上也支持 RFC 2822/1123 中的字符串：
 
 ```
 let modern = new Date("Tue, 14 Mar 2017 14:59:59 GMT")
@@ -1116,26 +1116,26 @@ YYYY-MM-DDTHH:mm:ss.sssZ
 | `d.p.setMinutes(min, [sec, [ms]])` | 在改变时间值后返回自 Unix 纪元以来的毫秒数 |
 | `d.p.setMonth(month, [day])` | 在改变日期值后返回自 Unix 纪元以来的毫秒数 |
 | `d.p.setSeconds(sec, [ms])` | 在改变时间值后返回自 Unix 纪元以来的毫秒数 |
-| `d.p.setTime(epoch)` | 在变异时间值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCDate(num)` | 在变异日期后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCFullYear(year, [month, [day]])` | 在变异日期值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCHours(hours, [min, [sec, [ms]]])` | 在变异时间值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCMilliseconds( ms)` | 在变异ms值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCMinutes(min, [sec, [ms]])` | 在变异时间值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCMonth(month, [day])` | 在变异日期值后返回Unix纪元后的毫秒数 |
-| `d.p.setUTCSeconds(sec, [ms])` | 在变异时间值���返回Unix纪元后的毫秒数 |
+| `d.p.setTime(epoch)` | 在变异时间值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCDate(num)` | 在变异日期后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCFullYear(year, [month, [day]])` | 在变异日期值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCHours(hours, [min, [sec, [ms]]])` | 在变异时间值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCMilliseconds( ms)` | 在变异 ms 值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCMinutes(min, [sec, [ms]])` | 在变异时间值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCMonth(month, [day])` | 在变异日期值后返回 Unix 纪元后的毫秒数 |
+| `d.p.setUTCSeconds(sec, [ms])` | 在变异时间值���返回 Unix 纪元后的毫秒数 |
 | `d.p.setYear(year)` | 已损坏的年份实现，请使用`setFullYear` |
 | `d.p.toDateString()` | 返回美式英语日期的可读形式 |
 | `d.p.toGMTString()` | 已损坏，请使用`toUTCString` |
-| `d.p.toISOString()` | 返回ISO 8601形式的日期字符串 |
-| `d.p.toJSON()` | 返回日期JSON字符串形式（ISO 8601） |
+| `d.p.toISOString()` | 返回 ISO 8601 形式的日期字符串 |
+| `d.p.toJSON()` | 返回日期 JSON 字符串形式（ISO 8601） |
 | `d.p.toLocaleDateString( [locales, [options]])` | 返回区域设置中日期部分的字符串 |
 | `d.p.toLocaleString( [locales, [options]])` | 返回区域设置中的日期和时间字符串 |
 | `d.p.toLocaleTimeString( [locales, [options]])` | 返回区域设置中的时间字符串 |
 | `d.p.toString()` | 返回美式英语的字符串表示 |
 | `d.p.toTimeString()` | 返回美式英语时间部分的字符串表示 |
-| `d.p.toUTCString()` | 返回UTC时区中的（通常是RFC-1123格式化的）字符串版本 |
-| `d.p.valueOf()` | 返回Unix纪元后的毫秒数 |
+| `d.p.toUTCString()` | 返回 UTC 时区中的（通常是 RFC-1123 格式化的）字符串版本 |
+| `d.p.valueOf()` | 返回 Unix 纪元后的毫秒数 |
 
 ### 地图
 
@@ -1330,7 +1330,7 @@ cal.month = 0  // RangeError
 
 ### 符号
 
-ES6引入了一种新的原始类型，Symbol。它们具有类似字符串的属性（不可变，不能在其上设置属性，可以作为属性名）。它们还具有类似对象的行为（即使描述相同，也是唯一的）。符号是唯一的值，可以用作属性键而不会发生冲突。它们必须使用索引操作（方括号）访问，而不是点符号。它们也不会在`for ... in`循环中迭代。要检索它们，我们需要使用`Object.getOwnPropertySymbols`或`Reflect.ownKeys`。
+ES6 引入了一种新的原始类型，Symbol。它们具有类似字符串的属性（不可变，不能在其上设置属性，可以作为属性名）。它们还具有类似对象的行为（即使描述相同，也是唯一的）。符号是唯一的值，可以用作属性键而不会发生冲突。它们必须使用索引操作（方括号）访问，而不是点符号。它们也不会在`for ... in`循环中迭代。要检索它们，我们需要使用`Object.getOwnPropertySymbols`或`Reflect.ownKeys`。
 
 构造函数接受一个可选的描述参数：
 
@@ -1348,7 +1348,7 @@ Symbol('name') === Symbol('name')  // false
 
 | 属性 | 描述 |
 | --- | --- |
-| `Symbol.hasInstance` | 用于为`instanceof`定义类行为。将方法定义为`static [Symbol.hasInstance](instance) ...` |
+| `Symbol.hasInstance` | 用于为`instanceof`定义类行为。将方法定义为`static Symbol.hasInstance ...` |
 | `Symbol.isConcatSpreadable` | 用于为`Array.concat`定义类行为。如果项目被展开（或扁平化），则设置为`true`。 |
 | `Symbol.iterator` | 用于为`for...of`定义类行为。应遵循迭代协议。可以是一个生成器 |
 | `Symbol.match` | 用于定义类行为，以便在 `String` 方法中作为正则表达式响应：`startsWith`、`endsWith`、`includes` |
@@ -1429,7 +1429,7 @@ String.fromCodePoint(178)  // "²"
 
 ```
 
-如果我们在正则表达式中使用`/u`标志，我们可以搜索Unicode字符，这将处理代理对。
+如果我们在正则表达式中使用`/u`标志，我们可以搜索 Unicode 字符，这将处理代理对。
 
 ## 函数
 
@@ -1489,7 +1489,7 @@ function add_many(...args) {
 
 ```
 
-再次，因为ES6提供了`arguments`对象，我们也可以创建一个接受可变参数的函数，像这样：
+再次，因为 ES6 提供了`arguments`对象，我们也可以创建一个接受可变参数的函数，像这样：
 
 ```
 function add_many() {
@@ -1525,11 +1525,11 @@ console.log(triple(2))   // 6
 
 ```
 
-绑定的第一个参数是传递给`this`的值。其余的是函数的参数。如果你想让回调使用父类的`this`，你可以在函数上调用bind，传入父类的`this`。或者，你可以使用箭头函数。
+绑定的第一个参数是传递给`this`的值。其余的是函数的参数。如果你想让回调使用父类的`this`，你可以在函数上调用 bind，传入父类的`this`。或者，你可以使用箭头函数。
 
 ### 箭头函数
 
-ES6引入了匿名*箭头*函数。箭头函数有一些不同之处：
+ES6 引入了匿名*箭头*函数。箭头函数有一些不同之处：
 
 +   隐式返回
 
@@ -1585,7 +1585,7 @@ let add = (x,y) => {
 
 ### 尾调用
 
-如果你在函数的最后位置执行递归调用，那就是*尾调用*。ES6允许你这样做而不会增加堆栈：
+如果你在函数的最后位置执行递归调用，那就是*尾调用*。ES6 允许你这样做而不会增加堆栈：
 
 ```
 function fib(n){
@@ -1599,11 +1599,11 @@ function fib(n){
 
 注意
 
-一些实现可能不支持这个。在Node 7.7和Chrome 56中，使用`fib(100000)`会失败。
+一些实现可能不支持这个。在 Node 7.7 和 Chrome 56 中，使用`fib(100000)`会失败。
 
 ## 类
 
-ES6引入了`class`，它是围绕使用函数创建对象的语法糖。ES6类支持原型继承，通过`super`调用父类，实例方法和静态方法：
+ES6 引入了`class`，它是围绕使用函数创建对象的语法糖。ES6 类支持原型继承，通过`super`调用父类，实例方法和静态方法：
 
 ```
 class Bike {
@@ -1632,9 +1632,9 @@ bike.gearInches()
 
 注意
 
-ES6中的类不会*提升*。这意味着你不能在定义之前使用类。函数会被提升，你可以在定义它们的代码范围内的任何地方使用它们。
+ES6 中的类不会*提升*。这意味着你不能在定义之前使用类。函数会被提升，你可以在定义它们的代码范围内的任何地方使用它们。
 
-在ES6之前，我们只能从函数创建对象：
+在 ES6 之前，我们只能从函数创建对象：
 
 ```
 function Bike2(wheelSize, gearRatio) {
@@ -1655,11 +1655,11 @@ console.log(b.gearInches());
 
 方法是在原型之后添加的，所以实例可以共享该方法。我们可以在函数中定义方法，但那样每个实例都会有自己的副本。
 
-ES6为此提供了一个更清晰的语法。
+ES6 为此提供了一个更清晰的语法。
 
 ### 子类
 
-子类中需要注意的一点是，它们应该调用`super`。因为ES6只是语法糖，如果我们不调用`super`，我们将没有原型，而且我们无法创建没有原型的实例。因此，直到调用`super`之前，`this`都是未定义的。如果不调用super，应该返回`Object.create(...)`。
+子类中需要注意的一点是，它们应该调用`super`。因为 ES6 只是语法糖，如果我们不调用`super`，我们将没有原型，而且我们无法创建没有原型的实例。因此，直到调用`super`之前，`this`都是未定义的。如果不调用 super，应该返回`Object.create(...)`。
 
 ```
 class Tandem extends Bike {
@@ -1762,7 +1762,7 @@ rec.isFast();  // TypeError
 
 ## 条件语句
 
-ES6支持带零个或多个`else if`语句以及可选的结尾`else`语句的`if`语句：
+ES6 支持带零个或多个`else if`语句以及可选的结尾`else`语句的`if`语句：
 
 ```
 let grade = 72;
@@ -1786,9 +1786,9 @@ letter_grade(grade);  // 'C'
 
 ```
 
-ES6支持以下测试：`>`, `>=`, `<`, `<=`, `==`, `!=`, `===`, 和 `!==`。对于布尔运算符，使用`&&`、`||`和`!`分别表示与、或和非。
+ES6 支持以下测试：`>`, `>=`, `<`, `<=`, `==`, `!=`, `===`, 和 `!==`。对于布尔运算符，使用`&&`、`||`和`!`分别表示与、或和非。
 
-对于`==`和`!=`，如果操作数具有不同的类型，ES6会尝试比较其数值，因此：
+对于`==`和`!=`，如果操作数具有不同的类型，ES6 会尝试比较其数值，因此：
 
 ```
 '3' == 3  // true
@@ -1804,14 +1804,14 @@ ES6支持以下测试：`>`, `>=`, `<`, `<=`, `==`, `!=`, `===`, 和 `!==`。对
 
 ### 短路
 
-`and`语句如果求值为false将会*短路*：
+`and`语句如果求值为 false 将会*短路*：
 
 ```
 0 && 1/0  // 0
 
 ```
 
-类似地，当某些条件求值为true时，`or`语句会短路：
+类似地，当某些条件求值为 true 时，`or`语句会短路：
 
 ```
 1 || 1/0  // 1
@@ -1820,7 +1820,7 @@ ES6支持以下测试：`>`, `>=`, `<`, `<=`, `==`, `!=`, `===`, 和 `!==`。对
 
 ### 三元运算符
 
-ES6具有三元运算符。不需要编写：
+ES6 具有三元运算符。不需要编写：
 
 ```
 let last
@@ -1842,7 +1842,7 @@ let last = (band == 'Beatles) ? 'Lennon' : 'Jones';
 
 ### Switch
 
-ES6支持switch语句：
+ES6 支持 switch 语句：
 
 ```
 function strings(inst) {
@@ -2148,7 +2148,7 @@ asyncFunction()
 | `Promise.reject(reason)` | 返回一个以`reason`为参数拒绝的`Promise` |
 | `Promise.resolve(value)` | 返回一个以`value`为参数完成的`Promise`。如果`value`有一个`then`方法，它将返回其最终状态 |
 
-Promise原型方法
+Promise 原型方法
 
 | 方法 | 描述 |
 | --- | --- |
@@ -2181,7 +2181,7 @@ re.exec(names)  // [ 'Ringo', 'Ringo' ]
 
 ```
 
-如果匹配成功，它将返回一个数组。位置0是匹配的部分，其余项目对应于捕获的组。这些用括号指定。您只需计算左括号（除非它们被转义）的数量。索引1将是第一个括号的组，索引2将是第二个左括号的组，依此类推。
+如果匹配成功，它将返回一个数组。位置 0 是匹配的部分，其余项目对应于捕获的组。这些用括号指定。您只需计算左括号（除非它们被转义）的数量。索引 1 将是第一个括号的组，索引 2 将是第二个左括号的组，依此类推。
 
 您还可以调用构造函数：
 
@@ -2205,9 +2205,9 @@ let re2 = RegExp('Ringo|Richard', 'g')
 | 字符 | 描述 |
 | --- | --- |
 | `\d` | 匹配一个数字（`[0-9]`） |
-| `\D` | 匹配一个非数字（`[^0-9]`） |
+| `\D` | 匹配一个非数字（`[⁰-9]`） |
 | `\w` | 匹配一个*单词*字符（`[0-9a-zA-z]`） |
-| `\W` | 匹配一个非单词字符（`[^0-9a-zA-z]`） |
+| `\W` | 匹配一个非单词字符（`[⁰-9a-zA-z]`） |
 | `\s` | 匹配一个*空格*字符 |
 | `\S` | 匹配一个非空格字符 |
 | `\b` | 匹配单词边界 |
@@ -2216,8 +2216,8 @@ let re2 = RegExp('Ringo|Richard', 'g')
 | `\0` | 匹配一个空字符 |
 | `\cCHAR` | 匹配一个控制字符。其中`CHAR`是字符 |
 | `\xHH` | 匹配一个具有十六进制代码`HH`的字符 |
-| `\uHHHH` | 匹配一个具有十六进制代码`HHHH`的UTF-16字符 |
-| `\u{HHHH}` | 匹配一个具有十六进制代码`HHHH`的Unicode字符（使用`u`标志） |
+| `\uHHHH` | 匹配一个具有十六进制代码`HHHH`的 UTF-16 字符 |
+| `\u{HHHH}` | 匹配一个具有十六进制代码`HHHH`的 Unicode 字符（使用`u`标志） |
 
 语法字符
 

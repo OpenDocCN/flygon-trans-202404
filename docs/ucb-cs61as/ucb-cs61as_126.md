@@ -19,7 +19,7 @@
         (else (error "bad expr: " exp)))) 
 ```
 
-这段代码看起来熟悉吗？应该是的；它是你在第6课学到的Racket-1/Scheme-1解释器的一部分！如果你看第3行，你会看到`eval-1`正在使用Scheme的`eval`过程。在第6课中，你不需要太担心细节，因为Scheme的`eval`过程处理了所有细节。但是Scheme的`eval`背后的细节是什么？
+这段代码看起来熟悉吗？应该是的；它是你在第 6 课学到的 Racket-1/Scheme-1 解释器的一部分！如果你看第 3 行，你会看到`eval-1`正在使用 Scheme 的`eval`过程。在第 6 课中，你不需要太担心细节，因为 Scheme 的`eval`过程处理了所有细节。但是 Scheme 的`eval`背后的细节是什么？
 
 现在是时候看看`mc-eval`是如何编写的了。看一看，并将其与`eval-1`进行比较：
 
@@ -45,7 +45,7 @@
     (error "Unknown expression type -- EVAL" exp)))) 
 ```
 
-`mc-eval`被定义为执行底层Scheme的`eval`工作，解释Scheme的语法规则，并将每个调用分解为适当的操作。如果你不理解，不要担心。我们将逐步解释这段代码。
+`mc-eval`被定义为执行底层 Scheme 的`eval`工作，解释 Scheme 的语法规则，并将每个调用分解为适当的操作。如果你不理解，不要担心。我们将逐步解释这段代码。
 
 ## `mc-eval`做什么？
 
@@ -61,9 +61,9 @@
         (list-of-values (rest-operands exps) env)))) 
 ```
 
-**从左到右？从右到左？** 给定一些操作数列表，`list-of-values`将递归构造一个嵌套的`mc-eval`调用的cons结构。注意，我们无法确定元循环求值器从左到右还是从右到左评估操作数的顺序。它的评估顺序继承自底层Scheme：如果`list-of-values`中`cons`的参数从左到右评估，则`list-of-values`将从左到右评估操作数；如果`cons`中的参数从右到左评估，则`list-of-values`将从右到左评估操作数。
+**从左到右？从右到左？** 给定一些操作数列表，`list-of-values`将递归构造一个嵌套的`mc-eval`调用的 cons 结构。注意，我们无法确定元循环求值器从左到右还是从右到左评估操作数的顺序。它的评估顺序继承自底层 Scheme：如果`list-of-values`中`cons`的参数从左到右评估，则`list-of-values`将从左到右评估操作数；如果`cons`中的参数从右到左评估，则`list-of-values`将从右到左评估操作数。
 
-编写一个`list-of-values`的版本，无论Scheme底层的求值顺序如何，都从左到右评估操作数。同时编写一个从右到左评估操作数的`list-of-values`版本。
+编写一个`list-of-values`的版本，无论 Scheme 底层的求值顺序如何，都从左到右评估操作数。同时编写一个从右到左评估操作数的`list-of-values`版本。
 
 让我们逐行查看条件中的每个表达式的作用。
 
@@ -91,7 +91,7 @@
 
 对于引用的表达式，`mc-eval`返回被引用的表达式。
 
-请记住，Scheme解析器会自动将表达式`'(some text here)`转换为表达式对`(quote (some text here))`。
+请记住，Scheme 解析器会自动将表达式`'(some text here)`转换为表达式对`(quote (some text here))`。
 
 换句话说，引用的形式为`(quote <text-of-quotation>)`：
 
@@ -113,9 +113,9 @@
 
 ### 特殊形式：Lambda
 
-`lambda`表达式必须通过将lambda表达式指定的参数和主体与评估环境打包在一起，转换为可应用的过程。
+`lambda`表达式必须通过将 lambda 表达式指定的参数和主体与评估环境打包在一起，转换为可应用的过程。
 
-Lambda表达式是以符号lambda开头的列表：
+Lambda 表达式是以符号 lambda 开头的列表：
 
 ```
 (define (lambda? exp) (tagged-list? exp 'lambda))
@@ -123,7 +123,7 @@ Lambda表达式是以符号lambda开头的列表：
 (define (lambda-body exp) (cddr exp)) 
 ```
 
-有一个用于lambda表达式的构造器，它被`definition-value`使用：
+有一个用于 lambda 表达式的构造器，它被`definition-value`使用：
 
 ```
 (define (make-lambda parameters body)
@@ -156,11 +156,11 @@ Lambda表达式是以符号lambda开头的列表：
 
 ![](http://callofcarly.files.wordpress.com/2011/10/if.png)
 
-+   `Eval-if`在给定环境中评估`if`表达式的谓词部分。如果结果为真，则eval-if评估结果，否则评估替代项：
++   `Eval-if`在给定环境中评估`if`表达式的谓词部分。如果结果为真，则 eval-if 评估结果，否则评估替代项：
 
     (define (eval-if exp env) (if (true? (mc-eval (if-predicate exp) env)) (mc-eval (if-consequent exp) env) (mc-eval (if-alternative exp) env)))
 
-在`eval-if`中使用`true?`突出了实现语言和实现语言之间的连接问题。`if-predicate`在正在实现的语言中进行评估，因此产生该语言中的一个值。解释器谓词`true?`将该值转换为可以由实现语言中的if测试的值：真实性的元循环表示可能与基础Scheme的表示不同。
+在`eval-if`中使用`true?`突出了实现语言和实现语言之间的连接问题。`if-predicate`在正在实现的语言中进行评估，因此产生该语言中的一个值。解释器谓词`true?`将该值转换为可以由实现语言中的 if 测试的值：真实性的元循环表示可能与基础 Scheme 的表示不同。
 
 `true?`和`false?`定义如下：
 
@@ -203,7 +203,7 @@ Lambda表达式是以符号lambda开头的列表：
         (- x))) 
 ```
 
-有提取cond表达式部分的语法过程，以及一个将`cond`表达式转换为`if`表达式的过程`cond->if`。案例分析以`cond`开始，并具有一系列谓词-动作子句。如果其谓词是符号`else`，则子句是`else`子句。
+有提取 cond 表达式部分的语法过程，以及一个将`cond`表达式转换为`if`表达式的过程`cond->if`。案例分析以`cond`开始，并具有一系列谓词-动作子句。如果其谓词是符号`else`，则子句是`else`子句。
 
 ```
 (define (cond? exp) (tagged-list? exp 'cond))
@@ -304,9 +304,9 @@ Lambda表达式是以符号lambda开头的列表：
 
 **And 和 Or**
 
-回顾第1单元中特殊形式`and`和`or`的定义：
+回顾第 1 单元中特殊形式`and`和`or`的定义：
 
-+   and：表达式从左到右进行评估。如果任何表达式评估为假，则返回`false`；任何剩余的表达式都不会被评估。如果所有表达式评估为真值，则返回最后一个表达式的值。如果没有表达式，则返回true。
++   and：表达式从左到右进行评估。如果任何表达式评估为假，则返回`false`；任何剩余的表达式都不会被评估。如果所有表达式评估为真值，则返回最后一个表达式的值。如果没有表达式，则返回 true。
 
 +   or：表达式从左到右进行评估。如果任何表达式评估为真值，则返回该值；任何剩余的表达式都不会被评估。如果所有表达式评估为假，或者没有表达式，则返回`false`。
 
@@ -338,16 +338,16 @@ Lambda表达式是以符号lambda开头的列表：
     (error "Unknown expression type -- EVAL" exp)))) 
 ```
 
-*等等，等等，apply是什么？我不知道那是什么！*
+*等等，等等，apply 是什么？我不知道那是什么！*
 
 我们将在下一小节中探讨这个问题。
 
-以下哪些在其定义中使用了mc-eval？可能有多个正确答案，因此请逐个检查每个答案。
+以下哪些在其定义中使用了 mc-eval？可能有多个正确答案，因此请逐个检查每个答案。
 
 ## 要点
 
-在本小节中，您了解了Scheme如何使用`mc-eval`和其他过程评估表达式。
+在本小节中，您了解了 Scheme 如何使用`mc-eval`和其他过程评估表达式。
 
 ## 接下来呢？
 
-前往下一小节，了解Scheme如何应用评估的表达式！
+前往下一小节，了解 Scheme 如何应用评估的表达式！

@@ -2,7 +2,7 @@
 
 # Python Magic 方法
 
-链接[http://www.rafekettler.com/magicmethods.html](http://www.rafekettler.com/magicmethods.html)
+链接[`www.rafekettler.com/magicmethods.html`](http://www.rafekettler.com/magicmethods.html)
 
 # Python 中的魔法方法
 

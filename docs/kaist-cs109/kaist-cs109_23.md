@@ -2,9 +2,9 @@
 
 要绘制内容，首先需要一个画布来绘制。我们将使用[BufferedImage](http://docs.oracle.com/javase/7/docs/api/java/awt/image/BufferedImage.html)，一个位图图像，您可以通过提供所需的像素宽度和高度来创建它。
 
-然后我们使用我编写的一个小包来绘制这个图像。（当然，您也可以使用标准的java.awt函数来执行此操作。但是java.awt界面有点过时，使用cs109ui包的优点是您可以以后在Javascript和Android上重用完全相同的绘图代码。）
+然后我们使用我编写的一个小包来绘制这个图像。（当然，您也可以使用标准的 java.awt 函数来执行此操作。但是 java.awt 界面有点过时，使用 cs109ui 包的优点是您可以以后在 Javascript 和 Android 上重用完全相同的绘图代码。）
 
-绘制完成后，您可以使用javax.imageio.ImageIO.write函数将图像保存到文件中。
+绘制完成后，您可以使用 javax.imageio.ImageIO.write 函数将图像保存到文件中。
 
 下面是一个完整的示例，展示了一些绘图功能（[drawing.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/92-drawing/drawing.kts)）：
 
@@ -80,11 +80,11 @@ javax.imageio.ImageIO.write(image, "png", java.io.File("drawing.png"))
 
 生成的绘图如下：
 
-![生成的绘图](../Images/9e5f240218f16e02ef1d2f847608e6af.jpg)
+![生成的绘图](img/9e5f240218f16e02ef1d2f847608e6af.jpg)
 
 #### 颜色
 
-使用org.otfried.cs109.Color对象指定颜色。有一些预定义的颜色：
+使用 org.otfried.cs109.Color 对象指定颜色。有一些预定义的颜色：
 
 +   Color.BLACK
 
@@ -112,14 +112,14 @@ javax.imageio.ImageIO.write(image, "png", java.io.File("drawing.png"))
 
 +   Color.YELLOW
 
-要创建另一种颜色，请提供其红色、绿色和蓝色组件，作为介于0和255之间的整数：
+要创建另一种颜色，请提供其红色、绿色和蓝色组件，作为介于 0 和 255 之间的整数：
 
 ```
 val color = Color(0, 200, 0)  // slightly darker green
 
 ```
 
-您还可以从24位整数构造颜色：
+您还可以从 24 位整数构造颜色：
 
 ```
 val color = Color(0x00c800)  // slightly darker green
@@ -132,15 +132,15 @@ val color = Color(0x00c800)  // slightly darker green
 
 您可以使用以下常量之一选择绘图样式
 
-+   DrawStyle.STROKE以绘制形状的轮廓（在这种情况下，线宽很重要）；
++   DrawStyle.STROKE 以绘制形状的轮廓（在这种情况下，线宽很重要）；
 
-+   DrawStyle.FILL以填充形状（这是默认值，始终可以省略）；
++   DrawStyle.FILL 以填充形状（这是默认值，始终可以省略）；
 
-+   DrawStyle.STROKE_AND_FILL来执行两者。
++   DrawStyle.STROKE_AND_FILL 来执行两者。
 
 #### 文本字体和对齐方式
 
-要绘制文本，您需要使用setFont在ImageCanvas上设置字体。您可以像这样提供一个点大小：
+要绘制文本，您需要使用 setFont 在 ImageCanvas 上设置字体。您可以像这样提供一个点大小：
 
 ```
   canvas.setFont(16.0)
@@ -154,7 +154,7 @@ val color = Color(0x00c800)  // slightly darker green
 
 ```
 
-调用drawText时，您可以选择将文本对齐到其左边缘、右边缘或水平中心。对齐方式通过常量进行选择
+调用 drawText 时，您可以选择将文本对齐到其左边缘、右边缘或水平中心。对齐方式通过常量进行选择
 
 +   TextAlign.LEFT（这是默认值，可以省略）；
 
@@ -164,13 +164,13 @@ val color = Color(0x00c800)  // slightly darker green
 
 #### ImageCanvas
 
-org.otfried.cs109ui.ImageCanvas对象执行所有绘图。您可以使用其width和height属性来查询画布的大小（但是您当然也可以检查原始的BufferedImage）。
+org.otfried.cs109ui.ImageCanvas 对象执行所有绘图。您可以使用其 width 和 height 属性来查询画布的大小（但是您当然也可以检查原始的 BufferedImage）。
 
-ImageCanvas的基本方法包括：
+ImageCanvas 的基本方法包括：
 
 +   清除（clear）函数清除整个画布为指定的颜色；
 
-+   setColor(color: Color) 设置未来绘图操作的颜色（有关Color类型，请参见上文）；
++   setColor(color: Color) 设置未来绘图操作的颜色（有关 Color 类型，请参见上文）；
 
 +   setLineWidth(width: Double)设置轮廓绘制的笔宽度；
 

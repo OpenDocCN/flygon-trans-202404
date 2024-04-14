@@ -10,9 +10,9 @@
 
 原理：
 
-[http://www.jave.de/image2ascii/algorithms.html](http://www.jave.de/image2ascii/algorithms.html)
+[`www.jave.de/image2ascii/algorithms.html`](http://www.jave.de/image2ascii/algorithms.html)
 
-示例代码：[https://github.com/kxxoling/image2ascii](https://github.com/kxxoling/image2ascii)
+示例代码：[`github.com/kxxoling/image2ascii`](https://github.com/kxxoling/image2ascii)
 
 ### 图片相似度计算
 
@@ -22,7 +22,7 @@
 
 # QRCode
 
-QR码（全称为快速响应矩阵码；英语：Quick Response Code）是二维条码的一种， 于1994年由日本DENSO WAVE公司发明。QR 码使用四种标准化编码模式（数字，字母数字， 二进制和 Kanji）来存储数据。
+QR 码（全称为快速响应矩阵码；英语：Quick Response Code）是二维条码的一种， 于 1994 年由日本 DENSO WAVE 公司发明。QR 码使用四种标准化编码模式（数字，字母数字， 二进制和 Kanji）来存储数据。
 
 ## Python QRCode 库
 

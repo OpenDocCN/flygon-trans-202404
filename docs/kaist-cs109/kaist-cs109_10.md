@@ -110,7 +110,7 @@ true
 
 +   s.toList() 和 s.toMutableList() 返回与集合相同的元素的（可变）列表。
 
-作为使用集合的第一个示例，这里是一个简单的拼写检查器。它使用了包含113809个英语单词的文件 [words.txt](code/words.txt)，每行一个单词。
+作为使用集合的第一个示例，这里是一个简单的拼写检查器。它使用了包含 113809 个英语单词的文件 words.txt，每行一个单词。
 
 我们读取文件并立即将其转换为集合。然后我们允许用户从终端输入单词。我们检查单词是否在拼写正确的单词集合中，并报告这一点（[spell.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/13-sets/spell.kts)）。
 
@@ -159,7 +159,7 @@ Enter a word>
 
 我们上面看到的所有集合都是不可变的：没有办法改变集合的内容。集合操作如并集和交集实际上会返回一个新的集合对象。
 
-有时使用可变集合更有效或更方便（但请记住这些更危险）。Java标准库提供了一个可变集合数据类型，在Kotlin中称为MutableSet。我们使用add添加元素，并使用remove删除元素：
+有时使用可变集合更有效或更方便（但请记住这些更危险）。Java 标准库提供了一个可变集合数据类型，在 Kotlin 中称为 MutableSet。我们使用 add 添加元素，并使用 remove 删除元素：
 
 ```
 >>> val s = mutableSetOf(1, 2, 3, 4)

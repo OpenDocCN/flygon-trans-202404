@@ -65,7 +65,7 @@ orb (orb (beq_nat n 32)   (* 空格 *)
 
 记号 "x '<=?' y" := (leb x y)
 
-(在第70级，不结合) : nat_scope.
+(在第 70 级，不结合) : nat_scope.
 
 定义 isLowerAlpha (c : ascii) : bool :=
 
@@ -222,7 +222,7 @@ tokenize "abc12==3  223*(3+(a+c))" %string
 
 结束)
 
-(右结合，级别为60).
+(右结合，级别为 60).
 
 记号 "'DO' ( x , y ) <-- e1 ; e2 'OR' e3"
 
@@ -234,7 +234,7 @@ tokenize "abc12==3  223*(3+(a+c))" %string
 
 结束)
 
-(右结合，级别为60，e[2]在下一个级别).
+(右结合，级别为 60，e[2]在下一个级别).
 
 ```
 

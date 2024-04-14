@@ -2,9 +2,9 @@
 
 待办事项
 
-David，如果要安装的东西会用到，请具体说明；否则，仅用于演示目的。David将发送步骤[http://rwx.io/blog/2015/02/18/seting-up-an-edison/](http://rwx.io/blog/2015/02/18/seting-up-an-edison/)
+David，如果要安装的东西会用到，请具体说明；否则，仅用于演示目的。David 将发送步骤[`rwx.io/blog/2015/02/18/seting-up-an-edison/`](http://rwx.io/blog/2015/02/18/seting-up-an-edison/)
 
-[http://www.turtlebot.com/](http://www.turtlebot.com/)
+[`www.turtlebot.com/`](http://www.turtlebot.com/)
 
 信标
 
@@ -22,29 +22,29 @@ David，如果要安装的东西会用到，请具体说明；否则，仅用于
 
 +   [2](https://www.youtube.com/watch?v=yDTtK9cJqBc)
 
-+   [http://cloudcomputing.sys-con.com/node/3850733](http://cloudcomputing.sys-con.com/node/3850733)
++   [`cloudcomputing.sys-con.com/node/3850733`](http://cloudcomputing.sys-con.com/node/3850733)
 
-+   [https://xively.com/whats_xively/](https://xively.com/whats_xively/)
++   [`xively.com/whats_xively/`](https://xively.com/whats_xively/)
 
-+   [http://fiware-iot-stack.readthedocs.org/en/latest/index.html](http://fiware-iot-stack.readthedocs.org/en/latest/index.html)
++   [`fiware-iot-stack.readthedocs.org/en/latest/index.html`](http://fiware-iot-stack.readthedocs.org/en/latest/index.html)
 
-+   [http://docs.devicehive.com/docs/three-steps-to-iot](http://docs.devicehive.com/docs/three-steps-to-iot)
++   [`docs.devicehive.com/docs/three-steps-to-iot`](http://docs.devicehive.com/docs/three-steps-to-iot)
 
-+   [http://forum.infiniteautomation.com/](http://forum.infiniteautomation.com/)
++   [`forum.infiniteautomation.com/`](http://forum.infiniteautomation.com/)
 
-+   [https://code.google.com/archive/p/iotsys/](https://code.google.com/archive/p/iotsys/)
++   [`code.google.com/archive/p/iotsys/`](https://code.google.com/archive/p/iotsys/)
 
-+   [https://custtap.com/](https://custtap.com/)
++   [`custtap.com/`](https://custtap.com/)
 
-+   [https://www.youtube.com/watch?v=WfkQmg5P-3k&feature=youtu.be](https://www.youtube.com/watch?v=WfkQmg5P-3k&feature=youtu.be)
++   [`www.youtube.com/watch?v=WfkQmg5P-3k&feature=youtu.be`](https://www.youtube.com/watch?v=WfkQmg5P-3k&feature=youtu.be)
 
-+   [https://twitter.com/mcThings_iot](https://twitter.com/mcThings_iot)
++   [`twitter.com/mcThings_iot`](https://twitter.com/mcThings_iot)
 
-+   [http://www.mcthings.com/#home](http://www.mcthings.com/#home)
++   [`www.mcthings.com/#home`](http://www.mcthings.com/#home)
 
 #### 待办事项
 
-Wget Pywapi，更新了Wget但仍然在uclib上出现错误，AlexT给出了答案
+Wget Pywapi，更新了 Wget 但仍然在 uclib 上出现错误，AlexT 给出了答案
 
 ```
  root@galileo:~# opkg install --force-overwrite uclibc
@@ -67,41 +67,41 @@ Wget Pywapi，更新了Wget但仍然在uclib上出现错误，AlexT给出了答�
 
 ## 挑战
 
-+   我不记得的101上的某个东西
++   我不记得的 101 上的某个东西
 
-+   [http://www.samontab.com/web/2013/01/how-to-make-hd-screencasts-using-free-tools/](http://www.samontab.com/web/2013/01/how-to-make-hd-screencasts-using-free-tools/)
++   [`www.samontab.com/web/2013/01/how-to-make-hd-screencasts-using-free-tools/`](http://www.samontab.com/web/2013/01/how-to-make-hd-screencasts-using-free-tools/)
 
 +   实施短信
 
-+   Linux嵌入式蓝牙PyBluez
++   Linux 嵌入式蓝牙 PyBluez
 
 # 西班牙车间摘要
 
 ## 介绍
 
-互联网物联网已成为现实，成为连接日常物体到互联网的下一场革命的一部分。通过这个研讨会，你将学习构建物联网解决方案的基本组件，掌握工程视角下的工具、技术和知识。Python编程语言在研讨会的所有课程中都被使用，这将使我们能够专注于解决方案而不是编程实践。
+互联网物联网已成为现实，成为连接日常物体到互联网的下一场革命的一部分。通过这个研讨会，你将学习构建物联网解决方案的基本组件，掌握工程视角下的工具、技术和知识。Python 编程语言在研讨会的所有课程中都被使用，这将使我们能够专注于解决方案而不是编程实践。
 
 ### 受众
 
-有兴趣学习使用英特尔Galileo和英特尔Edison硬件平台的物联网的专业人士。
+有兴趣学习使用英特尔 Galileo 和英特尔 Edison 硬件平台的物联网的专业人士。
 
 ### 先决条件
 
-+   与Linux的经验
++   与 Linux 的经验
 
 +   编程知识
 
 ### 持续时间
 
-6小时
+6 小时
 
 ## 沙盒
 
 ## 可信平台模块
 
-+   [https://en.wikipedia.org/wiki/Trusted_Platform_Module](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
++   [`en.wikipedia.org/wiki/Trusted_Platform_Module`](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
 
-+   [https://www.npmjs.com/package/edison](https://www.npmjs.com/package/edison)
++   [`www.npmjs.com/package/edison`](https://www.npmjs.com/package/edison)
 
 +   收集
 
@@ -149,7 +149,7 @@ Wget Pywapi，更新了Wget但仍然在uclib上出现错误，AlexT给出了答�
 
 +   [1](https://www.carriots.com/use-cases/building)
 
-+   [https://software.intel.com/en-us/articles/internet-of-things-short-course-series-pontificia-universidad-javeriana-bogota](https://software.intel.com/en-us/articles/internet-of-things-short-course-series-pontificia-universidad-javeriana-bogota)
++   [`software.intel.com/en-us/articles/internet-of-things-short-course-series-pontificia-universidad-javeriana-bogota`](https://software.intel.com/en-us/articles/internet-of-things-short-course-series-pontificia-universidad-javeriana-bogota)
 
 # 关键短语
 
@@ -159,13 +159,13 @@ Wget Pywapi，更新了Wget但仍然在uclib上出现错误，AlexT给出了答�
 
 +   开放环境
 
-+   [http://www.hypercat.io/](http://www.hypercat.io/)
++   [`www.hypercat.io/`](http://www.hypercat.io/)
 
 +   无线物联网论坛
 
 +   线程组
 
-+   [http://iofthings.org/#home](http://iofthings.org/#home)
++   [`iofthings.org/#home`](http://iofthings.org/#home)
 
 ## Temboo
 
@@ -181,11 +181,11 @@ Wget Pywapi，更新了Wget但仍然在uclib上出现错误，AlexT给出了答�
 
 [Xively 主页](http://xively.com/)
 
-[https://github.com/enableiot/iotkit-samples/blob/master/api/python/iotkit_client.py](https://github.com/enableiot/iotkit-samples/blob/master/api/python/iotkit_client.py)
+[`github.com/enableiot/iotkit-samples/blob/master/api/python/iotkit_client.py`](https://github.com/enableiot/iotkit-samples/blob/master/api/python/iotkit_client.py)
 
-[http://www.helios.de/heliosapp/edison/index.html#Get_additional_800_MB_disk_space](http://www.helios.de/heliosapp/edison/index.html#Get_additional_800_MB_disk_space)
+[`www.helios.de/heliosapp/edison/index.html#Get_additional_800_MB_disk_space`](http://www.helios.de/heliosapp/edison/index.html#Get_additional_800_MB_disk_space)
 
-[https://github.com/IntelOpenDesign/MakerNode/wiki/glossary:-resources-for-Galileo-and-Edison](https://github.com/IntelOpenDesign/MakerNode/wiki/glossary:-resources-for-Galileo-and-Edison) [https://www-ssl.intel.com/content/www/us/en/internet-of-things/solutions-directory.html?wapkw=iot](https://www-ssl.intel.com/content/www/us/en/internet-of-things/solutions-directory.html?wapkw=iot) [http://business.iotsolutionsalliance.intel.com/](http://business.iotsolutionsalliance.intel.com/)
+[`github.com/IntelOpenDesign/MakerNode/wiki/glossary:-resources-for-Galileo-and-Edison`](https://github.com/IntelOpenDesign/MakerNode/wiki/glossary:-resources-for-Galileo-and-Edison) [`www-ssl.intel.com/content/www/us/en/internet-of-things/solutions-directory.html?wapkw=iot`](https://www-ssl.intel.com/content/www/us/en/internet-of-things/solutions-directory.html?wapkw=iot) [`business.iotsolutionsalliance.intel.com/`](http://business.iotsolutionsalliance.intel.com/)
 
 # Python 编程语言
 
@@ -419,7 +419,7 @@ root@platform:~# python iot.py
 
 +   将根据温度节点请求的访问发出声音
 
-![](e66ec96.jpg%3fc%3d2)
+![](img/e66ec96.jpg%3fc%3d2)
 
 ## 硬件
 
@@ -459,9 +459,9 @@ root@platform:~# python iot.py
 
     +   Intel® IoT 开发套件基于云的分析
 
-+   [https://secure.hoiio.com](https://secure.hoiio.com)
++   [`secure.hoiio.com`](https://secure.hoiio.com)
 
-[http://www.openmote.com/home.html](http://www.openmote.com/home.html) [http://www.datamation.com/mobile-wireless/slideshows/6-open-source-middleware-tools-for-the-internet-of-things.html](http://www.datamation.com/mobile-wireless/slideshows/6-open-source-middleware-tools-for-the-internet-of-things.html) [https://localmotors.com/awest/connected-car-project-internet-of-things/activity/](https://localmotors.com/awest/connected-car-project-internet-of-things/activity/) [https://github.com/octoblu/microblu_mqtt](https://github.com/octoblu/microblu_mqtt) [http://iot-toolkit.com/](http://iot-toolkit.com/)
+[`www.openmote.com/home.html`](http://www.openmote.com/home.html) [`www.datamation.com/mobile-wireless/slideshows/6-open-source-middleware-tools-for-the-internet-of-things.html`](http://www.datamation.com/mobile-wireless/slideshows/6-open-source-middleware-tools-for-the-internet-of-things.html) [`localmotors.com/awest/connected-car-project-internet-of-things/activity/`](https://localmotors.com/awest/connected-car-project-internet-of-things/activity/) [`github.com/octoblu/microblu_mqtt`](https://github.com/octoblu/microblu_mqtt) [`iot-toolkit.com/`](http://iot-toolkit.com/)
 
 施耐德电气
 
@@ -628,7 +628,7 @@ if __name__ == '__main__':
 
 # ColumbiaX 的 DS103x！数据科学和分析的启用技术：物联网
 
-> 在“数据科学和分析的背景下XSeries”课程中，我们讨论了一组重要的启用数据科学和分析的技术：物联网、自然语言处理和语音分析。
+> 在“数据科学和分析的背景下 XSeries”课程中，我们讨论了一组重要的启用数据科学和分析的技术：物联网、自然语言处理和语音分析。
 > 
 > 课程从物联网（IoT）的介绍开始，接着描述了物联网在物理、网络和网络层的组成部分。介绍了无线通信的基础知识，并附带介绍了针对受限环境设计的关键无线和更高层标准。
 > 
@@ -764,13 +764,13 @@ if __name__ == '__main__':
 
 # 革命背景
 
-## 过去10年的成本
+## 过去 10 年的成本
 
-+   传感器成本降低2倍
++   传感器成本降低 2 倍
 
-+   带宽成本降低40倍
++   带宽成本降低 40 倍
 
-+   处理成本降低60倍
++   处理成本降低 60 倍
 
 ## 趋势
 
@@ -802,7 +802,7 @@ if __name__ == '__main__':
 
 ## 版本
 
-+   物联网1.0
++   物联网 1.0
 
     +   仪表板
 
@@ -810,13 +810,13 @@ if __name__ == '__main__':
 
     +   简单传感器连接和监控
 
-+   物联网2.0
++   物联网 2.0
 
     +   移动
 
     +   物联网中间件
 
-    +   M2M启用
+    +   M2M 启用
 
     +   流式传输
 
@@ -826,7 +826,7 @@ if __name__ == '__main__':
 
     +   初创企业
 
-+   物联网3.0
++   物联网 3.0
 
     +   云
 
@@ -878,7 +878,7 @@ if __name__ == '__main__':
 
 +   物联网标准和生态系统
 
-[Gartner物联网](http://www.gartner.com/it-glossary/internet-of-things/)
+[Gartner 物联网](http://www.gartner.com/it-glossary/internet-of-things/)
 
 # 物联网战略
 
@@ -962,7 +962,7 @@ if __name__ == '__main__':
 
 +   开发社区
 
-# IBM愿景
+# IBM 愿景
 
 ## 挖掘物联网价值
 
@@ -990,9 +990,9 @@ if __name__ == '__main__':
 
 +   收集
 
-# 沙盒-非IT
+# 沙盒-非 IT
 
-# 沙盒-非IT
+# 沙盒-非 IT
 
 ## 解释概念
 
@@ -1014,7 +1014,7 @@ if __name__ == '__main__':
 > 
 > 房屋：房屋内的东西可以收集/提供关于门窗的开启/关闭信息，关于室内外当前温度的信息，以及关于当地微气候的天气状况，以及当前是否有人居住（人类或宠物），如果有的话，哪些房间正在使用（以及下一个时间段可能使用的房间）。如果房屋决定必须报告这些信息，例如向警察局或当地报警服务报告，因为你刚刚被闯入了，那么它正在使用互联网。另一方面，如果你之前设置了一个气候控制触发器，室内变得太热了，然后窗户可以关闭（空调开始运行），或者如果外面比较冷，窗户就打开，风扇把外面的空气吸进来。因为这种情况发生时不需要查询云端（或者你），而是因为空调对窗户的操作和它的知识做出了反应，所以它是物联网的用途。（智能家居是物联网）
 > 
-> 可再生能源：一个位于500座风塔场外边缘的海上风力发电塔标识出了一股可能损坏任何没有正确调节叶片或朝向错误方向的塔的涌浪。它调节了叶片并重新调整到涌浪方向，并向场中的其他塔宣布了危险涌浪的存在。它们都调节了叶片并相应地重新定位，在涌浪到达它们之前，保护它们免受损坏，延长它们的使用寿命并降低了随时间运行场地的总成本。看到了吧？根本没有涉及到互联网。
+> 可再生能源：一个位于 500 座风塔场外边缘的海上风力发电塔标识出了一股可能损坏任何没有正确调节叶片或朝向错误方向的塔的涌浪。它调节了叶片并重新调整到涌浪方向，并向场中的其他塔宣布了危险涌浪的存在。它们都调节了叶片并相应地重新定位，在涌浪到达它们之前，保护它们免受损坏，延长它们的使用寿命并降低了随时间运行场地的总成本。看到了吧？根本没有涉及到互联网。
 > 
 > ### 例子
 > ### 
@@ -1024,7 +1024,7 @@ if __name__ == '__main__':
 
 > FitBit 已经采取了明智的举措，推出了可穿戴设备，收集您的身体活动统计数据，并将其连接到互联网，帮助您做出更好的选择，保持健康！[](3f5bd21c)
 > 
-> 一些公司还提供可穿戴警报器，让您在家监视家人，带有无线芯片的智能处方瓶提醒您按时服药，借助婴儿监视器检查婴儿，提供实时信息，包括婴儿的呼吸、皮肤温度、父母智能手机上的体位。![](bb19eddf)
+> 一些公司还提供可穿戴警报器，让您在家监视家人，带有无线芯片的智能处方瓶提醒您按时服药，借助婴儿监视器检查婴儿，提供实时信息，包括婴儿的呼吸、皮肤温度、父母智能手机上的体位。![](img/bb19eddf)
 
 # IoTPy
 
@@ -1171,7 +1171,7 @@ Cloud Foundry 建立在开放架构上，提供以下功能：
 
 ### Intel® 物联网开发者套件基于云的分析
 
-> Intel为物联网（IoT）提供了一个基于云的分析系统，包括用于收集和分析传感器数据的资源，这些资源由Intel® IoT Developer Kit提供。使用此服务，Intel Galileo/Edison 设备开发人员可以快速启动数据采集和分析，而无需投资大规模存储和处理能力。
+> Intel 为物联网（IoT）提供了一个基于云的分析系统，包括用于收集和分析传感器数据的资源，这些资源由 Intel® IoT Developer Kit 提供。使用此服务，Intel Galileo/Edison 设备开发人员可以快速启动数据采集和分析，而无需投资大规模存储和处理能力。
 
 ```
 # Create an account
@@ -1190,7 +1190,7 @@ root@galileo:~# iotkit-admin observation temp 35
 root@galileo:~# iotkit-admin observation temp 30 
 ```
 
-+   [Intel® 物联网开发者套件基于云的分析主页](www.enableiot.com)
++   Intel® 物联网开发者套件基于云的分析主页
 
 +   [Intel® 物联网开发者套件基于云的分析用户指南](https://software.intel.com/en-us/intel-iot-developer-kit-cloud-based-analytics-user-guide)
 
@@ -1214,21 +1214,21 @@ root@galileo:~# iotkit-admin observation temp 30
 
 +   [构建更有价值的解决方案，应用部署、数据和分析融为一体](https://software.intel.com/en-us/blogs/2015/08/14/building-more-valuable-solutions-as-app-deployment-data-and-analytics-come-together)
 
-+   [Discovery Peak维基](https://github.com/trustedanalytics/platform-wiki/wiki)
++   [Discovery Peak 维基](https://github.com/trustedanalytics/platform-wiki/wiki)
 
-+   [Discovery Peak入门指南](https://github.com/trustedanalytics/platform-wiki/wiki/Getting%20Started%20Guide)
++   [Discovery Peak 入门指南](https://github.com/trustedanalytics/platform-wiki/wiki/Getting%20Started%20Guide)
 
-## Wind River物联网
+## Wind River 物联网
 
 > 探索我们对物联网（IoT）所带来的挑战和机遇的见解，因为它将物理世界和数字世界联系在一起。
 
 +   [Wind River® IoT](http://www.windriver.com/iot/)
 
-+   [Wind River® IoT信息图](http://www.windriver.com/iot/Wind-River-IoT-infographic.pdf)
++   [Wind River® IoT 信息图](http://www.windriver.com/iot/Wind-River-IoT-infographic.pdf)
 
 ## Carriots
 
-> 利用我们的物联网平台创建令人惊叹的产品和服务。轻松将您的物品连接到互联网。用Carriots在5个步骤中构建您的智能应用程序。[Carriots主页](https://www.carriots.com/)
+> 利用我们的物联网平台创建令人惊叹的产品和服务。轻松将您的物品连接到互联网。用 Carriots 在 5 个步骤中构建您的智能应用程序。[Carriots 主页](https://www.carriots.com/)
 
 ## 其他
 
@@ -1236,19 +1236,19 @@ root@galileo:~# iotkit-admin observation temp 30
 
 # 亚马逊云服务
 
-> 物联网（IoT）正在将世界上连接的设备和信息带到在线。无论您是利用全球数百万个天气传感器创建实时预测，还是从DNA测序仪中输入人类基因组数据，亚马逊云服务提供了服务、安全性和支持，以在全球范围内连接物联网。
+> 物联网（IoT）正在将世界上连接的设备和信息带到在线。无论您是利用全球数百万个天气传感器创建实时预测，还是从 DNA 测序仪中输入人类基因组数据，亚马逊云服务提供了服务、安全性和支持，以在全球范围内连接物联网。
 
 +   [亚马逊云服务物联网](https://aws.amazon.com/iot/)
 
-AWS的英特尔Edison
+AWS 的英特尔 Edison
 
 +   [AWS Intel IoT Github](https://github.com/intel-iot-devkit/aws-iot-intel)
 
-+   [AWS Intel、亚马逊*和Seeed合作推出新的由AWS IoT提供支持的物联网入门套件](https://software.intel.com/en-us/blogs/2015/10/06/starter-kit-intel-edison-board-powered-by-aws)
++   [AWS Intel、亚马逊*和 Seeed 合作推出新的由 AWS IoT 提供支持的物联网入门套件](https://software.intel.com/en-us/blogs/2015/10/06/starter-kit-intel-edison-board-powered-by-aws)
 
-+   [亚马逊物联网Hackseries @ AWS Loft](http://iot-hackseries.s3-website-us-west-2.amazonaws.com/edison.html)
++   [亚马逊物联网 Hackseries @ AWS Loft](http://iot-hackseries.s3-website-us-west-2.amazonaws.com/edison.html)
 
-AWS的其他板块
+AWS 的其他板块
 
 +   [AWS + Raspberry Pi](http://blog.getflint.io/get-started-with-aws-iot-and-raspberry-pi)
 

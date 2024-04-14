@@ -1,8 +1,8 @@
-# 计算器演示：第1部分
+# 计算器演示：第 1 部分
 
-# 计算器演示：第1部分
+# 计算器演示：第 1 部分
 
-我经常听到的一种评论是对F#和函数式编程中理论与实践之间的差距的抱怨。换句话说，你知道理论，但你如何实际上使用FP原则设计和实现应用程序？
+我经常听到的一种评论是对 F#和函数式编程中理论与实践之间的差距的抱怨。换句话说，你知道理论，但你如何实际上使用 FP 原则设计和实现应用程序？
 
 所以我认为展示一下我个人如何从头到尾设计和实现一些小应用程序可能会有用。
 
@@ -12,7 +12,7 @@
 
 在这个系列的第一篇文章中，我将开发一个简单的口袋计算器应用程序，就像这样：
 
-![计算器图片](calculator_1.png)
+![计算器图片](img/calculator_1.png)
 
 ## 我的开发方法
 
@@ -20,7 +20,7 @@
 
 通常我从需求开始 -- 我是[需求驱动设计](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)的粉丝！理想情况下，我也会努力成为该领域的专家。
 
-接下来，我开始对领域进行建模，使用[领域驱动设计](http://fsharpforfunandprofit.com/ddd/)，重点放在领域事件（["事件风暴"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)）上，而不仅仅是静态数据（DDD术语中的“聚合”）。
+接下来，我开始对领域进行建模，使用[领域驱动设计](http://fsharpforfunandprofit.com/ddd/)，重点放在领域事件（["事件风暴"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)）上，而不仅仅是静态数据（DDD 术语中的“聚合”）。
 
 在建模过程中，我使用[type-first development](http://tomasp.net/blog/type-first-development.aspx/)来勾勒设计，以创建代表领域数据类型（“名词”）和领域活动（“动词”）的类型。
 
@@ -62,7 +62,7 @@ type Calculate = CalculatorInput -> CalculatorOutput
 
 相反，通常会有一个验证/转换函数，用于在输入时将混乱的不受信任的世界转换为我们可爱的、纯净的领域，以及另一个类似的函数，用于在输出时执行相反的操作。
 
-![领域输入和输出](domain_input_output.png)
+![领域输入和输出](img/domain_input_output.png)
 
 好的，让我们首先处理`CalculatorInput`。输入的结构应该是什么样的？
 
@@ -84,13 +84,13 @@ type Calculate = CalculatorInput * CalculatorState -> CalculatorState
 
 `CalculatorInput`现在表示按键或其他内容，而`CalculatorState`是状态。
 
-请注意，我使用[tuple](tuples.html)（`CalculatorInput * CalculatorState`）来定义此函数的输入，而不是作为两个单独的参数（看起来像`CalculatorInput -> CalculatorState -> CalculatorState`）。我这样做是因为两个参数总是需要的，而元组可以清楚地表明这一点--我不想部分应用输入，例如。
+请注意，我使用 tuple（`CalculatorInput * CalculatorState`）来定义此函数的输入，而不是作为两个单独的参数（看起来像`CalculatorInput -> CalculatorState -> CalculatorState`）。我这样做是因为两个参数总是需要的，而元组可以清楚地表明这一点--我不想部分应用输入，例如。
 
 实际上，当进行类型优先设计时，我对所有函数都这样做。每个函数都有一个输入和一个输出。这并不意味着以后不能进行部分应用，只是在设计阶段，我只想要一个参数。
 
 还要注意，不属于纯领域的事物（例如配置和连接字符串）在这个阶段*永远*不会显示出来，尽管在实现时，它们当然会被添加到实现设计的函数中。
 
-## 定义CalculatorState类型
+## 定义 CalculatorState 类型
 
 现在让我们看看`CalculatorState`。我现在所能想到的是我们需要的只是用于保存要显示信息的东西。
 
@@ -129,9 +129,9 @@ type CalculatorDisplay = string
 
 我可以通过改变声明的顺序来解决这个问题，但由于我处于“草图”模式，并且不想一直重新排序事物，我将只是将新的声明附加到底部，并使用`and`将它们连接起来。
 
-但是，在最终的生产代码中，当设计稳定下来时，我*会*重新排序这些类型，以避免使用`and`。原因是`and`可能会[隐藏类型之间的循环依赖](cyclic-dependencies.html)，并阻止重构。
+但是，在最终的生产代码中，当设计稳定下来时，我*会*重新排序这些类型，以避免使用`and`。原因是`and`可能会隐藏类型之间的循环依赖，并阻止重构。
 
-## 定义CalculatorInput类型
+## 定义 CalculatorInput 类型
 
 对于`CalculatorInput`类型，我将列出计算器上的所有按钮！
 
@@ -231,7 +231,7 @@ type UpdateDisplayFromDigit = CalculatorDigit * CalculatorDisplay -> CalculatorD
 
 此外，`UpdateDisplayFromDigit` 会返回错误吗？例如，我们显然不能无限添加数字 - 当我们不允许时会发生什么？还有其他组合的输入可能会导致错误吗？例如，什么时候只输入小数分隔符！那时会发生什么？
 
-对于这个小项目，我假设这两者都不会产生显式错误，而是会悄悄地拒绝错误输入。换句话说，超过10个数字后，其他数字将被忽略。而在第一个小数分隔符之后，后续的分隔符也将被忽略。
+对于这个小项目，我假设这两者都不会产生显式错误，而是会悄悄地拒绝错误输入。换句话说，超过 10 个数字后，其他数字将被忽略。而在第一个小数分隔符之后，后续的分隔符也将被忽略。
 
 可惜，我无法将这些要求编码到设计中。但是`UpdateDisplayFromDigit`不返回任何明确的错误类型至少告诉我错误将会被悄悄处理。
 
@@ -260,11 +260,11 @@ and Number = float
 
 现在让我们考虑`DoMathOperation`，就像我们上面对`UpdateDisplayFromDigit`所做的一样。
 
-问题1：这是最小的参数集吗？例如，我们需要状态的其他部分吗？
+问题 1：这是最小的参数集吗？例如，我们需要状态的其他部分吗？
 
 答案：不，我想不出其他什么。
 
-问题2：`DoMathOperation`会返回错误吗？
+问题 2：`DoMathOperation`会返回错误吗？
 
 答案：是的！那么除以零呢？
 
@@ -284,7 +284,7 @@ and MathOperationError =
 
 我们也可以使用内置的通用`Choice`类型，甚至是完整的["铁路导向编程"](http://fsharpforfunandprofit.com/rop/)方法，但由于这只是设计的草图，我希望设计能够独立存在，不依赖于很多其他东西，所以我会在这里定义具体的类型。
 
-其他任何错误？NaN或下溢或上溢？我不确定。我们有`MathOperationError`类型，根据需要扩展它很容易。
+其他任何错误？NaN 或下溢或上溢？我不确定。我们有`MathOperationError`类型，根据需要扩展它很容易。
 
 ## 数字从哪里来？
 
@@ -401,7 +401,7 @@ type CalculatorServices = {
 
 但我在这里展示了一个原则。通过将“服务”与核心代码分离，你可以立即开始原型设计。目标不是制作一个生产就绪的代码库，而是找出设计中的任何问题。我们仍然处于需求发现阶段。
 
-这种方法对你来说应该不陌生 - 它直接相当于创建一堆服务接口的OO原则，然后将它们注入核心领域。
+这种方法对你来说应该不陌生 - 它直接相当于创建一堆服务接口的 OO 原则，然后将它们注入核心领域。
 
 ## 回顾
 
@@ -458,19 +458,19 @@ type CalculatorServices = {
 
 我认为这很不错。我们还没有写任何“真正”的代码，但经过一番思考，��们已经构建了一个相当详细的设计。
 
-在[下一篇文章](calculator-implementation)中，我将尝试创建一个实现来测试这个设计。
+在下一篇文章中，我将尝试创建一个实现来测试这个设计。
 
-*本文的代码可以在GitHub的这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)中找到。*
+*本文的代码可以在 GitHub 的这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)中找到。*
 
-# 计算器演练：第2部分
+# 计算器演练：第 2 部分
 
-# 计算器演练：第2部分
+# 计算器演练：第 2 部分
 
 在本文中，我将继续开发一个简单的口袋计算器应用，就像这样：
 
-![计算器图片](calculator_1.png)
+![计算器图片](img/calculator_1.png)
 
-在[上一篇文章](calculator-design.html)中，我们完成了设计的初稿，仅使用类型（没有UML图表！）。
+在上一篇文章中，我们完成了设计的初稿，仅使用类型（没有 UML 图表！）。
 
 现在是时候创建一个使用设计的试验实现了。
 
@@ -515,7 +515,7 @@ let createCalculate (services:CalculatorServices) :Calculate =
             // code 
 ```
 
-由于它返回一个函数，我选择使用lambda来编写它。这就是`fun (input,state) ->`的用途。
+由于它返回一个函数，我选择使用 lambda 来编写它。这就是`fun (input,state) ->`的用途。
 
 但我也可以使用内部函数来编写，就像这样
 
@@ -669,7 +669,7 @@ let updateDisplayFromPendingOp services state =
 
 ## 撞上绑定
 
-诀窍在于认识到模式“如果某事存在，则对该值进行操作”恰好是讨论的`bind`模式，具体讨论请参见[此处](computation-expressions-continuations.html)和[此处](http://fsharpforfunandprofit.com/rop/)。
+诀窍在于认识到模式“如果某事存在，则对该值进行操作”恰好是讨论的`bind`模式，具体讨论请参见此处和[此处](http://fsharpforfunandprofit.com/rop/)。
 
 为了有效地使用绑定模式，最好将代码分解成许多小块。
 
@@ -705,7 +705,7 @@ let updateDisplayFromPendingOp services state =
 
 我承认，反向管道对于`state`看起来很奇怪--这绝对是一种习得的口味！
 
-继续！那么`bind`的参数呢？当调用此函数时，我们知道pendingOp是存在的，因此我们可以编写一个带有这���参数的lambda，就像这样：
+继续！那么`bind`的参数呢？当调用此函数时，我们知道 pendingOp 是存在的，因此我们可以编写一个带有这���参数的 lambda，就像这样：
 
 ```
 let result = 
@@ -743,7 +743,7 @@ state.pendingOp
 
 请注意，在这种方法中，每个辅助函数都有一个非选项的输入，但必须始终输出一个*选项*。
 
-## 在实践中使用bind
+## 在实践中使用 bind
 
 一旦我们有了待处理的操作，下一步就是从显示器中获取当前数字，以便进行加法（或其他操作）。
 
@@ -751,11 +751,11 @@ state.pendingOp
 
 +   输入是一对（op，pendingNumber）
 
-+   输出是三元组（op，pendingNumber，currentNumber），如果currentNumber是`Some`，否则为`None`。
++   输出是三元组（op，pendingNumber，currentNumber），如果 currentNumber 是`Some`，否则为`None`。
 
 换句话说，`getCurrentNumber`的签名将是`pair -> triple option`，因此我们可以确保它与`Option.bind`函数一起使用。
 
-如何将一对转换为三元组？这可以通过使用`Option.map`来将currentNumber选项转换为三元组选项来完成。如果currentNumber是`Some`，那么映射的输出就是`Some triple`。另一方面，如果currentNumber是`None`，那么映射的输出也是`None`。
+如何将一对转换为三元组？这可以通过使用`Option.map`来将 currentNumber 选项转换为三元组选项来完成。如果 currentNumber 是`Some`，那么映射的输出就是`Some triple`。另一方面，如果 currentNumber 是`None`，那么映射的输出也是`None`。
 
 ```
 let getCurrentNumber (op,pendingNumber) = 
@@ -798,7 +798,7 @@ let doMathOp (op,pendingNumber,currentNumber) =
         None // failed 
 ```
 
-请注意，与早期版本中嵌套的if不同，此版本在成功时返回`Some`，失败时返回`None`。
+请注意，与早期版本中嵌套的 if 不同，此版本在成功时返回`Some`，失败时返回`None`。
 
 ## 显示错误
 
@@ -844,7 +844,7 @@ let doMathOp (op,pendingNumber,currentNumber) =
 
 [*另一种方法是不返回`Some`，然后在结果管道中使用`Option.map`]。
 
-将所有内容放在一起，我们有了`updateDisplayFromPendingOp`的最终版本。请注意，我还添加了一个`ifNone`辅助函数，使defaultArg更适合管道。
+将所有内容放在一起，我们有了`updateDisplayFromPendingOp`的最终版本。请注意，我还添加了一个`ifNone`辅助函数，使 defaultArg 更适合管道。
 
 ```
 // helper to make defaultArg better for piping
@@ -885,7 +885,7 @@ let updateDisplayFromPendingOp services state =
 
 到目前为止，我们一直直接使用“bind”。这帮助了我们消除了级联的`if/else`。
 
-但F#允许您以不同的方式隐藏复杂性，方法是创建[计算表达式](computation-expressions-intro.html)。
+但 F#允许您以不同的方式隐藏复杂性，方法是创建计算表达式。
 
 由于我们正在处理选项，因此我们可以创建一个“maybe”计算表达式，以便干净地处理选项。（如果我们正在处理其他类型，则需要为每种类型创建不同的计算表达式）。
 
@@ -899,7 +899,7 @@ type MaybeBuilder() =
 let maybe = new MaybeBuilder() 
 ```
 
-有了这个计算表达式，我们可以使用`maybe`代替bind，我们的代码会是这样的：
+有了这个计算表达式，我们可以使用`maybe`代替 bind，我们的代码会是这样的：
 
 ```
 let doSomething input = return an output option
@@ -1089,13 +1089,13 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return 
 ```
 
-不错——整个实现不到60行代码。
+不错——整个实现不到 60 行代码。
 
 ## 总结
 
 我们通过进行实现证明了我们的设计是合理的——而且我们找到了一个遗漏的需求。
 
-在[下一篇文章](calculator-complete-v1.html)中，我们将实现服务和用户界面，以创建一个完整的应用程序。
+在下一篇文章中，我们将实现服务和用户界面，以创建一个完整的应用程序。
 
 *本文的代码可以在 GitHub 的这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_implementation-fsx)中找到。*
 
@@ -1105,7 +1105,7 @@ let createCalculate (services:CalculatorServices) :Calculate =
 
 在本文中，我将继续开发一个简单的口袋计算器应用程序。
 
-在[第一篇文章](calculator-design.html)中，我们完成了设计的初稿，仅使用类型（没有 UML 图表！），在[之前的文章](calculator-implementation.html)中，我们创建了一个初始实现，用于实践设计并揭示了一个缺失的需求。
+在第一篇文章中，我们完成了设计的初稿，仅使用类型（没有 UML 图表！），在之前的文章中，我们创建了一个初始实现，用于实践设计并揭示了一个缺失的需求。
 
 现在是时候构建其余组件并将它们组装成一个完整的应用程序了。
 
@@ -1286,7 +1286,7 @@ member this.CreateDisplayLabel() =
     displayControl <- display 
 ```
 
-但这样做的问题是，你可能会在初始化标签控件之前意外地尝试访问该标签控件，导致NRE。此外，我更希望专注于期望的行为，而不是拥有一个可以被任何人任何地方访问的“全局”字段。
+但这样做的问题是，你可能会在初始化标签控件之前意外地尝试访问该标签控件，导致 NRE。此外，我更希望专注于期望的行为，而不是拥有一个可以被任何人任何地方访问的“全局”字段。
 
 通过使用一个函数，我们(a) 封装了对真实控件的访问，(b) 避免了任何可能的空引用。
 
@@ -1370,7 +1370,7 @@ let handleOp op =
 
 所以你看到了 -- 一个完整的计算器！
 
-现在让我们试一下 -- 从这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)获取代码，并尝试将其作为F#脚本运行。
+现在让我们试一下 -- 从这个[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)获取代码，并尝试将其作为 F#脚本运行。
 
 ## 灾难来临！
 
@@ -1378,7 +1378,7 @@ let handleOp op =
 
 我不知道你怎么看，但我*不会*期望计算器显示`12`！
 
-发生了什么？一些快速的实验表明，我忘记了一些非常重要的事情 -- 当发生`Add`或`Equals`操作时，任何后续的数字都*不应该*被添加到当前缓冲区，而是应该开始一个新的缓冲区。哦不！我们遇到了一个无法继续的bug！
+发生了什么？一些快速的实验表明，我忘记了一些非常重要的事情 -- 当发生`Add`或`Equals`操作时，任何后续的数字都*不应该*被添加到当前缓冲区，而是应该开始一个新的缓冲区。哦不！我们遇到了一个无法继续的 bug！
 
 再提醒我一次，是哪个白痴说过"如果编译通过，它可能就能工作"。
 
@@ -1386,7 +1386,7 @@ let handleOp op =
 
 那么出了什么问题呢？
 
-嗯，代码确实编译了，但它并没有按预期工作，不是因为代码有bug，而是因为*我的设计有缺陷*。
+嗯，代码确实编译了，但它并没有按预期工作，不是因为代码有 bug，而是因为*我的设计有缺陷*。
 
 换句话说，从类型优先设计过程中使用的类型的使用意味着我*确实*有高度的信心，我编写的代码是设计的正确实现。但如果需求和设计是错误的，那么世界上所有正确的代码也无法解决这个问题。
 
@@ -1410,7 +1410,7 @@ type CalculatorState = {
     } 
 ```
 
-（*这可能暂时看起来是一个不错的解决方案，但像这样使用标志确实是一种设计上的问题。在下一篇文章中，我将使用[不同的方法](designing-with-types-representing-states.html#replace-flags)，它不涉及标志*）
+（*这可能暂时看起来是一个不错的解决方案，但像这样使用标志确实是一种设计上的问题。在下一篇文章中，我将使用不同的方法，它不涉及标志*）
 
 ## 修复实现
 
@@ -1471,13 +1471,13 @@ let initState :InitState = fun () ->
 
 ## 那么测试驱动开发呢？
 
-此时，你可能��对自己说：“如果他当初使用了TDD，这种情况就不会发生了”。
+此时，你可能��对自己说：“如果他当初使用了 TDD，这种情况就不会发生了”。
 
 这是真的 — 我写了所有这些代码，但我甚至都没费心编写一个检查你是否能正确相加两个数字的测试！
 
 如果一开始就编写测试，并让测试驱动设计，那么我肯定不会遇到这个问题。
 
-在这个特定的例子中，是的，我可能会立即发现问题。在TDD方法中，检查`1 + 2 = 3`可能是我编写的第一个测试之一！但另一方面，对于明显的缺陷，任何交互式测试也会揭示问题。
+在这个特定的例子中，是的，我可能会立即发现问题。在 TDD 方法中，检查`1 + 2 = 3`可能是我编写的第一个测试之一！但另一方面，对于明显的缺陷，任何交互式测试也会揭示问题。
 
 在我看来，测试驱动开发的优势在于：
 
@@ -1485,9 +1485,9 @@ let initState :InitState = fun () ->
 
 +   它提供了在重构过程中代码保持正确的保证。
 
-所以真正的问题是，测试驱动开发是否能帮助我们找到缺失的需求或微妙的边缘情况？不一定。只有当我们能够想到每种可能发生的情况时，测试驱动开发才会有效。从这个意义上说，TDD不能弥补缺乏想象力！
+所以真正的问题是，测试驱动开发是否能帮助我们找到缺失的需求或微妙的边缘情况？不一定。只有当我们能够想到每种可能发生的情况时，测试驱动开发才会有效。从这个意义上说，TDD 不能弥补缺乏想象力！
 
-如果我们有良好的需求，那么希望我们可以设计类型来[使非法状态无法表示](designing-with-types-making-illegal-states-unrepresentable.html)，那么我们就不需要测试来提供正确性保证。
+如果我们有良好的需求，那么希望我们可以设计类型来使非法状态无法表示，那么我们就不需要测试来提供正确性保证。
 
 现在我并不是说我反对自动化测试。事实上，我一直在使用它来验证某些需求，尤其是用于大规模集成和测试。
 
@@ -1538,7 +1538,7 @@ module CalculatorTests =
         ``when I input 1 + 2 + 3, I expect 6``() 
 ```
 
-当然，这很容易适应使用[NUnit或类似工具](low-risk-ways-to-use-fsharp-at-work-3.html)。
+当然，这很容易适应使用 NUnit 或类似工具。
 
 ## 如何才能开发出更好的设计？
 
@@ -1546,23 +1546,23 @@ module CalculatorTests =
 
 我怎样才能防止下次再发生这种情况？
 
-一个明显的解决方案是转向正确的TDD方法。但我会有点固执，看看我是否可以坚持使用先考虑类型的设计！
+一个明显的解决方案是转向正确的 TDD 方法。但我会有点固执，看看我是否可以坚持使用先考虑类型的设计！
 
-[在下一篇文章中](calculator-complete-v2.html)，我将停止如此临时和过于自信，而是使用一个更彻底、更有可能在设计阶段防止这类错误的过程。
+在下一篇文章中，我将停止如此临时和过于自信，而是使用一个更彻底、更有可能在设计阶段防止这类错误的过程。
 
-*本文的代码可在GitHub上的[this gist（未修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)和[this gist（已修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)中找到。*
+*本文的代码可在 GitHub 上的[this gist（未修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)和[this gist（已修补）](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)中找到。*
 
-# 计算器演示：第4部分
+# 计算器演示：第 4 部分
 
-# 计算器演示：第4部分
+# 计算器演示：第 4 部分
 
 在这一系列文章中，我一直在开发一个简单的口袋计算器应用程序。
 
-在[第一篇文章](calculator-design.html)中，我们完成了设计的初稿，使用了类型优先的开发方式。而在[第二篇文章](calculator-implementation.html)中，我们创建了一个初始的实现。
+在第一篇文章中，我们完成了设计的初稿，使用了类型优先的开发方式。而在第二篇文章中，我们创建了一个初始的实现。
 
-在[上一篇文章](calculator-complete-v1.html)中，我们创建了其余的代码，包括用户界面，并尝试使用它。
+在上一篇文章中，我们创建了其余的代码，包括用户界面，并尝试使用它。
 
-但最终结果是无法使用的！问题不在于代码有bug，而是我在开始编码之前没有花足够的时间考虑需求！
+但最终结果是无法使用的！问题不在于代码有 bug，而是我在开始编码之前没有花足够的时间考虑需求！
 
 哦，好吧。正如**弗雷德·布鲁克斯**著名地说过：“计划扔掉一个；无论如何你都会这样做”（尽管这有点简单化）（[链接](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)）。
 
@@ -1601,9 +1601,9 @@ let appendCh=
 
 所以，如果临时的、边做边想的方法失败了，我应该做什么？
 
-嗯，我非常支持在适当的情况下使用[有限状态机](https://en.wikipedia.org/wiki/Finite-state_machine)（"FSMs" -- 不要与[真正的FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster)混淆）。令人惊讶的是，一个程序可以被建模为一个状态机的频率有多高。
+嗯，我非常支持在适当的情况下使用[有限状态机](https://en.wikipedia.org/wiki/Finite-state_machine)（"FSMs" -- 不要与[真正的 FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster)混淆）。令人惊讶的是，一个程序可以被建模为一个状态机的频率有多高。
 
-使用状态机有什么好处？我将重复我在[另一篇文章](designing-with-types-representing-states.html)中说过的话。
+使用状态机有什么好处？我将重复我在另一篇文章中说过的话。
 
 **每个状态都可以有不同的可允许行为。** 换句话说，状态机迫使你考虑上下文，以及在该上下文中有哪些选项可用。
 
@@ -1623,7 +1623,7 @@ let appendCh=
 
 我所说的状态机类型要简单得多。最多只有几种情况，具有少量的转换，因此我们不需要使用复杂的生成器。
 
-这是我所说的一个例子：![状态机](state_machine_1.png)
+这是我所说的一个例子：![状态机](img/state_machine_1.png)
 
 那么，在 F# 中实现这些简单状态机的最佳方法是什么？
 
@@ -1765,9 +1765,9 @@ let transition (currentState,inputEvent) =
 
 如果我们尝试编译这个，我们立即会收到一些警告：
 
-+   （在bStateHandler附近）`不完整的模式匹配表达式。例如，值‘ZEvent’可能表示模式未覆盖的情况。`
++   （在 bStateHandler 附近）`不完整的模式匹配表达式。例如，值‘ZEvent’可能表示模式未覆盖的情况。`
 
-+   （在cStateHandler附近）`不完整的模式匹配表达式。例如，值‘YEvent（_）’可能表示模式未覆盖的情况。`
++   （在 cStateHandler 附近）`不完整的模式匹配表达式。例如，值‘YEvent（_）’可能表示模式未覆盖的情况。`
 
 这真的很有帮助。这意味着我们错过了一些边缘情况，我们应该修改我们的代码来处理这些事件。
 
@@ -1803,7 +1803,7 @@ let cStateHandler inputEvent =
 
 现在让我们勾画一下计算器的状态机。这是一个初步尝试：
 
-![计算器状态机 v1](calculator_states_1.png)
+![计算器状态机 v1](img/calculator_states_1.png)
 
 每个状态都是一个方框，触发转换的事件（例如数字或数学运算或`Equals`）是红色的。
 
@@ -1815,7 +1815,7 @@ let cStateHandler inputEvent =
 
 这是第二个版本：
 
-![计算器状态机 v1](calculator_states_2.png)
+![计算器状态机 v1](img/calculator_states_2.png)
 
 ## 完成状态机
 
@@ -1833,9 +1833,9 @@ let cStateHandler inputEvent =
 
 +   错误消息情况明显需要是一个独立的状态。它忽略除了`清除`之外的所有输入。
 
-有了这些见解，这是我们状态转换图的第3版：
+有了这些见解，这是我们状态转换图的第 3 版：
 
-![计算器状态机 v1](calculator_states_3.png)
+![计算器状态机 v1](img/calculator_states_3.png)
 
 我只展示了关键的转换 -- 显示所有转换会太多了。但这足以让我们开始详细了解需求。
 
@@ -2113,7 +2113,7 @@ let createCalculate (services:CalculatorServices) :Calculate =
 
 过去版本之所以设计糟糕，是因为过于关注*输入*而忽略了*状态*，忽略了上下文。
 
-重申我之前说过的，许多恶性bug是由于在不应该处理事件时处理事件引起的（正如我们在原始设计中看到的）。由于从一开始就明确强调状态和上下文，我对新设计感到更有信心。
+重申我之前说过的，许多恶性 bug 是由于在不应该处理事件时处理事件引起的（正如我们在原始设计中看到的）。由于从一开始就明确强调状态和上下文，我对新设计感到更有信心。
 
 实际上，我并不是唯一注意到这些问题的人。许多人认为经典的"[事件驱动编程](https://en.wikipedia.org/wiki/Event-driven_programming)"存在缺陷，并推荐更多的“状态驱动方法”（例如[这里](http://www.barrgroup.com/Embedded-Systems/How-To/State-Machines-Event-Driven-Systems)和[这里](http://seabites.wordpress.com/2011/12/08/your-ui-is-a-statechart/)），就像我在这里所做的一样。
 
@@ -2280,7 +2280,7 @@ let replacePendingOp (computedStateData:ComputedStateData) nextOp =
 
 ## 完成计算器
 
-要完成应用程序，我们只需要像以前一样实现服务和UI。
+要完成应用程序，我们只需要像以前一样实现服务和 UI。
 
 事实上，我们几乎可以重用所有以前的代码。唯一真正改变的是输入事件结构的方式，这影响了按钮处理程序的创建方式。
 

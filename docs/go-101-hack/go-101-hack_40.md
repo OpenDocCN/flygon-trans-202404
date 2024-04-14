@@ -70,7 +70,7 @@ for ch1 != nil && ch2 != nil {
 
 参考：
 
-[Go编程语言规范](https://golang.org/ref/spec);
+[Go 编程语言规范](https://golang.org/ref/spec);
 
 [当所有通道关闭时跳出选择语句](http://stackoverflow.com/questions/13666253/breaking-out-of-a-select-statement-when-all-channels-are-closed);
 

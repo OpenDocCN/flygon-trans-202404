@@ -1,22 +1,22 @@
 # 美国主要都市地区家庭定位选择的分析
 
-# 美国主要都市地区家庭定位选择的分析，使用R
+# 美国主要都市地区家庭定位选择的分析，使用 R
 
-## Andy Krause和Hossein Estiri
+## Andy Krause 和 Hossein Estiri
 
-我是Andy Krause，是墨尔本大学房地产系的讲师。我的研究重点是房地产市场的空间分析，特别是在估价和地理位置方面。这项工作是与我的同事Hossein Estiri完成的，他是哈佛医学院的研究员。Hossein使用数据科学方法研究城市能源和健康。
+我是 Andy Krause，是墨尔本大学房地产系的讲师。我的研究重点是房地产市场的空间分析，特别是在估价和地理位置方面。这项工作是与我的同事 Hossein Estiri 完成的，他是哈佛医学院的研究员。Hossein 使用数据科学方法研究城市能源和健康。
 
 ### 工作流程
 
-![Diagram](akrause.png) 这项研究分析了美国最大的50个都市地区家庭的定位选择。家庭根据五年龄段（根据家庭主人的年龄）进行分类，并将其与所居住的都市地区的中央商务区（CBD）的距离（人口普查区组级别）进行映射。在西雅图等多中心地区（Tacoma、Bellevue和Everett作为替代的CBD），分析还针对核心中心以及次级中心进行。一份初步报告正在进行审查。
+![Diagram](img/akrause.png) 这项研究分析了美国最大的 50 个都市地区家庭的定位选择。家庭根据五年龄段（根据家庭主人的年龄）进行分类，并将其与所居住的都市地区的中央商务区（CBD）的距离（人口普查区组级别）进行映射。在西雅图等多中心地区（Tacoma、Bellevue 和 Everett 作为替代的 CBD），分析还针对核心中心以及次级中心进行。一份初步报告正在进行审查。
 
-所有数据、代码和分析工作流程都托管在线。代码和分析工作流程，包括分析脚本和自定义函数集，都是用R编写的，并且可以在项目的[GitHub存储库](http:/github.com/andykrause/hhLocation)中找到。完整的原始数据集可通过美国人口普查获取。希望跳过数据编译和/或清理步骤的用户可以从项目的[Dataverse存储库](https://dataverse.harvard.edu/dataverse/repHHLoc/)中下载编译或已清理数据。
+所有数据、代码和分析工作流程都托管在线。代码和分析工作流程，包括分析脚本和自定义函数集，都是用 R 编写的，并且可以在项目的 GitHub 存储库中找到。完整的原始数据集可通过美国人口普查获取。希望跳过数据编译和/或清理步骤的用户可以从项目的[Dataverse 存储库](https://dataverse.harvard.edu/dataverse/repHHLoc/)中下载编译或已清理数据。
 
 *hhLocAnalysis.R*文件是主要的分析脚本，也是唯一需要执行的文件。必须在*hhLocAnalysis.R*脚本的开头手动设置两个关键路径参数和两个关键过程参数：
 
-1.  **codeDir**: GitHub代码存储库的位置
+1.  **codeDir**: GitHub 代码存储库的位置
 
-1.  **dataDir**: 从Dataverse下载的编译（和/或清理）数据的位置
+1.  **dataDir**: 从 Dataverse 下载的编译（和/或清理）数据的位置
 
 1.  **reBuildData**: 你是否想要经历整个数据编译过程？
 
@@ -24,9 +24,9 @@
 
 还需要在执行脚本之前设置包含已下载中间数据文件的文件名以及导出结果路径的其他参数：
 
-1.  **rawDataFile**: (可选)。如果**reBuildData**等于FALSE并且**reCleanData**等于TRUE，则需要提供从Dataverse下载的编译数据文件（在**dataDir**内）的名称。
+1.  **rawDataFile**: (可选)。如果**reBuildData**等于 FALSE 并且**reCleanData**等于 TRUE，则需要提供从 Dataverse 下载的编译数据文件（在**dataDir**内）的名称。
 
-1.  **cleanDataFile**: (可选)。如果**reBuildData**和**reCleanData**都为FALSE，那么你需要提供从Dataverse下载的已清理数据文件的名称（在**dataDir**内）。
+1.  **cleanDataFile**: (可选)。如果**reBuildData**和**reCleanData**都为 FALSE，那么你需要提供从 Dataverse 下载的已清理数据文件的名称（在**dataDir**内）。
 
 1.  **figurePath**: (可选) 如果你打算输出绘图，则输入要导出的目录
 
@@ -34,7 +34,7 @@
 
 **阶段 1：数据收集**
 
-根据上述选择的参数，研究的数据收集阶段要么从Dataverse存储库下载编译的数据（**reBuildData**=FALSE 和 **reCleanData**=TRUE），要么下载已清理的数据（**reBuildData**=FALSE 和 **reCleanData**=FALSE），要么直接编译所有原始数据（**reBuildData**=TRUE）。为了编译原始数据，下载了五十个最大都会区每个县的文件，解压缩，清理并写成标准化的 .csv（逗号分隔值）文件。这些原始数据托管在美国人口普查局的FTP站点上。编写了用于处理数据获取过程的自定义函数，并在存储库中的 *buildHHData.R* 和 *buildCBSAData.R* 文件中找到。
+根据上述选择的参数，研究的数据收集阶段要么从 Dataverse 存储库下载编译的数据（**reBuildData**=FALSE 和 **reCleanData**=TRUE），要么下载已清理的数据（**reBuildData**=FALSE 和 **reCleanData**=FALSE），要么直接编译所有原始数据（**reBuildData**=TRUE）。为了编译原始数据，下载了五十个最大都会区每个县的文件，解压缩，清理并写成标准化的 .csv（逗号分隔值）文件。这些原始数据托管在美国人口普查局的 FTP 站点上。编写了用于处理数据获取过程的自定义函数，并在存储库中的 *buildHHData.R* 和 *buildCBSAData.R* 文件中找到。
 
 **阶段 2：数据处理**
 
@@ -42,9 +42,9 @@
 
 **阶段 3：数据分析**
 
-分析过程从计算位置商距离概况开始。位置商概况衡量了给定位置的某种家庭类型与整个都会区中该家庭类型的比例。位置商高于1表示，相对而言，在给定位置存在更多的某种家庭类型，而不是如果家庭是随机分布的话所期望的。*hhLocFunctions.R* 文件包含了计算和可视化位置商结果所需的所有自定义函数。
+分析过程从计算位置商距离概况开始。位置商概况衡量了给定位置的某种家庭类型与整个都会区中该家庭类型的比例。位置商高于 1 表示，相对而言，在给定位置存在更多的某种家庭类型，而不是如果家庭是随机分布的话所期望的。*hhLocFunctions.R* 文件包含了计算和可视化位置商结果所需的所有自定义函数。
 
-通过各种不同的绘图函数对结果进行数据可视化。最终结果，包括表格和图形，然后与叙述结合在一起，创建最终文档（在LaTeX中编译）。完整的数据来源描述并通过Markdown文件托管在代码存储库中。还请注意，作者们使用协作网站 [Authorea](https://www.authorea.com/users/18208)（提供基于git的跟踪和LaTeX支持）来撰写报告叙述部分的初稿。
+通过各种不同的绘图函数对结果进行数据可视化。最终结果，包括表格和图形，然后与叙述结合在一起，创建最终文档（在 LaTeX 中编译）。完整的数据来源描述并通过 Markdown 文件托管在代码存储库中。还请注意，作者们使用协作网站 [Authorea](https://www.authorea.com/users/18208)（提供基于 git 的跟踪和 LaTeX 支持）来撰写报告叙述部分的初稿。
 
 ### 痛点
 
@@ -62,7 +62,7 @@
 
 ### 关键工具
 
-RStudio集成开发环境（IDE）及其相关的Shiny应用程序（交互式Web应用程序）对我们的可复制研究有很大帮助。如果你是R程序员，并想与非程序员分享你的可视化效果，我们强烈推荐来自RStudio的这些工具。使用IDE可以更轻松地在多个脚本之间导航，查看绘图历史，并查看当前计算环境中的所有对象。
+RStudio 集成开发环境（IDE）及其相关的 Shiny 应用程序（交互式 Web 应用程序）对我们的可复制研究有很大帮助。如果你是 R 程序员，并想与非程序员分享你的可视化效果，我们强烈推荐来自 RStudio 的这些工具。使用 IDE 可以更轻松地在多个脚本之间导航，查看绘图历史，并查看当前计算环境中的所有对象。
 
 ### 问题
 
@@ -96,4 +96,4 @@ RStudio集成开发环境（IDE）及其相关的Shiny应用程序（交互式We
 
 #### 你会推荐一些特定的资源来了解更多关于可重现性的内容吗？
 
-对于协作，如果你想摆脱在LaTeX中写作，可以尝试[Authorea](https://www.authorea.com/)。如果你在澳大利亚，[墨尔本大学研究平台](http://blogs.unimelb.edu.au/researchplatforms/)团队提供多个研究市场、软件工艺和可重现性相关的课程和活动。这对全球研究人员开放。
+对于协作，如果你想摆脱在 LaTeX 中写作，可以尝试[Authorea](https://www.authorea.com/)。如果你在澳大利亚，[墨尔本大学研究平台](http://blogs.unimelb.edu.au/researchplatforms/)团队提供多个研究市场、软件工艺和可重现性相关的课程和活动。这对全球研究人员开放。

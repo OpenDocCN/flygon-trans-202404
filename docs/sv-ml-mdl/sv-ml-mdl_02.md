@@ -1,20 +1,20 @@
-# 第2章\. 导出模型
+# 第二章\. 导出模型
 
 在深入讨论模型服务之前，有必要讨论导出模型的主题。正如之前讨论的，数据科学家定义模型，工程师实现模型服务。因此，从数据科学工具导出模型的能力现在很重要。
 
-对于本书，我将使用两个不同的示例：预测模型标记语言（PMML）和TensorFlow。让我们看看如何使用这些工具导出模型。
+对于本书，我将使用两个不同的示例：预测模型标记语言（PMML）和 TensorFlow。让我们看看如何使用这些工具导出模型。
 
 # TensorFlow
 
-为了更容易实现模型评分，TensorFlow支持导出经过训练的模型，Java API可以使用这些模型来实现评分。TensorFlow Java API并不执行实际处理；它们只是实际TensorFlow C++代码的薄[Java本机接口（JNI）](https://en.wikipedia.org/wiki/Java_Native_Interface)包装器。因此，它们的使用需要将TensorFlow C++可执行文件“链接”到您的Java应用程序。
+为了更容易实现模型评分，TensorFlow 支持导出经过训练的模型，Java API 可以使用这些模型来实现评分。TensorFlow Java API 并不执行实际处理；它们只是实际 TensorFlow C++代码的薄[Java 本机接口（JNI）](https://en.wikipedia.org/wiki/Java_Native_Interface)包装器。因此，它们的使用需要将 TensorFlow C++可执行文件“链接”到您的 Java 应用程序。
 
-TensorFlow目前支持两种模型导出类型：[执行图的导出](https://www.tensorflow.org/api_docs/python/tf/train/Saver)，可用于推理优化，以及今年推出的新的[SavedModel](http://bit.ly/tensorflow-savedmodel-github)格式。
+TensorFlow 目前支持两种模型导出类型：[执行图的导出](https://www.tensorflow.org/api_docs/python/tf/train/Saver)，可用于推理优化，以及今年推出的新的[SavedModel](http://bit.ly/tensorflow-savedmodel-github)格式。
 
 ## 导出执行图
 
-导出执行图是保存模型的“标准”TensorFlow方法。让我们看一个示例，如何将执行图导出到应用于开源[葡萄酒质量数据集](https://archive.ics.uci.edu/ml/datasets/wine+quality)的[Keras](http://bit.ly/keras-tutorial)与TensorFlow后端应用的多类分类问题实现中（[完整代码](http://bit.ly/keras-complete)）。
+导出执行图是保存模型的“标准”TensorFlow 方法。让我们看一个示例，如何将执行图导出到应用于开源[葡萄酒质量数据集](https://archive.ics.uci.edu/ml/datasets/wine+quality)的[Keras](http://bit.ly/keras-tutorial)与 TensorFlow 后端应用的多类分类问题实现中（[完整代码](http://bit.ly/keras-complete)）。
 
-##### 示例 2-1\. 从Keras模型导出执行图
+##### 示例 2-1\. 从 Keras 模型导出执行图
 
 ```
 ...
@@ -58,7 +58,7 @@ tf.train.write_graph(output_graph_def, model_path,
   "optimized_" + model_name + ".pb", as_text=False)
 ```
 
-[示例 2-1](#exporting_an_execution_graph_from_a_kera)改编自[Keras机器学习示例](http://bit.ly/keras-tutorial)，演示如何导出TensorFlow图。为此，需要明确设置Keras执行的TensorFlow会话。TensorFlow执行图与执行会话绑定，因此需要会话才能访问图形。
+示例 2-1 改编自[Keras 机器学习示例](http://bit.ly/keras-tutorial)，演示如何导出 TensorFlow 图。为此，需要明确设置 Keras 执行的 TensorFlow 会话。TensorFlow 执行图与执行会话绑定，因此需要会话才能访问图形。
 
 实际图形导出实现涉及以下步骤：
 
@@ -70,9 +70,9 @@ tf.train.write_graph(output_graph_def, model_path,
 
 1.  保存优化后的图形。
 
-保存的图形是使用二进制Google协议缓冲区（protobuf）格式存储的优化图形，其中仅包含对模型服务相关的部分图形和数据（实现学习和中间计算的部分图形被删除）。
+保存的图形是使用二进制 Google 协议缓冲区（protobuf）格式存储的优化图形，其中仅包含对模型服务相关的部分图形和数据（实现学习和中间计算的部分图形被删除）。
 
-导出模型后，您可以用它进行评分。[示例 2-2](#serving_the_model_created_from_the_execu)使用TensorFlow Java API加载和评分模型（[完整代码在此处可用](http://bit.ly/winemodelserving-scala)）。
+导出模型后，您可以用它进行评分。示例 2-2 使用 TensorFlow Java API 加载和评分模型（[完整代码在此处可用](http://bit.ly/winemodelserving-scala)）。
 
 ##### 示例 2-2\. 为从 Keras 模型的执行图创建的模型提供服务
 
@@ -90,7 +90,7 @@ class WineModelServing(path : String) {
    // Extract result value
    val rshape = result.shape
    var rMatrix =
-     Array.ofDim[Float](rshape(0).asInstanceOf[Int],rshape(1).
+     Array.ofDimFloat.asInstanceOf[Int],rshape(1).
        asInstanceOf[Int])result.copyTo(rMatrix)
    var value = (0, rMatrix(0)(0))
    1 to (rshape(1).asInstanceOf[Int] -1) foreach{i => {
@@ -143,7 +143,7 @@ score 方法接受包含葡萄酒质量观察结果的输入记录，并将其�
 
 ## 导出 Saved Model
 
-TensorFlow *SavedModel* 是一种新的导出格式，于2017年推出，其中模型被导出为具有以下结构的目录：
+TensorFlow *SavedModel* 是一种新的导出格式，于 2017 年推出，其中模型被导出为具有以下结构的目录：
 
 ```
 assets/
@@ -188,9 +188,9 @@ builder.add_meta_graph_and_variables(sess=sess,
 builder.save()
 ```
 
-通过用这段代码替换 [示例 2-1](#exporting_an_execution_graph_from_a_kera) 中的导出执行图，可以从你的多分类问题中获得一个保存的模型。
+通过用这段代码替换 示例 2-1 中的导出执行图，可以从你的多分类问题中获得一个保存的模型。
 
-将模型导出到目录后，可以用于提供服务。[示例 2-4](#serving_a_model_based_on_the_saved_model)（[完整代码在此处可用](http://bit.ly/lightbend-ts-wine)）利用 TensorFlow Java API 加载并对模型进行评分。
+将模型导出到目录后，可以用于提供服务。示例 2-4（[完整代码在此处可用](http://bit.ly/lightbend-ts-wine)）利用 TensorFlow Java API 加载并对模型进行评分。
 
 ##### 示例 2-4\. 基于从 Keras 模型中保存的模型提供模型
 
@@ -264,9 +264,9 @@ class WineModelServingBundle(path : String, label : String){
 ...
 ```
 
-将此代码与 [示例 2-2](#serving_the_model_created_from_the_execu) 中的代码进行比较。虽然主要结构相同，但有两个重要的区别：
+将此代码与 示例 2-2 中的代码进行比较。虽然主要结构相同，但有两个重要的区别：
 
-+   读取图表更加复杂。保存的模型不仅包含图表本身，还包含整个捆绑包（目录），然后从捆绑包中获取图表。此外，还可以提取方法签名（作为 protobuf 定义）并解析它以获取执行方法的输入和输出。请记住，通常情况下，从捆绑包中读取的图表可以包含多个签名，因此需要按名称选择适当的签名。这个名称在模型保存时定义（*winedata*，在 [示例 2-3](#exporting_saved_model_from_a_keras_model) 中定义）。在代码中，因为我知道只有一个签名，所以我只取了数组的第一个元素。
++   读取图表更加复杂。保存的模型不仅包含图表本身，还包含整个捆绑包（目录），然后从捆绑包中获取图表。此外，还可以提取方法签名（作为 protobuf 定义）并解析它以获取执行方法的输入和输出。请记住，通常情况下，从捆绑包中读取的图表可以包含多个签名，因此需要按名称选择适当的签名。这个名称在模型保存时定义（*winedata*，在 示例 2-3 中定义）。在代码中，因为我知道只有一个签名，所以我只取了数组的第一个元素。
 
 +   在实现方法中，我不是硬编码输入和输出的名称，而是依赖于签名定义。
 
@@ -278,7 +278,7 @@ class WineModelServingBundle(path : String, label : String){
 
 # PMML
 
-在我们的下一个示例中，使用与 TensorFlow 示例中的多类别分类相同的葡萄酒质量数据集，我们展示了如何使用[JPMML/SparkML](https://github.com/jpmml/jpmml-sparkml)导出 SparkML 机器学习模型的[随机森林分类器](https://en.wikipedia.org/wiki/Random_forest)。代码如[示例 2-5](#random_forest_classifier_using_sparkml)所示（[完整代码在此处可用](http://bit.ly/wine-quality-random-forest)）。
+在我们的下一个示例中，使用与 TensorFlow 示例中的多类别分类相同的葡萄酒质量数据集，我们展示了如何使用[JPMML/SparkML](https://github.com/jpmml/jpmml-sparkml)导出 SparkML 机器学习模型的[随机森林分类器](https://en.wikipedia.org/wiki/Random_forest)。代码如示例 2-5 所示（[完整代码在此处可用](http://bit.ly/wine-quality-random-forest)）。
 
 ##### 示例 2-5. 使用带有 PMML 导出的 SparkML 的随机森林分类器
 
@@ -334,7 +334,7 @@ object WineQualityRandomForestClassifierPMML {
 
 构建管道后，对其进行训练，然后 PMML 导出器使用数据帧模式和管道定义将完整管道及其参数以 PMML 格式导出。
 
-导出模型后，您可以用于评分。[示例 2-6](#serving_pmml_model)使用[JPMML 评估器库](https://github.com/jpmml/jpmml-evaluator)加载和评分模型（[完整代码在此处可用](http://bit.ly/randomforest-wine-complete-example)）。
+导出模型后，您可以用于评分。示例 2-6 使用[JPMML 评估器库](https://github.com/jpmml/jpmml-evaluator)加载和评分模型（[完整代码在此处可用](http://bit.ly/randomforest-wine-complete-example)）。
 
 ##### 示例 2-6. 服务 PMML 模型
 

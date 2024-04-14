@@ -30,7 +30,7 @@
     topic will be deferred for a while longer.
 
     Our motivating example will be this proof, repeated with just a
-    few small changes from the [Imp](Imp.html) chapter.  We will simplify
+    few small changes from the Imp chapter.  We will simplify
     this proof in several stages.
 
 ```
@@ -380,7 +380,7 @@ Qed.
 
     t[1];t 在证明中。 作为示例，这里是一个替代
 
-    先前证明的版本，使用Proof with auto。
+    先前证明的版本，使用 Proof with auto。
 
 ```
 Theorem ceval_deterministic'_alt: ∀c st st[1] st[2],
@@ -434,23 +434,23 @@ H[2]: beval st b = true
 
     作为假设。矛盾是显而易见的，但证明它
 
-    有点复杂：我们必须找到两个假设H[1]
+    有点复杂：我们必须找到两个假设 H[1]
 
-    和H[2]并进行重写，然后进行反演。我们会
+    和 H[2]并进行重写，然后进行反演。我们会
 
     喜欢自动化这个过程。
 
-    （事实上，Coq有一个内置的tactic congruence，可以做到
+    （事实上，Coq 有一个内置的 tactic congruence，可以做到
 
-    在这种情况下完成��这项工作。但我们将忽略这个tactic的存在
+    在这种情况下完成��这项工作。但我们将忽略这个 tactic 的存在
 
     目前，为了演示如何构建前向搜索
 
-    手动tactics。）
+    手动 tactics。）
 
     作为第一步，我们可以将脚本中的一部分抽象出来
 
-    通过在Coq的tactic编程中编写一个小函数来回答
+    通过在 Coq 的 tactic 编程中编写一个小函数来回答
 
     语言，Ltac。
 
@@ -488,11 +488,11 @@ Proof.
 
 ```
 
-    那是有点好一点，但不多。我们真的希望Coq能够
+    那是有点好一点，但不多。我们真的希望 Coq 能够
 
     为我们发现相关的假设。我们可以通过使用
 
-    Ltac的match goal功能。
+    Ltac 的 match goal 功能。
 
 ```
 Ltac find_rwinv :=
@@ -504,17 +504,17 @@ Ltac find_rwinv :=
 
 ```
 
-    match goal tactic寻找两个不同的假设
+    match goal tactic 寻找两个不同的假设
 
     具有相同任意表达式的等式形式
 
-    E在左边，右边有冲突的布尔值。
+    E 在左边，右边有冲突的布尔值。
 
-    如果找到这样的假设，它将把H[1]和H[2]绑定到它们的
+    如果找到这样的假设，它将把 H[1]和 H[2]绑定到它们的
 
-    名称并将rwinv tactic应用于H[1]和H[2]。
+    名称并将 rwinv tactic 应用于 H[1]和 H[2]。
 
-    将这个tactic添加到我们在每种情况下调用的tactic中
+    将这个 tactic 添加到我们在每种情况下调用的 tactic 中
 
     归纳处理所有矛盾情况。
 
@@ -547,7 +547,7 @@ Proof.
 
     预测结果的等式将是什么（尽管我们可以
 
-    使用auto来证明它）。另一种方法是选择相关的
+    使用 auto 来证明它）。另一种方法是选择相关的
 
     使用的假设，然后按照以下方式重写：
 
@@ -582,23 +582,23 @@ Ltac find_eqn :=
 
 ```
 
-    模式∀ x，?P x → ?L = ?R匹配任何假设
+    模式∀ x，?P x → ?L = ?R 匹配任何假设
 
-    形式为“对于所有x，*x的某个属性*意味着*某个相等*。” x的属性绑定到模式变量
+    形式为“对于所有 x，*x 的某个属性*意味着*某个相等*。” x 的属性绑定到模式变量
 
     P，等式的左右两侧被绑定
 
-    到L和R。这个假设的名称绑定到H[1]。
+    到 L 和 R。这个假设的名称绑定到 H[1]。
 
-    然后模式?P ?X匹配任何提供
+    然后模式?P ?X 匹配任何提供
 
-    证据表明P对某个具体X成立。如果两种模式
+    证据表明 P 对某个具体 X 成立。如果两种模式
 
-    成功，我们应用重写tactic（实例化
+    成功，我们应用重写 tactic（实例化
 
-    用X量化x并提供H[2]作为所需的
+    用 X 量化 x 并提供 H[2]作为所需的
 
-    证据P X)在所有假设和目标中。
+    证据 P X)在所有假设和目标中。
 
     一个问题仍然存在：一般来说，可能有几对
 
@@ -608,9 +608,9 @@ Ltac find_eqn :=
 
     我们可以*尝试它们全部*！这是它的工作原理：
 
-+   每次执行match goal都会继续尝试找到一对有效的假设，直到match右侧的tactic成功为止；如果没有这样的对，它就会失败；
++   每次执行 match goal 都会继续尝试找到一对有效的假设，直到 match 右侧的 tactic 成功为止；如果没有这样的对，它就会失败；
 
-+   重写将失败，给出形式为X = X的平凡方程；
++   重写将失败，给出形式为 X = X 的平凡方程；
 
 +   我们可以将整个事情包装在一个重复中，这将一直进行有用的重写，直到只剩下琐碎的重写。
 
@@ -647,7 +647,7 @@ Inductive com : Type :=
 
 ```
 
-    REPEAT的行为类似于WHILE，只是循环保护是
+    REPEAT 的行为类似于 WHILE，只是循环保护是
 
     在每次执行主体之后检查*，循环
 
@@ -771,9 +771,9 @@ End Repeat.
 
     为了结束本章，我们将介绍一个更方便的功能
 
-    Coq的一个特点：它能够延迟量词的实例化。为了
+    Coq 的一个特点：它能够延迟量词的实例化。为了
 
-    为了激发这一特性，回想一下来自[Imp](Imp.html)的例子
+    为了激发这一特性，回想一下来自 Imp 的例子
 
     章节：
 
@@ -799,9 +799,9 @@ Qed.
 
     较长的表达式帮助 Coq 实例化一个“隐藏”的参数
 
-    E_Seq构造函数。这是必要的，因为定义
+    E_Seq 构造函数。这是必要的，因为定义
 
-    E_Seq的...
+    E_Seq 的...
 
 ```
           E_Seq : ∀c[1] c[2] st st' st'',

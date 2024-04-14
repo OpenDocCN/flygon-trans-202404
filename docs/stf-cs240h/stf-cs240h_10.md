@@ -308,7 +308,7 @@ data PairZipper a b c = PZ c (PairHole a b)
 data PairHole a b = HoleFst b | HoleSnd a data PairZipper a b c = PZ c (PairHole a b) focusFst :: (a,b) -> PairZipper a b a focusFst = undefined focusSnd :: (a,b) -> PairZipper a b b focusSnd = undefined
 ```
 
-骨架：[http://cs240h.scs.stanford.edu/Hole1.hs](http://cs240h.scs.stanford.edu/Hole1.hs)
+骨架：[`cs240h.scs.stanford.edu/Hole1.hs`](http://cs240h.scs.stanford.edu/Hole1.hs)
 
 ## 我的解决方案
 
@@ -494,7 +494,7 @@ focusHead :: Focuser [a] [a] a a focusHead = undefined
 >>> over focusHead toUpper "anita" "Anita"
 ```
 
-骨架：[http://cs240h.scs.stanford.edu/Focus.hs](http://cs240h.scs.stanford.edu/Focus.hs)
+骨架：[`cs240h.scs.stanford.edu/Focus.hs`](http://cs240h.scs.stanford.edu/Focus.hs)
 
 ## 再次抽象
 
@@ -540,7 +540,7 @@ wat :: Focuser s t a b -> (a -> f b) -> s -> f t view :: Focuser s t a b {- igno
 newtype Identity a = Identity { runIdentity :: a } instance Functor Identity where fmap f (Identity a) = Identity (f a)
 ```
 
-## 类型级别的const
+## 类型级别的 const
 
 在[`Control.Applicative`](http://hackage.haskell.org/package/base/docs/Control-Applicative.html#v:Const)中定义：
 
@@ -662,7 +662,7 @@ _1 :: Functor f => (a -> f c) -> (a, b) -> f (c, b) _head :: Functor f => (a -> 
 
 ## 2: 为什么透镜是可组合的？
 
-关键在于记住，一个带有2个参数的函数实际上是一个返回函数的1个参数的函数。
+关键在于记住，一个带有 2 个参数的函数实际上是一个返回函数的 1 个参数的函数。
 
 ```
 _1 :: Functor f => (a -> f c) -> ((a, b) -> f (c, b)) _head :: Functor f => (a -> f a) -> ([a] -> f [a]) _1._head :: Functor f => (a -> f a) -> ([a], b) -> f ([a], b)
@@ -672,19 +672,19 @@ _1 :: Functor f => (a -> f c) -> ((a, b) -> f (c, b)) _head :: Functor f => (a -
 
 最好的开始地方是从“入门级”开始：
 
-+   [lens-family-core包](http://hackage.haskell.org/package/lens-family-core)是最容易学习的
++   [lens-family-core 包](http://hackage.haskell.org/package/lens-family-core)是最容易学习的
 
 +   也有最容易阅读的源代码：强烈推荐！
 
 完整的操作：
 
-+   [lens包](http://lens.github.io/)更加强大，更加抽象，更加难以学习。
++   [lens 包](http://lens.github.io/)更加强大，更加抽象，更加难以学习。
 
 +   由于庞大而有些争议
 
 在实践中变得越来越广泛使用：
 
-+   我的[wreq HTTP库](http://www.serpentine.com/wreq)
++   我的[wreq HTTP 库](http://www.serpentine.com/wreq)
 
 ## 镜头操作符的指南
 

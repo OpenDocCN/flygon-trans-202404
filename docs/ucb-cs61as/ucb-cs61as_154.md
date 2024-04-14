@@ -1,4 +1,4 @@
-# 作业13
+# 作业 13
 
 对于涉及编写查询或规则的所有问题，请测试您的解决方案。
 
@@ -26,11 +26,11 @@
 
 其他任何内容都是一个查询。
 
-## 练习1
+## 练习 1
 
 Abelson & Sussman，练习[4.56](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-29.html#%_thm_4.56)，[4.57, 4.58](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-29.html#%_thm_4.57)和[4.65](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-29.html#%_thm_4.65)。
 
-## 练习2：专家级别的额外练习
+## 练习 2：专家级别的额外练习
 
 **如果你想的话可以这样做。这不计入学分。**
 
@@ -84,6 +84,6 @@ Abelson & Sussman，练习[4.56](http://mitpress.mit.edu/sicp/full-text/book/boo
 
 ## 提交您的作业！
 
-查看[此指南](../submit.html)获取说明。它涵盖了基本的终端命令和作业提交。
+查看此指南获取说明。它涵盖了基本的终端命令和作业提交。
 
 如果你在提交作业时遇到任何问题，请毋需犹豫地向助教求助！

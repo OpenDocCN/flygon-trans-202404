@@ -12,13 +12,13 @@
 
 通过任何这些途径安装后，你将拥有以下命令行工具：
 
-+   [`elm-repl`](#elm-repl) — 与 Elm 表达式互动
++   `elm-repl` — 与 Elm 表达式互动
 
-+   [`elm-reactor`](#elm-reactor) — 快速启动项目
++   `elm-reactor` — 快速启动项目
 
-+   [`elm-make`](#elm-make) — 直接编译 Elm 代码
++   `elm-make` — 直接编译 Elm 代码
 
-+   [`elm-package`](#elm-package) — 下载包
++   `elm-package` — 下载包
 
 我们将在设置好你的编辑器后立即详细介绍它们的工作原理！
 

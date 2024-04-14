@@ -4,7 +4,7 @@
 
 本章内容取自官方文档，但我试图为您提供更多信息，同时将所有内容放在一个地方也很好。[官方文档](https://github.com/ReactiveX/rxjs)
 
-TH Rxjs库可以以许多不同的方式使用，即`ES6`，`CommonJS`和`ES5/CDN`。
+TH Rxjs 库可以以许多不同的方式使用，即`ES6`，`CommonJS`和`ES5/CDN`。
 
 ## ES6
 
@@ -24,7 +24,7 @@ Rx.Observable.of(1,2,3)
 
 ### 注意事项
 
-这个语句`import Rx from 'rxjs/Rx'`利用了整个库。这对于测试各种功能很好，但一旦进入生产阶段，这是*一个坏主意*，因为Rxjs是一个相当庞大的库。在更现实的情况下，您会希望使用下面的替代方法，只导入您实际使用的运算符：
+这个语句`import Rx from 'rxjs/Rx'`利用了整个库。这对于测试各种功能很好，但一旦进入生产阶段，这是*一个坏主意*，因为 Rxjs 是一个相当庞大的库。在更现实的情况下，您会希望使用下面的替代方法，只导入您实际使用的运算符：
 
 ```
  import { Observable } from 'rxjs/Observable';
@@ -40,7 +40,7 @@ stream$.subscribe((val) => {
 
 ## CommonJS
 
-与ES6相同的安装
+与 ES6 相同的安装
 
 ### 安装
 
@@ -71,13 +71,13 @@ require('rxjs/add/operator/map');
 Observable.of(1,2,3).map((x) => { return x + '!!!'; }); // etc 
 ```
 
-正如您所看到的`require('rxjs/Observable')`只给我们提供了Rx对象，我们需要深入一级才能找到Observable。
+正如您所看到的`require('rxjs/Observable')`只给我们提供了 Rx 对象，我们需要深入一级才能找到 Observable。
 
 注意，我们只需`require('path/to/operator')`即可获取我们想要在应用程序中导入的运算符。
 
-## CDN或ES5
+## CDN 或 ES5
 
-如果我既不是ES6也不是CommonJS，还有另一种方法，即：
+如果我既不是 ES6 也不是 CommonJS，还有另一种方法，即：
 
 ```
  <script src="https://unpkg.com/rxjs/bundles/Rx.min.js"></script> 

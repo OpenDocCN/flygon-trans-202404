@@ -107,4 +107,4 @@ After sorting:  [0xc0820066e0 0xc0820066a0 0xc082006700 0xc0820066c0]
 
 参考：
 
-[《Go编程语言》](http://www.gopl.io/)。
+[《Go 编程语言》](http://www.gopl.io/)。

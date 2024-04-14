@@ -122,8 +122,8 @@ go func() {fmt.Println(i)}()
 
 参考：
 
-[Go编程语言规范](https://golang.org/ref/spec#Function_literals);
+[Go 编程语言规范](https://golang.org/ref/spec#Function_literals);
 
 [关于向闭包传递参数的问题](https://groups.google.com/forum/#!topic/golang-nuts/JXTEYyoPLio);
 
-[为什么在Golang中在闭包体后面添加“()”？](http://stackoverflow.com/questions/16008604/why-add-after-closure-body-in-golang)。
+[为什么在 Golang 中在闭包体后面添加“()”？](http://stackoverflow.com/questions/16008604/why-add-after-closure-body-in-golang)。

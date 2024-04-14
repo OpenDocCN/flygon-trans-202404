@@ -1,4 +1,4 @@
-# 第 9 章：深入类
+# 第九章：深入类
 
 # 深入了解类
 
@@ -173,7 +173,7 @@ theBus.SeatingCapacity = 80;
 console.log("Seating capacity:", theBus.SeatingCapacity); 
 ```
 
-如果你只想在私有属性周围包装一个公共getter和setter，那么这几乎不值得麻烦^([1](#fn_1)) - 实际上可能会误导。这里有一个更全面的示例，展示了getter如何执行更有意义的计算。
+如果你只想在私有属性周围包装一个公共 getter 和 setter，那么这几乎不值得麻烦^(1) - 实际上可能会误导。这里有一个更全面的示例，展示了 getter 如何执行更有意义的计算。
 
 ```
 class Bus5 {
@@ -209,17 +209,17 @@ console.log("My total cost per rider:", myBus5.CostPerRider)
 console.log("Cost per rider with 80 riders: ", new Bus5(148, 12.50, 80, 50).CostPerRider) 
 ```
 
-这个示例展示了一个getter，`CostPerRider`。当客户端代码引用CostPerRider时，它通过考虑距离、每英里成本和总乘客数在运行时计算一个值，然后返回该值。
+这个示例展示了一个 getter，`CostPerRider`。当客户端代码引用 CostPerRider 时，它通过考虑距离、每英里成本和总乘客数在运行时计算一个值，然后返回该值。
 
 * * *
 
-*关于访问器和性能的说明*要谨慎使用长时间运行的访问器。一些框架，比如Angular 1.x，使用双向绑定来保持UI与后端数据同步。如果您在Angular模板中将一个字段绑定到一个长时间运行的访问器，您的用户将不会祝您生日快乐。
+*关于访问器和性能的说明*要谨慎使用长时间运行的访问器。一些框架，比如 Angular 1.x，使用双向绑定来保持 UI 与后端数据同步。如果您在 Angular 模板中将一个字段绑定到一个长时间运行的访问器，您的用户将不会祝您生日快乐。
 
 * * *
 
 ## 使用接口定义构造函数参数
 
-在上一个示例中，Bus5对象的构造函数以四个数字参数作为输入：
+在上一个示例中，Bus5 对象的构造函数以四个数字参数作为输入：
 
 ```
 const myBus5: Bus5 = new Bus5(148, 12.50, 72, 80); 
@@ -241,9 +241,9 @@ myBus5.RouteDistance = 55;
 
 1.  它需要公共属性。这意味着它们在初始化后可以被更改，这可能导致有害的副作用。
 
-1.  如果添加一个新的公共属性，IDE无法轻松告诉您需要在哪里更改代码以初始化它。
+1.  如果添加一个新的公共属性，IDE 无法轻松告诉您需要在哪里更改代码以初始化它。
 
-考虑第二点。假设您有一个非平凡的Bus管理解决方案，并且在解决方案中的多个模块中实例化Bus对象。有一天，您意识到需要建模一个新属性，`StandardRouteTime`来记录特定公交路线从起点到终点应该花费多长时间。更新类定义很容易，同样很容易更新任何创建新公交对象实例的代码。但是，找到需要更改的每个地方可能很困难。接口有助于解决这个问题，如下面的代码所示：
+考虑第二点。假设您有一个非平凡的 Bus 管理解决方案，并且在解决方案中的多个模块中实例化 Bus 对象。有一天，您意识到需要建模一个新属性，`StandardRouteTime`来记录特定公交路线从起点到终点应该花费多长时间。更新类定义很容易，同样很容易更新任何创建新公交对象实例的代码。但是，找到需要更改的每个地方可能很困难。接口有助于解决这个问题，如下面的代码所示：
 
 ```
 interface Bus6Args {
@@ -302,7 +302,7 @@ console.log("Cost per rider with 80 riders: ",
 
 ### 清晰度
 
-代码定义了一个接口，`Bus6Args`。然后类构造函数接受一个类型为Bus6Args的参数。这使我们可以编写这样一行代码：
+代码定义了一个接口，`Bus6Args`。然后类构造函数接受一个类型为 Bus6Args 的参数。这使我们可以编写这样一行代码：
 
 ```
 const myBus6: Bus6 = new Bus6(
@@ -322,7 +322,7 @@ var myBus6 = new Bus6(44, 12.5, 148, 72);
 
 ### 长期维护
 
-回想一下上面的场景 - 复杂的Bus管理系统，有许多模块，成千上万行代码，以及许多次代码实例化新的Bus6对象。要建模一个新属性，请按照以下简单步骤进行：
+回想一下上面的场景 - 复杂的 Bus 管理系统，有许多模块，成千上万行代码，以及许多次代码实例化新的 Bus6 对象。要建模一个新属性，请按照以下简单步骤进行：
 
 1.  更新类定义以包含新属性
 
@@ -330,7 +330,7 @@ var myBus6 = new Bus6(44, 12.5, 148, 72);
 
 1.  编译所有代码。
 
-第一次这样做时，TypeScript 编译器会在您实例化新的 Bus 对象的每个地方报告错误，因为所有构造函数参数都将缺少新属性。这为您提供了一个全面的检查列表，列出了您需要考虑这个新属性的每个地方^([2](#fn_2))。
+第一次这样做时，TypeScript 编译器会在您实例化新的 Bus 对象的每个地方报告错误，因为所有构造函数参数都将缺少新属性。这为您提供了一个全面的检查列表，列出了您需要考虑这个新属性的每个地方^(2)。
 
 ## 类和接口
 
@@ -434,7 +434,7 @@ class Scarf implements IRecommendable{
 } 
 ```
 
-`implements`关键字告诉TypeScript，`Scarf`对象始终至少定义了`color`和`price`属性。它们可以定义更多属性，正如你所看到的，它们确实这样做了。然而，它们至少必须定义这两个属性。
+`implements`关键字告诉 TypeScript，`Scarf`对象始终至少定义了`color`和`price`属性。它们可以定义更多属性，正如你所看到的，它们确实这样做了。然而，它们至少必须定义这两个属性。
 
 我们可以创建其他“可推荐”对象，通过这样做，我们现在可以享受一些智能感知支持。考虑这个重构后的代码：
 
@@ -495,23 +495,23 @@ console.log("Recommended for min/max price of 10/20 and color = blue:", Recommen
 
 +   `allRecommendableProducts`包含一个对象集合（`IRecommendable[]`），每个对象都保证有一个`price`和`color`属性。
 
-+   如果我们尝试添加另一个对象，比如`ProductDisplay`到该集合中，IDE会警告我们它不符合集合对象的接口要求。这意味着我们的代码可以安全地假定对象属性是存在的。
++   如果我们尝试添加另一个对象，比如`ProductDisplay`到该集合中，IDE 会警告我们它不符合集合对象的接口要求。这意味着我们的代码可以安全地假定对象属性是存在的。
 
-+   我们可以在reduce函数内部使用点符号表示颜色和价格属性。事实上，IDE甚至会给出有用的智能感知提示。
++   我们可以在 reduce 函数内部使用点符号表示颜色和价格属性。事实上，IDE 甚至会给出有用的智能感知提示。
 
 这里有一个展示整个过程的视频：
 
-[https://www.youtube.com/embed/97u6yaGJ1T4](https://www.youtube.com/embed/97u6yaGJ1T4)
+[`www.youtube.com/embed/97u6yaGJ1T4`](https://www.youtube.com/embed/97u6yaGJ1T4)
 
-(如果您无法查看视频，请[尝试点击这里](https://youtu.be/97u6yaGJ1T4)或将此网址输入到您的网络浏览器中：[https://youtu.be/97u6yaGJ1T4](https://youtu.be/97u6yaGJ1T4)。)
+(如果您无法查看视频，请[尝试点击这里](https://youtu.be/97u6yaGJ1T4)或将此网址输入到您的网络浏览器中：[`youtu.be/97u6yaGJ1T4`](https://youtu.be/97u6yaGJ1T4)。)
 
 ### 类、接口和方法
 
-除了定义数据要求，您还可以定义必需的方法。让我们在数据导出的背景下探讨这一点。您已经将一组产品建模为对象，并希望允许最终用户将这些产品导出到Excel电子表格中。Excel非常适合与逗号分隔列表一起使用，因此如果您的对象可以创建一个逗号分隔的版本，那么将其导出并让Excel发挥其魔力就是小菜一碟。
+除了定义数据要求，您还可以定义必需的方法。让我们在数据导出的背景下探讨这一点。您已经将一组产品建模为对象，并希望允许最终用户将这些产品导出到 Excel 电子表格中。Excel 非常适合与逗号分隔列表一起使用，因此如果您的对象可以创建一个逗号分隔的版本，那么将其导出并让 Excel 发挥其魔力就是小菜一碟。
 
-在纯JavaScript中以通用方式实现这一点并不难，所以让我们稍微复杂化一下，引入一点安全性。一些对象包含敏感信息，比如`cost`，您希望根据用户的角色（例如“操作员”，“主管”，“管理员”）限制对该属性的访问。最后，我们不仅担心`cost`属性。一些产品，但不是全部，受到库存控制措施的约束。在这些情况下，我们不需要提供产品的实际库存量，而是需要显示一条消息，“联系销售”。
+在纯 JavaScript 中以通用方式实现这一点并不难，所以让我们稍微复杂化一下，引入一点安全性。一些对象包含敏感信息，比如`cost`，您希望根据用户的角色（例如“操作员”，“主管”，“管理员”）限制对该属性的访问。最后，我们不仅担心`cost`属性。一些产品，但不是全部，受到库存控制措施的约束。在这些情况下，我们不需要提供产品的实际库存量，而是需要显示一条消息，“联系销售”。
 
-我们*可以*编写一个大而混乱的CSV生成器，通用地迭代对象属性，然后用一堆if/then/else语句来填充它。相反，让我们将字段级逻辑委托给产品对象本身。
+我们*可以*编写一个大而混乱的 CSV 生成器，通用地迭代对象属性，然后用一堆 if/then/else 语句来填充它。相反，让我们将字段级逻辑委托给产品对象本身。
 
 这里是一个相对复杂的例子：
 
@@ -595,7 +595,7 @@ const allSecurableProducts = [].concat(
 const csvOutput = getGeneratedCsv(allProducts, "Inventory Admin"); 
 ```
 
-你会注意到的第一件事是，代码定义了两个接口：`StandardProduct`和`SecuredFieldsItem`。然后，两个类（Fidget和HotItem）都实现了这两个接口：
+你会注意到的第一件事是，代码定义了两个接口：`StandardProduct`和`SecuredFieldsItem`。然后，两个类（Fidget 和 HotItem）都实现了这两个接口：
 
 `class Fidget implements StandardProduct, SecuredFieldsItem`
 
@@ -612,19 +612,19 @@ interface SecuredFieldsItem {
 
 实现`SecuredFieldsItem`接口的类必须实现一个方法，`GetAllowedFieldNames`。该方法必须接受一个字符串输入参数，并且必须返回一个字符串数组。在一个更现实的场景中，你可能会传递一些表示用户作为一个整体的对象，包括他/她的角色。这个例子使用硬编码的字符串来简化事情。
 
-正如你所看到的，GetAllowedFieldsNames在每个类中都有独立的实现。Fidget只关心角色是“价格管理员”的用户。HotItem产品对具有“库存管理员”角色的用户执行额外的检查。
+正如你所看到的，GetAllowedFieldsNames 在每个类中都有独立的实现。Fidget 只关心角色是“价格管理员”的用户。HotItem 产品对具有“库存管理员”角色的用户执行额外的检查。
 
-`getGeneratedCsv`在每个产品上调用GetAllowedFieldNames。注意函数签名：
+`getGeneratedCsv`在每个产品上调用 GetAllowedFieldNames。注意函数签名：
 
 `function getGeneratedCsv(forProducts: SecuredFieldsItem[], forRoleLabel: string)`
 
-它可以遍历具有完全不同属性的不同产品，因为它们都实现了SecuredFieldsItem接口。因此，它们将始终有GetAllowedFieldNames方法可供调用。
+它可以遍历具有完全不同属性的不同产品，因为它们都实现了 SecuredFieldsItem 接口。因此，它们将始终有 GetAllowedFieldNames 方法可供调用。
 
 最后，辅助函数`getFormattedCsvRow`基于当前项目和允许的字段生成适当格式的逗号分隔数据行。
 
 ## 继承
 
-与Java和C#一样，TypeScript支持分层类结构。这允许您通过从最小的“基础”类开始然后将其扩展到新类来逐步构建复杂的类。这个新扩展的类被称为*继承*其基类的功能。 “扩展”意味着添加新的类成员（属性和/或方法）。
+与 Java 和 C#一样，TypeScript 支持分层类结构。这允许您通过从最小的“基础”类开始然后将其扩展到新类来逐步构建复杂的类。这个新扩展的类被称为*继承*其基类的功能。 “扩展”意味着添加新的类成员（属性和/或方法）。
 
 让我们通过美国居留模型来演示继承。在这种情况下，“居民”意味着永久或临时居住在美国的人。
 
@@ -696,7 +696,7 @@ class TemporaryResident extends Resident {
 class TemporaryResident extends Resident { 
 ```
 
-这意味着`TemporaryResident`共享与`Resident`相同的成员。在这种情况下，它是`_name`属性以及Resident的构造函数。
+这意味着`TemporaryResident`共享与`Resident`相同的成员。在这种情况下，它是`_name`属性以及 Resident 的构造函数。
 
 任何扩展其他类的类都必须始终通过调用`super`来调用扩展类的构造函数：
 
@@ -730,19 +730,19 @@ class USCitizen extends Resident {
 
 这是一个功能齐全的视频，详细演示了这一点：
 
-[https://www.youtube.com/embed/-P1uYVlYEc4](https://www.youtube.com/embed/-P1uYVlYEc4)
+[`www.youtube.com/embed/-P1uYVlYEc4`](https://www.youtube.com/embed/-P1uYVlYEc4)
 
-如果你看不到视频，[请尝试点击此链接](https://youtu.be/-P1uYVlYEc4)或将此URL键入您的网络浏览器中：[https://youtu.be/-P1uYVlYEc4](https://youtu.be/-P1uYVlYEc4))。
+如果你看不到视频，[请尝试点击此链接](https://youtu.be/-P1uYVlYEc4)或将此 URL 键入您的网络浏览器中：[`youtu.be/-P1uYVlYEc4`](https://youtu.be/-P1uYVlYEc4))。
 
 ## 隐藏和暴露类成员
 
-我们已经看到了`public`关键字和`private`关键字如何保护或授予对类成员的访问权限，包括属性和方法。继承增加了一点复杂性，并且使您能够通过public/private以及一个新的数据控制关键字`protected`来控制对类成员的访问：
+我们已经看到了`public`关键字和`private`关键字如何保护或授予对类成员的访问权限，包括属性和方法。继承增加了一点复杂性，并且使您能够通过 public/private 以及一个新的数据控制关键字`protected`来控制对类成员的访问：
 
 +   `public` 成员始终可以在层次结构中上下访问，并且可以从客户端（即客户端代码）外部访问。
 
 +   `private` 成员只能从类本身访问。这意味着扩展类不能访问其父类的私有成员。
 
-+   TypeScript提供了一个新关键字，`protected`。受保护的成员既像公有成员又像私有成员。它们对任何外部客户端代码都是私有的。从其定义点和所有扩展的子类来看，它们是公共的。
++   TypeScript 提供了一个新关键字，`protected`。受保护的成员既像公有成员又像私有成员。它们对任何外部客户端代码都是私有的。从其定义点和所有扩展的子类来看，它们是公共的。
 
 以下代码片段应有助于澄清问题：
 
@@ -785,21 +785,21 @@ myExtendedClass.MyPublicProperty = "Set directly on the class via client code.";
 
 +   一个类，`BaseClass`。
 
-+   BaseClass定义了三个成员：`_myPrivateProperty`、`_myProtectedProperty`和`MyPublicProperty`。
++   BaseClass 定义了三个成员：`_myPrivateProperty`、`_myProtectedProperty`和`MyPublicProperty`。
 
-+   它定义了另一个类，`ExtendedBaseClass`。这扩展了BaseClass。
++   它定义了另一个类，`ExtendedBaseClass`。这扩展了 BaseClass。
 
-+   ExtendedBaseClass允许访问_myProtectedProperty和MyPublicProperty。
++   ExtendedBaseClass 允许访问 _myProtectedProperty 和 MyPublicProperty。
 
-+   ExtendedBaseClass *可能不* 访问_myPrivateProperty。
++   ExtendedBaseClass *可能不* 访问 _myPrivateProperty。
 
-+   一些客户端代码定义了一个新的const变量，`myExtendedBaseClass`。它保存对ExtendedBaseClass实例的引用。
++   一些客户端代码定义了一个新的 const 变量，`myExtendedBaseClass`。它保存对 ExtendedBaseClass 实例的引用。
 
 +   客户端代码能够访问实例的`MyPublicProperty`，但无法访问私有或受保护的属性。
 
 ## 抽象类
 
-抽象类完善了TypeScript对这种类型层次结构的支持。抽象类看起来和感觉像标准类，但有一个关键的例外：抽象类永远不能被实例化。如果JavaScript是您的第一种和主要的编程语言，这可能看起来很奇怪。然而，抽象类以及接口使开发人员能够自然而优雅地表达许多常见的软件设计模式。让我们考虑一个例子。
+抽象类完善了 TypeScript 对这种类型层次结构的支持。抽象类看起来和感觉像标准类，但有一个关键的例外：抽象类永远不能被实例化。如果 JavaScript 是您的第一种和主要的编程语言，这可能看起来很奇怪。然而，抽象类以及接口使开发人员能够自然而优雅地表达许多常见的软件设计模式。让我们考虑一个例子。
 
 想象一下你正在编写一个游戏。玩家在二维地图上放置不同类型的军事基地（例如“陆军”，“海军”）。基地共享一些共同特征，比如“名称”，但在重要细节上有所不同。陆军基地由士兵组成，而海军基地由船只组成。最后，在运行时，玩家可以“激活”一个基地。这会触发基地在游戏中执行有意义的操作。以下是一种简单的建模方式：
 
@@ -855,7 +855,7 @@ const someOtherBase = new NaiveBase("what kind of base is this?");
 
 陆军和海军基地类都实现了`Activatable`接口，尽管在这个例子中，每个类的`ActiveSelf()`方法只是简单地抛出异常。
 
-这种建模方法存在一个问题：没有纯粹的香草NaiveBase。玩家永远不会创建普通的基地，他们总是创建特定类型的基地。然而，代码没有阻止这样做。
+这种建模方法存在一个问题：没有纯粹的香草 NaiveBase。玩家永远不会创建普通的基地，他们总是创建特定类型的基地。然而，代码没有阻止这样做。
 
 这里还有另一个问题。这种方法迫使我们在每个类上实现`Activatable`接口。我们可以在基类上实现它，但这只会加剧第一个问题 - 现在我们在一个不应该实例化的类上实现了一个接口。
 
@@ -913,7 +913,7 @@ const anotherArmyBase: Activatable = new ArmyBase("Second army base", 250);
 const someOtherKindOfBase = new AbstractBase("what kind of base is this?"); 
 ```
 
-这个例子介绍了`abstract`关键字。我们现在有一个抽象类`Base`。这个抽象类实现了`Activatable`接口。通过这样做，你可以看到TypeScript抽象功能的另一个特点：你可以将类和*类成员*标记为抽象。（事实上，如果包含任何抽象成员，必须将类标记为抽象）。`Activatable`接口需要一个`ActiveSelf`方法。然而，这个方法只对“真实”的基地 - 陆军和海军基地有意义。因此，我们��`ActivateSelf`方法本身标记为抽象：
+这个例子介绍了`abstract`关键字。我们现在有一个抽象类`Base`。这个抽象类实现了`Activatable`接口。通过这样做，你可以看到 TypeScript 抽象功能的另一个特点：你可以将类和*类成员*标记为抽象。（事实上，如果包含任何抽象成员，必须将类标记为抽象）。`Activatable`接口需要一个`ActiveSelf`方法。然而，这个方法只对“真实”的基地 - 陆军和海军基地有意义。因此，我们��`ActivateSelf`方法本身标记为抽象：
 
 ```
  abstract ActivateSelf(): void; 
@@ -921,11 +921,11 @@ const someOtherKindOfBase = new AbstractBase("what kind of base is this?");
 
 这个抽象的`ActivateSelf`方法满足了`Activatable`接口的要求。这很完美，因为一个普通的“基地”不能有意义地激活自己 - 只有陆军和海军基地才能这样做。同时，它强制子类实现这个方法。这有两个好处：
 
-1.  你不能忘记做这件事，因为IDE和编译器不会让你这样做。
+1.  你不能忘记做这件事，因为 IDE 和编译器不会让你这样做。
 
 1.  由于子类实现了接口，我们可以编写代码，在需要的时候将它们的类型作为`Activatable`来利用。
 
-抽象基类展示了另一个特性：抽象类可以定义非抽象类成员。由于每个基类都有一个名称，无论基类类型如何，定义一个具体的`_myName`属性和相关的getter是有意义的。子类继承这些具体类成员（属性和方法）就像它们继承具体类一样。
+抽象基类展示了另一个特性：抽象类可以定义非抽象类成员。由于每个基类都有一个名称，无论基类类型如何，定义一个具体的`_myName`属性和相关的 getter 是有意义的。子类继承这些具体类成员（属性和方法）就像它们继承具体类一样。
 
 陆军和海军基地扩展了抽象类，就像它是一个具体类一样，使用相同的`extends`关键字。
 
@@ -945,13 +945,13 @@ const activatableNavyBase = <Activatable> navyBase;
 
 让我们在视频中把所有内容放在一起：
 
-[https://www.youtube.com/embed/ska4WEeG3pM](https://www.youtube.com/embed/ska4WEeG3pM)
+[`www.youtube.com/embed/ska4WEeG3pM`](https://www.youtube.com/embed/ska4WEeG3pM)
 
-(如果你无法观看该视频，[尝试点击此链接](https://youtu.be/ska4WEeG3pM)或将此网址输入到你的网络浏览器中：[https://youtu.be/ska4WEeG3pM](https://youtu.be/ska4WEeG3pM).)
+(如果你无法观看该视频，[尝试点击此链接](https://youtu.be/ska4WEeG3pM)或将此网址输入到你的网络浏览器中：[`youtu.be/ska4WEeG3pM`](https://youtu.be/ska4WEeG3pM).)
 
 # 进一步阅读
 
-+   我写了一篇博文，结合了联合、剩余参数和接口（封装在类中），实现了一个通用的记录器函数：[https://blog.hellojs.org/simple-javascript-logger-in-typescript-demonstrating-interfaces-union-types-and-rest-parameters-6efc5aee2c97](https://blog.hellojs.org/simple-javascript-logger-in-typescript-demonstrating-interfaces-union-types-and-rest-parameters-6efc5aee2c97)
++   我写了一篇博文，结合了联合、剩余参数和接口（封装在类中），实现了一个通用的记录器函数：[`blog.hellojs.org/simple-javascript-logger-in-typescript-demonstrating-interfaces-union-types-and-rest-parameters-6efc5aee2c97`](https://blog.hellojs.org/simple-javascript-logger-in-typescript-demonstrating-interfaces-union-types-and-rest-parameters-6efc5aee2c97)
 
 # 摘要
 
@@ -969,6 +969,6 @@ TypeScript 允许你创建层次结构。一个类可以*扩展*另一个类，�
 
 * * *
 
-> ¹. 当你想要将属性提供给客户端代码但不想让该客户端代码编辑值时，Getter 访问器就很有用。在这种情况下，你会定义一个私有变量以及它自己的 Getter 访问器，但没有 Setter 访问器。不要创建一个私有变量，然后将其与公共 Getter *和* Setter 配对。在这种情况下，你可以直接将其保持为公共的。[↩](#reffn_1 "跳转回文中的脚注 [1]")
+> ¹. 当你想要将属性提供给客户端代码但不想让该客户端代码编辑值时，Getter 访问器就很有用。在这种情况下，你会定义一个私有变量以及它自己的 Getter 访问器，但没有 Setter 访问器。不要创建一个私有变量，然后将其与公共 Getter *和* Setter 配对。在这种情况下，你可以直接将其保持为公共的。↩
 > 
-> ². 既然你仍然在这个地方阅读，可以安全地说你对 TypeScript 非常有用。如果你仍然犹豫不决，考虑一下你将如何用纯 JavaScript 解决这个问题。如果你需要做这样的变化，要实现这样的效果就会更加困难，因为你无法得到同样优秀的工具支持。你无法强制出现语法错误。你必须依赖全局搜索和/或查找/替换。不是很有趣。[↩](#reffn_2 "跳转回文中的脚注 [2]")
+> ². 既然你仍然在这个地方阅读，可以安全地说你对 TypeScript 非常有用。如果你仍然犹豫不决，考虑一下你将如何用纯 JavaScript 解决这个问题。如果你需要做这样的变化，要实现这样的效果就会更加困难，因为你无法得到同样优秀的工具支持。你无法强制出现语法错误。你必须依赖全局搜索和/或查找/替换。不是很有趣。↩

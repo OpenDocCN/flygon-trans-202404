@@ -8,8 +8,8 @@
 
 参考资料：
 
-[针对Linux用户的FreeBSD比较介绍](https://www.digitalocean.com/community/tutorials/a-comparative-introduction-to-freebsd-for-linux-users);
+[针对 Linux 用户的 FreeBSD 比较介绍](https://www.digitalocean.com/community/tutorials/a-comparative-introduction-to-freebsd-for-linux-users);
 
 [目录结构](https://www.freebsd.org/doc/handbook/dirstructure.html);
 
-[我喜欢FreeBSD的十件事情](https://bsdmag.org/download/the_begginers_guide/)。
+[我喜欢 FreeBSD 的十件事情](https://bsdmag.org/download/the_begginers_guide/)。

@@ -6,7 +6,7 @@ curl 命令行工具中的引擎是 libcurl。 libcurl 也是今天数千种工�
 
 ## C API
 
-libcurl 是提供了 C API 的函数库，用于使用 C 编写的应用程序。您也可以轻松地从 C++ 中使用它，只需考虑几个问题（请参阅[libcurl for C++ programmers](libcurl-cplusplus.html)）。对于其他语言，存在“绑定”，它们作为 libcurl 库和您喜欢的特定语言的相应函数之间的中间层工作。
+libcurl 是提供了 C API 的函数库，用于使用 C 编写的应用程序。您也可以轻松地从 C++ 中使用它，只需考虑几个问题（请参阅 libcurl for C++ programmers）。对于其他语言，存在“绑定”，它们作为 libcurl 库和您喜欢的特定语言的相应函数之间的中间层工作。
 
 ## 传输导向型
 
@@ -43,55 +43,55 @@ res = curl_easy_setopt(easy_handle, CURLOPT_URL, "http://example.com/");
 
 创建 easy 句柄并在其上设置选项不会导致任何传输发生，并且通常甚至不会有更多事情发生，除了 libcurl 存储您希望稍后在传输实际发生时使用的内容。输入的大量语法检查和验证也可能被延迟执行，因此仅因为 `curl_easy_setopt` 没有抱怨，并不意味着输入是正确和有效的；您可能会在以后收到错误返回。
 
-在其单独的章节中[阅读更多有关 easy 选项的信息](libcurl-options.html)。
+在其单独的章节中阅读更多有关 easy 选项的信息。
 
 所有选项都是“粘性”的。它们会保持在句柄中，直到您再次更改它们，或在句柄上调用`curl_easy_reset()`。
 
 当您设置了要传输的 easy 句柄的选项后，您就可以开始实际传输。
 
-实际的"执行传输阶段"可以通过不同的方式和函数调用来完成，具体取决于您的应用程序中需要的行为以及libcurl如何最好地集成到您的架构中。这些稍后在本章中进一步描述。
+实际的"执行传输阶段"可以通过不同的方式和函数调用来完成，具体取决于您的应用程序中需要的行为以及 libcurl 如何最好地集成到您的架构中。这些稍后在本章中进一步描述。
 
-传输完成后，您可以确定是否成功，还可以从easy句柄中提取libcurl在传输过程中收集的统计信息和各种信息。请参阅[传输后信息](libcurl-getinfo.html)。
+传输完成后，您可以确定是否成功，还可以从 easy 句柄中提取 libcurl 在传输过程中收集的统计信息和各种信息。请参阅传输后信息。
 
-在传输进行时，libcurl会调用您指定的函数—称为*[回调](libcurl-callbacks.md)*—来传递数据，读取数据或执行各种操作。
+在传输进行时，libcurl 会调用您指定的函数—称为*回调*—来传递数据，读取数据或执行各种操作。
 
 ### 复用！
 
-easy句柄旨在被重复使用和设计。当您使用easy句柄进行单个传输后，您可以立即再次使用它进行下一次传输。这样做可以获得很多好处。
+easy 句柄旨在被重复使用和设计。当您使用 easy 句柄进行单个传输后，您可以立即再次使用它进行下一次传输。这样做可以获得很多好处。
 
 # 驱动传输
 
 ### "驱动"传输
 
-libcurl提供三种不同的传输方式。在您的情况下使用哪种方式完全取决于您的需求。
+libcurl 提供三种不同的传输方式。在您的情况下使用哪种方式完全取决于您的需求。
 
-1.  'easy'接口允许您以同步方式进行单个传输。当传输完成时，libcurl将完成整个传输并将控制权返回给您的应用程序—无论成功与否。
+1.  'easy'接口允许您以同步方式进行单个传输。当传输完成时，libcurl 将完成整个传输并将控制权返回给您的应用程序—无论成功与否。
 
 1.  'multi'接口用于同时进行多个传输，或者您只想要一个非阻塞传输。
 
-1.  'multi_socket'接口是常规multi接口的轻微变体，但是基于事件，并且如果您打算将同时传输的数量扩展到数百或数千个，这确实是建议使用的API。
+1.  'multi_socket'接口是常规 multi 接口的轻微变体，但是基于事件，并且如果您打算将同时传输的数量扩展到数百或数千个，这确实是建议使用的 API。
 
 让我们更仔细地看看每一个...
 
-# 使用easy进行驱动
+# 使用 easy 进行驱动
 
-### 使用easy接口进行驱动
+### 使用 easy 接口进行驱动
 
-名称'easy'之所以被选中，只是因为这确实是使用libcurl的简单方式，当然，简单也意味着一些限制。比如，它一次只能进行一次传输，并且它在单个函数调用中完成整个传输，一旦完成就返回：
+名称'easy'之所以被选中，只是因为这确实是使用 libcurl 的简单方式，当然，简单也意味着一些限制。比如，它一次只能进行一次传输，并且它在单个函数调用中完成整个传输，一旦完成就返回：
 
 ```
 res = curl_easy_perform( easy_handle ); 
 ```
 
-如果服务器很慢，传输很大，或者网络中存在一些不愉快的超时等情况，这个函数调用可能需要很长时间。当然，您可以设置超时时间，不允许它花费超过N秒，但根据特定条件，这仍可能意味着相当长的时间。
+如果服务器很慢，传输很大，或者网络中存在一些不愉快的超时等情况，这个函数调用可能需要很长时间。当然，您可以设置超时时间，不允许它花费超过 N 秒，但根据特定条件，这仍可能意味着相当长的时间。
 
-如果您希望在libcurl使用easy接口进行传输时，应用程序执行其他操作，您需要使用多个线程。如果您希望在使用easy接口时进行多个同时传输，您需要在各自的线程中执行每个传输。
+如果您希望在 libcurl 使用 easy 接口进行传输时，应用程序执行其他操作，您需要使用多个线程。如果您希望在使用 easy 接口时进行多个同时传输，您需要在各自的线程中执行每个传输。
 
-# 使用multi进行驱动
+# 使用 multi 进行驱动
 
-### 使用multi接口进行驱动
+### 使用 multi 接口进行驱动
 
-名称'multi'是指多个，即多个并行传输，全部在同一个单线程中完成。multi API是非阻塞的，因此对于单个传输也可以使用它。
+名称'multi'是指多个，即多个并行传输，全部在同一个单线程中完成。multi API 是非阻塞的，因此对于单个传输也可以使用它。
 
 传输仍然设置在一个"easy" `CURL *`句柄中，如上所述，但是使用多接口时，您还需要创建一个多`CURLM *`句柄并使用它来驱动所有单个传输。多句柄可以"持有"一个或多个易句柄：
 
@@ -115,7 +115,7 @@ curl_multi_add_handle( multi_handle, easy_handle );
 curl_multi_remove_handle( multi_handle, easy_handle ); 
 ```
 
-添加了代表您要执行的传输的易句柄后，您编写传输循环。使用多接口，您进行循环，这样您可以向libcurl询问一组文件描述符和一个超时值，并自己进行`select()`调用，或者您可以使用稍微简化的版本，它会为我们执行这些操作，使用`curl_multi_wait`。最简单的循环基本上是这样的：（*请注意，真实应用程序应检查返回代码*）
+添加了代表您要执行的传输的易句柄后，您编写传输循环。使用多接口，您进行循环，这样您可以向 libcurl 询问一组文件描述符和一个超时值，并自己进行`select()`调用，或者您可以使用稍微简化的版本，它会为我们执行这些操作，使用`curl_multi_wait`。最简单的循环基本上是这样的：（*请注意，真实应用程序应检查返回代码*）
 
 ```
 int transfers_running;
@@ -125,9 +125,9 @@ do {
 } while (transfers_running); 
 ```
 
-`curl_multi_wait`的第四个参数，在上面的示例中设置为1000，是以毫秒为单位的超时时间。这是函数在返回之前等待任何活动的最长时间。在再次调用`curl_multi_perform`之前不要等待太长时间，因为存在超时、进度回调等，如果这样做可能会失去精度。
+`curl_multi_wait`的第四个参数，在上面的示例中设置为 1000，是以毫秒为单位的超时时间。这是函数在返回之前等待任何活动的最长时间。在再次调用`curl_multi_perform`之前不要等待太长时间，因为存在超时、进度回调等，如果这样做可能会失去精度。
 
-要改为在我们自己上执行select()，我们从libcurl中提取文件描述符和超时值，如下所示（*请注意，真实应用程序应检查返回代码*）：
+要改为在我们自己上执行 select()，我们从 libcurl 中提取文件描述符和超时值，如下所示（*请注意，真实应用程序应检查返回代码*）：
 
 ```
 int transfers_running;
@@ -177,17 +177,17 @@ do {
 
 当您进行多个并行传输时，当然可以在同一次`curl_multi_perform`调用中完成多个传输，然后您可能需要多次调用`curl_multi_info_read`来获取每个已完成传输的信息。
 
-# 使用multi_socket进行驱动
+# 使用 multi_socket 进行驱动
 
 ## 使用"multi_socket"接口进行驱动
 
-multi_socket 是常规多接口的额外辣味版本，专为事件驱动的应用程序设计。确保你先阅读 [使用多接口进行驱动](libcurl-drive-multi.html) 部分。
+multi_socket 是常规多接口的额外辣味版本，专为事件驱动的应用程序设计。确保你先阅读 使用多接口进行驱动 部分。
 
 multi_socket 支持多个并行传输——全部在同一个单线程中完成——并且已被用来在单个应用程序中运行数万次传输。如果你进行大量（>100 或更多）的并行传输，这通常是最合理的 API。
 
 这种情况下的事件驱动意味着你的应用程序使用了一个系统级库或设置，它“订阅”了一些套接字，并在其中一个套接字可读或可写时通知你的应用程序，还会告诉你具体是哪个套接字。
 
-这种设置允许客户端将同时传输的数量扩展到比其他系统更高，并且仍然保持良好的性能。否则，“常规”API会浪费大量时间扫描所有套接字列表。
+这种设置允许客户端将同时传输的数量扩展到比其他系统更高，并且仍然保持良好的性能。否则，“常规”API 会浪费大量时间扫描所有套接字列表。
 
 ## 选择一个
 
@@ -306,7 +306,7 @@ libcurl 保持一组旧连接保持活动状态。当一个传输完成时，它
 
 ## 共享“连接缓存”
 
-自 libcurl 7.57.0 开始，应用程序可以使用[共享接口](libcurl-sharing.html)来共享相同的连接池，否则它们是独立的传输。
+自 libcurl 7.57.0 开始，应用程序可以使用共享接口来共享相同的连接池，否则它们是独立的传输。
 
 # 回调函数
 
@@ -340,13 +340,13 @@ size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata);
 
 如果未设置此回调，则 libcurl 默认使用 'fwrite'。
 
-写入回调将尽可能传递尽可能多的数据，但不得做出任何假设。它可能是一个字节，也可能是数千个字节。将传递给写入回调的主体数据的最大量在curl.h头文件中定义：`CURL_MAX_WRITE_SIZE`（通常默认为16KB）。如果为此传输启用了`CURLOPT_HEADER`，使得头数据传递给写入回调，您可以获得最多`CURL_MAX_HTTP_HEADER`字节的头数据传递给它。这通常意味着100KB。
+写入回调将尽可能传递尽可能多的数据，但不得做出任何假设。它可能是一个字节，也可能是数千个字节。将传递给写入回调的主体数据的最大量在 curl.h 头文件中定义：`CURL_MAX_WRITE_SIZE`（通常默认为 16KB）。如果为此传输启用了`CURLOPT_HEADER`，使得头数据传递给写入回调，您可以获得最多`CURL_MAX_HTTP_HEADER`字节的头数据传递给它。这通常意味着 100KB。
 
 如果传输的文件为空，此函数可能会以零字节数据调用。
 
-传递给此函数的数据不会以零结尾！例如，您不能使用printf的“％s”运算符显示内容，也不能使用strcpy复制它。
+传递给此函数的数据不会以零结尾！例如，您不能使用 printf 的“％s”运算符显示内容，也不能使用 strcpy 复制它。
 
-此回调函数应返回实际处理的字节数。如果该数字与传递给回调函数的数字不同，它将向库发出错误信号。这将导致传输中止，并且使用的libcurl函数将返回`CURLE_WRITE_ERROR`。
+此回调函数应返回实际处理的字节数。如果该数字与传递给回调函数的数字不同，它将向库发出错误信号。这将导致传输中止，并且使用的 libcurl 函数将返回`CURLE_WRITE_ERROR`。
 
 传递给回调函数中*userdata*参数的用户指针是使用`CURLOPT_WRITEDATA`设置的：
 
@@ -370,7 +370,7 @@ curl_easy_setopt(handle, CURLOPT_READFUNCTION, read_callback);
 size_t read_callback(char *buffer, size_t size, size_t nitems, void *stream); 
 ```
 
-当libcurl希望将数据发送到服务器时，将调用此回调函数。这是您设置的用于上传数据或以其他方式将其发送到服务器的传输。此回调将一遍又一遍地调用，直到所有数据已传递或传输失败。
+当 libcurl 希望将数据发送到服务器时，将调用此回调函数。这是您设置的用于上传数据或以其他方式将其发送到服务器的传输。此回调将一遍又一遍地调用，直到所有数据已传递或传输失败。
 
 **stream**指针指向使用`CURLOPT_READDATA`设置的私有数据：
 
@@ -378,9 +378,9 @@ size_t read_callback(char *buffer, size_t size, size_t nitems, void *stream);
 curl_easy_setopt(handle, CURLOPT_READDATA, custom_pointer); 
 ```
 
-如果未设置此回调函数，libcurl将默认使用'fread'。
+如果未设置此回调函数，libcurl 将默认使用'fread'。
 
-指针**buffer**指向的数据区域应由您的函数用最多**size**乘以**nitems**字节数填充。然后，回调应返回存储在该内存区域中的字节数，如果已达到数据的末尾，则返回0。回调还可以返回一些“魔术”返回代码，以立即导致libcurl立即返回失败或暂停特定传输。有关详细信息，请参阅[CURLOPT_READFUNCTION man page](https://curl.haxx.se/libcurl/c/CURLOPT_READFUNCTION.html)。
+指针**buffer**指向的数据区域应由您的函数用最多**size**乘以**nitems**字节数填充。然后，回调应返回存储在该内存区域中的字节数，如果已达到数据的末尾，则返回 0。回调还可以返回一些“魔术”返回代码，以立即导致 libcurl 立即返回失败或暂停特定传输。有关详细信息，请参阅[CURLOPT_READFUNCTION man page](https://curl.haxx.se/libcurl/c/CURLOPT_READFUNCTION.html)。
 
 # 进度信息
 
@@ -399,7 +399,7 @@ int xfer_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow,
                   curl_off_t ultotal, curl_off_t ulnow); 
 ```
 
-如果设置了此选项，并且`CURLOPT_NOPROGRESS`设置为0（零），则libcurl会以频繁的间隔调用此回调函数。在数据传输时，它将被非常频繁地调用，而在没有传输任何内容时，它可能会减慢到每秒约一次的速度。
+如果设置了此选项，并且`CURLOPT_NOPROGRESS`设置为 0（零），则 libcurl 会以频繁的间隔调用此回调函数。在数据传输时，它将被非常频繁地调用，而在没有传输任何内容时，它可能会减慢到每秒约一次的速度。
 
 **clientp** 指针指向使用 `CURLOPT_XFERINFODATA` 设置的私有数据：
 
@@ -487,9 +487,9 @@ curl_easy_setopt(handle, CURLOPT_DEBUGDATA, custom_pointer);
 
 # sockopt
 
-### sockopt回调
+### sockopt 回调
 
-使用`CURLOPT_SOCKOPTFUNCTION`设置sockopt回调：
+使用`CURLOPT_SOCKOPTFUNCTION`设置 sockopt 回调：
 
 ```
 curl_easy_setopt(handle, CURLOPT_SOCKOPTFUNCTION, sockopt_callback); 
@@ -503,7 +503,7 @@ int sockopt_callback(void *clientp,
                      curlsocktype purpose); 
 ```
 
-当新套接字被创建但在连接调用之前，此回调函数由libcurl调用，以允许应用程序更改特定套接字选项。
+当新套接字被创建但在连接调用之前，此回调函数由 libcurl 调用，以允许应用程序更改特定套接字选项。
 
 **clientp**指针指向使用`CURLOPT_SOCKOPTDATA`设置的私有数据：
 
@@ -513,21 +513,21 @@ curl_easy_setopt(handle, CURLOPT_SOCKOPTDATA, custom_pointer);
 
 此回调应返回：
 
-+   成功时返回CURL_SOCKOPT_OK
++   成功时返回 CURL_SOCKOPT_OK
 
-+   CURL_SOCKOPT_ERROR用于向libcurl发出不可恢复的错误信号
++   CURL_SOCKOPT_ERROR 用于向 libcurl 发出不可恢复的错误信号
 
-+   CURL_SOCKOPT_ALREADY_CONNECTED表示成功，但套接字实际上已连接到目的地
++   CURL_SOCKOPT_ALREADY_CONNECTED 表示成功，但套接字实际上已连接到目的地
 
-# SSL上下文
+# SSL 上下文
 
-### SSL上下文回调
+### SSL 上下文回调
 
 待定
 
-# 寻找和ioctl
+# 寻找和 ioctl
 
-### 寻找和ioctl回调
+### 寻找和 ioctl 回调
 
 待定
 
@@ -537,7 +537,7 @@ curl_easy_setopt(handle, CURLOPT_SOCKOPTDATA, custom_pointer);
 
 待定
 
-### 转换为UTF-8回调
+### 转换为 UTF-8 回调
 
 待定
 
@@ -545,11 +545,11 @@ curl_easy_setopt(handle, CURLOPT_SOCKOPTDATA, custom_pointer);
 
 # 打开套接字和关闭套接字回调
 
-有时您会遇到这样的情况，您希望应用程序更精确地控制libcurl将用于其操作的套接字。libcurl提供了一对回调函数，用于替换libcurl自己对`socket()`的调用和随后对相同文件描述符的`close()`。
+有时您会遇到这样的情况，您希望应用程序更精确地控制 libcurl 将用于其操作的套接字。libcurl 提供了一对回调函数，用于替换 libcurl 自己对`socket()`的调用和随后对相同文件描述符的`close()`。
 
 ## 提供一个文件描述符
 
-通过设置`CURLOPT_OPENSOCKETFUNCTION`回调，您可以提供一个自定义函数来返回libcurl使用的文件描述符：
+通过设置`CURLOPT_OPENSOCKETFUNCTION`回调，您可以提供一个自定义函数来返回 libcurl 使用的文件描述符：
 
 ```
 curl_easy_setopt(handle, CURLOPT_OPENSOCKETFUNCTION, opensocket_callback); 
@@ -565,15 +565,15 @@ curl_socket_t opensocket_callback(void *clientp,
 
 回调函数的第一个参数是*clientp*，它只是您使用`CURLOPT_OPENSOCKETDATA`设置的不透明指针。
 
-另外两个参数传入标识套接字用于何种*目的*和*地址*的数据。*目的*是一个具有`CURLSOCKTYPE_IPCXN`或`CURLSOCKTYPE_ACCEPT`值的typedef，基本上标识套接字在哪种情况下被创建。当libcurl用于接受传入的FTP连接时，"accept"情况是FTP主动模式使用时，而所有其他情况下，当libcurl为自己的出站连接创建套接字时，传入*IPCXN*值。
+另外两个参数传入标识套接字用于何种*目的*和*地址*的数据。*目的*是一个具有`CURLSOCKTYPE_IPCXN`或`CURLSOCKTYPE_ACCEPT`值的 typedef，基本上标识套接字在哪种情况下被创建。当 libcurl 用于接受传入的 FTP 连接时，"accept"情况是 FTP 主动模式使用时，而所有其他情况下，当 libcurl 为自己的出站连接创建套接字时，传入*IPCXN*值。
 
-*address*指针指向描述创建此套接字的网络目的地的IP地址的`struct curl_sockaddr`。例如，您的回调可以使用此信息来列入白名单或黑名单特定地址或地址范围。
+*address*指针指向描述创建此套接字的网络目的地的 IP 地址的`struct curl_sockaddr`。例如，您的回调可以使用此信息来列入白名单或黑名单特定地址或地址范围。
 
-socketopen回调也明确允许修改该结构中的目标地址，如果您想提供某种网络过滤器或转换层。
+socketopen 回调也明确允许修改该结构中的目标地址，如果您想提供某种网络过滤器或转换层。
 
-回调应返回一个文件描述符或`CURL_SOCKET_BAD`，这将导致libcurl内部发生不可恢复的错误，并最终从其执行函数返回`CURLE_COULDNT_CONNECT`。
+回调应返回一个文件描述符或`CURL_SOCKET_BAD`，这将导致 libcurl 内部发生不可恢复的错误，并最终从其执行函数返回`CURLE_COULDNT_CONNECT`。
 
-如果要返回一个*已连接*到服务器的文件描述符，则还必须设置[sockopt回调](callback-sockopt.html)并确保返回正确的返回值。
+如果要返回一个*已连接*到服务器的文件描述符，则还必须设置 sockopt 回调并确保返回正确的返回值。
 
 `curl_sockaddress`结构如下：
 
@@ -601,25 +601,25 @@ curl_easy_setopt(handle, CURLOPT_CLOSEOCKETFUNCTION, closesocket_callback);
 int closesocket_callback(void *clientp, curl_socket_t item); 
 ```
 
-# SSH密钥
+# SSH 密钥
 
-### SSH密钥回调
-
-待定
-
-# RTSP交错数据
-
-### RTSP交错回调
+### SSH 密钥回调
 
 待定
 
-# FTP匹配
+# RTSP 交错数据
 
-### FTP块回调
+### RTSP 交错回调
 
 待定
 
-### FTP匹配回调
+# FTP 匹配
+
+### FTP 块回调
+
+待定
+
+### FTP 匹配回调
 
 待定
 
@@ -629,21 +629,21 @@ int closesocket_callback(void *clientp, curl_socket_t item);
 
 在前面的部分中，我们已经讨论了如何设置句柄以及如何驱动传输。所有传输当然最终都会在某个时刻结束，无论是成功还是失败。
 
-### 多API
+### 多 API
 
-当您使用多API完成单个传输时，您可以使用`curl_multi_info_read()`来确定确切完成的easy句柄，并使用`curl_multi_remove_handle()`从多句柄中删除该easy句柄。
+当您使用多 API 完成单个传输时，您可以使用`curl_multi_info_read()`来确定确切完成的 easy 句柄，并使用`curl_multi_remove_handle()`从多句柄中删除该 easy 句柄。
 
-如果从多句柄中删除最后一个easy句柄，以便没有更多的传输正在进行，您可以像这样关闭多句柄：
+如果从多句柄中删除最后一个 easy 句柄，以便没有更多的传输正在进行，您可以像这样关闭多句柄：
 
 ```
 curl_multi_cleanup( multi_handle ); 
 ```
 
-### easy句柄
+### easy 句柄
 
-当easy句柄完成其用途时，您可以关闭它。但是，如果您打算进行另一个传输，则建议您更好地重用句柄，而不是关闭它并创建一个新的句柄。
+当 easy 句柄完成其用途时，您可以关闭它。但是，如果您打算进行另一个传输，则建议您更好地重用句柄，而不是关闭它并创建一个新的句柄。
 
-如果您不打算使用easy句柄进行另一个传输，您只需要求libcurl清理：
+如果您不打算使用 easy 句柄进行另一个传输，您只需要求 libcurl 清理：
 
 ```
 curl_easy_cleanup( easy_handle ); 
@@ -653,13 +653,13 @@ curl_easy_cleanup( easy_handle );
 
 # 名称解析
 
-libcurl可以执行的大多数传输都涉及首先将名称转换为互联网地址。这就是"名称解析"。直接在URL中使用数字IP地址通常可以避免名称解析阶段，但在许多情况下，手动用IP地址替换名称并不容易。
+libcurl 可以执行的大多数传输都涉及首先将名称转换为互联网地址。这就是"名称解析"。直接在 URL 中使用数字 IP 地址通常可以避免名称解析阶段，但在许多情况下，手动用 IP 地址替换名称并不容易。
 
-libcurl非常努力地尝试[重用现有连接](libcurl-connectionreuse.html)而不是创建新连接。检查要使用的现有连接的函数纯粹基于名称，并且在尝试任何名称解析之前执行。这就是重用如此快速的原因之一。使用重用连接的传输不会再次解析主机名。
+libcurl 非常努力地尝试重用现有连接而不是创建新连接。检查要使用的现有连接的函数纯粹基于名称，并且在尝试任何名称解析之前执行。这就是重用如此快速的原因之一。使用重用连接的传输不会再次解析主机名。
 
-如果无法重用连接，则libcurl将主机名解析为其解析到的地址集。通常，这意味着请求IPv4和IPv6地址，并且可能会有一整套这些地址返回给libcurl。然后尝试该地址集，直到找到一个有效的地址，否则返回失败。
+如果无法重用连接，则 libcurl 将主机名解析为其解析到的地址集。通常，这意味着请求 IPv4 和 IPv6 地址，并且可能会有一整套这些地址返回给 libcurl。然后尝试该地址集，直到找到一个有效的地址，否则返回失败。
 
-应用程序可以通过将`CURLOPT_IPRESOLVE`设置为首选值，强制libcurl仅使用IPv4或IPv6解析的地址。例如，要求仅使用IPv6地址：
+应用程序可以通过将`CURLOPT_IPRESOLVE`设置为首选值，强制 libcurl 仅使用 IPv4 或 IPv6 解析的地址。例如，要求仅使用 IPv6 地址：
 
 ```
 curl_easy_setopt(easy, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6); 
@@ -667,7 +667,7 @@ curl_easy_setopt(easy, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
 
 ## 名称解析器后端
 
-libcurl可以以至少三种不同的方式构建名称解析，并根据使用的后端方式，它会获得略有不同的功能集，并有时会修改行为。
+libcurl 可以以至少三种不同的方式构建名称解析，并根据使用的后端方式，它会获得略有不同的功能集，并有时会修改行为。
 
 1.  默认后端是在新的辅助线程中调用“正常”的 libc 解析器函数，以便如果需要，仍然可以进行细粒度的超时，并且不涉及阻塞调用。
 
@@ -679,7 +679,7 @@ libcurl可以以至少三种不同的方式构建名称解析，并根据使用�
 
 当名称已解析时，结果将放入 libcurl 的内存缓存中，以便对相同名称的后续解析几乎瞬间完成，只要名称保留在 DNS 缓存中。默认情况下，每个条目在缓存中保留 60 秒，但该值可以使用`CURLOPT_DNS_CACHE_TIMEOUT`进行更改。
 
-当使用`curl_easy_perform`时，DNS 缓存保留在 easy 句柄内，或者当使用多接口时，保留在多句柄内。还可以使用[共享接口](libcurl-sharing.html)在多个 easy 句柄之间共享。
+当使用`curl_easy_perform`时，DNS 缓存保留在 easy 句柄内，或者当使用多接口时，保留在多句柄内。还可以使用共享接口在多个 easy 句柄之间共享。
 
 ## 主机的自定义地址
 
@@ -784,15 +784,15 @@ https://proxy.example.com:12345/
 
 # 传输后信息
 
-记得libcurl传输与“easy handle”相关联！每个传输都有这样一个handle，当一个传输完成后，在handle被清理或重新用于另一个传输之前，它可以用于从上一个操作中提取信息。
+记得 libcurl 传输与“easy handle”相关联！每个传输都有这样一个 handle，当一个传输完成后，在 handle 被清理或重新用于另一个传输之前，它可以用于从上一个操作中提取信息。
 
 使用`curl_easy_getinfo()`函数，你可以获取你感兴趣的特定信息，如果可能的话，它会将该信息返回给你。
 
-当你使用此函数时，你需要传递easy handle、你想要的信息以及一个指向保存答案的变量的指针。你必须传递一个正确类型的变量的指针，否则可能会出现问题。这些信息值被设计为在传输完成*之后*提供。
+当你使用此函数时，你需要传递 easy handle、你想要的信息以及一个指向保存答案的变量的指针。你必须传递一个正确类型的变量的指针，否则可能会出现问题。这些信息值被设计为在传输完成*之后*提供。
 
-你收到的数据可以是long、'char *'、'struct curl_slist* '、double或套接字。
+你收到的数据可以是 long、'char *'、'struct curl_slist* '、double 或套接字。
 
-这是你从上一个HTTP传输中提取`Content-Type:`值的方法：
+这是你从上一个 HTTP 传输中提取`Content-Type:`值的方法：
 
 ```
 CURLcode res;
@@ -813,29 +813,29 @@ res = curl_easy_getinfo(curl, CURLINFO_LOCAL_PORT, &port_number);
 | 获取信息选项 | 类型 | 描述 |
 | --- | --- | --- |
 | CURLINFO_ACTIVESOCKET | curl_socket_t | 会话的活动套接字 |
-| CURLINFO_APPCONNECT_TIME | double | 从开始到SSL/SSH握手完成的时间 |
+| CURLINFO_APPCONNECT_TIME | double | 从开始到 SSL/SSH 握手完成的时间 |
 | CURLINFO_CERTINFO | struct curl_slist * | 证书链 |
 | CURLINFO_CONDITION_UNMET | long | 时间条件是否满足 |
 | CURLINFO_CONNECT_TIME | double | 从开始到远程主机或代理完成的时间 |
-| CURLINFO_CONTENT_LENGTH_DOWNLOAD | double | 来自Content-Length头部的内容长度 |
+| CURLINFO_CONTENT_LENGTH_DOWNLOAD | double | 来自 Content-Length 头部的内容长度 |
 | CURLINFO_CONTENT_LENGTH_UPLOAD | double | 上传大小 |
-| CURLINFO_CONTENT_TYPE | char * | 来自Content-Type头部的内容类型 |
-| CURLINFO_COOKIELIST | struct curl_slist * | 所有已知cookie的列表 |
-| CURLINFO_EFFECTIVE_URL | char * | 最后使用的URL |
+| CURLINFO_CONTENT_TYPE | char * | 来自 Content-Type 头部的内容类型 |
+| CURLINFO_COOKIELIST | struct curl_slist * | 所有已知 cookie 的列表 |
+| CURLINFO_EFFECTIVE_URL | char * | 最后使用的 URL |
 | CURLINFO_FILETIME | long | 检索文档的远程时间 |
-| CURLINFO_FTP_ENTRY_PATH | char * | 登录到FTP服务器后的入口路径 |
+| CURLINFO_FTP_ENTRY_PATH | char * | 登录到 FTP 服务器后的入口路径 |
 | CURLINFO_HEADER_SIZE | long | 所有接收到的头部字节总数 |
-| CURLINFO_HTTPAUTH_AVAIL | long | 可用的HTTP身份验证方法（位掩码） |
-| CURLINFO_HTTP_CONNECTCODE | long | 最后一个代理CONNECT响应代码 |
-| CURLINFO_HTTP_VERSION | long | 连接中使用的HTTP版本 |
+| CURLINFO_HTTPAUTH_AVAIL | long | 可用的 HTTP 身份验证方法（位掩码） |
+| CURLINFO_HTTP_CONNECTCODE | long | 最后一个代理 CONNECT 响应代码 |
+| CURLINFO_HTTP_VERSION | long | 连接中使用的 HTTP 版本 |
 | CURLINFO_LASTSOCKET | long | 最后使用的套接字 |
-| CURLINFO_LOCAL_IP | char * | 最后一次连接的本地端IP地址 |
+| CURLINFO_LOCAL_IP | char * | 最后一次连接的本地端 IP 地址 |
 | CURLINFO_LOCAL_PORT | long | 最后一次连接的本地端口 |
 | CURLINFO_NAMELOOKUP_TIME | double | 从开始到名称解析完成的时间 |
 | CURLINFO_NUM_CONNECTS | long | 用于上次传输的新成功连接数 |
-| CURLINFO_OS_ERRNO | long | 上次连接失败的errno |
+| CURLINFO_OS_ERRNO | long | 上次连接失败的 errno |
 | CURLINFO_PRETRANSFER_TIME | double | 从开始到传输开始前的时间 |
-| CURLINFO_PRIMARY_IP | char * | 上次连接的IP地址 |
+| CURLINFO_PRIMARY_IP | char * | 上次连接的 IP 地址 |
 | CURLINFO_PRIMARY_PORT | long | 上次连接的端口 |
 | CURLINFO_PRIVATE | char * | 用户私有数据指针 |
 | CURLINFO_PROTOCOL | long | 连接使用的协议 |
@@ -870,7 +870,7 @@ res = curl_easy_getinfo(curl, CURLINFO_LOCAL_PORT, &port_number);
 
 ## 多句柄
 
-所有添加到同一多句柄的简易句柄自动共享[cookies](libcurl-http-cookies.html)、[连接缓存](libcurl-connectionreuse)、[DNS 缓存](libcurl-names.html)和 SSL 会话 ID 缓存。
+所有添加到同一多句柄的简易句柄自动共享 cookies、连接缓存、DNS 缓存和 SSL 会话 ID 缓存。
 
 ## 在简易句柄之间共享
 
@@ -895,25 +895,25 @@ curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
 curl_easy_setopt(curl, CURLOPT_SHARE, share); 
 ```
 
-使用此`curl`句柄完成的传输将使用并存储其cookie和dns信息在`share`句柄中。您可以设置多个easy句柄共享相同的共享对象。
+使用此`curl`句柄完成的传输将使用并存储其 cookie 和 dns 信息在`share`句柄中。您可以设置多个 easy 句柄共享相同的共享对象。
 
 ## 分享什么
 
-`CURL_LOCK_DATA_COOKIE` - 设置此位以共享cookie jar。请注意，每个easy句柄仍然需要正确启动其cookie“引擎”才能开始使用cookie。
+`CURL_LOCK_DATA_COOKIE` - 设置此位以共享 cookie jar。请注意，每个 easy 句柄仍然需要正确启动其 cookie“引擎”才能开始使用 cookie。
 
-`CURL_LOCK_DATA_DNS` - DNS缓存是libcurl存储已解析主机名地址一段时间以使后续查找更快的地方。
+`CURL_LOCK_DATA_DNS` - DNS 缓存是 libcurl 存储已解析主机名地址一段时间以使后续查找更快的地方。
 
-`CURL_LOCK_DATA_SSL_SESSION` - SSL会话ID缓存是libcurl存储SSL连接的恢复信息，以便能够更快地恢复先前的连接。
+`CURL_LOCK_DATA_SSL_SESSION` - SSL 会话 ID 缓存是 libcurl 存储 SSL 连接的恢复信息，以便能够更快地恢复先前的连接。
 
 `CURL_LOCK_DATA_CONNECT` - 当设置时，此句柄将使用共享连接缓存，因此可能更有可能找到现有连接以重复使用等，这可能会在以串行方式向同一主机执行多个传输时提高性能。
 
 ## 锁定
 
-如果您希望在多线程环境中由传输共享对象共享。也许您有一个拥有许多核心的CPU，并且希望每个核心运行自己的线程并传输数据，但仍希望不同的传输共享数据。那么您需要设置互斥回调。
+如果您希望在多线程环境中由传输共享对象共享。也许您有一个拥有许多核心的 CPU，并且希望每个核心运行自己的线程并传输数据，但仍希望不同的传输共享数据。那么您需要设置互斥回调。
 
 如果您不使用线程，并且*知道*您以串行一次访问共享对象的方式访问共享对象，则无需设置任何锁。但是，如果有多个传输同时访问共享对象，需要设置互斥回调以防止数据破坏甚至崩溃。
 
-由于libcurl本身不知道如何锁定事物，甚至不知道您正在使用什么线程模型，因此您必须确保进行互斥锁定，只允许一次访问。用于pthread应用程序的锁回调可能类似于：
+由于 libcurl 本身不知道如何锁定事物，甚至不知道您正在使用什么线程模型，因此您必须确保进行互斥锁定，只允许一次访问。用于 pthread 应用程序的锁回调可能类似于：
 
 ```
 static void lock_cb(CURL *handle, curl_lock_data data,
@@ -939,19 +939,19 @@ curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, unlock_cb);
 
 待定
 
-# API兼容性
+# API 兼容性
 
-## API兼容性
+## API 兼容性
 
-libcurl承诺API稳定性，并保证您今天编写的程序将在未来继续运行。我们不会破坏兼容性。
+libcurl 承诺 API 稳定性，并保证您今天编写的程序将在未来继续运行。我们不会破坏兼容性。
 
-随着时间的推移，我们向API添加功能、新选项和新功能，但我们不以不兼容的方式更改行为或删除功能。
+随着时间的推移，我们向 API 添加功能、新选项和新功能，但我们不以不兼容的方式更改行为或删除功能。
 
-我们上次以不兼容的方式更改API是在2006年的7.16.0版本，我们计划永远不再这样做。
+我们上次以不兼容的方式更改 API 是在 2006 年的 7.16.0 版本，我们计划永远不再这样做。
 
 ### 版本号
 
-Curl和libcurl具有各自的版本，但它们大多数情况下相互紧密跟随。
+Curl 和 libcurl 具有各自的版本，但它们大多数情况下相互紧密跟随。
 
 版本编号始终使用相同的系统构建：
 
@@ -959,15 +959,15 @@ Curl和libcurl具有各自的版本，但它们大多数情况下相互紧密跟
 X.Y.Z 
 ```
 
-+   X是主版本号
++   X 是主版本号
 
-+   Y是发布号
++   Y 是发布号
 
-+   Z是补丁号
++   Z 是补丁号
 
 ### 提升数字
 
-这些X.Y.Z数字中的一个将在每个新版本中被提升。被提升数字右侧的数字将被重置为零。
+这些 X.Y.Z 数字中的一个将在每个新版本中被提升。被提升数字右侧的数字将被重置为零。
 
 当进行了*真正*的巨大、影响深远的更改时，主版本号 X 会增加。当进行更改或添加事物/功能时，发布号 Y 会增加。当进行的更改仅是修复错误时，补丁号 Z 会增加。
 
@@ -1043,11 +1043,11 @@ struct {
 
 我们积极鼓励用户首先尝试使用 curl 命令行工具进行他们想要的传输，一旦它大致按照你想要的方式工作，你就可以在命令行中附加 `--libcurl [filename]` 选项并再次运行它。
 
-`--libcurl` 命令行选项将在提供的文件名中创建一个 C 程序。该 C 程序是一个使用 libcurl 运行刚刚由 curl 命令行工具完成的传输的应用程序。有一些例外情况，它并不总是100%匹配，但你会发现它可以作为你想要或可以使用的 libcurl 选项以及为它们提供的其他参数的优秀灵感来源。
+`--libcurl` 命令行选项将在提供的文件名中创建一个 C 程序。该 C 程序是一个使用 libcurl 运行刚刚由 curl 命令行工具完成的传输的应用程序。有一些例外情况，它并不总是 100%匹配，但你会发现它可以作为你想要或可以使用的 libcurl 选项以及为它们提供的其他参数的优秀灵感来源。
 
 如果将文件名指定为一个破折号，如 `--libcurl -`，则会将程序写入标准输出而不是文件。
 
-例如，我们运行一个命令来仅获取 [http://example.com](http://example.com)：
+例如，我们运行一个命令来仅获取 [`example.com`](http://example.com)：
 
 ```
 curl http://example.com --libcurl example.c 
@@ -1134,31 +1134,31 @@ libcurl 是线程安全的，但没有内部线程同步。你可能需要提供
 
 ## 设置句柄选项
 
-您在easy句柄中设置选项以控制传输的执行方式，或者在某些情况下，您实际上可以在传输进行时设置选项并修改传输的行为。您使用`curl_easy_setopt()`设置选项，并提供句柄、要设置的选项和选项的参数。所有选项都只接受一个参数，您必须始终向curl_easy_setopt()调用传递三个参数。
+您在 easy 句柄中设置选项以控制传输的执行方式，或者在某些情况下，您实际上可以在传输进行时设置选项并修改传输的行为。您使用`curl_easy_setopt()`设置选项，并提供句柄、要设置的选项和选项的参数。所有选项都只接受一个参数，您必须始终向 curl_easy_setopt()调用传递三个参数。
 
-由于curl_easy_setopt()调用接受几百种不同的选项，而各种选项接受各种不同类型的参数，因此非常重要阅读具体内容，并提供特定选项支持和期望的确切参数类型。传递错误类型可能导致意外副作用或难以理解的问题。
+由于 curl_easy_setopt()调用接受几百种不同的选项，而各种选项接受各种不同类型的参数，因此非常重要阅读具体内容，并提供特定选项支持和期望的确切参数类型。传递错误类型可能导致意外副作用或难以理解的问题。
 
-每个传输可能最重要的选项是URL。libcurl无法在不知道涉及哪个URL的情况下执行传输，因此您必须告诉它。URL选项名称为`CURLOPT_URL`，因为所有选项都以`CURLOPT_`为前缀，然后是描述性名称——全部使用大写字母。设置将URL设置为获取"[http://example.com](http://example.com)" HTTP内容的示例行可能如下：
+每个传输可能最重要的选项是 URL。libcurl 无法在不知道涉及哪个 URL 的情况下执行传输，因此您必须告诉它。URL 选项名称为`CURLOPT_URL`，因为所有选项都以`CURLOPT_`为前缀，然后是描述性名称——全部使用大写字母。设置将 URL 设置为获取"[`example.com`](http://example.com)" HTTP 内容的示例行可能如下：
 
 ```
 CURLcode ret = curl_easy_setopt(easy, CURLOPT_URL, "http://example.com"); 
 ```
 
-再次强调：这只是在句柄中设置选项。它不会执行实际传输或其他任何操作。它基本上只是告诉libcurl复制字符串，如果成功则返回OK。
+再次强调：这只是在句柄中设置选项。它不会执行实际传输或其他任何操作。它基本上只是告诉 libcurl 复制字符串，如果成功则返回 OK。
 
 当然，检查返回代码以确保没有出现问题是一个好习惯。
 
 ### 设置数字选项
 
-由于curl_easy_setopt()是一个可变参数函数，第三个参数可以根据情况使用不同类型，因此无法进行正常的C语言类型转换。因此，**必须**确保您确实传递了'long'而不是'int'，如果文档告诉您如此。在它们大小相同的架构上，您可能不会遇到任何问题，但并非所有都是这样。同样，对于接受'curl_off_t'类型的选项，**至关重要**的是您传递使用该类型而不是其他类型的参数。
+由于 curl_easy_setopt()是一个可变参数函数，第三个参数可以根据情况使用不同类型，因此无法进行正常的 C 语言类型转换。因此，**必须**确保您确实传递了'long'而不是'int'，如果文档告诉您如此。在它们大小相同的架构上，您可能不会遇到任何问题，但并非所有都是这样。同样，对于接受'curl_off_t'类型的选项，**至关重要**的是您传递使用该类型而不是其他类型的参数。
 
-强制为long：
+强制为 long：
 
 ```
 curl_easy_setopt(handle, CURLOPT_TIMEOUT, 5L); /* 5 seconds timeout */ 
 ```
 
-强制为curl_off_t:
+强制为 curl_off_t:
 
 ```
 curl_off_t no_larger_than = 0x50000;
@@ -1169,11 +1169,11 @@ curl_easy_setopt(handle, CURLOPT_MAXFILE_LARGE, no_larger_than);
 
 不，没有通用方法可以提取之前使用`curl_easy_setopt()`设置的相同信息！如果您需要能够再次提取您之前设置的信息，那么我们鼓励您在应用程序中自行跟踪这些数据。
 
-# CURLcode返回代码
+# CURLcode 返回代码
 
-## CURLcode返回代码
+## CURLcode 返回代码
 
-许多libcurl函数返回一个CURLcode。这是一个特殊的libcurl typedefed变量，用于错误代码。如果一切正常，它将返回`CURLE_OK`（其值为零），如果检测到问题，则返回非零数字。几乎有一百个`CURLcode`错误在使用中，您可以在`curl/curl.h`头文件中找到它们，并在libcurl-errors手册页中找到它们的文档。
+许多 libcurl 函数返回一个 CURLcode。这是一个特殊的 libcurl typedefed 变量，用于错误代码。如果一切正常，它将返回`CURLE_OK`（其值为零），如果检测到问题，则返回非零数字。几乎有一百个`CURLcode`错误在使用中，您可以在`curl/curl.h`头文件中找到它们，并在 libcurl-errors 手册页中找到它们的文档。
 
 您可以使用 `curl_easy_strerror()` 函数将 CURLcode 转换为人类可读的字符串，但请注意，这些错误很少以适合在 UI 中向任何人公开或向最终用户公开的方式表达：
 
@@ -1222,7 +1222,7 @@ int my_trace(CURL *handle, curl_infotype type, char *ptr, size_t size,
 
 **ptr** 指向的数据*不会*以零终止，但其大小将完全由 **size** 参数指定。
 
-回调函数必须返回0，否则 libcurl 将视为错误并中止传输。
+回调函数必须返回 0，否则 libcurl 将视为错误并中止传输。
 
 在 curl 网站上，我们托管了一个名为 [debug.c](https://curl.haxx.se/libcurl/c/debug.html) 的示例，其中包含一个简单的跟踪函数以供参考。
 

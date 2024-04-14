@@ -36,7 +36,7 @@
 90 
 ```
 
-## 问题A7：第2部分
+## 问题 A7：第 2 部分
 
 冒险游戏的另一个问题是，诺亚家只有一个百吉饼。一旦有人拿走了那个百吉饼，他们就破产了。其他餐厅也是一样。
 
@@ -48,7 +48,7 @@
    > (define somerestaurant (instantiate restaurant 'somerestaurant pasta 7)) 
 ```
 
-注意，餐厅的参数是一个*class*，而不是一个特定的百吉饼（实例）。这里是意大利面食品类的一个例子。你的伙伴应该在问题B6的一部分中定义了一些食品类的示例。
+注意，餐厅的参数是一个*class*，而不是一个特定的百吉饼（实例）。这里是意大利面食品类的一个例子。你的伙伴应该在问题 B6 的一部分中定义了一些食品类的示例。
 
 ```
 > (define pesto-pasta (instantiate pasta))
@@ -66,7 +66,7 @@
 > (ask somerestaurant 'sell someperson 'pasta) ;note that pasta is the name 
 ```
 
-## 问题A8
+## 问题 A8
 
 现在我们需要一个人的`buy`方法。它应该以我们想要购买的食品的**name**作为参数：
 

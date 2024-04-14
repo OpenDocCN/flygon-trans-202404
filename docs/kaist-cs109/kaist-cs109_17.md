@@ -1,12 +1,12 @@
 # 带有方法的类
 
-对象是面向对象编程的基础。在Scala中，每个数据都是一个对象。对象的类型决定了你可以对对象做什么。类可以包含数据（对象的状态）和方法（你可以对对象做什么）。你可以把类看作是对象的蓝图。一旦你定义了一个类，你就可以使用关键字 new 从蓝图创建对象。
+对象是面向对象编程的基础。在 Scala 中，每个数据都是一个对象。对象的类型决定了你可以对对象做什么。类可以包含数据（对象的状态）和方法（你可以对对象做什么）。你可以把类看作是对象的蓝图。一旦你定义了一个类，你就可以使用关键字 new 从蓝图创建对象。
 
 将对象视为一个原子单位。客户端（这是指使用对象的程序代码）不关心对象的实现，它们只使用公开的方法和字段。这里的“公开”意味着它们由类提供给客户端使用。
 
 #### 一致性
 
-日期由三个属性组成：年、月和日，它们都是整数。因此，我们可以将日期存储为一个三元组 Triple<Int, Int, Int>，但是如果它们表示年-月-日，或者日-月-年，我们可能会感到困惑。最好创建一个具有三个属性的[数据类](tutorial-data-classes.html)：
+日期由三个属性组成：年、月和日，它们都是整数。因此，我们可以将日期存储为一个三元组 Triple<Int, Int, Int>，但是如果它们表示年-月-日，或者日-月-年，我们可能会感到困惑。最好创建一个具有三个属性的数据类：
 
 ```
 data class Date(val year: Int, val month: Int, val day: Int)
@@ -23,7 +23,7 @@ Date(year=2017, month=13, day=-5)
 
 ```
 
-为了确保我们的日期对象始终保持一致，我们可以在对象的构造函数中添加四个require语句。它由关键字init指示，后跟在每次创建此类型的对象时执行的语句（[days1.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/50-objects/days1.kt)）：
+为了确保我们的日期对象始终保持一致，我们可以在对象的构造函数中添加四个 require 语句。它由关键字 init 指示，后跟在每次创建此类型的对象时执行的语句（[days1.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/50-objects/days1.kt)）：
 
 ```
 val monthLength = intArrayOf(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -39,7 +39,7 @@ data class Date(val year: Int, val month: Int, val day: Int) {
 
 ```
 
-如果值正常，什么都不会发生。否则，require会抛出一个异常，我们立即就知道出了什么问题。由于日期对象是不可变的，因此在对象构造时保证的一致状态永远不会被破坏和变得不一致。
+如果值正常，什么都不会发生。否则，require 会抛出一个异常，我们立即就知道出了什么问题。由于日期对象是不可变的，因此在对象构造时保证的一致状态永远不会被破坏和变得不一致。
 
 如果对象保证它们的状态是一致的，那将会很有帮助。这样可以使得与对象一起工作的函数能够进行无错误检查的操作，并简化调试，因为当出现问题时我们会很快注意到。
 
@@ -221,7 +221,7 @@ Type :help for help, :quit for quit
 
 #### 重载
 
-Scala，像Java和C++一样，但与C不同，允许方法名的重载：允许有不同的方法具有相同的名称，只是在它们接受的参数类型上有所不同。这里是一个简单的例子（[overloading.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/05-basic/overloading.kts)）：
+Scala，像 Java 和 C++一样，但与 C 不同，允许方法名的重载：允许有不同的方法具有相同的名称，只是在它们接受的参数类型上有所不同。这里是一个简单的例子（[overloading.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/05-basic/overloading.kts)）：
 
 ```
 
@@ -238,9 +238,9 @@ f("CS109")
 
 ```
 
-编译器正确确定f(17)是对第一个函数的调用，而f("CS109")是对第二个函数的调用。
+编译器正确确定 f(17)是对第一个函数的调用，而 f("CS109")是对第二个函数的调用。
 
-我们可以利用重载来为我们的Date类添加更多运算符。我们将允许将一定数量的天数加或减到日期上以获得一个新日期（[days7.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/50-objects/days7.kt)）:
+我们可以利用重载来为我们的 Date 类添加更多运算符。我们将允许将一定数量的天数加或减到日期上以获得一个新日期（[days7.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/50-objects/days7.kt)）:
 
 ```
 val monthLength = intArrayOf(31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -310,7 +310,7 @@ data class Date(val year: Int, val month: Int, val day: Int) {
 
 ```
 
-请注意，Date类定义了两个减号运算符。编译器根据右侧的类型选择我们需要的那一个：
+请注意，Date 类定义了两个减号运算符。编译器根据右侧的类型选择我们需要的那一个：
 
 ```
 $ ktc days7.kt 
@@ -382,7 +382,7 @@ fun main(args: Array<String>) {
 
 ```
 
-如在[前一节](tutorial-compiling.html)中所解释的，程序通过主函数启动，该函数以参数args的形式接收命令行参数。
+如在前一节中所解释的，程序通过主函数启动，该函数以参数 args 的形式接收命令行参数。
 
 我们编译程序：
 
@@ -391,7 +391,7 @@ $ ktc days.kt
 
 ```
 
-编译器为包含主函数的源文件生成一个类DaysKt，因此这是我们需要调用来运行程序的类：
+编译器为包含主函数的源文件生成一个类 DaysKt，因此这是我们需要调用来运行程序的类：
 
 ```
 $ kt DaysKt 2015/a3/04

@@ -28,4 +28,4 @@ Swap:         1023          0       1023
 
 参考：
 
-[FreeBSD查找RAM大小，包括总的空闲和已用内存大小](http://www.cyberciti.biz/faq/freebsd-command-to-get-ram-information/)。
+[FreeBSD 查找 RAM 大小，包括总的空闲和已用内存大小](http://www.cyberciti.biz/faq/freebsd-command-to-get-ram-information/)。

@@ -1,10 +1,10 @@
-# 第 3 章 - 元素节点
+# 第三章 - 元素节点
 
 ## 3.1 *HTML*Element* 对象概述
 
 HTML 文档中的元素都具有独特的特性，因此它们都有一个独特的[JavaScript 构造函数](http://www.w3.org/TR/2003/REC-DOM-Level-2-HTML-20030109/html.html)，用于将元素实例化为 DOM 树中的节点对象。例如，*<a>* 元素是从 *HTMLAnchorElement()* 构造函数创建的 DOM 节点。下面我们验证了锚元素是否是从 *HTMLAnchorElement()* 创建的。
 
-内联代码：[http://jsfiddle.net/domenlightenment/TgcNu](http://jsfiddle.net/domenlightenment/TgcNu)
+内联代码：[`jsfiddle.net/domenlightenment/TgcNu`](http://jsfiddle.net/domenlightenment/TgcNu)
 
 ```
 <!DOCTYPE html>
@@ -136,7 +136,7 @@ console.log(document.querySelector('a').constructor);
 
 要获取关于 *HTML*Element* 节点可用属性和方法的准确信息，最好忽略规范，并询问浏览器有哪些可用。查看下面代码中创建的数组，详细说明了来自 HTML 元素节点的属性和方法。
 
-内联代码：[http://jsfiddle.net/domenlightenment/vZUHw](http://jsfiddle.net/domenlightenment/vZUHw)
+内联代码：[`jsfiddle.net/domenlightenment/vZUHw`](http://jsfiddle.net/domenlightenment/vZUHw)
 
 ```
 <!DOCTYPE html>
@@ -202,7 +202,7 @@ console.log(documentPropertiesOnlyInherited.sort());
 
 当浏览器解释 HTML 文档并基于文档内容构建相应的 DOM 时，*Element* 节点会被实例化。在此之后，也可以使用 *createElement()* 来编程创建 *Element* 节点。在下面的代码中，我创建了一个 *<textarea>* 元素节点，然后将该节点注入到实时 DOM 树中。
 
-live code: [http://jsfiddle.net/domenlightenment/d3Yvv](http://jsfiddle.net/domenlightenment/d3Yvv)
+live code: [`jsfiddle.net/domenlightenment/d3Yvv`](http://jsfiddle.net/domenlightenment/d3Yvv)
 
 ```
 <!DOCTYPE html>
@@ -233,7 +233,7 @@ console.log(document.querySelector('textarea')); *//verify it's now in the DOM*
 
 下面我们获取 DOM 中 *<a>* 元素的名称。
 
-live code: [http://jsfiddle.net/domenlightenment/YJb3W](http://jsfiddle.net/domenlightenment/YJb3W)
+live code: [`jsfiddle.net/domenlightenment/YJb3W`](http://jsfiddle.net/domenlightenment/YJb3W)
 
 ```
 <!DOCTYPE html>
@@ -259,7 +259,7 @@ console.log(document.querySelector('a').nodeName); *//logs A*
 
 使用 *attributes* 属性（从 *Node* 继承给元素节点）可以获取元素当前定义的 *[Attr](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-637646024)* 节点的集合。返回的列表是一个 *[NameNodeMap](https://developer.mozilla.org/en/DOM/NamedNodeMap)*。下面我循环遍历属性集合，暴露集合中包含的每个 *Attr* 节点对象。
 
-live code: [http://jsfiddle.net/domenlightenment/9gVQf](http://jsfiddle.net/domenlightenment/9gVQf)
+live code: [`jsfiddle.net/domenlightenment/9gVQf`](http://jsfiddle.net/domenlightenment/9gVQf)
 
 ```
 <!DOCTYPE html>
@@ -296,7 +296,7 @@ for(var i=0; i< atts.length; i++){
 
 获取、设置或删除元素 [属性](http://www.whatwg.org/specs/web-apps/current-work/#attributes-1) 值的最一致的方式是使用 *getAttribute()*, *setAttribute()* 和 *removeAttribute()* 方法。在下面的代码中，我演示了管理元素属性的每种方法。
 
-实时代码：[http://jsfiddle.net/domenlightenment/wp7rq](http://jsfiddle.net/domenlightenment/wp7rq)
+实时代码：[`jsfiddle.net/domenlightenment/wp7rq`](http://jsfiddle.net/domenlightenment/wp7rq)
 
 ```
 <!DOCTYPE html>
@@ -352,7 +352,7 @@ console.log(atts.getAttribute('hidden'));
 
 确定（即布尔）元素是否具有属性的最佳方法是使用 *hasAttribute()* 方法。下面我验证 *<a>* 是否具有 *href*、*title*、*style*、*data-foo*、*class* 和 *foo* 属性。
 
-实时代码：[http://jsfiddle.net/domenlightenment/hbCCE](http://jsfiddle.net/domenlightenment/hbCCE)
+实时代码：[`jsfiddle.net/domenlightenment/hbCCE`](http://jsfiddle.net/domenlightenment/hbCCE)
 
 ```
 <!DOCTYPE html>
@@ -382,7 +382,7 @@ console.log(
 
 即使属性没有值，该方法也会返回 *true*。例如，使用 *hasAttribute()* 我们可以为 [布尔属性](http://www.w3.org/TR/html4/intro/sgmltut.html#h-3.3.4.2) 得到一个布尔值。在下面的代码示例中，我们检查复选框是否被选中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/tb6Ja](http://jsfiddle.net/domenlightenment/tb6Ja)
+实时代码：[`jsfiddle.net/domenlightenment/tb6Ja`](http://jsfiddle.net/domenlightenment/tb6Ja)
 
 ```
 <!DOCTYPE html>
@@ -407,7 +407,7 @@ console.log(atts.hasAttribute('checked')); *//logs true*
 
 使用元素节点上可用的 *classList* 属性，我们可以访问一个类属性值列表（即 *[DOMTokenList](http://www.w3.org/TR/dom/#interface-domtokenlist)*），这比从 *className* 属性返回的空格分隔的字符串值更容易处理。在下面的代码中，我对比了 *classList* 与 *className* 的使用。
 
-实时代码：[http://jsfiddle.net/domenlightenment/DLJEA](http://jsfiddle.net/domenlightenment/DLJEA)
+实时代码：[`jsfiddle.net/domenlightenment/DLJEA`](http://jsfiddle.net/domenlightenment/DLJEA)
 
 ```
 <!DOCTYPE html>
@@ -440,7 +440,7 @@ IE9 不支持 *classList*。支持将在 [IE10](http://blogs.msdn.com/b/ie/archi
 
 使用 *classList.add()* 和 *classList.remove()* 方法非常简单地编辑类属性的值。在下面的代码中，我演示了添加和删除类值。
 
-实时代码：[http://jsfiddle.net/domenlightenment/YVaUU](http://jsfiddle.net/domenlightenment/YVaUU)
+实时代码：[`jsfiddle.net/domenlightenment/YVaUU`](http://jsfiddle.net/domenlightenment/YVaUU)
 
 ```
 <!DOCTYPE html>
@@ -466,7 +466,7 @@ console.log(elm.className); *//'cat'*
 
 使用*classList.toggle()*方法，我们可以切换类属性的子值。这使我们能够在缺失时添加一个值，或者在已经添加时删除一个值。在下面的代码中，我切换了*'visible'*值和*'grow'*值。这实质上意味着我从类属性值中删除*'visible'*并添加*'grow'*。
 
-live code: [http://jsfiddle.net/domenlightenment/uFp6J](http://jsfiddle.net/domenlightenment/uFp6J)
+live code: [`jsfiddle.net/domenlightenment/uFp6J`](http://jsfiddle.net/domenlightenment/uFp6J)
 
 ```
 <!DOCTYPE html>
@@ -492,7 +492,7 @@ console.log(elm.className); *//'grow'*
 
 使用*classList.contains()*方法，可以确定（布尔值）类属性值是否包含特定的子值。在下面的代码中，我们测试*<div>*类属性是否包含*brown*的子值。
 
-live code: [http://jsfiddle.net/domenlightenment/njyaP](http://jsfiddle.net/domenlightenment/njyaP)
+live code: [`jsfiddle.net/domenlightenment/njyaP`](http://jsfiddle.net/domenlightenment/njyaP)
 
 ```
 <!DOCTYPE html>
@@ -514,9 +514,9 @@ console.log(elm.classList.contains('brown')); *//logs true*
 
 ## 3.12 获取和设置数据属性*
 
-元素节点的*dataset*属性提供了一个包含以data-*开头的所有元素属性的对象。因为它只是一个JavaScript对象，我们可以操作*dataset*，并使DOM中的元素反映这些更改。
+元素节点的*dataset*属性提供了一个包含以 data-*开头的所有元素属性的对象。因为它只是一个 JavaScript 对象，我们可以操作*dataset*，并使 DOM 中的元素反映这些更改。
 
-live code: [http://jsfiddle.net/domenlightenment/ystgj](http://jsfiddle.net/domenlightenment/ystgj)
+live code: [`jsfiddle.net/domenlightenment/ystgj`](http://jsfiddle.net/domenlightenment/ystgj)
 
 ```
 <!DOCTYPE html>
@@ -548,6 +548,6 @@ console.log(elm); *//logs <div data-foo-foo="foo" data-bar-bar="bar" data-goo-go
 
 *dataset*包含数据属性的驼峰命名版本。这意味着*data-foo-foo*将在数据集*DOMStringMap*对象的属性*fooFoo*中列出。*-*被驼峰命名替换。
 
-通过在DOM上使用*delete*运算符来删除数据-*属性是非常简单的（例如*delete dataset.fooFoo*）
+通过在 DOM 上使用*delete*运算符来删除数据-*属性是非常简单的（例如*delete dataset.fooFoo*）
 
-*dataset*在IE9中不受支持。有一个[polyfill](https://github.com/remy/polyfills/blob/master/dataset.js)可用。然而，您总是可以使用getAttribute('data-foo')，removeAttribute('data-foo')，setAttribute('data-foo')，hasAttribute('data-foo')。
+*dataset*在 IE9 中不受支持。有一个[polyfill](https://github.com/remy/polyfills/blob/master/dataset.js)可用。然而，您总是可以使用 getAttribute('data-foo')，removeAttribute('data-foo')，setAttribute('data-foo')，hasAttribute('data-foo')。

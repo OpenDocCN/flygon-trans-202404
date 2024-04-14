@@ -23,7 +23,7 @@ stream.subscribe((val) => console.log(val))
 // { id : 3, name : 'Luke Skywalker' } 
 ```
 
-所以在这里，我们有一个情况，从值1,2,3开始，希望它们分别对应一个ajax调用
+所以在这里，我们有一个情况，从值 1,2,3 开始，希望它们分别对应一个 ajax 调用
 
 --1------2-----3------> --json-- json--json -->
 
@@ -46,4 +46,4 @@ let stream$ = Rx.Observable
 // Observable, Observable, Observable 
 ```
 
-因为我们已经创建了一个可观察对象列表，所以有三个不同的流。然而，`flatMap()` 操作符能够将这三个流展平成一个称为`metastream`的流。然而，在处理ajax时，还有另一个有趣的操作符我们应该使用，它被称为`switchMap()`。在这里阅读更多关于它的信息 [级联调用](cascading-calls.html)
+因为我们已经创建了一个可观察对象列表，所以有三个不同的流。然而，`flatMap()` 操作符能够将这三个流展平成一个称为`metastream`的流。然而，在处理 ajax 时，还有另一个有趣的操作符我们应该使用，它被称为`switchMap()`。在这里阅读更多关于它的信息 级联调用

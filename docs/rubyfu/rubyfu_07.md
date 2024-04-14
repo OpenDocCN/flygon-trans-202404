@@ -86,9 +86,9 @@
 
     +   Metasm - 汇编操作套件 [ [链接](https://github.com/jjyg/metasm) ]
 
-    +   WPscan - WordPress漏洞扫描器 [ [链接](http://wpscan.org) ]
+    +   WPscan - WordPress 漏洞扫描器 [ [链接](http://wpscan.org) ]
 
-    +   WPXF - Wordpress漏洞利用框架 [ [链接](http://www.getwpxf.com/) ]
+    +   WPXF - Wordpress 漏洞利用框架 [ [链接](http://www.getwpxf.com/) ]
 
     +   BufferOverflow kit - 漏洞利用工具包 [ [链接](https://github.com/KINGSABRI/BufferOverflow-Kit) ]
 
@@ -98,22 +98,22 @@
 
     +   Roini - 漏洞研究和利用开发框架 [ [链接](http://ronin-ruby.github.io/) ]
 
-    +   Idb - 简化iOS渗透测试和研究中的一些常见任务 [ [链接](https://github.com/dmayer/idb) ]
+    +   Idb - 简化 iOS 渗透测试和研究中的一些常见任务 [ [链接](https://github.com/dmayer/idb) ]
 
     +   Bettercap - 可扩展的中间人攻击工具和框架 [ [链接](https://www.bettercap.org/) ]
 
     +   WATOBO - 网络应用安全工具箱 [ [链接](http://watobo.sourceforge.net/) ]
 
-    +   Intrigue.io - 通过OSINT发现攻击面的开源项目 [ [链接](https://intrigue.io/) ]
+    +   Intrigue.io - 通过 OSINT 发现攻击面的开源项目 [ [链接](https://intrigue.io/) ]
 
     +   OhNo - 邪恶的图像生成器和元数据操作器 [ [链接](https://github.com/Hood3dRob1n/OhNo) ]
 
     +   WhatWeb - 网站指纹识别器 [ [链接](https://github.com/urbanadventurer/WhatWeb) ]
 
-    +   Relyze - 类似于IDA-Pro的逆向工程师支持Ruby插件 [ [链接](https://www.relyze.com/) ]
+    +   Relyze - 类似于 IDA-Pro 的逆向工程师支持 Ruby 插件 [ [链接](https://www.relyze.com/) ]
 
-    +   Capstone - 多平台、多架构的反汇编框架，支持Ruby [ [链接](http://www.capstone-engine.org/) ]
+    +   Capstone - 多平台、多架构的反汇编框架，支持 Ruby [ [链接](http://www.capstone-engine.org/) ]
 
-    +   **[**在此添加你的Ruby黑客工具！**]**
+    +   **[**在此添加你的 Ruby 黑客工具！**]**
 
 * * *

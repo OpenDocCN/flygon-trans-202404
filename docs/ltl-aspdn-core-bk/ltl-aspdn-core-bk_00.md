@@ -22,7 +22,7 @@
 
 ## 在开始之前
 
-你将构建的应用程序的最终版本的代码可在 GitHub 上找到（[https://www.github.com/nbarbettini/little-aspnetcore-todo](https://www.github.com/nbarbettini/little-aspnetcore-todo)）。如果你想在编写自己的代码时进行比较，请随意下载。
+你将构建的应用程序的最终版本的代码可在 GitHub 上找到（[`www.github.com/nbarbettini/little-aspnetcore-todo`](https://www.github.com/nbarbettini/little-aspnetcore-todo)）。如果你想在编写自己的代码时进行比较，请随意下载。
 
 本书本身经常更新，修复错误并添加新内容。如果你正在阅读 PDF、电子书或印刷版本，请查看官方网站（[littleasp.net/book](http://www.littleasp.net/book)）是否有更新版本可用。书的最后一页包含版本信息和更新日志。
 
@@ -30,9 +30,9 @@
 
 感谢一些出色的多语言人士，小型 ASP.NET Core 书籍已被翻译成其他语言：
 
-**土耳其语** - [https://sahinyanlik.gitbooks.io/kisa-asp-net-core-kitabi/](https://sahinyanlik.gitbooks.io/kisa-asp-net-core-kitabi/)
+**土耳其语** - [`sahinyanlik.gitbooks.io/kisa-asp-net-core-kitabi/`](https://sahinyanlik.gitbooks.io/kisa-asp-net-core-kitabi/)
 
-**中文** - [https://windsting.github.io/little-aspnetcore-book/book/](https://windsting.github.io/little-aspnetcore-book/book/)
+**中文** - [`windsting.github.io/little-aspnetcore-book/book/`](https://windsting.github.io/little-aspnetcore-book/book/)
 
 ## 本书适合谁
 

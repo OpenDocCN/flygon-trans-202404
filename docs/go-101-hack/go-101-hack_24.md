@@ -1,6 +1,6 @@
-# io.Reader接口
+# io.Reader 接口
 
-## io.Reader接口
+## io.Reader 接口
 
 `io.Reader`接口是一个基本且非常常用的接口：
 
@@ -55,7 +55,7 @@ func main() {
 
 (2) `n == 0 && err != nil`：如果`err`是`io.EOF`，表示所有内容都已经被读取，没有剩余内容；否则发生了意外情况，需要进行特殊操作；
 
-(3) `n == 0 && err == nil`：根据[io包文档](https://golang.org/pkg/io/#Reader)，表示没有发生任何事情，因此不需要做任何操作。
+(3) `n == 0 && err == nil`：根据[io 包文档](https://golang.org/pkg/io/#Reader)，表示没有发生任何事情，因此不需要做任何操作。
 
 创建一个只包含`5`字节的`test.txt`文件：
 
@@ -74,4 +74,4 @@ Read all of the content.
 
 参考：
 
-[io包文档](https://golang.org/pkg/io/#Reader)。
+[io 包文档](https://golang.org/pkg/io/#Reader)。

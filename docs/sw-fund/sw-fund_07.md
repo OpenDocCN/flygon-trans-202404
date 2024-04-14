@@ -424,7 +424,7 @@ Qed.
 
     相反，要证明析取成立，我们需要证明
 
-    其中一方会。这是通过两种策略left和
+    其中一方会。这是通过两种策略 left 和
 
     右。正如它们的名字所暗示的，第一个需要
 
@@ -495,7 +495,7 @@ Proof.
 
     否定运算符 ¬。
 
-    要了解否定的工作原理，请回顾[Tactics](Tactics.html)章节中关于*爆炸原理*的讨论；它断言，如果我们
+    要了解否定的工作原理，请回顾 Tactics 章节中关于*爆炸原理*的讨论；它断言，如果我们
 
     假设有矛盾，那么任何其他命题都可以被推导出来。
 
@@ -928,7 +928,7 @@ Qed.
 
     上下文中，我们可以解构它以获得一个见证 x 和一个。
 
-    假设P对x成立的假设。
+    假设 P 对 x 成立的假设。
 
 ```
 Theorem exists_example_2 : ∀n,
@@ -942,11 +942,11 @@ Proof.
 
 ```
 
-#### 练习：1星（dist_not_exists）
+#### 练习：1 星（dist_not_exists）
 
-    证明“对所有x成立的P”意味着“没有x对
+    证明“对所有 x 成立的 P”意味着“没有 x 对
 
-    P不成立的地方。"
+    P 不成立的地方。"
 
 ```
 Theorem dist_not_exists : ∀(X:Type) (P : X → Prop),
@@ -958,7 +958,7 @@ Proof.
 
     ☐
 
-#### 练习：2星（dist_exists_or）
+#### 练习：2 星（dist_exists_or）
 
     证明存在量化在上面分布
 
@@ -992,9 +992,9 @@ Proof.
 
 ```
 
-递归函数In {A：类型}（x：A）（l：列表A）：命题 =
+递归函数 In {A：类型}（x：A）（l：列表 A）：命题 =
 
-匹配l与
+匹配 l 与
 
 | [] ⇒ 假
 
@@ -1009,7 +1009,7 @@ Proof.
 
 ```
 
-例子In_example_1：In 4 [1; 2; 3; 4; 5]。
+例子 In_example_1：In 4 [1; 2; 3; 4; 5]。
 
 证明。
 
@@ -1019,7 +1019,7 @@ Proof.
 
 Qed。
 
-例子In_example_2：
+例子 In_example_2：
 
 ∀n, In n [2; 4] →
 
@@ -1051,11 +1051,11 @@ Qed.
 
 ```
 
-引理In_map：
+引理 In_map：
 
 ∀(A B : 类型) (f : A → B) (l : 列表 A) (x : A),
 
-在x l →
+在 x l →
 
 In（f x）（map f l）。
 
@@ -1063,7 +1063,7 @@ In（f x）（map f l）。
 
 intros A B f l x。
 
-对l进行归纳作为[|x' l' IHl']。
+对 l 进行归纳作为[|x' l' IHl']。
 
 - (* l = nil, 矛盾 *)
 
@@ -1073,9 +1073,9 @@ intros A B f l x。
 
 简化。intros [H | H]。
 
-+ 重写H。左。一致性。
++ 重写 H。左。一致性。
 
-+ 右。应用IHl'。应用H。
++ 右。应用 IHl'。应用 H。
 
 Qed。
 
@@ -1093,11 +1093,11 @@ Qed。
 
 ```
 
-引理In_map_iff：
+引理 In_map_iff：
 
-∀（A B：类型）（f：A → B）（l：列表A）（y：B），
+∀（A B：类型）（f：A → B）（l：列表 A）（y：B），
 
-在y (map f l) ↔
+在 y (map f l) ↔
 
 ∃x，f x = y ∧ In x l。
 
@@ -1113,9 +1113,9 @@ Qed。
 
 ```
 
-引理in_app_iff：∀A l l' (a:A),
+引理 in_app_iff：∀A l l' (a:A),
 
-在（l++l'）中a ↔ 在l中a∨在l'中a。
+在（l++l'）中 a ↔ 在 l 中 a∨在 l'中 a。
 
 证明。
 
@@ -1139,17 +1139,17 @@ Qed。
 
 ```
 
-递归函数All {T : 类型} (P : T → 命题) (l : 列表 T) : 命题
+递归函数 All {T : 类型} (P : T → 命题) (l : 列表 T) : 命题
 
 (* 用":= _your_definition_ ." 替换此行*). 承认。
 
-引理All_In：
+引理 All_In：
 
-∀T（P：T → 命题）（l：列表T），
+∀T（P：T → 命题）（l：列表 T），
 
 (∀x, In x l → P x) ↔
 
-所有P l。
+所有 P l。
 
 证明。
 
@@ -1169,7 +1169,7 @@ Qed。
 
 ```
 
-定义combine_odd_even（Podd Peven：自然数 → 命题）：自然数 → 命题
+定义 combine_odd_even（Podd Peven：自然数 → 命题）：自然数 → 命题
 
 (* 用":= _your_definition_ ." 替换此行*). 承认。
 
@@ -1179,7 +1179,7 @@ Qed。
 
 ```
 
-定理combine_odd_even_intro：
+定理 combine_odd_even_intro：
 
 ∀(Podd Peven : 自然数 → 命题) (n : 自然数),
 
@@ -1193,7 +1193,7 @@ combine_odd_even Podd Peven n。
 
 (* 在此处填写*）承认。
 
-定理combine_odd_even_elim_odd：
+定理 combine_odd_even_elim_odd：
 
 ∀(Podd Peven : 自然数 → 命题) (n : 自然数),
 
@@ -1207,7 +1207,7 @@ Podd n。
 
 (* 在此处填写*）承认。
 
-定理combine_odd_even_elim_even：
+定理 combine_odd_even_elim_even：
 
 ∀(Podd Peven : 自然数 → 命题) (n : 自然数),
 
@@ -1229,23 +1229,23 @@ Peven n。
 
 # 将定理应用于参数
 
-    Coq的一个特点是它与许多其他证明系统不同的地方
+    Coq 的一个特点是它与许多其他证明系统不同的地方
 
     助手是将*证明*视为一等对象的特点。
 
     这方面有很多值得讨论的地方，但不是
 
-    详细了解它以便使用Coq。 这
+    详细了解它以便使用 Coq。 这
 
     此节只是一个简单的介绍，深入探讨可以
 
-    可在可选章节ProofObjects和
+    可在可选章节 ProofObjects 和
 
     IndPrinciples。
 
-    我们已经看到，我们可以使用Check命令来询问Coq
+    我们已经看到，我们可以使用 Check 命令来询问 Coq
 
-    打印表达式的类型。 我们也可以使用Check来询问
+    打印表达式的类型。 我们也可以使用 Check 来询问
 
     特定标识符指的是哪个定理。
 
@@ -1255,17 +1255,17 @@ Check plus_comm.
 
 ```
 
-    Coq以相同的方式打印plus_comm定理的*陈述*
+    Coq 以相同的方式打印 plus_comm 定理的*陈述*
 
     它以打印我们要求的任何术语的*类型*的方式
 
     检查。 为什么？
 
-    原因是标识符plus_comm实际上指的是
+    原因是标识符 plus_comm 实际上指的是
 
     *证明对象* — 代表一个逻辑的数据结构
 
-    建立了∀ n m：nat，n + m = m + n的陈述的推导。这个对象的类型*是*该陈述
+    建立了∀ n m：nat，n + m = m + n 的陈述的推导。这个对象的类型*是*该陈述
 
     它所证明的定理的类型。
 
@@ -1275,13 +1275,13 @@ Check plus_comm.
 
     计算对象告诉我们可以用该对象做什么——
 
-    例如，如果我们有一个类型为nat → nat → nat的术语，我们可以给出
+    例如，如果我们有一个类型为 nat → nat → nat 的术语，我们可以给出
 
-    它两个nats作为参数，然后得到一个nat。同样，如果我们
+    它两个 nats 作为参数，然后得到一个 nat。同样，如果我们
 
-    有一个类型为n = m → n + n = m + m的对象，我们提供它
+    有一个类型为 n = m → n + n = m + m 的对象，我们提供它
 
-    一个类型为n = m的“参数”，我们可以推导出n + n = m + m。
+    一个类型为 n = m 的“参数”，我们可以推导出 n + n = m + m。
 
     在操作上，这个类比甚至更进一步：通过应用一个
 
@@ -1301,7 +1301,7 @@ Lemma plus_comm3 :
 
     乍看之下，我们应该能够证明这一点
 
-    通过两次重写加上plus_comm使两边匹配。
+    通过两次重写加上 plus_comm 使两边匹配。
 
     然而，问题在于第二次重写将撤消
 
@@ -1319,9 +1319,9 @@ Abort.
 
     修复这个问题的一个简单方法是，只使用我们的工具
 
-    已知，是使用assert推导出一个专门化版本
+    已知，是使用 assert 推导出一个专门化版本
 
-    可以用于精确重写的plus_comm的版本
+    可以用于精确重写的 plus_comm 的版本
 
     想要的。
 
@@ -1339,7 +1339,7 @@ Qed.
 
 ```
 
-    一个更优雅的替代方法是直接将plus_comm应用于
+    一个更优雅的替代方法是直接将 plus_comm 应用于
 
     我们想要实例化它的参数，方式与
 
@@ -1448,9 +1448,9 @@ Qed.
 
     完全由我们可以从中观察到的东西决定——即，在
 
-    Coq术语，我们在应用后获得的结果。
+    Coq 术语，我们在应用后获得的结果。
 
-    函数外延性不是Coq的基本公理的一部分。这
+    函数外延性不是 Coq 的基本公理的一部分。这
 
     意味着一些“合理”的命题是无法证明的。
 
@@ -1463,9 +1463,9 @@ Abort.
 
 ```
 
-    但是，我们可以将函数外延性添加到Coq的核心逻辑中
+    但是，我们可以将函数外延性添加到 Coq 的核心逻辑中
 
-    使用Axiom命令。
+    使用 Axiom 命令。
 
 ```
 Axiom functional_extensionality : ∀{X Y: Type}
@@ -1474,9 +1474,9 @@ Axiom functional_extensionality : ∀{X Y: Type}
 
 ```
 
-    使用Axiom与陈述定理具有相同的效果，并且
+    使用 Axiom 与陈述定理具有相同的效果，并且
 
-    跳过使用Admitted的证明，但它提醒读者
+    跳过使用 Admitted 的证明，但它提醒读者
 
     这不仅仅是我们要回来填写的东西
 
@@ -1494,7 +1494,7 @@ Qed.
 
 ```
 
-    当向Coq的核心逻辑添加新的公理时，我们必须小心
+    当向 Coq 的核心逻辑添加新的公理时，我们必须小心
 
     逻辑，因为它们可能使其*不一致*—也就是说，它们可能
 
@@ -1674,21 +1674,21 @@ Fail Definition is_even_prime n :=
 
 ```
 
-    Coq抱怨n = 2具有类型Prop，而它期望一个
+    Coq 抱怨 n = 2 具有类型 Prop，而它期望一个
 
-    bool元素（��其他具有两个的归纳类型
+    bool 元素（��其他具有两个的归纳类型
 
     元素）。这个错误消息的原因与
 
-    Coq核心语言的*计算*性质，这是设计的
+    Coq 核心语言的*计算*性质，这是设计的
 
     以便它能表达的每个函数都是可计算的和
 
     总共。这样做的一个原因是为了允许提取
 
-    从Coq开发中执行的可执行程序。因此，
+    从 Coq 开发中执行的可执行程序。因此，
 
-    Coq中的Prop没有普遍的案例分析操作
+    Coq 中的 Prop 没有普遍的案例分析操作
 
     告诉任何给定命题是真还是假，因为这样的
 
@@ -1698,15 +1698,15 @@ Fail Definition is_even_prime n :=
 
     布尔计算，值得注意的是，即使许多
 
-    *可计算*属性更容易使用Prop表达
+    *可计算*属性更容易使用 Prop 表达
 
     bool，因为递归函数定义受到
 
-    Coq中的重要限制。例如，下一章
+    Coq 中的重要限制。例如，下一章
 
     展示如何定义正则表达式匹配的属性
 
-    使用Prop来处理给定的字符串。使用bool做同样的事情
+    使用 Prop 来处理给定的字符串。使用 bool 做同样的事情
 
     编写一个正则表达式匹配器，这将是
 
@@ -1718,14 +1718,14 @@ Fail Definition is_even_prime n :=
 
     通过计算使一些证明自动化成为可能
 
-    与Coq术语一起使用，一种称为*反射证明*的技术。考虑以下陈述：
+    与 Coq 术语一起使用，一种称为*反射证明*的技术。考虑以下陈述：
 
 ```
 Example even_1000 : ∃k, 1000 = double k.
 
 ```
 
-    这个事实的最直接证明是给出k的值
+    这个事实的最直接证明是给出 k 的值
 
     明确地简化。
 
@@ -1748,7 +1748,7 @@ Proof. reflexivity. Qed.
 
     我们可以使用布尔形式来证明另一个，而不需要
 
-    明确提到值500：
+    明确提到值 500：
 
 ```
 Example even_1000'' : ∃k, 1000 = double k.
@@ -1760,7 +1760,7 @@ Proof. apply even_bool_prop. reflexivity. Qed.
 
     情况下，更大的证明通常可以通过
 
-    使用反射。作为一个极端的例子，Coq证明了
+    使用反射。作为一个极端的例子，Coq 证明了
 
     著名的*四色定理*使用反射来简化
 
@@ -1772,7 +1772,7 @@ Proof. apply even_bool_prop. reflexivity. Qed.
 
     命题。
 
-#### 练习：2星（逻辑连接词）
+#### 练习：2 星（逻辑连接词）
 
     以下引理涉及研究的命题连接词
 
@@ -1793,7 +1793,7 @@ Proof.
 
     ☐
 
-#### 练习：1星（beq_nat_false_iff）
+#### 练习：1 星（beq_nat_false_iff）
 
     以下定理是对"负面"表述的替代形式
 
@@ -1811,17 +1811,17 @@ Proof.
 
     ☐
 
-#### 练习：3星（beq_list）
+#### 练习：3 星（beq_list）
 
-    给定一个用于测试元素相等性的布尔运算符beq
+    给定一个用于测试元素相等性的布尔运算符 beq
 
-    一些类型A，我们可以定义一个用于测试的函数beq_list beq
+    一些类型 A，我们可以定义一个用于测试的函数 beq_list beq
 
-    具有元素在A中的列表的相等性。完成定义
+    具有元素在 A 中的列表的相等性。完成定义
 
-    下面的beq_list函数。为了确保您的
+    下面的 beq_list 函数。为了确保您的
 
-    定义是正确的，证明引理beq_list_true_iff。
+    定义是正确的，证明引理 beq_list_true_iff。
 
 ```
 Fixpoint beq_list {A : Type} (beq : A → A → bool)
@@ -1839,11 +1839,11 @@ Proof.
 
     ☐
 
-#### 练习：2星，推荐（All_forallb）
+#### 练习：2 星，推荐（All_forallb）
 
-    回想一下，来自练习中的forallb函数
+    回想一下，来自练习中的 forallb 函数
 
-    forall_exists_challenge 在章节[Tactics](Tactics.html)中：
+    forall_exists_challenge 在章节 Tactics 中：
 
 ```
 Fixpoint forallb {X : Type} (test : X → bool) (l : list X) : bool :=

@@ -6,29 +6,29 @@
 > 
 > 计算的演变，设备连接到互联网，产生越来越多的数据，将计算能力整合到设备端到端，使用数据分析从它们产生的所有数据中提取信息。
 > 
-> 有时物联网被称为工业物联网，一切互联网（IoE）或工业4.0。英特尔将物联网定义为连接到互联网的设备，整合更强大的计算能力，并使用数据分析提取有价值的信息。
+> 有时物联网被称为工业物联网，一切互联网（IoE）或工业 4.0。英特尔将物联网定义为连接到互联网的设备，整合更强大的计算能力，并使用数据分析提取有价值的信息。
 
 +   [维基百科物联网](https://en.wikipedia.org/wiki/Internet_of_Things)
 
-+   [Postscapes物联网技术](http://postscapes.com/internet-of-things-technologies)
++   [Postscapes 物联网技术](http://postscapes.com/internet-of-things-technologies)
 
-+   [Postscapes物联网资源](http://postscapes.com/internet-of-things-resources)
++   [Postscapes 物联网资源](http://postscapes.com/internet-of-things-resources)
 
-+   [嵌入式2014年十大嵌入式物联网设计文章和论文](http://www.embedded.com/electronics-news/4438080/2014-s-Top-Ten-Embedded-IoT-Design-Articles-and-Papers)
++   [嵌入式 2014 年十大嵌入式物联网设计文章和论文](http://www.embedded.com/electronics-news/4438080/2014-s-Top-Ten-Embedded-IoT-Design-Articles-and-Papers)
 
-+   [Stanfy 3种物联网设备软件架构](https://stanfy.com/blog/3-types-of-software-architecture-for-connected-devices/)
++   [Stanfy 3 种物联网设备软件架构](https://stanfy.com/blog/3-types-of-software-architecture-for-connected-devices/)
 
-+   [Slashdot 物联网、MinnowBoard及其在宇宙中的位置（视频）](https://hardware.slashdot.org/story/15/08/24/1856256/the-iot-the-minnowboard-and-how-they-fit-into-the-universe-video)
++   [Slashdot 物联网、MinnowBoard 及其在宇宙中的位置（视频）](https://hardware.slashdot.org/story/15/08/24/1856256/the-iot-the-minnowboard-and-how-they-fit-into-the-universe-video)
 
 +   [理解物联网](http://internetofthingswiki.com/internet-of-things-definition/)
 
 +   [物联网真正的价值所在](http://www.cio.com/article/3082584/internet/where-the-real-value-of-iot-resides.html)
 
-+   [虚拟化物联网开发环境缩短设计时间]([http://www.engineering.com/ElectronicsDesign/ElectronicsDesignArticles/ArticleID/12781/Virtualized-IoT-Development-Environment-Reduces-Design-Time.aspx](http://www.engineering.com/ElectronicsDesign/ElectronicsDesignArticles/ArticleID/12781/Virtualized-IoT-Development-Environment-Reduces-Design-Time.aspx)
++   虚拟化物联网开发环境缩短设计时间
 
 +   [我的第一个物联网项目：企业指南](http://www.computerweekly.com/feature/My-first-IoT-project-A-guide-for-businesses)
 
-来自[IoT，互操作性和国际化，Libelium成功的关键](https://www.youtube.com/watch?v=O--RnEVMFVw)
+来自[IoT，互操作性和国际化，Libelium 成功的关键](https://www.youtube.com/watch?v=O--RnEVMFVw)
 
 +   **使能**以前无法实现的事情
 
@@ -54,11 +54,11 @@
 
 # 联盟
 
-# AllSeen联盟
+# AllSeen 联盟
 
-> 连接。贡献。合作。AllSeen联盟是一个跨行业联盟，致力于实现组成物联网的数十亿设备、服务和应用程序的互操作性。
+> 连接。贡献。合作。AllSeen 联盟是一个跨行业联盟，致力于实现组成物联网的数十亿设备、服务和应用程序的互操作性。
 
-[AllSeen联盟主页](https://allseenalliance.org/)
+[AllSeen 联盟主页](https://allseenalliance.org/)
 
 # 开放互连联盟
 
@@ -68,17 +68,17 @@
 
 # 开放互联基金会
 
-> OCF将前开放互连联盟（OIC）的全部内容与各级领先公司（硅片、软件、平台和成品）统一起来，致力于提供物联网解决方案的关键互操作性元素。
+> OCF 将前开放互连联盟（OIC）的全部内容与各级领先公司（硅片、软件、平台和成品）统一起来，致力于提供物联网解决方案的关键互操作性元素。
 > 
-> 数十亿连接设备（设备、手机、计算机和传感器）应该能够彼此通信，而不受制造商、操作系统、芯片组或物理传输方式的限制。开放互联基金会（OCF）正在创建一个规范并赞助一个开源项目，以实现这一目标。OCF将释放物联网市场的巨大机遇，加速行业创新，并帮助开发人员和公司创建符合单一开放规范的解决方案。OCF将帮助确保消费者、企业和行业的安全互操作性。
+> 数十亿连接设备（设备、手机、计算机和传感器）应该能够彼此通信，而不受制造商、操作系统、芯片组或物理传输方式的限制。开放互联基金会（OCF）正在创建一个规范并赞助一个开源项目，以实现这一目标。OCF 将释放物联网市场的巨大机遇，加速行业创新，并帮助开发人员和公司创建符合单一开放规范的解决方案。OCF 将帮助确保消费者、企业和行业的安全互操作性。
 > 
-> OCF将前开放互连联盟（OIC）的全部内容与各级领先公司（硅片、软件、平台和成品）统一起来，致力于提供物联网解决方案的关键互操作性元素。OCF赞助了IoTivity开源项目，其中包括我们规范的参考实现，可在Apache 2.0许可下使用。OCF还包括以前由UPnP论坛赞助的所有活动。
+> OCF 将前开放互连联盟（OIC）的全部内容与各级领先公司（硅片、软件、平台和成品）统一起来，致力于提供物联网解决方案的关键互操作性元素。OCF 赞助了 IoTivity 开源项目，其中包括我们规范的参考实现，可在 Apache 2.0 许可下使用。OCF 还包括以前由 UPnP 论坛赞助的所有活动。
 
 +   [开放互联基金会主页](http://openconnectivity.org/)
 
 +   [英特尔和高通之间的和平对物联网意味着什么](http://arc.applause.com/2016/02/22/open-connectivity-foundation-ocf-intel-qualcomm/)
 
-+   [另一个物联网组织？OCF可能真的是让一切运转的关键](http://www.pcworld.com/article/3035140/another-iot-group-ocf-may-really-be-the-one-to-make-it-all-work.html)
++   [另一个物联网组织？OCF 可能真的是让一切运转的关键](http://www.pcworld.com/article/3035140/another-iot-group-ocf-may-really-be-the-one-to-make-it-all-work.html)
 
 # 物联网联盟
 
@@ -108,7 +108,7 @@
 
 > OGC（开放地理空间联盟）SensorThings API 是一个提供开放和统一的方式在网络上互联物联网设备、数据和应用的 OGC 候选标准。
 
-+   [OGC（开放地理空间联盟）SensorThings API ]([http://ogc-iot.github.io/ogc-iot-api/](http://ogc-iot.github.io/ogc-iot-api/)
++   OGC（开放地理空间联盟）SensorThings API 
 
 # FIT 联盟
 
@@ -152,11 +152,11 @@
 
 +   [如何选择您的物联网平台架构？](http://linkis.com/financialexpress.com/Lfnp2)
 
-+   [物联网：构建物联网项目的4个免费平台](http://www.survivingwithandroid.com/2015/12/comparing-iot-platforms.html?_utm_source=1-2-2)
++   [物联网：构建物联网项目的 4 个免费平台](http://www.survivingwithandroid.com/2015/12/comparing-iot-platforms.html?_utm_source=1-2-2)
 
 +   [Gadgedtronicx 十大最佳物联网软件平台](http://www.gadgetronicx.com/10-best-iot-software-platforms/)
 
-+   [InitialState 12个最佳物联网平台](http://blog.initialstate.com/iot-platforms)
++   [InitialState 12 个最佳物联网平台](http://blog.initialstate.com/iot-platforms)
 
 +   [最佳物联网平台](http://www.andthinker.com/2016/06/top-iot-platforms.html)
 
@@ -212,13 +212,13 @@
 
 +   [物联网活动](http://www.iotevents.org/)
 
-+   [2016物联网企业峰会](https://www.iotuniversity.com/iot-summit-2016/)
++   [2016 物联网企业峰会](https://www.iotuniversity.com/iot-summit-2016/)
 
 +   [IBM Interconnect 2016](http://www.ibm.com/cloud-computing/us/en/interconnect/)
 
 +   [物联网解决方案世界大会](https://www.youtube.com/channel/UCjO1v0QygtzLWAlmt1_l_rA)
 
-+   [2016年的10个物联网事件](http://www.theneura.com/10-iot-events-in-2016/)
++   [2016 年的 10 个物联网事件](http://www.theneura.com/10-iot-events-in-2016/)
 
 +   [开放物联网峰会](http://events.linuxfoundation.org/events/openiot-summit)
 
@@ -242,9 +242,9 @@
 
 +   [国际物联网、大数据和安全会议](http://www.iotbd.org/)
 
-+   [IEEE国际物联网设计与实施会议](http://conferences.computer.org/IoTDI/)
++   [IEEE 国际物联网设计与实施会议](http://conferences.computer.org/IoTDI/)
 
-+   [2016年物联网和大数据国际会议 - IoTBD 2016](http://internetofthingswiki.com/international-conference-on-internet-of-things-and-big-data-iotbd-2016/591/)
++   [2016 年物联网和大数据国际会议 - IoTBD 2016](http://internetofthingswiki.com/international-conference-on-internet-of-things-and-big-data-iotbd-2016/591/)
 
 # 投资者
 
@@ -256,9 +256,9 @@
 
 # 工作角色
 
-+   [英特尔、SAP实验室和IBM物联网提供的特定技术工作角色需求：TimesJobs调查](http://economictimes.indiatimes.com/jobs/Intel-SAP-Labs-and-IBM-IoT-offer-specific-tech-job-roles-in-demand-TimesJobs-survey/articleshow/47553266.cms)
++   [英特尔、SAP 实验室和 IBM 物联网提供的特定技术工作角色需求：TimesJobs 调查](http://economictimes.indiatimes.com/jobs/Intel-SAP-Labs-and-IBM-IoT-offer-specific-tech-job-roles-in-demand-TimesJobs-survey/articleshow/47553266.cms)
 
-+   [工业物联网创建的前5个新工作](http://iot-analytics.com/top-5-new-industrial-iot-jobs/)
++   [工业物联网创建的前 5 个新工作](http://iot-analytics.com/top-5-new-industrial-iot-jobs/)
 
 +   [随着物联网的普及，对数据可视化等技术技能的需求不断增加](http://www.computerweekly.com/news/450300350/Internet-of-things-increases-demand-for-tech-skills)
 
@@ -276,13 +276,13 @@
 
 +   [云社交影响力百强](https://www.rise.global/the-cloud-social-influencers-power-100/r/2448508)
 
-+   [2015年的最终个人报告](https://www.comparethecloud.net/cloudinfluence/december-top-50-cloudinfluence-individuals/)
++   [2015 年的最终个人报告](https://www.comparethecloud.net/cloudinfluence/december-top-50-cloudinfluence-individuals/)
 
 # 编程语言
 
 # 编程语言
 
-+   [11个值得了解的物联网编程语言](http://www.informationweek.com/mobile/mobile-applications/11-iot-programming-languages-worth-knowing/d/d-id/1319375)
++   [11 个值得了解的物联网编程语言](http://www.informationweek.com/mobile/mobile-applications/11-iot-programming-languages-worth-knowing/d/d-id/1319375)
 
 +   [你必须了解的物联网编程语言](http://internetofthingswiki.com/iot-programming-languages-you-must-know/178/)
 
@@ -310,7 +310,7 @@
 
 # 项目
 
-> 在这里，我们列出了用于开发物联网应用程序的最广泛使用和可靠的100个开源工具。我们已经尽力包括物联网硬件平台、开发工具、软件、集成工具、操作系统和监控工具。 [100个物联网开源开发工具和资源](http://internetofthingswiki.com/100-iot-open-source-development-tools-and-resources/422/)
+> 在这里，我们列出了用于开发物联网应用程序的最广泛使用和可靠的 100 个开源工具。我们已经尽力包括物联网硬件平台、开发工具、软件、集成工具、操作系统和监控工具。 [100 个物联网开源开发工具和资源](http://internetofthingswiki.com/100-iot-open-source-development-tools-and-resources/422/)
 
 +   [物联网的开源项目](https://github.com/OpenIotOrg/openiot)
 
@@ -322,7 +322,7 @@
 
 # 标准
 
-+   [功能安全和IEC 61508](http://www.iec.ch/functionalsafety/)
++   [功能安全和 IEC 61508](http://www.iec.ch/functionalsafety/)
 
 +   [ISO 26262](https://en.wikipedia.org/wiki/ISO_26262)
 
@@ -394,11 +394,11 @@
 
 +   [Exp-Lab 物联网培训](http://exp-lab-solutions.com/)
 
-+   [物联网 | 乔丹·达菲 | TEDx南岸](https://www.youtube.com/watch?v=mzy84Vb_Gxk)
++   [物联网 | 乔丹·达菲 | TEDx 南岸](https://www.youtube.com/watch?v=mzy84Vb_Gxk)
 
 +   [动手实操技术培训](http://conference.hitb.org/hitbsecconf2016ams/training/)
 
-+   [物联网人才联盟旨在培训到2020年的一百万物联网从业者](http://www.iotaustralia.org.au/2015/12/09/iotnewsglobal/iot-talent-consortium-aims-to-train-one-million-ioters-by-2020/)
++   [物联网人才联盟旨在培训到 2020 年的一百万物联网从业者](http://www.iotaustralia.org.au/2015/12/09/iotnewsglobal/iot-talent-consortium-aims-to-train-one-million-ioters-by-2020/)
 
 +   [构建物联网](http://www.buildinginternetofthings.com/)
 
@@ -406,7 +406,7 @@
 
 # 物联网人才联盟
 
-> 加入世界上唯一一个推动物联网人才创新的倡议。物联网人才联盟于2014年的物联网世界论坛上首次提出，并于2015年作为行业非营利组织成立。[主页](https://www.iottalent.org/)
+> 加入世界上唯一一个推动物联网人才创新的倡议。物联网人才联盟于 2014 年的物联网世界论坛上首次提出，并于 2015 年作为行业非营利组织成立。[主页](https://www.iottalent.org/)
 
 +   [评估测验](https://www.iottalent.org/assessment)
 
@@ -456,7 +456,7 @@
 
 # 许可
 
-[GPL是否是强制物联网标准化的正确方式？](http://linkis.com/bit.ly/U4ITz)
+[GPL 是否是强制物联网标准化的正确方式？](http://linkis.com/bit.ly/U4ITz)
 
 # 网站
 
@@ -480,11 +480,11 @@
 
 # 亚马逊
 
-# 亚马逊AWS
+# 亚马逊 AWS
 
 > AWS IoT。轻松安全地将设备连接到云。可靠地扩展到数十亿台设备和数万亿条消息。
 > 
-> AWS IoT是一个托管的云平台，可让连接的设备轻松安全地与云应用程序和其他设备交互。 AWS IoT可以支持数十亿台设备和数万亿条消息，并且可以可靠安全地处理和路由这些消息到AWS端点和其他设备。 使用AWS IoT，您的应用程序可以始终跟踪和与所有设备通信，即使它们未连接。
+> AWS IoT 是一个托管的云平台，可让连接的设备轻松安全地与云应用程序和其他设备交互。 AWS IoT 可以支持数十亿台设备和数万亿条消息，并且可以可靠安全地处理和路由这些消息到 AWS 端点和其他设备。 使用 AWS IoT，您的应用程序可以始终跟踪和与所有设备通信，即使它们未连接。
 > 
 > AWS IoT 使使用 AWS 服务如 AWS Lambda、Amazon Kinesis、Amazon S3、Amazon Machine Learning 和 Amazon DynamoDB 构建物联网应用程序变得容易，这些应用程序收集、处理、分析和处理由连接设备生成的数据，而无需管理任何基础架构。
 
@@ -520,7 +520,7 @@
 
 > ARM 物联网解决方案。 ARM 及其合作伙伴共享一种颠覆性的愿景，即可以按规模进行商业化、基于标准的物联网设备的创建和部署。 ARM® mbed™ 物联网设备平台通过提供一个共同的平台来开发连接的物联网设备的软件生态系统，解决了这些问题。 [物联网解决方案](https://www.arm.com/products/internet-of-things-solutions/)
 
-+   [访问白皮书](http:/community.arm.com/groups/internet-of-things/content)
++   访问白皮书
 
 +   [阅读相关博客](http://community.arm.com/groups/internet-of-things)
 
@@ -624,7 +624,7 @@
 
 > 了解关于 Cisco IoT 系统的信息。通过部署 Cisco IoT 系统，加速您向基于物联网的智能基础设施的过渡。我们广泛的物联网基础设施技术组合帮助您连接、管理和控制以前未连接的设备。更好地保护您的物理和数字资产和数据。通过从雾到云创建和部署物联网应用程序进行创新。
 > 
-> 物联网。了解如何使用思科联网移动体验（CMX）API创建和部署项目。使用Flare、IoX/Fog和物联网开发工具包来扩展您在物联网世界中的能力。使用大数据管理来分析、捕获、策划、搜索、分享、存储、转移、可视化和保护您的物联网数据。
+> 物联网。了解如何使用思科联网移动体验（CMX）API 创建和部署项目。使用 Flare、IoX/Fog 和物联网开发工具包来扩展您在物联网世界中的能力。使用大数据管理来分析、捕获、策划、搜索、分享、存储、转移、可视化和保护您的物联网数据。
 
 +   [思科物联网](http://www.cisco.com/web/solutions/trends/iot/overview.html)
 
@@ -634,7 +634,7 @@
 
 # 思科 DevNet
 
-> DevNet 创作。展示您的创新解决方案或配方，发现其他人使用思科API创建的内容，并获得启发。
+> DevNet 创作。展示您的创新解决方案或配方，发现其他人使用思科 API 创建的内容，并获得启发。
 
 [思科 DevNet](https://developer.cisco.com/site/devnet/home/index.gsp)
 
@@ -660,7 +660,7 @@
 
 # Eclipse
 
-> 物联网的开源。物联网需要开源才能成功。Eclipse IoT简化了物联网开发。
+> 物联网的开源。物联网需要开源才能成功。Eclipse IoT 简化了物联网开发。
 
 +   [Eclipse IoT](http://iot.eclipse.org/)
 
@@ -678,7 +678,7 @@
 
 > 世界运行在工业上，而工业则依赖于 Predix。[主页](https://www.ge.com/digital/predix)
 > 
-> 工业互联网：数字转型从这里开始。作为世界上第一个工业操作系统，Predix支持现代数字工业业务，推动全球经济发展。
+> 工业互联网：数字转型从这里开始。作为世界上第一个工业操作系统，Predix 支持现代数字工业业务，推动全球经济发展。
 
 ## 新闻
 
@@ -690,23 +690,23 @@
 
 # Predix 平台
 
-> GE的Predix在微软Azure上的强大力量。在Predix上构建和部署工业应用程序，与Azure云、Azure IoT套件和Cortana Intelligence集成。
+> GE 的 Predix 在微软 Azure 上的强大力量。在 Predix 上构建和部署工业应用程序，与 Azure 云、Azure IoT 套件和 Cortana Intelligence 集成。
 > 
-> 工业互联网：数字化转型从这里开始。作为世界上第一个工业操作系统，Predix推动着推动全球经济的现代数字工业企业。运营技术（OT）安全风险正在发生变化。更多设备连接在一起，威胁格局正在扩大。GE的Wurldtech可以帮助您降低风险。[GE Predix](https://www.ge.com/digital/predix)
+> 工业互联网：数字化转型从这里开始。作为世界上第一个工业操作系统，Predix 推动着推动全球经济的现代数字工业企业。运营技术（OT）安全风险正在发生变化。更多设备连接在一起，威胁格局正在扩大。GE 的 Wurldtech 可以帮助您降低风险。[GE Predix](https://www.ge.com/digital/predix)
 
 # 谷歌
 
 # 谷歌
 
-> 物联网。到2020年，有望有50亿个连接设备。谷歌云平台为您提供了扩展连接、收集和理解数据以及提供硬件设备所需的可靠客户体验的工具。
+> 物联网。到 2020 年，有望有 50 亿个连接设备。谷歌云平台为您提供了扩展连接、收集和理解数据以及提供硬件设备所需的可靠客户体验的工具。
 
 +   [谷歌物联网](https://cloud.google.com/solutions/iot/)
 
 # Brillo
 
-> Brillo将软件开发的简单性和速度带到物联网的硬件上，具有嵌入式操作系统、核心服务、开发工具包和开发者控制台。
+> Brillo 将软件开发的简单性和速度带到物联网的硬件上，具有嵌入式操作系统、核心服务、开发工具包和开发者控制台。
 
-+   [谷歌Brillo](https://developers.google.com/brillo/?hl=en)
++   [谷歌 Brillo](https://developers.google.com/brillo/?hl=en)
 
 # 物理网络
 
@@ -722,9 +722,9 @@
 
 # 惠普
 
-> HPE通用物联网平台。加速、简化和连接您的物联网。[主页](http://h41111.www4.hp.com/solutions/iot/index.html)
+> HPE 通用物联网平台。加速、简化和连接您的物联网。[主页](http://h41111.www4.hp.com/solutions/iot/index.html)
 > 
-> 使用HPE通用物联网平台，客户可以获得一个行业、垂直和客户不可知的解决方案，具有最大的可扩展性、模块化和多功能性。这使客户能够管理其物联网解决方案，并通过将连接设备生成的大量数据货币化并提供给企业特定应用程序来提供价值。此外，垂直行业内和跨多个行业的用例都能够实现新的商业模式和收入流。
+> 使用 HPE 通用物联网平台，客户可以获得一个行业、垂直和客户不可知的解决方案，具有最大的可扩展性、模块化和多功能性。这使客户能够管理其物联网解决方案，并通过将连接设备生成的大量数据货币化并提供给企业特定应用程序来提供价值。此外，垂直行业内和跨多个行业的用例都能够实现新的商业模式和收入流。
 
 # 华为
 
@@ -732,7 +732,7 @@
 
 # 窄带物联网开放实验室
 
-> 华为，全球领先的信息和通信技术（ICT）解决方案提供商，与Vodafone集团今天宣布开设一个开放的物联网实验室，致力于开发与窄带物联网（NB-IoT）技术相关的产品和应用。[新闻](http://www.vodafone.com/business/m2m/Huawei-and-Vodafone-Announce-Opening-of-Worlds-First-Narrowband-IoT-Open-Lab-2016-04-26)
+> 华为，全球领先的信息和通信技术（ICT）解决方案提供商，与 Vodafone 集团今天宣布开设一个开放的物联网实验室，致力于开发与窄带物联网（NB-IoT）技术相关的产品和应用。[新闻](http://www.vodafone.com/business/m2m/Huawei-and-Vodafone-Announce-Opening-of-Worlds-First-Narrowband-IoT-Open-Lab-2016-04-26)
 
 +   [华为和沃达丰宣布开设全球首个窄带物联网开放实验室](http://www.huawei.com/en/news/2016/4/World-First-Narrowband-IoT-OpenLab)
 
@@ -922,11 +922,11 @@
 
 +   [Intel® SSG DRD IoT](https://github.com/SSG-DRD-IOT)
 
-![](c9060024.jpg)
+![](img/c9060024.jpg)
 
-![](8fa784eb.png)
+![](img/8fa784eb.png)
 
-![](b510a081.jpg)
+![](img/b510a081.jpg)
 
 ## 嵌入式设计中心
 
@@ -972,7 +972,7 @@
 
 +   [Intel® Galileo IoT 开发套件](http://iotdk.intel.com/)
 
-更新！ 2016年2月
+更新！ 2016 年 2 月
 
 +   第一个包括支持物联网网关的功能，帮助从原型到生产过程中实现无缝的开发体验。
 
@@ -1004,7 +1004,7 @@
 
 # Intel® 系统工作室
 
-> 连接智能设备的爆炸性增长-预计到2020年将达到500亿-推动了对满足系统软件和嵌入式C应用程序更短开发周期的高效工具的空前需求。 Intel® System Studio 2015正是如此，它使开发人员能够充分利用基于Intel®架构的系统和嵌入式应用程序。 Intel® System Studio 2015是一套全面集成的工具套件，为开发人员提供先进的系统工具和技术，以帮助加速交付下一代、节能高性能和可靠的嵌入式和移动设备。 Intel® System Studio是一个经过完全验证并得到Intel支持的产品，经过了针对Intel®架构的优化，同时与开源技术兼容。
+> 连接智能设备的爆炸性增长-预计到 2020 年将达到 500 亿-推动了对满足系统软件和嵌入式 C 应用程序更短开发周期的高效工具的空前需求。 Intel® System Studio 2015 正是如此，它使开发人员能够充分利用基于 Intel®架构的系统和嵌入式应用程序。 Intel® System Studio 2015 是一套全面集成的工具套件，为开发人员提供先进的系统工具和技术，以帮助加速交付下一代、节能高性能和可靠的嵌入式和移动设备。 Intel® System Studio 是一个经过完全验证并得到 Intel 支持的产品，经过了针对 Intel®架构的优化，同时与开源技术兼容。
 > 
 > +   主机操作系统
 > +   
@@ -1066,7 +1066,7 @@
 
 # 联盟
 
-+   [英特尔和Citrix在Citrix Synergy上携手创新](https://itpeernetwork.intel.com/intel-and-citrix-team-up-for-innovation-at-citrix-synergy/)
++   [英特尔和 Citrix 在 Citrix Synergy 上携手创新](https://itpeernetwork.intel.com/intel-and-citrix-team-up-for-innovation-at-citrix-synergy/)
 
 # 工具
 
@@ -1076,15 +1076,15 @@
 
 # 物联网门票
 
-> 自1999年以来，我们一直将设备和机器连接到互联网。通过IoT Ticket，我们为您提供了通往物联网（IoT）及更远的门票。将您的设备连接到IoT Ticket，创建条件、维护或状态报告以跟踪您的资产。利用基于Web的桌面实时监控和控制它们。[主页](https://www.iot-ticket.com/)
+> 自 1999 年以来，我们一直将设备和机器连接到互联网。通过 IoT Ticket，我们为您提供了通往物联网（IoT）及更远的门票。将您的设备连接到 IoT Ticket，创建条件、维护或状态报告以跟踪您的资产。利用基于 Web 的桌面实时监控和控制它们。[主页](https://www.iot-ticket.com/)
 
 # 利贝利姆
 
 # 利贝利姆
 
-> 物联网平台提供商。利贝利姆设计和制造硬件以及完整的无线传感器网络软件开发工具包（SDK），以便系统集成商、工程和咨询公司可以在最短时间内交付可靠的物联网（IoT）、M2M和智慧城市解决方案。我们多功能的平台允许实施任何无线传感器网络，从智能停车到智能灌溉解决方案。[主页](http://www.libelium.com/)
+> 物联网平台提供商。利贝利姆设计和制造硬件以及完整的无线传感器网络软件开发工具包（SDK），以便系统集成商、工程和咨询公司可以在最短时间内交付可靠的物联网（IoT）、M2M 和智慧城市解决方案。我们多功能的平台允许实施任何无线传感器网络，从智能停车到智能灌溉解决方案。[主页](http://www.libelium.com/)
 
-+   [David Gascón在2016年智利IBM Outthink大会上的演讲（西班牙语）](https://www.youtube.com/watch?v=-Fiooq8BMUc)
++   [David Gascón 在 2016 年智利 IBM Outthink 大会上的演讲（西班牙语）](https://www.youtube.com/watch?v=-Fiooq8BMUc)
 
 +   [物联网市场](https://www.the-iot-marketplace.com/)
 
@@ -1098,7 +1098,7 @@
 
 +   [甲骨文物联网](https://www.oracle.com/solutions/internet-of-things/index.html)
 
-+   [甲骨文GrovePi+入门套件 | Luc Bors](https://blogs.oracle.com/archbeat/entry/video_overview_grovepi_starter_kit)
++   [甲骨文 GrovePi+入门套件 | Luc Bors](https://blogs.oracle.com/archbeat/entry/video_overview_grovepi_starter_kit)
 
 ## 甲骨文云物联网
 
@@ -1182,7 +1182,7 @@
 
 > 当我们在今年 2 月发布 Raspberry Pi 2 时，我们宣布微软的 Windows 10 IoT Core，这是 Windows 10 的一个版本，用于小型物联网设备，可能有屏幕，也可能没有屏幕，将提供给该设备。
 
-+   [Windows 10 Core IoT Starter Pack 主页](ms-iot.github.io/content/en-US/AdafruitMakerKit.htm)
++   Windows 10 Core IoT Starter Pack 主页
 
 +   [Windows 10 Core IoT Starter Pack 新闻](https://www.raspberrypi.org/blog/windows-10-core-iot-starter-pack/)
 
@@ -1210,15 +1210,15 @@
 
 +   [NXP Semiconductor](http://www.nxp.com/)
 
-+   [NXP智能连接解决方案](http://www.nxp.com/applications/smart-connected-solutions:SMART-CONNECTED-SOLUTIONS)
++   [NXP 智能连接解决方案](http://www.nxp.com/applications/smart-connected-solutions:SMART-CONNECTED-SOLUTIONS)
 
-+   [NXP支持两个新的物联网开发平台](http://www.nfcworld.com/2016/02/24/342667/nxp-backs-two-new-iot-development-platforms/)
-
-# NVIDIA
++   [NXP 支持两个新的物联网开发平台](http://www.nfcworld.com/2016/02/24/342667/nxp-backs-two-new-iot-development-platforms/)
 
 # NVIDIA
 
-> NVIDIA DRIVE PX 2允许汽车行业利用人工智能来解决自动驾驶中固有的复杂性。它利用NVIDIA最先进的GPU进行深度学习，实现车辆周围360度的情景感知，精确确定车辆位置，并计算安全、舒适的轨迹。[查看更多](http://nvidianews.nvidia.com/news/nvidia-boosts-iq-of-self-driving-cars-with-world-s-first-in-car-artificial-intelligence-supercomputer#sthash.E46oMzj3.dpuf)
+# NVIDIA
+
+> NVIDIA DRIVE PX 2 允许汽车行业利用人工智能来解决自动驾驶中固有的复杂性。它利用 NVIDIA 最先进的 GPU 进行深度学习，实现车辆周围 360 度的情景感知，精确确定车辆位置，并计算安全、舒适的轨迹。[查看更多](http://nvidianews.nvidia.com/news/nvidia-boosts-iq-of-self-driving-cars-with-world-s-first-in-car-artificial-intelligence-supercomputer#sthash.E46oMzj3.dpuf)
 
 # Nokia
 
@@ -1226,7 +1226,7 @@
 
 > 诺基亚是连接我们的生活的技术创新领导者。我们创建的产品和解决方案有助于人们蓬勃发展。[主页](http://www.nokia.com/en_int)
 
-+   [诺基亚通过成功的公开交换要约获得阿尔卡特朗讯控制权；诺基亚将持有近80%的未结清阿尔卡特朗讯股份](http://company.nokia.com/en/news/press-releases/2016/01/04/nokia-gains-control-of-alcatel-lucent-through-successful-public-exchange-offer-nokia-to-hold-nearly-80-of-outstanding-alcatel-lucent-shares)
++   [诺基亚通过成功的公开交换要约获得阿尔卡特朗讯控制权；诺基亚将持有近 80%的未结清阿尔卡特朗讯股份](http://company.nokia.com/en/news/press-releases/2016/01/04/nokia-gains-control-of-alcatel-lucent-through-successful-public-exchange-offer-nokia-to-hold-nearly-80-of-outstanding-alcatel-lucent-shares)
 
 # Predixion
 
@@ -1246,33 +1246,33 @@
 
 +   [物联网（IoT）案例研究](http://www.ptc.com/internet-of-things/customer-success)
 
-+   [IoT应用案例](http://www.ptc.com/internet-of-things/use-cases)
++   [IoT 应用案例](http://www.ptc.com/internet-of-things/use-cases)
 
-+   [IoT解决方案](http://www.ptc.com/internet-of-things/solutions)
++   [IoT 解决方案](http://www.ptc.com/internet-of-things/solutions)
 
 # ThingWorx
 
-> 物联网技术平台。ThingWorx平台提供了一整套物联网特定的开发能力，使解决方案更加强大，上市时间更快。[ThingWorx主页](http://www.ptc.com/internet-of-things/technology-platform-thingworx)
+> 物联网技术平台。ThingWorx 平台提供了一整套物联网特定的开发能力，使解决方案更加强大，上市时间更快。[ThingWorx 主页](http://www.ptc.com/internet-of-things/technology-platform-thingworx)
 
 # 高通
 
 # 高通
 
-> 万物互联。想象一个设备、地点和人们如此紧密相连的世界，以至于日常生活永远改变。现在停止想象，开始相信。这个转变被称为万物互联（IoE），30年来，我们一直在利用我们的无线专业知识使这个惊人的连接世界成为现实。
+> 万物互联。想象一个设备、地点和人们如此紧密相连的世界，以至于日常生活永远改变。现在停止想象，开始相信。这个转变被称为万物互联（IoE），30 年来，我们一直在利用我们的无线专业知识使这个惊人的连接世界成为现实。
 
 +   [高通万物互联主页](https://www.qualcomm.com/products/internet-of-everything)
 
 +   [骁龙](http://www.engadget.com/2016/05/30/qualcomm-snapdragon-1100/)
 
-+   [QCA4012新闻](https://www.qualcomm.com/news/releases/2016/05/31/qualcomm-brings-new-wi-fi-solution-and-software-ecosystem-support-enhance)
++   [QCA4012 新闻](https://www.qualcomm.com/news/releases/2016/05/31/qualcomm-brings-new-wi-fi-solution-and-software-ecosystem-support-enhance)
 
-+   [QCA4012手册](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwi5urSpiYXNAhVN4WMKHclQBHQQFggcMAA&url=https%3A%2F%2Fwww.qualcomm.com%2Fmedia%2Fdocuments%2Ffiles%2Fqualcomm-low-power-wi-fi-qca4010.pdf&usg=AFQjCNFO7EBBz426xMSUVMOk8kkzYDUkTA&sig2=XRZT5FXnsFkfU4lmcXTXQQ)
++   [QCA4012 手册](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwi5urSpiYXNAhVN4WMKHclQBHQQFggcMAA&url=https%3A%2F%2Fwww.qualcomm.com%2Fmedia%2Fdocuments%2Ffiles%2Fqualcomm-low-power-wi-fi-qca4010.pdf&usg=AFQjCNFO7EBBz426xMSUVMOk8kkzYDUkTA&sig2=XRZT5FXnsFkfU4lmcXTXQQ)
 
-## Etherios的物联网套件
+## Etherios 的物联网套件
 
-> 基于高通® QSC6270-Turbo芯片组，Etherios和Oracle Java技术构建
+> 基于高通® QSC6270-Turbo 芯片组，Etherios 和 Oracle Java 技术构建
 
-+   [Etherios物联网套件](http://store.digi.com/index.cfm?fuseaction=product.display&product_id=2880)
++   [Etherios 物联网套件](http://store.digi.com/index.cfm?fuseaction=product.display&product_id=2880)
 
 +   [物联网套件为开发者带来竞争优势](http://www.etherios.com/blog/developer-zone/internet-of-everything-kit/)
 
@@ -1288,17 +1288,17 @@
 
 # 瑞萨
 
-> 2010年4月NEC电子和瑞萨科技的合并诞生了瑞萨电子。作为一家半导体制造商，我们努力成为全球客户需求的第一满足者，旨在成为他们最值得信赖的合作伙伴之一。[主页](https://www.renesas.com/en-us/)
+> 2010 年 4 月 NEC 电子和瑞萨科技的合并诞生了瑞萨电子。作为一家半导体制造商，我们努力成为全球客户需求的第一满足者，旨在成为他们最值得信赖的合作伙伴之一。[主页](https://www.renesas.com/en-us/)
 
 # 微控制器和微处理器
 
 > 针对用户需求迅速扩大的范围，瑞萨电子提供微控制器和微处理器产品，具有出色的可扩展性，同时允许客户充分利用现有资源。
 
-+   [RL78系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rl78.html)
++   [RL78 系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rl78.html)
 
     +   仪表盘
 
-+   [RX系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rx.html)
++   [RX 系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rx.html)
 
     +   行业通用技术
 
@@ -1308,11 +1308,11 @@
 
     +   人机界面
 
-+   [RH850系列（仅限汽车）](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rh850.html)
++   [RH850 系列（仅限汽车）](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rh850.html)
 
     +   混合动力车/电动车
 
-+   [RZ系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rz.html)
++   [RZ 系列](https://www.renesas.com/en-us/products/microcontrollers-microprocessors/rz.html)
 
     +   汽车音响
 
@@ -1328,19 +1328,19 @@
 
 +   物联网设备
 
-    +   瑞萨RL78
+    +   瑞萨 RL78
 
-    +   瑞萨RX100
+    +   瑞萨 RX100
 
 +   网关
 
-    +   瑞萨RX600
+    +   瑞萨 RX600
 
-    +   瑞萨RZ
+    +   瑞萨 RZ
 
-# 瑞萨Synergy™平台
+# 瑞萨 Synergy™平台
 
-> 一个完整且合格的平台，加速嵌入式开发，激发创新并实现差异化。[瑞萨Synergy™平台](https://www.renesas.com/en-us/products/synergy.html)
+> 一个完整且合格的平台，加速嵌入式开发，激发创新并实现差异化。[瑞萨 Synergy™平台](https://www.renesas.com/en-us/products/synergy.html)
 
 # Salesforce
 
@@ -1396,9 +1396,9 @@
 
 # 施耐德电气
 
-# [2015年物联网世界论坛 - 首席技术官Prith Banerjee采访](https://www.youtube.com/watch?v=tWv9Lg-vGzk)
+# [2015 年物联网世界论坛 - 首席技术官 Prith Banerjee 采访](https://www.youtube.com/watch?v=tWv9Lg-vGzk)
 
-> 施耐德电气首席技术官Prith Banerjee讨论了施耐德电气如何通过物联网为客户提供价值，并围绕以下四个支柱展开：
+> 施耐德电气首席技术官 Prith Banerjee 讨论了施耐德电气如何通过物联网为客户提供价值，并围绕以下四个支柱展开：
 > 
 > > +   1）能源效率
 > > +   
@@ -1422,35 +1422,35 @@
 
 # 传感器标签
 
-+   [SensorTag的故事](http://www.ti.com/ww/en/wireless_connectivity/sensortag2015/?INTC=SensorTag&HQS=sensortag)
++   [SensorTag 的故事](http://www.ti.com/ww/en/wireless_connectivity/sensortag2015/?INTC=SensorTag&HQS=sensortag)
 
 # ThingWorx
 
 # ThingWorx
 
-> 构建智能、连接的应用程序。 交付物联网（IoT）应用程序从未如此简单。 使用ThingWorx，您可以以十倍的速度构建、部署和演进应用程序。
+> 构建智能、连接的应用程序。 交付物联网（IoT）应用程序从未如此简单。 使用 ThingWorx，您可以以十倍的速度构建、部署和演进应用程序。
 
 +   [ThingWorx](http://www.thingworx.com/)
 
-+   [ThingWorx学术](http://www.thingworx.com/Academics)
++   [ThingWorx 学术](http://www.thingworx.com/Academics)
 
 # Verizon
 
 # Verizon
 
-+   [Verison IoT主页](http://www.verizonenterprise.com/products/internet-of-things/)
++   [Verison IoT 主页](http://www.verizonenterprise.com/products/internet-of-things/)
 
 # Vodafone
 
 # Vodafone
 
-> 改变生活和业务。 Vodafone物联网。 动力#IoT 提供真正的业务价值。 [Vodafone IoT](http://www.vodafone.com/business/m2m)
+> 改变生活和业务。 Vodafone 物联网。 动力#IoT 提供真正的业务价值。 [Vodafone IoT](http://www.vodafone.com/business/m2m)
 
 # C2M
 
 # C2M
 
-> C2M端到端IoT平台 [主页](https://www.connect2.me/)
+> C2M 端到端 IoT 平台 [主页](https://www.connect2.me/)
 
 # 事物
 
@@ -1472,7 +1472,7 @@
 
 +   C++
 
-+   JAVA（Oracle JAVA ME嵌入式）
++   JAVA（Oracle JAVA ME 嵌入式）
 
     +   700 KB RAM / 2 MB ROM（完整配置）
 
@@ -1496,7 +1496,7 @@
 
 +   [LinkItOne](http://www.seeedstudio.com/wiki/LinkIt_ONE)
 
-    +   SideKick基础套件
+    +   SideKick 基础套件
 
     +   格罗夫入门套件
 
@@ -1564,7 +1564,7 @@
 
 +   [Synopsys](https://www.synopsys.com/dw/ipdir.php?ds=arc_em_starter_kit)
 
-+   [STM32f4](www.st.com/stm32f4-discovery)
++   STM32f4
 
 # Intel 架构
 
@@ -1616,7 +1616,7 @@ Intel Curie 模块包括：
 
 +   [英特尔® Curie™ 模块信息表](http://download.intel.com/newsroom/kits/ces/2015/pdfs/Intel_CURIE_Module_Factsheet.pdf)
 
-![](74ab068f.jpg)
+![](img/74ab068f.jpg)
 
 # 英特尔® 夸克™ 微控制器开发套件 D2000
 
@@ -1628,7 +1628,7 @@ Intel Curie 模块包括：
 
 +   [Mouser 夸克 MCU 2000 开发套件](http://www.mouser.cn/ProductDetail/Intel/MTFLDCRBDAL/?qs=sGAEpiMZZMvzNxwKcL67%252bpwZleYEABNkLLpgXezJXXQ%3d)
 
-![](2cbb1881.jpg)
+![](img/2cbb1881.jpg)
 
 # 英特尔® Galileo
 
@@ -1642,7 +1642,7 @@ Intel Curie 模块包括：
 
 +   [英特尔® Galileo 板用户指南](http://download.intel.com/support/galileo/sb/galileo_boarduserguide_330237_001.pdf)
 
-![](59cc8f0b.jpg)
+![](img/59cc8f0b.jpg)
 
 ```
  root@galileo:~# uname -a
@@ -1655,7 +1655,7 @@ Intel Curie 模块包括：
 
 > 英特尔® Edison 技术是一个硬件/软件平台，当与传感器和您的想象力结合使用时，可以让您发明新的互联网产品和解决方案。
 
-+   处理器 — “Tangier” 原子 SoC，带有 22 纳米英特尔原子（2x Silvermont/Merrifield 核心 @ 500MHz）和 100MHz，32位英特尔夸克
++   处理器 — “Tangier” 原子 SoC，带有 22 纳米英特尔原子（2x Silvermont/Merrifield 核心 @ 500MHz）和 100MHz，32 位英特尔夸克
 
 +   存储器 — 1GB LPDDR3 POP RAM（2 通道 32 位）@ 800MT/秒；4GB eMMC（v4.51）
 
@@ -1703,25 +1703,25 @@ Intel Curie 模块包括：
 
 +   尺寸 — 35.5 × 25.0 × 3.9mm（1.4 × 1.0 × 0.15 英寸）
 
-+   操作系统 — Yocto Linux 1.6适用于Atom SoC，支持Arduino IDE、Eclipse（C、C++、Python）、Intel XDK（Node.JS、HTML5）；Quark MCU的Viper RTOS SDK
++   操作系统 — Yocto Linux 1.6 适用于 Atom SoC，支持 Arduino IDE、Eclipse（C、C++、Python）、Intel XDK（Node.JS、HTML5）；Quark MCU 的 Viper RTOS SDK
 
-![](40f16e55.jpg)
+![](img/40f16e55.jpg)
 
 ## 链接
 
-+   [IoT Intel® Edison主板](https://software.intel.com/en-us/iot/hardware/edison)
++   [IoT Intel® Edison 主板](https://software.intel.com/en-us/iot/hardware/edison)
 
-+   [Intel® Edison开发平台产品简介](http://download.intel.com/support/edison/sb/edison_pb_331179002.pdf)
++   [Intel® Edison 开发平台产品简介](http://download.intel.com/support/edison/sb/edison_pb_331179002.pdf)
 
-+   [Intel® Edison板支持包（BSP）用户指南](http://www.intel.com/support/edison/sb/CS-035278.htm)
++   [Intel® Edison 板支持包（BSP）用户指南](http://www.intel.com/support/edison/sb/CS-035278.htm)
 
-+   [Intel® Edison计算模块硬件指南](http://download.intel.com/support/edison/sb/edisonmodule_hg_331189004.pdf)
++   [Intel® Edison 计算模块硬件指南](http://download.intel.com/support/edison/sb/edisonmodule_hg_331189004.pdf)
 
-+   [Intel® Edison计算模块、板和套件](http://www.intel.com/content/www/us/en/do-it-yourself/edison.html)
++   [Intel® Edison 计算模块、板和套件](http://www.intel.com/content/www/us/en/do-it-yourself/edison.html)
 
-+   [IoT Intel® Edison板用户指南](https://software.intel.com/en-us/intel-edison-board-user-guide)
++   [IoT Intel® Edison 板用户指南](https://software.intel.com/en-us/intel-edison-board-user-guide)
 
-+   [Intel® Edison计算模块、板和套件](https://www-ssl.intel.com/content/www/us/en/do-it-yourself/edison.html#kits)
++   [Intel® Edison 计算模块、板和套件](https://www-ssl.intel.com/content/www/us/en/do-it-yourself/edison.html#kits)
 
 +   [Sparkfun Intel® Edison](https://www.sparkfun.com/categories/272)
 
@@ -1729,19 +1729,19 @@ Breakout Boards
 
 +   [Intel® Edison Breakout Board](http://download.intel.com/support/edison/sb/edisonbreakout_hg_331190006.pdf)
 
-+   [Intel® Edison Arduino板](http://download.intel.com/support/edison/sb/edisonarduino_hg_331191007.pdf)
++   [Intel® Edison Arduino 板](http://download.intel.com/support/edison/sb/edisonarduino_hg_331191007.pdf)
 
-+   [SparkFun Intel® Edison模块 - 控制台](https://www.sparkfun.com/products/13039)
++   [SparkFun Intel® Edison 模块 - 控制台](https://www.sparkfun.com/products/13039)
 
-+   [Intel® Edison的IO扩展板](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1244#.VlkYuG1ME_M)
++   [Intel® Edison 的 IO 扩展板](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1244#.VlkYuG1ME_M)
 
-+   [Intel® Edison控制器的Romeo](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1241#.VlkY9G1ME_M)
++   [Intel® Edison 控制器的 Romeo](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1241#.VlkY9G1ME_M)
 
 +   [Modulowo® Explore™ E for Intel® Edison](https://store.modulowo.com/pl/p/Modulowo-Explore-E-dla-Intel-Edison/400)
 
-+   [Intel® Edison Edi-Expand & IoT计数器](https://www.kickstarter.com/projects/tekt/the-iot-counter-supercharging-an-internet-of-numbe)
++   [Intel® Edison Edi-Expand & IoT 计数器](https://www.kickstarter.com/projects/tekt/the-iot-counter-supercharging-an-internet-of-numbe)
 
-![](5b52f587.jpg)![](ba49b2f3.jpg)![](db32a343.jpg)![](839a0186.jpg)![](178c069a.png)![](33524791.png%3fv%3d1436673178%26w%3d680%26fit%3dmax%26auto%3dformat%26lossless%3dtrue%26s%3d3980c7c3d7c307bc1ec5563102826278)![](b62ad115.jpg)
+![](img/5b52f587.jpg)![](img/ba49b2f3.jpg)![](img/db32a343.jpg)![](img/839a0186.jpg)![](img/178c069a.png)![](img/33524791.png%3fv%3d1436673178%26w%3d680%26fit%3dmax%26auto%3dformat%26lossless%3dtrue%26s%3d3980c7c3d7c307bc1ec5563102826278)![](img/b62ad115.jpg)
 
 ```
  root@edison:~# uname -a
@@ -1751,21 +1751,21 @@ Breakout Boards
     processor       : 1 
 ```
 
-## Intel® Edison板上的通用微控制器单元（MCU）
+## Intel® Edison 板上的通用微控制器单元（MCU）
 
-> Intel的增加了SoC Quark来执行低级别的工作，而不是在Atom CPU上占用带宽。
+> Intel 的增加了 SoC Quark 来执行低级别的工作，而不是在 Atom CPU 上占用带宽。
 
-+   [使用Intel® Edison板的MCU SDK创建应用程序](https://software.intel.com/en-us/creating-applications-with-mcu-sdk-for-intel-edison-board)
++   [使用 Intel® Edison 板的 MCU SDK 创建应用程序](https://software.intel.com/en-us/creating-applications-with-mcu-sdk-for-intel-edison-board)
 
 +   [Intel® Quark™](https://en.wikipedia.org/wiki/Intel_Quark)
 
-+   [Intel® Quark™ SE微控制器](http://www.intel.com/content/www/us/en/embedded/products/quark/mcu/se-soc/overview.html)
++   [Intel® Quark™ SE 微控制器](http://www.intel.com/content/www/us/en/embedded/products/quark/mcu/se-soc/overview.html)
 
 +   [Intel® Quark™ Microcontroller D2000](http://www.intel.com/content/www/us/en/embedded/products/quark/mcu/d2000/overview.html)
 
 +   [Intel® Quark™ Microcontroller D1000](http://www.intel.com/content/www/us/en/embedded/products/quark/mcu/d1000/overview.html)
 
-![](90c073b6.png)
+![](img/90c073b6.png)
 
 # MinnowBoard MAX
 
@@ -1783,49 +1783,49 @@ Breakout Boards
     processor       : 1 
 ```
 
-![](b80fb10f.png)
+![](img/b80fb10f.png)
 
 # Up Board
 
-> 你准备好了吗？UP释放了英特尔x5-Z8350四核1.44Ghz（1.92GHz）64位2W CPU的强大性能。40引脚I/O连接器、USB 3.0 OTG、千兆以太网、HDMI和更多其他功能使它成为不同领域和产品的理想解决方案，如机器人技术、无人机、机器视觉、智能家居、教育、数字标牌、智能汽车、物联网。与Linux、Android以及所有Windows 10发行版的兼容性为您提供了巨大的灵活性、可扩展性和快速上市时间。
+> 你准备好了吗？UP 释放了英特尔 x5-Z8350 四核 1.44Ghz（1.92GHz）64 位 2W CPU 的强大性能。40 引脚 I/O 连接器、USB 3.0 OTG、千兆以太网、HDMI 和更多其他功能使它成为不同领域和产品的理想解决方案，如机器人技术、无人机、机器视觉、智能家居、教育、数字标牌、智能汽车、物联网。与 Linux、Android 以及所有 Windows 10 发行版的兼容性为您提供了巨大的灵活性、可扩展性和快速上市时间。
 
 [Up Board 主页](http://www.up-board.org/)
 
-![](40ff4c74.png)
+![](img/40ff4c74.png)
 
 # Lattepanda
 
-> LattePanda具有四核1.8Ghz、2/4G内存、32/64 GB eMMC、WIFI、蓝牙4.0和USB 3.0等特色，另外还搭载了Arduino处理器！
+> LattePanda 具有四核 1.8Ghz、2/4G 内存、32/64 GB eMMC、WIFI、蓝牙 4.0 和 USB 3.0 等特色，另外还搭载了 Arduino 处理器！
 
 +   [Lattepanda 众筹网站](https://www.kickstarter.com/projects/139108638/lattepanda-a-45-win10-computer-for-everything)
 
 +   [Lattepanda 英特尔博客](https://blogs.intel.com/evangelists/2015/12/16/meet-the-lattepanda-a-69-windows-10-intel-atom-iot-pc/)
 
-![](dc5cb847.gif%3fw%3d680%26fit%3dmax%26v%3d1448911283%26q%3d92%26s%3d9b8811f0e43eb4cbcbb07cf7cae8ba05)
+![](img/dc5cb847.gif%3fw%3d680%26fit%3dmax%26v%3d1448911283%26q%3d92%26s%3d9b8811f0e43eb4cbcbb07cf7cae8ba05)
 
 # Kangaroo
 
 > 你的袋鼠，时尚小巧。独特个性。无比多功能。[首页](http://www.kangaroo.cc/)
 
-![](c072e4be.jpg)
+![](img/c072e4be.jpg)
 
 # 英特尔® RealSense™ 机器人开发套件
 
 > 英特尔® RealSense™ 机器人开发套件是一个捆绑销售的产品，包含一块信用卡大小的板子和一台英特尔® RealSense™ 摄像头（R200）。这种高性能计算和低功耗的结合填补了快速原型设计和最终产品设计之间的差距。[Intel® RealSense™ 机器人开发套件](https://software.intel.com/en-us/realsense/robotic-development-kit)
 
-![](c659b508.jpg)
+![](img/c659b508.jpg)
 
 # 英特尔® Core i3、i5、i7
 
-> Intel Core是英特尔用于各种中高端消费者和企业微处理器的品牌名称。这些处理器取代了当时的中高端奔腾处理器，将奔腾系列处理器提升到入门级别，并将赛扬系列处理器提升到低端。与Core处理器相同或更强大的版本也作为Xeon处理器销售，用于服务器和工作站市场。截至2015年，当前的Core处理器系列包括英特尔Core i7、英特尔Core i5、英特尔Core i3和Core M。维基百科
+> Intel Core 是英特尔用于各种中高端消费者和企业微处理器的品牌名称。这些处理器取代了当时的中高端奔腾处理器，将奔腾系列处理器提升到入门级别，并将赛扬系列处理器提升到低端。与 Core 处理器相同或更强大的版本也作为 Xeon 处理器销售，用于服务器和工作站市场。截至 2015 年，当前的 Core 处理器系列包括英特尔 Core i7、英特尔 Core i5、英特尔 Core i3 和 Core M。维基百科
 
 [英特尔® Core](https://en.wikipedia.org/wiki/Intel_Core)
 
-# Congatec的TC170 COM Express卡
+# Congatec 的 TC170 COM Express 卡
 
 +   [Congatec 的 TC170 COM Express 卡使用最新的英特尔 SoC](http://www.electronicproducts.com/Board_Level_Products/Single_Board_Computer/TC170_COM_Express_card_from_Congatec_features_latest_Intel_SoC.aspx)
 
-![](ca67cbec.png)
+![](img/ca67cbec.png)
 
 # 开发主机
 
@@ -1833,9 +1833,9 @@ Breakout Boards
 
 任何这些操作系统
 
-+   Windows® 64位
++   Windows® 64 位
 
-+   Windows® 32位
++   Windows® 32 位
 
 +   OS X®
 
@@ -1965,7 +1965,7 @@ Hit any key to stop autoboot:  1
 
 # Yocto
 
-> 它不是一个嵌入式 Linux 发行版 - 它为您创建一个定制的发行版。Yocto 项目是一个开源协作项目，提供模板、工具和方法，帮助您为嵌入式产品创建定制的基于 Linux 的系统，无论硬件架构如何。它于2010年成立，是许多硬件制造商、开源操作系统供应商和电子公司之间的合作，旨在为嵌入式 Linux 开发带来一些秩序。
+> 它不是一个嵌入式 Linux 发行版 - 它为您创建一个定制的发行版。Yocto 项目是一个开源协作项目，提供模板、工具和方法，帮助您为嵌入式产品创建定制的基于 Linux 的系统，无论硬件架构如何。它于 2010 年成立，是许多硬件制造商、开源操作系统供应商和电子公司之间的合作，旨在为嵌入式 Linux 开发带来一些秩序。
 
 [Yocto 项目](http://www.yoctoproject.org/)
 
@@ -2079,7 +2079,7 @@ Hit any key to stop autoboot:  1
 
 +   [Tizen](https://www.tizen.org/)
 
-+   [嵌入式Linux维基](http://elinux.org/Main_Page)
++   [嵌入式 Linux 维基](http://elinux.org/Main_Page)
 
 +   [操作系统：Google FUCHSIA（LK + MAGENTA）](http://thenextweb.com/google/2016/08/13/google-is-secretly-creating-a-new-os-thats-not-based-on-linux/)
 
@@ -2091,13 +2091,13 @@ Hit any key to stop autoboot:  1
 
     +   [4](https://fuchsia.googlesource.com/?format=HTML)
 
-# 嵌入式Linux
+# 嵌入式 Linux
 
-# 嵌入式Linux
+# 嵌入式 Linux
 
-> 基于Linux内核的操作系统被用于嵌入式系统...由于其多功能性，基于Linux内核的操作系统也可以在移动设备中找到...[维基百科](https://en.wikipedia.org/wiki/Linux_on_embedded_systems)
+> 基于 Linux 内核的操作系统被用于嵌入式系统...由于其多功能性，基于 Linux 内核的操作系统也可以在移动设备中找到...[维基百科](https://en.wikipedia.org/wiki/Linux_on_embedded_systems)
 > 
-> 本维基的目的是保存和展示关于Linux在嵌入式系统中的开发和使用以及一般嵌入式开发的开源项目和工具的信息。要使用此维基，请点击下面的一个门户链接。[ELinux首页](http://elinux.org/Main_Page)
+> 本维基的目的是保存和展示关于 Linux 在嵌入式系统中的开发和使用以及一般嵌入式开发的开源项目和工具的信息。要使用此维基，请点击下面的一个门户链接。[ELinux 首页](http://elinux.org/Main_Page)
 
 # 板支持包
 
@@ -2107,23 +2107,23 @@ Hit any key to stop autoboot:  1
 
 # 板支持包更新简介
 
-[在Windows系统上刷新固件（手动过程）](https://software.intel.com/en-us/flashing-firmware-on-your-intel-edison-board-windows)
+[在 Windows 系统上刷新固件（手动过程）](https://software.intel.com/en-us/flashing-firmware-on-your-intel-edison-board-windows)
 
 ## Intel® Edison
 
-> 下载驱动程序、安装程序、新固件映像、IDE和云分析以及网关软件等组件。
+> 下载驱动程序、安装程序、新固件映像、IDE 和云分析以及网关软件等组件。
 
-+   [Intel® Edison板软件下载](https://software.intel.com/en-us/iot/hardware/edison/downloads)
++   [Intel® Edison 板软件下载](https://software.intel.com/en-us/iot/hardware/edison/downloads)
 
-+   [最新发布的3.5 Yocto完整映像“Edison的最新Yocto Poky映像”](https://software.intel.com/edison-image/latest)
++   [最新发布的 3.5 Yocto 完整映像“Edison 的最新 Yocto Poky 映像”](https://software.intel.com/edison-image/latest)
 
-+   [Intel® Edison板软件发布3.5发布说明](https://software.intel.com/en-us/blogs/2016/06/06/intel-iot-dev-kit-35-release-announcement)
++   [Intel® Edison 板软件发布 3.5 发布说明](https://software.intel.com/en-us/blogs/2016/06/06/intel-iot-dev-kit-35-release-announcement)
 
-+   [发布3.0 Yocto完整映像iot-devkit-prof-dev-image-edison-20160315.zip](https://downloadmirror.intel.com/25871/eng/iot-devkit-prof-dev-image-edison-20160315.zip)
++   [发布 3.0 Yocto 完整映像 iot-devkit-prof-dev-image-edison-20160315.zip](https://downloadmirror.intel.com/25871/eng/iot-devkit-prof-dev-image-edison-20160315.zip)
 
-+   [Intel® Edison板软件发布3.0发布说明](https://software.intel.com/en-us/blogs/2016/03/30/intel-iot-developer-kit-30-release-notes)
++   [Intel® Edison 板软件发布 3.0 发布说明](https://software.intel.com/en-us/blogs/2016/03/30/intel-iot-developer-kit-30-release-notes)
 
-### 发布3.5 Yocto
+### 发布 3.5 Yocto
 
 ```
 xe1gyq@jessie:~/Downloads/edison/20160606$ unzip iot-devkit-prof-dev-image-edison-20160606.zip 
@@ -2168,7 +2168,7 @@ Archive:  iot-devkit-prof-dev-image-edison-20160606.zip
 xe1gyq@jessie:~/Downloads/edison/20160606$ 
 ```
 
-### 发布3.0 Yocto
+### 发布 3.0 Yocto
 
 ```
 xe1gyq@jessie:~/Downloads/latestedison$ unzip iot-devkit-prof-dev-image-edison-20160315.zip 
@@ -2217,13 +2217,13 @@ Archive:  iot-devkit-prof-dev-image-edison-20160315.zip
 
 命令行刷新过程在您的主机计算机上进行：
 
-+   下载最新版本的Yocto完整映像
++   下载最新版本的 Yocto 完整映像
 
 +   解压缩其内容
 
 +   在终端中，转到已解压缩内容的目录
 
-+   并使用flashall.[sh/bat]脚本刷新映像
++   并使用 flashall.[sh/bat]脚本刷新映像
 
 #### 基于 Windows 的开发工作站
 
@@ -2241,7 +2241,7 @@ Archive:  iot-devkit-prof-dev-image-edison-20160315.zip
 
 ### 驱动程序流程
 
-+   [开始使用 Intel Edison 第2部分：更新 Linux](https://www.youtube.com/watch?v=0EJDoRwDfoU)
++   [开始使用 Intel Edison 第 2 部分：更新 Linux](https://www.youtube.com/watch?v=0EJDoRwDfoU)
 
 ##### Yocto 发行版 3.5
 
@@ -2306,7 +2306,7 @@ Your board needs to reboot to complete the flashing procedure, please do not unp
 
 +   [Intel® Galileo 开发板下载](https://software.intel.com/en-us/iot/hardware/galileo/downloads)
 
-+   [使用 Windows 制作可启动的微型SD卡](https://software.intel.com/en-us/programming-blank-sd-card-with-yocto-linux-image-windows)
++   [使用 Windows 制作可启动的微型 SD 卡](https://software.intel.com/en-us/programming-blank-sd-card-with-yocto-linux-image-windows)
 
 +   [Win32DiskImager](http://sourceforge.net/projects/win32diskimager)
 
@@ -2411,7 +2411,7 @@ root@edison:~#
               ... 
 ```
 
-不要执行这一步！如果仅配置了 WiFi，请还配置密码以启用无线接口上的SSH
+不要执行这一步！如果仅配置了 WiFi，请还配置密码以启用无线接口上的 SSH
 
 ```
  root@edison:~# configure_edison --password
@@ -2441,7 +2441,7 @@ root@edison:~#
     3.8.7-yocto-standard 
 ```
 
-检查分配的IP地址
+检查分配的 IP 地址
 
 ```
  root@galileo:~# ifconfig
@@ -2455,7 +2455,7 @@ root@edison:~#
               ... 
 ```
 
-如果未分配IP地址，则启动以太网接口
+如果未分配 IP 地址，则启动以太网接口
 
 ```
  root@galileo:~# ifup eth0 up 
@@ -2811,7 +2811,7 @@ src/gz i586 http://repo.opkg.net/galileo/repo/i586
 
 最后您的 github 仓库应该已创建，具有一个 URL
 
-[https://github.com/YourGithubUserName/TheIoTLearningInitiative](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
+[`github.com/YourGithubUserName/TheIoTLearningInitiative`](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
 
 ## 在开发板下安装和设置 Git
 
@@ -2985,7 +2985,7 @@ root@board:~#
     LICENSE    README.md 
 ```
 
-查看变更内容：[https://github.com/YourGithubUserName/TheIoTLearningInitiative](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
+查看变更内容：[`github.com/YourGithubUserName/TheIoTLearningInitiative`](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
 
 # 项目：基础目录
 
@@ -3083,7 +3083,7 @@ index 0000000..c8bd91a
 +# Internet of Things 101 
 ```
 
-查看变更内容：[https://github.com/YourGithubUserName/TheIoTLearningInitiative](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
+查看变更内容：[`github.com/YourGithubUserName/TheIoTLearningInitiative`](https://github.com/YourGithubUserName/TheIoTLearningInitiative)
 
 此时，你的 github 仓库目录结构应如下所示：
 
@@ -3542,63 +3542,63 @@ https://github.com/YourGithubUserName/TheIoTLearningInitiative
 
 > 具有 JavaScript 和 Python 绑定的 C/C++ 库，用于与 Intel® Galileo 、Intel® Edison 以及其他平台的 I/O 进行交互。通过在运行时进行板检测，您可以创建跨多个平台运行的可移植代码。
 
-+   需要读取ADC值的AIO传感器
++   需要读取 ADC 值的 AIO 传感器
 
-+   使用i2c总线的I2C模块
++   使用 i2c 总线的 I2C 模块
 
-+   使用SPI总线的SPI模块
++   使用 SPI 总线的 SPI 模块
 
-+   直接使用GPIO的GPIO模块
++   直接使用 GPIO 的 GPIO 模块
 
-+   使用支持PWM的GPIO引脚的PWM模块
++   使用支持 PWM 的 GPIO 引脚的 PWM 模块
 
-+   使用串行连接（RX/TX）的UART模块
++   使用串行连接（RX/TX）的 UART 模块
 
 +   [MRAA Github](https://github.com/intel-iot-devkit/mraa)
 
 # Upm
 
-> 用于使用libmraa的传感器和执行器的高级存储库。换句话说，UPM为您提供了方便的函数调用，以使用您的传感器，例如读取温度值或向LCD屏幕写入数据。拥有超过一百种传感器，并且正在添加更多，这个库加快了您的开发时间。
+> 用于使用 libmraa 的传感器和执行器的高级存储库。换句话说，UPM 为您提供了方便的函数调用，以使用您的传感器，例如读取温度值或向 LCD 屏幕写入数据。拥有超过一百种传感器，并且正在添加更多，这个库加快了您的开发时间。
 
-+   [UPM文档](http://iotdk.intel.com/docs/master/upm/index.html)
++   [UPM 文档](http://iotdk.intel.com/docs/master/upm/index.html)
 
-+   [UPM传感器类别](http://iotdk.intel.com/docs/master/upm/modules.html)
++   [UPM 传感器类别](http://iotdk.intel.com/docs/master/upm/modules.html)
 
 +   [UPM Github](https://github.com/intel-iot-devkit/upm)
 
-+   [UPM Python示例](https://github.com/intel-iot-devkit/upm/tree/master/examples/python)
++   [UPM Python 示例](https://github.com/intel-iot-devkit/upm/tree/master/examples/python)
 
-UPD更新
+UPD 更新
 
-+   ModBus和BACNet等协议
++   ModBus 和 BACNet 等协议
 
 +   无线电/无线模块
 
-+   XBee插座设备
++   XBee 插座设备
 
 +   ZigBee，WiFi，WiFly
 
-+   LoRa——SX1276芯片
++   LoRa——SX1276 芯片
 
-+   ZWave——USB控制器
++   ZWave——USB 控制器
 
-+   ISM（工业、科学和医疗）频移键控（FSK）在434和915 MHz
++   ISM（工业、科学和医疗）频移键控（FSK）在 434 和 915 MHz
 
 # OpenCV
 
-> OpenCV（开源计算机视觉库）是一个开源的计算机视觉和机器学习软件库。OpenCV旨在为计算机视觉应用程序提供一个通用基础设施，并加速商业产品中机器感知的使用。
+> OpenCV（开源计算机视觉库）是一个开源的计算机视觉和机器学习软件库。OpenCV 旨在为计算机视觉应用程序提供一个通用基础设施，并加速商业产品中机器感知的使用。
 
-+   [OpenCV主页](http://opencv.org/)
++   [OpenCV 主页](http://opencv.org/)
 
 # 物联网套件��信（IoTkitcomm）库
 
-> IoTkitcomm库允许网络连接的设备轻松发现和彼此通信以及与云端通信。
+> IoTkitcomm 库允许网络连接的设备轻松发现和彼此通信以及与云端通信。
 
 +   [物联网套件通信指数](http://iotkit-comm-c.s3-website-us-west-2.amazonaws.com/api/index.html)
 
-+   [物联网套件通信JavaScript版本](https://github.com/intel-iot-devkit/iotkit-comm-js)
++   [物联网套件通信 JavaScript 版本](https://github.com/intel-iot-devkit/iotkit-comm-js)
 
-+   [物联网套件通信C/C++版本](https://github.com/intel-iot-devkit/iotkit-comm-c)
++   [物联网套件通信 C/C++版本](https://github.com/intel-iot-devkit/iotkit-comm-c)
 
 ```
  Terminal A
@@ -3613,19 +3613,19 @@ UPD更新
 
 # 更新
 
-# Yocto更新MRAA I/O和UPM传感器库
+# Yocto 更新 MRAA I/O 和 UPM 传感器库
 
-您可以检查您的板上安装的MRAA和UPM库的版本，并将它们更新到最新版本：
+您可以检查您的板上安装的 MRAA 和 UPM 库的版本，并将它们更新到最新版本：
 
-> MRAA I/O库（或libmraa）是一个低级库，提供了通用输入/输出（GPIO）接口到Intel® Galileo或Intel® Edison板上可用引脚的转换。MRAA使开发人员和传感器制造商更容易将其传感器和执行器映射到支持的硬件上，并允许高级语言和结构控制低级通信协议。
+> MRAA I/O 库（或 libmraa）是一个低级库，提供了通用输入/输出（GPIO）接口到 Intel® Galileo 或 Intel® Edison 板上可用引脚的转换。MRAA 使开发人员和传感器制造商更容易将其传感器和执行器映射到支持的硬件上，并允许高级语言和结构控制低级通信协议。
 > 
-> UPM传感器库（或libupm）是一个使用C++编写的传感器表示库，利用MRAA。UPM是一个使用MRAA库的传感器的高级存储库。每个传感器链接到libmraa，并且不打算相互链接，尽管一些传感器组可能会。每个传感器包含一个头文件，允许您与其进行接口。
+> UPM 传感器库（或 libupm）是一个使用 C++编写的传感器表示库，利用 MRAA。UPM 是一个使用 MRAA 库的传感器的高级存储库。每个传感器链接到 libmraa，并且不打算相互链接，尽管一些传感器组可能会。每个传感器包含一个头文件，允许您与其进行接口。
 
-***最新版本的MRAA和UPM可以在它们各自的GitHub页面找到：***
+***最新版本的 MRAA 和 UPM 可以在它们各自的 GitHub 页面找到：***
 
-+   [https://github.com/intel-iot-devkit/mraa/releases](https://github.com/intel-iot-devkit/mraa/releases)
++   [`github.com/intel-iot-devkit/mraa/releases`](https://github.com/intel-iot-devkit/mraa/releases)
 
-+   [https://github.com/intel-iot-devkit/upm/releases](https://github.com/intel-iot-devkit/upm/releases)
++   [`github.com/intel-iot-devkit/upm/releases`](https://github.com/intel-iot-devkit/upm/releases)
 
 ### 更新 MRAA 和 UPM 库
 
@@ -3659,9 +3659,9 @@ UPD更新
 
 在下面的示例图像中，版本号用红色箭头表示。
 
-![](../images/teerminal_update.png)
+![](img/teerminal_update.png)
 
-**注意**：请注意仓库路径没有更新，最新路径为 [http://iotdk.intel.com/repos/2.0/intelgalactic/](http://iotdk.intel.com/repos/2.0/intelgalactic/)，这里包含这些库的最新版本。读者应该始终注意通过定期访问 [http://iotdk.intel.com/repos/](http://iotdk.intel.com/repos/) 来保持路径变更的最新状态。
+**注意**：请注意仓库路径没有更新，最新路径为 [`iotdk.intel.com/repos/2.0/intelgalactic/`](http://iotdk.intel.com/repos/2.0/intelgalactic/)，这里包含这些库的最新版本。读者应该始终注意通过定期访问 [`iotdk.intel.com/repos/`](http://iotdk.intel.com/repos/) 来保持路径变更的最新状态。
 
 [此信息的原始链接](https://software.intel.com/en-us/node/561722)
 
@@ -3709,11 +3709,11 @@ UPD更新
 
 # Linux 命令行
 
-> 触手可及的力量！Linux是一个类Unix的，大多数遵循POSIX标准的计算机操作系统（OS），它是在自由和开源软件开发和分发模型下组装的。[维基百科](https://en.wikipedia.org/wiki/Linux)
+> 触手可及的力量！Linux 是一个类 Unix 的，大多数遵循 POSIX 标准的计算机操作系统（OS），它是在自由和开源软件开发和分发模型下组装的。[维基百科](https://en.wikipedia.org/wiki/Linux)
 
-# Intel® IQ软件套件
+# Intel® IQ 软件套件
 
-> Intel宣布了一种专为Intel Curie模块创建的新软件平台，该平台包括启用各种设备体验所需的所有硬件、固件、软件和应用SDK。 Intel IQ软件套件将支持此平台的未来版本。
+> Intel 宣布了一种专为 Intel Curie 模块创建的新软件平台，该平台包括启用各种设备体验所需的所有硬件、固件、软件和应用 SDK。 Intel IQ 软件套件将支持此平台的未来版本。
 
 # 数据
 
@@ -3731,55 +3731,55 @@ UPD更新
 
 > 传感器是一种传感器，其目的是感知（即检测）其环境的某些特征... *来自维基百科，自由的百科全书*
 
-## Intel® Edison生态系统
+## Intel® Edison 生态系统
 
 > 传感器将物联网项目带到生活中。传感器就像眼睛和耳朵，温度和振动和旋转等... 你懂的。没有传感器，就没有物联网。
 
-+   [扩展您的Intel® Edison生态系统并快速开始制作套件](https://www-ssl.intel.com/content/www/us/en/do-it-yourself/edison.html#kits)
++   [扩展您的 Intel® Edison 生态系统并快速开始制作套件](https://www-ssl.intel.com/content/www/us/en/do-it-yourself/edison.html#kits)
 
-> Intel® Edison专用的SparkFun发明家套件
+> Intel® Edison 专用的 SparkFun 发明家套件
 > 
-> > Intel® Edison SparkFun发明家套件将想象力提升到了新的水平，并教用户如何使用物联网和JavaScript进行编程。
+> > Intel® Edison SparkFun 发明家套件将想象力提升到了新的水平，并教用户如何使用物联网和 JavaScript 进行编程。
 
-![](51dd1f04.jpg)
+![](img/51dd1f04.jpg)
 
-> Devastator机器人套件
+> Devastator 机器人套件
 > 
 > > 这是一个多功能机器人平台套件，其功能包括避障、实时监控和全方位视角。
 
-![](5494814b.jpg)
+![](img/5494814b.jpg)
 
-> **过时！**Grove入门套件 Plus* - Intel® IoT版
+> **过时！**Grove 入门套件 Plus* - Intel® IoT 版
 > 
 > > 为创建创新的物联网解决方案提供了一套完整的硬件和软件资源。
 > > 
-> 用于Intel® Edison的Grove室内环境套件
+> 用于 Intel® Edison 的 Grove 室内环境套件
 > 
-> > 使用Grove*传感器创建完整的智能家居应用程序以测量室内环境。
+> > 使用 Grove*传感器创建完整的智能家居应用程序以测量室内环境。
 
-![](eccfeb54.jpg)
+![](img/eccfeb54.jpg)
 
 ### Sparkfun
 
-> SparkFun Electronics（有时被简称为SFE）是美国科罗拉多州Niwot的一家电子零售商。它生产和销售微控制器开发板和拓展板。[Sparkfun](https://www.sparkfun.com/)
+> SparkFun Electronics（有时被简称为 SFE）是美国科罗拉多州 Niwot 的一家电子零售商。它生产和销售微控制器开发板和拓展板。[Sparkfun](https://www.sparkfun.com/)
 
 [Intel® Edison Sparkfun](https://www.sparkfun.com/categories/272)
 
 ### Seeed Studio
 
-> Seeed是一个硬件创新平台，为创客将灵感转化为具有差异化的产品提供支持。通过与各种规模的技术提供商密切合作，Seeed提供质量、速度和供应链知识丰富的可访问技术。当原型准备好迭代时，Seeed通过内部工程、供应链管理和敏捷制造力量帮助将产品量产1至1,000个。Seeed还与孵化器、中国科技生态系统、投资者和分销渠道合作，将创客初创公司引向更远的地方。[Seeed Studio](http://www.seeedstudio.com/depot/)
+> Seeed 是一个硬件创新平台，为创客将灵感转化为具有差异化的产品提供支持。通过与各种规模的技术提供商密切合作，Seeed 提供质量、速度和供应链知识丰富的可访问技术。当原型准备好迭代时，Seeed 通过内部工程、供应链管理和敏捷制造力量帮助将产品量产 1 至 1,000 个。Seeed 还与孵化器、中国科技生态系统、投资者和分销渠道合作，将创客初创公司引向更远的地方。[Seeed Studio](http://www.seeedstudio.com/depot/)
 
-[SeedStudio Grove - Arduino入门套件](http://www.seeedstudio.com/depot/Grove-Starter-Kit-for-Arduino-p-1855.html)
+[SeedStudio Grove - Arduino 入门套件](http://www.seeedstudio.com/depot/Grove-Starter-Kit-for-Arduino-p-1855.html)
 
 ### Adafruit
 
-> Adafruit Industries是由Limor Fried于2005年创立的开源硬件公司。该公司设计和制造多种电子产品，通过其在线商店销售各种电子元件、工具和配件，并制作一系列学习资源，包括书面教程、儿童入门视频，以及互联网上历史最悠久的实况视频电子���示。[Adafruit Industries](https://www.adafruit.com/)
+> Adafruit Industries 是由 Limor Fried 于 2005 年创立的开源硬件公司。该公司设计和制造多种电子产品，通过其在线商店销售各种电子元件、工具和配件，并制作一系列学习资源，包括书面教程、儿童入门视频，以及互联网上历史最悠久的实况视频电子���示。[Adafruit Industries](https://www.adafruit.com/)
 
 ### DFRobot
 
-> 成立于2008年，DFRobot是一家机器人和开源硬件提供商，为硬件工程师、DIY爱好者和互动设计师提供服务。我们不断增长的产品目录拥有超过900种组件和小部件，从传感器、机器人平台、通信模块到3D打印机。[DFRobot](http://www.dfrobot.com/)
+> 成立于 2008 年，DFRobot 是一家机器人和开源硬件提供商，为硬件工程师、DIY 爱好者和互动设计师提供服务。我们不断增长的产品目录拥有超过 900 种组件和小部件，从传感器、机器人平台、通信模块到 3D 打印机。[DFRobot](http://www.dfrobot.com/)
 
-+   [DFRobot Intel® Edison/Galileo入门套件](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1200#.ViDjFm1Ok_M)
++   [DFRobot Intel® Edison/Galileo 入门套件](http://www.dfrobot.com/index.php?route=product/product&path=166&product_id=1200#.ViDjFm1Ok_M)
 
 ### 其他
 
@@ -3793,28 +3793,28 @@ UPD更新
 
 +   [Relayr Wunderbar](http://www.dragoninnovation.com/projects/35-wunderbar-by-relayr)
 
-+   [AllThingsTalk商店](http://shop.smartliving.io/)
++   [AllThingsTalk 商店](http://shop.smartliving.io/)
 
-+   [顶级DIY电子商店供应商](http://www.instructables.com/id/Top-DIY-Electronics-Stores-Suppliers/)
++   [顶级 DIY 电子商店供应商](http://www.instructables.com/id/Top-DIY-Electronics-Stores-Suppliers/)
 
-+   [Intel Edison音频模块](http://www.malinov.com/Home/sergeys-projects/audio-block-for-intel-edison)
++   [Intel Edison 音频模块](http://www.malinov.com/Home/sergeys-projects/audio-block-for-intel-edison)
 
 ### 项目：模拟传感器
 
-实现一个函数来模拟一个传感器，数据将基于系统范围的网络I/O统计数据，使用psutil Python库，模拟传感器是为了在没有物理传感器的情况下实现
+实现一个函数来模拟一个传感器，数据将基于系统范围的网络 I/O 统计数据，使用 psutil Python 库，模拟传感器是为了在没有物理传感器的情况下实现
 
 #### PSUtil
 
-> psutil是一个跨平台库，用于在Python中检索有关运行进程和系统利用率（CPU、内存、磁盘、网络）的信息。[Psutil库](https://pypi.python.org/pypi/psutil)
+> psutil 是一个跨平台库，用于在 Python 中检索有关运行进程和系统利用率（CPU、内存、磁盘、网络）的信息。[Psutil 库](https://pypi.python.org/pypi/psutil)
 
-安装所需的Python库
+安装所需的 Python 库
 
 ```
  root@edison:~# opkg install python-pip
     root@edison:~# pip install psutil 
 ```
 
-转到您的git "TheIoTLearningInitiative"存储库，在"InternetOfThings101"目录下
+转到您的 git "TheIoTLearningInitiative"存储库，在"InternetOfThings101"目录下
 
 ```
  root@board:~# cd TheIoTLearningInitiative/InternetOfThings101
@@ -4405,13 +4405,13 @@ index 2b727e6..f6cdffa 100644
 
 # 线程
 
-> IoT领域中的一项较新标准，由谷歌旗下智能家居电器初创公司Nest使用。该标准背后的工作组包括三星、ARM控股、飞思卡尔、硅实验室和大风扇公司。Thread创建了一个支持云访问和AES加密的最多可连接250个设备的IP地址网格网络。
+> IoT 领域中的一项较新标准，由谷歌旗下智能家居电器初创公司 Nest 使用。该标准背后的工作组包括三星、ARM 控股、飞思卡尔、硅实验室和大风扇公司。Thread 创建了一个支持云访问和 AES 加密的最多可连接 250 个设备的 IP 地址网格网络。
 
 [Thread Group 主页](http://threadgroup.org/)
 
 # HomeKit
 
-> HomeKit被认为是一个通过Wi-Fi和蓝牙将苹果制造和苹果认证设备联合起来的平台。苹果已经公布了一份包括iHome、海尔、Withings、飞利浦、iDevices、Belkin、Honeywell和Kwikset在内的合作伙伴名单。
+> HomeKit 被认为是一个通过 Wi-Fi 和蓝牙将苹果制造和苹果认证设备联合起来的平台。苹果已经公布了一份包括 iHome、海尔、Withings、飞利浦、iDevices、Belkin、Honeywell 和 Kwikset 在内的合作伙伴名单。
 
 # 协议
 
@@ -4423,19 +4423,19 @@ index 2b727e6..f6cdffa 100644
 
 # IPv6
 
-> 互联网协议第6版（IPv6）是互联网协议（IP）的最新版本，提供了用于网络上计算机的识别和定位系统以及在互联网上路由流量的通信协议。IPv6由互联网工程任务组（IETF）开发，以解决IPv4地址枯竭的长期问题。IPv6旨在取代IPv4。维基百科
+> 互联网协议第 6 版（IPv6）是互联网协议（IP）的最新版本，提供了用于网络上计算机的识别和定位系统以及在互联网上路由流量的通信协议。IPv6 由互联网工程任务组（IETF）开发，以解决 IPv4 地址枯竭的长期问题。IPv6 旨在取代 IPv4。维基百科
 
 +   [IPv6 维基百科](https://en.wikipedia.org/wiki/IPv6)
 
-# Ajax，Web服务，RESTful通信协议
+# Ajax，Web 服务，RESTful 通信协议
 
-> 这些协议建立在HTTP之上，因此受到与HTTP相同的限制。许多这些协议还需要大量处理，并具有庞大的代码规模。许多服务提供商推广使用这些协议，因为它们的后端基础设施基于标准的Web服务器，无法处理除HTTP之外的任何其他类型的协议。
+> 这些协议建立在 HTTP 之上，因此受到与 HTTP 相同的限制。许多这些协议还需要大量处理，并具有庞大的代码规模。许多服务提供商推广使用这些协议，因为它们的后端基础设施基于标准的 Web 服务器，无法处理除 HTTP 之外的任何其他类型的协议。
 
 +   [思科 DevNet REST](https://developer.cisco.com/site/devnet/learn/coding-101-tutorial/#rest-in-action:-now-let's-try-it!)
 
 # RESTful API（表述状态转移）
 
-> 在计算领域，表述状态转移（REST）是万维网的软件架构风格。REST的一系列协调约束，应用于分布式超媒体系统中组件的设计，可以导致性能更高、更易维护的软件架构。[维基百科](https://en.wikipedia.org/wiki/Representational_state_transfer)
+> 在计算领域，表述状态转移（REST）是万维网的软件架构风格。REST 的一系列协调约束，应用于分布式超媒体系统中组件的设计，可以导致性能更高、更易维护的软件架构。[维基百科](https://en.wikipedia.org/wiki/Representational_state_transfer)
 > 
 > 在系统遵循 REST 约束的程度上，可以称为 RESTful。RESTful 系统通常但不总是使用超文本传输协议（HTTP）进行通信，使用与 web 浏览器用于检索网页和向远程服务器发送数据相同的 HTTP 动词（GET、POST、PUT、DELETE 等）。[4] REST 系统与外部系统接口，作为统一资源标识符（URI）标识的 Web 资源进行操作，例如/people/tom，可以使用标准动词操作，例如 DELETE /people/tom。[Wikipedia](https://en.wikipedia.org/wiki/Representational_state_transfer)
 
@@ -4455,7 +4455,7 @@ index 2b727e6..f6cdffa 100644
 
 > Flask-RESTful 是 Flask 的扩展，为快速构建 REST API 提供支持。它是一个轻量级的抽象，可以与您现有的 ORM/库一起使用。Flask-RESTful 通过最小的设置鼓励最佳实践。如果您熟悉 Flask，那么 Flask-RESTful 应该很容易上手。[Flask-RESTful 文档](http://flask-restful.readthedocs.org/en/latest/index.html)
 > 
-> 是时候编写你的第一个 REST API 了。本指南假定您对 Flask 有一定的了解，并且您已经安装了 Flask 和 Flask-RESTful。[这里](http:/flask-restful-cn.readthedocs.org/en/0.3.4/quickstart.html)
+> 是时候编写你的第一个 REST API 了。本指南假定您对 Flask 有一定的了解，并且您已经安装了 Flask 和 Flask-RESTful。这里
 
 ```
  root@board:~# pip install flask-restful
@@ -4642,7 +4642,7 @@ mosquitto_sub is a simple mqtt client that will subscribe to a single topic and 
 
 #### Mosquitto 演示温度计
 
-转到 [http://test.mosquitto.org/gauge/](http://test.mosquitto.org/gauge/) 并执行
+转到 [`test.mosquitto.org/gauge/`](http://test.mosquitto.org/gauge/) 并执行
 
 ```
  root@platform:~# mosquitto_pub -h test.mosquitto.org -t temp/random -m 23.0 
@@ -5072,23 +5072,23 @@ index 9c2af2d..2e5cc10 100644
 
 > 高级消息队列协议（AMQP）是用于在应用程序或组织之间传递业务消息的开放标准。它连接系统，为业务流程提供所需的信息，并可可靠地将实现其目标的指令传递到后续处理。
 
-+   [AMQP首页](https://www.amqp.org/)
++   [AMQP 首页](https://www.amqp.org/)
 
 +   [Pika](https://github.com/pika/pika)
 
-+   [Python的低级AMQP客户端](https://pypi.python.org/pypi/amqp/1.4.8)
++   [Python 的低级 AMQP 客户端](https://pypi.python.org/pypi/amqp/1.4.8)
 
 +   [IBM MQ Light](https://developer.ibm.com/messaging/mq-light/)
 
-+   [MQ Light和AMQP（高级消息队列协议）](https://developer.ibm.com/messaging/mq-light/docs/amqp/)
++   [MQ Light 和 AMQP（高级消息队列协议）](https://developer.ibm.com/messaging/mq-light/docs/amqp/)
 
 # Weave
 
-> Weave*是一种通信协议，支持发现、配置和认证，以便设备可以相互连接和交互，连接到互联网和您的移动平台。 Weave协议帮助物联网开发人员扩展移动应用程序的范围到物理世界。 开发人员可以构建一个应用程序来控制利用谷歌服务的多个设备。
+> Weave*是一种通信协议，支持发现、配置和认证，以便设备可以相互连接和交互，连接到互联网和您的移动平台。 Weave 协议帮助物联网开发人员扩展移动应用程序的范围到物理世界。 开发人员可以构建一个应用程序来控制利用谷歌服务的多个设备。
 > 
-> Weave是一种物联网设备的通信平台，它实现了设备设置、手机到设备到云的通信以及来自移动设备和网络的用户交互。 
+> Weave 是一种物联网设备的通信平台，它实现了设备设置、手机到设备到云的通信以及来自移动设备和网络的用户交互。 
 
-+   [Weave首页](https://developers.google.com/weave/)
++   [Weave 首页](https://developers.google.com/weave/)
 
 # 受限应用协议（CoAP）
 
@@ -5096,19 +5096,19 @@ index 9c2af2d..2e5cc10 100644
 
 # AllJoyn
 
-> 由Qualcomm推广的持久性发布/订阅解决方案。该协议主要针对家用电子产品，但有编组和解组（编码/解码）数据的代码，存在与MQTT相同的大小和代理问题
+> 由 Qualcomm 推广的持久性发布/订阅解决方案。该协议主要针对家用电子产品，但有编组和解组（编码/解码）数据的代码，存在与 MQTT 相同的大小和代理问题
 
 # XMPP
 
-> 一种开源的持久性发布/订阅协议，也可以通过HTTP进行隧道传输。数据以XML编码，因此对设备的代码大小占用较大
+> 一种开源的持久性发布/订阅协议，也可以通过 HTTP 进行隧道传输。数据以 XML 编码，因此对设备的代码大小占用较大
 
 # 6LoWPAN
 
-> 6LoWPAN是IPv6 over Low power Wireless Personal Area Networks的缩写。6LoWPAN是IETF互联网领域的一个已经结束的工作组的名称。维基百科
+> 6LoWPAN 是 IPv6 over Low power Wireless Personal Area Networks 的缩写。6LoWPAN 是 IETF 互联网领域的一个已经结束的工作组的名称。维基百科
 > 
-> 6LoWPAN的概念源自于“即使对最小的设备也应该应用互联网协议”的想法，以及具有有限处理能力的低功耗设备应该能够参与物联网。维基百科
+> 6LoWPAN 的概念源自于“即使对最小的设备也应该应用互联网协议”的想法，以及具有有限处理能力的低功耗设备应该能够参与物联网。维基百科
 
-[6LoWPAN互操作性](http://tools.ietf.org/html/draft-daniel-6lowpan-interoperability-01)
+[6LoWPAN 互操作性](http://tools.ietf.org/html/draft-daniel-6lowpan-interoperability-01)
 
 # ModBus
 
@@ -5451,37 +5451,37 @@ root@edison:~# python maindweet.py
 
 1.  选择一种小部件类型“**Sparkline**”
 
-1.  点击“**DataSource**”并选择[“物联网101”][“状态”]
+1.  点击“**DataSource**”并选择[“物联网 101”][“状态”]
 
 # ThingSpeak
 
 > 十亿和十亿。物联网的开放数据平台
 > 
-> 由Matlab的创作者推出，这是一个多功能的开源平台和API，允许开发人员和应用程序设计人员从传感器和其他来源收集数据、分析和可视化数据。如果您熟悉Matlab，那么这将是一件轻而易举的事情；如果不熟悉，那么学习ThingSpeak似乎也不难，尤其是有很好的教程和文档。整个系统围绕存储数据和应用程序的通���以及可以转换和可视化数据的应用程序展开。另一个好处是该平台完全免费使用。
+> 由 Matlab 的创作者推出，这是一个多功能的开源平台和 API，允许开发人员和应用程序设计人员从传感器和其他来源收集数据、分析和可视化数据。如果您熟悉 Matlab，那么这将是一件轻而易举的事情；如果不熟悉，那么学习 ThingSpeak 似乎也不难，尤其是有很好的教程和文档。整个系统围绕存储数据和应用程序的通���以及可以转换和可视化数据的应用程序展开。另一个好处是该平台完全免费使用。
 
-+   [ThingSpeak主页](https://thingspeak.com/)
++   [ThingSpeak 主页](https://thingspeak.com/)
 
 # Temboo
 
 > 编写一切互联网，您连接设备的软件堆栈。生成可投入生产的代码。立即连接硬件。通过我们的云增强和扩展设备。
 > 
-> 创建、制作、编写一切互联网。另一个API仲裁者称为Temboo。该平台作为第三方API之上的一层，使用代码片段触发通过其云平台运行的复杂流程。代码片段添加到您的设备代码中，可能在Arduino Yun上，并提供跨广泛API范围的函数调用的通用方法。代码片段在不同API之间具有相同的格式。Temboo还试图屏蔽开发人员不必在每个设备上维护API。如果您知道如何为一个应用程序使用Temboo，那么您就知道如何为所有应用程序使用它。
+> 创建、制作、编写一切互联网。另一个 API 仲裁者称为 Temboo。该平台作为第三方 API 之上的一层，使用代码片段触发通过其云平台运行的复杂流程。代码片段添加到您的设备代码中，可能在 Arduino Yun 上，并提供跨广泛 API 范围的函数调用的通用方法。代码片段在不同 API 之间具有相同的格式。Temboo 还试图屏蔽开发人员不必在每个设备上维护 API。如果您知道如何为一个应用程序使用 Temboo，那么您就知道如何为所有应用程序使用它。
 
-+   [Temboo主页](https://www.temboo.com/hardware/)
++   [Temboo 主页](https://www.temboo.com/hardware/)
 
-+   [Temboo拆解物联网](https://temboo.com/deconstructingiot)
++   [Temboo 拆解物联网](https://temboo.com/deconstructingiot)
 
 # PubNub
 
-> 使用PubNub全球数据流网络为物联网、移动和Web应用构建和扩展实时连接设备的应用程序。
+> 使用 PubNub 全球数据流网络为物联网、移动和 Web 应用构建和扩展实时连接设备的应用程序。
 
-[PubNub主页](https://www.pubnub.com/)
+[PubNub 主页](https://www.pubnub.com/)
 
 # Twilio
 
 > 推动现代通信。构建下一代语音和短信应用程序。
 
-+   [Twilio主页](https://www.twilio.com/)
++   [Twilio 主页](https://www.twilio.com/)
 
 # OpenHAB
 
@@ -5491,15 +5491,15 @@ root@edison:~# python maindweet.py
 
 # Weaved
 
-> Weaved是一种先进的防火墙和VPN解决方案，提供直接安全的隧道连接，支持TCP/IP通信。由于这种标准接口，远程管理就像您直接在设备上一样。使用SSH？只需连接。VNC或RDP，只需使用这些应用程序。将Weaved视为远程设备上所有服务的插件，使每个服务都可以直接从任何地方访问。
+> Weaved 是一种先进的防火墙和 VPN 解决方案，提供直接安全的隧道连接，支持 TCP/IP 通信。由于这种标准接口，远程管理就像您直接在设备上一样。使用 SSH？只需连接。VNC 或 RDP，只需使用这些应用程序。将 Weaved 视为远程设备上所有服务的插件，使每个服务都可以直接从任何地方访问。
 
-+   [Weaved主页](https://www.weaved.com/)
++   [Weaved 主页](https://www.weaved.com/)
 
 # Plot.Ly
 
-> Plotly是一款总部位于加拿大魁北克蒙特利尔的在线分析和数据可视化工具。Plotly为个人和协作提供在线绘图、分析和统计工具，以及用于Python、R、MATLAB、Perl、Julia、Arduino和REST的科学绘图库。
+> Plotly 是一款总部位于加拿大魁北克蒙特利尔的在线分析和数据可视化工具。Plotly 为个人和协作提供在线绘图、分析和统计工具，以及用于 Python、R、MATLAB、Perl、Julia、Arduino 和 REST 的科学绘图库。
 
-+   [Plot.ly主页](https://plot.ly)
++   [Plot.ly 主页](https://plot.ly)
 
 +   [Plot.ly 入门指南](https://plot.ly/python/getting-started/)
 
@@ -5565,25 +5565,25 @@ root@edison:~# python maindweet.py
 
 > Quickstart 是一个开放的沙箱，允许开发人员快速轻松地将设备连接到 Watson IoT 平台，需要注册。
 > 
-> 快速入门！不需要注册即可了解将设备连接到Watson IoT平台并查看实时传感器数据有多简单。
+> 快速入门！不需要注册即可了解将设备连接到 Watson IoT 平台并查看实时传感器数据有多简单。
 > 
-> 快速入门模拟设备！除此之外，我们还开发了一个简单的基于浏览器的模拟设备，专为移动设备设计，可以用于将任何带有Web浏览器的设备连接到服务。
+> 快速入门模拟设备！除此之外，我们还开发了一个简单的基于浏览器的模拟设备，专为移动设备设计，可以用于将任何带有 Web 浏览器的设备连接到服务。
 
 ### 虚拟设备
 
-> 使用模拟设备体验IBM Watson IoT平台 [IBM Watson IoT平台虚拟设备](https://developer.ibm.com/recipes/tutorials/use-the-simulated-device-to-experience-the-iot-foundation/)
+> 使用模拟设备体验 IBM Watson IoT 平台 [IBM Watson IoT 平台虚拟设备](https://developer.ibm.com/recipes/tutorials/use-the-simulated-device-to-experience-the-iot-foundation/)
 
-使用Web浏览器从IBM模拟设备体验IBM Watson IoT平台
+使用 Web 浏览器从 IBM 模拟设备体验 IBM Watson IoT 平台
 
-从Web浏览器：
+从 Web 浏览器：
 
-1.  [http://quickstart.internetofthings.ibmcloud.com/iotsensor](http://quickstart.internetofthings.ibmcloud.com/iotsensor)
+1.  [`quickstart.internetofthings.ibmcloud.com/iotsensor`](http://quickstart.internetofthings.ibmcloud.com/iotsensor)
 
-1.  [http://quickstart.internetofthings.ibmcloud.com/](http://quickstart.internetofthings.ibmcloud.com/)
+1.  [`quickstart.internetofthings.ibmcloud.com/`](http://quickstart.internetofthings.ibmcloud.com/)
 
 ### 物理设备
 
-使用IBM IoT快速入门代码将数据从物理设备发送到IBM Watson IoT平台
+使用 IBM IoT 快速入门代码将数据从物理设备发送到 IBM Watson IoT 平台
 
 从开发板命令行：
 
@@ -5607,9 +5607,9 @@ root@edison:~# python maindweet.py
      [Go to https://quickstart.internetofthings.ibmcloud.com/#/ and write the Device ID based on device MAC Address] 
 ```
 
-### 用于Python的IBM物联网基金会
+### 用于 Python 的 IBM 物联网基金会
 
-> ibmiot IBM Watson IoT平台Python客户端
+> ibmiot IBM Watson IoT 平台 Python 客户端
 
 ```
  root@board:~# pip install ibmiotf
@@ -5657,13 +5657,13 @@ root@edison:~# python maindweet.py
 
 # 亚马逊网络服务
 
-> 物联网（IoT）正在将世界上的各种设备和信息连接到网络上。无论您是利用全球数百万个天气传感器进行实时预测，还是输入来自DNA测序仪的人类基因组数据，亚马逊网络服务都提供了服务、安全性和支持，以在全球范围内连接物联网。
+> 物联网（IoT）正在将世界上的各种设备和信息连接到网络上。无论您是利用全球数百万个天气传感器进行实时预测，还是输入来自 DNA 测序仪的人类基因组数据，亚马逊网络服务都提供了服务、安全性和支持，以在全球范围内连接物联网。
 
 +   [亚马逊网络服务物联网](https://aws.amazon.com/iot/)
 
-# 微软Windows Azure
+# 微软 Windows Azure
 
-> 将您的英特尔®物联网平台与强大的云服务更快地连接起来。使用微软Azure*服务，包括流分析、机器学习、通知中心等，向您的客户提供几乎实时的数据。
+> 将您的英特尔®物联网平台与强大的云服务更快地连接起来。使用微软 Azure*服务，包括流分析、机器学习、通知中心等，向您的客户提供几乎实时的数据。
 
 +   [物联网（IoT）的微软架构](https://www.youtube.com/watch?v=obSxKdmwyoQ)
 
@@ -5671,10 +5671,10 @@ root@edison:~# python maindweet.py
 
 +   [Azure Python SDK](https://github.com/Azure/azure-sdk-for-python)
 
-英特尔®在微软Azure上
+英特尔®在微软 Azure 上
 
-+   [英特尔®物联网微软Azure](https://software.intel.com/en-us/iot/microsoft-azure)
++   [英特尔®物联网微软 Azure](https://software.intel.com/en-us/iot/microsoft-azure)
 
 ## 谷歌云平台
 
-> 到2020年，连接设备的潜力可能达到500亿。谷歌云平台为您提供了扩展连接、收集和理解数据的工具，并提供了硬件设备所需的可靠客户体验。[谷歌云平台首页](https://cloud.google.com/solutions/iot/)
+> 到 2020 年，连接设备的潜力可能达到 500 亿。谷歌云平台为您提供了扩展连接、收集和理解数据的工具，并提供了硬件设备所需的可靠客户体验。[谷歌云平台首页](https://cloud.google.com/solutions/iot/)

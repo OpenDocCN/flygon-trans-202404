@@ -1,8 +1,8 @@
-# 使用govendor实现依赖管理
+# 使用 govendor 实现依赖管理
 
-## 使用govendor实现依赖管理
+## 使用 govendor 实现依赖管理
 
-在`Go`中，vendoring的含义是将一个项目的所有依赖项压缩到其`vendor`目录中。自`Go 1.6`以来，如果当前包或其父目录中有一个`vendor`目录，依赖项将首先在`vendor`目录中搜索。[Govendor](https://github.com/kardianos/govendor)就是这样一个工具，帮助你利用`vendor`功能。在下面的示例中，我将逐步演示如何使用`govendor`：
+在`Go`中，vendoring 的含义是将一个项目的所有依赖项压缩到其`vendor`目录中。自`Go 1.6`以来，如果当前包或其父目录中有一个`vendor`目录，依赖项将首先在`vendor`目录中搜索。[Govendor](https://github.com/kardianos/govendor)就是这样一个工具，帮助你利用`vendor`功能。在下面的示例中，我将逐步演示如何使用`govendor`：
 
 (1) 为了更清晰，我首先清理`$GOPATH`文件夹：
 
@@ -122,7 +122,7 @@
 
 (6) 更新`github`中的`playstack`：
 
-![](ce10fd8a.JPG)
+![](img/ce10fd8a.JPG)
 
 这次，清理`$GOPATH`文件夹并再次运行"`go get github.com/NanXiao/playstack/play`"：
 
@@ -166,8 +166,8 @@
 
 参考：
 
-[Ruby on Rails中“vendoring”或“to vendor”一词是什么意思？](http://stackoverflow.com/questions/11378921/what-does-the-term-vendoring-or-to-vendor-mean-for-ruby-on-rails);
+[Ruby on Rails 中“vendoring”或“to vendor”一词是什么意思？](http://stackoverflow.com/questions/11378921/what-does-the-term-vendoring-or-to-vendor-mean-for-ruby-on-rails);
 
-[理解并使用vendor文件夹](https://blog.gopheracademy.com/advent-2015/vendor-folder/)；
+[理解并使用 vendor 文件夹](https://blog.gopheracademy.com/advent-2015/vendor-folder/)；
 
 [Go 依赖管理初学者教程](https://gocodecloud.com/blog/2016/03/29/go-vendoring-beginner-tutorial/)。

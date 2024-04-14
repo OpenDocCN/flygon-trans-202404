@@ -46,9 +46,9 @@ template<typename T> class MyTemplatedType;
 
 ### 分析构建过程
 
-工具[Templight](https://github.com/mikael-s-persson/templight)可用于分析您项目的构建时间。它需要一些工作才能构建，但一旦完成，它就可以作为clang++的替代品。
+工具[Templight](https://github.com/mikael-s-persson/templight)可用于分析您项目的构建时间。它需要一些工作才能构建，但一旦完成，它就可以作为 clang++的替代品。
 
-构建使用Templight后，您将需要分析结果。[templight-tools](https://github.com/mikael-s-persson/templight-tools)项目提供了各种方法。（作者注：我建议使用callgrind转换器，并使用kcachegrind可视化结果）。
+构建使用 Templight 后，您将需要分析结果。[templight-tools](https://github.com/mikael-s-persson/templight-tools)项目提供了各种方法。（作者注：我建议使用 callgrind 转换器，并使用 kcachegrind 可视化结果）。
 
 ### 防火墙频繁更改头文件
 
@@ -60,21 +60,21 @@ template<typename T> class MyTemplatedType;
 
 #### 减少预处理器的负载
 
-这是“防火墙频繁更改头文件”和“不必要包含头文件”的一般形式。像BOOST_PP这样的工具可能非常有帮助，但它们也会给预处理器带来巨大的负担。
+这是“防火墙频繁更改头文件”和“不必要包含头文件”的一般形式。像 BOOST_PP 这样的工具可能非常有帮助，但它们也会给预处理器带来巨大的负担。
 
 ### 考虑使用预编译头文件
 
-在大型项目中，使用预编译头文件可以显著减少编译时间。选定的头文件编译为中间形式（PCH文件），编译器可以更快地处理它们。建议只将频繁使用但更改不频繁的头文件（例如系统和库头文件）定义为预编译头文件，以实现编译时间的减少。但是您必须记住，使用预编译头文件有几个缺点：
+在大型项目中，使用预编译头文件可以显著减少编译时间。选定的头文件编译为中间形式（PCH 文件），编译器可以更快地处理它们。建议只将频繁使用但更改不频繁的头文件（例如系统和库头文件）定义为预编译头文件，以实现编译时间的减少。但是您必须记住，使用预编译头文件有几个缺点：
 
 +   预编译头文件的使用不具有可移植性。
 
-+   生成的PCH文件是机器相关的。
++   生成的 PCH 文件是机器相关的。
 
-+   生成的PCH文件可能相当大。
++   生成的 PCH 文件可能相当大。
 
 +   它可能会破坏你的头文件依赖关系。由于预编译头文件，每个文件都有可能包含标记为预编译头文件的每个头文件。结果可能会导致如果禁用预编译头文件，则构建失败。如果你发布像库之类的东西，这可能是一个问题。因此，强烈建议启用预编译头文件构建一次，然后在第二次构建时禁用它们。
 
-大多数常见编译器都支持预编译头文件，例如[GCC](https://gcc.gnu.org/onlinedocs/gcc/Precompiled-Headers.html)、[Clang](http://clang.llvm.org/docs/PCHInternals.html)和[Visual Studio](https://msdn.microsoft.com/en-us/library/szfdksca.aspx)。像[cotire](https://github.com/sakra/cotire/)（cmake的插件）这样的工具可以帮助你将预编译头文件添加到你的构建系统中。
+大多数常见编译器都支持预编译头文件，例如[GCC](https://gcc.gnu.org/onlinedocs/gcc/Precompiled-Headers.html)、[Clang](http://clang.llvm.org/docs/PCHInternals.html)和[Visual Studio](https://msdn.microsoft.com/en-us/library/szfdksca.aspx)。像[cotire](https://github.com/sakra/cotire/)（cmake 的插件）这样的工具可以帮助你将预编译头文件添加到你的构建系统中。
 
 ### 考虑使用工具
 
@@ -82,15 +82,15 @@ template<typename T> class MyTemplatedType;
 
 +   [ccache](https://ccache.samba.org/)
 
-+   [warp](https://github.com/facebook/warp)，Facebook的预处理器
++   [warp](https://github.com/facebook/warp)，Facebook 的预处理器
 
-### 将tmp放在Ramdisk上
+### 将 tmp 放在 Ramdisk 上
 
 见[此](https://www.youtube.com/watch?v=t4M3yG1dWho) YouTube 视频获取更多详情。
 
-### 使用gold链接器
+### 使用 gold 链接器
 
-如果在Linux上，考虑使用GCC的gold链接器。
+如果在 Linux 上，考虑使用 GCC 的 gold 链接器。
 
 ## 运行时
 
@@ -98,9 +98,9 @@ template<typename T> class MyTemplatedType;
 
 没有真正的方法来分析代码而不知道瓶颈在哪里。
 
-+   [http://developer.amd.com/tools-and-sdks/opencl-zone/codexl/](http://developer.amd.com/tools-and-sdks/opencl-zone/codexl/)
++   [`developer.amd.com/tools-and-sdks/opencl-zone/codexl/`](http://developer.amd.com/tools-and-sdks/opencl-zone/codexl/)
 
-+   [http://www.codersnotes.com/sleepy](http://www.codersnotes.com/sleepy)
++   [`www.codersnotes.com/sleepy`](http://www.codersnotes.com/sleepy)
 
 ### 简化代码
 
@@ -145,7 +145,7 @@ doSomething(getSomeModelObject(), getAnotherModelObject());
 
 ### 启用移动操作
 
-移动操作是C++11最受推崇的特性之一。它们允许编译器在某些情况下通过移动临时对象而不是复制它们来避免额外的拷贝。
+移动操作是 C++11 最受推崇的特性之一。它们允许编译器在某些情况下通过移动临时对象而不是复制它们来避免额外的拷贝。
 
 我们做出的某些编码选择（比如声明自己的析构函数或赋值操作符或拷贝构造函数）阻止了编译器生成移动构造函数。
 
@@ -155,11 +155,11 @@ doSomething(getSomeModelObject(), getAnotherModelObject());
 ModelObject(ModelObject &&) = default; 
 ```
 
-将足够。然而，MSVC2013似乎还不喜欢这段代码。
+将足够。然而，MSVC2013 似乎还不喜欢这段代码。
 
 ### 消除`shared_ptr`的拷贝
 
-`shared_ptr`对象的拷贝成本比你想象的要高得多。这是因为引用计数必须是原子的和线程安全的。因此，这个评论只是强调了上面的注意事项：避免临时对象和过多的对象拷贝。仅仅因为我们使用了pImpl，并不意味着我们的拷贝是免费的。
+`shared_ptr`对象的拷贝成本比你想象的要高得多。这是因为引用计数必须是原子的和线程安全的。因此，这个评论只是强调了上面的注意事项：避免临时对象和过多的对象拷贝。仅仅因为我们使用了 pImpl，并不意味着我们的拷贝是免费的。
 
 ### 尽量减少拷贝和重新赋值操作
 
@@ -181,7 +181,7 @@ if (caseA) {
 const std::string somevalue = caseA ? "Value A" : "Value B"; 
 ```
 
-更复杂的情况可以通过[立即调用的lambda](http://blog2.emptycrate.com/content/complex-object-initialization-optimization-iife-c11)简化。
+更复杂的情况可以通过[立即调用的 lambda](http://blog2.emptycrate.com/content/complex-object-initialization-optimization-iife-c11)简化。
 
 ```
 // Bad Idea

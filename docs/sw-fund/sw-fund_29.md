@@ -16,7 +16,7 @@
 
 # Adding Records
 
-    We saw in chapter [MoreStlc](MoreStlc.html) how records can be treated as just
+    We saw in chapter MoreStlc how records can be treated as just
     syntactic sugar for nested uses of products.  This is OK for
     simple examples, but the encoding is informal (in reality, if we
     actually treated records this way, it would be carried out in the
@@ -600,9 +600,9 @@ induction T; intros; try solve_by_invert.
 
 - (* TRCons *)
 
-inversion H. subst. unfold [Tlookup](Records.html#STLCExtendedRecords.Tlookup) in H[0].
+inversion H. subst. unfold Tlookup in H[0].
 
-destruct ([beq_id](Maps.html#beq_id) i i[0])...
+destruct (beq_id i i[0])...
 
 inversion H[0]. subst... Qed.
 
@@ -638,7 +638,7 @@ inversion IHHtyp1...
 
 - (* T_Proj *)
 
-eapply [wf_rcd_lookup](Records.html#STLCExtendedRecords.wf_rcd_lookup)...
+eapply wf_rcd_lookup...
 
     Qed.
 
@@ -698,13 +698,13 @@ Tlookup i T = Some Ti →
 
 intros v T i Ti Hval Htyp Hget.
 
-remember (@[empty](Maps.html#empty) [ty](Records.html#STLCExtendedRecords.ty)) as Γ.
+remember (@empty ty) as Γ.
 
 induction Htyp; subst; try solve_by_invert...
 
 - (* T_RCons *)
 
-在 Hget 中简化。简化。将 ([beq_id](Maps.html#beq_id) i i[0]) 解构为...
+在 Hget 中简化。简化。将 (beq_id i i[0]) 解构为...
 
 + (* i 是第一个 *)
 
@@ -736,7 +736,7 @@ empty ⊢ t ∈ T →
 
 对于 t 和 T，引入 Ht。
 
-记住 (@[empty](Maps.html#empty) [ty](Records.html#STLCExtendedRecords.ty)）作为 Γ。
+记住 (@empty ty）作为 Γ。
 
 推广 HeqGamma。
 
@@ -778,13 +778,13 @@ right。
 
 (* 如果 t[1] 是一个值且 t[2] ⇒ t[2]'，那么            t[1] t[2] ⇒ t[1] t[2]' 通过 ST_App2。 *)
 
-将 H[0] 解构为 [t[2]' Hstp]。∃([tapp](Records.html#STLCExtendedRecords.tapp) t[1] t[2]')...
+将 H[0] 解构为 [t[2]' Hstp]。∃(tapp t[1] t[2]')...
 
 + (* t[1] 步骤 *)
 
 (* 最后，如果 t[1] ⇒ t[1]'，那么 t[1] t[2] ⇒ t[1]' t[2]           通过 ST_App1。 *)
 
-将 H 解构为 [t[1]' Hstp]. ∃([tapp](Records.html#STLCExtendedRecords.tapp) t[1]' t[2])...
+将 H 解构为 [t[1]' Hstp]. ∃(tapp t[1]' t[2])...
 
 - (* T_Proj *)
 
@@ -796,7 +796,7 @@ right。将 IHHt 解构为...
 
 (* 如果 t 是一个值，那么我们可以使用引理          lookup_field_in_value 来展示 tlookup i t = Some ti           对于某个 ti，这给我们 tproj i t ⇒ ti 通过          ST_ProjRcd。 *)
 
-将 ([lookup_field_in_value](Records.html#STLCExtendedRecords.lookup_field_in_value) _ _ _ _ H[0] Ht H) 解构为...
+将 (lookup_field_in_value _ _ _ _ H[0] Ht H) 解构为...
 
 将 [ti [Hlkup _]] 作为右值。
 
@@ -806,7 +806,7 @@ right。将 IHHt 解构为...
 
 (* 另一方面，如果 t ⇒ t'，那么          tproj t i ⇒ tproj t' i 通过 ST_Proj1。 *)
 
-将 H[0] 解构为 [t' Hstp]。∃([tproj](Records.html#STLCExtendedRecords.tproj) t' i)...
+将 H[0] 解构为 [t' Hstp]。∃(tproj t' i)...
 
 - (* T_RNil *)
 
@@ -836,7 +836,7 @@ destruct IHHt2; try reflexivity.
 
 right. destruct H[2] as [tr' Hstp].
 
-∃([trcons](Records.html#STLCExtendedRecords.trcons) i t tr')...
+∃(trcons i t tr')...
 
 + (* 头步骤*)
 
@@ -844,7 +844,7 @@ right. destruct H[2] as [tr' Hstp].
 
 right. destruct H[1] as [t' Hstp].
 
-∃([trcons](Records.html#STLCExtendedRecords.trcons) i t' tr)... 完成。
+∃(trcons i t' tr)... 完成。
 
 ```
 
@@ -912,21 +912,21 @@ intros Γ' Heqv...
 
 - (* T_Var *)
 
-应用 [T_Var](Records.html#STLCExtendedRecords.T_Var)... 重写 ← Heqv...
+应用 T_Var... 重写 ← Heqv...
 
 - (* T_Abs *)
 
-应用 [T_Abs](Records.html#STLCExtendedRecords.T_Abs)... 应用 IHhas_type。intros y Hafi。
+应用 T_Abs... 应用 IHhas_type。intros y Hafi。
 
-展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。对 ([beq_idP](Maps.html#beq_idP) x y) 进行分析...
+展开 update, t_update。对 (beq_idP x y) 进行分析...
 
 - (* T_App *)
 
-应用 [T_App](Records.html#STLCExtendedRecords.T_App) with T[1]...
+应用 T_App with T[1]...
 
 - (* T_RCons *)
 
-应用 [T_RCons](Records.html#STLCExtendedRecords.T_RCons)... 完成。
+应用 T_RCons... 完成。
 
 Lemma free_in_context : ∀x t T Γ,
 
@@ -946,9 +946,9 @@ intros x t T Γ Hafi Htyp.
 
 destruct IHHtyp as [T' Hctx]... ∃T'.
 
-在 Hctx 中展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-在 Hctx 中重写 [false_beq_id](Maps.html#false_beq_id)...
+在 Hctx 中重写 false_beq_id...
 
     完成。
 
@@ -1020,47 +1020,47 @@ generalize dependent Γ. generalize dependent S.
 
 (* 如果 t = tabs y T[11] t[0]，那么我们知道          Γ,x:U ⊢ tabs y T[11] t[0] : T[11]→T[12]          Γ,x:U,y:T[11] ⊢ t[0] : T[12]          empty ⊢ v : U        根据我们的 IH，我们知道对于所有的 S 和 Gamma，          Γ,x:U ⊢ t[0] : S → Γ ⊢ [x:=v]t[0] S。        我们可以计算出         [x:=v]t = tabs y T[11] (if beq_id x y then t[0] else [x:=v]t[0]) ，        我们必须展示 Γ ⊢ [x:=v]t : T[11]→T[12]。  我们知道        我们将使用 T_Abs 来做到这一点，所以我们还需要展示：          Γ,y:T[11] ⊢ if beq_id x y then t[0] else [x:=v]t[0] : T[12]        我们考虑两种情况：x = y 和 x ≠ y。*)
 
-应用 [T_Abs](Records.html#STLCExtendedRecords.T_Abs)...
+应用 T_Abs...
 
-分解 ([beq_idP](Maps.html#beq_idP) x y) 得到 [Hxy|Hxy]。
+分解 (beq_idP x y) 得到 [Hxy|Hxy]。
 
 + (* x=y *)
 
 (* 如果 x = y，那么替换没有影响。        上下文不变性表明 Γ,y:U,y:T[11] 和 Γ,y:T[11] 是        等价的。由于 t[0] : T[12] 在前者的上下文下，        在后者的上下文下也是如此。*)
 
-应用 [context_invariance](Records.html#STLCExtendedRecords.context_invariance)...
+应用 context_invariance...
 
 替换。
 
-推理 x Hafi。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。
+推理 x Hafi。展开 update，t_update。
 
-分解 ([beq_id](Maps.html#beq_id) y x)...
+分解 (beq_id y x)...
 
 + (* x<>y *)
 
 (* 如果 x ≠ y，那么 IH 和上下文不变性允许        我们展示          Γ,x:U,y:T[11] ⊢ t[0] : T[12]       =>          Γ,y:T[11],x:U ⊢ t[0] : T[12]       =>          Γ,y:T[11] ⊢ [x:=v]t[0] : T[12] *)
 
-应用 IHt。应用 [context_invariance](Records.html#STLCExtendedRecords.context_invariance)...
+应用 IHt。应用 context_invariance...
 
-引入 z Hafi。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。
+引入 z Hafi。展开 update，t_update。
 
-分解 ([beq_idP](Maps.html#beq_idP) y z)...
+分解 (beq_idP y z)...
 
-替换。重写 [false_beq_id](Maps.html#false_beq_id)...
+替换。重写 false_beq_id...
 
 - (* trcons *)
 
-应用 [T_RCons](Records.html#STLCExtendedRecords.T_RCons)... 反演 H[7]；替换；简化...
+应用 T_RCons... 反演 H[7]；替换；简化...
 
 完成。
 
 定理保持性：∀t t' T，
 
-[空](Maps.html#empty) ⊢ [t](Records.html#t) ∈ [T](Records.html#T)  →
+空 ⊢ t ∈ T  →
 
-[t](Records.html#t) ⇒ [t'](Records.html#t')  →
+t ⇒ t'  →
 
-[空](Maps.html#empty) ⊢ [t'](Records.html#t') ∈ [T](Records.html#T)。
+空 ⊢ t' ∈ T。
 
 证明与 eauto。
 
@@ -1068,7 +1068,7 @@ generalize dependent Γ. generalize dependent S.
 
 (* 定理：如果 empty ⊢ t : T 并且 t ⇒ t'，那么 empty ⊢ t' : T。*)
 
-记住 (@[empty](Maps.html#empty) [ty](Records.html#STLCExtendedRecords.ty)) 作为 Γ。泛化依赖于 HeqGamma。
+记住 (@empty ty) 作为 Γ。泛化依赖于 HeqGamma。
 
 泛化依赖于 t'。
 
@@ -1088,7 +1088,7 @@ generalize dependent Γ. generalize dependent S.
 
 (* 对于第三种情况，假设            t[1] = tabs x T[11] t[12]          并且            t[2] = v[2]。我们必须展示 empty ⊢ [x:=v[2]]t[12] : T[2]。根据假设，我们知道              empty ⊢ tabs x T[11] t[12] : T[1]→T[2]          并且通过反演              x:T[1] ⊢ t[12] : T[2]。我们已经证明了 substitution_preserves_typing，并且              empty ⊢ v[2] : T[1]。因此，我们完成了。*)
 
-应用 [substitution_preserves_typing](Records.html#STLCExtendedRecords.substitution_preserves_typing) 与 T[1]...
+应用 substitution_preserves_typing 与 T[1]...
 
 反演 HT[1]...
 
@@ -1096,7 +1096,7 @@ generalize dependent Γ. generalize dependent S.
 
 (* 如果最后一条规则是 T_Proj，则 t = tproj t[1] i。两条规则可能导致 t ⇒ t'：T_Proj1 和 T_ProjRcd。在前一种情况中，t' 的类型遵循自归纳假设，因此我们只考虑 T_ProjRcd。在这里，我们知道 t 是一个记录值。由于使用了规则 T_Proj，我们知道 empty ⊢ t ∈ Tr，并且对于某个 i 和 Tr，Tlookup i Tr = Some Ti。因此，我们可以应用引理 lookup_field_in_value 找到此投影步骤到的记录元素。*)
 
-分解 ([lookup_field_in_value](Records.html#STLCExtendedRecords.lookup_field_in_value) _ _ _ _ H[2] HT H)
+分解 (lookup_field_in_value _ _ _ _ H[2] HT H)
 
 作为 [vi [Hget Htyp]]。
 
@@ -1106,7 +1106,7 @@ generalize dependent Γ. generalize dependent S.
 
 (* 如果最后一条规则是 T_RCons，则 t = trcons i t tr，其中存在某个 i、t 和 tr，使得 record_tm tr 成立。如果步骤是通过 ST_Rcd_Head，结果立即由归纳假设得出。如果步骤是通过 ST_Rcd_Tail，tr ⇒ tr[2]'，对于某个 tr[2]'，我们还必须使用引理 step_preserves_record_tm 来展示 record_tm tr[2]'。*)
 
-应用 [T_RCons](Records.html#STLCExtendedRecords.T_RCons)... 应用 [step_preserves_record_tm](Records.html#STLCExtendedRecords.step_preserves_record_tm)...
+应用 T_RCons... 应用 step_preserves_record_tm...
 
 QED。
 

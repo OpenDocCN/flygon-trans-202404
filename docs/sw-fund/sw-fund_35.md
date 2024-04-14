@@ -1,10 +1,10 @@
-# 使用自动理论和Coq证明中的实践
+# 使用自动理论和 Coq 证明中的实践
 
 ```
 
 ```
 
-(* 本章由Arthur Chargueraud编写和维护 *)
+(* 本章由 Arthur Chargueraud 编写和维护 *)
 
 ```
 
@@ -73,15 +73,15 @@ Require Import LibTactics。
 
     我们将研究四种证明搜索策略：auto，eauto，
 
-    iauto和jauto。策略auto和eauto是内置的
+    iauto 和 jauto。策略 auto 和 eauto 是内置的
 
-    在Coq中。策略iauto是内置策略的简写
+    在 Coq 中。策略 iauto 是内置策略的简写
 
-    尝试解决[intuition eauto]。策略jauto在
+    尝试解决[intuition eauto]。策略 jauto 在
 
-    库LibTactics，并简单地执行一些预处理
+    库 LibTactics，并简单地执行一些预处理
 
-    在调用eauto之前检查目标的结构。本章的目标是
+    在调用 eauto 之前检查目标的结构。本章的目标是
 
     解释证明搜索的一般原则并给出
 
@@ -95,29 +95,29 @@ Require Import LibTactics。
 
     策略可以解决多少和策略需要多长时间
 
-    终止。策略auto仅通过使用构建证明
+    终止。策略 auto 仅通过使用构建证明
 
     基本策略的折中：自反性、假设和应用。该策略
 
-    eauto还可以利用eapply。策略jauto扩展
+    eauto 还可以利用 eapply。策略 jauto 扩展
 
-    通过eauto能够打开与
+    通过 eauto 能够打开与
 
-    发生在上下文中。策略iauto能够处理
+    发生在上下文中。策略 iauto 能够处理
 
     与否定相当聪明地处理与否定相反的情况；
 
     然而，它无法从上下文中打开存在量化。
 
-    另外，当目标涉及到时，iauto通常会变得非常慢
+    另外，当目标涉及到时，iauto 通常会变得非常慢
 
     几个析取。
 
     请注意，证明搜索策略永远不会执行任何重写
 
-    步骤（策略rewrite，subst），也不是在一个上进行案例分析
+    步骤（策略 rewrite，subst），也不是在一个上进行案例分析
 
-    任意数据结构或属性（策略destruct和
+    任意数据结构或属性（策略 destruct 和
 
     inversion），也不是任何归纳证明（tactic induction）。所以，
 
@@ -139,7 +139,7 @@ Require Import LibTactics。
 
 ```
 
-引理solving_by_reflexivity：
+引理 solving_by_reflexivity：
 
 2 + 3 = 5。
 
@@ -154,7 +154,7 @@ Require Import LibTactics。
 
 ```
 
-引理solving_by_apply：∀(P Q：nat→Prop），
+引理 solving_by_apply：∀(P Q：nat→Prop），
 
 (∀n，Q n → P n）→
 
@@ -194,7 +194,7 @@ P 2。
 
 ```
 
-引理solving_by_eapply：∀(P Q：nat→Prop），
+引理 solving_by_eapply：∀(P Q：nat→Prop），
 
 (∀n m，Q m → P n）→
 
@@ -218,7 +218,7 @@ Q 1 → P 2。
 
 ```
 
-引理solving_conj_goal：∀(P：nat→Prop）（F：Prop），
+引理 solving_conj_goal：∀(P：nat→Prop）（F：Prop），
 
 (∀n，P n）→ F → F ∧ P 2。
 
@@ -235,11 +235,11 @@ Q 1 → P 2。
 
 ```
 
-引理solving_conj_hyp：∀(F F'：Prop），
+引理 solving_conj_hyp：∀(F F'：Prop），
 
 F ∧ F' → F。
 
-证明。auto。eauto。jauto。(* 或者iauto *) Qed。
+证明。auto。eauto。jauto。(* 或者 iauto *) Qed。
 
 ```
 
@@ -250,7 +250,7 @@ F ∧ F' → F。
 
 ```
 
-引理solving_conj_hyp'：∀(F F'：Prop），
+引理 solving_conj_hyp'：∀(F F'：Prop），
 
 F ∧ F' → F。
 
@@ -263,7 +263,7 @@ F ∧ F' → F。
 
 ```
 
-引理solving_conj_more：∀(P Q R：nat→Prop)（F：Prop），
+引理 solving_conj_more：∀(P Q R：nat→Prop)（F：Prop），
 
 (F ∧ (∀n m，(Q m ∧ R n) → P n)) →
 
@@ -273,7 +273,7 @@ Q 1 →
 
 P 2 ∧ F。
 
-证明。jauto。(* 或者iauto *) Qed。
+证明。jauto。(* 或者 iauto *) Qed。
 
 ```
 
@@ -286,7 +286,7 @@ P 2 ∧ F。
 
 ```
 
-引理solving_conj_hyp_forall：∀(P Q：nat→Prop），
+引理 solving_conj_hyp_forall：∀(P Q：nat→Prop），
 
 (∀n，P n ∧ Q n）→ P 2。
 
@@ -309,11 +309,11 @@ Qed。
 
 ```
 
-引理solved_by_jauto：∀(P Q：nat→Prop）（F：Prop），
+引理 solved_by_jauto：∀(P Q：nat→Prop）（F：Prop），
 
 (∀n，P n）∧（∀n，Q n）→ P 2。
 
-证明。jauto。(* 或者iauto *) Qed。
+证明。jauto。(* 或者 iauto *) Qed。
 
 ```
 
@@ -381,7 +381,7 @@ F ∨ F' → F' ∨ F。
 
     结论是存在的。例如，如果目标是 ∃ x，f x，则策略 eauto 引入一个存在变量，
 
-    说?25，而不是x。剩余目标是 f ?25，和
+    说?25，而不是 x。剩余目标是 f ?25，和
 
     eauto 尝试解决此目标，允许自身实例化
 
@@ -399,7 +399,7 @@ Qed.
 
 ```
 
-    jauto相对于其他证明搜索策略的一个主要优势是
+    jauto 相对于其他证明搜索策略的一个主要优势是
 
     它能够利用存在量化
 
@@ -510,7 +510,7 @@ equality_by_auto 的引理：∀(f g：nat→Prop)，
 
 ```
 
-搜索深度_0：
+搜索深度 _0：
 
 真 ∧ 真 ∧ 真 ∧ 真 ∧ 真 ∧ 真。
 
@@ -557,7 +557,7 @@ auto。
 
 ```
 
-搜索深度_1的引理：∀(P：nat→Prop)，
+搜索深度 _1 的引理：∀(P：nat→Prop)，
 
 P 0 →
 
@@ -591,7 +591,7 @@ auto 3\.（*找到证明*）
 
 ```
 
-搜索深度_3的引理：∀(P：nat→Prop)，
+搜索深度 _3 的引理：∀(P：nat→Prop)，
 
 （*假设 H[1]：*）（P 0）→
 
@@ -607,7 +607,7 @@ auto 3\.（*找到证明*）
 
 ```
 
-搜索深度_4的引理：∀(P：nat→Prop)，
+搜索深度 _4 的引理：∀(P：nat→Prop)，
 
 （*假设 H[1]：*）（P 0）→
 
@@ -629,7 +629,7 @@ auto 3\.（*找到证明*）
 
 ```
 
-搜索深度_5的引理：∀(P：nat→Prop)，
+搜索深度 _5 的引理：∀(P：nat→Prop)，
 
 （*假设 H[1]：*）（P 0）→
 
@@ -662,7 +662,7 @@ auto 3\.（*找到证明*）
 
 ```
 
-搜索深度_1的引理：∀(P：nat→Prop)，
+搜索深度 _1 的引理：∀(P：nat→Prop)，
 
 （*假设 H[1]：*）（P 0）→
 
@@ -937,21 +937,21 @@ Ltac auto_tilde ::= auto.
 
 ```
 
-    在接下来的示例中，只需要auto_star。
+    在接下来的示例中，只需要 auto_star。
 
-    auto_star的另一种可能更有效的版本是
+    auto_star 的另一种可能更有效的版本是
 
     以下是接下来的示例":
 
     Ltac auto_star ::= try solve eassumption | auto | jauto .
 
-    有了上面的定义，auto_star首先尝试解决
+    有了上面的定义，auto_star 首先尝试解决
 
-    使用假设;如果失败，它尝试使用auto，
+    使用假设;如果失败，它尝试使用 auto，
 
-    并且如果这仍然失败，则调用jauto。即使
+    并且如果这仍然失败，则调用 jauto。即使
 
-    jauto严格比eassumption和auto更强大，它
+    jauto 严格比 eassumption 和 auto 更强大，它
 
     是有意义的首先调用这些策略，因为当
 
@@ -977,7 +977,7 @@ Module DeterministicImp.
 
 ```
 
-    回想一下IMP的确定性引理的原始证明
+    回想一下 IMP 的确定性引理的原始证明
 
     语言，如下所示。
 
@@ -1024,9 +1024,9 @@ Qed.
 
 ```
 
-    练习：尽可能使用auto重写此证明。
+    练习：尽可能使用 auto 重写此证明。
 
-    （解决方案使用auto 9次。）
+    （解决方案使用 auto 9 次。）
 
 ```
 Theorem ceval_deterministic': ∀c st st[1] st[2],
@@ -1053,15 +1053,15 @@ Admitted.
 
     被使用，让我们首先重写确定性的证明：
 
-+   使用introv H而不是intros x H，
++   使用 introv H 而不是 intros x H，
 
-+   使用gen x而不是generalize dependent x，
++   使用 gen x 而不是 generalize dependent x，
 
-+   使用inverts H而不是inversion H;subst，
++   使用 inverts H 而不是 inversion H;subst，
 
-+   使用tryfalse处理矛盾，并且消除出现在上下文中的beval st b[1] = true和beval st b[1] = false两者都出现的情况，
++   使用 tryfalse 处理矛盾，并且消除出现在上下文中的 beval st b[1] = true 和 beval st b[1] = false 两者都出现的情况，
 
-+   停止使用ceval_cases来标记子案例。
++   停止使用 ceval_cases 来标记子案例。
 
 ```
 Theorem ceval_deterministic'': ∀c st st[1] st[2],
@@ -1096,11 +1096,11 @@ Qed.
 
     假设。所以，我们不是明确陈述这个结论，我们
 
-    我们将要求Coq实例化归纳假设，
+    我们将要求 Coq 实例化归纳假设，
 
     使用自动化来确定如何实例化它。战术
 
-    forwards，在LibTactics.v中精确描述了如何帮助
+    forwards，在 LibTactics.v 中精确描述了如何帮助
 
     实例化一个事实。所以，让我们看看它在我们的上的运行情况
 
@@ -1144,7 +1144,7 @@ Abort.
 
     到 `auto`，使用星号符号。确定性的证明可以
 
-    只需用四行重新编写，包括不超过10个策略。
+    只需用四行重新编写，包括不超过 10 个策略。
 
 ```
 Theorem ceval_deterministic'''': ∀c st st[1] st[2],
@@ -1162,7 +1162,7 @@ End DeterministicImp.
 
 ```
 
-## STLC的保留
+## STLC 的保留
 
 ```
 Module PreservationProgressStlc.
@@ -1172,9 +1172,9 @@ Module PreservationProgressStlc.
 
 ```
 
-    考虑STLC的保存证明，如下所示。
+    考虑 STLC 的保存证明，如下所示。
 
-    这个证明已经通过了通过三个点的eauto
+    这个证明已经通过了通过三个点的 eauto
 
     机制。
 
@@ -1207,15 +1207,15 @@ Qed.
 
 ```
 
-    练习：使用LibTactics中的策略重写此证明
+    练习：使用 LibTactics 中的策略重写此证明
 
     并且使用星号符号调用自动化而不是
 
     三点符号。更准确地说，利用策略
 
-    inverts*和applys*在调用auto*之后调用
+    inverts*和 applys*在调用 auto*之后调用
 
-    invert或者应用。解决方案只有三行长。
+    invert 或者应用。解决方案只有三行长。
 
 ```
 Theorem preservation' : ∀t t' T,
@@ -1228,7 +1228,7 @@ Admitted.
 
 ```
 
-## STLC的进展
+## STLC 的进展
 
     考虑进步定理的证明。
 
@@ -1263,7 +1263,7 @@ Qed.
 
     练习：优化以上证明。
 
-    提示：利用destruct*和inverts*。
+    提示：利用 destruct*和 inverts*。
 
     解决方案由 10 行短代码组成。
 
@@ -1674,7 +1674,7 @@ Qed.
 
     在 H 中应用 K。将 H 解构为 I，使用 lets I: K H。
 
-    解决方案是4行。
+    解决方案是 4 行。
 
 ```
 Lemma abs_arrow' : ∀x S[1] s[2] T[1] T[2],
@@ -1687,15 +1687,15 @@ Admitted.
 
 ```
 
-    引理substitution_preserves_typing已经被用于
+    引理 substitution_preserves_typing 已经被用于
 
-    说明了在章节中lets和applys的工作原理
+    说明了在章节中 lets 和 applys 的工作原理
 
     UseTactics。使用自动化进一步优化这个证明
 
-    星号符号），并使用tactic cases_if'。解决方案
+    星号符号），并使用 tactic cases_if'。解决方案
 
-    是33行）。
+    是 33 行）。
 
 ```
 Lemma substitution_preserves_typing : ∀Γ x U v t S,
@@ -1736,7 +1736,7 @@ End SubtypingInversion.
 
 ```
 
-引理order_matters_1：∀(P：nat→Prop)，
+引理 order_matters_1：∀(P：nat→Prop)，
 
 (∀n m, P m → m ≠ 0 → P n) → P 2 → P 1。
 
@@ -1744,11 +1744,11 @@ End SubtypingInversion.
 
 eauto。 （*成功*）
 
-（*证明：引入P H K。eapply H。应用K。auto。*）
+（*证明：引入 P H K。eapply H。应用 K。auto。*）
 
 完成。
 
-引理order_matters_2：∀(P：nat→Prop)，
+引理 order_matters_2：∀(P：nat→Prop)，
 
 (∀n m, m ≠ 0 → P m → P n) → P 5 → P 1。
 
@@ -1758,17 +1758,17 @@ eauto。 （*失败*）
 
 （*为了理解为什么，让我们重播上一个证明*）
 
-引入P H K。
+引入 P H K。
 
 eapply H。
 
-（*应用eapply后留下了两个子目标，?X ≠ 0和P ?X，其中?X是一个存在变量。*）
+（*应用 eapply 后留下了两个子目标，?X ≠ 0 和 P ?X，其中?X 是一个存在变量。*）
 
-（*对于eauto来说，解决第一个子目标很容易：只需将?X实例化为值1，这是满足?X ≠ 0的最简单值。*）
+（*对于 eauto 来说，解决第一个子目标很容易：只需将?X 实例化为值 1，这是满足?X ≠ 0 的最简单值。*）
 
 eauto。
 
-（*但是第二个目标变成了P 1，这就是我们开始的地方。所以，eauto在这一点上卡住了。*）
+（*但是第二个目标变成了 P 1，这就是我们开始的地方。所以，eauto 在这一点上卡住了。*）
 
 放弃。
 
@@ -1806,13 +1806,13 @@ eauto。
 
     调用证明搜索。
 
-    为了说明定义的处理，让P是一个抽象
+    为了说明定义的处理，让 P 是一个抽象
 
-    自然数的属性，并让myFact是一个定义
+    自然数的属性，并让 myFact 是一个定义
 
-    表示命题P x对任何小于或等于x的x成立
+    表示命题 P x 对任何小于或等于 x 的 x 成立
 
-    等于3。
+    等于 3。
 
 ```
 Axiom P : nat → Prop.
@@ -1821,11 +1821,11 @@ Definition myFact := ∀x, x ≤ 3 → P x.
 
 ```
 
-    证明myFact在假设P x成立的情况下
+    证明 myFact 在假设 P x 成立的情况下
 
-    任何x都应该是微不足道的。然而，auto无法证明它，除非我们
+    任何 x 都应该是微不足道的。然而，auto 无法证明它，除非我们
 
-    明确展开myFact的定义。
+    明确展开 myFact 的定义。
 
 ```
 Lemma demo_hint_unfold_goal_1 :
@@ -1839,9 +1839,9 @@ Qed.
 
     为了自动展开出现在证明中的定义
 
-    义务，可以使用命令Hint Unfold myFact告诉
+    义务，可以使用命令 Hint Unfold myFact 告诉
 
-    Coq应该总是尝试展开myFact当myFact
+    Coq 应该总是尝试展开 myFact 当 myFact
 
     出现在目标中。
 
@@ -1861,13 +1861,13 @@ Proof. auto. Qed.
 
 ```
 
-    然而，Hint Unfold机制仅适用于展开
+    然而，Hint Unfold 机制仅适用于展开
 
     出现在目标中的定义。一般来说，证明搜索会
 
     不要从上下文中展开定义。例如，假设我们
 
-    想要证明在True → myFact的假设下P 3成立。
+    想要证明在 True → myFact 的假设下 P 3 成立。
 
 ```
 Lemma demo_hint_unfold_context_1 :
@@ -1882,11 +1882,11 @@ Qed.
 
     实际上有一个例外：一个常数
 
-    如果出现在假设中的命题P x会自动展开
+    如果出现在假设中的命题 P x 会自动展开
 
     假设可以直接应用于当前目标。例如，
 
-    auto可以证明myFact → P 3，如下所示。
+    auto 可以证明 myFact → P 3，如下所示。
 
 ```
 Lemma demo_hint_unfold_context_2 :
@@ -1901,7 +1901,7 @@ Proof. auto. Qed.
 
     通常不是有用的提示，而那些
 
-    结论是False可能是有用的提示，但有太多
+    结论是 False 可能是有用的提示，但有太多
 
     它们使证明搜索效率低下。我们还将看到一个实际的
 
@@ -1909,7 +1909,7 @@ Proof. auto. Qed.
 
     考虑以下引理，它断言一个数字
 
-    小于或等于3不大于3。
+    小于或等于 3 不大于 3。
 
 ```
 Parameter le_not_gt : ∀x,
@@ -1919,7 +1919,7 @@ Parameter le_not_gt : ∀x,
 
     或者，可以陈述大于三的数字是
 
-    不小于或等于3。
+    不小于或等于 3。
 
 ```
 Parameter gt_not_le : ∀x,
@@ -1929,9 +1929,9 @@ Parameter gt_not_le : ∀x,
 
     实际上，这两个陈述等价于第三个陈述
 
-    x ≤ 3和x > 3是矛盾的，意思是
+    x ≤ 3 和 x > 3 是矛盾的，意思是
 
-    它们暗示False。
+    它们暗示 False。
 
 ```
 Parameter le_gt_false : ∀x,
@@ -1956,11 +1956,11 @@ Section DemoAbsurd1.
 
 ```
 
-    让我们尝试添加第一个引理le_not_gt作为提示，
+    让我们尝试添加第一个引理 le_not_gt 作为提示，
 
     看看我们是否可以证明这个命题
 
-    ∃ x，x ≤ 3 ∧ x > 3是荒谬的。
+    ∃ x，x ≤ 3 ∧ x > 3 是荒谬的。
 
 ```
 Hint Resolve le_not_gt.
@@ -1975,13 +1975,13 @@ Qed.
 
 ```
 
-    引理gt_not_le对le_not_gt是对称的，因此不会
+    引理 gt_not_le 对 le_not_gt 是对称的，因此不会
 
-    也不会更好。第三个引理le_gt_false更有用
+    也不会更好。第三个引理 le_gt_false 更有用
 
-    提示，因为它的结论是False，所以证明搜索将尝试
+    提示，因为它的结论是 False，所以证明搜索将尝试
 
-    当当前目标为False时应用它。
+    当当前目标为 False 时应用它。
 
 ```
 Hint Resolve le_gt_false.
@@ -2000,19 +2000,19 @@ Qed.
 
 ```
 
-    总之，形式为H[1] → H[2] → False的引理要好得多
+    总之，形式为 H[1] → H[2] → False 的引理要好得多
 
-    比H[1] → ¬ H[2]更有效的提示，尽管这两个陈述
+    比 H[1] → ¬ H[2]更有效的提示，尽管这两个陈述
 
     在否定符号¬的定义上等效。
 
     也就是说，应该小心添加那些引理
 
-    结论为False的提示。原因是每当
+    结论为 False 的提示。原因是每当
 
-    达到目标False时，证明搜索机制将
+    达到目标 False 时，证明搜索机制将
 
-    可能尝试应用所有结论为False的提示
+    可能尝试应用所有结论为 False 的提示
 
     在应用适当的提示之前。
 
@@ -2021,7 +2021,7 @@ End DemoAbsurd1.
 
 ```
 
-    将结论为False的引理作为提示添加可能在局部起作用，
+    将结论为 False 的引理作为提示添加可能在局部起作用，
 
     一个非常有效的解决方案。但是，这种方法不会扩展
 
@@ -2029,15 +2029,15 @@ End DemoAbsurd1.
 
     给出要利用的引理的名称是最方便的
 
-    推导出矛盾。提供的false H策略
+    推导出矛盾。提供的 false H 策略
 
-    LibTactics服务于此目的：false H替换目标
+    LibTactics 服务于此目的：false H 替换目标
 
-    与False一起工作并调用eapply H。其行为将在下面描述。
+    与 False 一起工作并调用 eapply H。其行为将在下面描述。
 
-    注意任何三个陈述le_not_gt，gt_not_le
+    注意任何三个陈述 le_not_gt，gt_not_le
 
-    或者可以使用le_gt_false。
+    或者可以使用 le_gt_false。
 
 ```
 Lemma demo_false : ∀x,
@@ -2065,17 +2065,17 @@ Qed.
 
 ```
 
-    在上面的示例中，false le_gt_false; eauto证明了���标，
+    在上面的示例中，false le_gt_false; eauto 证明了���标，
 
-    但false le_gt_false; auto不起作用，因为auto不
+    但 false le_gt_false; auto 不起作用，因为 auto 不
 
-    正确实例化存在变量。注意，false* le_gt_false也不起作用，因为星号符号尝试
+    正确实例化存在变量。注意，false* le_gt_false 也不起作用，因为星号符号尝试
 
-    首先调用auto。因此，有两种可能性
+    首先调用 auto。因此，有两种可能性
 
-    完成证明：要么调用false le_gt_false; eauto，要么
+    完成证明：要么调用 false le_gt_false; eauto，要么
 
-    调用false* (le_gt_false 3)。
+    调用 false* (le_gt_false 3)。
 
 ```
 
@@ -2093,15 +2093,15 @@ Qed.
 
 ```
 
-参数typ：Type。
+参数 typ：Type。
 
-参数subtype：typ → typ → Prop。
+参数 subtype：typ → typ → Prop。
 
-参数subtype_refl：∀T，
+参数 subtype_refl：∀T，
 
 subtype T T。
 
-参数subtype_trans：∀S T U，
+参数 subtype_trans：∀S T U，
 
 subtype S T → subtype T U → subtype S U。
 
@@ -2112,7 +2112,7 @@ subtype S T → subtype T U → subtype S U。
 
 ```
 
-提示解决subtype_refl。
+提示解决 subtype_refl。
 
 ```
 
@@ -2124,9 +2124,9 @@ subtype S T → subtype T U → subtype S U。
 
 ```
 
-章节HintsTransitivity。
+章节 HintsTransitivity。
 
-提示解决subtype_trans。
+提示解决 subtype_trans。
 
 ```
 
@@ -2135,7 +2135,7 @@ subtype S T → subtype T U → subtype S U。
 
 ```
 
-引理transitivity_bad_hint_1：∀S T，
+引理 transitivity_bad_hint_1：∀S T，
 
 subtype S T。
 

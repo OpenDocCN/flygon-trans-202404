@@ -77,13 +77,13 @@ public async Task<bool> AddItemAsync(NewTodoItem newItem, ApplicationUser user) 
 
 在将新项目保存到数据库之前，此方法会对新项目做出一些决定或假设：
 
-+   `OwnerId`属性应设置为用户的ID
++   `OwnerId`属性应设置为用户的 ID
 
 +   新项目应始终为未完成状态（`IsDone = false`）
 
 +   新项目的标题应从`newItem.Title`复制
 
-+   新项目应始终在3天后到期
++   新项目应始终在 3 天后到期
 
 > 你的代码所做出的这些决定被称为*业务逻辑*，因为它与你的应用程序的目的或"业务"有关的逻辑。业务逻辑的其他示例包括根据产品价格和税率计算总费用，或检查玩家是否有足够的点数在游戏中升级。
 
@@ -114,11 +114,11 @@ namespace AspNetCoreTodo.UnitTests
 } 
 ```
 
-`[Fact]`属性来自xUnit.NET包，它标记了这个方法作为一个测试方法。
+`[Fact]`属性来自 xUnit.NET 包，它标记了这个方法作为一个测试方法。
 
 > 有许多不同的测试命名和组织方式，各有利弊。我喜欢在我的测试类中加上`Should`后缀，以创建一个可读的句子与测试方法名，但请随意使用你自己的风格！
 
-`TodoItemService`需要一个`ApplicationDbContext`，通常连接到你的开发或生产数据库。你不希望在测试中使用它。相反，你可以在测试代码中使用Entity Framework Core的内存数据库提供程序。由于整个数据库存在于内存中，每次重新启动测试时都会被清除。而且，由于它是一个合适的Entity Framework Core提供程序，`TodoItemService`不会知道区别！
+`TodoItemService`需要一个`ApplicationDbContext`，通常连接到你的开发或生产数据库。你不希望在测试中使用它。相反，你可以在测试代码中使用 Entity Framework Core 的内存数据库提供程序。由于整个数据库存在于内存中，每次重新启动测试时都会被清除。而且，由于它是一个合适的 Entity Framework Core 提供程序，`TodoItemService`不会知道区别！
 
 使用`DbContextOptionsBuilder`配置内存数据库提供程序，然后调用`AddItem`：
 
@@ -158,9 +158,9 @@ using (var inMemoryContext = new ApplicationDbContext(options))
 
 第一个验证步骤是一个健全性检查：不应该有多个项目保存到内存数据库中。假设这是真的，测试使用`FirstAsync`检索保存的项目，然后断言属性设置为预期值。
 
-断言datetime值有点棘手，因为即使毫秒组件不同，比较两个日期是否相等也会失败。相反，测试检查`DueAt`值是否与预期值相差不到一秒。
+断言 datetime 值有点棘手，因为即使毫秒组件不同，比较两个日期是否相等也会失败。相反，测试检查`DueAt`值是否与预期值相差不到一秒。
 
-> 单元测试和集成测试通常遵循AAA（安排-执行-断言）模式：首先设置对象和数据，然后执行某些操作，最后测试检查（断言）预期的行为是否发生。
+> 单元测试和集成测试通常遵循 AAA（安排-执行-断言）模式：首先设置对象和数据，然后执行某些操作，最后测试检查（断言）预期的行为是否发生。
 
 这是`AddNewItem`测试的最终版本：
 
@@ -220,9 +220,9 @@ Test execution time: 1.9074 Seconds
 
 现在你有一个测试覆盖`TodoItemService`。作为额外挑战，尝试编写确保的单元测试：
 
-+   如果传递一个不存在的ID，`MarkDoneAsync`会返回false
++   如果传递一个不存在的 ID，`MarkDoneAsync`会返回 false
 
-+   当使一个有效项目完成时，`MarkDoneAsync`会返回true
++   当使一个有效项目完成时，`MarkDoneAsync`会返回 true
 
 +   `GetIncompleteItemsAsync`仅返回特定用户拥有的项目
 
@@ -234,9 +234,9 @@ Test execution time: 1.9074 Seconds
 
 集成测试比单元测试更慢、更复杂，因此一个项目通常会有很多单元测试，但只有少数几个集成测试。
 
-为了测试整个堆栈（包括控制器路由），集成测试通常会像网页浏览器一样向应用程序发出HTTP调用。
+为了测试整个堆栈（包括控制器路由），集成测试通常会像网页浏览器一样向应用程序发出 HTTP 调用。
 
-要编写进行HTTP请求的集成测试，你可以手动启动应用程序运行请求到`http://localhost:5000`的测试（希望应用程序仍在运行）。然而，ASP.NET Core提供了一个更好的方法来为测试托管你的应用程序：使用`TestServer`类。`TestServer`可以在测试期间托管你的应用程序，然后在测试完成时自动停止它。
+要编写进行 HTTP 请求的集成测试，你可以手动启动应用程序运行请求到`http://localhost:5000`的测试（希望应用程序仍在运行）。然而，ASP.NET Core 提供了一个更好的方法来为测试托管你的应用程序：使用`TestServer`类。`TestServer`可以在测试期间托管你的应用程序，然后在测试完成时自动停止它。
 
 ### 创建一个测试项目
 
@@ -272,7 +272,7 @@ AspNetCoreTodo/
 dotnet add reference ../AspNetCoreTodo/AspNetCoreTodo.csproj 
 ```
 
-你还需要添加`Microsoft.AspNetCore.TestHost` NuGet包：
+你还需要添加`Microsoft.AspNetCore.TestHost` NuGet 包：
 
 ```
 dotnet add package Microsoft.AspNetCore.TestHost 
@@ -336,7 +336,7 @@ namespace AspNetCoreTodo.IntegrationTests
 
 这个类负责设置一个`TestServer`，并有助于保持测试本身的整洁。
 
-> 如果你在*安全和身份*章节中配置了Facebook登录，那么有必要为Facebook应用程序的ID和密钥添加假值（在上面的`ConfigureAppConfiguration`块中）。这是因为测试服务器无法访问Secrets Manager中的值。在这个Fixture类中添加一些假值将防止测试服务器启动时出错。
+> 如果你在*安全和身份*章节中配置了 Facebook 登录，那么有必要为 Facebook 应用程序的 ID 和密钥添加假值（在上面的`ConfigureAppConfiguration`块中）。这是因为测试服务器无法访问 Secrets Manager 中的值。在这个 Fixture 类中添加一些假值将防止测试服务器启动时出错。
 
 现在你（真的）准备好写一个集成测试了。创建一个名为`TodoRouteShould`的新类：
 
@@ -397,6 +397,6 @@ Test execution time: 2.0588 Seconds
 
 ## 总结
 
-测试是一个广泛的话题，还有很多东西可以学习。本章没有涉及UI测试或测试前端（JavaScript）代码，这可能值得单独写一整本书。不过，你应该具备练习和学习为自己的应用程序编写测试的技能和基础知识。
+测试是一个广泛的话题，还有很多东西可以学习。本章没有涉及 UI 测试或测试前端（JavaScript）代码，这可能值得单独写一整本书。不过，你应该具备练习和学习为自己的应用程序编写测试的技能和基础知识。
 
-和往常一样，ASP.NET Core文档([https://docs.asp.net](https://docs.asp.net))和StackOverflow都是学习更多知识和在遇到困难时寻找答案的好资源。
+和往常一样，ASP.NET Core 文档([`docs.asp.net`](https://docs.asp.net))和 StackOverflow 都是学习更多知识和在遇到困难时寻找答案的好资源。

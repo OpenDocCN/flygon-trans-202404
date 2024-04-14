@@ -1,10 +1,10 @@
-# 第9章 - CSS样式表和CSS规则
+# 第九章 - CSS 样式表和 CSS 规则
 
-## 9.1 CSS样式表概述
+## 9.1 CSS 样式表概述
 
-通过使用*HTMLLinkElement*节点（即*<link href="stylesheet.css" rel="stylesheet" type="text/css">*）包含外部样式表或使用*HTMLStyleElement*节点（即*<style></style>*）内联定义样式表，可以将样式表添加到HTML文档中。在下面的HTML文档中，这两个*Element*节点都在DOM中，我验证了哪个构造函数构造了这些节点。
+通过使用*HTMLLinkElement*节点（即*<link href="stylesheet.css" rel="stylesheet" type="text/css">*）包含外部样式表或使用*HTMLStyleElement*节点（即*<style></style>*）内联定义样式表，可以将样式表添加到 HTML 文档中。在下面的 HTML 文档中，这两个*Element*节点都在 DOM 中，我验证了哪个构造函数构造了这些节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/yPYyC](http://jsfiddle.net/domenlightenment/yPYyC)
+实时代码：[`jsfiddle.net/domenlightenment/yPYyC`](http://jsfiddle.net/domenlightenment/yPYyC)
 
 ```
 <!DOCTYPE html>
@@ -34,9 +34,9 @@ console.log(document.querySelector('#styleElement').constructor);
 
 ```
 
-一旦将样式表添加到HTML文档中，它将由*CSSStylesheet*对象表示。样式表中的每个CSS规则（例如*body{background-color:red;}*）都由*CSSStyleRule*对象表示。在下面的代码中，我验证了哪个构造函数构造了样式表以及样式表中的每个CSS规则（选择器及其CSS属性和值）。
+一旦将样式表添加到 HTML 文档中，它将由*CSSStylesheet*对象表示。样式表中的每个 CSS 规则（例如*body{background-color:red;}*）都由*CSSStyleRule*对象表示。在下面的代码中，我验证了哪个构造函数构造了样式表以及样式表中的每个 CSS 规则（选择器及其 CSS 属性和值）。
 
-实时代码：[http://jsfiddle.net/domenlightenment/UpLzm](http://jsfiddle.net/domenlightenment/UpLzm)
+实时代码：[`jsfiddle.net/domenlightenment/UpLzm`](http://jsfiddle.net/domenlightenment/UpLzm)
 
 ```
 <!DOCTYPE html>
@@ -63,9 +63,9 @@ console.log(document.querySelector('#styleElement').sheet.cssRules[0].constructo
 
 *请记住，选择包含样式表的元素（即*<link>*或*<style*>)与访问代表样式表本身的实际对象（*CSSStyleSheet*）不同。
 
-## 9.2 访问DOM中的所有样式表（即*CSSStylesheet*对象）
+## 9.2 访问 DOM 中的所有样式表（即*CSSStylesheet*对象）
 
-*document.styleSheets*提供对所有显式链接（即*<link>*）或嵌入（即*<style>*）在HTML文档中的所有样式表对象（也称为*CSSStylesheet*）的列表的访问。在下面的代码中，*styleSheets*被利用来访问文档中包含的所有样式表。
+*document.styleSheets*提供对所有显式链接（即*<link>*）或嵌入（即*<style>*）在 HTML 文档中的所有样式表对象（也称为*CSSStylesheet*）的列表的访问。在下面的代码中，*styleSheets*被利用来访问文档中包含的所有样式表。
 
 实时代码：N/A
 
@@ -99,13 +99,13 @@ console.log(document.styleSheets[1]); *// the <style>*
 
 *styleSheet*与其他节点列表一样是实时的
 
-*length*属性返回列表中包含的样式表数量，从0索引开始（即*document.styleSheets.length*）
+*length*属性返回列表中包含的样式表数量，从 0 索引开始（即*document.styleSheets.length*）
 
 *styleSheets*列表中包含的样式表通常包括使用*<style>*元素创建的任何样式表，或者使用*<link>*元素并将*rel*设置为*"stylesheet"*的样式表。
 
-除了使用*styleSheets*来访问文档样式表之外，还可以通过首先选择DOM中的元素（*<style>*或*<link>*）并使用*.sheet*属性来访问*CSSStyleSheet*对象来访问HTML文档中的样式表。在下面的代码中，我通过首先选择用于包含样式表的元素，然后利用*sheet*属性来访问HTML文档中的样式表。
+除了使用*styleSheets*来访问文档样式表之外，还可以通过首先选择 DOM 中的元素（*<style>*或*<link>*）并使用*.sheet*属性来访问*CSSStyleSheet*对象来访问 HTML 文档中的样式表。在下面的代码中，我通过首先选择用于包含样式表的元素，然后利用*sheet*属性来访问 HTML 文档中的样式表。
 
-实时代码：[http://jsfiddle.net/domenlightenment/jFwKw](http://jsfiddle.net/domenlightenment/jFwKw)
+实时代码：[`jsfiddle.net/domenlightenment/jFwKw`](http://jsfiddle.net/domenlightenment/jFwKw)
 
 ```
 <!DOCTYPE html>
@@ -136,7 +136,7 @@ console.log(document.querySelector('#styleElement').**sheet**); *//same as docum
 
 要获取有关*CSSStyleSheet*节点上可用属性和方法的准确信息，最好忽略规范，并询问浏览器提供的内容。检查下面代码中创建的数组，详细说明了*CSSStyleSheet*节点可用的属性和方法。
 
-在线代码：[http://jsfiddle.net/domenlightenment/kNyL2](http://jsfiddle.net/domenlightenment/kNyL2)
+在线代码：[`jsfiddle.net/domenlightenment/kNyL2`](http://jsfiddle.net/domenlightenment/kNyL2)
 
 ```
 <!DOCTYPE html>
@@ -211,7 +211,7 @@ console.log(styleSheetPropertiesOnlyInherited.sort());
 
 *CSSStyleRule* 对象代表样式表中包含的每个 CSS 规则。基本上，*CSSStyleRule* 是与选择器附加的 CSS 属性和值的接口。在下面的代码中，我们通过访问代表样式表中 CSS 规则的 *CSSStyleRule* 对象，以编程方式访问内联样式表中每个规则的详细信息。
 
-在线代码：[http://jsfiddle.net/domenlightenment/fPVS8](http://jsfiddle.net/domenlightenment/fPVS8)
+在线代码：[`jsfiddle.net/domenlightenment/fPVS8`](http://jsfiddle.net/domenlightenment/fPVS8)
 
 ```
 <!DOCTYPE html>
@@ -243,7 +243,7 @@ console.log(sSheet.cssRules[1].cssText); *//logs "p { line-height: 1.4em; color:
 
 要获取有关 *CSSStyleRule* 节点上可用属性和方法的准确信息，最好忽略规范，并询问浏览器提供的内容。检查下面代码中创建的数组，详细说明了从 *CSSStyleRule* 节点可用的属性和方法。
 
-在线代码：[http://jsfiddle.net/domenlightenment/hCX3U](http://jsfiddle.net/domenlightenment/hCX3U)
+在线代码：[`jsfiddle.net/domenlightenment/hCX3U`](http://jsfiddle.net/domenlightenment/hCX3U)
 
 ```
 <!DOCTYPE html>
@@ -304,7 +304,7 @@ console.log(styleSheetRulePropertiesOnlyInherited.sort());
 
 如前所述，*styleSheets* 列表提供了文档中包含的样式表列表。*CSSRules* 列表提供了特定样式表中所有 CSS 规则（即 *CSSStyleRule* 对象）的列表（也称为 *CSSRulesList*）。下面的代码将 *CSSRules* 列表记录到控制台中。
 
-在线代码：[http://jsfiddle.net/domenlightenment/qKqhJ](http://jsfiddle.net/domenlightenment/qKqhJ)
+在线代码：[`jsfiddle.net/domenlightenment/qKqhJ`](http://jsfiddle.net/domenlightenment/qKqhJ)
 
 ```
 <!DOCTYPE html>
@@ -342,7 +342,7 @@ console.log(sSheet.cssRules[1]); *//logs second rule*
 
 *insertRule()* 和 *deleteRule()* 方法提供了以编程方式操作样式表中的 CSS 规则的能力。在下面的代码中，我使用 *insertRule()* 将 css 规则 *p{color:red}* 添加到索引为 1 的内联样式表中。请记住，样式表中的 css 规则是从 0 开始的数字索引。因此，通过在索引 1 处插入新规则，当前索引 1 处的规则（即 *p{font-size:50px;}*）被推到索引 2。
 
-在线代码：[http://jsfiddle.net/domenlightenment/T2jzJ](http://jsfiddle.net/domenlightenment/T2jzJ)
+在线代码：[`jsfiddle.net/domenlightenment/T2jzJ`](http://jsfiddle.net/domenlightenment/T2jzJ)
 
 ```
 <!DOCTYPE html>
@@ -382,13 +382,13 @@ console.log(document.querySelector('#styleElement').sheet.cssRules[1].cssText);
 
 ### 注释
 
-插入和删除规则不是一个常见的做法，因为在管理级联和使用数字索引系统更新样式表时存在困难（即确定样式位于哪个索引位置，而不预览样式表本身的内容）。在将CSS规则在客户端程序化地更改之前，最好在CSS和HTML文件中处理它们，而不是在客户端之后。
+插入和删除规则不是一个常见的做法，因为在管理级联和使用数字索引系统更新样式表时存在困难（即确定样式位于哪个索引位置，而不预览样式表本身的内容）。在将 CSS 规则在客户端程序化地更改之前，最好在 CSS 和 HTML 文件中处理它们，而不是在客户端之后。
 
 ## 9.8 使用*.style*属性编辑*CSSStyleRule*的值
 
-就像*.style*属性有助于操纵元素节点上的内联样式一样，*CSSStyleRule*对象也有一个*.style*属性，用于在样式表中编排相同的样式操纵。在下面的代码中，我利用*.style*属性来设置和获取内联样式表中包含的css规则的值。
+就像*.style*属性有助于操纵元素节点上的内联样式一样，*CSSStyleRule*对象也有一个*.style*属性，用于在样式表中编排相同的样式操纵。在下面的代码中，我利用*.style*属性来设置和获取内联样式表中包含的 css 规则的值。
 
-在线代码：[http://jsfiddle.net/domenlightenment/aZ9CQ](http://jsfiddle.net/domenlightenment/aZ9CQ)
+在线代码：[`jsfiddle.net/domenlightenment/aZ9CQ`](http://jsfiddle.net/domenlightenment/aZ9CQ)
 
 ```
 <!DOCTYPE html>
@@ -423,11 +423,11 @@ console.log(styleSheet.cssRules[1].style.color); *//logs 'purple'*
 
 ```
 
-## 9.9 创建新的内联CSS样式表
+## 9.9 创建新的内联 CSS 样式表
 
-在加载html页面后动态创建新样式表只需创建一个新的*<style>*节点，使用*innerHTML*向该节点添加CSS规则，然后将*<style>*节点附加到HTML文档中。在下面的代码中，我程序化地创建一个样式表，并将*body{color:red}* CSS规则添加到样式表中，然后将样式表附加到DOM中。
+在加载 html 页面后动态创建新样式表只需创建一个新的*<style>*节点，使用*innerHTML*向该节点添加 CSS 规则，然后将*<style>*节点附加到 HTML 文档中。在下面的代码中，我程序化地创建一个样式表，并将*body{color:red}* CSS 规则添加到样式表中，然后将样式表附加到 DOM 中。
 
-在线代码：[http://jsfiddle.net/domenlightenment/bKXAk](http://jsfiddle.net/domenlightenment/bKXAk)
+在线代码：[`jsfiddle.net/domenlightenment/bKXAk`](http://jsfiddle.net/domenlightenment/bKXAk)
 
 ```
 <!DOCTYPE html>
@@ -451,11 +451,11 @@ document.querySelector('head').appendChild(styleElm);
 
 ```
 
-## 9.10 在HTML文档中程序化地添加外部样式表
+## 9.10 在 HTML 文档中程序化地添加外部样式表
 
-要在HTML文档中程序化地添加CSS文件，需要创建一个带有适当属性的*<link>*元素节点，然后将*<link>*元素节点附加到DOM中。在下面的代码中，我通过创建一个新的*<link>*元素并将其附加到DOM中来程序化地包含外部样式表。
+要在 HTML 文档中程序化地添加 CSS 文件，需要创建一个带有适当属性的*<link>*元素节点，然后将*<link>*元素节点附加到 DOM 中。在下面的代码中，我通过创建一个新的*<link>*元素并将其附加到 DOM 中来程序化地包含外部样式表。
 
-在线代码：[http://jsfiddle.net/domenlightenment/dtwgC](http://jsfiddle.net/domenlightenment/dtwgC)
+在线代码：[`jsfiddle.net/domenlightenment/dtwgC`](http://jsfiddle.net/domenlightenment/dtwgC)
 
 ```
 <!DOCTYPE html>
@@ -488,7 +488,7 @@ console.log(document.querySelector('#linkElement'));
 
 使用*CSSStyleSheet*对象的*.disabled*属性，可以启用或禁用样式表。在下面的代码中，我们访问文档中每个样式表的当前禁用值，然后利用*.disabled*属性禁用每个样式表。
 
-在线代码：[http://jsfiddle.net/domenlightenment/L952Z](http://jsfiddle.net/domenlightenment/L952Z)
+在线代码：[`jsfiddle.net/domenlightenment/L952Z`](http://jsfiddle.net/domenlightenment/L952Z)
 
 ```
 <!DOCTYPE html>
@@ -522,4 +522,4 @@ document.document.querySelector('#styleElement').disabled = true;
 
 ### 注释
 
-根据规范，*Disabled*不是<link>或<style>元素的可用属性。尝试将其作为HTML文档中的属性添加将在今天使用的大多数现代浏览器中失败（并且可能导致解析错误，其中样式被忽略）。
+根据规范，*Disabled*不是<link>或<style>元素的可用属性。尝试将其作为 HTML 文档中的属性添加将在今天使用的大多数现代浏览器中失败（并且可能导致解析错误，其中样式被忽略）。

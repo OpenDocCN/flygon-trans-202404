@@ -12,9 +12,9 @@ type mySlice []int
 
 未命名类型是由类型字面量定义的。即，`[]int`是一个未命名类型。
 
-根据[Go规范](https://golang.org/ref/spec#Types)，每种类型都有一个基础类型：
+根据[Go 规范](https://golang.org/ref/spec#Types)，每种类型都有一个基础类型：
 
-> 每种类型T都有一个基础类型：如果T是预声明的布尔、数值或字符串类型之一，或者是一个类型字面量，那么相应的基础类型就是T本身。否则，T的基础类型是T在其类型声明中引用的类型的基础类型。
+> 每种类型 T 都有一个基础类型：如果 T 是预声明的布尔、数值或字符串类型之一，或者是一个类型字面量，那么相应的基础类型就是 T 本身。否则，T 的基础类型是 T 在其类型声明中引用的类型的基础类型。
 
 因此，在上面的示例中，命名类型`mySlice`和未命名类型`[]int`都有相同的基础类型：`[]int`。
 
@@ -61,12 +61,12 @@ func main() {
 
 其中的魔法是[可赋值性](https://golang.org/ref/spec#Assignability)的一个规则：
 
-> x的类型V和T具有相同的基础类型，且V或T中至少有一个不是命名类型。
+> x 的类型 V 和 T 具有相同的基础类型，且 V 或 T 中至少有一个不是命名类型。
 
 参考：
 
-[Go规范](https://golang.org/ref/spec#Types)；
+[Go 规范](https://golang.org/ref/spec#Types)；
 
-[学习Go - 类型](http://www.laktek.com/2012/01/27/learning-go-types/)；
+[学习 Go - 类型](http://www.laktek.com/2012/01/27/learning-go-types/)；
 
-[Golang智力测验](https://twitter.com/davecheney/status/734646224696016901)。
+[Golang 智力测验](https://twitter.com/davecheney/status/734646224696016901)。

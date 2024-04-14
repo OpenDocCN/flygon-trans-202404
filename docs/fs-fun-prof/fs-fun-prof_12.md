@@ -6,7 +6,7 @@
 
 同样地，在熟悉所有与集合相关的 F# 函数之前，你实际上无法有效地使用 F#。
 
-在 C# 中，你只需要知道几个 LINQ 方法¹（`Select`、`Where`等）。但在 F# 中，目前列表模块中几乎有100个函数（序列和数组模块中的计数也相似）。这太多了！
+在 C# 中，你只需要知道几个 LINQ 方法¹（`Select`、`Where`等）。但在 F# 中，目前列表模块中几乎有 100 个函数（序列和数组模块中的计数也相似）。这太多了！
 
 ¹ 是的，还有更多，但你只需要掌握其中几个就可以了。在 F# 中，了解它们所有更为重要。
 
@@ -14,7 +14,7 @@
 
 因此，我写了这篇帖子来帮助你找到你想要的。而且为了好玩，我用“选择你的冒险”风格来做了这件事！
 
-![](cyoa_list_module.jpg)
+![](img/cyoa_list_module.jpg)
 
 ## 我想要哪种集合？
 
@@ -123,61 +123,61 @@
 
 ## 目录
 
-+   [1\. 你有什么样的集合？](#1)
++   1\. 你有什么样的集合？
 
-+   [2\. 创建一个新的集合](#2)
++   2\. 创建一个新的集合
 
-+   [3\. 创建一个新的空集合或一个元素的集合](#3)
++   3\. 创建一个新的空集合或一个元素的集合
 
-+   [4\. 创建一个已知大小的新集合](#4)
++   4\. 创建一个已知大小的新集合
 
-+   [5\. 创建每个元素具有相同值的已知大小的新集合](#5)
++   5\. 创建每个元素具有相同值的已知大小的新集合
 
-+   [6\. 创建每个元素具有不同值的已知大小的新集合](#6)
++   6\. 创建每个元素具有不同值的已知大小的新集合
 
-+   [7\. 创建一个新的无限集合](#7)
++   7\. 创建一个新的无限集合
 
-+   [8\. 创建一个大小不定的新集合](#8)
++   8\. 创建一个大小不定的新集合
 
-+   [9\. 处理一个列表](#9)
++   9\. 处理一个列表
 
-+   [10\. 获取已知位置的元素](#10)
++   10\. 获取已知位置的元素
 
-+   [11\. 通过搜索获取元素](#11)
++   11\. 通过搜索获取元素
 
-+   [12\. 从集合中获取一部分元素](#12)
++   12\. 从集合中获取一部分元素
 
-+   [13\. 分区、分块和分组](#13)
++   13\. 分区、分块和分组
 
-+   [14\. 对集合进行聚合或汇总](#14)
++   14\. 对集合进行聚合或汇总
 
-+   [15\. 改变元素的顺序](#15)
++   15\. 改变元素的顺序
 
-+   [16\. 测试集合的元素](#16)
++   16\. 测试集合的元素
 
-+   [17\. 将每个元素转换为不同的内容](#17)
++   17\. 将每个元素转换为不同的内容
 
-+   [18\. 遍历每个元素](#18)
++   18\. 遍历每个元素
 
-+   [19\. 通过迭代传递状态](#19)
++   19\. 通过迭代传递状态
 
-+   [20\. 处理每个元素的索引](#20)
++   20\. 处理每个元素的索引
 
-+   [21\. 将整个集合转换为不同的集合类型](#21)
++   21\. 将整个集合转换为不同的集合类型
 
-+   [22\. 更改整个集合的行为](#22)
++   22\. 更改整个集合的行为
 
-+   [23\. 处理两个集合](#23)
++   23\. 处理两个集合
 
-+   [24\. 处理三个集合](#24)
++   24\. 处理三个集合
 
-+   [25\. 处理超过三个集合](#25)
++   25\. 处理超过三个集合
 
-+   [26\. 合并和分解集合](#26)
++   26\. 合并和分解集合
 
-+   [27\. 其他仅适用于数组的功能](#27)
++   27\. 其他仅适用于数组的功能
 
-+   [28\. 使用可释放项的序列](#28)
++   28\. 使用可释放项的序列
 
 * * *
 
@@ -185,17 +185,17 @@
 
 您有什么样的集合？
 
-+   如果您没有集合，并且想要创建一个，请转到[第 2 节](#2)。
++   如果您没有集合，并且想要创建一个，请转到第 2 节。
 
-+   如果您已经有一个要处理的集合，请转到[第 9 节](#9)。
++   如果您已经有一个要处理的集合，请转到第 9 节。
 
-+   如果您要处理两个集合，请转到[第 23 节](#23)。
++   如果您要处理两个集合，请转到第 23 节。
 
-+   如果您要处理三个集合，请转到[第 24 节](#24)。
++   如果您要处理三个集合，请转到第 24 节。
 
-+   如果您要处理三个以上的集合，请转到[第 25 节](#25)。
++   如果您要处理三个以上的集合，请转到第 25 节。
 
-+   如果您想要合并或分解集合，请转到[第 26 节](#26)。
++   如果您想要合并或分解集合，请转到第 26 节。
 
 * * *
 
@@ -203,13 +203,13 @@
 
 那么您想要创建一个新的集合。您想如何创建它？
 
-+   如果新集合将为空或将只有一个元素，请转到[第 3 节](#3)。
++   如果新集合将为空或将只有一个元素，请转到第 3 节。
 
-+   如果新集合是已知大小，请转到[第 4 节](#4)。
++   如果新集合是已知大小，请转到第 4 节。
 
-+   如果新集合可能是无限的，请转到[第 7 节](#7)。
++   如果新集合可能是无限的，请转到第 7 节。
 
-+   如果您不知道集合的大小， 请转到[第 8 节](#8)。
++   如果您不知道集合的大小， 请转到第 8 节。
 
 * * *
 
@@ -221,7 +221,7 @@
 
 +   [`singleton : value:'T -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L635)。返回仅包含一个项目的列表。
 
-如果你预先知道集合的大小，通常更有效的方法是使用不同的函数。参见下面的[第4节](#4)。
+如果你预先知道集合的大小，通常更有效的方法是使用不同的函数。参见下面的第 4 节。
 
 ### 使用示例
 
@@ -237,9 +237,9 @@ let list1 = List.singleton "hello"
 
 ## 4\. 创建一个已知大小的新集合
 
-+   如果集合的所有元素将具有相同的值，请转到[第5节](#5)。
++   如果集合的所有元素将具有相同的值，请转到第 5 节。
 
-+   如果集合的元素可能不同，请转到[第6节](#6)。
++   如果集合的元素可能不同，请转到第 6 节。
 
 * * *
 
@@ -253,7 +253,7 @@ let list1 = List.singleton "hello"
 
 +   （仅限数组）[`zeroCreate：count：int->'T []`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L467)。 创建一个初始值为默认值的数组。
 
-`Array.create`基本上与`replicate`相同（尽管实现略有不同！），但`replicate`只在F# v4中为`Array`实现了。
+`Array.create`基本上与`replicate`相同（尽管实现略有不同！），但`replicate`只在 F# v4 中为`Array`实现了。
 
 ### 使用示例
 
@@ -346,7 +346,7 @@ primesUpTo 20
 
 +   你还可以使用递归
 
-下面是使用这两个技巧来以两个为单位计数到10的示例：
+下面是使用这两个技巧来以两个为单位计数到 10 的示例：
 
 ```
 let rec listCounter n = [
@@ -439,35 +439,35 @@ fibonacci 100
 
 如果你正在处理一个列表，并且...
 
-+   如果你想要获取已知位置的元素，请转到[第 10 节](#10)。
++   如果你想要获取已知位置的元素，请转到第 10 节。
 
-+   如果你想要通过搜索获取一个元素，请转到[第 11 节](#11)。
++   如果你想要通过搜索获取一个元素，请转到第 11 节。
 
-+   如果你想要获取集合的子集，请转到[第 12 节](#12)。
++   如果你想要获取集合的子集，请转到第 12 节。
 
-+   如果你想要将集合分割、划分或分组成更小的集合，请转到[第 13 节](#13)。
++   如果你想要将集合分割、划分或分组成更小的集合，请转到第 13 节。
 
-+   如果你想要将集合聚合或汇总为单个值，请转到[第 14 节](#14)。
++   如果你想要将集合聚合或汇总为单个值，请转到第 14 节。
 
-+   如果你想要改变元素的顺序，请转到[第 15 节](#15)。
++   如果你想要改变元素的顺序，请转到第 15 节。
 
-+   如果你想要测试集合中的元素，请转到[第 16 节](#16)。
++   如果你想要测试集合中的元素，请转到第 16 节。
 
-+   如果你想要将每个元素转换为不同的东西，请转到[第 17 节](#17)。
++   如果你想要将每个元素转换为不同的东西，请转到第 17 节。
 
-+   如果你想要遍历每个元素，请转到[第 18 节](#18)。
++   如果你想要遍历每个元素，请转到第 18 节。
 
-+   如果你想要在迭代中传递状态，请转到[第 19 节](#19)。
++   如果你想要在迭代中传递状态，请转到第 19 节。
 
-+   如果你需要在迭代或映射时知道每个元素的索引，请转到[第 20 节](#20)。
++   如果你需要在迭代或映射时知道每个元素的索引，请转到第 20 节。
 
-+   如果你想要将整个集合转换为不同的集合类型，请转到[第 21 节](#21)。
++   如果你想要将整个集合转换为不同的集合类型，请转到第 21 节。
 
-+   如果你想要改变集合的整体行为，请转到[第 22 节](#22)。
++   如果你想要改变集合的整体行为，请转到第 22 节。
 
-+   如果你想要就地改变集合，请转到[第 27 节](#27)。
++   如果你想要就地改变集合，请转到第 27 节。
 
-+   如果你想要使用带有 IDisposable 的惰性集合，请转到[第 28 节](#28)。
++   如果你想要使用带有 IDisposable 的惰性集合，请转到第 28 节。
 
 * * *
 
@@ -479,11 +479,11 @@ fibonacci 100
 
 +   [`last : list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L398). 返回集合的最后一个元素。
 
-+   [`item : index:int -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520). 索引到集合中。第一个元素的索引为0。
++   [`item : index:int -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520). 索引到集合中。第一个元素的索引为 0。
 
     注意：避免对列表和序列使用`nth`和`item`。它们不适用于随机访问，因此通常会很慢。
 
-+   [`nth : list:'T list -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520). `item`的旧版本。注意：在v4中已弃用--请使用`item`代替。
++   [`nth : list:'T list -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520). `item`的旧版本。注意：在 v4 中已弃用--请使用`item`代替。
 
 +   （仅适用于数组）[`get : array:'T[] -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L220). `item`的另一个版本。
 
@@ -491,15 +491,15 @@ fibonacci 100
 
 但是如果集合为空怎么办？那么`head`和`last`将会因异常（ArgumentException）而失败。
 
-如果索引在集合中找不到怎么办？那么又会出现另一个异常（对于列表是ArgumentException，对于数组是IndexOutOfRangeException）。
+如果索引在集合中找不到怎么办？那么又会出现另一个异常（对于列表是 ArgumentException，对于数组是 IndexOutOfRangeException）。
 
 因此，我建议您一般情况下避免使用这些函数，而使用下面的`tryXXX`等价函数：
 
-+   [`tryHead : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L775). 返回集合的第一个元素，如果集合为空则返回None。
++   [`tryHead : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L775). 返回集合的第一个元素，如果集合为空则返回 None。
 
-+   [`tryLast : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L411). 返回集合的最后一个元素，如果集合为空则返回None。
++   [`tryLast : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L411). 返回集合的最后一个元素，如果集合为空则返回 None。
 
-+   [`tryItem : index:int -> list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L827). 索引到集合中，如果索引无效则返回None。
++   [`tryItem : index:int -> list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L827). 索引到集合中，如果索引无效则返回 None。
 
 ### 使用示例
 
@@ -556,7 +556,7 @@ let helloGood =
 
 您可以使用`find`和`findIndex`来搜索元素或其索引：
 
-+   [`find : predicate:('T -> bool) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L201). 返回给定函数返回true的第一个元素。
++   [`find : predicate:('T -> bool) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L201). 返回给定函数返回 true 的第一个元素。
 
 +   [`findIndex : predicate:('T -> bool) -> list:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L222)。返回使给定函数返回 true 的第一个元素的索引。
 
@@ -656,7 +656,7 @@ let firstValidNumber =
     |> List.pick tryInt 
 ```
 
-如果你想以与 `pick` 相同的方式返回多个元素，请考虑使用 `choose`（见 [第 12 节](#12)）。
+如果你想以与 `pick` 相同的方式返回多个元素，请考虑使用 `choose`（见 第 12 节）。
 
 * * *
 
@@ -682,13 +682,13 @@ let firstValidNumber =
 
 要提取其他元素子集，请使用以下之一：
 
-+   [`filter: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L241)。返回一个只包含给定函数返回true的集合元素的新集合。
++   [`filter: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L241)。返回一个只包含给定函数返回 true 的集合元素的新集合。
 
-+   [`except: itemsToExclude:seq<'T> -> list:'T list -> 'T list when 'T : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L155)。返回一个新的集合，其中包含输入集合中不在itemsToExclude序列中出现的不同元素，使用通用哈希和相等比较来比较值。
++   [`except: itemsToExclude:seq<'T> -> list:'T list -> 'T list when 'T : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L155)。返回一个新的集合，其中包含输入集合中不在 itemsToExclude 序列中出现的不同元素，使用通用哈希和相等比较来比较值。
 
-+   [`choose: chooser:('T -> 'U option) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L55)。将给定函数应用于集合的每个元素。返回由函数返回Some的元素组成的集合。
++   [`choose: chooser:('T -> 'U option) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L55)。将给定函数应用于集合的每个元素。返回由函数返回 Some 的元素组成的集合。
 
-+   [`where: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L866)。返回一个只包含给定谓词返回true的集合元素的新集合。注意："where"是"filter"的同义词。
++   [`where: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L866)。返回一个只包含给定谓词返回 true 的集合元素的新集合。注意："where"是"filter"的同义词。
 
 +   (仅适用于数组) `sub : 'T [] -> int -> int -> 'T []`。创建一个包含指定子范围的数组，该子范围由起始索引和长度指定。
 
@@ -791,7 +791,7 @@ Array.sub [|1..10|] 3 5
 
 与`pick`一样，`choose`函数可能看起来很笨拙，但在处理返回选项的函数时很有用。
 
-实际上，`choose`就像[`pick`对`find`](#pick-vs-find)一样，而不是使用布尔过滤器，信号是`Some`与`None`。
+实际上，`choose`就像`pick`对`find`一样，而不是使用布尔过滤器，信号是`Some`与`None`。
 
 与之前一样，假设有一个函数`tryInt`，它解析一个字符串并在字符串是有效整数时返回`Some int`，否则返回`None`。
 
@@ -842,9 +842,9 @@ let reduceOptions =
 // val reduceOptions : int list = [1; 2] 
 ```
 
-如果你想以与`choose`相同的方式返回第一个元素，请考虑使用`pick`（参见[第11节](#11)）。
+如果你想以与`choose`相同的方式返回第一个元素，请考虑使用`pick`（参见第 11 节）。
 
-如果你想执行类似于`choose`但适用于其他包装类型（如成功/失败结果）的操作，可以参考[这里的讨论](elevated-world-5.html)。
+如果你想执行类似于`choose`但适用于其他包装类型（如成功/失败结果）的操作，可以参考这里的讨论。
 
 * * *
 
@@ -858,11 +858,11 @@ let reduceOptions =
 
 +   [`pairwise: list:'T list -> ('T * 'T) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L541)。返回输入集合中每个元素及其前一个元素的集合，第一个元素除外，仅作为第二个元素的前身返回。
 
-+   (除了Seq) [`partition: predicate:('T -> bool) -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L551)。将集合分成两个集合，一个包含给定谓词返回true的元素，另一个包含返回false的元素。
++   (除了 Seq) [`partition: predicate:('T -> bool) -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L551)。将集合分成两个集合，一个包含给定谓词返回 true 的元素，另一个包含返回 false 的元素。
 
-+   (除了Seq) [`splitAt: index:int -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L688)。在给定索引处将集合分成两个集合。
++   (除了 Seq) [`splitAt: index:int -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L688)。在给定索引处将集合分成两个集合。
 
-+   [`splitInto: count:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L137)。将输入集合分成最多count个块。
++   [`splitInto: count:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L137)。将输入集合分成最多 count 个块。
 
 +   [`windowed : windowSize:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L875)。返回一个包含从输入集合中提取的元素的滑动窗口列表。每个窗口都作为一个新的集合返回。与`pairwise`不同，窗口是集合，而不是元组。
 
@@ -956,7 +956,7 @@ let firstLetter (str:string) = str.[0]
 
 ### 使用示例
 
-`reduce`是没有初始状态的`fold`的变体 - 有关`fold`的更多信息，请参阅[第19节](#19)。一种思考方法是在每个元素之间插入一个操作符。
+`reduce`是没有初始状态的`fold`的变体 - 有关`fold`的更多信息，请参阅第 19 节。一种思考方法是在每个元素之间插入一个操作符。
 
 ```
 ["a";"b";"c"] |> List.reduce (+)     
@@ -1012,7 +1012,7 @@ let firstLetter (str:string) = str.[0]
 // Final result is 4321 
 ```
 
-同样，有关相关函数`fold`和`foldBack`的更详细讨论，请参阅[第19节](#19)。
+同样，有关相关函数`fold`和`foldBack`的更详细讨论，请参阅第 19 节。
 
 其他聚合函数要简单得多。
 
@@ -1051,7 +1051,7 @@ cards |> List.minBy snd  // (Spade, Two)
 // [("A", 1); ("B", 1); ("C", 1)] 
 ```
 
-大多数聚合函数不喜欢空列表！您可能考虑使用其中一个`fold`函数以确保安全 - 有关详细信息，请参阅[第19节](#19)。
+大多数聚合函数不喜欢空列表！您可能考虑使用其中一个`fold`函数以确保安全 - 有关详细信息，请参阅第 19 节。
 
 ```
 let emptyListOfInts : int list = []
@@ -1084,7 +1084,7 @@ emptyListOfTuples |> List.countBy fst
 
 +   [`rev: list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L608)。返回顺序相反的新集合。
 
-+   [`sort: list:'T list -> 'T list when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L678)。使用Operators.compare对给定的集合进行排序。
++   [`sort: list:'T list -> 'T list when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L678)。使用 Operators.compare 对给定的集合进行排序。
 
 +   [`sortDescending: list:'T list -> 'T list when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2a41096eec8a/src/fsharp/FSharp.Core/list.fsi#L705)。使用 Operators.compare 将给定集合按降序排序。
 
@@ -1184,7 +1184,7 @@ let tupleComparer tuple1 tuple2  =
 
 ## 17\. 将每个元素转换为不同的内容
 
-我有时喜欢把函数式编程看作是 "转换导向编程"，而 `map`（在 LINQ 中也称为 `Select`）是这种方法中最基本的组成部分之一。事实上，我已经专门为它制作了一个完整的系列[这里](elevated-world.html)。
+我有时喜欢把函数式编程看作是 "转换导向编程"，而 `map`（在 LINQ 中也称为 `Select`）是这种方法中最基本的组成部分之一。事实上，我已经专门为它制作了一个完整的系列这里。
 
 +   [`map: mapping:('T -> 'U) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L419)。构建一个新的集合，其中的元素是将给定函数应用于集合中每个元素的结果。
 
@@ -1194,7 +1194,7 @@ let tupleComparer tuple1 tuple2  =
 
 其他转换函数包括：
 
-+   [第 12 节](#12) 中的 `choose` 是一个结合了映射和选项过滤的函数。
++   第 12 节 中的 `choose` 是一个结合了映射和选项过滤的函数。
 
 +   （仅 Seq）[`cast: source:IEnumerable -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L599)。将一个松散类型的 `System.Collections` 序列包装成一个类型化的序列。
 
@@ -1279,7 +1279,7 @@ let matches =
 
 +   [`iter：action:('T -> unit) -> list:'T list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L367)。将给定的函数应用于集合的每个元素。
 
-+   或者，您可以使用for循环。for循环中的表达式*必须*返回`unit`。
++   或者，您可以使用 for 循环。for 循环中的表达式*必须*返回`unit`。
 
 ### 用法示例
 
@@ -1305,7 +1305,7 @@ for i in [1..3] do
     printfn "i is %i" i 
 ```
 
-如上所述，在`iter`或for循环中的表达式必须返回`unit`。在以下示例中，我们尝试将1添加到元素中，然后得到编译器错误：
+如上所述，在`iter`或 for 循环中的表达式必须返回`unit`。在以下示例中，我们尝试将 1 添加到元素中，然后得到编译器错误：
 
 ```
 [1..3] |> List.iter (fun i -> i + 1)
@@ -1549,9 +1549,9 @@ List.scanBack (fun x state -> (state)*10 + x) [1;2;3;4] 0
 
 ### 使用`scan`截断字符串
 
-这里是`scan`有用的一个例子。假设你有一个新闻网站，你需要确保标题不超过50个字符。
+这里是`scan`有用的一个例子。假设你有一个新闻网站，你需要确保标题不超过 50 个字符。
 
-你可以简单地在50个字符处截断字符串，但那看起来会很丑陋。相反，你希望截断在单词边界处结束。
+你可以简单地在 50 个字符处截断字符串，但那看起来会很丑陋。相反，你希望截断在单词边界处结束。
 
 这是使用`scan`的一种方法：
 
@@ -1559,7 +1559,7 @@ List.scanBack (fun x state -> (state)*10 + x) [1;2;3;4] 0
 
 +   使用`scan`将单词连接起来，生成一个片段列表，每个片段都多加了一个单词。
 
-+   获取长度不超过50个字符的最长片段。
++   获取长度不超过 50 个字符的最长片段。
 
 ```
 // start by splitting the text into words
@@ -1645,9 +1645,9 @@ let add1 x = x + 1
 
 经常情况下，你在迭代过程中需要元素的索引。你可以使用可变计数器，但为什么不坐下来，让库为你完成这项工作呢？
 
-+   [`mapi: mapping:(int -> 'T -> 'U) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L465)。类似于`map`，但同时将整数索引传递给函数。查看[第17节](#17)了解更多关于`map`的信息。
++   [`mapi: mapping:(int -> 'T -> 'U) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L465)。类似于`map`，但同时将整数索引传递给函数。查看第 17 节了解更多关于`map`的信息。
 
-+   [`iteri: action:(int -> 'T -> unit) -> list:'T list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L382)。类似于`iter`，但同时将整数索引传递给函数。查看[第18节](#18)了解更多关于`iter`的信息。
++   [`iteri: action:(int -> 'T -> unit) -> list:'T list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L382)。类似于`iter`，但同时将整数索引传递给函数。查看第 18 节了解更多关于`iter`的信息。
 
 +   [`indexed: list:'T list -> (int * 'T) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L340)。返回一个新列表，其元素是输入列表的相应元素与每个元素的索引（从 0 开始）配对。
 
@@ -1712,7 +1712,7 @@ the 2th element is 'c'
 
 ### 使用带有可释放资源的序列
 
-这些转换函数的一个重要用途是将惰性枚举 (`seq`) 转换为完全评估的集合，如 `list`。当涉及到可释放资源时，比如文件句柄或数据库连接，这一点尤为重要。如果序列没有转换为列表，可能会在访问元素时遇到错误。更多信息请参见 [第 28 节](#28)。
+这些转换函数的一个重要用途是将惰性枚举 (`seq`) 转换为完全评估的集合，如 `list`。当涉及到可释放资源时，比如文件句柄或数据库连接，这一点尤为重要。如果序列没有转换为列表，可能会在访问元素时遇到错误。更多信息请参见 第 28 节。
 
 * * *
 
@@ -1720,11 +1720,11 @@ the 2th element is 'c'
 
 有一些特殊函数（仅适用于 Seq）可以改变整个集合的行为。
 
-+   (仅限Seq) [`cache: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L98)。返回一个与输入序列的缓存版本对应的序列。此结果序列将具有与输入序列相同的元素。结果可以被多次枚举。输入序列将最多被枚举一次，且只到必要程度。
++   (仅限 Seq) [`cache: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L98)。返回一个与输入序列的缓存版本对应的序列。此结果序列将具有与输入序列相同的元素。结果可以被多次枚举。输入序列将最多被枚举一次，且只到必要程度。
 
-+   (仅限Seq) [`readonly: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L919)。构建一个委托给给定序列对象的新序列对象。这确保原始序列不能通过类型转换重新发现和突变。
++   (仅限 Seq) [`readonly: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L919)。构建一个委托给给定序列对象的新序列对象。这确保原始序列不能通过类型转换重新发现和突变。
 
-+   (仅限Seq) [`delay: generator:(unit -> seq<'T>) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L221)。返回从给定的延迟序列规范构建的序列。
++   (仅限 Seq) [`delay: generator:(unit -> seq<'T>) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L221)。返回从给定的延迟序列规范构建的序列。
 
 ### `cache`示例
 
@@ -1849,7 +1849,7 @@ let embeddedList = seq {
 
 ## 23. 使用两个列表进行工作
 
-如果你有两个列表，那么大多数常见函数如map和fold都有对应的类似物。
+如果你有两个列表，那么大多数常见函数如 map 和 fold 都有对应的类似物。
 
 +   [`map2: mapping:('T1 -> 'T2 -> 'U) -> list1:'T1 list -> list2:'T2 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L428)。构建一个新的集合，其元素是将给定函数应用于两个集合的对应元素的结果。
 
@@ -1859,17 +1859,17 @@ let embeddedList = seq {
 
 +   [`iteri2: action:(int -> 'T1 -> 'T2 -> unit) -> list1:'T1 list -> list2:'T2 list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L391)。类似于`iteri`，但是将两个等长列表中对应的元素进行映射。
 
-+   [`forall2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L314)。将谓词应用于两个集合中相匹配的元素，直到两个集合中较短的长度为止。如果任何应用返回false，则整体结果为false，否则为true。
++   [`forall2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L314)。将谓词应用于两个集合中相匹配的元素，直到两个集合中较短的长度为止。如果任何应用返回 false，则整体结果为 false，否则为 true。
 
-+   [`exists2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L191)。将谓词应用于两个集合中相匹配的元素，直到两个集合中较短的长度为止。如果任何应用返回true，则整体结果为true，否则为false。
++   [`exists2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L191)。将谓词应用于两个集合中相匹配的元素，直到两个集合中较短的长度为止。如果任何应用返回 true，则整体结果为 true，否则为 false。
 
 +   [`fold2<'T1,'T2,'State> : folder:('State -> 'T1 -> 'T2 -> 'State) -> state:'State -> list1:'T1 list -> list2:'T2 list -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L266)。对两个集合的相应元素应用函数，通过计算传递一个累加器参数。
 
 +   [`foldBack2<'T1,'T2,'State> : folder:('T1 -> 'T2 -> 'State -> 'State) -> list1:'T1 list -> list2:'T2 list -> state:'State -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L288)。对两个集合的相应元素���用函数，通过计算传递一个累加器参数。
 
-+   [`compareWith: comparer:('T -> 'T -> int) -> list1:'T list -> list2:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L84)。使用给定的比较函数逐个元素比较两个集合。从比较函数中返回第一个非零结果。如果到达集合的末尾，则如果第一个集合较短则返回-1，如果第二个集合较短则返回1。
++   [`compareWith: comparer:('T -> 'T -> int) -> list1:'T list -> list2:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L84)。使用给定的比较函数逐个元素比较两个集合。从比较函数中返回第一个非零结果。如果到达集合的末尾，则如果第一个集合较短则返回-1，如果第二个集合较短则返回 1。
 
-+   另请参阅[第26节：合并和拆分集合](#26)中的`append`、`concat`和`zip`。
++   另请参阅第 26 节：合并和拆分集合中的`append`、`concat`和`zip`。
 
 ### 使用示例
 
@@ -1958,17 +1958,17 @@ let strList2 = ["A2"; "B1"]
 // [("A1", "A2")] 
 ```
 
-另请参阅[第25节](#25)。
+另请参阅第 25 节。
 
 * * *
 
 ## 24\. 使用三个列表
 
-如果你有三个列表，你只有一个内置函数可用。但是请参见[第25节](#25)中的一个示例，了解如何构建自己的三列表函数。
+如果你有三个列表，你只有一个内置函数可用。但是请参见第 25 节中的一个示例，了解如何构建自己的三列表函数。
 
 +   [`map3: mapping:('T1 -> 'T2 -> 'T3 -> 'U) -> list1:'T1 list -> list2:'T2 list -> list3:'T3 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L438)。构建一个新的集合，其元素是同时将给定函数应用于三个集合对应元素的结果。
 
-+   另请参阅[第 26 节：组合和分解集合](#26)中的`append`、`concat`和`zip3`。
++   另请参阅第 26 节：组合和分解集合中的`append`、`concat`和`zip3`。
 
 * * *
 
@@ -1994,7 +1994,7 @@ addFourParams <!> [1;2;3] <*> [1;2;3] <*> [1;2;3] <*> [1;2;3]
 // Result = [4; 8; 12] 
 ```
 
-如果这看起来像魔法，请参阅[此系列](elevated-world.html#lift)以了解此代码正在做什么的解释。
+如果这看起来像魔法，请参阅此系列以了解此代码正在做什么的解释。
 
 * * *
 
@@ -2056,7 +2056,7 @@ List.zip [1;2] [10]
 
 数组是可变的，因此有些函数不适用于列表和序列。
 
-+   参见[section 15](#15)中的“原地排序”功能
++   参见 section 15 中的“原地排序”功能
 
 +   `Array.blit: source:'T[] -> sourceIndex:int -> target:'T[] -> targetIndex:int -> count:int -> unit`。从第一个数组中读取一系列元素并将其写入第二个数组。
 
@@ -2066,9 +2066,9 @@ List.zip [1;2] [10]
 
 +   `Array.set: array:'T[] -> index:int -> value:'T -> unit`。设置数组的一个元素。
 
-+   除此之外，所有其他的[BCL数组函数](https://msdn.microsoft.com/en-us/library/system.array.aspx)也是可用的。
++   除此之外，所有其他的[BCL 数组函数](https://msdn.microsoft.com/en-us/library/system.array.aspx)也是可用的。
 
-我不会举例。请参阅[MSDN文档](https://msdn.microsoft.com/en-us/library/ee370273.aspx)。
+我不会举例。请参阅[MSDN 文档](https://msdn.microsoft.com/en-us/library/ee370273.aspx)。
 
 * * *
 
@@ -2076,7 +2076,7 @@ List.zip [1;2] [10]
 
 转换函数（如`List.ofSeq`）的一个重要用途是将惰性枚举（`seq`）转换为完全评估的集合，例如`list`。当涉及到可处置资源（如文件句柄或数据库连接）时，这尤为重要。如果在资源可用时不将序列转换为列表，则可能在稍后访问元素时遇到错误，因为资源已被释放。
 
-这将是一个扩展示例，所以让我们从一些模拟数据库和UI的辅助函数开始：
+这将是一个扩展示例，所以让我们从一些模拟数据库和 UI 的辅助函数开始：
 
 ```
 // a disposable database connection
@@ -2164,7 +2164,7 @@ let customers = readCustomersFromDb()
 customers |> showCustomersinUI 
 ```
 
-输出显示现在UI显示也在连接打开时完成：
+输出显示现在 UI 显示也在连接打开时完成：
 
 ```
 Opening connection

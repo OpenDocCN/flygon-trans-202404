@@ -18,7 +18,7 @@
 
 ## Q: 我们会使用什么语言？
 
-![](../Images/b3da096a987ed26a87149cc6ccec1a4a.jpg)
+![](img/b3da096a987ed26a87149cc6ccec1a4a.jpg)
 
 我们用于编程的工具是 [Elm](http://elm-lang.org/)，这是一种令人兴奋的新语言，以 FRP 为核心，并且编译为 JavaScript 以便与浏览器集成。
 
@@ -26,7 +26,7 @@ Elm 的核心是 ML 的一个小方言，FRP 基元构建在其之上。
 
 #### 机器学习... 嗯？
 
-不是，不是*那个* ML。在我们的世界中，[ML](http://en.wikipedia.org/wiki/ML_%28programming_language%29) 指的是一系列功能编程语言家族，自上世纪70年代以来发展壮大，对几十年的编程语言设计和工程工作产生了重要影响。
+不是，不是*那个* ML。在我们的世界中，[ML](http://en.wikipedia.org/wiki/ML_%28programming_language%29) 指的是一系列功能编程语言家族，自上世纪 70 年代以来发展壮大，对几十年的编程语言设计和工程工作产生了重要影响。
 
 我喜欢将 ML 看作是一种坐落在 Racket 和 Haskell 之间的语言，有几个原因。
 

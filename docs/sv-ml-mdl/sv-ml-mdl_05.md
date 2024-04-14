@@ -1,32 +1,32 @@
-# 第5章\. Apache Beam实现
+# 第五章\. Apache Beam 实现
 
-[Beam](https://beam.apache.org/)是一个开源的、统一的模型，用于定义批处理和流处理管道。它不是一个流处理引擎（SPE），而是一个SDK，您可以使用它构建一个管道定义，然后由Beam支持的分布式处理后端之一来���行。使用Beam，您可以做到以下几点：
+[Beam](https://beam.apache.org/)是一个开源的、统一的模型，用于定义批处理和流处理管道。它不是一个流处理引擎（SPE），而是一个 SDK，您可以使用它构建一个管道定义，然后由 Beam 支持的分布式处理后端之一来���行。使用 Beam，您可以做到以下几点：
 
 +   使用单一的编程模型来处理批处理和流处理用例。
 
-+   通过构建和执行的分离，您可以在多个执行环境上使用相同的Beam流水线。
++   通过构建和执行的分离，您可以在多个执行环境上使用相同的 Beam 流水线。
 
-+   编写和共享新的SDK、IO连接器和转换库，不受特定运行程序的限制。
++   编写和共享新的 SDK、IO 连接器和转换库，不受特定运行程序的限制。
 
-让我们看看如何使用Beam的语义来实现我们的解决方案。
+让我们看看如何使用 Beam 的语义来实现我们的解决方案。
 
 # 整体架构
 
-Beam为流合并提供了非常丰富的[执行语义](http://bit.ly/2gvXOzd)，包括[`CoGroupByKey`](http://bit.ly/2ychhwv)和[`Combine`](http://bit.ly/2zfOwPG)。它还支持[side inputs](http://bit.ly/2kGzv6w)，将一个流上的计算作为另一个流的处理输入。不幸的是，所有这些API都设计用于[窗口流](http://bit.ly/2xznvoc)，不适用于全局窗口——这是我正在尝试解决的问题。
+Beam 为流合并提供了非常丰富的[执行语义](http://bit.ly/2gvXOzd)，包括[`CoGroupByKey`](http://bit.ly/2ychhwv)和[`Combine`](http://bit.ly/2zfOwPG)。它还支持[side inputs](http://bit.ly/2kGzv6w)，将一个流上的计算作为另一个流的处理输入。不幸的是，所有这些 API 都设计用于[窗口流](http://bit.ly/2xznvoc)，不适用于全局窗口——这是我正在尝试解决的问题。
 
-我找到的唯一选项是使用[`Flatten`](http://bit.ly/2wPgkcg)，它允许您将多个流合并为一个。结合用于存储模型的[state](http://bit.ly/2xza5ZG)功能，提供了一个合理的整体实现方法，如[图5-1](#the_beam_implementation_approach)所示。
+我找到的唯一选项是使用[`Flatten`](http://bit.ly/2wPgkcg)，它允许您将多个流合并为一个。结合用于存储模型的[state](http://bit.ly/2xza5ZG)功能，提供了一个合理的整体实现方法，如图 5-1 所示。
 
-![smlt 0501](assets/smlt_0501.png)
+![smlt 0501](img/smlt_0501.png)
 
-###### 图5-1\. Beam实现方法
+###### 图 5-1\. Beam 实现方法
 
 使用`Flatten`操作符的注意事项是所有合并的流必须具有相同的数据定义。为了满足这一要求，我引入了`DataWithModel`数据结构（稍后描述），它可以包含数据或模型定义。
 
-# 使用Beam实现模型服务
+# 使用 Beam 实现模型服务
 
-[示例5-1](#beam_pipeline_for_model_serving)展示了使用Beam进行模型服务的整体流程（Beam仅提供Java和Python API；因此，本节中的代码为Java[[完整代码在此处可用](http://bit.ly/2hBvbAA)]）：
+示例 5-1 展示了使用 Beam 进行模型服务的整体流程（Beam 仅提供 Java 和 Python API；因此，本节中的代码为 Java[[完整代码在此处可用](http://bit.ly/2hBvbAA)]）：
 
-##### 示例5-1\. 用于模型服务的Beam流水线
+##### 示例 5-1\. 用于模型服务的 Beam 流水线
 
 ```
 public class ModelServer {
@@ -90,11 +90,11 @@ public class ModelServer {
    }
 ```
 
-这段代码首先创建流水线并设置Kafka编码器。因为两个流都只包含没有键的消息，所以必须为键使用`NullableCoder`。然后，它定义了两个输入流，一个数据流和一个模型流，将它们合并在一起。最后，合并的流用于模型服务。
+这段代码首先创建流水线并设置 Kafka 编码器。因为两个流都只包含没有键的消息，所以必须为键使用`NullableCoder`。然后，它定义了两个输入流，一个数据流和一个模型流，将它们合并在一起。最后，合并的流用于模型服务。
 
-为了从Kafka中读取数据，我正在使用新的Beam对Kafka的支持，[Kafka.IO](http://bit.ly/2g0Mgnd)，它从Kafka读取字节数组，然后对这些数据进行转换以创建一个`PCollection`的`DataWithModel`，在[示例5-2](#the_datawithmodel_class)中定义（[完整代码在此处可用](http://bit.ly/2yEX45V)）。
+为了从 Kafka 中读取数据，我正在使用新的 Beam 对 Kafka 的支持，[Kafka.IO](http://bit.ly/2g0Mgnd)，它从 Kafka 读取字节数组，然后对这些数据进行转换以创建一个`PCollection`的`DataWithModel`，在示例 5-2 中定义（[完整代码在此处可用](http://bit.ly/2yEX45V)）。
 
-##### 示例5-2\. DataWithModel类
+##### 示例 5-2\. DataWithModel 类
 
 ```
 public static class DataWithModel implements Serializable {
@@ -107,9 +107,9 @@ public static class DataWithModel implements Serializable {
 }
 ```
 
-这里 `ModelDescriptor` 是之前 `ModelToServe` 类的 Java 版本（[示例 4-2](ch04.html#the_modeltoserve_class)），而 `WineRecord` 则是数据 protobuf 定义的表示（[示例 3-4](ch03.html#model_factory_representation)）。
+这里 `ModelDescriptor` 是之前 `ModelToServe` 类的 Java 版本（示例 4-2），而 `WineRecord` 则是数据 protobuf 定义的表示（示例 3-4）。
 
-[示例 5-3](#converting_data_stream_to_datawithmodel) 展示了如何处理数据输入到 `DataWithModel` 的转换（[完整代码在此处可用](http://bit.ly/2i62j7h)）：
+示例 5-3 展示了如何处理数据输入到 `DataWithModel` 的转换（[完整代码在此处可用](http://bit.ly/2i62j7h)）：
 
 ##### 示例 5-3\. 将数据流转换为 DataWithModel
 
@@ -136,7 +136,7 @@ public class ConvertDataRecordFunction
 
 将模型输入转换为 `DataWithModel` 的转换同样简单。
 
-实际的模型服务使用了[状态支持](http://bit.ly/2xza5ZG)，并由 [示例 5-4](#implementation_of_the_model_scoring) 中所示的类实现（[完整代码在此处可用](http://bit.ly/2yb0kF7)）：
+实际的模型服务使用了[状态支持](http://bit.ly/2xza5ZG)，并由 示例 5-4 中所示的类实现（[完整代码在此处可用](http://bit.ly/2yb0kF7)）：
 
 ##### 示例 5-4\. 模型评分的实现
 
@@ -197,9 +197,9 @@ public class ScoringFunction
 }
 ```
 
-这个类从流中获取下一个元素并检查其类型。如果这是一个模型元素，它就会更新当前模型。如果是数据元素，则会得分（假设存在模型）。这段代码与 Flink 实现中的 `DataProcessor` 类（[示例 4-1](ch04.html#the_dataprocessor_class)）非常相似，但有一个重要区别：Flink 的 `DataProcessor` 类提供了两种不同的方法，可以在两个不同的线程上调用，以便模型加载的任何扩展处理时间都不会显著影响得分。而在 Beam 的情况下，它是一个单一方法，因此模型创建的任何延迟都可能影响得分。
+这个类从流中获取下一个元素并检查其类型。如果这是一个模型元素，它就会更新当前模型。如果是数据元素，则会得分（假设存在模型）。这段代码与 Flink 实现中的 `DataProcessor` 类（示例 4-1）非常相似，但有一个重要区别：Flink 的 `DataProcessor` 类提供了两种不同的方法，可以在两个不同的线程上调用，以便模型加载的任何扩展处理时间都不会显著影响得分。而在 Beam 的情况下，它是一个单一方法，因此模型创建的任何延迟都可能影响得分。
 
-Beam 程序需要一个运行器，而 Flink 是一个常用选择。为了能够在 Flink 运行器上运行此实现，它还必须实现一个模型对象的编码器，如[示例 5-5](#model_coder) 中所示（[完整代码在此处可用](http://bit.ly/2i4T4Ey)）。
+Beam 程序需要一个运行器，而 Flink 是一个常用选择。为了能够在 Flink 运行器上运行此实现，它还必须实现一个模型对象的编码器，如示例 5-5 中所示（[完整代码在此处可用](http://bit.ly/2i4T4Ey)）。
 
 ##### 示例 5-5\. 模型编码器
 
@@ -277,4 +277,4 @@ public class ModelCoder extends AtomicCoder<Model> {
 
 尽管此示例仅使用一个模型，但您可以轻松地扩展它以支持多个模型，方法是使用一个以数据类型为键的模型映射的状态。
 
-Beam 允许您构建实现模型服务的执行管道，可以使用多个运行器执行，包括 [Apache Apex](http://apex.apache.org/)、[Apache Flink](http://flink.apache.org/)、[Apache Spark](http://spark.apache.org/) 和 [Google Cloud Dataflow](https://cloud.google.com/dataflow)。在[第 6 章](ch06.html#apache_spark_implementation)中，我们将看看如何使用 Spark 流处理解决相同的问题。
+Beam 允许您构建实现模型服务的执行管道，可以使用多个运行器执行，包括 [Apache Apex](http://apex.apache.org/)、[Apache Flink](http://flink.apache.org/)、[Apache Spark](http://spark.apache.org/) 和 [Google Cloud Dataflow](https://cloud.google.com/dataflow)。在第六章中，我们将看看如何使用 Spark 流处理解决相同的问题。

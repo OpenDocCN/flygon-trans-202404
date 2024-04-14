@@ -1,6 +1,6 @@
 # Credits
 
-这份文档中的所有信息都可以从其他地方获取，但往往分散在关注不同主题的文档和网站中，而且在很多情况下，我都在TODO中寻找灵感和知识。
+这份文档中的所有信息都可以从其他地方获取，但往往分散在关注不同主题的文档和网站中，而且在很多情况下，我都在 TODO 中寻找灵感和知识。
 
 1.  [Rust 的在线文档](https://www.rust-lang.org/en-US/documentation.html)
 
@@ -10,4 +10,4 @@
 
 1.  TODO - 《Effective C++》，梅耶斯
 
-1.  TODO – 各种stackoverflow的问题和答案
+1.  TODO – 各种 stackoverflow 的问题和答案

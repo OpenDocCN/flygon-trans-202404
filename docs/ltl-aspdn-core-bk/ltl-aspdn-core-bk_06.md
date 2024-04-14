@@ -42,25 +42,25 @@ MVC + Individual Auth 模板附带的注册和登录视图已经充分利用了 
 
 ### 在 Facebook 创建一个应用
 
-您可以使用Facebook开发人员控制台在[https://developers.facebook.com/apps](https://developers.facebook.com/apps)上创建新的Facebook应用程序。单击**添加新应用**，然后按照说明创建应用程序ID。
+您可以使用 Facebook 开发人员控制台在[`developers.facebook.com/apps`](https://developers.facebook.com/apps)上创建新的 Facebook 应用程序。单击**添加新应用**，然后按照说明创建应用程序 ID。
 
-> 如果您没有Facebook帐户，可以选择设置Google或Twitter登录。提供商网站上的步骤可能不同，但代码几乎相同。
+> 如果您没有 Facebook 帐户，可以选择设置 Google 或 Twitter 登录。提供商网站上的步骤可能不同，但代码几乎相同。
 
-接下来，设置Facebook登录，然后在左侧点击设置，在Facebook登录下方：
+接下来，设置 Facebook 登录，然后在左侧点击设置，在 Facebook 登录下方：
 
-![设置按钮](facebook-login-settings.png)
+![设置按钮](img/facebook-login-settings.png)
 
-将以下URL添加到**有效的OAuth重定向URI**框中：
+将以下 URL 添加到**有效的 OAuth 重定向 URI**框中：
 
 ```
 http://localhost:5000/signin-facebook 
 ```
 
-> 您的应用程序运行的端口可能不同。如果使用`dotnet start`，通常是端口5000，但如果您使用Windows，则可能是随机端口，如54574。无论如何，您始终可以在Web浏览器的地址栏中看到应用程序正在运行的端口。
+> 您的应用程序运行的端口可能不同。如果使用`dotnet start`，通常是端口 5000，但如果您使用 Windows，则可能是随机端口，如 54574。无论如何，您始终可以在 Web 浏览器的地址栏中看到应用程序正在运行的端口。
 
-单击**保存更改**，然后转到仪表板页面。在这里，您可以看到Facebook生成的应用ID和密钥，您一会儿会需要这些信息（保持此选项卡打开）。
+单击**保存更改**，然后转到仪表板页面。在这里，您可以看到 Facebook 生成的应用 ID 和密钥，您一会儿会需要这些信息（保持此选项卡打开）。
 
-要在ASP.NET Core Identity中启用Facebook登录，请在`Startup`类的`ConfigureServices`方法中的任何位置添加以下代码：
+要在 ASP.NET Core Identity 中启用 Facebook 登录，请在`Startup`类的`ConfigureServices`方法中的任何位置添加以下代码：
 
 ```
 services
@@ -72,30 +72,30 @@ services
     }); 
 ```
 
-不要在代码中硬编码Facebook应用ID和密钥，而是从配置系统中提取这些值。`appsettings.json`文件通常是存储项目配置数据的地方。但是，由于它被检入源代码控制，因此不适合存储敏感数据，如应用程序密钥。（例如，如果您的应用程序密钥被推送到GitHub，任何人都可以窃取它并代表您执行不良操作。）
+不要在代码中硬编码 Facebook 应用 ID 和密钥，而是从配置系统中提取这些值。`appsettings.json`文件通常是存储项目配置数据的地方。但是，由于它被检入源代码控制，因此不适合存储敏感数据，如应用程序密钥。（例如，如果您的应用程序密钥被推送到 GitHub，任何人都可以窃取它并代表您执行不良操作。）
 
-### 使用Secrets Manager安全存储秘密
+### 使用 Secrets Manager 安全存储秘密
 
-您可以使用Secrets Manager工具处理敏感数据，如应用程序密钥。在终端中运行此行以确保已安装（确保您当前在项目目录中）：
+您可以使用 Secrets Manager 工具处理敏感数据，如应用程序密钥。在终端中运行此行以确保已安装（确保您当前在项目目录中）：
 
 ```
 dotnet user-secrets --help 
 ```
 
-从Facebook应用仪表板复制应用ID和密钥，然后使用`set`命令将这些值保存在Secrets Manager中：
+从 Facebook 应用仪表板复制应用 ID 和密钥，然后使用`set`命令将这些值保存在 Secrets Manager 中：
 
 ```
 dotnet user-secrets set Facebook:AppId <paste app id>
 dotnet user-secrets set Facebook:AppSecret <paste app secret> 
 ```
 
-当您的应用程序启动时，Secrets Manager中的值将加载到`Configuration`属性中，因此它们在您之前添加的`ConfigureServices`中的代码中可用。
+当您的应用程序启动时，Secrets Manager 中的值将加载到`Configuration`属性中，因此它们在您之前添加的`ConfigureServices`中的代码中可用。
 
-运行您的应用程序，然后单击导航栏中的登录链接。您将看到一个新的用于使用Facebook登录的按钮：
+运行您的应用程序，然后单击导航栏中的登录链接。您将看到一个新的用于使用 Facebook 登录的按钮：
 
-![Facebook登录按钮](facebook-login-button.png)
+![Facebook 登录按钮](img/facebook-login-button.png)
 
-尝试使用Facebook登录。您将被重定向并提示在Facebook中授予您的应用程序权限，然后重���向回来并登录。
+尝试使用 Facebook 登录。您将被重定向并提示在 Facebook 中授予您的应用程序权限，然后重���向回来并登录。
 
 # 要求身份验证
 
@@ -450,7 +450,7 @@ namespace AspNetCoreTodo
 
 启动应用程序并尝试以普通用户身份访问 `/ManageUsers` 路由。你会看到这个访问被拒绝的页面：
 
-![访问被拒绝错误](access-denied.png)
+![访问被拒绝错误](img/access-denied.png)
 
 这是因为用户不会自动分配 `Administrator` 角色。
 
@@ -590,10 +590,10 @@ private static async Task EnsureTestAdminAsync(UserManager<ApplicationUser> user
 
 当您使用管理员帐户登录时，您现在会在右上角看到一个新项目：
 
-![管理用户链接](manage-users.png)
+![管理用户链接](img/manage-users.png)
 
 ## 总结
 
 ASP.NET Core Identity 是一个强大的安全和身份系统，可帮助您添加身份验证和授权检查，并且轻松集成外部身份提供者。`dotnet new` 模板为您提供了预构建的视图和控制器，处理常见场景，如登录和注册，因此您可以快速启动。
 
-ASP.NET Core Identity 还有更多功能。您可以在[https://docs.asp.net](https://docs.asp.net)上的文档和示例中了解更多。
+ASP.NET Core Identity 还有更多功能。您可以在[`docs.asp.net`](https://docs.asp.net)上的文档和示例中了解更多。

@@ -16,7 +16,7 @@
 
 # 捐赠模型和基类
 
-为了保持我们的应用程序设计连贯性，我们现在引入一个基类和一个捐赠类来管理我们的捐赠。你可以继续使用你自己的应用程序版本或从上一个实验室的解决方案开始 - [Donation.2.0](../archives/Donation.2.0.zip)
+为了保持我们的应用程序设计连贯性，我们现在引入一个基类和一个捐赠类来管理我们的捐赠。你可以继续使用你自己的应用程序版本或从上一个实验室的解决方案开始 - Donation.2.0
 
 但在我们做任何事情之前，最好将项目重命名/复制或投影到**Donation.3.0**，就像我们在上一个实验室中所做的那样 - 所以现在就去做吧（只要确保 Android Studio 没有打开！）
 
@@ -111,7 +111,7 @@ public class Base extends AppCompatActivity {
 
 现在你的项目应该如下所示：
 
-![](lab4s101.png)
+![](img/lab4s101.png)
 
 还要特别注意 'settings'、'report' 和 'donate' 方法 - 这些将直接通过 xml 被我们的菜单选项触发，我们将在第 05 步中看到。
 
@@ -321,7 +321,7 @@ class DonationAdapter extends ArrayAdapter<Donation> {
 
 如果一切顺利 - 那么你应该能够进行捐赠，然后在报告活动中看到它们的列表。
 
-![](lab4s401.png) ![](lab4s402.png)
+![](img/lab4s401.png) ![](img/lab4s402.png)
 
 # 第 05 步
 
@@ -471,16 +471,16 @@ public class Report extends Base {
 
 类似于这样：
 
-![](lab4s701.png)
+![](img/lab4s701.png)
 
 如果您需要重构您的捐赠模型，您可能会发现以下内容有用
 
-![](lab4s702.png)
+![](img/lab4s702.png)
 
 和
 
-![](lab4s703.png)
+![](img/lab4s703.png)
 
 项目解决方案（下一个实验的入门）：
 
-+   [捐赠.4.0.入门](../archives/Donation.4.0.Starter.zip)
++   捐赠.4.0.入门

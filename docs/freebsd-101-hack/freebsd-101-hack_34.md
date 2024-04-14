@@ -1,6 +1,6 @@
-# 挂载procfs文件系统
+# 挂载 procfs 文件系统
 
-## 挂载procfs文件系统
+## 挂载 procfs 文件系统
 
 `FreeBSD`默认不挂载`procfs`文件系统，如果需要，可以自行挂载：
 

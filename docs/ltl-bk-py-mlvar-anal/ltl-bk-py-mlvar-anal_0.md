@@ -1,10 +1,10 @@
 ### 导航
 
-+   [索引](genindex.html "总索引")
++   索引
 
-+   [下一步](a_little_book_of_python_for_multivariate_analysis.html "Python 多元分析小册子") |
++   下一步 |
 
-+   [Python 多元分析小册子 0.1 文档](#) »
++   Python 多元分析小册子 0.1 文档 »
 
 # Python 多元分析小册子
 
@@ -22,74 +22,74 @@ Python 代码旨在易于理解，就像原始源中的 R 代码一样，而不�
 
 ## 目录
 
-+   [Python 多元分析小册子](a_little_book_of_python_for_multivariate_analysis.html)
++   Python 多元分析小册子
 
-    +   [设置 Python 环境](a_little_book_of_python_for_multivariate_analysis.html#setting-up-the-python-environment)
+    +   设置 Python 环境
 
-        +   [安装 Python](a_little_book_of_python_for_multivariate_analysis.html#install-python)
+        +   安装 Python
 
-        +   [库](a_little_book_of_python_for_multivariate_analysis.html#libraries)
+        +   库
 
-        +   [导入库](a_little_book_of_python_for_multivariate_analysis.html#importing-the-libraries)
+        +   导入库
 
-        +   [Python 控制台](a_little_book_of_python_for_multivariate_analysis.html#python-console)
+        +   Python 控制台
 
-    +   [将多元分析数据读入 Python](a_little_book_of_python_for_multivariate_analysis.html#reading-multivariate-analysis-data-into-python)
+    +   将多元分析数据读入 Python
 
-    +   [绘制多元数据](a_little_book_of_python_for_multivariate_analysis.html#plotting-multivariate-data)
+    +   绘制多元数据
 
-        +   [矩阵散点图](a_little_book_of_python_for_multivariate_analysis.html#a-matrix-scatterplot)
+        +   矩阵散点图
 
-        +   [带有数据点标签的散点图](a_little_book_of_python_for_multivariate_analysis.html#a-scatterplot-with-the-data-points-labelled-by-their-group)
+        +   带有数据点标签的散点图
 
-        +   [概要图](a_little_book_of_python_for_multivariate_analysis.html#a-profile-plot)
+        +   概要图
 
-    +   [计算多元数据的汇总统计信息](a_little_book_of_python_for_multivariate_analysis.html#calculating-summary-statistics-for-multivariate-data)
+    +   计算多元数据的汇总统计信息
 
-        +   [每个组的平均值和方差](a_little_book_of_python_for_multivariate_analysis.html#means-and-variances-per-group)
+        +   每个组的平均值和方差
 
-        +   [一个变量的组间方差和组内方差](a_little_book_of_python_for_multivariate_analysis.html#between-groups-variance-and-within-groups-variance-for-a-variable)
+        +   一个变量的组间方差和组内方差
 
-        +   [两个变量的组间协方差和组内协方差](a_little_book_of_python_for_multivariate_analysis.html#between-groups-covariance-and-within-groups-covariance-for-two-variables)
+        +   两个变量的组间协方差和组内协方差
 
-        +   [计算多元数据的相关性](a_little_book_of_python_for_multivariate_analysis.html#calculating-correlations-for-multivariate-data)
+        +   计算多元数据的相关性
 
-        +   [变量标准化](a_little_book_of_python_for_multivariate_analysis.html#standardising-variables)
+        +   变量标准化
 
-    +   [主成分分析](a_little_book_of_python_for_multivariate_analysis.html#principal-component-analysis)
+    +   主成分分析
 
-        +   [确定保留多少主成分](a_little_book_of_python_for_multivariate_analysis.html#deciding-how-many-principal-components-to-retain)
+        +   确定保留多少主成分
 
-        +   [主成分的载荷](a_little_book_of_python_for_multivariate_analysis.html#loadings-for-the-principal-components)
+        +   主成分的载荷
 
-        +   [主成分的散点图](a_little_book_of_python_for_multivariate_analysis.html#scatterplots-of-the-principal-components)
+        +   主成分的散点图
 
-    +   [线性判别分析](a_little_book_of_python_for_multivariate_analysis.html#linear-discriminant-analysis)
+    +   线性判别分析
 
-        +   [判别函数的载荷](a_little_book_of_python_for_multivariate_analysis.html#loadings-for-the-discriminant-functions)
+        +   判别函数的载荷
 
-        +   [判别函数实现的分离度](a_little_book_of_python_for_multivariate_analysis.html#separation-achieved-by-the-discriminant-functions)
+        +   判别函数实现的分离度
 
-        +   [LDA值的堆叠直方图](a_little_book_of_python_for_multivariate_analysis.html#a-stacked-histogram-of-the-lda-values)
+        +   LDA 值的堆叠直方图
 
-        +   [判别函数的散点图](a_little_book_of_python_for_multivariate_analysis.html#scatterplots-of-the-discriminant-functions)
+        +   判别函数的散点图
 
-        +   [分配规则和误分类率](a_little_book_of_python_for_multivariate_analysis.html#allocation-rules-and-misclassification-rate)
+        +   分配规则和误分类率
 
-            +   [Python方式](a_little_book_of_python_for_multivariate_analysis.html#the-python-way)
+            +   Python 方式
 
-    +   [链接和进一步阅读](a_little_book_of_python_for_multivariate_analysis.html#links-and-further-reading)
+    +   链接和进一步阅读
 
-    +   [致谢](a_little_book_of_python_for_multivariate_analysis.html#acknowledgements)
+    +   致谢
 
-    +   [联系方式](a_little_book_of_python_for_multivariate_analysis.html#contact)
+    +   联系方式
 
-    +   [许可证](a_little_book_of_python_for_multivariate_analysis.html#license)
+    +   许可证
 
 ## 许可证
 
 [![知识共享许可证](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-sa/4.0/)
 
-《Python多元分析小书》由Yiannis Gatsoulis根据[知识共享署名-相同方式共享4.0国际许可协议](http://creativecommons.org/licenses/by-sa/4.0/)许可。
+《Python 多元分析小书》由 Yiannis Gatsoulis 根据[知识共享署名-相同方式共享 4.0 国际许可协议](http://creativecommons.org/licenses/by-sa/4.0/)许可。
 
 基于 Avril Coghlan 的 [《R 多元分析小册子》](https://little-book-of-r-for-multivariate-analysis.readthedocs.org/en/latest/src/multivariateanalysis.html) 的作品，使用 [CC-BY-3.0](http://creativecommons.org/licenses/by/3.0/) 许可。© 2016 版权所有，Yiannis Gatsoulis 创作。使用 [Sphinx](http://sphinx-doc.org/) 1.3.4 创建。

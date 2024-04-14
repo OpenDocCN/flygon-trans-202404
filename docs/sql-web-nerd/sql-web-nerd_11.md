@@ -1,13 +1,13 @@
-| [![夏威夷](../Images/dba259bd7bdf0e51fe26e0ce0cb7e5fc.jpg)](/http://philip.greenspun.com/images/pcd4235/trees-34.4.jpg) |
+| ![夏威夷](img/trees-34.4.jpg) |
 | --- |
 
 ## Oracle SQL 中的树
 
-[SQL for Web Nerds](index.html) 的一部分，由 [Philip Greenspun](http://philip.greenspun.com/) 著
+SQL for Web Nerds 的一部分，由 [Philip Greenspun](http://philip.greenspun.com/) 著
 
 * * *
 
-[![在夏利峡谷的树](../Images/5c0e7c5b1bc555ab5e82bd442e822596.jpg)](/http://philip.greenspun.com/images/pcd2148/canyon-de-chelly-tree-5.4.jpg) 表面上看，关系型数据库管理系统似乎是表示和操作树的非常糟糕的工具。本章旨在实现以下目标：
+![在夏利峡谷的树](img/canyon-de-chelly-tree-5.4.jpg) 表面上看，关系型数据库管理系统似乎是表示和操作树的非常糟糕的工具。本章旨在实现以下目标：
 
 +   向你展示 SQL 数据库中的一行可以被视为一个对象
 
@@ -23,7 +23,7 @@ Oracle 中树的典型示例是组织图。
 >  create table corporate_slaves ( slave_id integer primary key, supervisor_id references corporate_slaves, name varchar(100) ); insert into corporate_slaves values (1, NULL, 'Big Boss Man'); insert into corporate_slaves values (2, 1, 'VP Marketing'); insert into corporate_slaves values (3, 1, 'VP Sales'); insert into corporate_slaves values (4, 3, 'Joe Sales Guy'); insert into corporate_slaves values (5, 4, 'Bill Sales Assistant'); insert into corporate_slaves values (6, 1, 'VP Engineering'); insert into corporate_slaves values (7, 6, 'Jane Nerd'); insert into corporate_slaves values (8, 6, 'Bob Nerd'); SQL> column name format a20 SQL> select * from corporate_slaves; SLAVE_ID SUPERVISOR_ID NAME ---------- ------------- -------------------- 1 Big Boss Man 2 1 VP Marketing 3 1 VP Sales 4 3 Joe Sales Guy 6 1 VP Engineering 7 6 Jane Nerd 8 6 Bob Nerd 5 4 Bill Sales Assistant 8 rows selected. 
 > ```
 
-[![约书亚树国家公园](../Images/97a384ca26084f87d1b3e02d1b9051f8.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-78.tcl) `supervisor_id` 中的整数实际上是指向 `corporate_slaves` 表中其他行的指针。需要显示组织图表吗？只有标准 SQL 可用，您将使用客户端语言（例如 C、Lisp、Perl 或 Tcl）编写程序来执行以下操作：
+![约书亚树国家公园](img/joshua-tree-78.tcl) `supervisor_id` 中的整数实际上是指向 `corporate_slaves` 表中其他行的指针。需要显示组织图表吗？只有标准 SQL 可用，您将使用客户端语言（例如 C、Lisp、Perl 或 Tcl）编写程序来执行以下操作：
 
 1.  查询 Oracle，找到雇员 `where supervisor_id is null`，将其称为 `$big_kahuna_id`
 
@@ -45,7 +45,7 @@ Oracle 中树的典型示例是组织图。
 >  select name, slave_id, supervisor_id from corporate_slaves connect by prior slave_id = supervisor_id start with slave_id in (select slave_id from corporate_slaves where supervisor_id is null); NAME SLAVE_ID SUPERVISOR_ID -------------------- ---------- ------------- Big Boss Man 1 VP Marketing 2 1 VP Sales 3 1 Joe Sales Guy 4 3 Bill Sales Assistant 5 4 VP Engineering 6 1 Jane Nerd 7 6 Bob Nerd 8 6 8 rows selected. 
 > ```
 
-[![日出时的树。加利福尼亚州的大瑟尔](../Images/68b59ea96fe1033693f439a534e1e58a.jpg)](/http://philip.greenspun.com/images/pcd3448/big-sur-trees-74.tcl) 请注意，我们在 START WITH 子句中使用了一个子查询来找出谁是大领导。在接下来的例子中，我们将只为简洁起见硬编码 `slave_id` 1。
+![日出时的树。加利福尼亚州的大瑟尔](img/big-sur-trees-74.tcl) 请注意，我们在 START WITH 子句中使用了一个子查询来找出谁是大领导。在接下来的例子中，我们将只为简洁起见硬编码 `slave_id` 1。
 
 虽然这些人是按正确的顺序排列的，但从前面的报告中很难看出谁为谁工作。Oracle 提供了一个神奇的伪列，只有当查询包含 CONNECT BY 时才有意义。该伪列是 `level`：
 
@@ -75,7 +75,7 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### JOIN 与 CONNECT BY 不兼容
 
-[![爱尔兰卡林福德。](../Images/7f044a9d1d84560f4e5193335b07becb.jpg)](/http://philip.greenspun.com/images/pcd1120/carlingford-83.tcl) 如果我们尝试构建一个报告，显示每个员工及其主管的姓名，我们将看到 Oracle 提供的少数几个信息丰富的错误消息之一：
+![爱尔兰卡林福德。](img/carlingford-83.tcl) 如果我们尝试构建一个报告，显示每个员工及其主管的姓名，我们将看到 Oracle 提供的少数几个信息丰富的错误消息之一：
 
 > ```
 >  select lpad(' ', (level - 1) * 2) || cs1.name as padded_name, cs2.name as supervisor_name from corporate_slaves cs1, corporate_slaves cs2 where cs1.supervisor_id = cs2.slave_id(+) connect by prior cs1.slave_id = cs1.supervisor_id start with cs1.slave_id = 1; ERROR at line 4: ORA-01437: cannot have join with CONNECT BY 
@@ -169,7 +169,7 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### PL/SQL 而不是 JOIN
 
-[![新罕布什尔州16号公路Glen Ellis瀑布上的树枝](../Images/854aa475d933949e060b89fab3f871fb.jpg)](/http://philip.greenspun.com/images/pcd4537/glen-ellis-tree-branch-86.tcl) 上述报告很有趣，但令人困惑，因为很难看出树在哪里结婚。如上所述，您不能使用 CONNECT BY 进行 JOIN。我们演示了将 CONNECT BY 嵌入视图中的解决方法。一个更通用的解决方法是使用 PL/SQL：
+![新罕布什尔州 16 号公路 Glen Ellis 瀑布上的树枝](img/glen-ellis-tree-branch-86.tcl) 上述报告很有趣，但令人困惑，因为很难看出树在哪里结婚。如上所述，您不能使用 CONNECT BY 进行 JOIN。我们演示了将 CONNECT BY 嵌入视图中的解决方法。一个更通用的解决方法是使用 PL/SQL：
 
 > ```
 >  create or replace function family_spouse_name (v_relative_id family_relatives.relative_id%TYPE) return varchar is v_spouse_id integer; spouse_name varchar(500); BEGIN select spouse into v_spouse_id from family_relatives where relative_id = v_relative_id; if v_spouse_id is null then return null; else select (first_names || ' ' || last_name) into spouse_name from family_relatives where relative_id = v_spouse_id; return spouse_name; end if; END family_spouse_name; / show errors column spouse format a20 select lpad(' ', (level - 1) * 2) || first_names || ' ' || last_name as full_name, **family_spouse_name(relative_id) as spouse** from family_relatives connect by prior relative_id in (mother, father) start with relative_id in (select relative_id from family_relatives where mother is null and father is null); FULL_NAME SPOUSE ------------------------- -------------------- Nick Gittes Cecile Kaplan Regina Gittes Nathaniel Greenspun Suzanne Greenspun Philip Greenspun Harry Greenspun Marjorie Gittes Cecile Kaplan Nick Gittes Regina Gittes Nathaniel Greenspun Suzanne Greenspun Philip Greenspun Harry Greenspun Marjorie Gittes Shirley Greenspun Jack Greenspun Nathaniel Greenspun Regina Gittes Suzanne Greenspun Philip Greenspun Harry Greenspun Jack Greenspun Shirley Greenspun Nathaniel Greenspun Regina Gittes Suzanne Greenspun Philip Greenspun Harry Greenspun 
@@ -189,7 +189,7 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 >  create or replace function family_n_stories (v_relative_id family_relatives.relative_id%TYPE) return integer is n_stories integer; BEGIN select count(*) into n_stories from family_story_relative_map where relative_id = v_relative_id; return n_stories; END family_n_stories; / show errors select lpad(' ', (level - 1) * 2) || first_names || ' ' || last_name as full_name, family_n_stories(relative_id) as n_stories from family_relatives connect by prior relative_id in (mother, father) start with relative_id in (select relative_id from family_relatives where mother is null and father is null); FULL_NAME N_STORIES ------------------------- ---------- Nick Gittes 0 ... Shirley Greenspun 0 Nathaniel Greenspun 1 Suzanne Greenspun 1 Philip Greenspun 1 Harry Greenspun 0 ... 
 > ```
 
-[![Point Lobos 的树。加利福尼亚海岸，卡梅尔以南。](../Images/2661480edc82974485e0402ec8e62c36.jpg)](/http://philip.greenspun.com/images/pcd1628/point-lobos-tree-25.tcl)
+![Point Lobos 的树。加利福尼亚海岸，卡梅尔以南。](img/point-lobos-tree-25.tcl)
 
 ### 逆向工作
 
@@ -225,7 +225,7 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### 性能和调优
 
-[![Elke 爬树。1993年，不列颠哥伦比亚省维多利亚。](../Images/d0ecdf1255d115893a8467f5fe102a3b.jpg)](/http://philip.greenspun.com/images/pcd1676/elke-in-tree-60.tcl) Oracle 在从 CONNECT BY 生成结果时没有得到树精灵的帮助。如果您不希望树查询花费 O(N^2) 的时间，您需要构建索引，让 Oracle 能够非常快速地回答形式为 "Parent X 的所有子代是什么？" 的问题。
+![Elke 爬树。1993 年，不列颠哥伦比亚省维多利亚。](img/elke-in-tree-60.tcl) Oracle 在从 CONNECT BY 生成结果时没有得到树精灵的帮助。如果您不希望树查询花费 O(N²) 的时间，您需要构建索引，让 Oracle 能够非常快速地回答形式为 "Parent X 的所有子代是什么？" 的问题。
 
 对于公司奴隶表，您可能需要两个连接的索引：
 
@@ -235,7 +235,7 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### 参考
 
-[![亚利桑那州北部石化森林中的一棵树。](../Images/f1b7d98722df8dbb7623892de8f25ed4.jpg)](/http://philip.greenspun.com/images/pcd2148/petrified-forest-tree-15.4.jpg)
+![亚利桑那州北部石化森林中的一棵树。](img/petrified-forest-tree-15.4.jpg)
 
 +   [CONNECT BY 的 SQL 参考部分](http://www.oradoc.com/keyword/connectby)
 
@@ -243,11 +243,11 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### 无谓的照片
 
-[![约书亚树国家公园](../Images/1f0d0c6eee96f6a84f60d35d393c4191.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-79.tcl)[![莫哈韦沙漠。约书亚树国家公园](../Images/9b08cfb566eb1f00efdf10239a602367.jpg)](/http://philip.greenspun.com/images/pcd0278/joshua-tree-40.tcl)[![佛罗伦萨的博博利花园](../Images/54834a9c8884d134064fa29de60e6711.jpg)](/http://philip.greenspun.com/images/pcd0800/boboli-tree-lane-72.tcl)[![佛蒙特州皮查姆附近的枫树](../Images/6e1e9cfaefc1189511de3cb39c3cdb76.jpg)](/http://philip.greenspun.com/images/pcd2488/maple-trees-12.tcl)
+![约书亚树国家公园](img/joshua-tree-79.tcl)![莫哈韦沙漠。约书亚树国家公园](img/joshua-tree-40.tcl)![佛罗伦萨的博博利花园](img/boboli-tree-lane-72.tcl)![佛蒙特州皮查姆附近的枫树](img/maple-trees-12.tcl)
 
-[![约书亚树。约书亚树国家公园。](../Images/5469b36b6fffc84d1f298390a61d1b10.jpg)](/http://philip.greenspun.com/images/pcd4228/joshua-tree-10.4.jpg)
+![约书亚树。约书亚树国家公园。](img/joshua-tree-10.4.jpg)
 
-下一个：[日期](dates.html)
+下一个：日期
 
 * * *
 
@@ -255,13 +255,13 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 
 ### 读者评论
 
-> Oracle9i在连接上执行CONNECT BY。它还添加了一个"ORDER SIBLINGS BY"子句，修复了阻止您对查询的每个级别进行排序的遗漏。
+> Oracle9i 在连接上执行 CONNECT BY。它还添加了一个"ORDER SIBLINGS BY"子句，修复了阻止您对查询的每个级别进行排序的遗漏。
 > 
-> 在Dartmouth找不到这篇文章:(，看起来真的很有趣！
+> 在 Dartmouth 找不到这篇文章:(，看起来真的很有趣！
 > 
-> -- [Andrew Wolfe](/shared/community-member?user_id=260484), March 24, 2004
+> -- Andrew Wolfe, March 24, 2004
 > 
-> 感兴趣的读者应该查看Joe Celko关于在SQL中表示树的嵌套集模型。不需要被锁定在专有的SQL方言中，而且查询速度可能快上几个数量级！
+> 感兴趣的读者应该查看 Joe Celko 关于在 SQL 中表示树的嵌套集模型。不需要被锁定在专有的 SQL 方言中，而且查询速度可能快上几个数量级！
 > 
 > 这里有一些链接...
 > 
@@ -283,14 +283,14 @@ SQL 是一种面向集合的语言。在 CONNECT BY 查询的结果中，顺序�
 > 
 > 致敬，Mattster
 > 
-> -- [Matt Anon](/shared/community-member?user_id=280913), April 3, 2007
+> -- Matt Anon, April 3, 2007
 
-[添加评论](/comments/add?page_id=4604)
+添加评论
 
 ### 相关链接
 
-+   [在SQL中表示m叉树](http://www.cs.dartmouth.edu/~apd/archives/000019.html)- 这种方法允许非常快速地检索后代和修改m叉树。不需要自引用或嵌套的选择语句来检索一些或所有后代。节点的标记使得可以非常简单快速地查询节点的DFS顺序。它在某种程度上受到哈夫曼编码的启发。 （由[Anthony D'Auria](/shared/community-member?user_id=242782)贡献）
++   [在 SQL 中表示 m 叉树](http://www.cs.dartmouth.edu/~apd/archives/000019.html)- 这种方法允许非常快速地检索后代和修改 m 叉树。不需要自引用或嵌套的选择语句来检索一些或所有后代。节点的标记使得可以非常简单快速地查询节点的 DFS 顺序。它在某种程度上受到哈夫曼编码的启发。 （由 Anthony D'Auria 贡献）
 
-+   [失效链接](http://web.archive.org/web/*/http://www.cs.dartmouth.edu/~apd/archives/000019.html)- 上面的链接到达特茅斯学院的链接似乎已经失效，但Web Archive保存了页面的副本 （由[Tom Lebr](/shared/community-member?user_id=261924)贡献）
++   [失效链接](http://web.archive.org/web/*/http://www.cs.dartmouth.edu/~apd/archives/000019.html)- 上面的链接到达特茅斯学院的链接似乎已经失效，但 Web Archive 保存了页面的副本 （由 Tom Lebr 贡献）
 
-[添加链接](/links/add?page_id=4604)
+添加链接

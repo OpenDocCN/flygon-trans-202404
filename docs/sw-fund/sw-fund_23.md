@@ -7,7 +7,7 @@
     their results.  We'll begin with a typed version of the simplest
     imaginable language, to introduce the basic ideas of types and
     typing rules and the fundamental theorems about type systems:
-    *type preservation* and *progress*.  In chapter [Stlc](Stlc.html) we'll move
+    *type preservation* and *progress*.  In chapter Stlc we'll move
     on to the *simply typed lambda-calculus*, which lives at the core
     of every modern functional programming language (including
     Coq!).
@@ -32,7 +32,7 @@
     usual with a tiny toy language.  We want it to have the potential
     for programs to go wrong because of runtime type errors, so we
     need something a tiny bit more complex than the language of
-    constants and addition that we used in chapter [Smallstep](Smallstep.html): a
+    constants and addition that we used in chapter Smallstep: a
     single kind of data (e.g., numbers) is too simple, but just two
     kinds (numbers and booleans) gives us enough material to tell an
     interesting story.
@@ -336,7 +336,7 @@ succ (if true then true else true)
 ## Normal Forms and Values
 
     The first interesting thing to notice about this step relation
-    is that the strong progress theorem from the [Smallstep](Smallstep.html) chapter
+    is that the strong progress theorem from the Smallstep chapter
     fails here.  That is, there are terms that are normal forms (they
     can't take a step) but not values (because we have not included
     them in our definition of possible "results of reduction").  Such
@@ -635,7 +635,7 @@ Example has_type_not :
 
 ```
 
-#### 练习：1星，可选（succ_hastype_nat__hastype_nat）
+#### 练习：1 星，可选（succ_hastype_nat__hastype_nat）
 
 ```
 Example succ_hastype_nat__hastype_nat : ∀t,
@@ -730,7 +730,7 @@ right. inversion IHHT1; clear IHHT1.
 
 +（* t[1] 是一个值*）
 
-apply ([bool_canonical](Types.html#bool_canonical) t[1] HT[1]) in H.
+apply (bool_canonical t[1] HT[1]) in H.
 
 inversion H; subst; clear H.
 
@@ -742,7 +742,7 @@ inversion H; subst; clear H.
 
 inversion H as [t[1]' H[1]]。
 
-∃([tif](Types.html#tif) t[1]' t[2] t[3])...
+∃(tif t[1]' t[2] t[3])...
 
 （*在这里填写*）已承认。
 
@@ -770,7 +770,7 @@ inversion H as [t[1]' H[1]]。
     ☐ 
 
     This theorem is more interesting than the strong progress theorem
-    that we saw in the [Smallstep](Smallstep.html) chapter, where *all* normal forms
+    that we saw in the Smallstep chapter, where *all* normal forms
     were values.  Here a term can be stuck, but only if it is ill
     typed.
 
@@ -782,7 +782,7 @@ inversion H as [t[1]' H[1]]。
 
     项进行一步，结果也是一个良好类型的项。
 
-#### 练习：2星（finish_preservation）
+#### 练习：2 星（finish_preservation）
 
 ```
 Theorem preservation : ∀t t' T,
@@ -811,7 +811,7 @@ Theorem preservation : ∀t t' T,
     - (* T_If *) inversion HE; subst; clear HE.
       + (* ST_IFTrue *) assumption.
       + (* ST_IfFalse *) assumption.
-      + (* ST_If *) apply [T_If](Types.html#T_If); try assumption.
+      + (* ST_If *) apply T_If; try assumption.
         apply IHHT1; assumption.
     (* FILL IN HERE *) Admitted.
 
@@ -819,7 +819,7 @@ Theorem preservation : ∀t t' T,
 
     ☐
 
-#### 练习：3星，高级M（finish_preservation_informal）
+#### 练习：3 星，高级 M（finish_preservation_informal）
 
     完成以下非正式证明：
 
@@ -841,7 +841,7 @@ Theorem preservation : ∀t t' T,
 
     ☐
 
-#### 练习：3星（preservation_alternate_proof）
+#### 练习：3 星（preservation_alternate_proof）
 
     现在通过对
 
@@ -902,11 +902,11 @@ t ⇒* t' →
 
 对于每个 P，归纳 P；对于每个 [R S]，归纳 P。
 
-破坏 ([progress](Types.html#progress) x T HT)；自动。
+破坏 (progress x T HT)；自动。
 
-应用 IHP。应用 ([preservation](Types.html#preservation) x y T HT H)。
+应用 IHP。应用 (preservation x y T HT H)。
 
-展开 [stuck](Types.html#stuck)。分割；自动。Qed。
+展开 stuck。分割；自动。Qed。
 
 ```
 
@@ -1133,7 +1133,7 @@ apply multi_refl.
 
     ☐
 
-#### 练习：2星M（变体2）
+#### 练习：2 星 M（变体 2）
 
     假设，相反，我们将这个新规则添加到步骤关系中：
 
@@ -1164,7 +1164,7 @@ t[2] ⇒ t[2]' →
 
     ☐
 
-#### 练习：2星，可选（变体4）
+#### 练习：2 星，可选（变体 4）
 
     假设我们添加这条规则：
 
@@ -1193,7 +1193,7 @@ t[2] ⇒ t[2]' →
 
     ☐
 
-#### 练习：2星，可选（变体6）
+#### 练习：2 星，可选（变体 6）
 
     假设我们添加这条规则：
 

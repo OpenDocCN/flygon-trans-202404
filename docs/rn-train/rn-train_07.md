@@ -6,9 +6,9 @@
 
 `console.log(__fbBatchedBridge);`
 
-然后在你的调试器([http://localhost:8081/debugger-ui](http://localhost:8081/debugger-ui))中，你会看到类似下面的内容，
+然后在你的调试器([`localhost:8081/debugger-ui`](http://localhost:8081/debugger-ui))中，你会看到类似下面的内容，
 
-![](native_modules_screenshot.png) 这就是我们将在本章讨论的内容。
+![](img/native_modules_screenshot.png) 这就是我们将在本章讨论的内容。
 
 # 7.1 iOS
 

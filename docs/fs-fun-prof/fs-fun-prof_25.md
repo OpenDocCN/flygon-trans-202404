@@ -10,11 +10,11 @@
 
 *警告！这些文章包含可怕的主题、牵强的类比、单子的讨论*
 
-+   [弗兰肯函数医生与单子怪物](monadster.html)。或者说，一个19世纪科学家差点发明了状态单子。
++   弗兰肯函数医生与单子怪物。或者说，一个 19 世纪科学家差点发明了状态单子。
 
-+   [完成单子怪物的身体](monadster-2.html)。弗兰肯函数医生与单子怪物，第二部分。
++   完成单子怪物的身体。弗兰肯函数医生与单子怪物，第二部分。
 
-+   [重构单子怪物](monadster-3.html)。弗兰肯函数医生与单子怪物，第三部分。
++   重构单子怪物。弗兰肯函数医生与单子怪物，第三部分。
 
 # 弗兰肯函数医生与单子怪物
 
@@ -28,9 +28,9 @@
 
 但是后来，众所周知，这个生物逃脱了，自由的单子怪物在计算机科学会议上肆虐，甚至让最有经验的程序员心生恐惧。
 
-![恐怖，恐怖](monadster_horror.jpg)
+![恐怖，恐怖](img/monadster_horror.jpg)
 
-*标题：1990年LISP和函数式编程ACM会议上的可怕事件。*
+*标题：1990 年 LISP 和函数式编程 ACM 会议上的可怕事件。*
 
 我不会在这里重复细节；这个故事仍然太可怕了，不值得回忆。
 
@@ -56,7 +56,7 @@
 
 这里是演示原理的图表：
 
-![原则](monadster1.png)
+![原则](img/monadster1.png)
 
 但这只创建了*一个*身体部位。我们如何创建多个？这是弗兰肯函子博士面临的挑战。
 
@@ -64,11 +64,11 @@
 
 我们如何将两个步骤连接起来，使第一个步骤的重要力量被传递到第二个步骤的输入中？
 
-![连接步骤](monadster_connect.png)
+![连接步骤](img/monadster_connect.png)
 
 即使我们已经正确地链接了步骤，我们也需要以某种方式将各个活体部位结合起来。但我们只能在创建时访问*活体*部位。我们怎么在那一刹那间将它们结合起来呢？
 
-![组合每个步骤的输出](monadster_combine.png)
+![组合每个步骤的输出](img/monadster_combine.png)
 
 正是弗兰肯函子博士的天才导致了一个优雅的方法，解决了这两个问题，我现在将向您介绍这个方法。
 
@@ -136,13 +136,13 @@ let makeLiveLeftLeg (deadLeftLeg,vitalForce) =
 
 如您所见，此实现与之前的图表完全匹配。
 
-![版本 1](monadster1.png)
+![版本 1](img/monadster1.png)
 
 在这一点上，弗兰肯函子博士有了两个重要的见解。
 
-第一个洞察力是，由于[柯里化](currying.html)，该函数可以从接受元组的函数转换为接受两个参数的函数，每个参数依次传入。
+第一个洞察力是，由于柯里化，该函数可以从接受元组的函数转换为接受两个参数的函数，每个参数依次传入。
 
-![版本 2](monadster2.png)
+![版本 2](img/monadster2.png)
 
 现在代码看起来像这样：
 
@@ -163,7 +163,7 @@ let makeLiveLeftLeg deadLeftLeg vitalForce =
 
 换句话说，我们传入一个死部位，当给出一些生命力时，我们会得到一个创建活体部位的函数。
 
-![版本 3](monadster3.png)
+![版本 3](img/monadster3.png)
 
 这些“变活”的函数可以被视为“食谱中的步骤”，假设我们能找到某种方法将它们组合起来。
 
@@ -275,9 +275,9 @@ val makeLiveLeftLegM : DeadLeftLeg -> M<LiveLeftLeg>
 
 但是`M<T>`如何可以从无中创造出`T`呢？
 
-这就是像`makeLiveLeftLegM`这样的函数至关重要的地方。它们接受一个参数并将其“烘烤”到结果中。因此，您会看到许多具有类似签名的“M制造”函数，全部看起来像这样：
+这就是像`makeLiveLeftLegM`这样的函数至关重要的地方。它们接受一个参数并将其“烘烤”到结果中。因此，您会看到许多具有类似签名的“M 制造”函数，全部看起来像这样：
 
-![](monadster5.png)
+![](img/monadster5.png)
 
 或者用代码表示：
 
@@ -302,7 +302,7 @@ let leftLegM = makeLiveLeftLegM deadLeftLeg
 
 有用的是，我们可以*提前*创建这个配方，在闪电击中*之前*。
 
-现在让我们假装暴风雨已经到来，闪电已经击中，现在有10单位的生命力：
+现在让我们假装暴风雨已经到来，闪电已经击中，现在有 10 单位的生命力：
 
 ```
 let vf = {units = 10} 
@@ -329,7 +329,7 @@ val remainingAfterLeftLeg : VitalForce =
    {units = 9;} 
 ```
 
-您可以看到成功创建了一个`LiveLeftLeg`，剩余的生命力现在减少到9单位。
+您可以看到成功创建了一个`LiveLeftLeg`，剩余的生命力现在减少到 9 单位。
 
 这种模式匹配很笨拙，所以让我们创建一个帮助函数，一次性解开内部函数并调用它。
 
@@ -384,23 +384,23 @@ type HealBrokenArm = LiveLeftBrokenArm -> LiveLeftArm
 
 首先，我们必须排除从`DeadLeftUnbrokenArm`创建`LiveLeftArm`，因为没有这样的东西。我们也不能直接将`DeadLeftBrokenArm`转换为健康的`LiveLeftArm`。
 
-![将死亡映射为死亡](monadster_map1.png)
+![将死亡映射为死亡](img/monadster_map1.png)
 
 但是我们*可以*将`DeadLeftBrokenArm`转换为*活*的受伤手臂，然后治疗活的受伤手臂，对吗？
 
-![不能直接创建活的受伤手臂](monadster_map2.png)
+![不能直接创建活的受伤手臂](img/monadster_map2.png)
 
 不，恐怕那样不行。我们不能直接创建活体部分，我们只能在`M`配方的上下文中创建活体部分。
 
 那么我们需要做的就是创建一个特殊版本的`healBrokenArm`（称之为`healBrokenArmM`），将`M<LiveBrokenArm>`转换为`M<LiveArm>`。
 
-![无法直接创建生活中断手](monadster_map3.png)
+![无法直接创建生活中断手](img/monadster_map3.png)
 
 但是我们如何创建这样的函数呢？我们如何将`healBrokenArm`作为其一部分重复使用？
 
 让我们从最直接的实现开始。
 
-首先，由于函数将返回`M`的某种形式，它的形式与我们之前看到的`makeLiveLeftLegM`函数相同。我们需要创建一个具有vitalForce参数的内部函数，然后将其包装在`M`中返回。
+首先，由于函数将返回`M`的某种形式，它的形式与我们之前看到的`makeLiveLeftLegM`函数相同。我们需要创建一个具有 vitalForce 参数的内部函数，然后将其包装在`M`中返回。
 
 但与我们之前看到的函数不同，这个函数也有一个`M`作为参数（`M<LiveBrokenArm>`）。我们如何从这个输入中提取我们需要的数据呢？
 
@@ -467,7 +467,7 @@ let makeGenericTransform f brokenArmM =
 val makeGenericTransform : f:('a -> 'b) -> M<'a> -> M<'b> 
 ```
 
-### 引入mapM
+### 引入 mapM
 
 由于现在它变得如此通用，名称变得混乱。让我们重新命名它。我将其称为`mapM`。它适用于*任何*身体部位和*任何*转换。
 
@@ -488,13 +488,13 @@ let mapM f bodyPartM =
 let healBrokenArmM = mapM healBrokenArm 
 ```
 
-![mapM with heal](monadster_map4.png)
+![mapM with heal](img/monadster_map4.png)
 
-### mapM的重要性
+### mapM 的重要性
 
 一种思考`mapM`的方式是它是一个“函数转换器”。给定任何“正常”的函数，它将其转换为一个输入和输出都是`M`的函数。
 
-![mapM](monadster_mapm.png)
+![mapM](img/monadster_mapm.png)
 
 类似于`mapM`的函数在许多情况下都会出现。例如，`Option.map`将“正常”函数转换为其输入和输出都是选项的函数。类似地，`List.map`将“正常”函数转换为其输入和输出都是列表的函数。还有许多其他例子。
 
@@ -508,7 +508,7 @@ let healBrokenArmL = List.map healBrokenArm
 // LiveLeftBrokenArm list -> LiveLeftArm list 
 ```
 
-对你可能是新的是，“包装器”类型`M`包含一个*函数*，而不是像Option或List那样的简单数据结构。这可能会让你感到头痛！
+对你可能是新的是，“包装器”类型`M`包含一个*函数*，而不是像 Option 或 List 那样的简单数据结构。这可能会让你感到头痛！
 
 另外，上面的图表暗示`M`可以包装*任何*正常类型，而`mapM`可以映射*任何*正常函数。
 
@@ -615,7 +615,7 @@ let armSurgery lowerArm upperArm =
 
 换句话说，我们需要将我们的 `armSurgery` 函数转换为一个能够处理 `M` 的 `armSurgeryM` 函数，这个函数适用于正常的活体部分。
 
-![armsurgeryM](monadster_armsurgeryM.png)
+![armsurgeryM](img/monadster_armsurgeryM.png)
 
 我们可以像以前一样使用相同的方法：
 
@@ -691,7 +691,7 @@ f:('a -> 'b -> 'c) -> M<'a> -> M<'b> -> M<'c>
 
 正如我们在 `mapM` 中所做的那样，我们可以将此函数解释为一个“函数转换器”，将“正常”的双参数函数转换为 `M` 世界中的函数。
 
-![map2M](monadster_map2m.png)
+![map2M](img/monadster_map2m.png)
 
 ### 测试右臂
 
@@ -769,7 +769,7 @@ val remainingFromRightArm : VitalForce =
 
 ## 下一步
 
-这个令人兴奋的故事还有更多的震撼等待着你！敬请关注 [下一篇](monadster-2.html)，届时我将揭示头部和身体是如何创建的。
+这个令人兴奋的故事还有更多的震撼等待着你！敬请关注 下一篇，届时我将揭示头部和身体是如何创建的。
 
 # 完成 Monadster 的身体
 
@@ -781,7 +781,7 @@ val remainingFromRightArm : VitalForce =
 
 欢迎来到 Frankenfunctor 博士和 Monadster 的扣人心弦的故事！
 
-我们在[上一篇文章中](monadster.html)看到了 Frankenfunctor 博士如何利用“Monadster 部件生成器”（简称为“M”）从死去的身体部位中创造生命，这些部件生成器在提供了一些生命力后，会返回一个活体身体部位。
+我们在上一篇文章中看到了 Frankenfunctor 博士如何利用“Monadster 部件生成器”（简称为“M”）从死去的身体部位中创造生命，这些部件生成器在提供了一些生命力后，会返回一个活体身体部位。
 
 我们还看到了如何创建生物体的腿和手臂，以及如何使用 `mapM`（用于受损的手臂）和 `map2M`（用于两部分的手臂）处理和组合这些 M 值。
 
@@ -822,7 +822,7 @@ let headSurgery brain skull =
 
 如果我们能重用 `map2M` 就太好了，但是有一个问题 —— 要使 `map2M` 起作用，需要一个包装在 `M` 中的头骨。
 
-![头部](monadster_head1.png)
+![头部](img/monadster_head1.png)
 
 但是头骨不需要变得活着或使用活力，所以我们需要创建一个特殊的函数，将 `Skull` 转换为 `M<Skull>`。
 
@@ -888,7 +888,7 @@ let skull = Skull "Yorick"
 
 *顺便说一句，这个特定的死脑是如何获得的是一个[有趣的故事](https://en.wikipedia.org/wiki/Young_Frankenstein)，但我现在没有时间详细说明。*
 
-![异常脑](monadster_brain.jpg)
+![异常脑](img/monadster_brain.jpg)
 
 接下来，我们从死部件中构建 "M" 版本：
 
@@ -980,7 +980,7 @@ val makeBeatingHeart : LiveHeart -> M<BeatingHeart>
 
 我们从一个死心脏开始，我们需要得到一个跳动的心脏
 
-![heart1](monadster_heart1.png)
+![heart1](img/monadster_heart1.png)
 
 但我们没有直接做这件事的工具。
 
@@ -988,13 +988,13 @@ val makeBeatingHeart : LiveHeart -> M<BeatingHeart>
 
 但第一个的输出与第二个的输入不兼容，所以我们无法将它们粘合在一起。
 
-![heart2](monadster_heart2.png)
+![heart2](img/monadster_heart2.png)
 
 然后，我们想要一个函数，给定一个 `M<LiveHeart>` 作为输入，可以将其转换为 `M<BeatingHeart>`。
 
 而且，我们还想要从我们已经拥有的 `makeBeatingHeart` 函数构建它。
 
-![heart2](monadster_heart3.png)
+![heart2](img/monadster_heart3.png)
 
 这是一个第一次尝试，使用了我们以前多次使用过的相同模式：
 
@@ -1052,7 +1052,7 @@ M<LiveHeart> -> M<BeatingHeart>
 
 这正是我们想要的！
 
-### 引入bindM
+### 引入 bindM
 
 再次，我们可以通过传递一个函数参数而不是硬编码`makeBeatingHeart`来使这个函数通用化。
 
@@ -1090,7 +1090,7 @@ let bindM f bodyPartM =
 
 所以最后，我们有了一种创建函数的方法，即给定一个`DeadHeart`，创建一个`M<BeatingHeart>`。
 
-![heart3](monadster_heart4.png)
+![heart3](img/monadster_heart4.png)
 
 这是代码：
 
@@ -1117,21 +1117,21 @@ let beatingHeartM =
 
 ### 绑定的重要性
 
-一种思考`bindM`的方式是它是另一个“函数转换器”，就像`mapM`一样。也就是说，给定任何“返回M”的函数，它将其转换为一个输入和输出都是`M`的函数。
+一种思考`bindM`的方式是它是另一个“函数转换器”，就像`mapM`一样。也就是说，给定任何“返回 M”的函数，它将其转换为一个输入和输出都是`M`的函数。
 
-![bindM](monadster_bindm.png)
+![bindM](img/monadster_bindm.png)
 
 就像`map`一样，`bind`在许多其他上下文中都出现。
 
 例如，`Option.bind`将一个生成选项的函数（`'a -> 'b option`）转换为一个其输入和输出都是选项的函数。类似地，`List.bind`将一个生成列表的函数（`'a -> 'b list`）转换为一个其输入和输出都是列表的函数。
 
-而且我在我的[功能错误处理](http://fsharpforfunandprofit.com/rop/)的讲座中详细讨论了bind的另一种版本。
+而且我在我的[功能错误处理](http://fsharpforfunandprofit.com/rop/)的讲座中详细讨论了 bind 的另一种版本。
 
-bind如此重要的原因是因为“返回M”的函数经常出现，并且它们不能轻松地链接在一起，因为一个步骤的输出与下一个步骤的输入不匹配。
+bind 如此重要的原因是因为“返回 M”的函数经常出现，并且它们不能轻松地链接在一起，因为一个步骤的输出与下一个步骤的输入不匹配。
 
 通过使用`bindM`，我们可以将每个步骤转换为输入和输出都是`M`的函数，然后它们*可以*被链接在一起。
 
-![bindM](monadster_bindm2.png)
+![bindM](img/monadster_bindm2.png)
 
 ### 测试心跳
 
@@ -1189,7 +1189,7 @@ type LiveBody = {
 
 结果是，这个生物有两只左脚，[这并不总是一个缺点](https://www.youtube.com/watch?v=DC_PACr5cT8&t=55)，而且事实上，这个生物不仅克服了这个劣势，而且成为了一名可靠的舞者，正如在这个罕见的视频中所看到的：
 
-[https://www.youtube.com/embed/w1FLZPFI3jc](https://www.youtube.com/embed/w1FLZPFI3jc)
+[`www.youtube.com/embed/w1FLZPFI3jc`](https://www.youtube.com/embed/w1FLZPFI3jc)
 
 ### 组装子组件
 
@@ -1422,7 +1422,7 @@ let bodyM =
 
 现在我们只需等待闪电击中并为生成生命力的机器充电！
 
-![实验室里的电力](monadster-lab-electricity.gif)
+![实验室里的电力](img/monadster-lab-electricity.gif)
 
 [[来源：Misfit Robot Daydream](http://misfitdaydream.blogspot.co.uk/2012/10/frankenstein-1931.html)]
 
@@ -1464,37 +1464,37 @@ val remainingFromBody : VitalForce = {units = 2;}
 
 +   使用`applyM`组装整个身体
 
-*本文中使用的代码示例可在[GitHub上获得](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*。
+*本文中使用的代码示例可在[GitHub 上获得](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*。
 
 ## 下次
 
-在[最终部分](monadster-3.html)中，我们将重构代码并回顾所有使用的技术。
+在最终部分中，我们将重构代码并回顾所有使用的技术。
 
-# 重构Monadster
+# 重构 Monadster
 
-# 重构Monadster
+# 重构 Monadster
 
 *更新：[关于这个主题的幻灯片和视频](http://fsharpforfunandprofit.com/monadster/)*
 
 *警告！本文包含可怕的主题，牵强的类比，以及对单子的讨论*
 
-欢迎来到弗兰肯函数博士和Monadster引人入胜的故事的第三部分！
+欢迎来到弗兰肯函数博士和 Monadster 引人入胜的故事的第三部分！
 
-我们在[第一部分](monadster.html)中看到，弗兰肯函数博士如何利用“Monadster部件生成器”（简称“M”）从死去的身体部位中创造生命，一旦提��了一些生命力，就会返回一个活体部位。
+我们在第一部分中看到，弗兰肯函数博士如何利用“Monadster 部件生成器”（简称“M”）从死去的身体部位中创造生命，一旦提��了一些生命力，就会返回一个活体部位。
 
-我们还看到了如何创建生物体的腿和手臂，并且如何使用`mapM`和`map2M`处理和组合这些M值。
+我们还看到了如何创建生物体的腿和手臂，并且如何使用`mapM`和`map2M`处理和组合这些 M 值。
 
-在[第二部分](monadster-2.html)中，我们学习了如何使用其他强大的技术构建头部、心脏和身体，例如`returnM`、`bindM`和`applyM`。
+在第二部分中，我们学习了如何使用其他强大的技术构建头部、心脏和身体，例如`returnM`、`bindM`和`applyM`。
 
 在这最后一部分中，我们将回顾所有使用的技术，重构代码，并将 Dr Frankenfunctor 的技术与现代状态单子进行比较。
 
 完整系列的链接：
 
-+   [第一部分 - 弗兰肯函数博士和单子兽](monadster.html)
++   第一部分 - 弗兰肯函数博士和单子兽
 
-+   [第二部分 - 完成身体](monadster-2.html)
++   第二部分 - 完成身体
 
-+   [第三部分 - 回顾和重构](monadster-3.html)（*本文*）
++   第三部分 - 回顾和重构（*本文*）
 
 ## 使用的技术回顾
 
@@ -1640,7 +1640,7 @@ monster {
     } 
 ```
 
-*如果你想了解更多关于计算表达式的内容，我有一系列关于它们的[深入文章](computation-expressions.html)。*
+*如果你想了解更多关于计算表达式的内容，我有一系列关于它们的深入文章。*
 
 ### 重新定义 mapM 和其他函数
 
@@ -1730,7 +1730,7 @@ liveBodyPart, remainingVitalForce
 
 ### 引入`getM`
 
-让我们从getter开始。我们应该如何实现它？
+让我们从 getter 开始。我们应该如何实现它？
 
 好吧，生命力只在成为活着的上下文中可用，所以函数必须遵循熟悉的模板：
 
@@ -1919,9 +1919,9 @@ let createBodyM leftLegM rightLegM leftArmM rightArmM headM beatingHeartM =
 let bodyM = createBodyM leftLegM rightLegM leftArmM rightArmM headM beatingHeartM 
 ```
 
-注意：使用`monster`表达式的完整代码在[GitHub上可用](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster2-fsx)。
+注意：使用`monster`表达式的完整代码在[GitHub 上可用](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster2-fsx)。
 
-### 怪物表达式与applyM
+### 怪物表达式与 applyM
 
 我们以前使用了另一种方式来创建主体，使用`applyM`。
 
@@ -2043,15 +2043,15 @@ let putS newState =
 
 +   [**单子定律**](https://stackoverflow.com/questions/18569656/explanation-of-monad-laws-in-f)。
 
-+   **只有最后一个put起作用**。也就是说，先放置X再放置Y应该与只放置Y相同。
++   **只有最后一个 put 起作用**。也就是说，先放置 X 再放置 Y 应该与只放置 Y 相同。
 
-+   **Get应该返回最后一个put**。也就是说，先放置X然后执行get应该返回相同的X。
++   **Get 应该返回最后一个 put**。也就是说，先放置 X 然后执行 get 应该返回相同的 X。
 
 以及其他。
 
 我现在不会再深入讨论了。我建议观看[这个讲座](http://fsharpforfunandprofit.com/pbt/)进行更深入的讨论。
 
-### 使用状态表达式而不是monster表达式
+### 使用状态表达式而不是 monster 表达式
 
 现在我们可以像使用`monster`表达式一样使用`state`表达式。这里是一个例子：
 
@@ -2103,9 +2103,9 @@ let beatingHeart, remainingFromHeart = runS beatingHeartS vf
 
 因此，如果你有一个`state`表达式类型可用，你根本不需要创建像`monster`这样的自定义表达式！
 
-要了解更详细和复杂的F#中状态单子的例子，请查看[FSharpx库](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs#L409)。
+要了解更详细和复杂的 F#中状态单子的例子，请查看[FSharpx 库](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs#L409)。
 
-*注意：使用`state`表达式的完整代码可以在[GitHub上找到](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster3-fsx)。*
+*注意：使用`state`表达式的完整代码可以在[GitHub 上找到](https://gist.github.com/swlaschin/54489d9586402e5b1e8a#file-monadster3-fsx)。*
 
 ## 使用状态表达式的其他例子
 
@@ -2159,7 +2159,7 @@ let push newTop = state {
 
 有了这些，我们可以开始编写我们的领域代码了！
 
-### 基于栈的Hello World
+### 基于栈的 Hello World
 
 这是一个简单的例子。我们先压入"world"，然后"hello"，再弹出栈并组合结果。
 
@@ -2229,13 +2229,13 @@ let fiveN = calculate five |> getValue   // 5
 
 ## 好吧，好吧，一些单子的东西
 
-人们总是想了解单子，尽管我不希望这些帖子沦��[又一个单子教程](why-i-wont-be-writing-a-monad-tutorial.html)。
+人们总是想了解单子，尽管我不希望这些帖子沦��又一个单子教程。
 
 所以这就是它们如何与我们在这些帖子中所做的工作相契合的。
 
-一个**函子**（在编程意义上，无论如何）是一个数据结构（比如Option、List或State），它有一个与之关联的`map`函数。`map`函数必须满足一些属性（["函子法则"](https://en.wikibooks.org/wiki/Haskell/The_Functor_class#The_functor_laws)）。
+一个**函子**（在编程意义上，无论如何）是一个数据结构（比如 Option、List 或 State），它有一个与之关联的`map`函数。`map`函数必须满足一些属性（["函子法则"](https://en.wikibooks.org/wiki/Haskell/The_Functor_class#The_functor_laws)）。
 
-一个**应用函子**（在编程意义上）是一个数据结构（比如Option、List或State），它有两个与之关联的函数：`apply`和`pure`（与`return`相同）。这些函数必须满足一些属性（["应用函子法则"](https://en.wikibooks.org/wiki/Haskell/Applicative_functors#Applicative_functor_laws)）。
+一个**应用函子**（在编程意义上）是一个数据结构（比如 Option、List 或 State），它有两个与之关联的函数：`apply`和`pure`（与`return`相同）。这些函数必须满足一些属性（["应用函子法则"](https://en.wikibooks.org/wiki/Haskell/Applicative_functors#Applicative_functor_laws)）。
 
 最后，**单子**（在编程意义上）是一个数据结构（比如 Option、List 或 State），它有两个与之关联的函数：`bind`（通常写作 `>>=`）和 `return`。而且，这些函数有一些必须满足的性质（["单子定律"](https://en.wikibooks.org/wiki/Haskell/Understanding_monads#Monad_Laws)）。
 
@@ -2269,7 +2269,7 @@ Frankenfunctor 博士是一位开创性的实验者，我很高兴能够分享�
 
 无论如何，我希望这一系列文章能够给你带来启发。我不那么秘密的愿望是，单子及其相关的组合子现在对你来说不再那么令人震惊...
 
-![shocking](monadster_shocking300.gif)
+![shocking](img/monadster_shocking300.gif)
 
 ...并且你可以在自己的项目中明智地使用它们。祝你好运！
 

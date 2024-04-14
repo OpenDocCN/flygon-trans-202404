@@ -14,9 +14,9 @@
 
 +   WebSockets
 
-我在我的博客上写了很多这些话题：[https://www.recaffeinate.co](https://www.recaffeinate.co)
+我在我的博客上写了很多这些话题：[`www.recaffeinate.co`](https://www.recaffeinate.co)
 
-官方 ASP.NET Core 文档也涵盖了这些主题，以及更多内容：[https://docs.asp.net](https://docs.asp.net)
+官方 ASP.NET Core 文档也涵盖了这些主题，以及更多内容：[`docs.asp.net`](https://docs.asp.net)
 
 祝您编程愉快！
 
@@ -24,7 +24,7 @@
 
 嘿，我是 Nate！ 我在一个充满咖啡因的周末里写了《Little ASP.NET Core Book》，因为我热爱 .NET 社区，并希望以我自己微小的方式回馈。 我希望它能帮助您学到一些新东西！
 
-您可以通过 Twitter ([@nbarbettini](https://twitter.com/nbarbettini)) 或我的博客 ([https://www.recaffeinate.co](https://www.recaffeinate.co)) 与我保持联系。
+您可以通过 Twitter ([@nbarbettini](https://twitter.com/nbarbettini)) 或我的博客 ([`www.recaffeinate.co`](https://www.recaffeinate.co)) 与我保持联系。
 
 ## 特别鸣谢
 

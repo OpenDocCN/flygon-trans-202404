@@ -124,7 +124,7 @@ export default function todos(state = initialState, action) {
 ... 
 ```
 
-![](QQ20160726-2.png)
+![](img/QQ20160726-2.png)
 
 # 5.2 持久化
 

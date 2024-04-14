@@ -149,4 +149,4 @@ if err != nil {
 
 参考资料：
 
-[Go语言圣经](http://www.gopl.io/)。
+[Go 语言圣经](http://www.gopl.io/)。

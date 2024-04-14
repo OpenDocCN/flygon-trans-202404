@@ -40,4 +40,4 @@ public class EmployeeRepository {
 
 仔细应用 SRP，将因不同原因而改变的事物分开，是创建具有独立可部署组件结构的设计的关键之一。
 
-由[Bob大叔](http://programmer.97things.oreilly.com/wiki/index.php/Uncle_Bob)
+由[Bob 大叔](http://programmer.97things.oreilly.com/wiki/index.php/Uncle_Bob)

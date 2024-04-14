@@ -2,7 +2,7 @@
 
 ## 构建内核
 
-如果您想要自定义构建内核，您需要首先安装源代码（您可以参考[此文](install-source-code.html)）。然后进入您的机器的配置目录：
+如果您想要自定义构建内核，您需要首先安装源代码（您可以参考此文）。然后进入您的机器的配置目录：
 
 ```
 # cd /usr/src/sys/`uname -m`/conf 
@@ -39,4 +39,4 @@ FreeBSD FreeBSD 10.3-RELEASE-p5 FreeBSD 10.3-RELEASE-p5 #0: Tue Jul 19 17:52:57 
 
 参考：
 
-[在FreeBSD中构建自定义内核的方法](https://www.youtube.com/watch?v=KVNxaKu11F0)。
+[在 FreeBSD 中构建自定义内核的方法](https://www.youtube.com/watch?v=KVNxaKu11F0)。

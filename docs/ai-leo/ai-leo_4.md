@@ -14,41 +14,41 @@
 
 +   Matlab
 
-# Lua和Torch
+# Lua 和 Torch
 
 # 介绍
 
 * * *
 
-在本书中，我强调了了解如何编写自己的深度学习/人工智能库的重要性。但特别是在研究某个主题时，理解最常见的库也非常重要。本章将教授Torch的基础知识，但在此之前我们也将学习Lua。
+在本书中，我强调了了解如何编写自己的深度学习/人工智能库的重要性。但特别是在研究某个主题时，理解最常见的库也非常重要。本章将教授 Torch 的基础知识，但在此之前我们也将学习 Lua。
 
-## Lua语言
+## Lua 语言
 
 * * *
 
-Lua最初是为嵌入式系统而创建的，其想法是拥有一个简单的跨平台和快速的语言。Lua的主要特点之一是它与C/C++的轻松集成。
+Lua 最初是为嵌入式系统而创建的，其想法是拥有一个简单的跨平台和快速的语言。Lua 的主要特点之一是它与 C/C++的轻松集成。
 
-Lua最初于1993年设计为一种用于扩展软件应用程序的语言，以满足当时对定制的增加需求。
+Lua 最初于 1993 年设计为一种用于扩展软件应用程序的语言，以满足当时对定制的增加需求。
 
-此扩展意味着您可以在一个大型的C/C++程序中，某些部分使用Lua，而无需重新编译所有内容。
+此扩展意味着您可以在一个大型的 C/C++程序中，某些部分使用 Lua，而无需重新编译所有内容。
 
 ## Torch
 
 * * *
 
-Torch是一个基于Lua的科学计算框架，具有CPU和GPU后端。您可以将其想象成带有CPU和GPU实现的Numpy。一些很棒的功能：
+Torch 是一个基于 Lua 的科学计算框架，具有 CPU 和 GPU 后端。您可以将其想象成带有 CPU 和 GPU 实现的 Numpy。一些很棒的功能：
 
-+   有效的线性代数函数，支持GPU
++   有效的线性代数函数，支持 GPU
 
 +   神经网络包，带有自动微分（无需手动反向传播）
 
-+   多GPU支持
++   多 GPU 支持
 
-## 与Lua的初次接触
+## 与 Lua 的初次接触
 
 * * *
 
-下面我们将看到一些关于Lua的简单示例，只是为了对这种语言有一些接触。
+下面我们将看到一些关于 Lua 的简单示例，只是为了对这种语言有一些接触。
 
 ```
 print("Hello World") -- First thing, note that there is no main...
@@ -67,7 +67,7 @@ someVar = 10; -- You can use ";" to end a statement
 io.write("Now it's value is:\"", someVar, "\"") 
 ```
 
-### Lua数据类型
+### Lua 数据类型
 
 * * *
 
@@ -95,7 +95,7 @@ print(type(someVar))
 
 * * *
 
-通常我们会依赖Torch，但Lua也具有一些数学支持。
+通常我们会依赖 Torch，但 Lua 也具有一些数学支持。
 
 ```
 io.write("5 + 3 = ", 5+3, "\n")
@@ -119,11 +119,11 @@ math.random() : 2
 Pi = 3.1415926536 
 ```
 
-### Lua包含（require）
+### Lua 包含（require）
 
 * * *
 
-包含其他Lua文件的Lua语句是"require"，通常用于添加一些库。
+包含其他 Lua 文件的 Lua 语句是"require"，通常用于添加一些库。
 
 ```
 require 'image'
@@ -131,13 +131,13 @@ pedestrian = image.load('./pedestrianSign.png')
 itorch.image(pedestrian) 
 ```
 
-![](pedestrianSign.png)
+![](img/pedestrianSign.png)
 
 ### 条件语句
 
 * * *
 
-仅是简单的if-then-else。Lua没有switch语句。
+仅是简单的 if-then-else。Lua 没有 switch 语句。
 
 ```
 age = 17
@@ -158,7 +158,7 @@ io.write("Can I vote: ", tostring(canVote))
 
 * * *
 
-Lua具有while、repeat和for循环。for循环还有一个“for-each”扩展，用于在表上进行迭代。
+Lua 具有 while、repeat 和 for 循环。for 循环还有一个“for-each”扩展，用于在表上进行迭代。
 
 ```
 i = 1
@@ -194,7 +194,7 @@ January(key=1), February(key=2), March(key=3), April(key=4), 10(key=5),
 
 * * *
 
-在Lua中定义函数非常简单，其语法类似于matlab。
+在 Lua 中定义函数非常简单，其语法类似于 matlab。
 
 ```
 -- Function definition
@@ -210,7 +210,7 @@ print(string.format("5 + 2 = %d", getSum(5,2)))
 
 * * *
 
-在Lua中，我们使用表来表示其他所有内容（例如：列表、字典、类等）
+在 Lua 中，我们使用表来表示其他所有内容（例如：列表、字典、类等）
 
 ```
 -- tables
@@ -258,7 +258,7 @@ print(tab)
 
 * * *
 
-Lua不直接支持面向对象编程，但您可以使用表和元表模拟所有其主要功能（继承、封装）。
+Lua 不直接支持面向对象编程，但您可以使用表和元表模拟所有其主要功能（继承、封装）。
 
 元表教程：用于在表上覆盖操作（元方法）。
 
@@ -321,7 +321,7 @@ Flop weighs 10.5 kg, is 1.0m in tall
 table 
 ```
 
-### 文件I/O
+### 文件 I/O
 
 ```
 -- Open a file to write
@@ -364,13 +364,13 @@ Line 2 at input from input (At output)
 true 
 ```
 
-## 与Torch的初次接触
+## 与 Torch 的初次接触
 
 * * *
 
-在本节中，我们将看到如何使用Torch进行简单操作，更复杂的内容将在后面处理。
+在本节中，我们将看到如何使用 Torch 进行简单操作，更复杂的内容将在后面处理。
 
-Torch的一个目标是提供一些matlab功能，可以在这里找到一个有用的速查表：
+Torch 的一个目标是提供一些 matlab 功能，可以在这里找到一个有用的速查表：
 
 ```
 -- Include torch library
@@ -435,7 +435,7 @@ print(m_trans)
 [torch.DoubleTensor of size 4x2] 
 ```
 
-### 在GPU上执行操作
+### 在 GPU 上执行操作
 
 ```
 -- Include torch (cuda) library
@@ -475,9 +475,9 @@ local x = torch.range(0, 9)
 Plot():line(x, y,'red' ,'Sinus Wave'):title('Simple Plot'):draw() 
 ```
 
-![](SimplePlotItorch.png)
+![](img/SimplePlotItorch.png)
 
-### 从nn开始（XOR问题）
+### 从 nn 开始（XOR 问题）
 
 ```
 require "nn"
@@ -497,7 +497,7 @@ mlp:add(nn.Linear(hiddenUnits, outputs))
 
 * * *
 
-在torch中，损失函数称为criterion，因为在这种情况下，我们处理的是二元分类，我们将选择均方误差准则
+在 torch 中，损失函数称为 criterion，因为在这种情况下，我们处理的是二元分类，我们将选择均方误差准则
 
 ```
 criterion_MSE = nn.MSECriterion() 
@@ -507,7 +507,7 @@ criterion_MSE = nn.MSECriterion()
 
 * * *
 
-在这里，我们将反向传播我们的模型，以获得与损失梯度相关的输出 ![](9a616dbf.png)，然后使用梯度下降来更新参数。
+在这里，我们将反向传播我们的模型，以获得与损失梯度相关的输出 ![](img/9a616dbf.png)，然后使用梯度下降来更新参数。
 
 ```
 for i = 1,2500 do
@@ -561,7 +561,7 @@ x[1] = -0.5; x[2] = -0.5; print(mlp:forward(x)) -- 1 XOR 1 = 0 (negative)
 
 * * *
 
-Torch提供了一种标准的方法来优化任何函数关于一些参数。在我们的情况下，我们的函数将是网络的损失，给定一个输入和一组权重。训练神经网络的目标是优化权重，以在我们的训练数据集上给出最低的损失。因此，我们将使用optim来最小化相对于权重的损失，在我们的训练集上。
+Torch 提供了一种标准的方法来优化任何函数关于一些参数。在我们的情况下，我们的函数将是网络的损失，给定一个输入和一组权重。训练神经网络的目标是优化权重，以在我们的训练数据集上给出最低的损失。因此，我们将使用 optim 来最小化相对于权重的损失，在我们的训练集上。
 
 ```
 -- Create a dataset (128 elements)
@@ -642,13 +642,13 @@ x[1] = -0.5; x[2] = -0.5; print(mlp:forward(x)) -- 1 XOR 1 = 0 (negative)
 
 * * *
 
-在本章中，我们将学习关于tensorflow的知识，这是谷歌用于机器学习的库。简单来说，它是一个用于数值计算的库，使用图形，图中的节点是操作，而图的边缘是张量。只是为了记住张量，是多维矩阵，将在tensorflow图中流动。
+在本章中，我们将学习关于 tensorflow 的知识，这是谷歌用于机器学习的库。简单来说，它是一个用于数值计算的库，使用图形，图中的节点是操作，而图的边缘是张量。只是为了记住张量，是多维矩阵，将在 tensorflow 图中流动。
 
-![](tensors_flowing.gif)
+![](img/tensors_flowing.gif)
 
-![](Tensorflow_Graph_0.png)
+![](img/Tensorflow_Graph_0.png)
 
-创建这个计算图后，它将创建一个会话，可以由多个CPU、GPU分布式或非分布式执行。这里是tensorflow的主要组件：
+创建这个计算图后，它将创建一个会话，可以由多个 CPU、GPU 分布式或非分布式执行。这里是 tensorflow 的主要组件：
 
 1.  变量：在会话之间保留值，用于权重/偏差
 
@@ -656,38 +656,38 @@ x[1] = -0.5; x[2] = -0.5; print(mlp:forward(x)) -- 1 XOR 1 = 0 (negative)
 
 1.  张量：从/到节点传递的信号
 
-1.  占位符：用于在程序和tensorflow图之间发送数据
+1.  占位符：用于在程序和 tensorflow 图之间发送数据
 
 1.  会话：执行图形的地方。
 
-TensorFlow的实现将图定义转换为可执行操作，分布在可用的计算资源上，例如CPU或计算机的GPU卡。一般来说，您不必明确指定CPU或GPU。如果有GPU，TensorFlow将尽可能多地使用您的第一个GPU执行操作。
+TensorFlow 的实现将图定义转换为可执行操作，分布在可用的计算资源上，例如 CPU 或计算机的 GPU 卡。一般来说，您不必明确指定 CPU 或 GPU。如果有 GPU，TensorFlow 将尽可能多地使用您的第一个 GPU 执行操作。
 
-作为“客户端”的工作是使用代码（C/C++或python）符号地创建这个图，并要求tensorflow执行这个图。正如您可能想象的那样，这些“执行节点”的tensorflow代码是一些C/C++、CUDA高性能代码。（也很难理解）。
+作为“客户端”的工作是使用代码（C/C++或 python）符号地创建这个图，并要求 tensorflow 执行这个图。正如您可能想象的那样，这些“执行节点”的 tensorflow 代码是一些 C/C++、CUDA 高性能代码。（也很难理解）。
 
 例如，在构建阶段通常会创建一个图来表示和训练神经网络，然后在执行阶段重复执行一组训练操作。
 
-![](Tensorflow_Graph_1.png)
+![](img/Tensorflow_Graph_1.png)
 
 ### 安装
 
 * * *
 
-如果您已经有一个安装了python（anaconda 3.5）和nvidia cuda驱动程序（7.5）的机器，安装tensorflow很简单
+如果您已经有一个安装了 python（anaconda 3.5）和 nvidia cuda 驱动程序（7.5）的机器，安装 tensorflow 很简单
 
 ```
 export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.10.0rc0-cp35-cp35m-linux_x86_64.whl
 sudo pip3 install --ignore-installed --upgrade $TF_BINARY_URL 
 ```
 
-如果您仍然需要安装一些cuda驱动程序，请参考[这里](https://www.youtube.com/watch?v=cVWVRA8XXxs)获取说明
+如果您仍然需要安装一些 cuda 驱动程序，请参考[这里](https://www.youtube.com/watch?v=cVWVRA8XXxs)获取说明
 
 ### 简单示例
 
 * * *
 
-就像一个hello world，让我们构建一个仅乘以2个数字的图。在这里注意代码的一些部分。
+就像一个 hello world，让我们构建一个仅乘以 2 个数字的图。在这里注意代码的一些部分。
 
-+   导入tensorflow库
++   导入 tensorflow 库
 
 +   构建图
 
@@ -697,7 +697,7 @@ sudo pip3 install --ignore-installed --upgrade $TF_BINARY_URL
 
 还要注意，在这个例子中，我们向模型传递了一些常量值，所以在现实生活中并不那么有用。
 
-![](Tensorflow_Graph_2.png)
+![](img/Tensorflow_Graph_2.png)
 
 ### 交换数据
 
@@ -752,9 +752,9 @@ plt.legend()
 plt.show() 
 ```
 
-![](Dataset_Linear_Regression.png)
+![](img/Dataset_Linear_Regression.png)
 
-现在我们将实现一个包含函数 ![](6e6dbcfc.png) 和损失函数 ![](b403dde9.png) 的图。损失函数将返回一个标量值，表示我们的数据与模型预测之间所有距离的平均值。
+现在我们将实现一个包含函数 ![](img/6e6dbcfc.png) 和损失函数 ![](img/b403dde9.png) 的图。损失函数将返回一个标量值，表示我们的数据与模型预测之间所有距离的平均值。
 
 ```
  # Create our linear regression model
@@ -801,7 +801,7 @@ plt.show()
 session.close() 
 ```
 
-![](Dataset_Linear_Regression_Result.png)
+![](img/Dataset_Linear_Regression_Result.png)
 
 ### 加载数据
 
@@ -835,7 +835,7 @@ val_data, val_label = getDataFromFile('validationFile.txt')
 
 Tensorflow 提供了一个解决方案来帮助可视化图中发生的事情。这个工具叫做 Tensorboard，基本上是一个网页，你可以通过检查变量、节点连接等来调试你的图。
 
-![](TensorBoardScreenhsot.png)
+![](img/TensorBoardScreenhsot.png)
 
 为了使用 tensorboard，你需要在图上注释你想要检查的变量，即：损失值。然后你需要生成所有摘要，使用函数 tf.merge_all_summaries()。
 
@@ -910,11 +910,11 @@ writer_tensorboard = tf.train.SummaryWriter('/home/leo/test', session.graph_def)
 
 * * *
 
-在这里我们可以看到我们的线性回归模型作为一个计算图。![](GraphLinearRegTensorflow.png)
+在这里我们可以看到我们的线性回归模型作为一个计算图。![](img/GraphLinearRegTensorflow.png)
 
 下面我们可以看到损失在每次迭代中的演变。
 
-![](LossLinearRegTensorflow.png)
+![](img/LossLinearRegTensorflow.png)
 
 有时 ipython 会保存您的图的版本，当使用 tensorboard 时会出现问题，解决方法之一是重新启动内核，如果出现问题。
 
@@ -983,7 +983,7 @@ sess.close()
 
 现在我们将解释如何在多 GPU 系统上进行训练。
 
-![](multipleGpu_Train.png)
+![](img/multipleGpu_Train.png)
 
 多 GPU 训练的基本步骤如下：
 

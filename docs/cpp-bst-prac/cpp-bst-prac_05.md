@@ -26,7 +26,7 @@ namespace my_project {
 
 它们在阅读代码时不提供任何额外的含义。您可以创建一个具有更有意义名称的单独函数，或者传递一个使含义更清晰的枚举。
 
-查看 [http://mortoray.com/2015/06/15/get-rid-of-those-boolean-function-parameters/](http://mortoray.com/2015/06/15/get-rid-of-those-boolean-function-parameters/) 获取更多信息。
+查看 [`mortoray.com/2015/06/15/get-rid-of-those-boolean-function-parameters/`](http://mortoray.com/2015/06/15/get-rid-of-those-boolean-function-parameters/) 获取更多信息。
 
 ## 避免使用原始循环
 

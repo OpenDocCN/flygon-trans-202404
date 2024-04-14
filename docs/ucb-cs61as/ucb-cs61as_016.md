@@ -1,4 +1,4 @@
-# 作业0.2
+# 作业 0.2
 
 ## 模板
 
@@ -14,9 +14,9 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 
 如果您在实验室计算机上工作，`grader`命令将运行自动评分程序。如果您在自己的个人计算机上工作，您应该下载[grader.rkt](http://inst.eecs.berkeley.edu/~cs61as/autograder/grader.rkt)和[hw0-2-tests](http://inst.eecs.berkeley.edu/~cs61as/autograder/tests/hw0-2-tests.rkt)。
 
-## 练习0
+## 练习 0
 
-表达式`(+ 8 2)`的值为`10`。它是由三个原子组成的复合表达式。对于这个问题，写出另外五个值也为`10`的Racket表达式：
+表达式`(+ 8 2)`的值为`10`。它是由三个原子组成的复合表达式。对于这个问题，写出另外五个值也为`10`的 Racket 表达式：
 
 1.  一个原子
 
@@ -28,9 +28,9 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 
 1.  任何其他类型的表达��
 
-## 练习1
+## 练习 1
 
-让我们构建一些处理单词和句子的函数。我们将给出上一个实验室的第二个过程。您可能还会发现[word](/textbook/words-and-sentences.html#sub3)函数有用。
+让我们构建一些处理单词和句子的函数。我们将给出上一个实验室的第二个过程。您可能还会发现 word 函数有用。
 
 1.  编写一个过程`first-two`，接受一个单词作为参数，返回一个包含该参数前两个字母的两个字母单词。
 
@@ -47,9 +47,9 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 'be 
 ```
 
-## 练习2
+## 练习 2
 
-编写一个谓词`teen?`，如果其参数在13到19之间（包括13和19），则返回`#t`。
+编写一个谓词`teen?`，如果其参数在 13 到 19 之间（包括 13 和 19），则返回`#t`。
 
 ```
 -> (teen? 19)
@@ -58,7 +58,7 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 #f 
 ```
 
-## 练习3
+## 练习 3
 
 编写一个过程`indef-article`，接受一个单词作为唯一参数，并返回一个句子。请参考下面的示例，了解`indef-article`应该如何工作。请记住，以辅音字母开头的任何单词的不定冠词是"a"，以元音字母开头的任何单词的不定冠词是"an"。您可以忽略任何边缘情况。
 
@@ -69,7 +69,7 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 '(an apple) 
 ```
 
-## 练习4
+## 练习 4
 
 编写一个过程`insert-and`，接受一个项目的句子，并返回一个在语法正确位置插入`and`的新句子。
 
@@ -78,7 +78,7 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 '(john bill wayne fred and joey) 
 ```
 
-## 练习5
+## 练习 5
 
 编写一个过程`query`，通过交换前两个单词并在最后一个单词末尾添加问号，将一个陈述句转换为疑问句。您可以忽略任何边缘情况。
 
@@ -91,9 +91,9 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 '(were you there?) 
 ```
 
-## 练习6
+## 练习 6
 
-编写一个过程`european-time`，将美国AM/PM制式时间转换为欧洲24小时制式时间。同时，编写`american-time`，实现相反的功能。
+编写一个过程`european-time`，将美国 AM/PM 制式时间转换为欧洲 24 小时制式时间。同时，编写`american-time`，实现相反的功能。
 
 ```
 -> (european-time '(8 am))
@@ -109,9 +109,9 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 '(12 pm) 
 ```
 
-## 练习7
+## 练习 7
 
-编写一个过程`describe-time`，接受秒数作为参数，并返回该时间量的更有用描述。假设一年有365.25天。您只需要考虑一天内的时间段。
+编写一个过程`describe-time`，接受秒数作为参数，并返回该时间量的更有用描述。假设一年有 365.25 天。您只需要考虑一天内的时间段。
 
 ```
 -> (describe-time 45)
@@ -123,7 +123,7 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 
 ### 注意
 
-您可能会注意到Racket对整数除法的处理有点奇怪：
+您可能会注意到 Racket 对整数除法的处理有点奇怪：
 
 ```
 -> (/ 1 2)
@@ -155,6 +155,6 @@ cp ~cs61as/autograder/templates/hw0-2.rkt .
 
 ## 提交你的作业！
 
-欲了解说明，请参阅[此指南](../submit.html)。它涵盖了基本的终端命令和作业提交。
+欲了解说明，请参阅此指南。它涵盖了基本的终端命令和作业提交。
 
 如果在提交过程中遇到任何问题，请毫不犹豫地向助教求助！

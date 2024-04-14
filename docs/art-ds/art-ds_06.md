@@ -6,7 +6,7 @@
 
 统计模型在数据分析中起着两个关键作用，即提供对数据的数量化摘要，并对抽样自数据的人群施加特定结构。通过极端例子的说明，有时可以更好地理解模型是什么以及为什么它有用。微不足道的“模型”简单地是**没有模型**。
 
-想象一下，你想要对20个人进行调查，询问他们愿意为你正在开发的产品支付多少钱。这项调查的目标是什么？可以推测，如果你花时间和金钱开发一种新产品，那么你相信存在着一大群愿意购买该产品的人群。然而，询问每个人愿意支付多少显然太昂贵且复杂。因此，你从该人群中抽取一个样本，以了解人群愿意支付的大致金额。
+想象一下，你想要对 20 个人进行调查，询问他们愿意为你正在开发的产品支付多少钱。这项调查的目标是什么？可以推测，如果你花时间和金钱开发一种新产品，那么你相信存在着一大群愿意购买该产品的人群。然而，询问每个人愿意支付多少显然太昂贵且复杂。因此，你从该人群中抽取一个样本，以了解人群愿意支付的大致金额。
 
 我们（罗杰）最近出版了一本名为[*数据科学的 R 编程*](https://leanpub.com/rprogramming)的书。在该书出版之前，感兴趣的读者可以将他们的姓名和电子邮件地址提交到该书的网站，以便得到有关该书出版的通知。此外，还有一个选项可以指定他们愿意为该书支付多少钱。以下是从自愿提供此信息的人中随机抽取的 20 个回复的样本。
 
@@ -14,11 +14,11 @@
 `25` `20` `15` `5` `30` `7` `5` `10` `12` `40` `30` `30` `10` `25` `10` `20` `10` `10` `25` `5` 
 ```
 
-`现在假设有人问你：“数据告诉我们什么？”你可以做的一件事就是简单地交出数据——所有20个数字。由于数据集并不是那么庞大，所以这不会是一个巨大的负担。最终，他们问题的答案在于数据集中，但拥有所有数据并不是任何一种摘要。拥有所有数据很重要，但通常并不是非常有用。这是因为琐碎的模型没有对数据进行任何缩减。
+`现在假设有人问你：“数据告诉我们什么？”你可以做的一件事就是简单地交出数据——所有 20 个数字。由于数据集并不是那么庞大，所以这不会是一个巨大的负担。最终，他们问题的答案在于数据集中，但拥有所有数据并不是任何一种摘要。拥有所有数据很重要，但通常并不是非常有用。这是因为琐碎的模型没有对数据进行任何缩减。
 
-统计模型的第一个关键要素是*数据缩减*。基本思想是，你想把原始的数据集合中的一组数字转换成一个更小的数字集合。如果你最初有20个数字，你的模型应该产生比20个数字更少的摘要。数据缩减的过程通常会得到一个*统计量*。一般来说，统计量是数据的任何摘要。样本均值，或平均值，是一种统计量。中位数，标准偏差，最大值，最小值和范围也是如此。一些统计量比其他的更有用，但它们都是数据的摘要。
+统计模型的第一个关键要素是*数据缩减*。基本思想是，你想把原始的数据集合中的一组数字转换成一个更小的数字集合。如果你最初有 20 个数字，你的模型应该产生比 20 个数字更少的摘要。数据缩减的过程通常会得到一个*统计量*。一般来说，统计量是数据的任何摘要。样本均值，或平均值，是一种统计量。中位数，标准偏差，最大值，最小值和范围也是如此。一些统计量比其他的更有用，但它们都是数据的摘要。
 
-也许你能得到的最简单的数据缩减就是平均值，或者数据的简单算术平均值，在这种情况下是$17.2。在这种情况下，从20个数字到1个数字的转换是你可以做的最大程度的缩减，所以它绝对满足了模型的摘要元素。
+也许你能得到的最简单的数据缩减就是平均值，或者数据的简单算术平均值，在这种情况下是$17.2。在这种情况下，从 20 个数字到 1 个数字的转换是你可以做的最大程度的缩减，所以它绝对满足了模型的摘要元素。
 
 ### 5.1 模型作为期望
 
@@ -28,17 +28,17 @@
 
 或许世界上最流行的统计模型就是正态模型。这个模型表明，一组数据中的随机性可以用正态分布或钟形曲线来解释。正态分布由两个参数完全确定——平均值和标准偏差。
 
-拿我们在前一节描述的数据——20个人愿意为一个假想的新产品支付的金额来说。希望这20个人是可能购买这个新产品的整个人群的代表样本。如果是这样的话，那么数据集中包含的信息可以告诉你一些关于整个人群的情况。
+拿我们在前一节描述的数据——20 个人愿意为一个假想的新产品支付的金额来说。希望这 20 个人是可能购买这个新产品的整个人群的代表样本。如果是这样的话，那么数据集中包含的信息可以告诉你一些关于整个人群的情况。
 
 要将正态模型应用于这个数据集，我们只需要计算平均值和标准偏差。在这种情况下，平均值是$17.2，标准偏差是$10.39。给定这些参数，我们在正态模型下的期望是人们愿意支付的价格分布看起来像这样。
 
-![价格的正态模型](images/model-unnamed-chunk-3-1.png)
+![价格的正态模型](img/model-unnamed-chunk-3-1.png)
 
 价格的正态模型
 
-根据模型，大约有68%的人口愿意为这种新产品支付介于$6.81和$27.59之间的价格。这是否是有用的信息取决于具体情况，暂时我们将忽略这一点。
+根据模型，大约有 68%的人口愿意为这种新产品支付介于$6.81 和$27.59 之间的价格。这是否是有用的信息取决于具体情况，暂时我们将忽略这一点。
 
-如果你愿意，你可以使用统计模型来回答更复杂的问题。例如，假设你想知道“有多少比例的人口愿意为这本书支付超过$30？”利用正态分布的特性（以及R的一点计算帮助），我们可以轻松地进行这个计算。
+如果你愿意，你可以使用统计模型来回答更复杂的问题。例如，假设你想知道“有多少比例的人口愿意为这本书支付超过$30？”利用正态分布的特性（以及 R 的一点计算帮助），我们可以轻松地进行这个计算。
 
 ```
 pnorm`(``30``,` mean `=` `mean``(`x`),` sd `=` sd`(`x`),` lower.tail `=` `FALSE``)` 
@@ -64,7 +64,7 @@ To begin with we can make some pictures, like a histogram of the data. But befor
 
 In the picture below, I’ve simulated 20 data points from a Normal distribution and overlaid the theoretical Normal curve on top of the histogram.
 
-![Histogram of Simulated Normal Data](images/model-unnamed-chunk-5-1.png)
+![Histogram of Simulated Normal Data](img/model-unnamed-chunk-5-1.png)
 
 Histogram of Simulated Normal Data
 
@@ -80,7 +80,7 @@ So we have some evidence already that the Normal model may not be a *perfect* mo
 
 Here is a histogram of the data from the sample of 20 respondents. On top of the histogram, I’ve overlaid the Normal curve on top of the histogram of the 20 data points of the amount people say they are willing to pay for the book.
 
-![Histogram of Price Survey Data](images/model-unnamed-chunk-6-1.png)
+![Histogram of Price Survey Data](img/model-unnamed-chunk-6-1.png)
 
 Histogram of Price Survey Data
 
@@ -109,7 +109,7 @@ Now, we should go back to the top of our iteration and do the following:
 
 For your reference, here is a histogram of the same data with the Gamma distribution (estimated using the data) overlaid.
 
-![Price Survey Data with Gamma Distribution](images/model-unnamed-chunk-7-1.png)
+![Price Survey Data with Gamma Distribution](img/model-unnamed-chunk-7-1.png)
 
 Price Survey Data with Gamma Distribution
 
@@ -143,7 +143,7 @@ The simplest model that we might formulate for characterizing the relationship b
 
 We can simulate some data to make a *fake picture* of what the relationship between ozone and temperature should look like under a linear model. Here’s a simple linear relationship along with the simulated data in a scatterplot.
 
-![Simulated Data with a Linear Model](images/model-unnamed-chunk-10-1.png)
+![Simulated Data with a Linear Model](img/model-unnamed-chunk-10-1.png)
 
 Simulated Data with a Linear Model
 
@@ -155,7 +155,7 @@ If we are right about our linear model, and that is the model that characterizes
 
 Here is the picture of the actual ozone and temperature data in New York City for the year 1999\. On top of the scatterplot of the data, we’ve plotted the fitted linear regression line estimated using the data.
 
-![Linear Model for Ozone and Temperature](images/model-unnamed-chunk-11-1.png)
+![Linear Model for Ozone and Temperature](img/model-unnamed-chunk-11-1.png)
 
 Linear Model for Ozone and Temperature
 
@@ -173,7 +173,7 @@ From the picture above, it appears that the relationship between temperature and
 
 The easiest way we can capture this revised expectation is with a smoother, in this case, a loess smoother.
 
-![Loess Smoother for Ozone and Temperature](images/model-unnamed-chunk-12-1.png)
+![Loess Smoother for Ozone and Temperature](img/model-unnamed-chunk-12-1.png)
 
 Loess Smoother for Ozone and Temperature
 

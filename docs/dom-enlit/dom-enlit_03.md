@@ -10,7 +10,7 @@
 
 在代码示例中（如下所示的示例），橙色用于突出与讨论概念直接相关的代码。用于支持橙色代码的任何其他代码将是绿色的。代码示例中的灰色用于注释。
 
-实时代码：[http://jsfiddle.net/domenlightenment](http://jsfiddle.net/domenlightenment)
+实时代码：[`jsfiddle.net/domenlightenment`](http://jsfiddle.net/domenlightenment)
 
 ```
 <!DOCTYPE html>

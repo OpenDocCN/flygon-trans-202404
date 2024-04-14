@@ -22,4 +22,4 @@ export HTTPS_PROXY https://web-proxy.xxxxxx.com:8080
 
 参考：
 
-[在受控网络中使用FreeBSD - 必需的HTTP代理和无FTP](http://www.rhyous.com/2012/04/13/using-freebsd-inside-a-controlled-network-a-required-http-proxy-and-no-ftp/)。
+[在受控网络中使用 FreeBSD - 必需的 HTTP 代理和无 FTP](http://www.rhyous.com/2012/04/13/using-freebsd-inside-a-controlled-network-a-required-http-proxy-and-no-ftp/)。

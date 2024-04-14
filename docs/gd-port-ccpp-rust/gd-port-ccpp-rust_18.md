@@ -8,7 +8,7 @@
 
 假设你有一个整数，想要将其转换为字符串。
 
-在C++中，你可能会执行以下操作之一：
+在 C++中，你可能会执行以下操作之一：
 
 ```
 const int value = 17;
@@ -33,9 +33,9 @@ value_as_string = ss.str();
 value_as_string = boost::lexical_cast<std::string>(ivalue); 
 ```
 
-所有这些都有问题。有些是标准的扩展，其他的可能不是线程安全的，有些可能在将value更改为另一种类型（例如long long）时出现问题。
+所有这些都有问题。有些是标准的扩展，其他的可能不是线程安全的，有些可能在将 value 更改为另一种类型（例如 long long）时出现问题。
 
-Rust使得这个过程变得更加容易，因为数值基元实现了一个名为ToString的特质。ToString特质有一个to_string()函数。所以将数字转换为字符串就像这样简单：
+Rust 使得这个过程变得更加容易，因为数值基元实现了一个名为 ToString 的特质。ToString 特质有一个 to_string()函数。所以将数字转换为字符串就像这样简单：
 
 ```
 let value = 17u32;
@@ -51,7 +51,7 @@ let value_as_string = value.to_string();
 
 ### 将数字转换为带精度/填充的字符串
 
-在C中，你会使用printf操作添加精度或填充：
+在 C 中，你会使用 printf 操作添加精度或填充：
 
 ```
 double value = 1234.66667;
@@ -59,7 +59,7 @@ char result[32];
 sprintf(result, "%08.2d", value); 
 ```
 
-在C++中，你可以使用C的方式（老实说，这比下面写的更容易），或者你可以通过ostream设置填充和精度：
+在 C++中，你可以使用 C 的方式（老实说，这比下面写的更容易），或者你可以通过 ostream 设置填充和精度：
 
 ```
 // TODO validate
@@ -68,7 +68,7 @@ ostringstream ss;
 ss << setfill('0') << setw(8) << setprecision(2) << value; 
 ```
 
-在Rust中，你可以使用format!() [[https://doc.rust-lang.org/std/fmt/](https://doc.rust-lang.org/std/fmt/)] 来实现这个目的，它类似于printf / sprintf：
+在 Rust 中，你可以使用 format!() [[`doc.rust-lang.org/std/fmt/`](https://doc.rust-lang.org/std/fmt/)] 来实现这个目的，它类似于 printf / sprintf：
 
 ```
 let value = 1234.66667;
@@ -90,7 +90,7 @@ value = 01234.67
 
 ### 将字符串转换为数字
 
-在C / C++中，可以以多种方式将数字从字符串转换为数字
+在 C / C++中，可以以多种方式将数字从字符串转换为数字
 
 ```
  int value = atoi(value_as_str); 
@@ -98,22 +98,22 @@ value = 01234.67
 
 待办事项
 
-在Rust中，我们有一个包含数字的&str：
+在 Rust 中，我们有一个包含数字的&str：
 
 ```
 let value_as_str = "12345"; 
 ```
 
-任何实现了名为FromStr的特质的类型都可以从字符串中获取其类型。所有标准的基本类型都实现了FromStr，所以我们可以简单地这样说：
+任何实现了名为 FromStr 的特质的类型都可以从字符串中获取其类型。所有标准的基本类型都实现了 FromStr，所以我们可以简单地这样说：
 
 ```
 let value_as_str = "12345";
 let value = i32::from_str(value_as_str).unwrap(); 
 ```
 
-注意末尾的unwrap() - FromStr::from_str()返回Result<valueu0002c error="" class="hljs-meta">中的值，以允许字符串无法解析的可能性。生产代码应该在调用unwrap()之前测试错误，否则会发生panic。</valueu0002c>
+注意末尾的 unwrap() - FromStr::from_str()返回 Result<valueu0002c error="" class="hljs-meta">中的值，以允许字符串无法解析的可能性。生产代码应该在调用 unwrap()之前测试错误，否则会发生 panic。</valueu0002c>
 
-获取字符串的另一种方式是在&str或String本身上调用parse()。在这种情况下，你使用的是一个稍微奇怪的语法，被昵称为“涡轮鱼”，看起来像这样：
+获取字符串的另一种方式是在&str 或 String 本身上调用 parse()。在这种情况下，你使用的是一个稍微奇怪的语法，被昵称为“涡轮鱼”，看起来像这样：
 
 ```
 use std::str::FromStr;
@@ -121,9 +121,9 @@ let value_as_str = "12345";
 let value = value_as_str.parse::<i32>().unwrap(); 
 ```
 
-字符串的parse()实现是一个泛型，可以与任何实现了FromStr的类型一起使用。因此，调用parse::<i32>等同于调用i32::from_str()。
+字符串的 parse()实现是一个泛型，可以与任何实现了 FromStr 的类型一起使用。因此，调用 parse::<i32>等同于调用 i32::from_str()。
 
-Rust的一个立即优势是它使用字符串切片。这意味着你可以有一个由分隔符分隔的长字符串，并且直接从其中间解析出数字，而不构造中间副本。
+Rust 的一个立即优势是它使用字符串切片。这意味着你可以有一个由分隔符分隔的长字符串，并且直接从其中间解析出数字，而不构造中间副本。
 
 ### 在不同数值类型之间转换
 
@@ -135,7 +135,7 @@ let i = f as i32;
 println!("Value = {}", i); 
 ```
 
-结果中的i是f的整数部分。
+结果中的 i 是 f 的整数部分。
 
 ```
 Value = 1234 
@@ -143,7 +143,7 @@ Value = 1234
 
 ## 字符串
 
-Rust附带了一些非常强大的函数，它们附加在每个&str和String类型上。这些基本上对应于你可能在std::string类和boost字符串算法中习惯的内容。
+Rust 附带了一些非常强大的函数，它们附加在每个&str 和 String 类型上。这些基本上对应于你可能在 std::string 类和 boost 字符串算法中习惯的内容。
 
 大多数 Rust 中的查找 / 匹配 / 剪切 / 拆分字符串操作都很高效，因为它们既不修改现有字符串，也不将副本返回给您。相反，它们返回切片，即指向现有字符串的指针和长度，以表示结果的范围。
 

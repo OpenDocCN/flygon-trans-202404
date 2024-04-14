@@ -2,7 +2,7 @@
 
 ```
 
-    The presentation of Hoare logic in chapter [Hoare](Hoare.html) could be
+    The presentation of Hoare logic in chapter Hoare could be
     described as "model-theoretic": the proof rules for each of the
     constructors were presented as *theorems* about the evaluation
     behavior of programs, and proofs of program correctness (validity
@@ -16,7 +16,7 @@
     can do this by giving an inductive definition of *valid derivations* in this new logic.
 
     This chapter is optional.  Before reading it, you'll want to read
-    the [ProofObjects](ProofObjects.html) chapter.
+    the ProofObjects chapter.
 
 ```
 
@@ -86,7 +86,7 @@ hoare_proof P c Q。
 
     证明。
 
-介绍。采用[H_Consequence](HoareAsLogic.html#H_Consequence)。
+介绍。采用 H_Consequence。
 
 应用 X。应用 H。介绍。应用 H[0]。证明结束。
 
@@ -100,7 +100,7 @@ hoare_proof P c Q。
 
     证明。
 
-介绍。采用[H_Consequence](HoareAsLogic.html#H_Consequence)。
+介绍。采用 H_Consequence。
 
 应用 X。介绍。应用 H[0]。应用 H。证明结束。
 
@@ -155,7 +155,7 @@ Proof.
 
     关于 Hoare 逻辑。例如，这是两个的类比
 
-    我们在第 [Hoare](Hoare.html) 章节中看到的定理 —— 这次用术语来表达
+    我们在第 Hoare 章节中看到的定理 —— 这次用术语来表达
 
     语法的 Hoare 逻辑推导（可证性）而不是
 
@@ -278,7 +278,7 @@ Definition wp (c:com) (Q:Assertion) : Assertion :=
 
 ```
 
-#### 练习：1星（wp_is_precondition）
+#### 练习：1 星（wp_is_precondition）
 
 ```
 Lemma wp_is_precondition: ∀c Q,
@@ -289,7 +289,7 @@ Lemma wp_is_precondition: ∀c Q,
 
     ☐
 
-#### 练习：1星（wp_is_weakest）
+#### 练习：1 星（wp_is_weakest）
 
 ```
 Lemma wp_is_weakest: ∀c Q P',
@@ -312,7 +312,7 @@ Qed.
 
     ☐
 
-#### 练习：5星（hoare_proof_complete）
+#### 练习：5 星（hoare_proof_complete）
 
     完成定理的证明。
 
@@ -344,13 +344,13 @@ Proof.
 
     ☐
 
-    最后，我们可能希望我们的公理化的Hoare逻辑是
+    最后，我们可能希望我们的公理化的 Hoare 逻辑是
 
     *可判定*的角度来看，存在一个（终止的）算法（一个
 
     *决策过程*)，可以确定给定的
 
-    Hoare三元组是有效的（可推导的）。但这样的决策过程
+    Hoare 三元组是有效的（可推导的）。但这样的决策过程
 
     无法存在！
 
@@ -366,19 +366,19 @@ Proof.
 
     ∀ s，P s 是有效的，其中 P 是任意断言
 
-    Coq的逻辑。但已知不能有决策
+    Coq 的逻辑。但已知不能有决策
 
     这种逻辑的过程。
 
     总的来说，这种公理化的展示风格更清晰
 
-    是什么意思“在Hoare逻辑中给出证明”。
+    是什么意思“在 Hoare 逻辑中给出证明”。
 
     然而，从
 
     在实践中写下这样的证明：非常冗长。这
 
-    章节 [Hoare2](Hoare2.html) 上关于形式化装饰程序
+    章节 Hoare2 上关于形式化装饰程序
 
     展示了我们如何做得更好。
 

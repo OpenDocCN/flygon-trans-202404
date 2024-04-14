@@ -30,6 +30,6 @@ Abelson & Sussman，练习[4.31](http://mitpress.mit.edu/sicp/full-text/book/boo
 
 ## 提交你的作业！
 
-有关说明，请参阅[此指南](../submit.html)。它涵盖了基本的终端命令和作业提交。
+有关说明，请参阅此指南。它涵盖了基本的终端命令和作业提交。
 
 如果在提交作业时遇到任何问题，请毫不犹豫地向助教求助！

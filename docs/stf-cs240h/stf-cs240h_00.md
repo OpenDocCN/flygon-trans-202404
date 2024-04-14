@@ -1,30 +1,30 @@
-# CS240h：Haskell中的功能系统
+# CS240h：Haskell 中的功能系统
 
-+   我是David Mazières
++   我是 David Mazières
 
     +   大部分职业生涯都在操作系统，系统和安全方面工作
 
-    +   以前使用C++和C，但5年前开始使用Haskell
+    +   以前使用 C++和 C，但 5 年前开始使用 Haskell
 
-    +   课程在某种程度上受到我学习Haskell的经验的启发
+    +   课程在某种程度上受到我学习 Haskell 的经验的启发
 
 +   另一位讲师：Bryan O'Sullivan
 
-    +   已经实现了许多当今广泛使用的关键Haskell库
+    +   已经实现了许多当今广泛使用的关键 Haskell 库
 
-    +   合著了[*现实世界的Haskell*](http://book.realworldhaskell.org/)，一本非常好的非理论入门书籍
+    +   合著了[*现实世界的 Haskell*](http://book.realworldhaskell.org/)，一本非常好的非理论入门书籍
 
-    +   也有很多系统经验（例如，Linux早期用户空间代码）
+    +   也有很多系统经验（例如，Linux 早期用户空间代码）
 
 +   课程助教：David Terei
 
-    +   Haskell标准委员会的成员！
+    +   Haskell 标准委员会的成员！
 
-    +   实现了[安全Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)和GHC LLVM后端
+    +   实现了[安全 Haskell](http://www.haskell.org/ghc/docs/latest/html/users_guide/safe-haskell.html)和 GHC LLVM 后端
 
-## 为什么选择Haskell？
+## 为什么选择 Haskell？
 
-+   Haskell的表达能力可以提高生产力
++   Haskell 的表达能力可以提高生产力
 
     +   小语言核心提供了很大的灵活性
 
@@ -32,13 +32,13 @@
 
     +   从编译和解释语言中获得最佳效果
 
-+   Haskell使代码更易于理解和维护
++   Haskell 使代码更易于理解和维护
 
     +   可以深入研究复杂的库并理解代码在做什么
 
         （*为什么*可能是另一回事，但简洁性留下了评论的空间...)
 
-+   Haskell可以增加系统的稳健性
++   Haskell 可以增加系统的稳健性
 
     +   强类型在编译时捕获了许多错误
 
@@ -48,41 +48,41 @@
 
     +   并发编程抽象对数据竞争具有抵抗力
 
-+   Haskell让你实现新类型的功能（DIFC，STM，...）
++   Haskell 让你实现新类型的功能（DIFC，STM，...）
 
-## 为什么���择CS240h？
+## 为什么���择 CS240h？
 
-+   学会在Haskell中以较低的前期成本构建系统
++   学会在 Haskell 中以较低的前期成本构建系统
 
-    +   从历史上看，Haskell是语言研究的工具。
+    +   从历史上看，Haskell 是语言研究的工具。
 
         这种语言通常的教学方式反映了其历史
 
-    +   CS240h将更多地从系统角度呈现这门语言
+    +   CS240h 将更多地从系统角度呈现这门语言
 
 +   学习新的，令人惊讶的，有效的编程技术
 
-    +   一些内容适用于其他语言（尽管在学习Haskell后返回其他语言可能会令人沮丧）
+    +   一些内容适用于其他语言（尽管在学习 Haskell 后返回其他语言可能会令人沮丧）
 
 +   **你喜欢编程**
 
-    +   使用Haskell，你将以新的方式思考编程
+    +   使用 Haskell，你将以新的方式思考编程
 
 +   你有时会对其他语言感到沮丧
 
     +   也许你想设计一种新语言，或者倾向于“最大化”现有语言功能（宏，模板，重载等）
 
-    +   大多数语言需要更改的事情可以在Haskell库中完成
+    +   大多数语言需要更改的事情可以在 Haskell 库中完成
 
 ## 行政事务
 
-+   我们假设你们中的一些人可能已经尝试过Haskell，其他人则没有
++   我们假设你们中的一些人可能已经尝试过 Haskell，其他人则没有
 
-+   第一周涵盖Haskell基础知识
++   第一周涵盖 Haskell 基础知识
 
-    +   如果你没有使用过Haskell，你应该通过阅读[Bryan的书的部分内容](http://book.realworldhaskell.org/)和/或在线教程（例如[http://www.haskell.org/tutorial/](http://www.haskell.org/tutorial/)或[http://learnyouahaskell.com/chapters](http://learnyouahaskell.com/chapters)）来补充。
+    +   如果你没有使用过 Haskell，你应该通过阅读[Bryan 的书的部分内容](http://book.realworldhaskell.org/)和/或在线教程（例如[`www.haskell.org/tutorial/`](http://www.haskell.org/tutorial/)或[`learnyouahaskell.com/chapters`](http://learnyouahaskell.com/chapters)）来补充。
 
-    +   如果你使用过Haskell，你可能仍然可以从这些讲座中学到一些东西
+    +   如果你使用过 Haskell，你可能仍然可以从这些讲座中学到一些东西
 
 +   本学期的其余时间将涵盖更高级的技术
 
@@ -102,7 +102,7 @@
 
 +   在 Haskell 中实现你选择的项目
 
-    +   项目可以由1-3人组成的团队完成
+    +   项目可以由 1-3 人组成的团队完成
 
     +   与其中一位教师会面讨论项目
 
@@ -110,9 +110,9 @@
 
     +   最终考试将是一个迷你会议，在会议上你将展示你���工作
 
-    +   **参加6月10日周二晚上7:00-10:00的考试是强制性的**
+    +   **参加 6 月 10 日周二晚上 7:00-10:00 的考试是强制性的**
 
-        但如果一致同意，我们可以将其移至6月5日星期四，12:15-3:15pm。（我们会提供午餐...）
+        但如果一致同意，我们可以将其移至 6 月 5 日星期四，12:15-3:15pm。（我们会提供午餐...）
 
 +   我们鼓励 CS240h 项目与你的研究重叠
 
@@ -624,9 +624,9 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
 +   让我们找到 GHC 的`length`函数的源代码？
 
-+   [Hoogle](http://www.haskell.org/hoogle/)是专门为Haskell函数设计的搜索引擎
++   [Hoogle](http://www.haskell.org/hoogle/)是专门为 Haskell 函数设计的搜索引擎
 
-    +   前往[http://www.haskell.org/hoogle/](http://www.haskell.org/hoogle/)
+    +   前往[`www.haskell.org/hoogle/`](http://www.haskell.org/hoogle/)
 
     +   点击*search plugin*
 
@@ -638,11 +638,11 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
     +   重要的一点是`len`是尾递归的
 
-+   我在编码时一直使用Hoogle，一直使用
++   我在编码时一直使用 Hoogle，一直使用
 
     +   大多数源代码并不难理解
 
-    +   Length可能是一个不好的起始示例，仅仅因为未装箱类型
+    +   Length 可能是一个不好的起始示例，仅仅因为未装箱类型
 
     +   尝试检查你正在使用的函数的代码，以更好地理解它们
 
@@ -656,7 +656,7 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
 +   如果我们修复`length`，`countLowerCase`可能会在常量空间中运行
 
-    +   回想一下Haskell懒惰地评估表达式...意味着在大多数情况下，值可以与函数指针（也称为*thunks*）互换使用
+    +   回想一下 Haskell 懒惰地评估表达式...意味着在大多数情况下，值可以与函数指针（也称为*thunks*）互换使用
 
     +   `String`是`[Char]`，这是一个具有两个值的类型，一个*头*和*尾*
 
@@ -680,29 +680,29 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
     (f . g) x = f (g x)
     ```
 
-    +   "`f . g`"是数学"*f* ∘ *g*"的ASCII近似
+    +   "`f . g`"是数学"*f* ∘ *g*"的 ASCII 近似
 
     +   在上一张幻灯片上，`countLowerCase`的参数名为`str`
 
     +   新版本不命名参数，这种风格称为*point-free*
 
-+   函数组合几乎可以像Unix管道一样使用
++   函数组合几乎可以像 Unix 管道一样使用
 
     ```
     process = countLowercase . toPigLatin . extractComments . unCompress
     ```
 
-+   练习：不要在ghci中键入`:t (.)`，写出"`.`"的类型
++   练习：不要在 ghci 中键入`:t (.)`，写出"`.`"的类型
 
-## Lambda抽象
+## Lambda 抽象
 
 +   有时你想为参数命名但不想为函数命名
 
-+   Haskell允许通过*lambda抽象*使用匿名函数
++   Haskell 允许通过*lambda 抽象*使用匿名函数
 
     +   表示法是`\`*变量* `->` *主体*
 
-    +   "`\`"是"*λ*"的ASCII近似，因此发音为"lambda"
+    +   "`\`"是"*λ*"的 ASCII 近似，因此发音为"lambda"
 
 +   例子：
 
@@ -710,7 +710,7 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
     countLowercaseAndDigits :: String -> Int countLowercaseAndDigits = length . filter (\c -> isLower c || isDigit c)
     ```
 
-+   Lambda抽象可以使用模式解构值，例如：
++   Lambda 抽象可以使用模式解构值，例如：
 
     ```
      ... (\(Right x) -> x) ...
@@ -728,7 +728,7 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
 +   对于由字母、数字、`_`和`'`组成的函数和构造函数
 
-    +   Prefix是默认的：`add 1 2`
+    +   Prefix 是默认的：`add 1 2`
 
     +   将函数放在反引号中使其中缀：`1 `add` 2`
 
@@ -746,7 +746,7 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
 ## 优先级
 
-+   大多数操作符在Haskell中只是库函数
++   大多数操作符在 Haskell 中只是库函数
 
     +   语言语法中保留了很少的操作符
 
@@ -756,7 +756,7 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
     +   或者甚至使用您自己的定义而不是系统的定义
 
-+   使用fixity声明定义中缀运算符的优先级
++   使用 fixity 声明定义中缀运算符的优先级
 
     +   关键字：`infixl`/`infixr`/`infix`用于左/右/无结合性
 
@@ -764,11 +764,11 @@ filter :: (a -> Bool) -> [a] -> [a] filter pred [] = [] filter pred (x:xs) | pre
 
     +   允许在任何类型声明允许的地方使用
 
-+   0是允许的最低优先级，9是最高优先级
++   0 是允许的最低优先级，9 是最高优先级
 
-    +   前缀函数应用的优先级为10--高于任何中缀调用
+    +   前缀函数应用的优先级为 10--高于任何中缀调用
 
-    +   Lambda抽象、`else`子句和`let`...`in`子句尽可能向右延伸（意味着它们永远不会停在任何中缀运算符，无论优先级多低）
+    +   Lambda 抽象、`else`子句和`let`...`in`子句尽可能向右延伸（意味着它们永远不会停在任何中缀运算符，无论优先级多低）
 
 ## 特定运算符的优先级
 
@@ -784,7 +784,7 @@ infixl 9 !! -- This is the default when fixity unspecified infixr 9 . infixr 8 ^
     Prelude> :i && (&&) :: Bool -> Bool -> Bool -- Defined in GHC.Classes infixr 3 &&
     ```
 
-    +   如果GHCI没有指定，表示默认为：`infixl 9`
+    +   如果 GHCI 没有指定，表示默认为：`infixl 9`
 
 ## "`infixr 0`"运算符
 
@@ -804,7 +804,7 @@ infixl 9 !! -- This is the default when fixity unspecified infixr 9 . infixr 8 ^
 
     但在评估第二个参数之前强制评估第一个参数
 
-    +   所以当你完成时，第一个参数是一个值，而不是一个thunk
+    +   所以当你完成时，第一个参数是一个值，而不是一个 thunk
 
     ```
     main = let q = 1 `div` 0 in seq q $ putStrLn "Hello world!\n" -- exception
@@ -826,11 +826,11 @@ infixl 9 !! -- This is the default when fixity unspecified infixr 9 . infixr 8 ^
 factorial n0 = loop 1 n0 where loop acc n | n > 1 = loop (acc * n) (n - 1) | otherwise = acc
 ```
 
-+   不幸的是，`acc`可能包含一个长度为`n`的thunk链
++   不幸的是，`acc`可能包含一个长度为`n`的 thunk 链
 
     +   `(((1 * n) * (n - 1)) * (n - 2) ...)` -- 惰性意味着只有在需要时才会被评估
 
-    +   GHC足够聪明，不会积累thunk，但只有在优化时才会这样
+    +   GHC 足够聪明，不会积累 thunk，但只有在优化时才会这样
 
 +   可以使用`$!`或`seq`来解决这类问题
 
@@ -842,13 +842,13 @@ factorial n0 = loop 1 n0 where loop acc n | n > 1 = (loop $! acc * n) (n - 1) | 
 factorial n0 = loop 1 n0 where loop acc n | n > 1 = acc `seq` loop (acc * n) (n - 1) | otherwise = acc
 ```
 
-## Hackage和cabal
+## Hackage 和 cabal
 
-+   [Hackage](http://hackage.haskell.org/packages/)是一个大型的Haskell包集合
++   [Hackage](http://hackage.haskell.org/packages/)是一个大型的 Haskell 包集合
 
-+   [Cabal](http://www.haskell.org/cabal/users-guide/)是一个用于浏览hackage和安装包的工具
++   [Cabal](http://www.haskell.org/cabal/users-guide/)是一个用于浏览 hackage 和安装包的工具
 
-    +   Cabal随[haskell平台](http://hackage.haskell.org/platform/)一起提供
+    +   Cabal 随[haskell 平台](http://hackage.haskell.org/platform/)一起提供
 
     +   运行`cabal update`以创建`$HOME/.cabal`，下载包数据库
 
@@ -860,7 +860,7 @@ factorial n0 = loop 1 n0 where loop acc n | n > 1 = acc `seq` loop (acc * n) (n 
 
     +   可能需要将`$HOME/.cabal/bin`添加到您的路径中
 
-    +   我使用以下shell别名
+    +   我使用以下 shell 别名
 
         ```
         alias cbi='LC_CTYPE=en_US.UTF-8 cabal install --user --haddock-hyperlink-source'
@@ -874,7 +874,7 @@ factorial n0 = loop 1 n0 where loop acc n | n > 1 = acc `seq` loop (acc * n) (n 
 
 ## 模块和`import`语法
 
-+   Haskell将顶层绑定分组为*modules*
++   Haskell 将顶层绑定分组为*modules*
 
     +   默认模块名为`Main`，因为程序从`Main`中的函数`main`开始
 
@@ -970,7 +970,7 @@ main :: IO () greet :: Handle -> IO () hPutStrLn :: Handle -> String -> IO () hG
 do name <- hGetLine h hPutStrLn h $ "Hi, " ++ name
 ```
 
-![](../Images/edea79b58977581b0611854652353d92.svg)
+![](img/edea79b58977581b0611854652353d92.svg)
 
 +   `hGetLine` 和 `hPutStrLn` 返回可以改变世界的 `IO` *actions*
 
@@ -984,7 +984,7 @@ do name <- hGetLine h hPutStrLn h $ "Hi, " ++ name
 do name <- hGetLine h hPutStrLn h $ "Hi, " ++ name
 ```
 
-![](../Images/af3f3977085f7e6927e9d1eb35a502ed.svg)
+![](img/af3f3977085f7e6927e9d1eb35a502ed.svg)
 
 +   `do` 块从其他操作构建一个复合操作
 
@@ -1038,11 +1038,11 @@ $ ghc --make greet [1 of 1] Compiling Main ( greet.hs, greet.o ) Linking greet .
     return :: a -> IO a
     ```
 
-## 无点IO组合
+## 无点 IO 组合
 
 +   回忆无点函数组合与"`.`"（优先级 `infixr 9`）
 
-+   函数`>>=`（发音为"bind"）允许无点IO组合
++   函数`>>=`（发音为"bind"）允许无点 IO 组合
 
     ```
     (>>=) :: IO a -> (a -> IO b) -> IO b infixl 1 >>=
@@ -1092,7 +1092,7 @@ getMove :: Handle -> IO Move getMove h = do hPutStrLn h $ "Please enter one of "
 
 +   我们已经看到了一堆多态函数
 
-+   这里有一些更方便的来自Prelude的函数
++   这里有一些更方便的来自 Prelude 的函数
 
 ```
 id :: a -> a id x = x
@@ -1154,7 +1154,7 @@ show a = ??? -- how to implement?
 
     +   类声明也可以包括方法的默认定义
 
-+   调用`myShow`的函数的类型是什么？在GHCI中询问：
++   调用`myShow`的函数的类型是什么？在 GHCI 中询问：
 
     ```
     myPrint x = putStrLn $ myShow x
@@ -1216,7 +1216,7 @@ show a = ??? -- how to implement?
 
     +   但编译器如何足够聪明地在这里为我们节省？
 
-## 继续讨论DMR
+## 继续讨论 DMR
 
 +   答案：在这种情况下，编译器实际上并不那么聪明
 

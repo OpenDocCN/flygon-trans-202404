@@ -2,7 +2,7 @@
 
 # Android 开发简介
 
-![](android101.jpg)
+![](img/android101.jpg)
 
 这里是所有**Android 101**实验的所在之处。
 

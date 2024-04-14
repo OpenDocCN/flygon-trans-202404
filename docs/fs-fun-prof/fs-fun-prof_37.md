@@ -1,32 +1,32 @@
-# 我们不需要臭UML图表
+# 我们不需要臭 UML 图表
 
-# 我们不需要臭UML图表
+# 我们不需要臭 UML 图表
 
-在我关于[函数式DDD](http://fsharpforfunandprofit.com/ddd/)的演讲中，我经常使用这张幻灯片（*[上下文](http://www.slideshare.net/ScottWlaschin/ddd-with-fsharptypesystemlondonndc2013/45)*）：
+在我关于[函数式 DDD](http://fsharpforfunandprofit.com/ddd/)的演讲中，我经常使用这张幻灯片（*[上下文](http://www.slideshare.net/ScottWlaschin/ddd-with-fsharptypesystemlondonndc2013/45)*）：
 
-![我们不需要臭UML图表](no-uml-diagrams.jpg)
+![我们不需要臭 UML 图表](img/no-uml-diagrams.jpg)
 
 当然这是对[这个著名场景](https://www.youtube.com/watch?v=gx6TBrfCW54)的误引用。哎呀，我是说[这个](https://www.youtube.com/watch?v=VqomZQMZQCQ)。
 
-好吧，我可能有点夸张。有些UML图表是有用的（例如我喜欢序列图），总的来说，我认为一个好的图片或图表可以抵得上1000个单词。
+好吧，我可能有点夸张。有些 UML 图表是有用的（例如我喜欢序列图），总的来说，我认为一个好的图片或图表可以抵得上 1000 个单词。
 
-但我相信，在许多情况下，使用UML绘制类图并不是必要的。
+但我相信，在许多情况下，使用 UML 绘制类图并不是必要的。
 
-相反，像F#（或OCaml或Haskell）这样简洁的语言可以以更易读、更易写的方式传达相同的含义，最重要的是，更容易转换为*可工作的代码*！
+相反，像 F#（或 OCaml 或 Haskell）这样简洁的语言可以以更易读、更易写的方式传达相同的含义，最重要的是，更容易转换为*可工作的代码*！
 
-使用UML图表时，你需要将它们转换为代码，有可能在转换过程中丢失一些信息。但如果设计已经在你的编程语言本身中记录，就没有转换阶段，因此设计必须始终与实现保持同步。
+使用 UML 图表时，你需要将它们转换为代码，有可能在转换过程中丢失一些信息。但如果设计已经在你的编程语言本身中记录，就没有转换阶段，因此设计必须始终与实现保持同步。
 
-为了在实践中演示这一点，我决定在互联网上搜寻一些好的（和不那么好的）UML类图，并将它们转换为F#代码。你们可以自行比较。
+为了在实践中演示这一点，我决定在互联网上搜寻一些好的（和不那么好的）UML 类图，并将它们转换为 F#代码。你们可以自行比较。
 
 ## 正则表达式
 
 让我们从一个经典的开始：正则表达式（*[来源](http://zenit.senecac.on.ca/wiki/index.php/Interpreter)*）
 
-这是UML图表：
+这是 UML 图表：
 
-![](uml-regex.png)
+![](img/uml-regex.png)
 
-这里是F#的等价物：
+这里是 F#的等价物：
 
 ```
 type RegularExpression =
@@ -46,11 +46,11 @@ type Interpret<'a> =  string -> RegularExpression -> 'a
 
 这里是另一个经典的例子：选课（*[来源](http://www.agilemodeling.com/artifacts/classDiagram.htm)*）。
 
-这是UML图表：
+这是 UML 图表：
 
-![](uml-enrollment.png)
+![](img/uml-enrollment.png)
 
-这是F#的等价物：
+这是 F#的等价物：
 
 ```
 type Student = {
@@ -94,9 +94,9 @@ type GetSeminarsTaken = Student -> EnrollmentRepository -> Seminar list
 type AddStudentToWaitingList = Student -> Seminar -> Seminar 
 ```
 
-F#反映了UML图表，但我发现通过为所有活动编写函数而不是绘制图片，可以揭示原始需求中的漏洞。
+F#反映了 UML 图表，但我发现通过为所有活动编写函数而不是绘制图片，可以揭示原始需求中的漏洞。
 
-例如，在UML图表中的`GetSeminarsTaken`方法中，研讨会列表存储在哪里？如果它在`Student`类中（如图表所示），那么`Student`和`Seminar`之间存在相互递归，并且每个学生和研讨会的整个树是相互连接的，除非使用[技巧](https://stackoverflow.com/questions/19371214/entity-framework-code-first-circular-dependices)。
+例如，在 UML 图表中的`GetSeminarsTaken`方法中，研讨会列表存储在哪里？如果它在`Student`类中（如图表所示），那么`Student`和`Seminar`之间存在相互递归，并且每个学生和研讨会的整个树是相互连接的，除非使用[技巧](https://stackoverflow.com/questions/19371214/entity-framework-code-first-circular-dependices)。
 
 相反，对于函数版本，我创建了一个`EnrollmentRepository`来解耦这两个类。
 
@@ -112,9 +112,9 @@ type EnrollStudent = Student -> Seminar -> Enrollment option
 
 这是另一个(*[来源](http://www.tutorialspoint.com/uml/uml_class_diagram.htm)*)。
 
-![](uml-order.png)
+![](img/uml-order.png)
 
-这是F#的等效代码：
+这是 F#的等效代码：
 
 ```
 type Customer = {name:string; location:string}
@@ -134,7 +134,7 @@ type Dispatch =  Order -> Order
 type Receive =  SpecialOrder -> SpecialOrder 
 ```
 
-我只是复制了UML图表，但我必须说我讨厌这个设计。它呼唤着更加细粒度的状态。
+我只是复制了 UML 图表，但我必须说我讨厌这个设计。它呼唤着更加细粒度的状态。
 
 特别是`Confirm`和`Dispatch`函数很糟糕 -- 它们没有提供任何关于需要的其他输入或影响的信息。这就是写真正的代码可能会迫使你更深入地思考需求的地方。
 
@@ -142,9 +142,9 @@ type Receive =  SpecialOrder -> SpecialOrder
 
 这是订单和客户的一个更好的版本(*[来源](http://edn.embarcadero.com/article/31863)*)。
 
-![](uml-order2.png)
+![](img/uml-order2.png)
 
-这里是F#的等效代码：
+这里是 F#的等效代码：
 
 ```
 type Date = System.DateTime
@@ -227,11 +227,11 @@ type PayOrder = UnpaidOrder -> AuthorizedPayment -> PaidOrder
 
 ## 酒店预订
 
-这是来自JetBrains IntelliJ文档的一个(*[来源](https://www.jetbrains.com/idea/help/viewing-diagram.html)*)。
+这是来自 JetBrains IntelliJ 文档的一个(*[来源](https://www.jetbrains.com/idea/help/viewing-diagram.html)*)。
 
-![](uml-hotel.png)
+![](img/uml-hotel.png)
 
-这是F#的等效代码：
+这是 F#的等效代码：
 
 ```
 type Date = System.DateTime
@@ -310,17 +310,17 @@ type RegisterAction = {
 
 这些`EntityManager`和`FacesMessages`字段是什么？当然，日志记录很重要，但为什么`Log`是域对象中的一个字段？
 
-顺便说一下，如果你认为我是故意挑选糟糕的UML设计示例，所有这些图表都来自于对["uml类图"](https://www.google.com/search?q=uml+class+diagram&tbm=isch)进行图像搜索的前几个结果。
+顺便说一下，如果你认为我是故意挑选糟糕的 UML 设计示例，所有这些图表都来自于对["uml 类图"](https://www.google.com/search?q=uml+class+diagram&tbm=isch)进行图像搜索的前几个结果。
 
 ## 图书馆
 
 这个更好，一个图书馆领域(*[来源](http://www.uml-diagrams.org/library-domain-uml-class-diagram-example.html)*)。
 
-![](uml-library.png)
+![](img/uml-library.png)
 
-这是F#的等效代码。请注意，因为这是代码，我可以添加注释到特定类型和字段，这在UML中是可行的，但很麻烦。
+这是 F#的等效代码。请注意，因为这是代码，我可以添加注释到特定类型和字段，这在 UML 中是可行的，但很麻烦。
 
-还要注意，我可以说`ISBN: string option`来表示可选的ISBN，而不是笨拙的`[0..1]`语法。
+还要注意，我可以说`ISBN: string option`来表示可选的 ISBN，而不是笨拙的`[0..1]`语法。
 
 ```
 type Author = {
@@ -421,7 +421,7 @@ type ManageResult = unit // to do
 type ManageInterface = Librarian -> Catalogue -> ManageRequest -> ManageResult 
 ```
 
-再次，这可能不是完美的设计。例如，很难理解只有`Active`帐户才能借书，我可能会在F#中表示为：
+再次，这可能不是完美的设计。例如，很难理解只有`Active`帐户才能借书，我可能会在 F#中表示为：
 
 ```
 type Account = 
@@ -432,15 +432,15 @@ type Account =
 type Borrow = ActiveAccount -> BookItem -> History 
 ```
 
-如果你想看到更现代的方法来使用CQRS和事件源建模这个领域，请看[这篇文章](http://thinkbeforecoding.com/post/2009/11/02/Event-Sourcing-and-CQRS-Lets-use-it)。
+如果你想看到更现代的方法来使用 CQRS 和事件源建模这个领域，请看[这篇文章](http://thinkbeforecoding.com/post/2009/11/02/Event-Sourcing-and-CQRS-Lets-use-it)。
 
 ## 软件许可
 
 最后一个示例来自软件许可领域(*[来源](http://www.uml-diagrams.org/software-licensing-domain-diagram-example.html?context=cls-examples)*)。
 
-![](uml-hasp.png)
+![](img/uml-hasp.png)
 
-这是F#的等效代码。
+这是 F#的等效代码。
 
 ```
 open System

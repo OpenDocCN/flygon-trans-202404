@@ -28,6 +28,6 @@
 
 参考资料：
 
-[FreeBSD手册页](https://www.freebsd.org/cgi/man.cgi?query=freebsd-update&sektion=8);
+[FreeBSD 手册页](https://www.freebsd.org/cgi/man.cgi?query=freebsd-update&sektion=8);
 
-[在安装FreeBSD后我应该运行的第一批命令是什么？或者如何给FreeBSD打补丁？或者如何在FreeBSD上安装端口？](http://www.rhyous.com/2009/11/03/what-are-the-first-commands-i-run-after-installing-freebsd/)。
+[在安装 FreeBSD 后我应该运行的第一批命令是什么？或者如何给 FreeBSD 打补丁？或者如何在 FreeBSD 上安装端口？](http://www.rhyous.com/2009/11/03/what-are-the-first-commands-i-run-after-installing-freebsd/)。

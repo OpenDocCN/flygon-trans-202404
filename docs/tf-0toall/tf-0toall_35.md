@@ -4,15 +4,15 @@
 
 ## 什么是批归一化层？
 
-这是一个在激活层之前对输出进行归一化的层。[原始论文](https://arxiv.org/abs/1502.03167)是由Sergey Ioffe在2015年提出的。
+这是一个在激活层之前对输出进行归一化的层。[原始论文](https://arxiv.org/abs/1502.03167)是由 Sergey Ioffe 在 2015 年提出的。
 
-批归一化层看起来像这样：![](b0e213f4.PNG)
+批归一化层看起来像这样：![](img/b0e213f4.PNG)
 
 ## 为什么要使用批归一化？
 
 每一层的输入分布会发生变化，因为前一层的权重会随着梯度下降的权重更新而改变。这被称为协变量转移，这使得网络训练变得困难。
 
-例如，如果激活层是一个relu层，而激活层的输入被移动到小于零，那么没有权重会被激活！
+例如，如果激活层是一个 relu 层，而激活层的输入被移动到小于零，那么没有权重会被激活！
 
 还值得一提的是，$$ y = \gamma \hat{x} + \beta $$ 中的$\gamma$和$\beta$参数也是可训练的。
 
@@ -20,7 +20,7 @@
 
 例如，假设
 
-\begin{align} \gamma &= \sqrt{\sigma^2_B + \epsilon}\ \beta &= \mu_B \end{align}
+\begin{align} \gamma &= \sqrt{\sigma²_B + \epsilon}\ \beta &= \mu_B \end{align}
 
 然后
 
@@ -32,11 +32,11 @@ $$ y_i = \gamma \hat{x_i} + \beta = x_i $$
 
 +   总是使用批归一化！
 
-## 足够的讨论：如何在Tensorflow中实现
+## 足够的讨论：如何在 Tensorflow 中实现
 
 ### 1\. 加载库
 
-+   我们使用著名的MNIST数据
++   我们使用著名的 MNIST 数据
 
 ```
 import tensorflow as tf
@@ -408,22 +408,22 @@ def plot_compare(loss_list: list, ylim=None, title=None) -> None:
 plot_compare(train_losses, title='Training Loss at Epoch') 
 ```
 
-![png](lab-10-6-mnist_nn_batchnorm_17_0.png)
+![png](img/lab-10-6-mnist_nn_batchnorm_17_0.png)
 
 ```
 plot_compare(train_accs, [0, 1.0], title="Training Acc at Epoch") 
 ```
 
-![png](lab-10-6-mnist_nn_batchnorm_18_0.png)
+![png](img/lab-10-6-mnist_nn_batchnorm_18_0.png)
 
 ```
 plot_compare(valid_losses, title='Validation Loss at Epoch') 
 ```
 
-![png](lab-10-6-mnist_nn_batchnorm_19_0.png)
+![png](img/lab-10-6-mnist_nn_batchnorm_19_0.png)
 
 ```
 plot_compare(valid_accs, [0, 1.], title='Validation Acc at Epoch') 
 ```
 
-![png](lab-10-6-mnist_nn_batchnorm_20_0.png)
+![png](img/lab-10-6-mnist_nn_batchnorm_20_0.png)

@@ -6,7 +6,7 @@
 
 然而，Python 计数方式与人类有些不同：
 
-![索引](indexing.png)
+![索引](img/indexing.png)
 
 # 创建列表
 
@@ -16,7 +16,7 @@
 
 找出每个表达式对中间列表的影响。
 
-![列表练习](lists.png)
+![列表练习](img/lists.png)
 
 ### 练习 2
 
@@ -51,7 +51,7 @@ for value in top8:
 
 使用表达式按要求修改列表。每个表达式只使用一次。
 
-![列表函数练习1](list_funcs1.png)
+![列表函数练习 1](img/list_funcs1.png)
 
 ### 练习 6
 
@@ -67,7 +67,7 @@ new_york = [881, 179, 12, 11]
 
 使用表达式按要求修改列表。每个表达式只使用一次。
 
-![列表函数练习2](list_funcs2.png)
+![列表函数练习 2](img/list_funcs2.png)
 
 # 快捷键
 

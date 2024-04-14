@@ -1,8 +1,8 @@
-# 第8章\. Akka Streams 实现
+# 第八章\. Akka Streams 实现
 
-Akka Streams 是 Akka 项目的一部分，是一个专注于进程内反压力响应式流的库。它类似于Kafka Streams，但不严格绑定于Kafka；它提供了一个广泛的连接器生态系统，连接到各种技术（数据存储、消息队列、文件存储、流媒体服务等）。
+Akka Streams 是 Akka 项目的一部分，是一个专注于进程内反压力响应式流的库。它类似于 Kafka Streams，但不严格绑定于 Kafka；它提供了一个广泛的连接器生态系统，连接到各种技术（数据存储、消息队列、文件存储、流媒体服务等）。
 
-这个连接器生态系统通常被称为[Alpakka生态系统](http://developer.lightbend.com/docs/alpakka/current/)，它建立在[Reactive Streams](http://www.reactive-streams.org/)标准之上（自从其创建以来，Akka Streams 一直是协同领导者）。随着Reactive Streams已经在Java 9中成为一部分，通过[JEP-266（更多并发更新）](http://openjdk.java.net/jeps/266)进程，更多的连接器和这个连接器生态系统的指数级增长将会发生，像亚马逊这样的主要参与者已经[在新的AWS 2.0 SDK中采用了它](http://amzn.to/2yERvnP)。
+这个连接器生态系统通常被称为[Alpakka 生态系统](http://developer.lightbend.com/docs/alpakka/current/)，它建立在[Reactive Streams](http://www.reactive-streams.org/)标准之上（自从其创建以来，Akka Streams 一直是协同领导者）。随着 Reactive Streams 已经在 Java 9 中成为一部分，通过[JEP-266（更多并发更新）](http://openjdk.java.net/jeps/266)进程，更多的连接器和这个连接器生态系统的指数级增长将会发生，像亚马逊这样的主要参与者已经[在新的 AWS 2.0 SDK 中采用了它](http://amzn.to/2yERvnP)。
 
 在 Akka Streams 中，计算是用类似图形的领域特定语言（DSL）编写的，旨在使图形绘制与代码之间的转换更简单。
 
@@ -26,24 +26,24 @@ Akka Streams 默认提供了[相当多](http://bit.ly/2yhbOGA)的内置阶段，
 
 # 总体架构
 
-对于模型服务的实现，我决定使用自定义阶段，这是一种完全类型安全的封装所需功能的方式。我们的阶段将提供类似于Flink低级联接的功能（[图 4-1](ch04.html#using_flinkas_low-evel_join)）。 
+对于模型服务的实现，我决定使用自定义阶段，这是一种完全类型安全的封装所需功能的方式。我们的阶段将提供类似于 Flink 低级联接的功能（图 4-1）。 
 
-有了这样一个组件，整体实现将会看起来像[图 8-1](#akka_streams_implementation_approach)中所示。
+有了这样一个组件，整体实现将会看起来像图 8-1 中所示。
 
-![smlt 0801](assets/smlt_0801.png)
+![smlt 0801](img/smlt_0801.png)
 
 ###### 图 8-1\. Akka Streams 实现方法
 
 # 使用 Akka Streams 实现模型服务
 
-实现自定义`GraphStage`是Akka中的一个高级主题，因此您可能希望查看[文档](http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html)。实现从定义阶段的形状开始，如[示例 8-1](#defining_a_stageas_shape)所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
+实现自定义`GraphStage`是 Akka 中的一个高级主题，因此您可能希望查看[文档](http://doc.akka.io/docs/akka/current/scala/stream/stream-customize.html)。实现从定义阶段的形状开始，如示例 8-1 所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 
 ##### 示例 8-1\. 定义阶段的形状
 
 ```
 class ModelStageShape() extends Shape {
- var dataRecordIn = Inlet[WineRecord]("dataRecordIn")
- var modelRecordIn = Inlet[ModelToServe]("modelRecordIn")
+ var dataRecordIn = InletWineRecord
+ var modelRecordIn = InletModelToServe
  var scoringResultOut = Outlet[Option[Double]]("scoringOut")
 
 def this(dataRecordIn: Inlet[WineRecord], modelRecordIn:
@@ -71,9 +71,9 @@ def this(dataRecordIn: Inlet[WineRecord], modelRecordIn:
 }
 ```
 
-[示例 8-1](#defining_a_stageas_shape)定义了一个具有两个输入（数据记录和模型记录）和一个输出（评分结果）的形状。形状还定义了与输入和输出相关联的类型（Akka Streams是强类型的）。
+示例 8-1 定义了一个具有两个输入（数据记录和模型记录）和一个输出（评分结果）的形状。形状还定义了与输入和输出相关联的类型（Akka Streams 是强类型的）。
 
-有了这个实现，阶段的实现在[示例 8-2](#stage_implementation)中呈现（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
+有了这个实现，阶段的实现在示例 8-2 中呈现（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 
 ##### 示例 8-2\. 阶段实现
 
@@ -158,9 +158,9 @@ class ModelStage
 
 这个类中的另一个重要方法是`preStart`，它启动对数据和模型记录的轮询。
 
-有了阶段的实现，服务器的实现看起来像[示例 8-3](#akka_model_server_implementation)（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
+有了阶段的实现，服务器的实现看起来像示例 8-3（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
 
-##### 示例 8-3\. Akka模型服务器实现
+##### 示例 8-3\. Akka 模型服务器实现
 
 ```
 object AkkaModelServer {
@@ -196,7 +196,7 @@ object AkkaModelServer {
        .filter(_.isSuccess).map(_.get)
    val model = new ModelStage()
 
-   def dropMaterializedValue[M1, M2, M3](m1: M1, m2: M2, m3: M3):
+   def dropMaterializedValueM1, M2, M3:
      NotUsed = NotUsed
 
    val modelPredictions  = Source.fromGraph(
@@ -213,17 +213,17 @@ object AkkaModelServer {
 }
 ```
 
-这里创建了`ActorSystem`和`Materializer`，这对于运行任何Akka Stream应用程序都是必要的。之后，分别创建了数据流和模型流，每个流都从相应的Kafka主题中读取数据，并将数据从二进制格式转换为内部表示。最后，将这两个流连接到我们的阶段，并启动生成的图。
+这里创建了`ActorSystem`和`Materializer`，这对于运行任何 Akka Stream 应用程序都是必要的。之后，分别创建了数据流和模型流，每个流都从相应的 Kafka 主题中读取数据，并将数据从二进制格式转换为内部表示。最后，将这两个流连接到我们的阶段，并启动生成的图。
 
-# 扩展Akka Streams实现
+# 扩展 Akka Streams 实现
 
-与Kafka Streams类似，Akka Streams实现在单个Java虚拟机（JVM）内运行。扩展此解决方案可能需要在多台机器上运行我们的实现的多个实例（类似于Kafka Streams应用程序扩展[见[图7-2](ch07.html#scaling_kafka_streams_implementation)]）。因为实现正在使用特定的消费者组来读取数据记录，Kafka将意识到它们属于[同一应用程序](http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html)，并将不同的分区发送到不同的实例，从而实现基于分区的负载平衡。
+与 Kafka Streams 类似，Akka Streams 实现在单个 Java 虚拟机（JVM）内运行。扩展此解决方案可能需要在多台机器上运行我们的实现的多个实例（类似于 Kafka Streams 应用程序扩展见[图 7-2]）。因为实现正在使用特定的消费者组来读取数据记录，Kafka 将意识到它们属于[同一应用程序](http://doc.akka.io/docs/akka-stream-kafka/current/consumer.html)，并将不同的分区发送到不同的实例，从而实现基于分区的负载平衡。
 
 # 保存执行状态
 
-我们简单实现的另一个不足之处是我们的阶段实现不是持久的，这意味着崩溃可能会丢失状态。 Akka Streams本身不提供持久性模型。[Akka Persistence](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka的一个单独模块，提供了一个基于[event source](https://github.com/eligosource/eventsourced)的库来实现持久性。 Akka Streams支持[使用阶段actor](http://charithe.github.io/dynamic-akka-streams-using-stage-actors.html)，其中一个阶段可以封装一个自定义actor。这允许使用[persistent actors](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka在系统中持久化状态的标准方式，从而解决了这类应用程序的持久性问题。
+我们简单实现的另一个不足之处是我们的阶段实现不是持久的，这意味着崩溃可能会丢失状态。 Akka Streams 本身不提供持久性模型。[Akka Persistence](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka 的一个单独模块，提供了一个基于[event source](https://github.com/eligosource/eventsourced)的库来实现持久性。 Akka Streams 支持[使用阶段 actor](http://charithe.github.io/dynamic-akka-streams-using-stage-actors.html)，其中一个阶段可以封装一个自定义 actor。这允许使用[persistent actors](http://doc.akka.io/docs/akka/current/scala/persistence.html)，Akka 在系统中持久化状态的标准方式，从而解决了这类应用程序的持久性问题。
 
-在第[4](ch04.html#apache_flink_implementation)章到第[8](#akka_streams_implementation)章中，您已经看到了如何通过使用不同的流引擎和框架来实现模型服务，但与任何流应用程序一样，提供一个明确定义的监控解决方案是必要的。您可能希望在模型服务应用程序中看到的信息示例包括：
+在第四章到第八章中，您已经看到了如何通过使用不同的流引擎和框架来实现模型服务，但与任何流应用程序一样，提供一个明确定义的监控解决方案是必要的。您可能希望在模型服务应用程序中看到的信息示例包括：
 
 +   目前使用哪个模型？
 
@@ -233,4 +233,4 @@ object AkkaModelServer {
 
 +   平均和最小/最大模型服务时间是多少？
 
-我们在[第9章](ch09.html#monitoring)中看到了这样的解决方案。
+我们在第九章中看到了这样的解决方案。

@@ -14,11 +14,11 @@
 
 ##### OSX
 
-[https://toolbelt.heroku.com/osx](https://toolbelt.heroku.com/osx)
+[`toolbelt.heroku.com/osx`](https://toolbelt.heroku.com/osx)
 
 #### Windows
 
-[https://toolbelt.heroku.com/windows](https://toolbelt.heroku.com/windows)
+[`toolbelt.heroku.com/windows`](https://toolbelt.heroku.com/windows)
 
 #### Linux
 

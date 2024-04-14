@@ -1,4 +1,4 @@
-# 第8课介绍
+# 第 8 课介绍
 
 ## 警告
 
@@ -8,13 +8,13 @@
 
 确保您在本课之前理解所有材料，尤其是[消息传递](http://berkeley-cs61as.github.io/textbook/message-passing.html)。
 
-在本节中，我们将讨论变量和环境状态的变化。您将绘制漂亮的图表，生动地说明Scheme存储变量和过程的环境。准备好接受大量信息并加以综合！
+在本节中，我们将讨论变量和环境状态的变化。您将绘制漂亮的图表，生动地说明 Scheme 存储变量和过程的环境。准备好接受大量信息并加以综合！
 
 ## 阅读
 
 在本节中，我们将涵盖以下阅读材料：
 
-+   [第3单元介绍：模块化、对象和状态](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-19.html#%_sec_3)
++   [第 3 单元介绍：模块化、对象和状态](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-19.html#%_sec_3)
 
 +   [SICP 3.1：赋值和局部状态](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-20.html#%_sec_3.1)
 
@@ -28,15 +28,15 @@
 
 此外，这里是旧讲座视频的网络直播。环境图的唯一大例子在网络直播中，因此我们强烈建议您观看：
 
-+   [第21讲](http://www.youtube.com/watch?v=vh73mm7MqA0&feature=share&list=PL6D76F0C99A731667)
++   [第 21 讲](http://www.youtube.com/watch?v=vh73mm7MqA0&feature=share&list=PL6D76F0C99A731667)
 
-+   [第22讲](http://www.youtube.com/watch?v=cmeWXO9Sa5E&feature=share&list=PL6D76F0C99A731667)
++   [第 22 讲](http://www.youtube.com/watch?v=cmeWXO9Sa5E&feature=share&list=PL6D76F0C99A731667)
 
-+   [第23讲](http://www.youtube.com/watch?v=SdwAj_eowzg&feature=share&list=PL6D76F0C99A731667)
++   [第 23 讲](http://www.youtube.com/watch?v=SdwAj_eowzg&feature=share&list=PL6D76F0C99A731667)
 
 ## 模块化
 
-我们通常将世界视为由独立对象组成，每个对象都有随时间变化的状态。如果一个对象的行为受其历史影响，则称该对象“具有状态”。例如，银行账户具有状态，因为对于问题“我可以取出100美元吗？”的答案取决于存款和取款交易的历史。我们可以通过一个或多个状态变量来描述对象的状态，其中包含足够的关于历史的信息，以确定对象的当前行为。在一个简单的银行系统中，我们可以通过当前余额来描述账户的状态，而不是记住整个账户交易历史。
+我们通常将世界视为由独立对象组成，每个对象都有随时间变化的状态。如果一个对象的行为受其历史影响，则称该对象“具有状态”。例如，银行账户具有状态，因为对于问题“我可以取出 100 美元吗？”的答案取决于存款和取款交易的历史。我们可以通过一个或多个状态变量来描述对象的状态，其中包含足够的关于历史的信息，以确定对象的当前行为。在一个简单的银行系统中，我们可以通过当前余额来描述账户的状态，而不是记住整个账户交易历史。
 
 在由许多对象组成的系统中，对象很少是完全独立的。通过相互作用，每个对象可能通过影响其他对象的状态来影响其他对象的状态，这些相互作用将一个对象的状态变量与其他对象的状态变量耦合在一起。事实上，当系统的状态变量可以分组为紧密耦合的子系统，并且这些子系统只与其他子系统松散耦合时，将系统视为由独立对象组成的观点是最有用的。
 

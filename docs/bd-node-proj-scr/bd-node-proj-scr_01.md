@@ -1,14 +1,14 @@
-# Node和npm
+# Node 和 npm
 
-# Node介绍
+# Node 介绍
 
-有足够多的文档支持这个问题，“为什么使用Node？”。对我来说真正有意义的是Node现在的状态，而不是Node将来的状态。毫无疑问，Rails社区为此做出了很大贡献，但令所有这些令人惊叹的想法难以接受的是，它们被锁在Ruby中。尽管Ruby很棒，但并不是每个人都想成为Ruby开发人员。
+有足够多的文档支持这个问题，“为什么使用 Node？”。对我来说真正有意义的是 Node 现在的状态，而不是 Node 将来的状态。毫无疑问，Rails 社区为此做出了很大贡献，但令所有这些令人惊叹的想法难以接受的是，它们被锁在 Ruby 中。尽管 Ruby 很棒，但并不是每个人都想成为 Ruby 开发人员。
 
-我特别喜欢这句话来自*为什么我要使用Node.js？逐例介绍*[[参考](http://www.toptal.com/nodejs/why-the-hell-would-i-use-node-js)]，作者[Tomislav Capan](http://www.toptal.com/resume/tomislav-capan)。
+我特别喜欢这句话来自*为什么我要使用 Node.js？逐例介绍*[[参考](http://www.toptal.com/nodejs/why-the-hell-would-i-use-node-js)]，作者[Tomislav Capan](http://www.toptal.com/resume/tomislav-capan)。
 
-> ... 值得注意的是，Node.js的创造者Ryan Dahl旨在创建具有推送功能的实时网站，“受到Gmail等应用程序的启发”。在Node.js中，他为开发人员提供了一种在非阻塞、事件驱动的I/O范式中工作的工具。
+> ... 值得注意的是，Node.js 的创造者 Ryan Dahl 旨在创建具有推送功能的实时网站，“受到 Gmail 等应用程序的启发”。在 Node.js 中，他为开发人员提供了一种在非阻塞、事件驱动的 I/O 范式中工作的工具。
 
-## 安装Node
+## 安装 Node
 
 在运行任何安装程序之前，请确保您知道计算机上有什么。要查看版本，只需运行：
 
@@ -16,37 +16,37 @@
 $ node --version 
 ```
 
-当然，要创建和运行一个Node应用程序，您需要安装Node。要安装Node，您可以运行[它们网站上的安装程序](http://nodejs.org/)。
+当然，要创建和运行一个 Node 应用程序，您需要安装 Node。要安装 Node，您可以运行[它们网站上的安装程序](http://nodejs.org/)。
 
-[安装Node和npm](http://www.joyent.com/blog/installing-node-and-npm/)是一篇关于如何进行设置的绝佳文章。请注意第4步，其中对如何设置事物有一些非常坚定的意见。
+[安装 Node 和 npm](http://www.joyent.com/blog/installing-node-and-npm/)是一篇关于如何进行设置的绝佳文章。请注意第 4 步，其中对如何设置事物有一些非常坚定的意见。
 
-提供了一个[gist](https://gist.github.com/579814)，其中说明了一系列安装Node的方法。
+提供了一个[gist](https://gist.github.com/579814)，其中说明了一系列安装 Node 的方法。
 
-这篇文章确实表达了个人对使用Homebrew的反对意见。Brew对我而言效果相当不错，但这是一个你可能需要自己形成的观点。
+这篇文章确实表达了个人对使用 Homebrew 的反对意见。Brew 对我而言效果相当不错，但这是一个你可能需要自己形成的观点。
 
-## Node包管理器（npm）
+## Node 包管理器（npm）
 
-> npm是一个NodeJS包管理器。正如其名字所暗示的那样，您可以使用它来安装Node程序。此外，如果您在开发中使用它，那么指定和链接依赖项就会变得更容易。
+> npm 是一个 NodeJS 包管理器。正如其名字所暗示的那样，您可以使用它来安装 Node 程序。此外，如果您在开发中使用它，那么指定和链接依赖项就会变得更容易。
 
-[了解更多关于npm的信息](http://howtonode.org/introduction-to-npm)
+[了解更多关于 npm 的信息](http://howtonode.org/introduction-to-npm)
 
-根据您的安装过程，您可能已经安装了NPM，也可能没有安装。要检查，请简单运行：
+根据您的安装过程，您可能已经安装了 NPM，也可能没有安装。要检查，请简单运行：
 
 ```
 $ npm --version 
 ```
 
-#### 如果您尚未安装npm，请运行以下命令：
+#### 如果您尚未安装 npm，请运行以下命令：
 
-注意：npm是Node的包管理器，因此您不能使用包管理器安装包管理器 o_O
+注意：npm 是 Node 的包管理器，因此您不能使用包管理器安装包管理器 o_O
 
 ```
 $ curl http://npmjs.org/install.sh | sh 
 ```
 
-## 使用npm
+## 使用 npm
 
-现在您已经安装了npm，所有注册的包都只是一个简单的命令远。对于基本的包安装，运行：
+现在您已经安装了 npm，所有注册的包都只是一个简单的命令远。对于基本的包安装，运行：
 
 ```
 $ npm install <package> 
@@ -60,13 +60,13 @@ $ npm install <package>
 $ npm install -g <package> 
 ```
 
-**注意：** 根据Node在您的系统上的安装方式，您可能无法访问安装全局包的权限。为了解决这个问题，只需在npm安装方法之前添加`sudo`命令：
+**注意：** 根据 Node 在您的系统上的安装方式，您可能无法访问安装全局包的权限。为了解决这个问题，只需在 npm 安装方法之前添加`sudo`命令：
 
 ```
 $ sudo npm install -g <package> 
 ```
 
-### 在项目中使用npm
+### 在项目中使用 npm
 
 npm 最常见的用法是维护项目的依赖关系清单。这是通过一个 [package.json](https://www.npmjs.org/doc/json.html) 文件进行维护的。
 
@@ -106,7 +106,7 @@ $ npm install <package> --save
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "grunt": "^0.4.5"
+    "grunt": "⁰.4.5"
   }
 } 
 ```
@@ -131,10 +131,10 @@ $ npm install <package> --save-dev
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "grunt": "^0.4.5"
+    "grunt": "⁰.4.5"
   },
   "devDependencies": {
-    "gulp": "^3.6.2"
+    "gulp": "³.6.2"
   }
 } 
 ```

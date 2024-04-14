@@ -8,11 +8,11 @@
 
 [展示](https://facebook.github.io/react-native/showcase.html)
 
-![](QQ20160630-4.png)
+![](img/QQ20160630-4.png)
 
-# 1.1 5分钟内构建一个应用程序
+# 1.1 5 分钟内构建一个应用程序
 
-# 1.1 5分钟内构建一个应用程序
+# 1.1 5 分钟内构建一个应用程序
 
 1.  遵循[入门指南](http://facebook.github.io/react-native/releases/next/docs/getting-started.html)
 
@@ -28,11 +28,11 @@
     react-native run-ios 
     ```
 
-    或者打开`testRn/ios/testRn.xcodeproj`并使用XCode的播放按钮构建
+    或者打开`testRn/ios/testRn.xcodeproj`并使用 XCode 的播放按钮构建
 
-![](QQ20160622-0.png)
+![](img/QQ20160622-0.png)
 
-或者如果应用程序已经构建完成，启动Web服务器
+或者如果应用程序已经构建完成，启动 Web 服务器
 
 ```
 npm start
@@ -46,11 +46,11 @@ react-native start
 
 1.[JavaScript 桥接](https://www.infoq.com/articles/react-native-introduction)
 
-![](21.jpg)
+![](img/21.jpg)
 
 2.[React Native 打包工具](https://github.com/facebook/react-native/tree/master/packager)
 
-![](Pasted%20Graphic.jpg)
+![](img/Pasted%20Graphic.jpg)
 
 # 1.3 调试工具
 
@@ -58,11 +58,11 @@ react-native start
 
 1.[开发者菜单](https://facebook.github.io/react-native/docs/debugging.html)
 
-![](QQ20160623-0.png)
+![](img/QQ20160623-0.png)
 
 2.Chrome Devtools
 
-![](QQ20160623-2.png) 3.日志
+![](img/QQ20160623-2.png) 3.日志
 
 ```
 console.log('some text');
@@ -72,15 +72,15 @@ debugger;//breaking point
 
 4.[Atom](https://atom.io/) & [nuclide](https://nuclide.io/)
 
-![](QQ20160623-3.png)
+![](img/QQ20160623-3.png)
 
 5.检查
 
 使用`cmd-shift-p`打开 Atom [命令面板插件](https://atom.io/packages/command-palette)，搜索"inspector"，然后点击"Nuclide React Native Inspector:Show"
 
-![](QQ20160624-0.png)
+![](img/QQ20160624-0.png)
 
-![](QQ20160623-4.png)
+![](img/QQ20160623-4.png)
 
 6.[真实设备](https://facebook.github.io/react-native/docs/debugging.html#chrome-developer-tools)
 
@@ -121,7 +121,7 @@ debugger;//breaking point
 
 3.
 
-![](QQ20160826-0.png)
+![](img/QQ20160826-0.png)
 
 # 1.4 文档和 API
 
@@ -139,11 +139,11 @@ debugger;//breaking point
 
 +   [React Native: Bringing modern web techniques to mobile](https://code.facebook.com/posts/1014532261909640/react-native-bringing-modern-web-techniques-to-mobile/)
 
-+   [React Native通信机制详解](http://blog.cnbang.net/tech/2698/)
++   [React Native 通信机制详解](http://blog.cnbang.net/tech/2698/)
 
 +   [React Native 调研报告](http://blog.csdn.net/lihuiqwertyuiop/article/details/45241909)
 
-+   [React Native概述：背景、规划和风险](https://github.com/tmallfe/tmallfe.github.io/issues/18)
++   [React Native 概述：背景、规划和风险](https://github.com/tmallfe/tmallfe.github.io/issues/18)
 
 +   [JavaScriptCore](http://trac.webkit.org/wiki/JavaScriptCore)
 

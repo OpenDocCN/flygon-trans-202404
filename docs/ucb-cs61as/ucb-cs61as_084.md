@@ -15,7 +15,7 @@
         (ask self 'withdraw (+ amount 0.10)) )) 
 ```
 
-每当我们写支票时，我们都会向账户收取额外的10美分。所有`checking-accounts`都以10美分的费用开始，但现在我们希望能够在进行过程中更改费用。一种方法是将`check-fee`作为一个实例化变量添加。
+每当我们写支票时，我们都会向账户收取额外的 10 美分。所有`checking-accounts`都以 10 美分的费用开始，但现在我们希望能够在进行过程中更改费用。一种方法是将`check-fee`作为一个实例化变量添加。
 
 ```
 (define-class (checking-account init-balance check-fee)
@@ -30,7 +30,7 @@
 (define barney (instantiate checking-account 9999 0.10)) 
 ```
 
-但这种格式稍微冗余，因为我们必须每次指定`check-fee`，即使我们总是希望它从10美分开始。我们将引入一个新的子句，**instance-vars**，解决我们的问题。
+但这种格式稍微冗余，因为我们必须每次指定`check-fee`，即使我们总是希望它从 10 美分开始。我们将引入一个新的子句，**instance-vars**，解决我们的问题。
 
 ```
 (define-class (checking-account init-balance)
@@ -81,7 +81,7 @@ whistle-while-you-work
 3 
 ```
 
-正如你所看到的，要求任何`worker`对象工作会增加`work-done`变量。相反，每个工人都有自己的`hunger`实例变量，所以当Brian工作时，Matt不会感到饥饿。你可以询问任何实例类变量的值，或者你可以询问类本身。这是通常规则的一个例外，即消息必须发送给实例，而不是类。
+正如你所看到的，要求任何`worker`对象工作会增加`work-done`变量。相反，每个工人都有自己的`hunger`实例变量，所以当 Brian 工作时，Matt 不会感到饥饿。你可以询问任何实例类变量的值，或者你可以询问类本身。这是通常规则的一个例外，即消息必须发送给实例，而不是类。
 
 **测试你的理解**
 

@@ -8,7 +8,7 @@
 
 # 目标
 
-在这个实验中，你将需要构建我们的捐赠案例应用程序的第一个版本，名为**Donation.1.0**。在接下来的几周里，我们将在这个实验（和案例研究）的基础上添加一些新功能和UI设计，并逐步完善。在这个版本中，我们将在一个单一布局上添加一些UI小部件，并实现一些基本的事件处理。
+在这个实验中，你将需要构建我们的捐赠案例应用程序的第一个版本，名为**Donation.1.0**。在接下来的几周里，我们将在这个实验（和案例研究）的基础上添加一些新功能和 UI 设计，并逐步完善。在这个版本中，我们将在一个单一布局上添加一些 UI 小部件，并实现一些基本的事件处理。
 
 完成此实验后，你将能够
 
@@ -24,47 +24,47 @@
 
 # 步骤 01 - 创建项目
 
-创建一个新的安卓应用程序，如下5个截图所示：
+创建一个新的安卓应用程序，如下 5 个截图所示：
 
-![](firstrun1.png)
+![](img/firstrun1.png)
 
-![](lab2s101.png)
+![](img/lab2s101.png)
 
-![](lab2s102.png)
+![](img/lab2s102.png)
 
-注意可能与默认值不同的“最低要求SDK”。
+注意可能与默认值不同的“最低要求 SDK”。
 
-![](lab2s103.png)
+![](img/lab2s103.png)
 
-![](lab2s104.png)
+![](img/lab2s104.png)
 
-下面显示了开放项目透视图，在可视化设计师中打开了content_donate布局：
+下面显示了开放项目透视图，在可视化设计师中打开了 content_donate 布局：
 
-![](lab2s105.png)
+![](img/lab2s105.png)
 
 项目将看起来像这样
 
-![](lab2s106.png)
+![](img/lab2s106.png)
 
 熟悉围绕捐赠“画布”周围的三个窗格的结构和目的非常重要：
 
 ## 调色板：
 
-![](lab2s107.png)
+![](img/lab2s107.png)
 
 ## 大纲
 
-![](lab2s108.png)
+![](img/lab2s108.png)
 
 ## 属性
 
-![](lab2s109.png)
+![](img/lab2s109.png)
 
 这些视图密切相关 - 你需要不断监视显示���信息，以便随着活动屏幕外观的演变。
 
 同样，快速查看你的**build.gradle**文件，查看应用程序的配置和依赖关系。
 
-![](lab2s110.png)
+![](img/lab2s110.png)
 
 # 步骤 02
 
@@ -72,35 +72,35 @@
 
 对于这个实验，我们的目标是制作一个类似于这样的安卓应用程序：
 
-![](completeappv1.png)
+![](img/completeappv1.png)
 
 在你的**content_donate.xml**中，删除当前的“Hello World”文本，并将一个新的“LargeText”表单小部件拖放到画布上，并“拉伸”小部件以填充画布（如下所示）。仔细看以下内容：
 
-![](lab2s201.png)
+![](img/lab2s201.png)
 
 现在，再次双击小部件，你将看到以下内容：
 
-![](lab2s202.png)
+![](img/lab2s202.png)
 
 选择椭圆形（在右侧，如下所示）
 
-![](lab2s203.png)
+![](img/lab2s203.png)
 
 你将看到资源菜单
 
-![](lab2s204.png)
+![](img/lab2s204.png)
 
 选择“新资源->新字符串值”，并填写以下值
 
-![](lab2s205.png)
+![](img/lab2s205.png)
 
 再次双击小部件，输入**donteTitle**作为**id**，然后按回车键。
 
-![](lab2s205a.png)
+![](img/lab2s205a.png)
 
 完成后，你会得到类似这样的东西
 
-![](lab2s206.png)
+![](img/lab2s206.png)
 
 仔细注意以下功能：
 
@@ -110,7 +110,7 @@
 
 +   在属性中 - 检查 'text' 的值并注意我们有一个字符串引用链接到我们的 **strings.xml**（下文）
 
-![](lab2s207.png)
+![](img/lab2s207.png)
 
 定位以下两个文件并仔细检查它们：
 
@@ -154,7 +154,7 @@
 
 现在将以下字符串引入 donate 活动中 - （中等文本） - 并按照上述相同的步骤进行。设计师应该是这样的：
 
-![](lab2s208.png)
+![](img/lab2s208.png)
 
 我们的 XML 文件将如下所示：
 
@@ -210,7 +210,7 @@
 
 直接将按钮放在活动上 - 附加到屏幕底部如图所示：
 
-![](lab2s301.png)
+![](img/lab2s301.png)
 
 以下步骤与前一步类似，重命名按钮并添加一个 id，两者都称为 **donateButton** 如果一切如预期那样进行，您的 xml 文件应该像这样：
 
@@ -341,11 +341,11 @@ public class Donate extends AppCompatActivity {
 
 必须导入该类。类名将始终与 Palette 中的名称匹配：
 
-![](lab2s302.png)
+![](img/lab2s302.png)
 
 我们可以自由地将变量命名为任何我们喜欢的名称。然而，为了将混乱降到最低，始终以轮廓视图中使用的相同名称来调用变量：
 
-![](lab2s303.png)
+![](img/lab2s303.png)
 
 在 onCreate 中 - 我们需要初始化这个变量：
 
@@ -434,15 +434,15 @@ public class Donate extends AppCompatActivity {
 
 在 LogCat 视图的右侧选择 "Edit Filter Configuration"
 
-![](lab2s304.png)
+![](img/lab2s304.png)
 
 输入名称和过滤器如下
 
-![](lab2s305.png)
+![](img/lab2s305.png)
 
 如果您选择过滤器，我们应该看到我们的消息：
 
-![](lab2s306.png)
+![](img/lab2s306.png)
 
 再次运行应用程序，并验证上述消息是否出现。
 
@@ -452,9 +452,9 @@ public class Donate extends AppCompatActivity {
 
 Android 文档特别有帮助并且设计良好。这是两个关键的起点：
 
-+   [http://developer.android.com/guide/components/index.html](http://developer.android.com/guide/components/index.html)
++   [`developer.android.com/guide/components/index.html`](http://developer.android.com/guide/components/index.html)
 
-+   [http://developer.android.com/reference/packages.html](http://developer.android.com/reference/packages.html)
++   [`developer.android.com/reference/packages.html`](http://developer.android.com/reference/packages.html)
 
 第一个设计为作为指南阅读，也许独立于 Android Studio 中的任何工作。您应该养成每周花一两个小时只读这一部分的习惯。
 
@@ -468,7 +468,7 @@ import android.widget.Button;
 
 .. 转换成
 
-+   [http://developer.android.com/reference/android/widget/Button.html](http://developer.android.com/reference/android/widget/Button.html)
++   [`developer.android.com/reference/android/widget/Button.html`](http://developer.android.com/reference/android/widget/Button.html)
 
 （注意最后三个部分与包名匹配）。现在打开这个页面。仅阅读到“按钮样式”标题。似乎有两种学习按钮事件发生的方法。第一种方法是使用事件处理程序/监听器 - 但还有第二种更简单的方法可供选择。
 
@@ -498,7 +498,7 @@ import android.widget.Button;
 
 保存所有内容并执行该应用程序，并在按下按钮时监视日志：
 
-![](lab2s401.png)
+![](img/lab2s401.png)
 
 我们现在已经实现了我们的第一个交互！
 
@@ -508,11 +508,11 @@ import android.widget.Button;
 
 回想一下我们试图实现的用户界面：
 
-![](completeappv1.png)
+![](img/completeappv1.png)
 
 我们需要单选按钮，某种选择/组合框 + 进度条。这些可以在调色板的各个位置找到：
 
-![](lab2s107.png) ![](lab2s501.png) ![](lab2s502.png)
+![](img/lab2s107.png) ![](img/lab2s501.png) ![](img/lab2s502.png)
 
 RadioGroup、ProgressBar 和 NumberPicker 似乎是可能的候选项。这些控件的名称完全符合其广告，我们可以期望它们在“widgets”包中。要验证这一点，请尝试在 Donate 活动类的顶部导入它们：
 
@@ -532,15 +532,15 @@ import android.widget.ProgressBar;
 
 我们还可以打开三个文档页面 - 我们可以从包/类名称反向工程出来：
 
-+   [http://developer.android.com/reference/android/widget/RadioGroup.html](http://developer.android.com/reference/android/widget/RadioGroup.html)
++   [`developer.android.com/reference/android/widget/RadioGroup.html`](http://developer.android.com/reference/android/widget/RadioGroup.html)
 
-+   [http://developer.android.com/reference/android/widget/ProgressBar.html](http://developer.android.com/reference/android/widget/ProgressBar.html)
++   [`developer.android.com/reference/android/widget/ProgressBar.html`](http://developer.android.com/reference/android/widget/ProgressBar.html)
 
-+   [http://developer.android.com/reference/android/widget/NumberPicker.html](http://developer.android.com/reference/android/widget/NumberPicker.html)
++   [`developer.android.com/reference/android/widget/NumberPicker.html`](http://developer.android.com/reference/android/widget/NumberPicker.html)
 
 注意这一次我们先去了 Activity 类，然后再创建控件。我们现在应该这样做 - 并记住在创建控件时使用相同的名称（用于 ID）。
 
-![](lab2s503.png)![](lab2s504.png)
+![](img/lab2s503.png)![](img/lab2s504.png)
 
 学会像上面展示的那样获取布局的 +id 名称可能需要一些练习。然而，掌握这个技能是至关重要的，即使需要大量的试错。
 
@@ -743,38 +743,38 @@ public class Donate extends AppCompatActivity {
 
 这是我们的参考文档：
 
-+   [http://developer.android.com/reference/android/widget/NumberPicker.html](http://developer.android.com/reference/android/widget/NumberPicker.html)
++   [`developer.android.com/reference/android/widget/NumberPicker.html`](http://developer.android.com/reference/android/widget/NumberPicker.html)
 
 这有点令人不知所措。回到指南：
 
-+   [http://developer.android.com/guide/components/index.html](http://developer.android.com/guide/components/index.html)
++   [`developer.android.com/guide/components/index.html`](http://developer.android.com/guide/components/index.html)
 
 我们可能会在'用户界面' - '输入控件'下找到一些有用的教程型介绍
 
-+   [http://developer.android.com/guide/topics/ui/controls.html](http://developer.android.com/guide/topics/ui/controls.html)
++   [`developer.android.com/guide/topics/ui/controls.html`](http://developer.android.com/guide/topics/ui/controls.html)
 
 .. 这是关于'选择器'的页面
 
-+   [http://developer.android.com/guide/topics/ui/controls/pickers.html](http://developer.android.com/guide/topics/ui/controls/pickers.html)
++   [`developer.android.com/guide/topics/ui/controls/pickers.html`](http://developer.android.com/guide/topics/ui/controls/pickers.html)
 
 此文档涉及片段 - 这是一种可能在开始时难以理解的概念，并且还探讨了日期和时间选择器的使用。
 
 我们可以不用那么费事就能开始工作了。回到文档，最初这三种方法应该就足够了：
 
-+   [http://developer.android.com/reference/android/widget/NumberPicker.html#setMaxValue(int)](http://developer.android.com/reference/android/widget/NumberPicker.html#setMaxValue(int))
++   [`developer.android.com/reference/android/widget/NumberPicker.html#setMaxValue(int)`](http://developer.android.com/reference/android/widget/NumberPicker.html#setMaxValue(int))
 
-+   [http://developer.android.com/reference/android/widget/NumberPicker.html#setMinValue(int)](http://developer.android.com/reference/android/widget/NumberPicker.html#setMinValue(int))
++   [`developer.android.com/reference/android/widget/NumberPicker.html#setMinValue(int)`](http://developer.android.com/reference/android/widget/NumberPicker.html#setMinValue(int))
 
-+   [http://developer.android.com/reference/android/widget/NumberPicker.html#getValue()](http://developer.android.com/reference/android/widget/NumberPicker.html#getValue())
++   [`developer.android.com/reference/android/widget/NumberPicker.html#getValue()`](http://developer.android.com/reference/android/widget/NumberPicker.html#getValue())
 
-在onCreate中，初始化值：
+在 onCreate 中，初始化值：
 
 ```
  amountPicker.setMinValue(0);
     amountPicker.setMaxValue(1000); 
 ```
 
-而在donateButtonPressed中：
+而在 donateButtonPressed 中：
 
 ```
  public void donateButtonPressed (View view) {
@@ -785,15 +785,15 @@ public class Donate extends AppCompatActivity {
 
 现在运行它，并验证其是否按预期运行（查看日志文件中的实际数值，如下所示）。
 
-![](lab2s601.png)
+![](img/lab2s601.png)
 
-# 步骤07
+# 步骤 07
 
-# 步骤07 - 单选按钮
+# 步骤 07 - 单选按钮
 
-在*donateButtonPressed()*中，我们需要确定已选择了哪种付款方式。我们的RadioGroup文档在这里：
+在*donateButtonPressed()*中，我们需要确定已选择了哪种付款方式。我们的 RadioGroup 文档在这里：
 
-+   [http://developer.android.com/reference/android/widget/RadioGroup.html](http://developer.android.com/reference/android/widget/RadioGroup.html)
++   [`developer.android.com/reference/android/widget/RadioGroup.html`](http://developer.android.com/reference/android/widget/RadioGroup.html)
 
 这看起来就像是我们需要的方法：
 
@@ -820,15 +820,15 @@ public class Donate extends AppCompatActivity {
 
 现在运行它并验证我们是否获得了正确的日志。
 
-我们可以通过将if语句简化为一行来简化它：
+我们可以通过将 if 语句简化为一行来简化它：
 
 ```
  String method = radioId == R.id.PayPal ? "PayPal" : "Direct"; 
 ```
 
-这是Java三元运算符：
+这是 Java 三元运算符：
 
-+   [http://marxsoftware.blogspot.ie/2010/09/how-i-learned-to-stop-worrying-and-love.html](http://marxsoftware.blogspot.ie/2010/09/how-i-learned-to-stop-worrying-and-love.html)
++   [`marxsoftware.blogspot.ie/2010/09/how-i-learned-to-stop-worrying-and-love.html`](http://marxsoftware.blogspot.ie/2010/09/how-i-learned-to-stop-worrying-and-love.html)
 
 到目前为止这是完整的活动类：
 
@@ -918,25 +918,25 @@ public class Donate extends AppCompatActivity {
 } 
 ```
 
-所以再次运行您的应用程序，以确认logCat中的条目
+所以再次运行您的应用程序，以确认 logCat 中的条目
 
-![](lab2s701.png)
+![](img/lab2s701.png)
 
-# 步骤08
+# 步骤 08
 
-# 步骤08 - 进度条
+# 步骤 08 - 进度条
 
 进度条文档：
 
-+   [http://developer.android.com/reference/android/widget/ProgressBar.html](http://developer.android.com/reference/android/widget/ProgressBar.html)
++   [`developer.android.com/reference/android/widget/ProgressBar.html`](http://developer.android.com/reference/android/widget/ProgressBar.html)
 
 提供了关于在多线程应用程序中使用进度条的建议。我们还没准备好！（但将其存档以供将来参考）。
 
 这两种方法可能是我们需要的：
 
-+   [http://developer.android.com/reference/android/widget/ProgressBar.html#setMax(int)](http://developer.android.com/reference/android/widget/ProgressBar.html#setMax(int))
++   [`developer.android.com/reference/android/widget/ProgressBar.html#setMax(int)`](http://developer.android.com/reference/android/widget/ProgressBar.html#setMax(int))
 
-+   [http://developer.android.com/reference/android/widget/ProgressBar.html#setProgress(int)](http://developer.android.com/reference/android/widget/ProgressBar.html#setProgress(int))
++   [`developer.android.com/reference/android/widget/ProgressBar.html#setProgress(int)`](http://developer.android.com/reference/android/widget/ProgressBar.html#setProgress(int))
 
 首先，我们需要让我们的活动具备记住捐赠金额的能力：
 
@@ -962,7 +962,7 @@ public class Donate extends AppCompatActivity {
 
 现在试试这个，并观察进度条和 logCat
 
-![](lab2s801.png)
+![](img/lab2s801.png)
 
 到目前为止，这是完整的类：
 
@@ -1189,7 +1189,7 @@ Android 代码可能变得非常冗长和复杂。仔细格式化是必不可少
 
 到目前为止的实验的存档：
 
-+   [Donation.1.0.zip](Donation.1.0.zip)
++   Donation.1.0.zip
 
 ## 练习 1：
 
@@ -1197,15 +1197,15 @@ Android 代码可能变得非常冗长和复杂。仔细格式化是必不可少
 
 这些主要是 EditView 对象：
 
-+   [http://developer.android.com/reference/android/widget/EditText.html](http://developer.android.com/reference/android/widget/EditText.html)
++   [`developer.android.com/reference/android/widget/EditText.html`](http://developer.android.com/reference/android/widget/EditText.html)
 
 重新设计活动以从选择器或直接从文本视图中获取值，并维护“到目前为止的总计”值：
 
-![](lab2s902.png)
+![](img/lab2s902.png)
 
-![](lab2s901.png)
+![](img/lab2s901.png)
 
-![](lab2s903.png)
+![](img/lab2s903.png)
 
 如果数字选择器设置为零，则尝试从文本视图获取数字。
 
@@ -1247,8 +1247,8 @@ Android 代码可能变得非常冗长和复杂。仔细格式化是必不可少
 
 提示 - 看一下你的**colors.xml**
 
-![](lab2s904.png)
+![](img/lab2s904.png)
 
 带有上述练习的存档：
 
-+   [Donation.1.5.zip](Donation.1.5.zip)
++   Donation.1.5.zip

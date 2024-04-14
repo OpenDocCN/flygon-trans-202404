@@ -1,4 +1,4 @@
-# 第8章 - DocumentFragment 节点
+# 第八章 - DocumentFragment 节点
 
 ## 8.1 *DocumentFragment* 对象概述
 
@@ -8,7 +8,7 @@
 
 在下面的代码中，使用*createDocumentFragment()*创建了一个*DocumentFragment*，并向片段附加了*<li>*。
 
-实时代码：[http://jsfiddle.net/domenlightenment/6e3uX](http://jsfiddle.net/domenlightenment/6e3uX)
+实时代码：[`jsfiddle.net/domenlightenment/6e3uX`](http://jsfiddle.net/domenlightenment/6e3uX)
 
 ```
 <!DOCTYPE html>
@@ -47,7 +47,7 @@ console.log(docFrag.textContent); *//logs bluegreenredbluepink*
 
 通过将*appendChild()*和*insertBefore()*节点方法传递一个*documentFragment*参数，*documentFragment*的子节点将作为子节点传输到调用这些方法的 DOM 节点上。下面我们创建一个*documentfragment*，向其中添加一些*<li>*，然后使用*appendChild()*将这些新元素节点附加到实时 DOM 树中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/Z2LpU](http://jsfiddle.net/domenlightenment/Z2LpU)
+实时代码：[`jsfiddle.net/domenlightenment/Z2LpU`](http://jsfiddle.net/domenlightenment/Z2LpU)
 
 ```
 <!DOCTYPE html>
@@ -86,7 +86,7 @@ console.log(document.body.innerHTML);
 
 使用节点方法在内存中创建 DOM 结构可能会冗长而费力。一个解决方法是创建一个*documentFragment*，向该片段附加一个*<div>*，因为*innerHTML*不能在文档片段上工作，然后使用*innerHTML*属性使用 HTML 字符串更新片段。通过这样做，可以从 HTML 字符串中构建 DOM 结构。在下面的代码中，我构建了一个 DOM 结构，然后将其视为节点树，而不仅仅是 JavaScript 字符串。
 
-实时代码：[http://jsfiddle.net/domenlightenment/4W9sH](http://jsfiddle.net/domenlightenment/4W9sH)
+实时代码：[`jsfiddle.net/domenlightenment/4W9sH`](http://jsfiddle.net/domenlightenment/4W9sH)
 
 ```
 <!DOCTYPE html>
@@ -115,9 +115,9 @@ console.log(docFrag.querySelectorAll('li').length); *//logs 2*
 
 ```
 
-当需要附加使用*documentFragment*和*<div>*创建的DOM结构时，您将希望附加结构，跳过*<div>*的注入。
+当需要附加使用*documentFragment*和*<div>*创建的 DOM 结构时，您将希望附加结构，跳过*<div>*的注入。
 
-实时代码：[http://jsfiddle.net/domenlightenment/kkyKJ](http://jsfiddle.net/domenlightenment/kkyKJ)
+实时代码：[`jsfiddle.net/domenlightenment/kkyKJ`](http://jsfiddle.net/domenlightenment/kkyKJ)
 
 ```
 <!DOCTYPE html>
@@ -152,7 +152,7 @@ console.log(document.querySelector('div').innerHTML);
 
 ### 注意
 
-除了*DocumentFragment*，我们还有*[DOMParser](http://html5.org/specs/dom-parsing.html#domparser)*可以期待。*DOMParser*可以将存储在字符串中的HTML解析为DOM [Document](https://developer.mozilla.org/en/DOM/document "document")。截至今天，它仅在Opera和Firefox中受支持，但有一个[polyfill](https://gist.github.com/1129031)可用。当然，如果您需要一个独立的HTML到DOM脚本，请尝试[domify](https://github.com/component/domify)。
+除了*DocumentFragment*，我们还有*[DOMParser](http://html5.org/specs/dom-parsing.html#domparser)*可以期待。*DOMParser*可以将存储在字符串中的 HTML 解析为 DOM [Document](https://developer.mozilla.org/en/DOM/document "document")。截至今天，它仅在 Opera 和 Firefox 中受支持，但有一个[polyfill](https://gist.github.com/1129031)可用。当然，如果您需要一个独立的 HTML 到 DOM 脚本，请尝试[domify](https://github.com/component/domify)。
 
 ## 8.5 离开包含节点的片段，通过克隆在内存中
 
@@ -160,7 +160,7 @@ console.log(document.querySelector('div').innerHTML);
 
 *<li>*，保持*<li>*在*documentFragment*节点内存中被克隆。
 
-实时代码：[http://jsfiddle.net/domenlightenment/bcJGS](http://jsfiddle.net/domenlightenment/bcJGS)
+实时代码：[`jsfiddle.net/domenlightenment/bcJGS`](http://jsfiddle.net/domenlightenment/bcJGS)
 
 ```
 <!DOCTYPE html>

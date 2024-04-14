@@ -8,9 +8,9 @@
 
 +   引入简单的菜单处理
 
-+   将Donation安卓应用程序演变为包含报告视图
++   将 Donation 安卓应用程序演变为包含报告视图
 
-+   使用一个简单的ArrayAdapter
++   使用一个简单的 ArrayAdapter
 
 # 步骤 01
 
@@ -18,11 +18,11 @@
 
 这是**Donation**应用程序的当前版本：
 
-+   [Donation.1.5.zip](Donation.1.51.zip)
++   Donation.1.5.zip
 
-要继续使用此项目，我们需要将其“重构”为**Donation.2.0**。在撰写本文时，Android Studio的重构功能和工具有点问题，因此我们需要手动复制我们的项目。
+要继续使用此项目，我们需要将其“重构”为**Donation.2.0**。在撰写本文时，Android Studio 的重构功能和工具有点问题，因此我们需要手动复制我们的项目。
 
-1.  确保您没有在Android Studio中打开**Donation.1.5** - 如果有，请立即关闭
+1.  确保您没有在 Android Studio 中打开**Donation.1.5** - 如果有，请立即关闭
 
 1.  转到您下载并解压缩**Donation.1.5**的文件夹所在位置
 
@@ -32,7 +32,7 @@
 
 1.  编辑***Donation.2.0.iml***并将任何对**Donation.1.5**的引用更改为**Donation.2.0**
 
-1.  转到.idea文件夹（可能是一个隐藏文件夹），打开.name文件并将项目名称重命名为**Donation.2.0**
+1.  转到.idea 文件夹（可能是一个隐藏文件夹），打开.name 文件并将项目名称重命名为**Donation.2.0**
 
 1.  启动 Android Studio 并打开**Donation.2.0**项目
 
@@ -40,9 +40,9 @@
 
 因此，在“main”文件夹中创建一个新的包
 
-![](lab3s101.png)
+![](img/lab3s101.png)
 
-并将您的**Donate.java**拖入这个新包中。您可以删除空包（如果Android Studio还没有这样做）
+并将您的**Donate.java**拖入这个新包中。您可以删除空包（如果 Android Studio 还没有这样做）
 
 对**ApplicationTest**类执行相同操作。
 
@@ -56,7 +56,7 @@ import ie.app.R;
 public class Donate extends AppCompatActivity 
 ```
 
-![](lab3s102.png)
+![](img/lab3s102.png)
 
 因此，在继续之前，请确保您的项目结构看起来像上面的样子。
 
@@ -66,7 +66,7 @@ public class Donate extends AppCompatActivity
 
 这是**Donation**应用程序的当前版本（在完成上述步骤后，这是您的实验起始代码）：
 
-+   [Donation.2.0.zip](Donation.2.0.Starter.zip)
++   Donation.2.0.zip
 
 # 步骤 02
 
@@ -90,7 +90,7 @@ public class Donate extends AppCompatActivity
 
 (确保它在**'menu'**元素内)
 
-在Donate.java中，更改onOptionsItemSelected方法如下：
+在 Donate.java 中，更改 onOptionsItemSelected 方法如下：
 
 ```
  @Override
@@ -109,13 +109,13 @@ public class Donate extends AppCompatActivity
 
 运行应用程序，当您按下菜单按钮（或溢出菜单）并选择“报告”时，您应该看到提示消息出现。
 
-![](lab3s103.png)![](lab3s104.png)
+![](img/lab3s103.png)![](img/lab3s104.png)
 
 # 步骤 03
 
 # 报告活动
 
-在开始设计新活动之前，在res/values/strings.xml中添加一个字符串资源：
+在开始设计新活动之前，在 res/values/strings.xml 中添加一个字符串资源：
 
 ```
 <string name="reportTitle">Report</string> 
@@ -123,19 +123,19 @@ public class Donate extends AppCompatActivity
 
 设计一个名为**activity_report**的新布局。通过定位 res/layout 文件夹并选择新->布局资源文件来完成：
 
-![](lab3s301.png)
+![](img/lab3s301.png)
 
 你可以选择此布局的所有默认设置。
 
-![](lab3s302.png)
+![](img/lab3s302.png)
 
 将我们的布局从线性转换为相对，如下所示，
 
-![](lab3s303.png)
+![](img/lab3s303.png)
 
 并构建类似以下的布局：
 
-![](lab3s304.png)
+![](img/lab3s304.png)
 
 这就是布局文件本身：
 
@@ -166,9 +166,9 @@ public class Donate extends AppCompatActivity
 </RelativeLayout> 
 ```
 
-在ie.app.activities中引入一个新的空活动来呈现此活动：
+在 ie.app.activities 中引入一个新的空活动来呈现此活动：
 
-![](lab3s305.png)
+![](img/lab3s305.png)
 
 并用以下内容替换：
 
@@ -222,7 +222,7 @@ public class Report extends AppCompatActivity {
   } 
 ```
 
-确认已将活动规范添加到AndroidManifest.xml文件中：
+确认已将活动规范添加到 AndroidManifest.xml 文件中：
 
 ```
  <?xml version="1.0" encoding="utf-8"?>
@@ -254,9 +254,9 @@ public class Report extends AppCompatActivity {
 
 现在尝试一切 - 它应该加载（如下所示）
 
-![](lab3s306.png)
+![](img/lab3s306.png)
 
-# 第04步
+# 第 04 步
 
 # 菜单重访
 
@@ -273,9 +273,9 @@ public class Report extends AppCompatActivity {
 
 带入一个新的菜单项，“捐赠” - 捐赠应将您带回主要的捐赠屏幕。
 
-这与您在Step 02中所做的方法非常相似，因此重新访问此步骤，看看您是否可以得到类似以下内容的“报告”屏幕：
+这与您在 Step 02 中所做的方法非常相似，因此重新访问此步骤，看看您是否可以得到类似以下内容的“报告”屏幕：
 
-![](lab3s401.png)
+![](img/lab3s401.png)
 
 我们将在下一个实验中查看如何填充实际捐款的列表。
 
@@ -285,4 +285,4 @@ public class Report extends AppCompatActivity {
 
 到目前为止的解决方案：
 
-+   [Donation.2.0.zip](Donation.2.0.zip)
++   Donation.2.0.zip

@@ -28,7 +28,7 @@
         pairToList :: (a -> b) -> (a, a) -> [b]
         ```
 
-## 具有fundeps的多态性
+## 具有 fundeps 的多态性
 
 +   让我们用一个*类*来表示特殊的多态方法
 
@@ -58,19 +58,19 @@
     class TupleFoldr f z t r | f z t -> r where  tupleFoldr :: f -> z -> t -> r
     ```
 
-    +   对于小元组效果还可以，但在10元组左右会出问题，需要更大的`-fcontext-stack`参数
+    +   对于小元组效果还可以，但在 10 元组左右会出问题，需要更大的`-fcontext-stack`参数
 
 +   不幸的是，我暂时没有编译时的技巧
 
     +   另一种方法是使用运行时类型信息（RTTI）
 
-    +   RTTI更容易理解，但会增加运行时开销和错误
+    +   RTTI 更容易理解，但会增加运行时开销和错误
 
     +   我们将在讲座结束时回到静态技巧
 
 ## [`DeriveDataTypeable`](http://www.haskell.org/ghc/docs/latest/html/users_guide/deriving.html#deriving-typeable) 扩展
 
-+   Haskell允许自动派生六个类
++   Haskell 允许自动派生六个类
 
     +   `Show`, `Read`, `Eq`, `Ord`, `Bounded`, `Enum`
 
@@ -94,7 +94,7 @@
 
 +   提供了被称为“scrap your boilerplate”的编程方法
 
-    +   GHC的支持由两篇论文描述：[[Boilerplate1]](http://research.microsoft.com/en-us/um/people/simonpj/papers/hmap/hmap.ps), [[Boilerplate2]](http://research.microsoft.com/en-us/um/people/simonpj/papers/hmap/gmap2.ps)
+    +   GHC 的支持由两篇论文描述：[[Boilerplate1]](http://research.microsoft.com/en-us/um/people/simonpj/papers/hmap/hmap.ps), [[Boilerplate2]](http://research.microsoft.com/en-us/um/people/simonpj/papers/hmap/gmap2.ps)
 
 ## [`Typeable`](http://hackage.haskell.org/packages/archive/base/latest/doc/html/Data-Typeable.html#t:Typeable) 类
 
@@ -124,7 +124,7 @@
 
 ## 类型转换
 
-+   GHC有一个名为[`unsafeCoerce`](http://hackage.haskell.org/packages/archive/base/latest/doc/html/Unsafe-Coerce.html#v:unsafeCoerce)的函数
++   GHC 有一个名为[`unsafeCoerce`](http://hackage.haskell.org/packages/archive/base/latest/doc/html/Unsafe-Coerce.html#v:unsafeCoerce)的函数
 
     ```
     unsafeCoerce :: a -> b
@@ -146,7 +146,7 @@
 
     +   如果`typeOf`在两种不同类型上始终返回不同的`TypeRep`，则是安全的
 
-    +   通过`deriving (Typeable)`保证；SafeHaskell不允许手动实例
+    +   通过`deriving (Typeable)`保证；SafeHaskell 不允许手动实例
 
 ## 泛化转换
 
@@ -198,7 +198,7 @@
 mkT :: (Typeable a, Typeable b) => (b -> b) -> a -> a mkT f a = case cast f of Just g -> g a Nothing -> a
 ```
 
-+   注意Haskell类型推断的魔力
++   注意 Haskell 类型推断的魔力
 
     +   `g`应用于`a`，因此必须具有类型`a -> a`
 
@@ -206,7 +206,7 @@ mkT :: (Typeable a, Typeable b) => (b -> b) -> a -> a mkT f a = case cast f of J
 
     +   因此编译器知道要使用`(b -> b)`的`Typeable`字典作为参数，以及`(a -> a)`的字典作为`cast`的返回
 
-+   [[Jones]](http://web.cecs.pdx.edu/~mpj/thih/)详细解释了Haskell的类型推断
++   [[Jones]](http://web.cecs.pdx.edu/~mpj/thih/)详细解释了 Haskell 的类型推断
 
 +   注意，更复杂的实现可以使用标准的`maybe`函数
 
@@ -320,7 +320,7 @@ mkQ :: (Typeable a, Typeable b) => r -> (b -> r) -> a -> r mkQ defaultVal fn = m
 
 ## 例子：可扩展异常[[Marlow]](http://community.haskell.org/~simonmar/papers/ext-exceptions.pdf)
 
-+   GHC运行时实现了原始的、不安全的异常
++   GHC 运行时实现了原始的、不安全的异常
 
     ```
     raise# :: a -> b catch# :: IO a -> (b -> IO a) -> IO a -- slight simplification
@@ -492,7 +492,7 @@ data T2 = C2 { t2a :: Bool } deriving (Show, Generic) data T3 = C3 { t3a :: Bool
 
     +   让你从类型中挑选出记录名称
 
-## [`GHC.Generics`](http://www.haskell.org/ghc/docs/latest/html/libraries/base-4.7.0.0/GHC-Generics.html) 内容（第2部分）
+## [`GHC.Generics`](http://www.haskell.org/ghc/docs/latest/html/libraries/base-4.7.0.0/GHC-Generics.html) 内容（第 2 部分）
 
 ```
 -- Used to glue multiple constructor arguments together data (:*:) f g p = f p :*: g p infixr 6 :*: -- Used to represent a type with multiple constructors data (:+:) f g p = L1 { unL1 :: f p } | R1 { unR1 :: g p } infixr 5 :+: -- Used to hold actual concrete values of constructor arguments newtype K1 i c p = K1 { unK1 :: c } type Rec0 = K1 R -- From two slides ago: data U1 p = U1 -- Unit constructors (no arguments) newtype M1 i c f p = M1 { unM1 :: f p } data D; type D1 = M1 D -- c instance of Datatype, f is C1 or :+: data C; type C1 = M1 C -- c instance of Constructor, f is S1 or :*: data S; type S1 = M1 S -- c instance of Selector, f is U1 or Rec0

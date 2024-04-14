@@ -195,9 +195,9 @@ induction t; intros Γ T Htc; inversion Htc.
 
 - (* tapp *)
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[1]) as TO[1].
+remember (type_check Γ t[1]) as TO[1].
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[2]) as TO[2].
+remember (type_check Γ t[2]) as TO[2].
 
 destruct TO[1] as [T[1]|]; try solve_by_invert;
 
@@ -205,11 +205,11 @@ destruct T[1] as [|T[11] T[12]]; try solve_by_invert.
 
 destruct TO[2] as [T[2]|]; try solve_by_invert.
 
-destruct ([beq_ty](Typechecking.html#STLCChecker.beq_ty) T[11] T[2]) eqn: Heqb;
+destruct (beq_ty T[11] T[2]) eqn: Heqb;
 
 try solve_by_invert.
 
-apply [beq_ty__eq](Typechecking.html#STLCChecker.beq_ty__eq) in Heqb.
+apply beq_ty__eq in Heqb.
 
 inversion H[0]; subst...
 
@@ -217,9 +217,9 @@ inversion H[0]; subst...
 
 rename i into y. rename t into T[1].
 
-remember ([update](Maps.html#update) Γ y T[1]) as G'.
+remember (update Γ y T[1]) as G'.
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) G' t[0]) as TO[2].
+remember (type_check G' t[0]) as TO[2].
 
 destruct TO[2]; try solve_by_invert.
 
@@ -231,11 +231,11 @@ inversion H[0]; subst...
 
 - (* tif *)
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[1]) as TOc.
+remember (type_check Γ t[1]) as TOc.
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[2]) as TO[1].
+remember (type_check Γ t[2]) as TO[1].
 
-remember ([type_check](Typechecking.html#STLCChecker.type_check) Γ t[3]) as TO[2].
+remember (type_check Γ t[3]) as TO[2].
 
 destruct TOc as [Tc|]; try solve_by_invert.
 
@@ -245,11 +245,11 @@ destruct Tc; try solve_by_invert.
 
 对 TO[2] 进行分析得到 [T[2]|]; 尝试通过反演解决。
 
-对 ([beq_ty](Typechecking.html#STLCChecker.beq_ty) T[1] T[2]) 进行分析得到 Heqb;
+对 (beq_ty T[1] T[2]) 进行分析得到 Heqb;
 
 尝试通过反演解决。
 
-应用 [beq_ty__eq](Typechecking.html#STLCChecker.beq_ty__eq) 在 Heqb 中。
+应用 beq_ty__eq 在 Heqb 中。
 
 反演 H[0]。替换。替换...
 
@@ -273,7 +273,7 @@ destruct Tc; try solve_by_invert.
 
 重写 IHHty1。重写 IHHty2。
 
-重写 ([beq_ty_refl](Typechecking.html#STLCChecker.beq_ty_refl) T[11])...
+重写 (beq_ty_refl T[11])...
 
 - (* T_True *) eauto。
 
@@ -281,7 +281,7 @@ destruct Tc; try solve_by_invert.
 
 - (* T_If *) 重写 IHHty1。重写 IHHty2。
 
-重写 IHHty3。重写 ([beq_ty_refl](Typechecking.html#STLCChecker.beq_ty_refl) T)...
+重写 IHHty3。重写 (beq_ty_refl T)...
 
     完成。
 
@@ -294,7 +294,7 @@ destruct Tc; try solve_by_invert.
 #### Exercise: 5 stars (typechecker_extensions)
 
     In this exercise we'll extend the typechecker to deal with the
-    extended features discussed in chapter [MoreStlc](MoreStlc.html).  Your job
+    extended features discussed in chapter MoreStlc.  Your job
     is to fill in the omitted cases in the following.
 
 ```
@@ -637,7 +637,7 @@ type_check Γ t = Some T → Γ t T。
     sound and complete for the typing relation.  Do the same for the
     operational semantics — i.e., write a function stepf of type
     tm → option tm and prove that it is sound and complete with
-    respect to step from chapter [MoreStlc](MoreStlc.html).
+    respect to step from chapter MoreStlc.
 
 ```
 
@@ -655,7 +655,7 @@ type_check Γ t = Some T → Γ t T。
 
 #### Exercise: 5 stars, optional (stlc_impl)
 
-    Using the Imp parser described in the [ImpParser](ImpParser.html) chapter as
+    Using the Imp parser described in the ImpParser chapter as
     a guide, build a parser for extended Stlc programs.  Combine it
     with the typechecking and stepping functions from above to yield a
     complete typechecker and interpreter for this language.

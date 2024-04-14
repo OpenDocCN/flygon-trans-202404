@@ -1,6 +1,6 @@
 # 选定练习的答案
 
-**练习 [2.2.1](start.html#g7). **(第 [20](start.html#./start:s34) 页)
+**练习 2.2.1. **(第 20 页)
 
 | *  a*. | `(+ (* 1.2 (- 2 1/3)) -8.7)` |
 | --- | --- |
@@ -8,11 +8,11 @@
 | *  c*. | `(+ 1 (/ 1 (+ 2 (/ 1 (+ 1 1/2)))))` |
 | *  d*. | `(* (* (* (* (* (* 1 -2) 3) -4) 5) -6) 7)` 或 `(* 1 -2 3 -4 5 -6 7)` |
 
-**练习 [2.2.2](start.html#g8). **(第 [20](start.html#./start:s35) 页)
+**练习 2.2.2. **(第 20 页)
 
-参见第 [6.4](objects.html#g110) 节。
+参见第 6.4 节。
 
-**练习 [2.2.3](start.html#g9). **(第 [20](start.html#./start:s36) 页)
+**练习 2.2.3. **(第 20 页)
 
 | *  a*. | `(car . cdr)` |
 | --- | --- |
@@ -31,65 +31,65 @@
 | *  n*. | `5` |
 | *  o*. | `5` |
 
-**练习 [2.2.4](start.html#g10). **(第 [21](start.html#./start:s37) 页)
+**练习 2.2.4. **(第 21 页)
 
-`(car (cdr (car '((a b) (c d))))) ![<graphic>](ch2_0.gif) b
+`(car (cdr (car '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) b
 
-(car (car (cdr '((a b) (c d))))) ![<graphic>](ch2_0.gif) c
+(car (car (cdr '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) c
 
-(car (cdr (car (cdr '((a b) (c d)))))) ![<graphic>](ch2_0.gif) d`
+(car (cdr (car (cdr '((a b) (c d)))))) ![<graphic>](img/ch2_0.gif) d`
 
-**练习 [2.2.5](start.html#g11). **(第 [21](start.html#./start:s38) 页)
+**练习 2.2.5. **(第 21 页)
 
 `'((a . b) ((c) d) ())`
 
-**练习 [2.2.6](start.html#g12). **(第 [21](start.html#./start:s39) 页)
+**练习 2.2.6. **(第 21 页)
 
-![<graphic>](ans_50.gif)
+![<graphic>](img/ans_50.gif)
 
-**练习 [2.2.7](start.html#g13). **(第 [21](start.html#./start:s40) 页)
+**练习 2.2.7. **(第 21 页)
 
-`(car '((a b) (c d))) ![<graphic>](ch2_0.gif) (a b)
+`(car '((a b) (c d))) ![<graphic>](img/ch2_0.gif) (a b)
 
-(car (car '((a b) (c d)))) ![<graphic>](ch2_0.gif) a
+(car (car '((a b) (c d)))) ![<graphic>](img/ch2_0.gif) a
 
-(cdr (car '((a b) (c d)))) ![<graphic>](ch2_0.gif) (b)
+(cdr (car '((a b) (c d)))) ![<graphic>](img/ch2_0.gif) (b)
 
-(car (cdr (car '((a b) (c d))))) ![<graphic>](ch2_0.gif) b
+(car (cdr (car '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) b
 
-(cdr (cdr (car '((a b) (c d))))) ![<graphic>](ch2_0.gif) ()
+(cdr (cdr (car '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) ()
 
-(cdr '((a b) (c d))) ![<graphic>](ch2_0.gif) ((c d))
+(cdr '((a b) (c d))) ![<graphic>](img/ch2_0.gif) ((c d))
 
-(car (cdr '((a b) (c d)))) ![<graphic>](ch2_0.gif) (c d)
+(car (cdr '((a b) (c d)))) ![<graphic>](img/ch2_0.gif) (c d)
 
-(car (car (cdr '((a b) (c d))))) ![<graphic>](ch2_0.gif) c
+(car (car (cdr '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) c
 
-(cdr (car (cdr '((a b) (c d))))) ![<graphic>](ch2_0.gif) (d)
+(cdr (car (cdr '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) (d)
 
-(car (cdr (car (cdr '((a b) (c d))))) ![<graphic>](ch2_0.gif) d
+(car (cdr (car (cdr '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) d
 
-(cdr (cdr (car (cdr '((a b) (c d))))) ![<graphic>](ch2_0.gif) ()
+(cdr (cdr (car (cdr '((a b) (c d))))) ![<graphic>](img/ch2_0.gif) ()
 
-(cdr (cdr '((a b) (c d)))) ![<graphic>](ch2_0.gif) ()
+(cdr (cdr '((a b) (c d)))) ![<graphic>](img/ch2_0.gif) ()
 
-**练习 [2.2.8](start.html#g14). **(第 [21](start.html#./start:s41) 页)
+**练习 2.2.8. **(第 21 页)
 
-参见第 [2.3](start.html#g15) 节。
+参见第 2.3 节。
 
-**练习 [2.3.1](start.html#g16). **(第 [23](start.html#./start:s49) 页)
+**练习 2.3.1. **(第 23 页)
 
 1.  评估变量`list`、`+`、`-`、`*`和`/`，得到列表、加法、减法、乘法和除法过程。
 
 1.  将加法、减法、乘法和除法过程应用于列表过程，得到按顺序包含这些过程的列表。
 
-1.  评估变量`cdr`，得到cdr过程。
+1.  评估变量`cdr`，得到 cdr 过程。
 
-1.  将步骤 [2](answers.html#g252) 中生成的列表应用于cdr过程，得到包含减法、乘法和除法过程的列表。
+1.  将步骤 2 中生成的列表应用于 cdr 过程，得到包含减法、乘法和除法过程的列表。
 
-1.  评估变量`car`，得到car过程。
+1.  评估变量`car`，得到 car 过程。
 
-1.  将步骤 [4](answers.html#g254) 中生成的列表应用于car过程，得到减法过程。
+1.  将步骤 4 中生成的列表应用于 car 过程，得到减法过程。
 
 1.  评估常量`17`和`5`，得到`17`和`5`。
 
@@ -97,17 +97,17 @@
 
 其他顺序也是可能的。例如，变量`car`可能在其参数之前被评估。
 
-**练习 [2.4.1](start.html#g18). **(页 [25](start.html#./start:s57))
+**练习 2.4.1. **(页 25)
 
 | *  a*. | `(let ([x (* 3 a)]) (+ (- x b) (+ x b)))` |
 | --- | --- |
 | *  b*. | `(let ([x (list a b c)]) (cons (car x) (cdr x)))` |
 
-**练习 [2.4.2](start.html#g19). **(页 [25](start.html#./start:s58))
+**练习 2.4.2. **(页 25)
 
-值为54。外部`let`将`x`绑定到9，而内部`let`将`x`绑定到3（9/3）。内部`let`评估为6（3 + 3），外部`let`评估为54（9 × 6）。
+值为 54。外部`let`将`x`绑定到 9，而内部`let`将`x`绑定到 3（9/3）。内部`let`评估为 6（3 + 3），外部`let`评估为 54（9 × 6）。
 
-**练习 [2.4.3](start.html#g20). **(页 [26](start.html#./start:s59))
+**练习 2.4.3. **(页 26)
 
 | *  a*. | `(let ([x0 'a] [y0 'b])   (list (let ([x1 'c]) (cons x1 y0))
 
@@ -129,7 +129,7 @@ x4)
 
 (cdr x2))))))` |
 
-**练习 [2.5.1](start.html#g22). **(页 [30](start.html#./start:s72))
+**练习 2.5.1. **(页 30)
 
 | *  a*. | `a` |
 | --- | --- |
@@ -137,11 +137,11 @@ x4)
 | *  c*. | `a` |
 | *  d*. | `()` |
 
-**练习 [2.5.2](start.html#g23). **(页 [30](start.html#./start:s73))
+**练习 2.5.2. **(页 30)
 
-请参阅页 [31](start.html#defn:list)。
+请参阅页 31。
 
-**练习 [2.5.3](start.html#g24). **(页 [30](start.html#./start:s74))
+**练习 2.5.3. **(页 30)
 
 | *  a*. | 没有自由变量 |
 | --- | --- |
@@ -151,11 +151,11 @@ x4)
 | *  e*. | `cons` 和 `y` |
 | *  f*. | `cons`、`y` 和 `z`（`y`也作为绑定变量出现） |
 
-**练习 [2.6.1](start.html#g26). **(页 [34](start.html#./start:s91))
+**练习 2.6.1. **(页 34)
 
 程序将无限循环。
 
-**练习 [2.6.2](start.html#g27). **(页 [34](start.html#./start:s92))
+**练习 2.6.2. **(页 34)
 
 `(define compose
 
@@ -169,7 +169,7 @@ x4)
 
 (define cddr (compose cdr cdr))`
 
-**练习 [2.6.3](start.html#g28). **(页 [34](start.html#./start:s96))
+**练习 2.6.3. **(页 34)
 
 `(define caar (compose car car))
 
@@ -227,7 +227,7 @@ x4)
 
 (define cddddr (compose cddr cddr))`
 
-**练习 [2.7.1](start.html#g30). **(页 [41](start.html#./start:s126))
+**练习 2.7.1. **(页 41)
 
 `(define atom?
 
@@ -235,7 +235,7 @@ x4)
 
 (not (pair? x))))`
 
-**练习 [2.7.2](start.html#g31). **(第[41](start.html#./start:s128)页)
+**练习 2.7.2. **(第 41 页)
 
 `(define shorter
 
@@ -247,11 +247,11 @@ ls2
 
 ls1)))`
 
-**练习 [2.8.1](start.html#g33). **(第[46](start.html#./start:s149)页)
+**练习 2.8.1. **(第 46 页)
 
 输出的结构将是输入结构的镜像。例如，`(a . b)`将变为`(b . a)`，`((a . b) . (c . d))`将变为`((d . c) . (b . a))`。
 
-**练习 [2.8.2](start.html#g34). **(第[46](start.html#./start:s150)页)
+**练习 2.8.2. **(第 46 页)
 
 `(define append
 
@@ -263,7 +263,7 @@ ls2
 
 (cons (car ls1) (append (cdr ls1) ls2)))))`
 
-**练习 [2.8.3](start.html#g35). **(第[46](start.html#./start:s152)页)
+**练习 2.8.3. **(第 46 页)
 
 `(define make-list
 
@@ -275,11 +275,11 @@ ls2
 
 (cons x (make-list (- n 1) x)))))`
 
-**练习 [2.8.4](start.html#g36). **(第[47](start.html#./start:s154)页)
+**练习 2.8.4. **(第 47 页)
 
-查看第[160](objects.html#defn:list-ref)页上`list-ref`的描述以及第[160](objects.html#defn:list-tail)页上`list-tail`的描述。
+查看第 160 页上`list-ref`的描述以及第 160 页上`list-tail`的描述。
 
-**练习 [2.8.5](start.html#g37). **(第[47](start.html#./start:s155)页)
+**练习 2.8.5. **(第 47 页)
 
 `(define shorter?
 
@@ -301,7 +301,7 @@ ls2
 
 ls1)))`
 
-**练习 [2.8.6](start.html#g38). **(第[47](start.html#./start:s158)页)
+**练习 2.8.6. **(第 47 页)
 
 `(define even?
 
@@ -319,7 +319,7 @@ ls1)))`
 
 (even? (- x 1)))))`
 
-**练习 [2.8.7](start.html#g39). **(第[47](start.html#./start:s161)页)
+**练习 2.8.7. **(第 47 页)
 
 `(define transpose
 
@@ -327,7 +327,7 @@ ls1)))`
 
 (cons (map car ls) (map cdr ls))))`
 
-**练习 [2.9.1](start.html#g41). **(第[54](start.html#./start:s186)页)
+**练习 2.9.1. **(第 54 页)
 
 `(define make-counter
 
@@ -343,7 +343,7 @@ ls1)))`
 
 v)))))`
 
-**练习 [2.9.2](start.html#g42). **(第[55](start.html#./start:s188)页)
+**练习 2.9.2. **(第 55 页)
 
 `(define make-stack
 
@@ -365,7 +365,7 @@ v)))))`
 
 [else "oops"])))))`
 
-**练习 [2.9.3](start.html#g43). **(第[55](start.html#./start:s191)页)
+**练习 2.9.3. **(第 55 页)
 
 `(define make-stack
 
@@ -391,7 +391,7 @@ v)))))`
 
 [else "oops"])))))`
 
-**练习 [2.9.4](start.html#g44). **(第[55](start.html#./start:s192)页)
+**练习 2.9.4. **(第 55 页)
 
 `(define make-stack
 
@@ -421,7 +421,7 @@ v)))))`
 
 [else "oops"])))))`
 
-**练习 [2.9.5](start.html#g45). **(第[56](start.html#./start:s194)页)
+**练习 2.9.5. **(第 56 页)
 
 `(define emptyq?
 
@@ -449,7 +449,7 @@ v)))))`
 
 (set-car! q (cdr (car q))))))`
 
-**练习 [2.9.6](start.html#g46). **(第 [56](start.html#./start:s195) 页)
+**练习 2.9.6. **(第 56 页)
 
 `(define make-queue
 
@@ -497,11 +497,11 @@ v)))))`
 
 (set-car! q (cdr (car q))))))`
 
-**练习 [2.9.7](start.html#g47). **(第 [56](start.html#./start:s196) 页)
+**练习 2.9.7. **(第 56 页)
 
-当要求打印循环结构时，一些实现会打印一个反映其循环结构的输出表示。其他实现则无法检测到循环并产生无输出或无限输出流。当 `length` 被传递一个循环列表时，会引发异常，可能会显示列表不是正确的消息。然而，第 [42](start.html#defn:simplelength) 页上 `length` 的定义将简单地无限循环。
+当要求打印循环结构时，一些实现会打印一个反映其循环结构的输出表示。其他实现则无法检测到循环并产生无输出或无限输出流。当 `length` 被传递一个循环列表时，会引发异常，可能会显示列表不是正确的消息。然而，第 42 页上 `length` 的定义将简单地无限循环。
 
-**练习 [2.9.8](start.html#g48). **(第 [56](start.html#./start:s199) 页)
+**练习 2.9.8. **(第 56 页)
 
 `(define race
 
@@ -527,31 +527,31 @@ v)))))`
 
 (race x x)))`
 
-**练习 [3.1.1](further.html#g51). **(第 [64](further.html#./further:s25) 页)
+**练习 3.1.1. **(第 64 页)
 
-`(let ([x (memv 'a ls)]) (and x (memv 'b x))) ![<graphic>](ans_9.gif)
+`(let ([x (memv 'a ls)]) (and x (memv 'b x))) ![<graphic>](img/ans_9.gif)
 
-((lambda (x) (and x (memv 'b x))) (memv 'a ls)) ![<graphic>](ans_9.gif)
+((lambda (x) (and x (memv 'b x))) (memv 'a ls)) ![<graphic>](img/ans_9.gif)
 
-((lambda (x) (if x (and (memv 'b x)) #f)) (memv 'a ls)) ![<graphic>](ans_9.gif)
+((lambda (x) (if x (and (memv 'b x)) #f)) (memv 'a ls)) ![<graphic>](img/ans_9.gif)
 
 ((lambda (x) (if x (memv 'b x) #f)) (memv 'a ls))`
 
-**练习 [3.1.2](further.html#g52). **(第 [64](further.html#./further:s26) 页)
+**练习 3.1.2. **(第 64 页)
 
-`(or (memv x '(a b c)) (list x)) ![<graphic>](ans_9.gif)
+`(or (memv x '(a b c)) (list x)) ![<graphic>](img/ans_9.gif)
 
-(let ((t (memv x '(a b c)))) (if t t (or (list x)))) ![<graphic>](ans_9.gif)
+(let ((t (memv x '(a b c)))) (if t t (or (list x)))) ![<graphic>](img/ans_9.gif)
 
-((lambda (t) (if t t (or (list x)))) (memv x '(a b c))) ![<graphic>](ans_9.gif)
+((lambda (t) (if t t (or (list x)))) (memv x '(a b c))) ![<graphic>](img/ans_9.gif)
 
 ((lambda (t) (if t t (list x))) (memv x '(a b c)))`
 
-**练习 [3.1.3](further.html#g53). **(第 [64](further.html#./further:s27) 页)
+**练习 3.1.3. **(第 64 页)
 
-查看第 [97](binding.html#defn:let*) 页。
+查看第 97 页。
 
-**练习 [3.1.4](further.html#g54). **(第 [64](further.html#./further:s29) 页)
+**练习 3.1.4. **(第 64 页)
 
 `(define-syntax when
 
@@ -569,11 +569,11 @@ v)))))`
 
 (when (not e0) e1 e2 ...)]))`
 
-**练习 [3.2.1](further.html#g56). **(第 [72](further.html#./further:s52) 页)
+**练习 3.2.1. **(第 72 页)
 
 尾递归：`even?` 和 `odd?`，`race`，第二个 `factorial` 定义中的 `fact`，第二个 `fibonacci` 版本中的 `fib`。非尾递归：`sum`，`factorial`，第一个 `fibonacci` 版本中的 `fib`。两者都包括：`factor`。
 
-**练习 [3.2.2](further.html#g57). **(第 [72](further.html#./further:s53) 页)
+**练习 3.2.2. **(第 72 页)
 
 `(define factor
 
@@ -593,7 +593,7 @@ v)))))`
 
 (f n 2))))`
 
-**练习 [3.2.3](further.html#g58). **(页 [72](further.html#./further:s55))
+**练习 3.2.3. **(页 72)
 
 是的，但我们需要两个命名的`let`表达式，一个用于`even?`，一个用于`odd?`。
 
@@ -607,7 +607,7 @@ v)))))`
 
 (even? (- x 1))))))`
 
-**练习 [3.2.4](further.html#g59). **(页 [72](further.html#./further:s56))
+**练习 3.2.4. **(页 72)
 
 `(定义 fibcount1 0)
 
@@ -647,21 +647,21 @@ a1
 
 (fib (- i 1) (+ a1 a2) a1))))))`
 
-`(斐波那契数 10`的计数为177和10，`斐波那契数 20`的计数为21891和20，`斐波那契数 30`的计数为2692537和30\. 第二个调用的次数与输入成正比，而第一个调用的次数随着输入值的增加而迅速增长（事实上是指数增长）。
+`(斐波那契数 10`的计数为 177 和 10，`斐波那契数 20`的计数为 21891 和 20，`斐波那契数 30`的计数为 2692537 和 30\. 第二个调用的次数与输入成正比，而第一个调用的次数随着输入值的增加而迅速增长（事实上是指数增长）。
 
-**练习 [3.2.5](further.html#g60). **(页 [73](further.html#./further:s57))
+**练习 3.2.5. **(页 73)
 
-请参见页 [312](syntax.html#defn:let)。
+请参见页 312。
 
-**练习 [3.2.6](further.html#g61). **(页 [73](further.html#./further:s58))
+**练习 3.2.6. **(页 73)
 
 在`or`表达式的最后子表达式中的调用不是尾调用，因为`or`的修改定义。对于`even?`/`odd?`的例子，`even?`的结果定义将不再是尾递归的，对于非常大的输入可能会耗尽可用空间。
 
-此定义执行的扩展在另一方面是不正确的，这与多返回值有关（第 [5.8](control.html#g104) 节）：如果最后一个子表达式返回多个值，则`or`表达式应返回多个值，但使用不正确的定义，每个子表达式都出现在`let`的右侧，`let`期望单个返回值。简单且不正确的`and`定义也有同样的问题。
+此定义执行的扩展在另一方面是不正确的，这与多返回值有关（第 5.8 节）：如果最后一个子表达式返回多个值，则`or`表达式应返回多个值，但使用不正确的定义，每个子表达式都出现在`let`的右侧，`let`期望单个返回值。简单且不正确的`and`定义也有同样的问题。
 
-**练习 [3.2.7](further.html#g62). **(页 [73](further.html#./further:s59))
+**练习 3.2.7. **(页 73)
 
-以下三个版本中的第一个直接解决了识别出的问题，停在![<graphic>](ans_10.gif)，避免了冗余的除法，并在2之后跳过偶数因子。停在![<graphic>](ans_10.gif)可能带来最大的节省，其次是跳过大于2的偶数因子。避免冗余的除法不那么重要，因为只有在找到因子时才会发生。
+以下三个版本中的第一个直接解决了识别出的问题，停在![<graphic>](img/ans_10.gif)，避免了冗余的除法，并在 2 之后跳过偶数因子。停在![<graphic>](img/ans_10.gif)可能带来最大的节省，其次是跳过大于 2 的偶数因子。避免冗余的除法不那么重要，因为只有在找到因子时才会发生。
 
 `(定义 factor
 
@@ -701,7 +701,7 @@ a1
 
 (f n (+ i step) 2)))))))`
 
-第三个版本使用 `gcd`（参见第 [179](objects.html#page:gcd) 页）来避免大部分除法，因为 `gcd` 应该比 `/` 更快。
+第三个版本使用 `gcd`（参见第 179 页）来避免大部分除法，因为 `gcd` 应该比 `/` 更快。
 
 `(define factor
 
@@ -721,7 +721,7 @@ a1
 
 要查看这些更改带来的差异，请在您的 Scheme 系统中计时每个 `factor` 版本，包括原始版本，以查看哪个性能更好。尝试各种输入，包括像 `(+ (expt 2 100) 1)` 这样的更大输入。
 
-**练习 [3.3.1](further.html#g70). **(页码 [77](further.html#./further:s66))
+**练习 3.3.1. **(页码 77)
 
 `(let ([k.n (call/cc (lambda (k) (cons k 0)))])
 
@@ -733,7 +733,7 @@ a1
 
 (k (cons k (+ n 1)))))`
 
-或者使用多值（参见第 [5.8](control.html#g104) 节）：
+或者使用多值（参见第 5.8 节）：
 
 `(call-with-values
 
@@ -747,7 +747,7 @@ a1
 
 (k k (+ n 1))))`
 
-**练习 [3.3.2](further.html#g71). **(页码 [77](further.html#./further:s67))
+**练习 3.3.2. **(页码 77)
 
 `(define product
 
@@ -765,7 +765,7 @@ a1
 
 (if (= n 0) 0 (* n (car ls))))))))`
 
-**练习 [3.3.3](further.html#g72). **(页码 [77](further.html#./further:s68))
+**练习 3.3.3. **(页码 77)
 
 如果其中一个进程在不调用 `pause` 的情况下返回，则返回到首次运行它的 `pause` 调用，或者如果它是列表中的第一个进程，则返回到原始的 `start` 调用。以下是允许进程显式 `quit` 的系统的重新实现。如果其他��程仍在活动，则 `lwp` 系统继续运行。否则，控制返回到原始 `start` 调用的延续。
 
@@ -821,7 +821,7 @@ a1
 
 (next))))`
 
-**练习 [3.3.4](further.html#g73). **(页码 [77](further.html#./further:s69))
+**练习 3.3.4. **(页码 77)
 
 `(define lwp-queue (make-queue))
 
@@ -853,7 +853,7 @@ a1
 
 (start)))))`
 
-**练习 [3.4.1](further.html#g76). **(页码 [80](further.html#./further:s75))
+**练习 3.4.1. **(页码 80)
 
 `(define reciprocal
 
@@ -865,7 +865,7 @@ a1
 
 (success (/ 1 n)))))`
 
-**练习 [3.4.2](further.html#g77). **(页码 [80](further.html#./further:s77))
+**练习 3.4.2. **(页码 80)
 
 `(define retry #f)
 
@@ -881,7 +881,7 @@ a1
 
 (f (- x 1) (lambda (y) (k (* x y))))))))`
 
-**练习 [3.4.3](further.html#g78). **(页码 [80](further.html#./further:s79))
+**练习 3.4.3. **(页码 80)
 
 `(define map/k
 
@@ -911,7 +911,7 @@ ls
 
 (lambda (x) x))))`
 
-**练习 [3.5.1](further.html#g80). **(页码 [85](further.html#./further:s86))
+**练习 3.5.1. **(页码 85)
 
 `(define-syntax complain
 
@@ -919,7 +919,7 @@ ls
 
 [(_ ek msg expr) (ek (list msg expr))]))`
 
-**练习 [3.5.2](further.html#g81). **(页码 [85](further.html#./further:s87))
+**练习 3.5.2. **(页码 85)
 
 `(define calc
 
@@ -969,7 +969,7 @@ ls
 
 (do-calc expr)))))`
 
-**练习 [3.5.3](further.html#g82). **(页码 [85](further.html#./further:s88))
+**练习 3.5.3. **(页码 85)
 
 `(define calc #f)
 
@@ -1019,7 +1019,7 @@ ls
 
 (do-calc expr))))`
 
-**练习 [3.5.4](further.html#g83). **(页码 [85](further.html#./further:s89))
+**练习 3.5.4. **(页码 85)
 
 这里添加了 `sqrt`, `times`（`mul`的别名）和 `expt` 以及 `minus`。
 
@@ -1093,7 +1093,7 @@ ls
 
 (do-calc ek expr))))))`
 
-**练习 [3.6.1](further.html#g85). **(页码 [87](further.html#./further:s90))
+**练习 3.6.1. **(页码 87)
 
 这个版本的 `gpa` 在所有输入的字母等级都是 `x` 时返回 `x`。
 
@@ -1111,7 +1111,7 @@ ls
 
 (/ (apply + ls) (length ls))))]))`
 
-**练习 [3.6.2](further.html#g86)。**（页 [87](further.html#./further:s91)）
+**练习 3.6.2。**（页 87）
 
 在库中定义了如下的`$distribution`和`distribution`之后：
 
@@ -1139,7 +1139,7 @@ ls
 
 [(f) (loop (cdr ls) a b c d (+ f 1))]
 
-; 忽略x等级，参照前述练习
+; 忽略 x 等级，参照前述练习
 
 [(x) (loop (cdr ls) a b c d f)]
 
@@ -1159,7 +1159,7 @@ ls
 
 修改`export`行以添加`distribution`（但不添加`$distribution`）。
 
-**练习 [3.6.3](further.html#g87)。**（页 [87](further.html#./further:s92)）
+**练习 3.6.3。**（页 87）
 
 在定义了以下`histogram`之后：
 
@@ -1189,4 +1189,4 @@ ls
 
 (map cadr distr))))`
 
-修改`export`行以添加`histogram`。该解决方案使用`for-each`，在[118](control.html#desc:for-each)页上描述了该方法。
+修改`export`行以添加`histogram`。该解决方案使用`for-each`，在 118 页上描述了该方法。

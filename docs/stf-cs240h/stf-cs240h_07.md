@@ -34,7 +34,7 @@ class MyFunctor f where  myfmap :: (a -> b) -> f a -> f b
 
 请为`Maybe`编写一个`MyFunctor`实例。
 
-你有2分钟。
+你有 2 分钟。
 
 ## 对`Maybe`的函子
 

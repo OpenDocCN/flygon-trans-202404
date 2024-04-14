@@ -18,17 +18,17 @@ java.lang.OutOfMemoryError: Java heap space
 
 #### 错误和异常
 
-诸如OutOfMemoryError之类的错误表示严重的失败，继续程序毫无意义。
+诸如 OutOfMemoryError 之类的错误表示严重的失败，继续程序毫无意义。
 
 然而，其他异常仅仅表示程序中的一个意外或异常条件。例如，程序输入数据中的错误可能会导致异常。这些错误可以被处理：我们说异常被处理或捕获。
 
-例如，NumberFormatException可能表示用户输入了一个不正确的数字，正确的响应是打印一个错误消息并要求新的输入。
+例如，NumberFormatException 可能表示用户输入了一个不正确的数字，正确的响应是打印一个错误消息并要求新的输入。
 
-FileNotFoundException意味着我们尝试打开的文件不存在。根据情况，正确的响应可能是尝试不同的文件名，要求用户提供不同的文件名，或者简单地跳过读取文件。
+FileNotFoundException 意味着我们尝试打开的文件不存在。根据情况，正确的响应可能是尝试不同的文件名，要求用户提供不同的文件名，或者简单地跳过读取文件。
 
 #### 捕获异常
 
-以下代码要求用户输入一个数字。readString函数返回一个字符串，因此我们必须使用toInt()方法将其转换为整数。如果字符串不是一个数字，比如"abc"或"123ab"，那么toInt()方法会抛出一个异常。我们可以通过将关键部分放在try块中，并添加一个catch块来处理我们感兴趣的异常来捕获异常（[catch1.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/catch1.kts)）：
+以下代码要求用户输入一个数字。readString 函数返回一个字符串，因此我们必须使用 toInt()方法将其转换为整数。如果字符串不是一个数字，比如"abc"或"123ab"，那么 toInt()方法会抛出一个异常。我们可以通过将关键部分放在 try 块中，并添加一个 catch 块来处理我们感兴趣的异常来捕获异常（[catch1.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/catch1.kts)）：
 
 ```
 import org.otfried.cs109.readString
@@ -45,11 +45,11 @@ catch (e: NumberFormatException) {
 
 ```
 
-如果try块正常执行，则catch子句将被跳过。但是，如果在try块内的某个地方（包括直接或间接调用的任何方法）抛出异常，则try块的执行立即停止，并在第一个与异常匹配的catch子句中继续执行。这里，“匹配”意味着异常与case中列出的异常类型相同。
+如果 try 块正常执行，则 catch 子句将被跳过。但是，如果在 try 块内的某个地方（包括直接或间接调用的任何方法）抛出异常，则 try 块的执行立即停止，并在第一个与异常匹配的 catch 子句中继续执行。这里，“匹配”意味着异常与 case 中列出的异常类型相同。
 
-catch块中的代码称为异常处理程序。
+catch 块中的代码称为异常处理程序。
 
-在我们上面的示例中，如果字符串str不代表一个整数（例如，如果它是"abc"），那么str.toInt会抛出NumberFormatException异常。try块被终止（特别是，没有值被赋给x），并且执行继续在NumberFormatException的catch子句中。以下是一些示例运行：
+在我们上面的示例中，如果字符串 str 不代表一个整数（例如，如果它是"abc"），那么 str.toInt 会抛出 NumberFormatException 异常。try 块被终止（特别是，没有值被赋给 x），并且执行继续在 NumberFormatException 的 catch 子句中。以下是一些示例运行：
 
 ```
 $ kts catch1.kts
@@ -63,15 +63,15 @@ Enter a number> abc
 
 #### 异常与错误代码
 
-老的编程语言如C没有异常，因此所有错误或异常情况都需要通过错误代码来处理。在C++中，错误代码也仍然广泛使用，例如为了与C兼容。
+老的编程语言如 C 没有异常，因此所有错误或异常情况都需要通过错误代码来处理。在 C++中，错误代码也仍然广泛使用，例如为了与 C 兼容。
 
-像`str.toInt()`这样简单而优雅的方法在没有异常的情况下是不可能的。我们将不得不返回两个结果：一个布尔值来指示转换是否成功，以及Int值本身。
+像`str.toInt()`这样简单而优雅的方法在没有异常的情况下是不可能的。我们将不得不返回两个结果：一个布尔值来指示转换是否成功，以及 Int 值本身。
 
 因此，异常使我们能够集中精力于`str.toInt()`的基本含义：它接受一个字符串，并返回一个数字。但是异常的真正威力只在下一节中显现…
 
 #### 深入了解异常
 
-异常的好处是你也可以捕获在try块中调用的函数内部抛出的异常。
+异常的好处是你也可以捕获在 try 块中调用的函数内部抛出的异常。
 
 回到我们的数字转换示例，这里是一个在单独函数中转换字符串的版本（[catch2.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/catch2.kts)）：
 
@@ -89,9 +89,9 @@ fun show(s: String) {
 
 ```
 
-函数test(s)将字符串转换为双精度浮点数，然后将其四舍五入到两位小数并返回整数。
+函数 test(s)将字符串转换为双精度浮点数，然后将其四舍五入到两位小数并返回整数。
 
-当发生转换错误时，这发生在test(s)内部，但我们仍然可以在show(s)函数中捕获这个错误：
+当发生转换错误时，这发生在 test(s)内部，但我们仍然可以在 show(s)函数中捕获这个错误：
 
 ```
 >>> :load catch2.kts
@@ -170,11 +170,11 @@ Enter a number>
 
 ```
 
-对于输入值"25"，我们看到try块的开始和结束以及函数f和g。对于输入值"abc"，toInt方法抛出异常，因此不调用f。对于输入值"0"，函数g内部的除法抛出ArithmeticError。正如你所看到的，执行立即在异常处理程序中继续，而不是完成函数g、f或try块。
+对于输入值"25"，我们看到 try 块的开始和结束以及函数 f 和 g。对于输入值"abc"，toInt 方法抛出异常，因此不调用 f。对于输入值"0"，函数 g 内部的除法抛出 ArithmeticError。正如你所看到的，执行立即在异常处理程序中继续，而不是完成函数 g、f 或 try 块。
 
 #### 抛出异常
 
-到目前为止，我们只捕获了在某些库函数内部抛出的异常。但是你也可以自己抛出异常。例如，假设我们的函数g(n)应该只处理非负数。如果参数为负数，我们可以通过抛出IllegalArgumentException来确保这一点。整个脚本现在看起来像这样（[except2.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/except2.kts)）：
+到目前为止，我们只捕获了在某些库函数内部抛出的异常。但是你也可以自己抛出异常。例如，假设我们的函数 g(n)应该只处理非负数。如果参数为负数，我们可以通过抛出 IllegalArgumentException 来确保这一点。整个脚本现在看起来像这样（[except2.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/except2.kts)）：
 
 ```
 import org.otfried.cs109.readString
@@ -246,7 +246,7 @@ I can't handle this value!
 
 我们可以在程序中适当的位置捕获异常并打印错误消息，或以其他方式处理问题。
 
-当你调试程序时，可能会困惑于某些异常的来源。在这种情况下，使用异常对象的printStackTrace()方法可能很有用。它会打印出导致异常抛出的方法链。
+当你调试程序时，可能会困惑于某些异常的来源。在这种情况下，使用异常对象的 printStackTrace()方法可能很有用。它会打印出导致异常抛出的方法链。
 
 如果我们将主函数更改如下（[except3.kts](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/16-exceptions/except3.kts)）：
 
@@ -302,7 +302,7 @@ Enter a number>
 
 ```
 
-我们可以看到IllegalArgumentException是在函数g（脚本的第16行）中抛出的，该函数被函数f调用，后者又被主函数调用。
+我们可以看到 IllegalArgumentException 是在函数 g（脚本的第 16 行）中抛出的，该函数被函数 f 调用，后者又被主函数调用。
 
 #### 断言
 

@@ -270,7 +270,7 @@ True : Bool
 
 尝试在实现中引入一些错误以触发运行时的合同违规。
 
-一些语言，如[Racket](http://racket-lang.org/)，为指定和检查约束提供了广泛的支持。我们可以想象扩展Elm，使我们能够编写以下更精确的函数类型，这些类型会自动转换为我们手动编写的包装函数。请注意，在这种语法中，类型由谓词函数“细化”。
+一些语言，如[Racket](http://racket-lang.org/)，为指定和检查约束提供了广泛的支持。我们可以想象扩展 Elm，使我们能够编写以下更精确的函数类型，这些类型会自动转换为我们手动编写的包装函数。请注意，在这种语法中，类型由谓词函数“细化”。
 
 ```
 insert' : x:Int -> t:Tree{rb t} -> t':Tree{rb t'}
@@ -290,7 +290,7 @@ balance' : c:Color
 
 ## 删除
 
-从红黑树中删除元素比插入元素要困难得多。我们不会在课堂上讲解删除算法。如果你感兴趣，可以查看Matt Might的[这篇文章](http://matt.might.net/articles/red-black-delete/)。
+从红黑树中删除元素比插入元素要困难得多。我们不会在课堂上讲解删除算法。如果你感兴趣，可以查看 Matt Might 的[这篇文章](http://matt.might.net/articles/red-black-delete/)。
 
 ## 栈溢出
 
@@ -319,4 +319,4 @@ RangeError: Maximum call stack size exceeded
 
 #### 必需
 
-+   Okasaki，第3.3章
++   Okasaki，第 3.3 章

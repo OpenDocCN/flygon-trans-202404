@@ -4,7 +4,7 @@
 
 ## 创建
 
-当你刚开始或者只是想测试一些东西时，你往往会从`create()`运算符开始。这需要一个带有`observer`参数的函数。这在之前的部分中已经提到过，比如[Observable Wrapping](observable-wrapping.html)。签名看起来像下面这样：
+当你刚开始或者只是想测试一些东西时，你往往会从`create()`运算符开始。这需要一个带有`observer`参数的函数。这在之前的部分中已经提到过，比如 Observable Wrapping。签名看起来像下面这样：
 
 ```
 Rx.Observable.create([fn]) 

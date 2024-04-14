@@ -1,6 +1,6 @@
-# GHC语言扩展
+# GHC 语言扩展
 
-+   GHC实现了许多Haskell扩展，通过启用
++   GHC 实现了许多 Haskell 扩展，通过启用
 
     +   在文件顶部放置`{-# LANGUAGE` *ExtensionName* `#-}`（推荐）
 
@@ -8,13 +8,13 @@
 
     +   在`ghci`提示符处键入`:set -X`*ExtensionName*（或使用`-X`运行`ghci`...）
 
-+   在GHC选项摘要的[语言选项](http://www.haskell.org/ghc/docs/latest/html/users_guide/flag-reference.html#idp14594128)部分列出完整列表
++   在 GHC 选项摘要的[语言选项](http://www.haskell.org/ghc/docs/latest/html/users_guide/flag-reference.html#idp14594128)部分列出完整列表
 
 +   有些扩展非常安全可靠
 
     +   例如，核心库深度依赖扩展
 
-    +   扩展非常表面，很容易转换为Haskell2010
+    +   扩展非常表面，很容易转换为 Haskell2010
 
 +   其他扩展被较少接受
 
@@ -26,7 +26,7 @@
 
 +   许多扩展处于中间/灰色地带
 
-## 背景：Monad变换器
+## 背景：Monad 变换器
 
 +   类构造器构建由其他单子参数化的单子
 
@@ -52,7 +52,7 @@
     get :: (Monad m) => StateT s m s put :: (Monad m) => s -> StateT s m ()
     ```
 
-+   例子：在C中的`x++`的Haskell等价物
++   例子：在 C 中的`x++`的 Haskell 等价物
 
     ```
     import Control.Monad.Trans import Control.Monad.Trans.State main :: IO () main = runStateT go 0 >>= print where go = do xplusplus >>= lift . print xplusplus >>= lift . print xplusplus = do n <- get; put (n + 1); return n
@@ -92,7 +92,7 @@ get :: (Monad m) => StateT s m s get = StateT $ \s -> return (s, s) put :: (Mona
 
 ## `MonadIO`类
 
-+   有时希望执行IO而不考虑当前单子
++   有时希望执行 IO 而不考虑当前单子
 
 ```
 class (Monad m) => MonadIO m where  liftIO :: IO a -> m a instance MonadIO IO where liftIO = id
@@ -104,19 +104,19 @@ class (Monad m) => MonadIO m where  liftIO :: IO a -> m a instance MonadIO IO wh
     instance (MonadIO m) => MonadIO (StateT s m) where liftIO = lift . liftIO
     ```
 
-+   现在可以编写使用IO并在许多单子中工作的函数：
++   现在可以编写使用 IO 并在许多单子中工作的函数：
 
     ```
     myprint :: (Show a, MonadIO m) => a -> m () myprint a = liftIO $ print $ show a
     ```
 
-+   所有标准Monad变换器都实现了`MonadIO`类
++   所有标准 Monad 变换器都实现了`MonadIO`类
 
     +   `ContT`、`ErrorT`、`ListT`、`RWST`、`ReaderT`、`StateT`、`WriterT`等
 
 ## 背景：递归绑定
 
-+   顶层、`let`和`where`绑定在Haskell中都是递归的，例如：
++   顶层、`let`和`where`绑定在 Haskell 中都是递归的，例如：
 
     ```
     oneTwo :: (Int, Int) oneTwo = (fst y, snd x) where x = (1, snd y) -- mutual recursion y = (fst x, 2) nthFib :: Int -> Integer nthFib n = fibList !! n where fibList = 1 : 1 : zipWith (+) fibList (tail fibList)
@@ -573,7 +573,7 @@ class Show a where  show :: a -> String  showList :: [a] -> ShowS showList as = 
 +   这个合法的、可决定的程序会使你的 Haskell 编译器崩溃
 
     ```
-    crash = f5 () where f0 x = (x, x) -- type size 2^{2^0} f1 x = f0 (f0 x) -- type size 2^{2^1} f2 x = f1 (f1 x) -- type size 2^{2^2} f3 x = f2 (f2 x) -- type size 2^{2^3} f4 x = f3 (f3 x) -- type size 2^{2^4} f5 x = f4 (f4 x) -- type size 2^{2^5}
+    crash = f5 () where f0 x = (x, x) -- type size 2^{2⁰} f1 x = f0 (f0 x) -- type size 2^{2¹} f2 x = f1 (f1 x) -- type size 2^{2²} f3 x = f2 (f2 x) -- type size 2^{2³} f4 x = f3 (f3 x) -- type size 2^{2⁴} f5 x = f4 (f4 x) -- type size 2^{2⁵}
     ```
 
 +   虽然有很多不能被证明可决定的程序可以编译成功

@@ -41,7 +41,7 @@ type Direction =
 
 ## 计算复合类型的大小
 
-现在让我们来计算复合类型的大小。如果你还记得 [理解 F# 类型](understanding-fsharp-types.html) 系列，你会知道有两种代数类型：“乘积”类型，比如 [元组](tuples.html) 和记录，以及“和”类型，在 F# 中称为[判别联合](discriminated-unions.html)。
+现在让我们来计算复合类型的大小。如果你还记得 理解 F# 类型 系列，你会知道有两种代数类型：“乘积”类型，比如 元组 和记录，以及“和”类型，在 F# 中称为判别联合。
 
 例如，假设我们有一个 `Speed` 和一个 `Direction`，我们将它们合并成一个称为 `Velocity` 的记录类型：
 
@@ -247,27 +247,27 @@ S = 1 + (N * (1 + (N * S)))
 如果我们清理一下，我们得到：
 
 ```
-S = 1 + N + (N^2 * S) 
+S = 1 + N + (N² * S) 
 ```
 
-（这里的 `N^2` 意思是 "N 的平方"）
+（这里的 `N²` 意思是 "N 的平方"）
 
 让我们再次用公式替换最后的 S：
 
 ```
-S = 1 + N + (N^2 * (1 + (N * S))) 
+S = 1 + N + (N² * (1 + (N * S))) 
 ```
 
 然后再次清理一下：
 
 ```
-S = 1 + N + N^2 + (N^3 * S) 
+S = 1 + N + N² + (N³ * S) 
 ```
 
 你可以看到这是怎么回事！`S` 的公式可以无限地扩展为：
 
 ```
-S = 1 + N + N^2 + N^3 + N^4 + N^5 + ... 
+S = 1 + N + N² + N³ + N⁴ + N⁵ + ... 
 ```
 
 我们如何解释这个？嗯，我们可以说一个列表是以下情况的联合：
@@ -313,7 +313,7 @@ type SuitColor = Suit -> Color
 (Heart -> Red); (Spade -> Red); (Diamond -> Red); (Club -> Black) 
 ```
 
-实际上，我们可以写出这个函数的所有16种可能的实现方式：
+实际上，我们可以写出这个函数的所有 16 种可能的实现方式：
 
 ```
 (Heart -> Red); (Spade -> Red); (Diamond -> Red); (Club -> Red)
@@ -396,7 +396,7 @@ type YesNoRecord = {
 
 我们怎样在它们之间进行映射？
 
-它们的大小都是2，所以我们应该能够将一个类型中的每个值映射到另一个类型中，反之亦然：
+它们的大小都是 2，所以我们应该能够将一个类型中的每个值映射到另一个类型中，反之亦然：
 
 ```
 let toUnion yesNoRecord =
@@ -479,7 +479,7 @@ type TwoNibbles = {
 
 如果你 *确实* 想要将一个字符串映射到一个整数，那么一些非整数字符串将需要被映射到目标类型中的一个特殊的、非整数值：
 
-![](type-size-1.png)
+![](img/type-size-1.png)
 
 换句话说，我们从大小上知道目标类型不能只是一个 `int` 类型，它必须是一个 `int + 1` 类型。换句话说，是一个 Option 类型！
 
@@ -489,7 +489,7 @@ type TwoNibbles = {
 
 现在假设我们要从一个 `string` 转换为一个 `Direction`。有些字符串是有效的，但大多数都不是。但这一次，不只是有一个无效的情况，我们还想区分空输入、输入过长和其他无效输入。
 
-![](type-size-2.png)
+![](img/type-size-2.png)
 
 我们不能再用一个 Option 来建模目标了，所以让我们设计一个包含所有七种情况的自定义类型：
 
@@ -636,7 +636,7 @@ type CustomerDTO = {
     Age: int } 
 ```
 
-这些值是不受限制的：名称可以是任何字符串，邮箱是未经验证的，年龄可以是 2^32 个不同的值之一，包括负值。
+这些值是不受限制的：名称可以是任何字符串，邮箱是未经验证的，年龄可以是 2³² 个不同的值之一，包括负值。
 
 这意味着我们*无法*创建 `CustomerDTO` 到 `DomainCustomer` 的映射。我们*必须*至少有另一个值（`DomainCustomer + 1`）来映射无效的输入，并且最好有更多来记录各种错误。
 
@@ -650,11 +650,11 @@ type CustomerDTO = {
 
 如果我们认真对待这个规则，它会产生一些连锁反应，比如：
 
-+   永远不要直接尝试将数据反序列化为域类型（例如，不要使用ORM），只能反序列化为DTO类型。
++   永远不要直接尝试将数据反序列化为域类型（例如，不要使用 ORM），只能反序列化为 DTO 类型。
 
 +   总是验证从数据库或其他“可信”来源读取的每条记录。
 
-你可能会认为，把所有东西都包装在`Success/Failure`类型中可能会让人讨厌，而且这是真的！但有办法让这变得更容易。例如参见[这篇帖子](elevated-world-5.html#asynclist)。
+你可能会认为，把所有东西都包装在`Success/Failure`类型中可能会让人讨厌，而且这是真的！但有办法让这变得更容易。例如参见这篇帖子。
 
 ## 进一步阅读
 
@@ -662,13 +662,13 @@ type CustomerDTO = {
 
 而我写完这篇之后，有人指出了两篇类似的帖子：
 
-+   [Tomas Petricek的一篇](http://tomasp.net/blog/types-and-math.aspx/)，内容几乎相同！
++   [Tomas Petricek 的一篇](http://tomasp.net/blog/types-and-math.aspx/)，内容几乎相同！
 
-+   [Bartosz Milewski的一篇](http://bartoszmilewski.com/2015/01/13/simple-algebraic-data-types/)，在他关于范畴论的系列中。
++   [Bartosz Milewski 的一篇](http://bartoszmilewski.com/2015/01/13/simple-algebraic-data-types/)，在他关于范畴论的系列中。
 
 有些帖子提到，你可以用这些类型公式做一些奇怪的事情，比如对它们进行微分！
 
-如果你喜欢学术论文，你可以阅读康纳·麦克布赖德（Conor McBride）在2001年的论文《["The Derivative of a Regular Type is its Type of One-Hole Contexts"](http://strictlypositive.org/diff.pdf)》（PDF）中对导数的原始讨论，以及他在2005年与其他人合著的续篇《["Differentiating Data Structures"](http://www.cs.nott.ac.uk/~txa/publ/jpartial.pdf)》（PDF）。
+如果你喜欢学术论文，你可以阅读康纳·麦克布赖德（Conor McBride）在 2001 年的论文《["The Derivative of a Regular Type is its Type of One-Hole Contexts"](http://strictlypositive.org/diff.pdf)》（PDF）中对导数的原始讨论，以及他在 2005 年与其他人合著的续篇《["Differentiating Data Structures"](http://www.cs.nott.ac.uk/~txa/publ/jpartial.pdf)》（PDF）。
 
 ## 摘要
 

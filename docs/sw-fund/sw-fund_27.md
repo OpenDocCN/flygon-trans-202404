@@ -1149,7 +1149,7 @@ Proof. auto. Qed.
     language — see exercise products — at least up to this point 
     in the file).
 
-    Recall that, in chapter [MoreStlc](MoreStlc.html), the optional section "Encoding
+    Recall that, in chapter MoreStlc, the optional section "Encoding
     Records" describes how records can be encoded as pairs.
     Using this encoding, define pair types representing the following 
     record types:
@@ -1328,7 +1328,7 @@ where "Gamma '⊢' t '∈' T" := (has_type Γ t T).
 ```
 
 The following hints help auto and eauto construct typing
-    derivations.  (See chapter [UseAuto](UseAuto.html) for more on hints.) 
+    derivations.  (See chapter UseAuto for more on hints.) 
 
 ```
 
@@ -1402,7 +1402,7 @@ End Examples2.
 
  The fundamental properties of the system that we want to
     check are the same as always: progress and preservation.  Unlike
-    the extension of the STLC with references (chapter [References](References.html)),
+    the extension of the STLC with references (chapter References),
     we don't need to change the *statements* of these properties to
     take subtyping into account.  However, their proofs do become a
     little bit more involved. 
@@ -1439,7 +1439,7 @@ Proof with auto.
 
 intros U Hs.
 
-记住 [TBool](Sub.html#TBool) 作为 V。
+记住 TBool 作为 V。
 
 (* 在这里填写 *) Admitted.
 
@@ -1461,7 +1461,7 @@ Proof with eauto.
 
 intros U V[1] V[2] Hs.
 
-记住 ([TArrow](Sub.html#TArrow) V[1] V[2]) 作为 V。
+记住 (TArrow V[1] V[2]) 作为 V。
 
 推广 V[1]。推广 V[2]。
 
@@ -1850,7 +1850,7 @@ Proof with eauto.
 
 intros Γ t[1] t[2] t[3] T Hty.
 
-remember ([tif](Sub.html#tif) t[1] t[2] t[3]) as t.
+remember (tif t[1] t[2] t[3]) as t.
 
 induction Hty; intros;
 
@@ -1874,7 +1874,7 @@ TUnit <: T.
 
 Proof with eauto.
 
-intros Γ T Htyp. remember [tunit](Sub.html#tunit) as tu.
+intros Γ T Htyp. remember tunit as tu.
 
 induction Htyp;
 
@@ -1902,11 +1902,11 @@ Proof with eauto.
 
 intros x S[1] s[2] T[1] T[2] Hty.
 
-apply [typing_inversion_abs](Sub.html#typing_inversion_abs) in Hty.
+apply typing_inversion_abs in Hty.
 
 inversion Hty as [S[2] [Hsub Hty1]].
 
-apply [sub_inversion_arrow](Sub.html#sub_inversion_arrow) in Hsub.
+apply sub_inversion_arrow in Hsub.
 
 inversion Hsub as [U[1] [U[2] [Heq [Hsub1 Hsub2]]]].
 
@@ -1983,17 +1983,17 @@ intros Γ' Heqv...
 
 - (* T_Var *)
 
-apply [T_Var](Sub.html#T_Var)... rewrite ← Heqv...
+apply T_Var... rewrite ← Heqv...
 
 - (* T_Abs *)
 
-apply [T_Abs](Sub.html#T_Abs)... apply IHhas_type. intros x[0] Hafi.
+apply T_Abs... apply IHhas_type. intros x[0] Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update). destruct ([beq_idP](Maps.html#beq_idP) x x[0])...
+unfold update, t_update. destruct (beq_idP x x[0])...
 
 - (* T_If *)
 
-apply [T_If](Sub.html#T_If)...
+apply T_If...
 
 Qed.
 
@@ -2017,9 +2017,9 @@ subst; inversion Hafi; subst...
 
 destruct (IHHtyp H[4]) as [T Hctx]. ∃T.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in Hctx.
+unfold update, t_update in Hctx.
 
-rewrite ← [beq_id_false_iff](Maps.html#beq_id_false_iff) in H[2].
+rewrite ← beq_id_false_iff in H[2].
 
 rewrite H[2] in Hctx... Qed.
 
@@ -2056,23 +2056,23 @@ induction t; intros; simpl.
 
 rename i into y.
 
-destruct ([typing_inversion_var](Sub.html#typing_inversion_var) _ _ _ Htypt)
+destruct (typing_inversion_var _ _ _ Htypt)
 
 as [T [Hctx Hsub]].
 
-在 Hctx 中展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-分解 ([beq_idP](Maps.html#beq_idP) x y) 得到 [Hxy|Hxy]; 自动;
+分解 (beq_idP x y) 得到 [Hxy|Hxy]; 自动;
 
 替换。
 
 对 Hctx 进行反演; 替换; 清除 Hctx。
 
-应用 [context_invariance](Sub.html#context_invariance) 得�� [empty](Maps.html#empty)...
+应用 context_invariance 得�� empty...
 
 引入 x Hcontra。
 
-分解 ([free_in_context](Sub.html#free_in_context) _ _ S [empty](Maps.html#empty) Hcontra)
+分解 (free_in_context _ _ S empty Hcontra)
 
 得到 [T' HT']...
 
@@ -2080,67 +2080,67 @@ as [T [Hctx Hsub]].
 
 - (* tapp *)
 
-分解 ([typing_inversion_app](Sub.html#typing_inversion_app) _ _ _ _ Htypt)
+分解 (typing_inversion_app _ _ _ _ Htypt)
 
 得到 [T[1] [Htypt1 Htypt2]]。
 
-应用 [T_App](Sub.html#T_App)...
+应用 T_App...
 
 - (* tabs *)
 
 重命名 i 为 y。重命名 t 为 T[1]。
 
-分解 ([typing_inversion_abs](Sub.html#typing_inversion_abs) _ _ _ _ _ Htypt)
+分解 (typing_inversion_abs _ _ _ _ _ Htypt)
 
 得到 [T[2] [Hsub Htypt2]]。
 
-应用 [T_Sub](Sub.html#T_Sub) 得到 ([TArrow](Sub.html#TArrow) T[1] T[2])... 应用 [T_Abs](Sub.html#T_Abs)...
+应用 T_Sub 得到 (TArrow T[1] T[2])... 应用 T_Abs...
 
-分解 ([beq_idP](Maps.html#beq_idP) x y) 得到 [Hxy|Hxy]。
+分解 (beq_idP x y) 得到 [Hxy|Hxy]。
 
 + (* x=y *)
 
-应用 [context_invariance](Sub.html#context_invariance)...
+应用 context_invariance...
 
 替换。
 
-引入 x Hafi. 展开 [update](Maps.html#update), [t_update](Maps.html#t_update).
+引入 x Hafi. 展开 update, t_update.
 
-分解 ([beq_id](Maps.html#beq_id) y x)...
+分解 (beq_id y x)...
 
 + (* x<>y *)
 
-应用 IHt。通过 [context_invariance](Sub.html#context_invariance)...
+应用 IHt。通过 context_invariance...
 
-引入 z Hafi. 展开 [update](Maps.html#update), [t_update](Maps.html#t_update).
+引入 z Hafi. 展开 update, t_update.
 
-分解 ([beq_idP](Maps.html#beq_idP) y z)...
+分解 (beq_idP y z)...
 
 替换。
 
-通过 [beq_id_false_iff](Maps.html#beq_id_false_iff) 重写 Hxy。重写 Hxy...
+通过 beq_id_false_iff 重写 Hxy。重写 Hxy...
 
 - (* ttrue *)
 
-断言 [TBool](Sub.html#TBool) <: S
+断言 TBool <: S
 
-通过应用 ([typing_inversion_true](Sub.html#typing_inversion_true) _ _  Htypt)...
+通过应用 (typing_inversion_true _ _  Htypt)...
 
 - (* tfalse *)
 
-断言 [TBool](Sub.html#TBool) <: S
+断言 TBool <: S
 
-通过应用 ([typing_inversion_false](Sub.html#typing_inversion_false) _ _  Htypt) 得到...
+通过应用 (typing_inversion_false _ _  Htypt) 得到...
 
 - (* tif *)
 
-断言 (([update](Maps.html#update) Γ x U) ⊢ t[1] ∈ [TBool](Sub.html#TBool)
+断言 ((update Γ x U) ⊢ t[1] ∈ TBool
 
-∧ ([update](Maps.html#update) Γ x U) ⊢ t[2] ∈ S
+∧ (update Γ x U) ⊢ t[2] ∈ S
 
-∧ ([update](Maps.html#update) Γ x U) ⊢ t[3] ∈ S)
+∧ (update Γ x U) ⊢ t[3] ∈ S)
 
-通过应用 ([typing_inversion_if](Sub.html#typing_inversion_if) _ _ _ _ _ Htypt) 得到。
+通过应用 (typing_inversion_if _ _ _ _ _ Htypt) 得到。
 
 对 H 进行反演得到 [H[1] [H[2] H[3]]]。
 
@@ -2150,9 +2150,9 @@ as [T [Hctx Hsub]].
 
 - (* tunit *)
 
-断言 [TUnit](Sub.html#TUnit) <: S
+断言 TUnit <: S
 
-通过应用 ([typing_inversion_unit](Sub.html#typing_inversion_unit) _ _  Htypt)...
+通过应用 (typing_inversion_unit _ _  Htypt)...
 
 完成。
 
@@ -2230,7 +2230,7 @@ empty ⊢ t' ∈ T。
 
 引入 t t' T HT.
 
-记住 [empty](Maps.html#empty) 为 Γ。推广 HeqGamma。
+记住 empty 为 Γ。推广 HeqGamma。
 
 推广 t'.
 
@@ -2244,9 +2244,9 @@ empty ⊢ t' ∈ T。
 
 + (* ST_AppAbs *)
 
-分解 ([abs_arrow](Sub.html#abs_arrow) _ _ _ _ _ HT[1]) 得到 [HA[1] HA[2]]。
+分解 (abs_arrow _ _ _ _ _ HT[1]) 得到 [HA[1] HA[2]]。
 
-应用 [substitution_preserves_typing](Sub.html#substitution_preserves_typing) 得到 T...
+应用 substitution_preserves_typing 得到 T...
 
 完成。
 
@@ -2416,10 +2416,10 @@ empty ⊢ t' ∈ T。
 
 *   Copy the definitions of the substitution function and value
           relation from above and extend them as in chapter
-          [MoreSTLC](MoreSTLC.html) to include products.
+          MoreSTLC to include products.
 
 *   Similarly, copy and extend the operational semantics with the
-          same reduction rules as in chapter [MoreSTLC](MoreSTLC.html).
+          same reduction rules as in chapter MoreSTLC.
 
 *   (Copy and) extend the subtyping relation with this rule:
 
@@ -2435,7 +2435,7 @@ empty ⊢ t' ∈ T。
      |
 
 *   Extend the typing relation with the same rules for pairs and
-          projections as in chapter [MoreSTLC](MoreSTLC.html).
+          projections as in chapter MoreSTLC.
 
 *   Extend the proofs of progress, preservation, and all their
           supporting lemmas to deal with the new constructs.  (You'll also

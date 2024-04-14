@@ -2,7 +2,7 @@
 
 # Python 从入门到精通
 
-> 来源：[kxxoling/Python从入门到精通](https://github.com/kxxoling/Python-One-to-Million)
+> 来源：[kxxoling/Python 从入门到精通](https://github.com/kxxoling/Python-One-to-Million)
 
 ## 前言
 
@@ -28,4 +28,4 @@
 
 Keep It Simple, Stupid! 是的，如果你在文中遇到任何看不懂的地方，并且没有找到对应引用／介绍， 那一定是因为我没有把问题讲清楚！大胆的给我发 Issue、Pull Request 或者评论留言吧！
 
-参考文章：[Python之旅指南！](http://docs.python-guide.org/en/latest/)
+参考文章：[Python 之旅指南！](http://docs.python-guide.org/en/latest/)

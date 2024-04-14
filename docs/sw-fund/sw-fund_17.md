@@ -104,9 +104,9 @@ bequiv (BEq (AMinus (AId X) (AId X)) (ANum 0)) BTrue。
 
     证明。
 
-intros st。展开 [beval](Imp.html#beval)。
+intros st。展开 beval。
 
-重写 [aequiv_example](Equiv.html#aequiv_example)。一致性。
+重写 aequiv_example。一致性。
 
     已承认。
 
@@ -224,7 +224,7 @@ intros c[1] c[2]。
 
 - (* <- *)
 
-应用 [E_IfTrue](Imp.html#E_IfTrue)。一致性。假设。已证明。
+应用 E_IfTrue。一致性。假设。已证明。
 
 ```
 
@@ -278,7 +278,7 @@ intros b c[1] c[2] Hb.
 
 + (* b 评估为假 (矛盾) *)
 
-在 Hb 中展开 [bequiv](Equiv.html#bequiv)。在 Hb 中简化。
+在 Hb 中展开 bequiv。在 Hb 中简化。
 
 在 H[5] 中重写 Hb。
 
@@ -286,9 +286,9 @@ intros b c[1] c[2] Hb.
 
 - (* <- *)
 
-应用 [E_IfTrue](Imp.html#E_IfTrue); 尝试假设。
+应用 E_IfTrue; 尝试假设。
 
-在 Hb 中展开 [bequiv](Equiv.html#bequiv)。在 Hb 中简化。
+在 Hb 中展开 bequiv。在 Hb 中简化。
 
 重写 Hb。一致性。已证明。
 
@@ -367,7 +367,7 @@ cequiv
 
 + (* E_WhileEnd *)
 
-应用 [E_Skip](Imp.html#E_Skip)。
+应用 E_Skip。
 
 + (* E_WhileLoop *)
 
@@ -377,7 +377,7 @@ cequiv
 
 反演 H; 替换。
 
-应用 [E_WhileEnd](Imp.html#E_WhileEnd)。
+应用 E_WhileEnd。
 
 重写 Hb。
 
@@ -511,13 +511,13 @@ cequiv
 
 + (* 循环不运行 *)
 
-应用 [E_IfFalse](Imp.html#E_IfFalse)。假设。应用 [E_Skip](Imp.html#E_Skip)。
+应用 E_IfFalse。假设。应用 E_Skip。
 
 + (* 循环运行 *)
 
-应用 [E_IfTrue](Imp.html#E_IfTrue)。假设。
+应用 E_IfTrue。假设。
 
-应用 [E_Seq](Imp.html#E_Seq) 与 (st' := st'0)。假设。假设。
+应用 E_Seq 与 (st' := st'0)。假设。假设。
 
 - (* <- *)
 
@@ -527,13 +527,13 @@ cequiv
 
 反演 H[5]; 替换。
 
-应用 [E_WhileLoop](Imp.html#E_WhileLoop) 与 (st' := st'0)。
+应用 E_WhileLoop 与 (st' := st'0)。
 
 假设。假设。假设。
 
 + (* 循环不运行 *)
 
-反演 H[5]; 替换。应用 [E_WhileEnd](Imp.html#E_WhileEnd)。假设。已证明。
+反演 H[5]; 替换。应用 E_WhileEnd。假设。已证明。
 
 ```
 
@@ -574,23 +574,23 @@ intros。分割；引入 H。
 
 反演 H; 替换。简化。
 
-用 ([t_update](Maps.html#t_update) st X (st X)) 替换 st。
+用 (t_update st X (st X)) 替换 st。
 
 + 构造者。
 
 + 应用 [functional_extensionality](http://coq.inria.fr/library/Coq.Logic.FunctionalExtensionality.html#functional_extensionality)。介绍。
 
-重写 [t_update_same](Maps.html#t_update_same)；一致性。
+重写 t_update_same；一致性。
 
 - (* <- *)
 
-用 ([t_update](Maps.html#t_update) st' X ([aeval](Imp.html#aeval) st' ([AId](Imp.html#AId) X))) 替换 st'。
+用 (t_update st' X (aeval st' (AId X))) 替换 st'。
 
-+ 反演 H。替换。应用 [E_Ass](Imp.html#E_Ass)。一致性。
++ 反演 H。替换。应用 E_Ass。一致性。
 
 + 应用 [functional_extensionality](http://coq.inria.fr/library/Coq.Logic.FunctionalExtensionality.html#functional_extensionality)。介绍。
 
-重写 [t_update_same](Maps.html#t_update_same)。一致性。
+重写 t_update_same。一致性。
 
     已承认。
 
@@ -720,37 +720,37 @@ Lemma trans_aequiv : ∀(a[1] a[2] a[3] : aexp),
   aequiv a[1] a[2] → aequiv a[2] a[3] → aequiv a[1] a[3].
 
     Proof.
-  unfold [aequiv](Equiv.html#aequiv). intros a[1] a[2] a[3] H[12] H[23] st.
+  unfold aequiv. intros a[1] a[2] a[3] H[12] H[23] st.
   rewrite (H[12] st). rewrite (H[23] st). reflexivity. Qed.
 
 Lemma refl_bequiv : ∀(b : bexp), bequiv b b.
 
     Proof.
-  unfold [bequiv](Equiv.html#bequiv). intros b st. reflexivity. Qed.
+  unfold bequiv. intros b st. reflexivity. Qed.
 
 Lemma sym_bequiv : ∀(b[1] b[2] : bexp),
   bequiv b[1] b[2] → bequiv b[2] b[1].
 
     Proof.
-  unfold [bequiv](Equiv.html#bequiv). intros b[1] b[2] H. intros st. symmetry. apply H. Qed.
+  unfold bequiv. intros b[1] b[2] H. intros st. symmetry. apply H. Qed.
 
 Lemma trans_bequiv : ∀(b[1] b[2] b[3] : bexp),
   bequiv b[1] b[2] → bequiv b[2] b[3] → bequiv b[1] b[3].
 
     Proof.
-  unfold [bequiv](Equiv.html#bequiv). intros b[1] b[2] b[3] H[12] H[23] st.
+  unfold bequiv. intros b[1] b[2] b[3] H[12] H[23] st.
   rewrite (H[12] st). rewrite (H[23] st). reflexivity. Qed.
 
 Lemma refl_cequiv : ∀(c : com), cequiv c c.
 
     Proof.
-  unfold [cequiv](Equiv.html#cequiv). intros c st st'. apply [iff_refl](http://coq.inria.fr/library/Coq.Init.Logic.html#iff_refl). Qed.
+  unfold cequiv. intros c st st'. apply [iff_refl](http://coq.inria.fr/library/Coq.Init.Logic.html#iff_refl). Qed.
 
 Lemma sym_cequiv : ∀(c[1] c[2] : com),
   cequiv c[1] c[2] → cequiv c[2] c[1].
 
     Proof.
-  unfold [cequiv](Equiv.html#cequiv). intros c[1] c[2] H st st'.
+  unfold cequiv. intros c[1] c[2] H st st'.
   assert (c[1] / st ⇓ st' ↔ c[2] / st ⇓ st') as H'.
   { (* Proof of assertion *) apply H. }
   apply [iff_sym](http://coq.inria.fr/library/Coq.Init.Logic.html#iff_sym). assumption.
@@ -770,8 +770,8 @@ Lemma trans_cequiv : ∀(c[1] c[2] c[3] : com),
   cequiv c[1] c[2] → cequiv c[2] c[3] → cequiv c[1] c[3].
 
     Proof.
-  unfold [cequiv](Equiv.html#cequiv). intros c[1] c[2] c[3] H[12] H[23] st st'.
-  apply [iff_trans](Equiv.html#iff_trans) with (c[2] / st ⇓ st'). apply H[12]. apply H[23]. Qed.
+  unfold cequiv. intros c[1] c[2] c[3] H[12] H[23] st st'.
+  apply iff_trans with (c[2] / st ⇓ st'). apply H[12]. apply H[23]. Qed.
 
 ```
 
@@ -856,10 +856,10 @@ Theorem CAss_congruence : ∀i a[1] a[1]',
   intros i a[1] a[2] Heqv st st'.
   split; intros Hceval.
   - (* -> *)
-    inversion Hceval. subst. apply [E_Ass](Imp.html#E_Ass).
+    inversion Hceval. subst. apply E_Ass.
     rewrite Heqv. reflexivity.
   - (* <- *)
-    inversion Hceval. subst. apply [E_Ass](Imp.html#E_Ass).
+    inversion Hceval. subst. apply E_Ass.
     rewrite Heqv. reflexivity. Qed.
 
 ```
@@ -928,7 +928,7 @@ Proof.
 
 ```
 
-#### 练习：3星，可选（CSeq_congruence）
+#### 练习：3 星，可选（CSeq_congruence）
 
 ```
 Theorem CSeq_congruence : ∀c[1] c[1]' c[2] c[2]',
@@ -941,7 +941,7 @@ Proof.
 
     ☐
 
-#### 练习：3星（CIf_congruence）
+#### 练习：3 星（CIf_congruence）
 
 ```
 Theorem CIf_congruence : ∀b b' c[1] c[1]' c[2] c[2]',
@@ -1563,7 +1563,7 @@ Proof.
 
     ☐
 
-#### 练习：3星（fold_constants_com_sound）
+#### 练习：3 星（fold_constants_com_sound）
 
     完成以下证明中的 WHILE 情况。
 
@@ -1602,7 +1602,7 @@ Proof.
 
 #### Exercise: 4 stars, advanced, optional (optimize_0plus)
 
-    Recall the definition optimize_0plus from the [Imp](Imp.html) chapter:
+    Recall the definition optimize_0plus from the Imp chapter:
 
 ```
 
@@ -1814,32 +1814,32 @@ Theorem subst_inequiv :
   ¬ subst_equiv_property.
 
     Proof.
-  unfold [subst_equiv_property](Equiv.html#subst_equiv_property).
+  unfold subst_equiv_property.
   intros Contra.
 
   (* Here is the counterexample: assuming that subst_equiv_property      holds allows us to prove that these two programs are      equivalent... *)
-  remember ([X](Imp.html#X) ::= [APlus](Imp.html#APlus) ([AId](Imp.html#AId) [X](Imp.html#X)) ([ANum](Imp.html#ANum) 1);;
-            [Y](Imp.html#Y) ::= [AId](Imp.html#AId) [X](Imp.html#X))
+  remember (X ::= APlus (AId X) (ANum 1);;
+            Y ::= AId X)
       as c[1].
-  remember ([X](Imp.html#X) ::= [APlus](Imp.html#APlus) ([AId](Imp.html#AId) [X](Imp.html#X)) ([ANum](Imp.html#ANum) 1);;
-            [Y](Imp.html#Y) ::= [APlus](Imp.html#APlus) ([AId](Imp.html#AId) [X](Imp.html#X)) ([ANum](Imp.html#ANum) 1))
+  remember (X ::= APlus (AId X) (ANum 1);;
+            Y ::= APlus (AId X) (ANum 1))
       as c[2].
-  assert ([cequiv](Equiv.html#cequiv) c[1] c[2]) by (subst; apply Contra).
+  assert (cequiv c[1] c[2]) by (subst; apply Contra).
 
   (* ... allows us to show that the command c[2] can terminate      in two different final states:         st[1] = {X |-> 1, Y |-> 1}         st[2] = {X |-> 1, Y |-> 2}. *)
-  remember ([t_update](Maps.html#t_update) ([t_update](Maps.html#t_update) [empty_state](Imp.html#empty_state) [X](Imp.html#X) 1) [Y](Imp.html#Y) 1) as st[1].
-  remember ([t_update](Maps.html#t_update) ([t_update](Maps.html#t_update) [empty_state](Imp.html#empty_state) [X](Imp.html#X) 1) [Y](Imp.html#Y) 2) as st[2].
-  assert (H[1]: c[1] / [empty_state](Imp.html#empty_state) ⇓ st[1]);
-  assert (H[2]: c[2] / [empty_state](Imp.html#empty_state) ⇓ st[2]);
+  remember (t_update (t_update empty_state X 1) Y 1) as st[1].
+  remember (t_update (t_update empty_state X 1) Y 2) as st[2].
+  assert (H[1]: c[1] / empty_state ⇓ st[1]);
+  assert (H[2]: c[2] / empty_state ⇓ st[2]);
   try (subst;
-       apply [E_Seq](Imp.html#E_Seq) with (st' := ([t_update](Maps.html#t_update) [empty_state](Imp.html#empty_state) [X](Imp.html#X) 1));
-       apply [E_Ass](Imp.html#E_Ass); reflexivity).
+       apply E_Seq with (st' := (t_update empty_state X 1));
+       apply E_Ass; reflexivity).
   apply H in H[1].
 
   (* Finally, we use the fact that evaluation is deterministic      to obtain a contradiction. *)
   assert (Hcontra: st[1] = st[2])
-    by (apply ([ceval_deterministic](Imp.html#ceval_deterministic) c[2] [empty_state](Imp.html#empty_state)); assumption).
-  assert (Hcontra': st[1] [Y](Imp.html#Y) = st[2] [Y](Imp.html#Y))
+    by (apply (ceval_deterministic c[2] empty_state); assumption).
+  assert (Hcontra': st[1] Y = st[2] Y)
     by (rewrite Hcontra; reflexivity).
   subst. inversion Hcontra'. Qed.
 
@@ -1994,21 +1994,21 @@ CSkip。
 
 记号 "'X ::= a'" :=
 
-(CAss X a)（优先级为60）。
+(CAss X a)（优先级为 60）。
 
 记号 "c1 ;; c2" :=
 
-(CSeq c[1] c[2])（优先级为80，右结合性）。
+(CSeq c[1] c[2])（优先级为 80，右结合性）。
 
 记号 "'WHILE' b 'DO' c 'END'" :=
 
-(CWhile b c)（优先级为80，右结合性）。
+(CWhile b c)（优先级为 80，右结合性）。
 
 记号 "'IFB' e1 'THEN' e2 'ELSE' e3 'FI'" :=
 
-(CIf e[1] e[2] e[3])（优先级为80，右结合性）。
+(CIf e[1] e[2] e[3])（优先级为 80，右结合性）。
 
-记号 "'HAVOC' l" := (CHavoc l)（优先级为60）。
+记号 "'HAVOC' l" := (CHavoc l)（优先级为 60）。
 
 ```
 
@@ -2023,7 +2023,7 @@ CSkip。
 
 保留记号 "c1 '/' st '⇓' st'"。
 
-（优先级为40，st 优先级为39）。
+（优先级为 40，st 优先级为 39）。
 
 归纳定义 ceval：com → state → state → Prop :=
 
@@ -2333,7 +2333,7 @@ X ::= ANum 1.
 #### Exercise: 4 stars, optional (for_while_equiv)
 
     This exercise extends the optional add_for_loop exercise from
-    the [Imp](Imp.html) chapter, where you were asked to extend the language
+    the Imp chapter, where you were asked to extend the language
     of commands with C-style for loops.  Prove that the command:
 
 ```

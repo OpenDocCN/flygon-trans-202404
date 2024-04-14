@@ -1,10 +1,10 @@
-# 第7章 - 文本节点
+# 第七章 - 文本节点
 
 ## 7.1 *Text* 对象概述
 
 HTML 文档中的文本由 *Text()* 构造函数的实例表示，该函数生成文本节点。当解析 HTML 文档时，混在 HTML 页面元素中的文本会被转换为文本节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/kuz5Z](http://jsfiddle.net/domenlightenment/kuz5Z)
+实时代码：[`jsfiddle.net/domenlightenment/kuz5Z`](http://jsfiddle.net/domenlightenment/kuz5Z)
 
 ```
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ console.log(textHi);
 
 要获取关于 *Text* 节点上可用属性和方法的准确信息，最好忽略规范，并询问浏览器提供了什么。查看下面代码中创建的数组，详细说明了文本节点可用的属性和方法。
 
-实时代码：[http://jsfiddle.net/domenlightenment/Wj3uS](http://jsfiddle.net/domenlightenment/Wj3uS)
+实时代码：[`jsfiddle.net/domenlightenment/Wj3uS`](http://jsfiddle.net/domenlightenment/Wj3uS)
 
 ```
 <!DOCTYPE html>
@@ -97,7 +97,7 @@ console.log(textPropertiesOnlyInherited.sort());
 
 当浏览器或通过编程方式构建 DOM 时，文本节点会从空格和文本字符中创建。毕竟，空格也是一个字符。在下面的代码中，第二段落包含一个空格，有一个子 *Text* 节点，而第一个段落没有。
 
-实时代码：[http://jsfiddle.net/domenlightenment/YbtnZ](http://jsfiddle.net/domenlightenment/YbtnZ)
+实时代码：[`jsfiddle.net/domenlightenment/YbtnZ`](http://jsfiddle.net/domenlightenment/YbtnZ)
 
 ```
 <!DOCTYPE html>
@@ -120,7 +120,7 @@ console.log(document.querySelector('#p2').firstChild.nodeName) *//logs #text*
 
 不要忘记，DOM 中的空格和文本字符通常由文本节点表示。这当然意味着换行符被视为文本节点。在下面的代码中，我们记录了一个换行符，突出显示这种类型的字符实际上是一个文本节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/9FEzq](http://jsfiddle.net/domenlightenment/9FEzq)
+实时代码：[`jsfiddle.net/domenlightenment/9FEzq`](http://jsfiddle.net/domenlightenment/9FEzq)
 
 ```
 <!DOCTYPE html>
@@ -143,7 +143,7 @@ console.log(document.querySelector('#p1').nextSibling) *//logs Text* *</script>
 
 当浏览器解释 HTML 文档并基于文档内容构建相应的 DOM 时，*Text* 节点会自动为我们创建。事实上，还可以使用 *createTextNode()* 以编程方式创建 *Text* 节点。在下面的代码中，我创建一个文本节点，然后将该节点注入到实时 DOM 树中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/xC9q3](http://jsfiddle.net/domenlightenment/xC9q3)
+实时代码：[`jsfiddle.net/domenlightenment/xC9q3`](http://jsfiddle.net/domenlightenment/xC9q3)
 
 ```
 <!DOCTYPE html>
@@ -165,9 +165,9 @@ console.log(document.querySelector('div').innerText); *// logs Hi*
 
 ```
 
-请记住，我们也可以将文本节点注入到以编程方式创建的DOM结构中。在下面的代码中，我在将其注入到活动DOM之前，将一个文本节点放入了一个*<p>*元素中。
+请记住，我们也可以将文本节点注入到以编程方式创建的 DOM 结构中。在下面的代码中，我在将其注入到活动 DOM 之前，将一个文本节点放入了一个*<p>*元素中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/PdatJ](http://jsfiddle.net/domenlightenment/PdatJ)
+实时代码：[`jsfiddle.net/domenlightenment/PdatJ`](http://jsfiddle.net/domenlightenment/PdatJ)
 
 ```
 <!DOCTYPE html>
@@ -196,7 +196,7 @@ console.log(document.querySelector('div').innerHTML); *//logs <div>Hi</div>*
 
 通过使用*.data*或*nodeValue*属性，可以从*Text*节点中提取文本值/数据。这两者都返回*Text*节点中包含的文本。下面我展示了如何使用这两者来提取*<div>*中包含的值。
 
-实时代码：[http://jsfiddle.net/domenlightenment/dPLkx](http://jsfiddle.net/domenlightenment/dPLkx)
+实时代码：[`jsfiddle.net/domenlightenment/dPLkx`](http://jsfiddle.net/domenlightenment/dPLkx)
 
 ```
 <!DOCTYPE html>
@@ -237,7 +237,7 @@ console.log(document.querySelector('p').firstChild.nodeValue); *//logs 'Hi,*'
 
 在下面的代码示例中，每一个都在代码中被利用。
 
-实时代码：[http://jsfiddle.net/domenlightenment/B6AC6](http://jsfiddle.net/domenlightenment/B6AC6)
+实时代码：[`jsfiddle.net/domenlightenment/B6AC6`](http://jsfiddle.net/domenlightenment/B6AC6)
 
 ```
 <!DOCTYPE html>
@@ -280,9 +280,9 @@ console.log(pElementText.substringData(7,10));
 
 ## 7.7 当存在多个兄弟*Text*节点时
 
-通常，相邻的兄弟*Text*节点不会出现，因为浏览器创建的DOM树会智能地合并文本节点，然而存在两种情况使得相邻的文本节点可能。第一种情况相当明显。如果一个文本节点包含一个*Element*节点（例如*<p>嗨，<strong>cody</strong>欢迎！</p>*），那么文本将被拆分成正确的节点组。最好查看一个代码示例，因为这可能听起来比实际情况更复杂。在下面的代码中，*<p>*元素的内容不是单个*Text*节点，实际上是3个节点，一个*Text*节点，一个*Element*节点，和另一个*Text*节点。
+通常，相邻的兄弟*Text*节点不会出现，因为浏览器创建的 DOM 树会智能地合并文本节点，然而存在两种情况使得相邻的文本节点可能。第一种情况相当明显。如果一个文本节点包含一个*Element*节点（例如*<p>嗨，<strong>cody</strong>欢迎！</p>*），那么文本将被拆分成正确的节点组。最好查看一个代码示例，因为这可能听起来比实际情况更复杂。在下面的代码中，*<p>*元素的内容不是单个*Text*节点，实际上是 3 个节点，一个*Text*节点，一个*Element*节点，和另一个*Text*节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/2ZCn3](http://jsfiddle.net/domenlightenment/2ZCn3)
+实时代码：[`jsfiddle.net/domenlightenment/2ZCn3`](http://jsfiddle.net/domenlightenment/2ZCn3)
 
 ```
 <!DOCTYPE html>
@@ -309,7 +309,7 @@ console.log(pElement.lastChild.data); ​*// is text node or ' welcome!'*
 
 下一个情况发生在我们以编程方式向我们在代码中创建的元素添加*Text*节点时。在下面的代码中，我创建一个*<p>*元素，然后将两个*Text*节点附加到此元素。这导致了相邻的*Text*节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/jk3Jn](http://jsfiddle.net/domenlightenment/jk3Jn)
+实时代码：[`jsfiddle.net/domenlightenment/jk3Jn`](http://jsfiddle.net/domenlightenment/jk3Jn)
 
 ```
 <!DOCTYPE html>
@@ -337,7 +337,7 @@ console.log(document.querySelector('div p').childNodes.length); *//logs 2​*�
 
 ## 7.8 使用 *textContent* 删除标记并返回所有子*Text*节点
 
-*textContent*属性可用于获取所有子文本节点，以及将节点的内容设置为特定的*Text*节点。当在节点上使用它来获取节点的文本内容时，它将返回调用该方法的节点中包含的所有文本节点的连接字符串。这个功能将使从HTML文档中提取所有文本节点变得非常容易。下面我提取了*<body>*元素中包含的所有文本。请注意，*textContent*不仅收集直接子文本节点，还收集所有子文本节点，无论节点的��装深度如何。
+*textContent*属性可用于获取所有子文本节点，以及将节点的内容设置为特定的*Text*节点。当在节点上使用它来获取节点的文本内容时，它将返回调用该方法的节点中包含的所有文本节点的连接字符串。这个功能将使从 HTML 文档中提取所有文本节点变得非常容易。下面我提取了*<body>*元素中包含的所有文本。请注意，*textContent*不仅收集直接子文本节点，还收集所有子文本节点，无论节点的��装深度如何。
 
 实时代码：N/A
 
@@ -357,7 +357,7 @@ console.log(document.body.textContent); *//logs 'Dude you rock!' with some adde
 
 当使用*textContent*设置节点中包含的文本时，它将首先删除所有子节点，然后用单个*Text*节点替换它们。在下面的代码中，我用单个*Text*节点替换了*<div>*元素内的所有节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/m766T](http://jsfiddle.net/domenlightenment/m766T)
+实时代码：[`jsfiddle.net/domenlightenment/m766T`](http://jsfiddle.net/domenlightenment/m766T)
 
 ```
 <!DOCTYPE html>
@@ -383,25 +383,25 @@ console.log(document.querySelector('div').textContent*); *//logs 'You don't roc
 
 ## 7.9 *textContent*和*innerText*之间的区别
 
-现代大多数浏览器（除了Firefox）支持一个看似类似的属性*innerText*，但这些属性并不相同。你应该注意*textContent*和*innerText*之间的以下区别。
+现代大多数浏览器（除了 Firefox）支持一个看似类似的属性*innerText*，但这些属性并不相同。你应该注意*textContent*和*innerText*之间的以下区别。
 
-+   *innerText*了解CSS。因此，如果您有隐藏文本，*innerText*会忽略此文本，而*textContent*不会
++   *innerText*了解 CSS。因此，如果您有隐藏文本，*innerText*会忽略此文本，而*textContent*不会
 
-+   因为*innerText*关心CSS，它会触发回流，而*textContent*不会
++   因为*innerText*关心 CSS，它会触发回流，而*textContent*不会
 
 +   *innerText*忽略*<script>*和*<style>*元素中包含的*Text*节点
 
 +   *innerText*，与*textContent*不同，会规范化返回的文本。只需将*textContent*视为返回文档中的内容，其中标记已被移除。这将包括空格、换行和回车符
 
-+   *innerText*被认为是非标准的和特定于浏览器，而*textContent*是根据DOM规范实现的
++   *innerText*被认为是非标准的和特定于浏览器，而*textContent*是根据 DOM 规范实现的
 
-如果您打算使用*innerText*，您将不得不为Firefox创建一个解决方法。
+如果您打算使用*innerText*，您将不得不为 Firefox 创建一个解决方法。
 
 ## 7.10 使用*normalize()*将兄弟*Text*节点合并为一个文本节点
 
-当文本以编程方式添加到DOM时，通常会遇到兄弟*Text*节点。为了消除不包含*Element*节点的兄弟*Text*节点，我们可以使用*normalize()*。这将把DOM中的兄弟文本节点连接成一个单一的*Text*节点。在下面的代码中，我创建兄弟文本，将其附加到DOM，然后对其进行规范化。
+当文本以编程方式添加到 DOM 时，通常会遇到兄弟*Text*节点。为了消除不包含*Element*节点的兄弟*Text*节点，我们可以使用*normalize()*。这将把 DOM 中的兄弟文本节点连接成一个单一的*Text*节点。在下面的代码中，我创建兄弟文本，将其附加到 DOM，然后对其进行规范化。
 
-实时代码：[http://jsfiddle.net/domenlightenment/LG9WR](http://jsfiddle.net/domenlightenment/LG9WR)
+实时代码：[`jsfiddle.net/domenlightenment/LG9WR`](http://jsfiddle.net/domenlightenment/LG9WR)
 
 ```
 <!DOCTYPE html>
@@ -433,9 +433,9 @@ console.log(document.querySelector('p').childNodes.length); *//logs 1*
 
 ## 7.11 使用*splitText()*拆分文本节点
 
-当在*Text*节点上调用*splitText()*时，它将改变被调用的文本节点（保留到偏移量的文本），并返回一个新的*Text*节点，其中包含根据偏移量从原始文本中分离出的文本。在下面的代码中，文本节点*Hey Yo!*在*Hey*后被分割，*Hey*保留在DOM中，而*Yo!*被转换为一个新的文本节点并由*splitText()*方法返回。
+当在*Text*节点上调用*splitText()*时，它将改变被调用的文本节点（保留到偏移量的文本），并返回一个新的*Text*节点，其中包含根据偏移量从原始文本中分离出的文本。在下面的代码中，文本节点*Hey Yo!*在*Hey*后被分割，*Hey*保留在 DOM 中，而*Yo!*被转换为一个新的文本节点并由*splitText()*方法返回。
 
-在线代码：[http://jsfiddle.net/domenlightenment/Tz5ce](http://jsfiddle.net/domenlightenment/Tz5ce)
+在线代码：[`jsfiddle.net/domenlightenment/Tz5ce`](http://jsfiddle.net/domenlightenment/Tz5ce)
 
 ```
 <!DOCTYPE html>

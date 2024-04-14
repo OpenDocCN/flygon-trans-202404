@@ -158,11 +158,11 @@ geoip 库的特殊之处在于它是一个离线数据库的 API，您可以从 
 
 +   下载免费的 GeoLite 国家、城市或 ASN 数据库之一
 
-    +   [GeoLiteCountry](geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz)
+    +   GeoLiteCountry
 
-    +   [GeoLiteCity](geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz)
+    +   GeoLiteCity
 
-    +   [GeoIPASNum](geolite.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz)
+    +   GeoIPASNum
 
 +   安装 geoip gem
 
@@ -210,9 +210,9 @@ Time zone:      America/Chicago
 
 ## 轻量级介绍
 
-### Ruby Socket类层次结构
+### Ruby Socket 类层次结构
 
-要了解Ruby中的套接字层次结构，这里有一个简单的树来解释它。
+要了解 Ruby 中的套接字层次结构，这里有一个简单的树来解释它。
 
 ```
 IO                              # The basis for all input and output in Ruby
@@ -505,13 +505,13 @@ IO                              # The basis for all input and output in Ruby
 Socket.new(domain, socktype [, protocol]) 
 ```
 
-**domain（地址/协议族）：**像AF_INET，PF_PACKET等
+**domain（地址/协议族）：**像 AF_INET，PF_PACKET 等
 
-**socktype：**像SOCK_RAW，SOCK_STREAM
+**socktype：**像 SOCK_RAW，SOCK_STREAM
 
 **协议：**默认情况下，它是`0`，应该是一个定义的协议（我们稍后会操纵它）
 
-## TCP套接字
+## TCP 套接字
 
 **服务器/客户端生命周期**
 
@@ -535,7 +535,7 @@ Socket.new(domain, socktype [, protocol])
 
 ### 通用套接字使用
 
-#### 获取本地IP地址列表
+#### 获取本地 IP 地址列表
 
 ```
 require 'socket'
@@ -548,9 +548,9 @@ Socket.ip_address_list
 Socket.gethostname 
 ```
 
-### TCP服务器
+### TCP 服务器
 
-这里我们将展示一个绝对的TCP服务器。该服务器将接受来自一个客户端的连接，并在连接后向其发送一条消息，然后关闭客户端和服务器的连接。
+这里我们将展示一个绝对的 TCP 服务器。该服务器将接受来自一个客户端的连接，并在连接后向其发送一条消息，然后关闭客户端和服务器的连接。
 
 ```
 require 'socket'
@@ -564,7 +564,7 @@ client.close                            # Close the client's connection
 server.close                            # Close the TCP Server 
 ```
 
-**注意：**如果要监听未使用和随机端口，请设置为端口0，Ruby将找到空闲端口然后使用它。例如。
+**注意：**如果要监听未使用和随机端口，请设置为端口 0，Ruby 将找到空闲端口然后使用它。例如。
 
 ```
 require 'socket'
@@ -572,7 +572,7 @@ server = TCPServer.new('0.0.0.0', 0)
 server.addr[1]    # Shows the picked port 
 ```
 
-### TCP客户端
+### TCP 客户端
 
 ```
 require 'socket'
@@ -594,7 +594,7 @@ client.getsockopt(Socket::SOL_SOCKET, Socket::SO_RCVTIMEO).inspect      # Option
 client.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDTIMEO).inspect      # Optional, Check if socket option has been set 
 ```
 
-有一些`puts`和`gets`方法的替代方法。您可以使用Pry解释器控制台中的method方法查看差异及其类。
+有一些`puts`和`gets`方法的替代方法。您可以使用 Pry 解释器控制台中的 method 方法查看差异及其类。
 
 ```
 >> s = TCPSocket.new('0.0.0.0', 9911)
@@ -618,9 +618,9 @@ client.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDTIMEO).inspect      # Option
 => #<Method: TCPSocket(BasicSocket)#recv> 
 ```
 
-## UDP套接字
+## UDP 套接字
 
-### UDP服务器
+### UDP 服务器
 
 ```
 require 'socket'
@@ -632,7 +632,7 @@ server puts "Hi, UDP Client #{addr}", addr[3], addr[1]  # Send a message to the 
 server.recv(1024)                                       # Receive 1024 bytes of the message 
 ```
 
-### UDP客户端
+### UDP 客户端
 
 ```
 require 'socket'
@@ -1459,7 +1459,7 @@ puts "#{pingfails} packets were dropped"
 
 ## 端口扫描
 
-如果你理解了我们在[Ruby Socket](module_0x3__network_kung_fu/ruby_socket.md)部分所展示的内容，那么在这里我们将总结并进行一些依赖于它的应用。**scanner.rb**
+如果你理解了我们在 Ruby Socket 部分所展示的内容，那么在这里我们将总结并进行一些依赖于它的应用。**scanner.rb**
 
 ```
 #!/usr/bin/env ruby
@@ -1605,7 +1605,7 @@ end
 nmap -n -v -A scanme.nmap.org -oX scanme.nmap.org.xml 
 ```
 
-我从官方文档中引用了代码（[https://github.com/sophsec/ruby-nmap](https://github.com/sophsec/ruby-nmap)）
+我从官方文档中引用了代码（[`github.com/sophsec/ruby-nmap`](https://github.com/sophsec/ruby-nmap)）
 
 ```
 require 'nmap/xml'
@@ -1630,7 +1630,7 @@ end
   9929/tcp      open    nping-echo 
 ```
 
-[https://github.com/ronin-ruby/ronin-scanners](https://github.com/ronin-ruby/ronin-scanners)
+[`github.com/ronin-ruby/ronin-scanners`](https://github.com/ronin-ruby/ronin-scanners)
 
 * * *
 
@@ -1702,7 +1702,7 @@ begin
   loop do
     response = udpsoc.recvfrom(1000)
     response = response[0].force_encoding("ISO-8859-1").encode("utf-8")
-    data = response.match(/[^<][a-f0-9]([a-f0-9]).*[a-f0-9]([a-f0-9])/i).to_s
+    data = response.match(/[^<]a-f0-9.*a-f0-9/i).to_s
 
     # Write received data to file
     File.open(file, 'a') do |d|
@@ -1893,7 +1893,7 @@ resolver.nameservers = ["8.8.4.4" , "8.8.8.8"]
 
 * * *
 
-[http://searchsignals.com/tutorials/reverse-dns-lookup/](http://searchsignals.com/tutorials/reverse-dns-lookup/)
+[`searchsignals.com/tutorials/reverse-dns-lookup/`](http://searchsignals.com/tutorials/reverse-dns-lookup/)
 
 # SNMP 枚举
 
@@ -1960,7 +1960,7 @@ manager.close
 
 # 数据包操作
 
-在这一章中，我们将尝试使用令人惊叹的 lib，PacketFu 进行变体实现^([1](#fn_1))。
+在这一章中，我们将尝试使用令人惊叹的 lib，PacketFu 进行变体实现^(1)。
 
 ## PacketFu - 数据包操作
 
@@ -1972,7 +1972,7 @@ manager.close
 
 +   操纵 ICMP 协议
 
-+   数据包捕获 - 支持 TCPdump 风格^([2](#fn_2))
++   数据包捕获 - 支持 TCPdump 风格^(2)
 
 +   读取和写入 PCAP 文件
 
@@ -2090,9 +2090,9 @@ capture = PacketFu::Capture.new(:iface=> "wlan0", :promisc => true, :start => tr
 capture.show_live 
 ```
 
-### 简单IDS
+### 简单 IDS
 
-这是一个简单的IDS，将打印出任何通信的源和目的地，其中包含“被黑客入侵”的有效负载
+这是一个简单的 IDS，将打印出任何通信的源和目的地，其中包含“被黑客入侵”的有效负载
 
 ```
 require 'packetfu'
@@ -2106,7 +2106,7 @@ loop do
 end 
 ```
 
-现在尝试使用Netcat打开的任何端口，然后发送被黑客入侵的信息
+现在尝试使用 Netcat 打开的任何端口，然后发送被黑客入侵的信息
 
 ```
 echo "Hacked" | nc -nv 192.168.0.15 4444 
@@ -2120,19 +2120,19 @@ echo "Hacked" | nc -nv 192.168.0.15 4444
 
 * * *
 
-> ¹. [PacketFu主页](https://github.com/packetfu/packetfu) [↩](#reffn_1 "跳回到文本中的脚注[1]")
+> ¹. [PacketFu 主页](https://github.com/packetfu/packetfu) ↩
 > 
-> ². [TCPdump速查表](http://packetlife.net/media/library/12/tcpdump.pdf) [↩](#reffn_2 "跳回到文本中的脚注[2]")
+> ². [TCPdump 速查表](http://packetlife.net/media/library/12/tcpdump.pdf) ↩
 
-# ARP欺骗
+# ARP 欺骗
 
-# ARP欺骗
+# ARP 欺骗
 
-正如你所知，ARP欺骗攻击是中间人攻击的核心。在这部分中，我们将了解如何编写简单而有效的ARP欺骗工具，以便在以后的欺骗攻击中使用它。
+正如你所知，ARP 欺骗攻击是中间人攻击的核心。在这部分中，我们将了解如何编写简单而有效的 ARP 欺骗工具，以便在以后的欺骗攻击中使用它。
 
 #### 场景
 
-在这种情况下，我们有3台机器，如下所示。
+在这种情况下，我们有 3 台机器，如下所示。
 
 ```
  |Attacker|
@@ -2141,9 +2141,9 @@ echo "Hacked" | nc -nv 192.168.0.15 4444
 |Victim| -----------------> |Router| ---> Internet 
 ```
 
-这里是每��主题的IP和MAC地址的列表在下表中^([1](#fn_1))
+这里是每��主题的 IP 和 MAC 地址的列表在下表中^(1)
 
-| 主机/信息 | IP地址 | MAC地址 |
+| 主机/信息 | IP 地址 | MAC 地址 |
 | --- | --- | --- |
 | 攻击者 | 192.168.0.100 | 3C:77:E6:68:66:E9 |
 | 受害者 | 192.168.0.21 | 00:0C:29:38:1D:61 |
@@ -2171,7 +2171,7 @@ info = PacketFu::Utils.whoami?(:iface => "wlan0")
 
 因此，你可以像任何哈希`info[:iface]`，`info[:ip_saddr]`，`info[:eth_saddr]`等提取这些信息。
 
-**构建受害者的ARP数据包**
+**构建受害者的 ARP 数据包**
 
 ```
 # Build Ethernet header
@@ -2201,7 +2201,7 @@ arp_packet_router.arp_daddr_ip = "192.168.0.1"          # the router's IP
 arp_packet_router.arp_opcode = 2                        # arp code 2 == ARP reply 
 ```
 
-**运行ARP欺骗攻击**
+**运行 ARP 欺骗攻击**
 
 ```
 # Send our packet through the wire
@@ -2214,7 +2214,7 @@ while true
 end 
 ```
 
-来源^([2](#fn_2))
+来源^(2)
 
 将所有内容整合在一起并以`root`身份运行
 
@@ -2273,7 +2273,7 @@ end
 > 
 > `echo "1" > /proc/sys/net/ipv4/ip_forward`
 
-返回，是时候开始wiresharking了 ;)
+返回，是时候开始 wiresharking 了 ;)
 
 ```
 [+] Sending ARP packet to victim: 192.168.0.21
@@ -2289,15 +2289,15 @@ end
 
 * * *
 
-> ¹. 创建表格的简便方法 - [表格生成器](http://www.tablesgenerator.com/markdown_tables) [↩](#reffn_1 "跳回到文本中的脚注[1]")
+> ¹. 创建表格的简便方法 - [表格生成器](http://www.tablesgenerator.com/markdown_tables) ↩
 > 
-> ². 来源：[使用PacketFu进行DNS欺骗](http://crushbeercrushcode.org/2012/10/ruby-dns-spoofing-using-packetfu/) [↩](#reffn_2 "跳回到文本中的脚注[2]")
+> ². 来源：[使用 PacketFu 进行 DNS 欺骗](http://crushbeercrushcode.org/2012/10/ruby-dns-spoofing-using-packetfu/) ↩
 
-# DNS欺骗
+# DNS 欺骗
 
-# DNS欺骗
+# DNS 欺骗
 
-继续我们的攻击通过[ARP欺骗](module_0x4__network_kung_fu/arp_spoofing.md)，我们希望将受害者的DNS请求更改为我们喜欢的任何目的地。
+继续我们的攻击通过 ARP 欺骗，我们希望将受害者的 DNS 请求更改为我们喜欢的任何目的地。
 
 ### 场景
 
@@ -2309,23 +2309,23 @@ end
           AnySite      AttackerSite 
 ```
 
-> 保持ARP欺骗攻击持续进行
+> 保持 ARP 欺骗攻击持续进行
 
-ARP欺骗攻击的相同IP
+ARP 欺骗攻击的相同 IP
 
-| 主机 | IP地址 |
+| 主机 | IP 地址 |
 | --- | --- |
 | 攻击者 | 192.168.0.100 |
 | 受害者 | 192.168.0.21 |
 | 路由器 | 192.168.0.1 |
 
-现在我们可以拦截来自受害者机器的DNS查询数据包。由于PacketFu支持捕获中的过滤器（以减少捕获的数据包数量），我们将使用`udp and port 53 and host`过滤器，然后检查捕获的数据包以确保它是一个查询，然后找到请求的域名。[**下载DNS数据包**](../files/module03/dns_spoofing_dns-req_res.pcap.pcapng)。
+现在我们可以拦截来自受害者机器的 DNS 查询数据包。由于 PacketFu 支持捕获中的过滤器（以减少捕获的数据包数量），我们将使用`udp and port 53 and host`过滤器，然后检查捕获的数据包以确保它是一个查询，然后找到请求的域名。**下载 DNS 数据包**。
 
-从Wireshark，如果我们深入研究`域名系统（查询）`中的DNS查询有效负载，我们可以看到它以十六进制格式呈现。
+从 Wireshark，如果我们深入研究`域名系统（查询）`中的 DNS 查询有效负载，我们可以看到它以十六进制格式呈现。
 
-| ![](dns_spoofing_wireshark1.png) |
+| ![](img/dns_spoofing_wireshark1.png) |
 | --- |
-| **图1.** DNS查询有效负载 |
+| **图 1.** DNS 查询有效负载 |
 
 让我们解剖我们的有效负载
 
@@ -2334,9 +2334,9 @@ ARP欺骗攻击的相同IP
 0010   74 74 65 72 03 63 6f 6d 00 00 01 00 01 
 ```
 
-+   前两个字节是**事务ID**，我们现在不关心它。（我们的情况：`\xe7\x1d`）
++   前两个字节是**事务 ID**，我们现在不关心它。（我们的情况：`\xe7\x1d`）
 
-+   接下来的 2 个字节是**标志位**^([3](#fn_3))。（我们需要：`\x01\x00` = \x10）
++   接下来的 2 个字节是**标志位**^(3)。（我们需要：`\x01\x00` = \x10）
 
 +   此外，在**查询**部分中包含
 
@@ -2365,7 +2365,7 @@ ARP欺骗攻击的相同IP
 
     +   域名字符串的最后以 `\x00` 结束。
 
-    +   接下来的 2 个字节指的是查询的**类型**^([4](#fn_4))。（我们的情况：`\x00\x01`）
+    +   接下来的 2 个字节指的是查询的**类型**^(4)。（我们的情况：`\x00\x01`）
 
 **现在怎么办？！**
 
@@ -2463,7 +2463,7 @@ capture.stream.each do |pkt|
 end 
 ```
 
-到目前为止，我们已成功完成[ARP 欺骗](module_0x3__network_kung_fu/arp_spoofing.md)，然后是 DNS 捕获，但我们仍然需要替换/欺骗原始响应到我们的域。例如攻击者区域，现在我们必须构建一个 DNS 响应，而不是伪造的发送。那么我们需要什么？
+到目前为止，我们已成功完成 ARP 欺骗，然后是 DNS 捕获，但我们仍然需要替换/欺骗原始响应到我们的域。例如攻击者区域，现在我们必须构建一个 DNS 响应，而不是伪造的发送。那么我们需要什么？
 
 +   我们将使用取得的 IP（欺骗 IP）来重定向用户。
 
@@ -2483,7 +2483,7 @@ end
 
 +   从这里，我们只需为 UDP 数据包计算校验和，然后发送到目标机器。
 
-| ![Wireshark](dns_spoofing_wireshark2.png) |
+| ![Wireshark](img/dns_spoofing_wireshark2.png) |
 | --- |
 | **图 2.** DNS 响应有效载荷 |
 
@@ -2602,17 +2602,17 @@ filter = "udp and port 53 and host " + "192.168.0.21"
 end 
 ```
 
-[https://github.com/SilverFoxx/Spoofa/blob/master/spoofa](https://github.com/SilverFoxx/Spoofa/blob/master/spoofa)
+[`github.com/SilverFoxx/Spoofa/blob/master/spoofa`](https://github.com/SilverFoxx/Spoofa/blob/master/spoofa)
 
-资源^([1](#fn_1)) ^([2](#fn_2)) - 代码已修改和修复
+资源^(1) ^(2) - 代码已修改和修复
 
 * * *
 
-> ¹. [使用 PacketFu 进行 DNS 欺骗](http://crushbeercrushcode.org/2012/10/ruby-dns-spoofing-using-packetfu/) [↩](#reffn_1 "返回到正文中的脚注 [1]")
+> ¹. [使用 PacketFu 进行 DNS 欺骗](http://crushbeercrushcode.org/2012/10/ruby-dns-spoofing-using-packetfu/) ↩
 > 
-> ². [使用PacketFu操纵网络](http://tuftsdev.github.io/DefenseOfTheDarkArts/assignments/manipulatingthenetworkwithpacketfu-110314111058-phpapp01.pdf) [↩](#reffn_2 "跳回文本中的脚注[2]")
+> ². [使用 PacketFu 操纵网络](http://tuftsdev.github.io/DefenseOfTheDarkArts/assignments/manipulatingthenetworkwithpacketfu-110314111058-phpapp01.pdf) ↩
 > 
-> ³. [DNS头部标志](http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-12) [↩](#reffn_3 "跳回文本中的脚注[3]")
+> ³. [DNS 头部标志](http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-12) ↩
 
 | 位 | 标志 | 描述 | 参考 |
 | --- | --- | --- | --- |
@@ -2624,24 +2624,24 @@ end
 | 位 10 | AD | 真实数据 | [RFC4035] |
 | 位 11 | CD | 禁用检查 | [RFC4035] |
 
-> ⁴. [DNS查找类型](http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4) [↩](#reffn_4 "跳回文本中的脚注[4]")
+> ⁴. [DNS 查找类型](http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4) ↩
 
 | 类型 | 值 | 描述 |
 | --- | --- | --- |
-| A | 1 | IP地址 |
+| A | 1 | IP 地址 |
 | NS | 2 | 名称服务器 |
 | CNAME | 5 | 域名的别名 |
-| PTR | 12 | 使用IP地址进行反向DNS查找 |
+| PTR | 12 | 使用 IP 地址进行反向 DNS 查找 |
 | HINFO | 13 | 主机信息 |
-| MX | 15 | MX记录 |
+| MX | 15 | MX 记录 |
 | AXFR | 252 | 区域传输请求 |
 | ANY | 255 | 请求所有记录 |
 
-# MiTM攻击
+# MiTM 攻击
 
 # 中间人攻击（MiTM）
 
-通过ARP欺骗和PacketFU以及套接字使用本书中的源代码作为基础的更复杂的MiTM攻击示例。
+通过 ARP 欺骗和 PacketFU 以及套接字使用本书中的源代码作为基础的更复杂的 MiTM 攻击示例。
 
 ```
 require 'packetfu'
@@ -2702,4 +2702,4 @@ else
 end 
 ```
 
-来源：[Ruby-MiTM](https://github.com/ChrisFernandez/ruby-mitm "Ruby-mitm") 和 Rubyfu [ARP欺骗主题](arp_spoofing.html)。
+来源：[Ruby-MiTM](https://github.com/ChrisFernandez/ruby-mitm "Ruby-mitm") 和 Rubyfu ARP 欺骗主题。

@@ -1,4 +1,4 @@
-# ImpSimple命令式程序
+# ImpSimple 命令式程序
 
 ```
 
@@ -20,7 +20,7 @@ Z ::= X;;
 
 Y ::= 1;;
 
-当WHILE not (Z = 0) DO时
+当 WHILE not (Z = 0) DO 时
 
 Y ::= Y * Z;;
 
@@ -30,7 +30,7 @@ Z ::= Z - 1
 
     本章将讨论如何定义*语法*和*语义*
 
-    的Imp；接下来的章节将发展一个*程序等价*理论，并引入*霍尔逻辑*，这是一个广泛使用的逻辑
+    的 Imp；接下来的章节将发展一个*程序等价*理论，并引入*霍尔逻辑*，这是一个广泛使用的逻辑
 
     推理关于命令式程序。
 
@@ -50,7 +50,7 @@ Require Import Maps.
 
 # 算术和布尔表达式
 
-    我们将以三部分呈现Imp：首先是一个核心语言
+    我们将以三部分呈现 Imp：首先是一个核心语言
 
     *算术和布尔表达式*，然后是这些的扩展
 
@@ -64,7 +64,7 @@ Require Import Maps.
 
 ```
 
-模块AExp。
+模块 AExp。
 
 ```
 
@@ -73,7 +73,7 @@ Require Import Maps.
 
 ```
 
-归纳定义aexp：类型 :=
+归纳定义 aexp：类型 :=
 
 | ANum : nat → aexp
 
@@ -83,7 +83,7 @@ Require Import Maps.
 
 | AMult : aexp → aexp → aexp.
 
-归纳定义bexp：类型 :=
+归纳定义 bexp：类型 :=
 
 | BTrue : bexp
 
@@ -108,7 +108,7 @@ Require Import Maps.
 
 APlus (ANum 1) (AMult (ANum 2) (ANum 3)).
 
-    可选章节[ImpParser](ImpParser.html)开发了一个简单的
+    可选章节 ImpParser 开发了一个简单的
 
     实现一个可以执行的词法分析器和解析器
 
@@ -120,7 +120,7 @@ APlus (ANum 1) (AMult (ANum 2) (ANum 3)).
 
     略读它。
 
-    作为比较，这里是一个传统的BNF（巴科斯-瑙尔形式）
+    作为比较，这里是一个传统的 BNF（巴科斯-瑙尔形式）
 
     定义相同抽象语法的语法：
 
@@ -196,9 +196,9 @@ Fixpoint beval (b : bexp) : bool :=
 
     接受一个算术表达式并稍微简化它，
 
-    改变每个0+e的出现（即，(APlus (ANum 0) e)
+    改变每个 0+e 的出现（即，(APlus (ANum 0) e)
 
-    只需e。
+    只需 e。
 
 ```
 Fixpoint optimize_0plus (a:aexp) : aexp :=
@@ -264,7 +264,7 @@ Proof.
 
 ```
 
-# Coq自动化
+# Coq 自动化
 
     在这最后一个证明中的重复量���点
 
@@ -276,7 +276,7 @@ Proof.
 
     到目前为止，我们一直在使用只有一小撮的证明
 
-    Coq的策略，完全忽略其强大的功能
+    Coq 的策略，完全忽略其强大的功能
 
     用于自动构建证明的部分。本节
 
@@ -284,7 +284,7 @@ Proof.
 
     接下来的几章。习惯于它们将需要一些
 
-    能量 — Coq的自动化是一个强大的工具 — 但它将允许我们
+    能量 — Coq 的自动化是一个强大的工具 — 但它将允许我们
 
     扩展我们的努力到更复杂的定义和更多
 
@@ -303,7 +303,7 @@ Proof.
 
 ### 尝试策略
 
-    如果T是一个策略，那么try T是一个与T完全相同的策略
+    如果 T 是一个策略，那么 try T 是一个与 T 完全相同的策略
 
     除非 T 失败，否则尝试 T *成功* 什么也不做。
 
@@ -401,7 +401,7 @@ aeval（optimize_0plus a）= aeval a。
 
 归纳 a;
 
-（* 大多数情况都可以直接由IH... *）
+（* 大多数情况都可以直接由 IH... *）
 
 尝试（简化; 重写 IHa1; 重写 IHa2; 反射性）。
 
@@ -538,7 +538,7 @@ T； [T' | T' | ... | T']
 
 ```
 
-定理 In[10]：在[1;2;3;4;5;6;7;8;9;10]中的10。
+定理 In[10]：在[1;2;3;4;5;6;7;8;9;10]中的 10。
 
 证明。
 
@@ -554,7 +554,7 @@ T； [T' | T' | ... | T']
 
 ```
 
-定理 In[10]'：在[1;2;3;4;5;6;7;8;9;10]中的10。
+定理 In[10]'：在[1;2;3;4;5;6;7;8;9;10]中的 10。
 
 证明。
 
@@ -811,7 +811,7 @@ Inductive aevalR : aexp → nat → Prop :=
 
     下面的结论（我们已经在
 
-    [Prop](Prop.html) 章节）。
+    Prop 章节）。
 
     例如，构造函数 E_APlus...
 
@@ -965,17 +965,17 @@ Theorem aeval_iff_aevalR : ∀a n,
    induction a;
       simpl; intros; subst.
    + (* ANum *)
-     apply [E_ANum](Imp.html#AExp.E_ANum).
+     apply E_ANum.
    + (* APlus *)
-     apply [E_APlus](Imp.html#AExp.E_APlus).
+     apply E_APlus.
       apply IHa1. reflexivity.
       apply IHa2. reflexivity.
    + (* AMinus *)
-     apply [E_AMinus](Imp.html#AExp.E_AMinus).
+     apply E_AMinus.
       apply IHa1. reflexivity.
       apply IHa2. reflexivity.
    + (* AMult *)
-     apply [E_AMult](Imp.html#AExp.E_AMult).
+     apply E_AMult.
       apply IHa1. reflexivity.
       apply IHa2. reflexivity.
     Qed.
@@ -1002,11 +1002,11 @@ Qed.
 
 ```
 
-#### 练习：3星（bevalR）
+#### 练习：3 星（bevalR）
 
-    以与bevalR相同的风格编写一个关系
+    以与 bevalR 相同的风格编写一个关系
 
-    aevalR，并证明它等效于beval。
+    aevalR，并证明它等效于 beval。
 
 ```
 Inductive bevalR: bexp → bool → Prop :=
@@ -1058,11 +1058,11 @@ Inductive aexp : Type :=
 
 ```
 
-    扩展aeval的定义以处理这个新操作
+    扩展 aeval 的定义以处理这个新操作
 
     将不是简单的（我们应该返回什么作为结果
 
-    of ADiv（ANum 5）（ANum 0）？）。但扩展aevalR是
+    of ADiv（ANum 5）（ANum 0）？）。但扩展 aevalR 是
 
     直接的。
 
@@ -1115,11 +1115,11 @@ Inductive aexp : Type :=
 
 ```
 
-    再次，扩展aeval将会很棘手，因为现在评估是
+    再次，扩展 aeval 将会很棘手，因为现在评估是
 
     *不*是从表达式到数字的确定性函数，而是
 
-    扩展aevalR没有问题：
+    扩展 aevalR 没有问题：
 
 ```
 Inductive aevalR : aexp → nat → Prop :=
@@ -1156,7 +1156,7 @@ End aevalR_extended.
 
     感觉它们更加优雅和易于理解。另一个是
 
-    Coq自动生成漂亮的反演和归纳
+    Coq 自动生成漂亮的反演和归纳
 
     从归纳定义中的原则。
 
@@ -1166,17 +1166,17 @@ End aevalR_extended.
 
 +   函数根据定义是确定性的，并且对所有参数进行定义；对于关系，如果需要这些属性，我们必须明确显示这些属性。
 
-+   使用函数，我们还可以利用Coq的计算机制制简化证明过程中的表达式。
++   使用函数，我们还可以利用 Coq 的计算机制制简化证明过程中的表达式。
 
     此外，函数可以直接“提取”为可执行
 
-    在OCaml或Haskell中的代码。
+    在 OCaml 或 Haskell 中的代码。
 
     最终，选��通常取决于具体情况。
 
     一个特定的情况或仅仅是品味问题。实际上，在
 
-    在大型Coq开发中，通常会看到一个定义以
+    在大型 Coq 开发中，通常会看到一个定义以
 
     *功能*和关系风格，再加上一个引理说明
 
@@ -1199,7 +1199,7 @@ End aevalR_extended.
 
     由于我们将想要查找变量以了解它们当前的
 
-    值，我们将从 [Maps](Maps.html) 章节中重用类型 id
+    值，我们将从 Maps 章节中重用类型 id
 
     Imp 中变量的类型。
 
@@ -1573,7 +1573,7 @@ Fixpoint ceval_fun_no_while (st : state) (c : com)
 
     ceval_fun 的定义不能在 Coq 中写出 — 至少不能没有
 
-    其他技巧和解决方法（参见章节 [ImpCEvalFun](ImpCEvalFun.html)
+    其他技巧和解决方法（参见章节 ImpCEvalFun
 
     如果你对这些感兴趣的话）。
 
@@ -1902,7 +1902,7 @@ X 2) Y 0) Y 2) X 1) Y 3) X 0。
 
     在相同的状态 st 下，我们可以评估一些命令 c
 
-    达到两个不同输出状态st'和的不同方式
+    达到两个不同输出状态 st'和的不同方式
 
     st''？
 
@@ -1948,11 +1948,11 @@ Theorem ceval_deterministic: ∀c st st[1] st[2],
 
 ```
 
-# 关于Imp程序的推理
+# 关于 Imp 程序的推理
 
     我们将深入研究关于推理的系统技术
 
-    在以下章节中的Imp程序，但我们可以做很多
+    在以下章节中的 Imp 程序，但我们可以做很多
 
     仅使用基本定义。本节探讨
 
@@ -1968,11 +1968,11 @@ Proof.
 
 ```
 
-    反演Heval基本上迫使Coq展开一步
+    反演 Heval 基本上迫使 Coq 展开一步
 
-    ceval计算 - 在这种情况下揭示了st'
+    ceval 计算 - 在这种情况下揭示了 st'
 
-    必须扩展为X的新值的st，因为plus2
+    必须扩展为 X 的新值的 st，因为 plus2
 
     是一个赋值
 
@@ -1982,9 +1982,9 @@ Proof.
 
 ```
 
-#### 练习：3星，推荐M（XtimesYinZ_spec）
+#### 练习：3 星，推荐 M（XtimesYinZ_spec）
 
-    状态并证明XtimesYinZ的规范。
+    状态并证明 XtimesYinZ 的规范。
 
 ```
 (* FILL IN HERE *)
@@ -1993,7 +1993,7 @@ Proof.
 
     ☐
 
-#### 练习：3星，推荐（loop_never_stops）
+#### 练习：3 星，推荐（loop_never_stops）
 
 ```
 Theorem loop_never_stops : ∀st st',
@@ -2007,7 +2007,7 @@ Proof.
 
     通过对假设的推导进行归纳，展示
 
-    loopdef终止。大多数情况立即
+    loopdef 终止。大多数情况立即
 
     矛盾（因此可以在一步内解决
 
@@ -2020,7 +2020,7 @@ Proof.
 
     ☐
 
-#### 练习：3星（无whilesR）
+#### 练习：3 星（无 whilesR）
 
     考虑以下函数：
 
@@ -2041,13 +2041,13 @@ Fixpoint no_whiles (c : com) : bool :=
 
 ```
 
-    这个谓词仅在没有while的程序上返回true
+    这个谓词仅在没有 while 的程序上返回 true
 
-    循环。使用归纳，编写一个属性no_whilesR，使得
+    循环。使用归纳，编写一个属性 no_whilesR，使得
 
-    当c是一个没有时的程序时，no_whilesR c是可证明的
+    当 c 是一个没有时的程序时，no_whilesR c 是可证明的
 
-    while循环。然后证明它与no_whiles的等价性。
+    while 循环。然后证明它与 no_whiles 的等价性。
 
 ```
 Inductive no_whilesR: com → Prop :=
@@ -2063,11 +2063,11 @@ Proof.
 
     ☐
 
-#### 练习：4星M（no_whiles_terminating）
+#### 练习：4 星 M（no_whiles_terminating）
 
-    不涉及while循环的Imp程序总是终止。
+    不涉及 while 循环的 Imp 程序总是终止。
 
-    状态并证明一个定理no_whiles_terminating，它说这个。使用no_whiles或no_whilesR，根据您的喜好选择。
+    状态并证明一个定理 no_whiles_terminating，它说这个。使用 no_whiles 或 no_whilesR，根据您的喜好选择。
 
 ```
 (* FILL IN HERE *)
@@ -2145,7 +2145,7 @@ Proof.
 
 ```
 
-归纳sinstr：类型 :=
+归纳 sinstr：类型 :=
 
 | SPush：nat → sinstr
 
@@ -2174,7 +2174,7 @@ Proof.
 
 ```
 
-递归s_execute（st：state）（stack：list nat）
+递归 s_execute（st：state）（stack：list nat）
 
 （prog：list sinstr）
 
@@ -2182,7 +2182,7 @@ Proof.
 
 (* 用":= _your_definition_ ."替换此行*）。已承认。
 
-示例s_execute1：
+示例 s_execute1：
 
 s_execute empty_state []
 
@@ -2192,7 +2192,7 @@ s_execute empty_state []
 
 (* 在此填写 *)
 
-示例s_execute2：
+示例 s_execute2：
 
 s_execute（t_update empty_state X 3）[3;4]
 
@@ -2210,7 +2210,7 @@ s_execute（t_update empty_state X 3）[3;4]
 
 ```
 
-递归s_compile（e：aexp）：list sinstr
+递归 s_compile（e：aexp）：list sinstr
 
 (* 用":= _your_definition_ ."替换此行*）。已承认。
 
@@ -2221,7 +2221,7 @@ s_execute（t_update empty_state X 3）[3;4]
 
 ```
 
-示例s_compile1：
+示例 s_compile1：
 
 s_compile（AMinus（AId X）（AMult（ANum 2）（AId Y）））
 
@@ -2248,7 +2248,7 @@ s_compile（AMinus（AId X）（AMult（ANum 2）（AId Y）））
 
 ```
 
-定理s_compile_correct：∀（st：state）（e：aexp），
+定理 s_compile_correct：∀（st：state）（e：aexp），
 
 s_execute st []（s_compile e）= [ aeval st e ]。
 
@@ -2283,7 +2283,7 @@ s_execute st []（s_compile e）= [ aeval st e ]。
 
 ```
 
-模块BreakImp。
+模块 BreakImp。
 
 ```
 
@@ -2296,7 +2296,7 @@ s_execute st []（s_compile e）= [ aeval st e ]。
 
 ```
 
-归纳com：类型 :=
+归纳 com：类型 :=
 
 | CSkip：com
 
@@ -2320,7 +2320,7 @@ CBreak。
 
 符号"x '::=' a"的表示法 :=
 
-（CAss x a）（在级别60处）。
+（CAss x a）（在级别 60 处）。
 
 Notation "c1 ;; c2" :=
 

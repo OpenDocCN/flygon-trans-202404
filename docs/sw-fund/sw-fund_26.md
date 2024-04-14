@@ -29,7 +29,7 @@
     As we saw in exercise stlc_arith at the end of the StlcProp
     chapter, adding types, constants, and primitive operations for
     natural numbers is easy — basically just a matter of combining
-    the [Types](Types.html) and [Stlc](Stlc.html) chapters.  Adding more realistic
+    the Types and Stlc chapters.  Adding more realistic
     numeric types like machine integers and floats is also
     straightforward, though of course the specifications of the
     numeric primitives become more fiddly. 
@@ -1254,7 +1254,7 @@ inr : Bool -> Nat + Bool
 
     *发散元素* of T.
 
-    更有用的是，这里有一个使用fix来定义的示例
+    更有用的是，这里有一个使用 fix 来定义的示例
 
     二参数递归函数：
 
@@ -1269,11 +1269,11 @@ inr : Bool -> Nat + Bool
 
 ```
 
-    最后，这里是一个使用fix来定义的示例
+    最后，这里是一个使用 fix 来定义的示例
 
     *对*递归函数对（说明类型的事实
 
-    T[1]在规则T_Fix中不必是函数类型）：
+    T[1]在规则 T_Fix 中不必是函数类型）：
 
 ```
       evenodd =
@@ -1424,9 +1424,9 @@ inr : Bool -> Nat + Bool
     There are several ways to approach formalizing the above
     definitions.
 
-*   We can directly formalize the syntactic forms and inference rules, staying as close as possible to the form we've given them above. This is conceptually straightforward, and it's probably what we'd want to do if we were building a real compiler (in particular, it will allow us to print error messages in the form that programmers will find easy to understand). But the formal versions of the rules will not be very pretty or easy to work with, because all the ...s above will have to be replaced with explicit quantifications or comprehensions. For this reason, records are not included in the extended exercise at the end of this chapter. (It is still useful to discuss them informally here because they will help motivate the addition of subtyping to the type system when we get to the [Sub](Sub.html) chapter.) 
+*   We can directly formalize the syntactic forms and inference rules, staying as close as possible to the form we've given them above. This is conceptually straightforward, and it's probably what we'd want to do if we were building a real compiler (in particular, it will allow us to print error messages in the form that programmers will find easy to understand). But the formal versions of the rules will not be very pretty or easy to work with, because all the ...s above will have to be replaced with explicit quantifications or comprehensions. For this reason, records are not included in the extended exercise at the end of this chapter. (It is still useful to discuss them informally here because they will help motivate the addition of subtyping to the type system when we get to the Sub chapter.) 
 
-*   Alternatively, we could look for a smoother way of presenting records — for example, a binary presentation with one constructor for the empty record and another constructor for adding a single field to an existing record, instead of a single monolithic constructor that builds a whole record at once. This is the right way to go if we are primarily interested in studying the metatheory of the calculi with records, since it leads to clean and elegant definitions and proofs. Chapter [Records](Records.html) shows how this can be done. 
+*   Alternatively, we could look for a smoother way of presenting records — for example, a binary presentation with one constructor for the empty record and another constructor for adding a single field to an existing record, instead of a single monolithic constructor that builds a whole record at once. This is the right way to go if we are primarily interested in studying the metatheory of the calculi with records, since it leads to clean and elegant definitions and proofs. Chapter Records shows how this can be done. 
 
 *   Finally, if we like, we can avoid formalizing records altogether, by stipulating that record notations are just informal shorthands for more complex expressions involving pairs and product types. We sketch this approach in the next section.
 
@@ -1444,7 +1444,7 @@ inr : Bool -> Nat + Bool
 
     减少元组，所以{}是空元组，{5}是单例
 
-    元组，{5,6}是一个2元组（道义上与一对相同），
+    元组，{5,6}是一个 2 元组（道义上与一对相同），
 
     {5,6,7}是三元组，等等。
 
@@ -1547,7 +1547,7 @@ inr : Bool -> Nat + Bool
 
     当然，如果我们这样做
 
-    碰巧使用具有标签foo的记录！但事情并不是
+    碰巧使用具有标签 foo 的记录！但事情并不是
 
     实际上并不像它们看起来那么糟糕：例如，如果我们假设
 
@@ -1563,15 +1563,15 @@ inr : Bool -> Nat + Bool
 
     正如乘积可以推广到记录，和可以
 
-    广义到n元标记类型称为*变体*。而不是
+    广义到 n 元标记类型称为*变体*。而不是
 
     T[1]+T[2]，我们可以写一些类似<l[1]:T[1],l[2]:T[2],...ln:Tn>
 
-    其中l[1]，l[2]，...是用于构建的字段标签
+    其中 l[1]，l[2]，...是用于构建的字段标签
 
     实例和作为案例臂标签。
 
-    这些n元变体几乎为我们提供了足够的机制来构建
+    这些 n 元变体几乎为我们提供了足够的机制来构建
 
     任意归纳数据类型，如列表和树
 
@@ -1618,7 +1618,7 @@ inr : Bool -> Nat + Bool
     passes, rather than trying to work through the file from start to
     finish in a single pass.  For each definition or proof, begin by
     reading carefully through the parts that are provided for you,
-    referring to the text in the [Stlc](Stlc.html) chapter for high-level
+    referring to the text in the Stlc chapter for high-level
     intuitions and the embedded comments for detailed mechanics.
 
 ```
@@ -2232,35 +2232,35 @@ Module FixTest2.
 
 (* map :=      \g:nat->nat.        fix          (λf:nat->nat.             \l:nat.                case l of                | ->  | x::l -> (g x)::(f l)) *)
 Definition map :=
-  [tabs](MoreStlc.html#STLCExtended.Examples.FixTest2.tabs) [g](MoreStlc.html#STLCExtended.Examples.FixTest2.g) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest2.TArrow) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat))
-    ([tfix](MoreStlc.html#STLCExtended.Examples.FixTest2.tfix)
-      ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest2.tabs) [f](MoreStlc.html#STLCExtended.Examples.FixTest2.f) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest2.TArrow) ([TList](MoreStlc.html#STLCExtended.Examples.FixTest2.TList) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat)) ([TList](MoreStlc.html#STLCExtended.Examples.FixTest2.TList) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat)))
-        ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest2.tabs) [l](MoreStlc.html#STLCExtended.Examples.FixTest2.l) ([TList](MoreStlc.html#STLCExtended.Examples.FixTest2.TList) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat))
-          ([tlcase](MoreStlc.html#STLCExtended.Examples.FixTest2.tlcase) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest2.tvar) [l](MoreStlc.html#STLCExtended.Examples.FixTest2.l))
-            ([tnil](MoreStlc.html#STLCExtended.Examples.FixTest2.tnil) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest2.TNat))
-            [a](MoreStlc.html#STLCExtended.Examples.FixTest2.a) [l](MoreStlc.html#STLCExtended.Examples.FixTest2.l) ([tcons](MoreStlc.html#STLCExtended.Examples.FixTest2.tcons) ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest2.tapp) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest2.tvar) [g](MoreStlc.html#STLCExtended.Examples.FixTest2.g)) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest2.tvar) [a](MoreStlc.html#STLCExtended.Examples.FixTest2.a)))
-                         ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest2.tapp) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest2.tvar) [f](MoreStlc.html#STLCExtended.Examples.FixTest2.f)) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest2.tvar) [l](MoreStlc.html#STLCExtended.Examples.FixTest2.l)))))))).
+  tabs g (TArrow TNat TNat)
+    (tfix
+      (tabs f (TArrow (TList TNat) (TList TNat))
+        (tabs l (TList TNat)
+          (tlcase (tvar l)
+            (tnil TNat)
+            a l (tcons (tapp (tvar g) (tvar a))
+                         (tapp (tvar f) (tvar l))))))).
 
 (*  (* Make sure you've uncommented the last Hint Extern above... *) Example map_typechecks :   empty |- map ∈     (TArrow (TArrow TNat TNat)       (TArrow (TList TNat)         (TList TNat))). Proof. unfold map. auto 10. Qed. Example map_example :   tapp (tapp map (tabs a TNat (tsucc (tvar a))))          (tcons (tnat 1) (tcons (tnat 2) (tnil TNat)))   ==>* (tcons (tnat 2) (tcons (tnat 3) (tnil TNat))). Proof. unfold map. normalize. Qed. *)
 
-End [FixTest2](MoreStlc.html#STLCExtended.Examples.FixTest2).
+End FixTest2.
 
 Module FixTest3.
 
 (* equal =       fix         (λeq:Nat->Nat->Bool.            \m:Nat. \n:Nat.              if[0] m then (if[0] n then 1 else 0)              else if[0] n then 0              else eq (pred m) (pred n))   *)
 
 Definition equal :=
-  [tfix](MoreStlc.html#STLCExtended.Examples.FixTest3.tfix)
-    ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest3.tabs) [eq](MoreStlc.html#STLCExtended.Examples.FixTest3.eq) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest3.TArrow) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest3.TNat) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest3.TArrow) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest3.TNat) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest3.TNat)))
-      ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest3.tabs) [m](MoreStlc.html#STLCExtended.Examples.FixTest3.m) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest3.TNat)
-        ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest3.tabs) [n](MoreStlc.html#STLCExtended.Examples.FixTest3.n) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest3.TNat)
-          ([tif0](MoreStlc.html#STLCExtended.Examples.FixTest3.tif0) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [m](MoreStlc.html#STLCExtended.Examples.FixTest3.m))
-            ([tif0](MoreStlc.html#STLCExtended.Examples.FixTest3.tif0) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest3.n)) ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest3.tnat) 1) ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest3.tnat) 0))
-            ([tif0](MoreStlc.html#STLCExtended.Examples.FixTest3.tif0) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest3.n))
-              ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest3.tnat) 0)
-              ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest3.tapp) ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest3.tapp) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [eq](MoreStlc.html#STLCExtended.Examples.FixTest3.eq))
-                              ([tpred](MoreStlc.html#STLCExtended.Examples.FixTest3.tpred) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [m](MoreStlc.html#STLCExtended.Examples.FixTest3.m))))
-                      ([tpred](MoreStlc.html#STLCExtended.Examples.FixTest3.tpred) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest3.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest3.n))))))))).
+  tfix
+    (tabs eq (TArrow TNat (TArrow TNat TNat))
+      (tabs m TNat
+        (tabs n TNat
+          (tif0 (tvar m)
+            (tif0 (tvar n) (tnat 1) (tnat 0))
+            (tif0 (tvar n)
+              (tnat 0)
+              (tapp (tapp (tvar eq)
+                              (tpred (tvar m)))
+                      (tpred (tvar n)))))))).
 
 (*  Example equal_typechecks :   empty |- equal ∈ (TArrow TNat (TArrow TNat TNat)). Proof. unfold equal. auto 10\. Qed. *)
 
@@ -2268,38 +2268,38 @@ Definition equal :=
 
 (*  Example equal_example2:   (tapp (tapp equal (tnat 4)) (tnat 5)) ==>* (tnat 0). Proof. unfold equal. normalize. Qed. *)
 
-End [FixTest3](MoreStlc.html#STLCExtended.Examples.FixTest3).
+End FixTest3.
 
 Module FixTest4.
 
 (* let evenodd =          fix            (λeo: (Nat->Nat * Nat->Nat).               let e = \n:Nat. if[0] n then 1 else eo.snd (pred n) in               let o = \n:Nat. if[0] n then 0 else eo.fst (pred n) in               (e,o)) in     let even = evenodd.fst in     let odd  = evenodd.snd in     (even 3, even 4) *)
 
 Definition eotest :=
-  [tlet](MoreStlc.html#STLCExtended.Examples.FixTest4.tlet) [evenodd](MoreStlc.html#STLCExtended.Examples.FixTest4.evenodd)
-    ([tfix](MoreStlc.html#STLCExtended.Examples.FixTest4.tfix)
-      ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest4.tabs) [eo](MoreStlc.html#STLCExtended.Examples.FixTest4.eo) ([TProd](MoreStlc.html#STLCExtended.Examples.FixTest4.TProd) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest4.TArrow) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat)) ([TArrow](MoreStlc.html#STLCExtended.Examples.FixTest4.TArrow) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat)))
-        ([tpair](MoreStlc.html#STLCExtended.Examples.FixTest4.tpair)
-          ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest4.tabs) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat)
-            ([tif0](MoreStlc.html#STLCExtended.Examples.FixTest4.tif0) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n))
-              ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest4.tnat) 1)
-              ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest4.tapp) ([tsnd](MoreStlc.html#STLCExtended.Examples.FixTest4.tsnd) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [eo](MoreStlc.html#STLCExtended.Examples.FixTest4.eo))) ([tpred](MoreStlc.html#STLCExtended.Examples.FixTest4.tpred) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n))))))
-          ([tabs](MoreStlc.html#STLCExtended.Examples.FixTest4.tabs) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n) [TNat](MoreStlc.html#STLCExtended.Examples.FixTest4.TNat)
-            ([tif0](MoreStlc.html#STLCExtended.Examples.FixTest4.tif0) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n))
-              ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest4.tnat) 0)
-              ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest4.tapp) ([tfst](MoreStlc.html#STLCExtended.Examples.FixTest4.tfst) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [eo](MoreStlc.html#STLCExtended.Examples.FixTest4.eo))) ([tpred](MoreStlc.html#STLCExtended.Examples.FixTest4.tpred) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [n](MoreStlc.html#STLCExtended.Examples.FixTest4.n)))))))))
-  ([tlet](MoreStlc.html#STLCExtended.Examples.FixTest4.tlet) [even](MoreStlc.html#STLCExtended.Examples.FixTest4.even) ([tfst](MoreStlc.html#STLCExtended.Examples.FixTest4.tfst) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [evenodd](MoreStlc.html#STLCExtended.Examples.FixTest4.evenodd)))
-  ([tlet](MoreStlc.html#STLCExtended.Examples.FixTest4.tlet) [odd](MoreStlc.html#STLCExtended.Examples.FixTest4.odd) ([tsnd](MoreStlc.html#STLCExtended.Examples.FixTest4.tsnd) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [evenodd](MoreStlc.html#STLCExtended.Examples.FixTest4.evenodd)))
-  ([tpair](MoreStlc.html#STLCExtended.Examples.FixTest4.tpair)
-    ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest4.tapp) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [even](MoreStlc.html#STLCExtended.Examples.FixTest4.even)) ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest4.tnat) 3))
-    ([tapp](MoreStlc.html#STLCExtended.Examples.FixTest4.tapp) ([tvar](MoreStlc.html#STLCExtended.Examples.FixTest4.tvar) [even](MoreStlc.html#STLCExtended.Examples.FixTest4.even)) ([tnat](MoreStlc.html#STLCExtended.Examples.FixTest4.tnat) 4))))).
+  tlet evenodd
+    (tfix
+      (tabs eo (TProd (TArrow TNat TNat) (TArrow TNat TNat))
+        (tpair
+          (tabs n TNat
+            (tif0 (tvar n)
+              (tnat 1)
+              (tapp (tsnd (tvar eo)) (tpred (tvar n)))))
+          (tabs n TNat
+            (tif0 (tvar n)
+              (tnat 0)
+              (tapp (tfst (tvar eo)) (tpred (tvar n))))))))
+  (tlet even (tfst (tvar evenodd))
+  (tlet odd (tsnd (tvar evenodd))
+  (tpair
+    (tapp (tvar even) (tnat 3))
+    (tapp (tvar even) (tnat 4))))).
 
 (*  Example eotest_typechecks :   empty |- eotest ∈ (TProd TNat TNat). Proof. unfold eotest. eauto 30\. Qed. *)
 
 (*  Example eotest_example1:   eotest ==>* (tpair (tnat 0) (tnat 1)). Proof. unfold eotest. normalize. Qed. *)
 
-End [FixTest4](MoreStlc.html#STLCExtended.Examples.FixTest4).
+End FixTest4.
 
-End [Examples](MoreStlc.html#STLCExtended.Examples). 
+End Examples. 
 ```
 
 ## 类型的属性
@@ -2324,11 +2324,11 @@ value t ∨ ∃t', t ⇒ t'.
 
     Proof with eauto.
 
-(* 定理：假设empty |- t : T。那么要么        1. t 是一个值，或者        2. t ==> t'，对于某个t'。      证明：通过对给定的类型推导进行归纳。*)
+(* 定理：假设 empty |- t : T。那么要么        1. t 是一个值，或者        2. t ==> t'，对于某个 t'。      证明：通过对给定的类型推导进行归纳。*)
 
 intros t T Ht.
 
-remember [empty](Maps.html#empty) as Γ.
+remember empty as Γ.
 
 generalize dependent HeqGamma.
 
@@ -2342,13 +2342,13 @@ inversion H.
 
 - (* T_Abs *)
 
-(* 如果最后使用的规则是T_Abs，那么        t = tabs x T[11] t[12]，这是一个值。*)
+(* 如果最后使用的规则是 T_Abs，那么        t = tabs x T[11] t[12]，这是一个值。*)
 
 left...
 
 - (* T_App *)
 
-(* 如果最后应用的规则是T_App，那么t = t[1] t[2]，        我们从规则的形式知道          empty ⊢ t[1] : T[1] → T[2]          empty ⊢ t[2] : T[1]        根据归纳假设，t[1] 和 t[2] 中的每一个要么是        一个值，要么可以进行一步推导。*)
+(* 如果最后应用的规则是 T_App，那么 t = t[1] t[2]，        我们从规则的形式知道          empty ⊢ t[1] : T[1] → T[2]          empty ⊢ t[2] : T[1]        根据归纳假设，t[1] 和 t[2] 中的每一个要么是        一个值，要么可以进行一步推导。*)
 
 right.
 
@@ -2360,23 +2360,23 @@ destruct IHHt2; subst...
 
 * (* t[2] 是一个值 *)
 
-(* 如果t[1]和t[2]都是值，那么我们知道            t[1] = tabs x T[11] t[12]，因为抽象是            唯一可以有箭头类型的值。但是            (tabs x T[11] t[12]) t[2] ⇒ [x:=t[2]]t[12] 通过ST_AppAbs。*)
+(* 如果 t[1]和 t[2]都是值，那么我们知道            t[1] = tabs x T[11] t[12]，因为抽象是            唯一可以有箭头类型的值。但是            (tabs x T[11] t[12]) t[2] ⇒ [x:=t[2]]t[12] 通过 ST_AppAbs。*)
 
 inversion H; subst; try solve_by_invert.
 
-∃([subst](MoreStlc.html#STLCExtended.subst) x t[2] t[12])...
+∃(subst x t[2] t[12])...
 
 * (* t[2] 步骤 *)
 
-(* 如果t[1]是一个值，并且t[2] ⇒ t[2]'，            那么t[1] t[2] ⇒ t[1] t[2]' 通过ST_App2。*)
+(* 如果 t[1]是一个值，并且 t[2] ⇒ t[2]'，            那么 t[1] t[2] ⇒ t[1] t[2]' 通过 ST_App2。*)
 
-inversion H[0] as [t[2]' Hstp]. ∃([tapp](MoreStlc.html#STLCExtended.tapp) t[1] t[2]')...
+inversion H[0] as [t[2]' Hstp]. ∃(tapp t[1] t[2]')...
 
 + (* t[1] 步骤 *)
 
-(* 最后，如果t[1] ⇒ t[1]'，那么t[1] t[2] ⇒ t[1]' t[2]           通过ST_App1。*)
+(* 最后，如果 t[1] ⇒ t[1]'，那么 t[1] t[2] ⇒ t[1]' t[2]           通过 ST_App1。*)
 
-inversion H as [t[1]' Hstp]. ∃([tapp](MoreStlc.html#STLCExtended.tapp) t[1]' t[2])...
+inversion H as [t[1]' Hstp]. ∃(tapp t[1]' t[2])...
 
 - (* T_Nat *)
 
@@ -2392,13 +2392,13 @@ destruct IHHt...
 
 inversion H; subst; try solve_by_invert.
 
-∃([tnat](MoreStlc.html#STLCExtended.tnat) ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n[1]))...
+∃(tnat ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n[1]))...
 
 + (* t[1] 步骤 *)
 
 inversion H as [t[1]' Hstp].
 
-∃([tsucc](MoreStlc.html#STLCExtended.tsucc) t[1]')...
+∃(tsucc t[1]')...
 
 - (* T_Pred *)
 
@@ -2410,13 +2410,13 @@ destruct IHHt...
 
 inversion H; subst; try solve_by_invert.
 
-∃([tnat](MoreStlc.html#STLCExtended.tnat) ([pred](http://coq.inria.fr/library/Coq.Init.Peano.html#pred) n[1]))...
+∃(tnat ([pred](http://coq.inria.fr/library/Coq.Init.Peano.html#pred) n[1]))...
 
 + (* t[1] 步骤 *)
 
 inversion H as [t[1]' Hstp].
 
-∃([tpred](MoreStlc.html#STLCExtended.tpred) t[1]')...
+∃(tpred t[1]')...
 
 - (* T_Mult *)
 
@@ -2434,19 +2434,19 @@ inversion H; subst; try solve_by_invert.
 
 inversion H[0]; subst; try solve_by_invert.
 
-∃([tnat](MoreStlc.html#STLCExtended.tnat) ([mult](http://coq.inria.fr/library/Coq.Init.Peano.html#mult) n[1] n[0]))...
+∃(tnat ([mult](http://coq.inria.fr/library/Coq.Init.Peano.html#mult) n[1] n[0]))...
 
 * (* t[2] 步骤 *)
 
 inversion H[0] as [t[2]' Hstp].
 
-∃([tmult](MoreStlc.html#STLCExtended.tmult) t[1] t[2]')...
+∃(tmult t[1] t[2]')...
 
 + (* t[1] 步骤 *)
 
 inversion H as [t[1]' Hstp].
 
-∃([tmult](MoreStlc.html#STLCExtended.tmult) t[1]' t[2])...
+∃(tmult t[1]' t[2])...
 
 - (* T_If[0] *)
 
@@ -2472,7 +2472,7 @@ destruct n[1] as [|n[1]'].
 
 inversion H as [t[1]' H[0]].
 
-∃([tif0](MoreStlc.html#STLCExtended.tif0) t[1]' t[2] t[3])...
+∃(tif0 t[1]' t[2] t[3])...
 
 (* FILL IN HERE *)
 
@@ -2526,7 +2526,7 @@ inversion H; subst; try solve_by_invert.
 
 inversion H as [t[0]' Hstp].
 
-∃([tcase](MoreStlc.html#STLCExtended.tcase) t[0]' x[1] t[1] x[2] t[2])...
+∃(tcase t[0]' x[1] t[1] x[2] t[2])...
 
 - (* T_Nil *)
 
@@ -2544,13 +2544,13 @@ destruct IHHt2...
 
 right. inversion H[0] as [t[2]' Hstp].
 
-∃([tcons](MoreStlc.html#STLCExtended.tcons) t[1] t[2]')...
+∃(tcons t[1] t[2]')...
 
 + (* head steps *)
 
 right. inversion H as [t[1]' Hstp].
 
-∃([tcons](MoreStlc.html#STLCExtended.tcons) t[1]' t[2])...
+∃(tcons t[1]' t[2])...
 
 - (* T_Lcase *)
 
@@ -2574,7 +2574,7 @@ inversion H; subst; try solve_by_invert.
 
 inversion H as [t[1]' Hstp].
 
-∃([tlcase](MoreStlc.html#STLCExtended.tlcase) t[1]' t[2] x[1] x[2] t[3])...
+∃(tlcase t[1]' t[2] x[1] x[2] t[3])...
 
 (* fix *)
 
@@ -2758,19 +2758,19 @@ intros Γ' Heqv...
 
 - (* T_Var *)
 
-apply [T_Var](MoreStlc.html#STLCExtended.T_Var)... rewrite ← Heqv...
+apply T_Var... rewrite ← Heqv...
 
 - (* T_Abs *)
 
-apply [T_Abs](MoreStlc.html#STLCExtended.T_Abs)... apply IHhas_type. intros y Hafi.
+apply T_Abs... apply IHhas_type. intros y Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x y)...
+destruct (beq_idP x y)...
 
 - (* T_Mult *)
 
-apply [T_Mult](MoreStlc.html#STLCExtended.T_Mult)...
+apply T_Mult...
 
 - (* T_If[0] *)
 
@@ -2786,33 +2786,33 @@ apply [T_If[0]](MoreStlc.html#STLCExtended.T_If<sub>0</sub>)...
 
 - (* T_Case *)
 
-eapply [T_Case](MoreStlc.html#STLCExtended.T_Case)...
+eapply T_Case...
 
 + apply IHhas_type2. intros y Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x[1] y)...
+destruct (beq_idP x[1] y)...
 
 + apply IHhas_type3. intros y Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x[2] y)...
+destruct (beq_idP x[2] y)...
 
 - (* T_Cons *)
 
-apply [T_Cons](MoreStlc.html#STLCExtended.T_Cons)...
+apply T_Cons...
 
 - (* T_Lcase *)
 
-eapply [T_Lcase](MoreStlc.html#STLCExtended.T_Lcase)... apply IHhas_type3. intros y Hafi.
+eapply T_Lcase... apply IHhas_type3. intros y Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x[1] y)...
+destruct (beq_idP x[1] y)...
 
-destruct ([beq_idP](Maps.html#beq_idP) x[2] y)...
+destruct (beq_idP x[2] y)...
 
     Qed.
 
@@ -2834,9 +2834,9 @@ induction Htyp; inversion Hafi; subst...
 
 destruct IHHtyp as [T' Hctx]... ∃T'.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in Hctx.
+unfold update, t_update in Hctx.
 
-rewrite [false_beq_id](Maps.html#false_beq_id) in Hctx...
+rewrite false_beq_id in Hctx...
 
 (* let *)
 
@@ -2848,17 +2848,17 @@ rewrite [false_beq_id](Maps.html#false_beq_id) in Hctx...
 
 destruct IHHtyp2 as [T' Hctx]... ∃T'.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in Hctx.
+unfold update, t_update in Hctx.
 
-rewrite [false_beq_id](Maps.html#false_beq_id) in Hctx...
+rewrite false_beq_id in Hctx...
 
 - (* right *)
 
 destruct IHHtyp3 as [T' Hctx]... ∃T'.
 
-在 Hctx 中展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-在 Hctx 中重写 [false_beq_id](Maps.html#false_beq_id)...
+在 Hctx 中重写 false_beq_id...
 
 - (* T_Lcase *)
 
@@ -2866,11 +2866,11 @@ destruct IHHtyp3 as [T' Hctx]... ∃T'.
 
 将 IHHtyp3 破坏为 [T' Hctx]... ∃T'。
 
-在 Hctx 中展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-在 Hctx 中重写 [false_beq_id](Maps.html#false_beq_id)...
+在 Hctx 中重写 false_beq_id...
 
-在 Hctx 中重写 [false_beq_id](Maps.html#false_beq_id)...
+在 Hctx 中重写 false_beq_id...
 
     完成。
 
@@ -2908,9 +2908,9 @@ empty ⊢ v ∈ U   →
 
 (* 如果 t = y，我们知道          empty ⊢ v : U 和          Γ,x:U ⊢ y : S        并且，通过反演，update Γ x U y = Some S。  我们想要展示        Γ ⊢ [x:=v]y : S。        有两种情况需要考虑：要么 x=y，要么 x≠y。*)
 
-在 H[1] 中展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 H[1] 中展开 update, t_update。
 
-破坏 ([beq_idP](Maps.html#beq_idP) x y).
+破坏 (beq_idP x y).
 
 + (* x=y *)
 
@@ -2920,11 +2920,11 @@ empty ⊢ v ∈ U   →
 
 反演 H[1]；替换。清除 H[1]。
 
-应用 [上下文不变性](MoreStlc.html#STLCExtended.context_invariance)...
+应用 上下文不变性...
 
 对 x Hcontra 进行介绍。
 
-将 ([free_in_context](MoreStlc.html#STLCExtended.free_in_context) _ _ S [empty](Maps.html#empty) Hcontra) 破坏
+将 (free_in_context _ _ S empty Hcontra) 破坏
 
 如 [T' HT'] 所示...
 
@@ -2934,7 +2934,7 @@ empty ⊢ v ∈ U   →
 
 (* 如果 x ≠ y，那么 Γ y = Some S，替换没有影响。我们可以通过 T_Var 展示        Γ ⊢ y : S。*)
 
-应用 [T_Var](MoreStlc.html#STLCExtended.T_Var)...
+应用 T_Var...
 
 - (* tabs *)
 
@@ -2942,35 +2942,35 @@ empty ⊢ v ∈ U   →
 
 (* 如果 t = tabs y T[11] t[0]，那么我们知道          Γ,x:U ⊢ tabs y T[11] t[0] : T[11]→T[12]          Γ,x:U,y:T[11] ⊢ t[0] : T[12]          empty ⊢ v : U        根据我们的 IH，我们知道对于所有的 S 和 Gamma，          Γ,x:U ⊢ t[0] : S → Γ ⊢ [x:=v]t[0] : S。        我们可以计算出          x:=vt = tabs y T[11] (if beq_id x y then t[0] else x:=vt[0])        我们必须展示 Γ ⊢ [x:=v]t : T[11]→T[12]。  我们知道        我们将使用 T_Abs 来完成，所以我们还需要展示：          Γ,y:T[11] ⊢ if beq_id x y then t[0] else [x:=v]t[0] : T[12]        我们考虑两种情况：x = y 和 x ≠ y。     *)
 
-应用 [T_Abs](MoreStlc.html#STLCExtended.T_Abs)...
+应用 T_Abs...
 
-将 ([beq_idP](Maps.html#beq_idP) x y) 分解为 [Hxy|Hxy]。
+将 (beq_idP x y) 分解为 [Hxy|Hxy]。
 
 + (* x=y *)
 
 (* If x = y, then the substitution has no effect.  Context        invariance shows that Γ,y:U,y:T[11] and Γ,y:T[11] are        equivalent.  Since the former context shows that         t[0] : T[12], so does the latter. *)
 
-eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+eapply context_invariance...
 
 subst.
 
-intros x Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros x Hafi. unfold update, t_update.
 
-destruct ([beq_id](Maps.html#beq_id) y x)...
+destruct (beq_id y x)...
 
 + (* x<>y *)
 
 (* If x ≠ y, then the IH and context invariance allow           us to show that            Γ,x:U,y:T[11] ⊢ t[0] : T[12]       =>            Γ,y:T[11],x:U ⊢ t[0] : T[12]       =>            Γ,y:T[11] ⊢ [x:=v]t[0] : T[12] *)
 
-apply IHt. eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+apply IHt. eapply context_invariance...
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) y z) as [Hyz|Hyz]...
+destruct (beq_idP y z) as [Hyz|Hyz]...
 
 subst.
 
-rewrite [false_beq_id](Maps.html#false_beq_id)...
+rewrite false_beq_id...
 
 (* let *)
 
@@ -2980,103 +2980,103 @@ rewrite [false_beq_id](Maps.html#false_beq_id)...
 
 rename i into x[1]. rename i[0] into x[2].
 
-eapply [T_Case](MoreStlc.html#STLCExtended.T_Case)...
+eapply T_Case...
 
 + (* left arm *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x x[1]) as [Hxx1|Hxx1].
+destruct (beq_idP x x[1]) as [Hxx1|Hxx1].
 
 * (* x = x[1] *)
 
-eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+eapply context_invariance...
 
 subst.
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_id](Maps.html#beq_id) x[1] z)...
+destruct (beq_id x[1] z)...
 
 * (* x <> x[1] *)
 
-apply IHt2. eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+apply IHt2. eapply context_invariance...
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x[1] z) as [Hx1z|Hx1z]...
+destruct (beq_idP x[1] z) as [Hx1z|Hx1z]...
 
-subst. rewrite [false_beq_id](Maps.html#false_beq_id)...
+subst. rewrite false_beq_id...
 
 + (* right arm *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x x[2]) as [Hxx2|Hxx2].
+destruct (beq_idP x x[2]) as [Hxx2|Hxx2].
 
 * (* x = x[2] *)
 
-eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+eapply context_invariance...
 
 subst.
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_id](Maps.html#beq_id) x[2] z)...
+destruct (beq_id x[2] z)...
 
 * (* x <> x[2] *)
 
-apply IHt3. eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+apply IHt3. eapply context_invariance...
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) x[2] z)...
+destruct (beq_idP x[2] z)...
 
-subst. rewrite [false_beq_id](Maps.html#false_beq_id)...
+subst. rewrite false_beq_id...
 
 - (* tlcase *)
 
 rename i into y[1]. rename i[0] into y[2].
 
-eapply [T_Lcase](MoreStlc.html#STLCExtended.T_Lcase)...
+eapply T_Lcase...
 
-destruct ([beq_idP](Maps.html#beq_idP) x y[1]).
+destruct (beq_idP x y[1]).
 
 + (* x=y[1] *)
 
 simpl.
 
-eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+eapply context_invariance...
 
 subst.
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-destruct ([beq_idP](Maps.html#beq_idP) y[1] z)...
+destruct (beq_idP y[1] z)...
 
 + (* x<>y[1] *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x y[2]).
+destruct (beq_idP x y[2]).
 
 * (* x=y[2] *)
 
-eapply [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+eapply context_invariance...
 
 subst.
 
-intros z Hafi. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
+intros z Hafi. unfold update, t_update.
 
-分解 ([beq_idP](Maps.html#beq_idP) y[2] z)...
+分解 (beq_idP y[2] z)...
 
 * (* x<>y[2] *)
 
-应用 IHt3。使用 [context_invariance](MoreStlc.html#STLCExtended.context_invariance)...
+应用 IHt3。使用 context_invariance...
 
-对 z 和 Hafi 进行介绍。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。
+对 z 和 Hafi 进行介绍。展开 update，t_update。
 
-分解 ([beq_idP](Maps.html#beq_idP) y[1] z)...
+分解 (beq_idP y[1] z)...
 
-替换。重写 [false_beq_id](Maps.html#false_beq_id)...
+替换。重写 false_beq_id...
 
-分解 ([beq_idP](Maps.html#beq_idP) y[2] z)...
+分解 (beq_idP y[2] z)...
 
-替换。重写 [false_beq_id](Maps.html#false_beq_id)...
+替换。重写 false_beq_id...
 
     完成。
 
@@ -3100,7 +3100,7 @@ empty ⊢ t' ∈ T。
 
 (* 定理：如果 empty ⊢ t : T 并且 t ⇒ t'，那么 empty ⊢ t' : T。*)
 
-记住 [empty](Maps.html#empty) 作为 Γ。推广依赖于 HeqGamma。
+记住 empty 作为 Γ。推广依赖于 HeqGamma。
 
 推广依赖于 t'。
 
@@ -3120,7 +3120,7 @@ empty ⊢ t' ∈ T。
 
 (* 对于第三种情况，假设            t[1] = tabs x T[11] t[12]          并且            t[2] = v[2]。          我们必须展示 empty ⊢ [x:=v[2]]t[12] : T[2]。          我们知道根据假设              empty ⊢ tabs x T[11] t[12] : T[1]→T[2]          并且根据反演              x:T[1] ⊢ t[12] : T[2]          我们已经证明了替换保持          类型，并且              empty ⊢ v[2] : T[1]          根据假设，所以我们完成了。*)
 
-使用 [substitution_preserves_typing](MoreStlc.html#STLCExtended.substitution_preserves_typing) 与 T[1]...
+使用 substitution_preserves_typing 与 T[1]...
 
 对 HT[1] 进行反演...
 
@@ -3138,13 +3138,13 @@ empty ⊢ t' ∈ T。
 
 对 HT[1] 进行反演；替换。
 
-使用 [substitution_preserves_typing](MoreStlc.html#STLCExtended.substitution_preserves_typing)...
+使用 substitution_preserves_typing...
 
 - (* ST_CaseInr *)
 
 对 HT[1] 进行反演；替换。
 
-使用 [substitution_preserves_typing](MoreStlc.html#STLCExtended.substitution_preserves_typing)...
+使用 substitution_preserves_typing...
 
 - (* T_Lcase *)
 
@@ -3152,9 +3152,9 @@ empty ⊢ t' ∈ T。
 
 对 HT[1] 进行反演；替换。
 
-使用 [substitution_preserves_typing](MoreStlc.html#STLCExtended.substitution_preserves_typing) 与 ([TList](MoreStlc.html#STLCExtended.TList) T[1])...
+使用 substitution_preserves_typing 与 (TList T[1])...
 
-使用 [substitution_preserves_typing](MoreStlc.html#STLCExtended.substitution_preserves_typing) 与 T[1]...
+使用 substitution_preserves_typing 与 T[1]...
 
 (* fix *)
 

@@ -1,6 +1,6 @@
-# 第 6 章。对象操作
+# 第六章。对象操作
 
-本章描述了对象的操作，包括列表、数字、字符、字符串、向量、字节向量、符号、布尔值、哈希表和枚举。第一节涵盖了常量对象和引用。第二节描述了用于比较两个对象的通用等价谓词以及用于确定对象类型的谓词。后续章节描述了主要涉及上述对象类型之一的过程。没有专门处理过程操作的章节，因为专门为过程定义的唯一操作是应用，这在第 [5](control.html#g96) 章中描述。端口操作在第 [7](io.html#g121) 章中更一般地讨论了输入和输出。描述了定义新数据类型的机制在第 [9](records.html#g138) 章中。
+本章描述了对象的操作，包括列表、数字、字符、字符串、向量、字节向量、符号、布尔值、哈希表和枚举。第一节涵盖了常量对象和引用。第二节描述了用于比较两个对象的通用等价谓词以及用于确定对象类型的谓词。后续章节描述了主要涉及上述对象类型之一的过程。没有专门处理过程操作的章节，因为专门为过程定义的唯一操作是应用，这在第五章中描述。端口操作在第七章中更一般地讨论了输入和输出。描述了定义新数据类型的机制在第九章中。
 
 ### 第 6.1 节。常量和引用
 
@@ -10,15 +10,15 @@
 
 `*constant*` 是任何自我评估的常量，即数字、布尔值、字符、字符串或字节向量。常量是不可变的；请参见下面对 `quote` 描述的注释。
 
-`3.2 ![<graphic>](ch6_0.gif) 3.2
+`3.2 ![<graphic>](img/ch6_0.gif) 3.2
 
-#f ![<graphic>](ch6_0.gif) #f
+#f ![<graphic>](img/ch6_0.gif) #f
 
-#\c ![<graphic>](ch6_0.gif) #\c
+#\c ![<graphic>](img/ch6_0.gif) #\c
 
-"hi" ![<graphic>](ch6_0.gif) "hi"
+"hi" ![<graphic>](img/ch6_0.gif) "hi"
 
-#vu8(3 4 5) ![<graphic>](ch6_0.gif) #vu8(3 4 5)`
+#vu8(3 4 5) ![<graphic>](img/ch6_0.gif) #vu8(3 4 5)`
 
 **语法**: `(quote *obj*)`
 
@@ -34,19 +34,19 @@
 
 引用和自我评估的常量是不可变的。也就是说，程序不应通过 `set-car!`、`string-set!` 等方式改变常量，并且实现允许在尝试这种改变时引发带有条件类型 `&assertion` 的异常。如果尝试更改不可变对象未被检测到，则程序的行为是未指定的。实现可以选择在不同常量之间共享存储空间以节省空间。
 
-`(+ 2 3) ![<graphic>](ch6_0.gif) 5
+`(+ 2 3) ![<graphic>](img/ch6_0.gif) 5
 
-'(+ 2 3) ![<graphic>](ch6_0.gif) (+ 2 3)
+'(+ 2 3) ![<graphic>](img/ch6_0.gif) (+ 2 3)
 
-(quote (+ 2 3)) ![<graphic>](ch6_0.gif) (+ 2 3)
+(quote (+ 2 3)) ![<graphic>](img/ch6_0.gif) (+ 2 3)
 
-'a ![<graphic>](ch6_0.gif) a
+'a ![<graphic>](img/ch6_0.gif) a
 
-'cons ![<graphic>](ch6_0.gif) cons
+'cons ![<graphic>](img/ch6_0.gif) cons
 
-'() ![<graphic>](ch6_0.gif) ()
+'() ![<graphic>](img/ch6_0.gif) ()
 
-'7 ![<graphic>](ch6_0.gif) 7`
+'7 ![<graphic>](img/ch6_0.gif) 7`
 
 **语法**: `(quasiquote *obj* ...)`
 
@@ -70,47 +70,47 @@
 
 `quasiquote` 表达式可以嵌套，每个 `quasiquote` 引入一个新的引用级别，每个 `unquote` 或 `unquote-splicing` 则减少一个引用级别。嵌套在 *n* 个 `quasiquote` 表达式中的表达式必须在 *n* 个 `unquote` 或 `unquote-splicing` 表达式内才能被评估。
 
-``(+ 2 3) ![<graphic>](ch6_0.gif) (+ 2 3)
+``(+ 2 3) ![<graphic>](img/ch6_0.gif) (+ 2 3)
 
-`(+ 2 ,(* 3 4)) ![<graphic>](ch6_0.gif) (+ 2 12)
+`(+ 2 ,(* 3 4)) ![<graphic>](img/ch6_0.gif) (+ 2 12)
 
-`(a b (,(+ 2 3) c) d) ![<graphic>](ch6_0.gif) (a b (5 c) d)
+`(a b (,(+ 2 3) c) d) ![<graphic>](img/ch6_0.gif) (a b (5 c) d)
 
-`(a b ,(reverse '(c d e)) f g) ![<graphic>](ch6_0.gif) (a b (e d c) f g)
-
-(let ([a 1] [b 2])
-
-`(,a . ,b)) ![<graphic>](ch6_0.gif) (1 . 2)
-
-`(+ ,@(cdr '(* 2 3))) ![<graphic>](ch6_0.gif) (+ 2 3)
-
-`(a b ,@(reverse '(c d e)) f g) ![<graphic>](ch6_0.gif) (a b e d c f g)
+`(a b ,(reverse '(c d e)) f g) ![<graphic>](img/ch6_0.gif) (a b (e d c) f g)
 
 (let ([a 1] [b 2])
 
-`(,a ,@b)) ![<graphic>](ch6_0.gif) (1 . 2)
+`(,a . ,b)) ![<graphic>](img/ch6_0.gif) (1 . 2)
 
-`#(,@(list 1 2 3)) ![<graphic>](ch6_0.gif) #(1 2 3)
+`(+ ,@(cdr '(* 2 3))) ![<graphic>](img/ch6_0.gif) (+ 2 3)
 
-'`,(cons 'a 'b) ![<graphic>](ch6_0.gif) `,(cons 'a 'b)
+`(a b ,@(reverse '(c d e)) f g) ![<graphic>](img/ch6_0.gif) (a b e d c f g)
 
-`',(cons 'a 'b) ![<graphic>](ch6_0.gif) '(a . b)`
+(let ([a 1] [b 2])
 
-`unquote` 和 `unquote-splicing` 表单在零个或多个子表单的情况下仅在拼接（列表或向量）上下文中有效。`(unquote *obj* ...)` 等同于 `(unquote *obj*) ...`，`(unquote-splicing *obj* ...)` 等同于 `(unquote-splicing *obj*) ...`。这些形式主要用作 `quasiquote` 展开器输出中的中间形式。它们支持某些有用的嵌套准引用习语 [[3](bibliography.html#g221)]，例如 `,@,@`，在双重嵌套和双重评估的 `quasiquote` 表达式中使用时具有双重间接拼接的效果。
+`(,a ,@b)) ![<graphic>](img/ch6_0.gif) (1 . 2)
 
-``(a (unquote) b) ![<graphic>](ch6_0.gif) (a b)
+`#(,@(list 1 2 3)) ![<graphic>](img/ch6_0.gif) #(1 2 3)
 
-`(a (unquote (+ 3 3)) b) ![<graphic>](ch6_0.gif) (a 6 b)
+'`,(cons 'a 'b) ![<graphic>](img/ch6_0.gif) `,(cons 'a 'b)
 
-`(a (unquote (+ 3 3) (* 3 3)) b) ![<graphic>](ch6_0.gif) (a 6 9 b)
+`',(cons 'a 'b) ![<graphic>](img/ch6_0.gif) '(a . b)`
 
-(let ([x '(m n)]) ``(a ,@,@x f)) ![<graphic>](ch6_0.gif) `(a (unquote-splicing m n) f)
+`unquote` 和 `unquote-splicing` 表单在零个或多个子表单的情况下仅在拼接（列表或向量）上下文中有效。`(unquote *obj* ...)` 等同于 `(unquote *obj*) ...`，`(unquote-splicing *obj* ...)` 等同于 `(unquote-splicing *obj*) ...`。这些形式主要用作 `quasiquote` 展开器输出中的中间形式。它们支持某些有用的嵌套准引用习语 [3]，例如 `,@,@`，在双重嵌套和双重评估的 `quasiquote` 表达式中使用时具有双重间接拼接的效果。
+
+``(a (unquote) b) ![<graphic>](img/ch6_0.gif) (a b)
+
+`(a (unquote (+ 3 3)) b) ![<graphic>](img/ch6_0.gif) (a 6 b)
+
+`(a (unquote (+ 3 3) (* 3 3)) b) ![<graphic>](img/ch6_0.gif) (a 6 9 b)
+
+(let ([x '(m n)]) ``(a ,@,@x f)) ![<graphic>](img/ch6_0.gif) `(a (unquote-splicing m n) f)
 
 (let ([x '(m n)])
 
 (eval `(let ([m '(b c)] [n '(d e)]) `(a ,@,@x f))
 
-(environment '(rnrs)))) ![<graphic>](ch6_0.gif) (a b c d e f)`
+(environment '(rnrs)))) ![<graphic>](img/ch6_0.gif) (a b c d e f)`
 
 `unquote` 和 `unquote-splicing` 是 `quasiquote` 的辅助关键字。在除了被识别为辅助关键字的上下文之外引用这些标识符是语法错误。
 
@@ -148,119 +148,119 @@
 
 `eq?` 最常用于比较符号或检查已分配对象的指针等价性，例如对、向量或记录实例。
 
-`(eq? 'a 3) ![<graphic>](ch6_0.gif) #f`
+`(eq? 'a 3) ![<graphic>](img/ch6_0.gif) #f`
 
-`(eq? #t 't) ![<graphic>](ch6_0.gif) #f`
+`(eq? #t 't) ![<graphic>](img/ch6_0.gif) #f`
 
-`(eq? "abc" 'abc) ![<graphic>](ch6_0.gif) #f`
+`(eq? "abc" 'abc) ![<graphic>](img/ch6_0.gif) #f`
 
-(eq? "hi" '(hi)) ![<graphic>](ch6_0.gif) #f
+(eq? "hi" '(hi)) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? #f '()) ![<graphic>](ch6_0.gif) #f
+(eq? #f '()) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 9/2 7/2) ![<graphic>](ch6_0.gif) #f
+(eq? 9/2 7/2) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 3.4 53344) ![<graphic>](ch6_0.gif) #f
+(eq? 3.4 53344) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 3 3.0) ![<graphic>](ch6_0.gif) #f
+(eq? 3 3.0) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 1/3 #i1/3) ![<graphic>](ch6_0.gif) #f
+(eq? 1/3 #i1/3) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 9/2 9/2) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? 9/2 9/2) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eq? 3.4 (+ 3.0 .4)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? 3.4 (+ 3.0 .4)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
 (let ([x (* 12345678987654321 2)])
 
-(eq? x x)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? x x)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eq? #\a #\b) ![<graphic>](ch6_0.gif) #f
+(eq? #\a #\b) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? #\a #\a) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? #\a #\a) ![<graphic>](img/ch6_0.gif) *unspecified*
 
 (let ([x (string-ref "hi" 0)])
 
-(eq? x x)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? x x)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eq? #t #t) ![<graphic>](ch6_0.gif) #t
+(eq? #t #t) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? #f #f) ![<graphic>](ch6_0.gif) #t
+(eq? #f #f) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? #t #f) ![<graphic>](ch6_0.gif) #f
+(eq? #t #f) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? (null? '()) #t) ![<graphic>](ch6_0.gif) #t
+(eq? (null? '()) #t) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? (null? '(a)) #f) ![<graphic>](ch6_0.gif) #t
+(eq? (null? '(a)) #f) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? (cdr '(a)) '()) ![<graphic>](ch6_0.gif) #t
+(eq? (cdr '(a)) '()) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? 'a 'a) ![<graphic>](ch6_0.gif) #t
+(eq? 'a 'a) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? 'a 'b) ![<graphic>](ch6_0.gif) #f
+(eq? 'a 'b) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? 'a (string->symbol "a")) ![<graphic>](ch6_0.gif) #t
+(eq? 'a (string->symbol "a")) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? '(a) '(b)) ![<graphic>](ch6_0.gif) #f
+(eq? '(a) '(b)) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? '(a) '(a)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? '(a) '(a)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(let ([x '(a . b)]) (eq? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x '(a . b)]) (eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (cons 'a 'b)])
 
-(eq? x x)) ![<graphic>](ch6_0.gif) #t
+(eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](ch6_0.gif) #f
+(eq? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? "abc" "cba") ![<graphic>](ch6_0.gif) #f
+(eq? "abc" "cba") ![<graphic>](img/ch6_0.gif) #f
 
-(eq? "abc" "abc") ![<graphic>](ch6_0.gif) *unspecified*
+(eq? "abc" "abc") ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(let ([x "hi"]) (eq? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x "hi"]) (eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x (string #\h #\i)]) (eq? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x (string #\h #\i)]) (eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (eq? (string #\h #\i)
 
-(string #\h #\i)) ![<graphic>](ch6_0.gif) #f
+(string #\h #\i)) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? '#vu8(1) '#vu8(1)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? '#vu8(1) '#vu8(1)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eq? '#vu8(1) '#vu8(2)) ![<graphic>](ch6_0.gif) #f
-
-(let ([x (make-bytevector 10 0)])
-
-(eq? x x)) ![<graphic>](ch6_0.gif) #t
+(eq? '#vu8(1) '#vu8(2)) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([x (make-bytevector 10 0)])
 
-(eq? x (make-bytevector 10 0))) ![<graphic>](ch6_0.gif) #f
+(eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? '#(a) '#(b)) ![<graphic>](ch6_0.gif) #f
+(let ([x (make-bytevector 10 0)])
 
-(eq? '#(a) '#(a)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? x (make-bytevector 10 0))) ![<graphic>](img/ch6_0.gif) #f
 
-(let ([x '#(a)]) (eq? x x)) ![<graphic>](ch6_0.gif) #t
+(eq? '#(a) '#(b)) ![<graphic>](img/ch6_0.gif) #f
+
+(eq? '#(a) '#(a)) ![<graphic>](img/ch6_0.gif) *unspecified*
+
+(let ([x '#(a)]) (eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (vector 'a)])
 
-(eq? x x)) ![<graphic>](ch6_0.gif) #t
+(eq? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? (vector 'a) (vector 'a)) ![<graphic>](ch6_0.gif) #f
+(eq? (vector 'a) (vector 'a)) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? car car) ![<graphic>](ch6_0.gif) #t
+(eq? car car) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? car cdr) ![<graphic>](ch6_0.gif) #f
+(eq? car cdr) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([f (lambda (x) x)])
 
-(eq? f f)) ![<graphic>](ch6_0.gif) #t
+(eq? f f)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([f (lambda () (lambda (x) x))])
 
-(eq? (f) (f))) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? (f) (f))) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eq? (lambda (x) x) (lambda (y) y)) ![<graphic>](ch6_0.gif) *unspecified*
+(eq? (lambda (x) x) (lambda (y) y)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
 (let ([f (lambda (x)
 
@@ -270,7 +270,7 @@
 
 x))])
 
-(eq? (f 0) (f 0))) ![<graphic>](ch6_0.gif) #f`
+(eq? (f 0) (f 0))) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(eqv? *obj[1]* *obj[2]*)`
 
@@ -280,135 +280,135 @@ x))])
 
 `eqv?` 类似于 `eq?`，但 `eqv?` 保证对于两个被 `char=?` 视为相等的字符和两个被 `=` 视为相等且除了 `eq?` 和 `eqv?` 外无法区分的数字，`eqv?` 将返回 `#t`。由于（b）的结果是，即使在区分 `-0.0` 和 `+0.0` 的系统中（如基于 IEEE 浮点运算的系统），`(eqv? -0.0 +0.0)` 也是 `#f`，尽管 `(= -0.0 +0.0)` 是 `#t`。这是因为诸如 `/` 这样的操作可以暴露出差异：
 
-`(/ 1.0 -0.0) ![<graphic>](ch6_0.gif) -inf.0
+`(/ 1.0 -0.0) ![<graphic>](img/ch6_0.gif) -inf.0
 
-(/ 1.0 +0.0) ![<graphic>](ch6_0.gif) +inf.0`
+(/ 1.0 +0.0) ![<graphic>](img/ch6_0.gif) +inf.0`
 
 类似地，尽管 3.0 和 3.0+0.0i 在数值上被认为是相等的，但如果 -0.0 和 0.0 有不同的表示，则它们在 `eqv?` 中不被视为等价。
 
-`(= 3.0+0.0i 3.0) ![<graphic>](ch6_0.gif) #t
+`(= 3.0+0.0i 3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? 3.0+0.0i 3.0) ![<graphic>](ch6_0.gif) #f`
+(eqv? 3.0+0.0i 3.0) ![<graphic>](img/ch6_0.gif) #f`
 
 当参数为 NaN 时，`eqv?` 返回的布尔值未指定。
 
-`(eqv? +nan.0 (/ 0.0 0.0)) ![<graphic>](ch6_0.gif) *unspecified*`
+`(eqv? +nan.0 (/ 0.0 0.0)) ![<graphic>](img/ch6_0.gif) *unspecified*`
 
 `eqv?` 不太依赖于实现，但通常比 `eq?` 更昂贵。
 
-`(eqv? 'a 3) ![<graphic>](ch6_0.gif) #f
+`(eqv? 'a 3) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? #t 't) ![<graphic>](ch6_0.gif) #f
+(eqv? #t 't) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? "abc" 'abc) ![<graphic>](ch6_0.gif) #f
+(eqv? "abc" 'abc) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? "hi" '(hi)) ![<graphic>](ch6_0.gif) #f
+(eqv? "hi" '(hi)) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? #f '()) ![<graphic>](ch6_0.gif) #f
+(eqv? #f '()) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 9/2 7/2) ![<graphic>](ch6_0.gif) #f
+(eqv? 9/2 7/2) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 3.4 53344) ![<graphic>](ch6_0.gif) #f
+(eqv? 3.4 53344) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 3 3.0) ![<graphic>](ch6_0.gif) #f
+(eqv? 3 3.0) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 1/3 #i1/3) ![<graphic>](ch6_0.gif) #f
+(eqv? 1/3 #i1/3) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 9/2 9/2) ![<graphic>](ch6_0.gif) #t
+(eqv? 9/2 9/2) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? 3.4 (+ 3.0 .4)) ![<graphic>](ch6_0.gif) #t
+(eqv? 3.4 (+ 3.0 .4)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (* 12345678987654321 2)])
 
-(eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? #\a #\b) ![<graphic>](ch6_0.gif) #f
+(eqv? #\a #\b) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? #\a #\a) ![<graphic>](ch6_0.gif) #t
+(eqv? #\a #\a) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (string-ref "hi" 0)])
 
-(eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? #t #t) ![<graphic>](ch6_0.gif) #t
+(eqv? #t #t) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? #f #f) ![<graphic>](ch6_0.gif) #t
+(eqv? #f #f) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? #t #f) ![<graphic>](ch6_0.gif) #f
+(eqv? #t #f) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? (null? '()) #t) ![<graphic>](ch6_0.gif) #t
+(eqv? (null? '()) #t) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? (null? '(a)) #f) ![<graphic>](ch6_0.gif) #t
+(eqv? (null? '(a)) #f) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? (cdr '(a)) '()) ![<graphic>](ch6_0.gif) #t
+(eqv? (cdr '(a)) '()) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? 'a 'a) ![<graphic>](ch6_0.gif) #t
+(eqv? 'a 'a) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? 'a 'b) ![<graphic>](ch6_0.gif) #f
+(eqv? 'a 'b) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? 'a (string->symbol "a")) ![<graphic>](ch6_0.gif) #t
+(eqv? 'a (string->symbol "a")) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? '(a) '(b)) ![<graphic>](ch6_0.gif) #f
+(eqv? '(a) '(b)) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? '(a) '(a)) ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? '(a) '(a)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(let ([x '(a . b)]) (eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x '(a . b)]) (eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (cons 'a 'b)])
 
-(eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](ch6_0.gif) #f
+(eqv? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? "abc" "cba") ![<graphic>](ch6_0.gif) #f
+(eqv? "abc" "cba") ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? "abc" "abc") ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? "abc" "abc") ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(let ([x "hi"]) (eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x "hi"]) (eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x (string #\h #\i)]) (eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x (string #\h #\i)]) (eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (eqv? (string #\h #\i)
 
-(string #\h #\i)) ![<graphic>](ch6_0.gif) #f
+(string #\h #\i)) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? '#vu8(1) '#vu8(1)) ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? '#vu8(1) '#vu8(1)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eqv? '#vu8(1) '#vu8(2)) ![<graphic>](ch6_0.gif) #f
-
-(let ([x (make-bytevector 10 0)])
-
-(eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? '#vu8(1) '#vu8(2)) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([x (make-bytevector 10 0)])
 
-(eqv? x (make-bytevector 10 0))) ![<graphic>](ch6_0.gif) #f
+(eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? '#(a) '#(b)) ![<graphic>](ch6_0.gif) #f
+(let ([x (make-bytevector 10 0)])
 
-(eqv? '#(a) '#(a)) ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? x (make-bytevector 10 0))) ![<graphic>](img/ch6_0.gif) #f
 
-(let ([x '#(a)]) (eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? '#(a) '#(b)) ![<graphic>](img/ch6_0.gif) #f
+
+(eqv? '#(a) '#(a)) ![<graphic>](img/ch6_0.gif) *unspecified*
+
+(let ([x '#(a)]) (eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (vector 'a)])
 
-(eqv? x x)) ![<graphic>](ch6_0.gif) #t
+(eqv? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? (vector 'a) (vector 'a)) ![<graphic>](ch6_0.gif) #f
+(eqv? (vector 'a) (vector 'a)) ![<graphic>](img/ch6_0.gif) #f
 
-(eqv? car car) ![<graphic>](ch6_0.gif) #t
+(eqv? car car) ![<graphic>](img/ch6_0.gif) #t
 
-(eqv? car cdr) ![<graphic>](ch6_0.gif) #f
+(eqv? car cdr) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([f (lambda (x) x)])
 
-(eqv? f f)) ![<graphic>](ch6_0.gif) #t
+(eqv? f f)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([f (lambda () (lambda (x) x))])
 
-(eqv? (f) (f))) ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? (f) (f))) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(eqv? (lambda (x) x) (lambda (y) y)) ![<graphic>](ch6_0.gif) *unspecified*
+(eqv? (lambda (x) x) (lambda (y) y)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
 (let ([f (lambda (x)
 
@@ -418,7 +418,7 @@ x))])
 
 x))])
 
-(eqv? (f 0) (f 0))) ![<graphic>](ch6_0.gif) #f`
+(eqv? (f 0) (f 0))) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(equal? *obj[1]* *obj[2]*)`
 
@@ -428,123 +428,123 @@ x))])
 
 两个对象是相等的，如果它们根据 `eqv?`、字符串的 `string=?`、字节向量的 `bytevector=?`、其对应的 `car` 和 `cdr` 相等的对、或者长度相等的向量的相应元素相等。
 
-`equal?` 需要在循环参数中终止，并返回 `#t`，“仅当其参数（可能是无限的）展开成普通树时，其展开作为有序树相等”[[24](bibliography.html#g242)]。本质上，如果两个对象的结构不能通过任何一组对成对和向量访问器的组合以及用于比较叶子数据的 `eqv?`、`string=?` 和 `bytevector=?` 程序来区分，则两个值在 `equal?` 的意义上是等价的。
+`equal?` 需要在循环参数中终止，并返回 `#t`，“仅当其参数（可能是无限的）展开成普通树时，其展开作为有序树相等”[24]。本质上，如果两个对象的结构不能通过任何一组对成对和向量访问器的组合以及用于比较叶子数据的 `eqv?`、`string=?` 和 `bytevector=?` 程序来区分，则两个值在 `equal?` 的意义上是等价的。
 
-实现 `equal?` 的高效性是棘手的[[1](bibliography.html#g219)]，即使有一个良好的实现，它也可能比 `eqv?` 或 `eq?` 更昂贵。
+实现 `equal?` 的高效性是棘手的[1]，即使有一个良好的实现，它也可能比 `eqv?` 或 `eq?` 更昂贵。
 
-`(equal? 'a 3) ![<graphic>](ch6_0.gif) #f
+`(equal? 'a 3) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? #t 't) ![<graphic>](ch6_0.gif) #f
+(equal? #t 't) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? "abc" 'abc) ![<graphic>](ch6_0.gif) #f
+(equal? "abc" 'abc) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? "hi" '(hi)) ![<graphic>](ch6_0.gif) #f
+(equal? "hi" '(hi)) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? #f '()) ![<graphic>](ch6_0.gif) #f
+(equal? #f '()) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 9/2 7/2) ![<graphic>](ch6_0.gif) #f
+(equal? 9/2 7/2) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 3.4 53344) ![<graphic>](ch6_0.gif) #f
+(equal? 3.4 53344) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 3 3.0) ![<graphic>](ch6_0.gif) #f
+(equal? 3 3.0) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 1/3 #i1/3) ![<graphic>](ch6_0.gif) #f
+(equal? 1/3 #i1/3) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 9/2 9/2) ![<graphic>](ch6_0.gif) #t
+(equal? 9/2 9/2) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? 3.4 (+ 3.0 .4)) ![<graphic>](ch6_0.gif) #t
+(equal? 3.4 (+ 3.0 .4)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (* 12345678987654321 2)])
 
-(equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? #\a #\b) ![<graphic>](ch6_0.gif) #f
+(equal? #\a #\b) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? #\a #\a) ![<graphic>](ch6_0.gif) #t
+(equal? #\a #\a) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (string-ref "hi" 0)])
 
-(equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? #t #t) ![<graphic>](ch6_0.gif) #t
+(equal? #t #t) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? #f #f) ![<graphic>](ch6_0.gif) #t
+(equal? #f #f) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? #t #f) ![<graphic>](ch6_0.gif) #f
+(equal? #t #f) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? (null? '()) #t) ![<graphic>](ch6_0.gif) #t
+(equal? (null? '()) #t) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? (null? '(a)) #f) ![<graphic>](ch6_0.gif) #t
+(equal? (null? '(a)) #f) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? (cdr '(a)) '()) ![<graphic>](ch6_0.gif) #t
+(equal? (cdr '(a)) '()) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? 'a 'a) ![<graphic>](ch6_0.gif) #t
+(equal? 'a 'a) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? 'a 'b) ![<graphic>](ch6_0.gif) #f
+(equal? 'a 'b) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? 'a (string->symbol "a")) ![<graphic>](ch6_0.gif) #t
+(equal? 'a (string->symbol "a")) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? '(a) '(b)) ![<graphic>](ch6_0.gif) #f
+(equal? '(a) '(b)) ![<graphic>](img/ch6_0.gif) #f
 
-(equal? '(a) '(a)) ![<graphic>](ch6_0.gif) #t
+(equal? '(a) '(a)) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x '(a . b)]) (equal? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x '(a . b)]) (equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (cons 'a 'b)])
 
-(equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](ch6_0.gif) #t
+(equal? (cons 'a 'b) (cons 'a 'b)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? "abc" "cba") ![<graphic>](ch6_0.gif) #f
+(equal? "abc" "cba") ![<graphic>](img/ch6_0.gif) #f
 
-(equal? "abc" "abc") ![<graphic>](ch6_0.gif) #t
+(equal? "abc" "abc") ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x "hi"]) (equal? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x "hi"]) (equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x (string #\h #\i)]) (equal? x x)) ![<graphic>](ch6_0.gif) #t
+(let ([x (string #\h #\i)]) (equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (equal? (string #\h #\i)
 
-(string #\h #\i)) ![<graphic>](ch6_0.gif) #t
+(string #\h #\i)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? '#vu8(1) '#vu8(1)) ![<graphic>](ch6_0.gif) #t
+(equal? '#vu8(1) '#vu8(1)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? '#vu8(1) '#vu8(2)) ![<graphic>](ch6_0.gif) #f
-
-(let ([x (make-bytevector 10 0)])
-
-(equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? '#vu8(1) '#vu8(2)) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([x (make-bytevector 10 0)])
 
-(equal? x (make-bytevector 10 0))) ![<graphic>](ch6_0.gif) #t
+(equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? '#(a) '#(b)) ![<graphic>](ch6_0.gif) #f
+(let ([x (make-bytevector 10 0)])
 
-(equal? '#(a) '#(a)) ![<graphic>](ch6_0.gif) #t
+(equal? x (make-bytevector 10 0))) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x '#(a)]) (equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? '#(a) '#(b)) ![<graphic>](img/ch6_0.gif) #f
+
+(equal? '#(a) '#(a)) ![<graphic>](img/ch6_0.gif) #t
+
+(let ([x '#(a)]) (equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x (vector 'a)])
 
-(equal? x x)) ![<graphic>](ch6_0.gif) #t
+(equal? x x)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? (vector 'a) (vector 'a)) ![<graphic>](ch6_0.gif) #t
+(equal? (vector 'a) (vector 'a)) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? car car) ![<graphic>](ch6_0.gif) #t
+(equal? car car) ![<graphic>](img/ch6_0.gif) #t
 
-(equal? car cdr) ![<graphic>](ch6_0.gif) #f
+(equal? car cdr) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([f (lambda (x) x)])
 
-(equal? f f)) ![<graphic>](ch6_0.gif) #t
+(equal? f f)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([f (lambda () (lambda (x) x))])
 
-(equal? (f) (f))) ![<graphic>](ch6_0.gif) *unspecified*
+(equal? (f) (f))) ![<graphic>](img/ch6_0.gif) *unspecified*
 
-(equal? (lambda (x) x) (lambda (y) y)) ![<graphic>](ch6_0.gif) *unspecified*
+(equal? (lambda (x) x) (lambda (y) y)) ![<graphic>](img/ch6_0.gif) *unspecified*
 
 (let ([f (lambda (x)
 
@@ -554,7 +554,7 @@ x))])
 
 x))])
 
-(equal? (f 0) (f 0))) ![<graphic>](ch6_0.gif) #f
+(equal? (f 0) (f 0))) ![<graphic>](img/ch6_0.gif) #f
 
 (equal?
 
@@ -572,7 +572,7 @@ x)
 
 (set-cdr! x x)
 
-(cons x x))) ![<graphic>](ch6_0.gif) #t`
+(cons x x))) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(boolean? *obj*)`
 
@@ -582,11 +582,11 @@ x)
 
 `boolean?` 等同于 `(lambda (x) (or (eq? x #t) (eq? x #f)))`.
 
-`(boolean? #t) ![<graphic>](ch6_0.gif) #t
+`(boolean? #t) ![<graphic>](img/ch6_0.gif) #t
 
-(boolean? #f) ![<graphic>](ch6_0.gif) #t
+(boolean? #f) ![<graphic>](img/ch6_0.gif) #t
 
-(or (boolean? 't) (boolean? '())) ![<graphic>](ch6_0.gif) #f`
+(or (boolean? 't) (boolean? '())) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(null? *obj*)`
 
@@ -596,15 +596,15 @@ x)
 
 `null?` 等同于 `(lambda (x) (eq? x '()))`.
 
-`(null? '()) ![<graphic>](ch6_0.gif) #t
+`(null? '()) ![<graphic>](img/ch6_0.gif) #t
 
-(null? '(a)) ![<graphic>](ch6_0.gif) #f
+(null? '(a)) ![<graphic>](img/ch6_0.gif) #f
 
-(null? (cdr '(a))) ![<graphic>](ch6_0.gif) #t
+(null? (cdr '(a))) ![<graphic>](img/ch6_0.gif) #t
 
-(null? 3) ![<graphic>](ch6_0.gif) #f
+(null? 3) ![<graphic>](img/ch6_0.gif) #f
 
-(null? #f) ![<graphic>](ch6_0.gif) #f`
+(null? #f) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(pair? *obj*)`
 
@@ -612,15 +612,15 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(pair? '(a b c)) ![<graphic>](ch6_0.gif) #t
+`(pair? '(a b c)) ![<graphic>](img/ch6_0.gif) #t
 
-(pair? '(3 . 4)) ![<graphic>](ch6_0.gif) #t
+(pair? '(3 . 4)) ![<graphic>](img/ch6_0.gif) #t
 
-(pair? '()) ![<graphic>](ch6_0.gif) #f
+(pair? '()) ![<graphic>](img/ch6_0.gif) #f
 
-(pair? '#(a b)) ![<graphic>](ch6_0.gif) #f
+(pair? '#(a b)) ![<graphic>](img/ch6_0.gif) #f
 
-(pair? 3) ![<graphic>](ch6_0.gif) #f`
+(pair? 3) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(number? *obj*)`
 
@@ -648,85 +648,85 @@ x)
 
 `real?`、`rational?`和`integer?`谓词不会将具有非精确零虚部的复数识别为实数、有理数或整数。
 
-`(integer? 1901) ![<graphic>](ch6_0.gif) #t
+`(integer? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(rational? 1901) ![<graphic>](ch6_0.gif) #t
+(rational? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(real? 1901) ![<graphic>](ch6_0.gif) #t
+(real? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(complex? 1901) ![<graphic>](ch6_0.gif) #t
+(complex? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(number? 1901) ![<graphic>](ch6_0.gif) #t
+(number? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? -3.0) ![<graphic>](ch6_0.gif) #t
+(integer? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(rational? -3.0) ![<graphic>](ch6_0.gif) #t
+(rational? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(real? -3.0) ![<graphic>](ch6_0.gif) #t
+(real? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(complex? -3.0) ![<graphic>](ch6_0.gif) #t
+(complex? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(number? -3.0) ![<graphic>](ch6_0.gif) #t
+(number? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? 7+0i) ![<graphic>](ch6_0.gif) #t
+(integer? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(rational? 7+0i) ![<graphic>](ch6_0.gif) #t
+(rational? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(real? 7+0i) ![<graphic>](ch6_0.gif) #t
+(real? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(complex? 7+0i) ![<graphic>](ch6_0.gif) #t
+(complex? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(number? 7+0i) ![<graphic>](ch6_0.gif) #t
+(number? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? -2/3) ![<graphic>](ch6_0.gif) #f
+(integer? -2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(rational? -2/3) ![<graphic>](ch6_0.gif) #t
+(rational? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(real? -2/3) ![<graphic>](ch6_0.gif) #t
+(real? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(complex? -2/3) ![<graphic>](ch6_0.gif) #t
+(complex? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(number? -2/3) ![<graphic>](ch6_0.gif) #t
+(number? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? -2.345) ![<graphic>](ch6_0.gif) #f
+(integer? -2.345) ![<graphic>](img/ch6_0.gif) #f
 
-(rational? -2.345) ![<graphic>](ch6_0.gif) #t
+(rational? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(real? -2.345) ![<graphic>](ch6_0.gif) #t
+(real? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(complex? -2.345) ![<graphic>](ch6_0.gif) #t
+(complex? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(number? -2.345) ![<graphic>](ch6_0.gif) #t
+(number? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? 7.0+0.0i) ![<graphic>](ch6_0.gif) #f
+(integer? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #f
 
-(rational? 7.0+0.0i) ![<graphic>](ch6_0.gif) #f
+(rational? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #f
 
-(real? 7.0+0.0i) ![<graphic>](ch6_0.gif) #f
+(real? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #f
 
-(complex? 7.0+0.0i) ![<graphic>](ch6_0.gif) #t
+(complex? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #t
 
-(number? 7.0+0.0i) ![<graphic>](ch6_0.gif) #t
+(number? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f
+(integer? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f
 
-(rational? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f
+(rational? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f
 
-(real? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f
+(real? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f
 
-(complex? 3.2-2.01i) ![<graphic>](ch6_0.gif) #t
+(complex? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #t
 
-(number? 3.2-2.01i) ![<graphic>](ch6_0.gif) #t
+(number? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #t
 
-(integer? 'a) ![<graphic>](ch6_0.gif) #f
+(integer? 'a) ![<graphic>](img/ch6_0.gif) #f
 
-(rational? '(a b c)) ![<graphic>](ch6_0.gif) #f
+(rational? '(a b c)) ![<graphic>](img/ch6_0.gif) #f
 
-(real? "3") ![<graphic>](ch6_0.gif) #f
+(real? "3") ![<graphic>](img/ch6_0.gif) #f
 
-(complex? '#(1 2)) ![<graphic>](ch6_0.gif) #f
+(complex? '#(1 2)) ![<graphic>](img/ch6_0.gif) #f
 
-(number? #\a) ![<graphic>](ch6_0.gif) #f`
+(number? #\a) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(real-valued? *obj*)`
 
@@ -744,55 +744,55 @@ x)
 
 这些谓词类似于`real?`、`rational?`和`integer?`，但将具有非精确零虚部的实数、有理数或整数复数视为实数、有理数或整数。
 
-`(integer-valued? 1901) ![<graphic>](ch6_0.gif) #t
+`(integer-valued? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(rational-valued? 1901) ![<graphic>](ch6_0.gif) #t
+(rational-valued? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? 1901) ![<graphic>](ch6_0.gif) #t
+(real-valued? 1901) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? -3.0) ![<graphic>](ch6_0.gif) #t
+(integer-valued? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(rational-valued? -3.0) ![<graphic>](ch6_0.gif) #t
+(rational-valued? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? -3.0) ![<graphic>](ch6_0.gif) #t
+(real-valued? -3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? 7+0i) ![<graphic>](ch6_0.gif) #t
+(integer-valued? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(rational-valued? 7+0i) ![<graphic>](ch6_0.gif) #t
+(rational-valued? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? 7+0i) ![<graphic>](ch6_0.gif) #t
+(real-valued? 7+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? -2/3) ![<graphic>](ch6_0.gif) #f
+(integer-valued? -2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(rational-valued? -2/3) ![<graphic>](ch6_0.gif) #t
+(rational-valued? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? -2/3) ![<graphic>](ch6_0.gif) #t
+(real-valued? -2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? -2.345) ![<graphic>](ch6_0.gif) #f
+(integer-valued? -2.345) ![<graphic>](img/ch6_0.gif) #f
 
-(rational-valued? -2.345) ![<graphic>](ch6_0.gif) #t
+(rational-valued? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? -2.345) ![<graphic>](ch6_0.gif) #t
+(real-valued? -2.345) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? 7.0+0.0i) ![<graphic>](ch6_0.gif) #t
+(integer-valued? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #t
 
-(rational-valued? 7.0+0.0i) ![<graphic>](ch6_0.gif) #t
+(rational-valued? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #t
 
-(real-valued? 7.0+0.0i) ![<graphic>](ch6_0.gif) #t
+(real-valued? 7.0+0.0i) ![<graphic>](img/ch6_0.gif) #t
 
-(integer-valued? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f
+(integer-valued? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f
 
-(rational-valued? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f
+(rational-valued? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f
 
-(real-valued? 3.2-2.01i) ![<graphic>](ch6_0.gif) #f`
+(real-valued? 3.2-2.01i) ![<graphic>](img/ch6_0.gif) #f`
 
 与`real?`、`rational?`和`integer?`类似，这些谓词对所有非数值返回`#f`。
 
-`(integer-valued? 'a) ![<graphic>](ch6_0.gif) #f`
+`(integer-valued? 'a) ![<graphic>](img/ch6_0.gif) #f`
 
-(rational-valued? '(a b c)) ![<graphic>](ch6_0.gif) #f
+(rational-valued? '(a b c)) ![<graphic>](img/ch6_0.gif) #f
 
-(real-valued? "3") ![<graphic>](ch6_0.gif) #f`
+(real-valued? "3") ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(char? *obj*)`
 
@@ -800,15 +800,15 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(char? 'a) ![<graphic>](ch6_0.gif) #f`
+`(char? 'a) ![<graphic>](img/ch6_0.gif) #f`
 
-(char? 97) ![<graphic>](ch6_0.gif) #f
+(char? 97) ![<graphic>](img/ch6_0.gif) #f
 
-(char? #\a) ![<graphic>](ch6_0.gif) #t
+(char? #\a) ![<graphic>](img/ch6_0.gif) #t
 
-(char? "a") ![<graphic>](ch6_0.gif) #f
+(char? "a") ![<graphic>](img/ch6_0.gif) #f
 
-(char? (string-ref (make-string 1) 0)) ![<graphic>](ch6_0.gif) #t`
+(char? (string-ref (make-string 1) 0)) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(string? *obj*)`
 
@@ -816,11 +816,11 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(string? "hi") ![<graphic>](ch6_0.gif) #t
+`(string? "hi") ![<graphic>](img/ch6_0.gif) #t
 
-(string? 'hi) ![<graphic>](ch6_0.gif) #f
+(string? 'hi) ![<graphic>](img/ch6_0.gif) #f
 
-(string? #\h) ![<graphic>](ch6_0.gif) #f`
+(string? #\h) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(vector? *obj*)`
 
@@ -828,17 +828,17 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(vector? '#()) ![<graphic>](ch6_0.gif) #t
+`(vector? '#()) ![<graphic>](img/ch6_0.gif) #t
 
-(vector? '#(a b c)) ![<graphic>](ch6_0.gif) #t
+(vector? '#(a b c)) ![<graphic>](img/ch6_0.gif) #t
 
-(vector? (vector 'a 'b 'c)) ![<graphic>](ch6_0.gif) #t
+(vector? (vector 'a 'b 'c)) ![<graphic>](img/ch6_0.gif) #t
 
-(vector? '()) ![<graphic>](ch6_0.gif) #f
+(vector? '()) ![<graphic>](img/ch6_0.gif) #f
 
-(vector? '(a b c)) ![<graphic>](ch6_0.gif) #f
+(vector? '(a b c)) ![<graphic>](img/ch6_0.gif) #f
 
-(vector? "abc") ![<graphic>](ch6_0.gif) #f`
+(vector? "abc") ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(symbol? *obj*)`
 
@@ -846,17 +846,17 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(symbol? 't) ![<graphic>](ch6_0.gif) #t
+`(symbol? 't) ![<graphic>](img/ch6_0.gif) #t
 
-(symbol? "t") ![<graphic>](ch6_0.gif) #f
+(symbol? "t") ![<graphic>](img/ch6_0.gif) #f
 
-(symbol? '(t)) ![<graphic>](ch6_0.gif) #f
+(symbol? '(t)) ![<graphic>](img/ch6_0.gif) #f
 
-(symbol? #\t) ![<graphic>](ch6_0.gif) #f
+(symbol? #\t) ![<graphic>](img/ch6_0.gif) #f
 
-(symbol? 3) ![<graphic>](ch6_0.gif) #f
+(symbol? 3) ![<graphic>](img/ch6_0.gif) #f
 
-(symbol? #t) ![<graphic>](ch6_0.gif) #f`
+(symbol? #t) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(procedure? *obj*)`
 
@@ -864,15 +864,15 @@ x)
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(procedure? car) ![<graphic>](ch6_0.gif) #t
+`(procedure? car) ![<graphic>](img/ch6_0.gif) #t
 
-(procedure? 'car) ![<graphic>](ch6_0.gif) #f
+(procedure? 'car) ![<graphic>](img/ch6_0.gif) #f
 
-(procedure? (lambda (x) x)) ![<graphic>](ch6_0.gif) #t
+(procedure? (lambda (x) x)) ![<graphic>](img/ch6_0.gif) #t
 
-(procedure? '(lambda (x) x)) ![<graphic>](ch6_0.gif) #f
+(procedure? '(lambda (x) x)) ![<graphic>](img/ch6_0.gif) #f
 
-(call/cc procedure?) ![<graphic>](ch6_0.gif) #t`
+(call/cc procedure?) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(bytevector? *obj*)`
 
@@ -880,11 +880,11 @@ x)
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`(bytevector? #vu8()) ![<graphic>](ch6_0.gif) #t
+`(bytevector? #vu8()) ![<graphic>](img/ch6_0.gif) #t
 
-(bytevector? '#()) ![<graphic>](ch6_0.gif) #f
+(bytevector? '#()) ![<graphic>](img/ch6_0.gif) #f
 
-(bytevector? "abc") ![<graphic>](ch6_0.gif) #f`
+(bytevector? "abc") ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(hashtable? *obj*)`
 
@@ -892,65 +892,65 @@ x)
 
 **libraries:** `(rnrs hashtables)`, `(rnrs)`
 
-`(hashtable? (make-eq-hashtable)) ![<graphic>](ch6_0.gif) #t
+`(hashtable? (make-eq-hashtable)) ![<graphic>](img/ch6_0.gif) #t
 
-(hashtable? '(not a hash table)) ![<graphic>](ch6_0.gif) #f`
+(hashtable? '(not a hash table)) ![<graphic>](img/ch6_0.gif) #f`
 
-### 第6.3节。列表和对
+### 第 6.3 节。列表和对
 
-对Scheme结构化对象类型来说，对偶或*cons cell*是最基本的。对偶最常见的用途是构建列表，这是由*cdr*字段链接的对之间的有序序列。列表的元素占据对的*car*字段。在*proper list*中，最后一个对的cdr是空列表`()`；在*improper list*中，最后一个对的cdr可以是除`()`之外的任何其他内容。
+对 Scheme 结构化对象类型来说，对偶或*cons cell*是最基本的。对偶最常见的用途是构建列表，这是由*cdr*字段链接的对之间的有序序列。列表的元素占据对的*car*字段。在*proper list*中，最后一个对的 cdr 是空列表`()`；在*improper list*中，最后一个对的 cdr 可以是除`()`之外的任何其他内容。
 
-对可以用来构建二叉树。树结构中的每个对都是二叉树的内部节点；其car和cdr是节点的子节点。
+对可以用来构建二叉树。树结构中的每个对都是二叉树的内部节点；其 car 和 cdr 是节点的子节点。
 
-Proper lists被打印为由空格分隔并用括号括起的对象序列。匹配的方括号（ `[` `]` ）可以用括号代替。例如，`(1 2 3)`和`(a [nested list])`是proper lists。空列表写作`()`。
+Proper lists 被打印为由空格分隔并用括号括起的对象序列。匹配的方括号（ `[` `]` ）可以用括号代替。例如，`(1 2 3)`和`(a [nested list])`是 proper lists。空列表写作`()`。
 
-Improper lists和trees需要稍微复杂的语法。单个对写作两个由空格和点分隔的对象，例如，`(a . b)`。这被称为*dotted-pair notation*。Improper lists和trees也用dotted-pair notation写作；点出现在必要的地方，例如，`(1 2 3 . 4)`或`((1 . 2) . 3)`。Proper lists也可以用dotted-pair notation写作。例如，`(1 2 3)`可以写作`(1 . (2 . (3 . ())))`。
+Improper lists 和 trees 需要稍微复杂的语法。单个对写作两个由空格和点分隔的对象，例如，`(a . b)`。这被称为*dotted-pair notation*。Improper lists 和 trees 也用 dotted-pair notation 写作；点出现在必要的地方，例如，`(1 2 3 . 4)`或`((1 . 2) . 3)`。Proper lists 也可以用 dotted-pair notation 写作。例如，`(1 2 3)`可以写作`(1 . (2 . (3 . ())))`。
 
-通过破坏性地改变对的car或cdr字段，使用`set-car!`或`set-cdr!`，可以创建循环列表或循环图。这样的列表不被视为proper lists。
+通过破坏性地改变对的 car 或 cdr 字段，使用`set-car!`或`set-cdr!`，可以创建循环列表或循环图。这样的列表不被视为 proper lists。
 
 接受`*list*`参数的过程需要检测列表是否不完整，只要它们实际上遍历列表足够远，要么(a)尝试在非列表尾部操作，要么(b)由于循环而无限循环。例如，如果`member`实际上找到了正在寻找的元素，则无需检测列表是否不完整，而`list-ref`永远不需要检测循环，因为其递归受索引参数限制。
 
 **procedure**: `(cons *obj[1]* *obj[2]*)`
 
-**returns:** 一个新的对，其car和cdr分别为`*obj[1]*`和`*obj[2]*`
+**returns:** 一个新的对，其 car 和 cdr 分别为`*obj[1]*`和`*obj[2]*`
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`cons`是一对构造过程。`*obj[1]*`成为新对的car，`*obj[2]*`成为cdr。
+`cons`是一对构造过程。`*obj[1]*`成为新对的 car，`*obj[2]*`成为 cdr。
 
-`(cons 'a '()) ![<graphic>](ch6_0.gif) (a)`
+`(cons 'a '()) ![<graphic>](img/ch6_0.gif) (a)`
 
-`(cons 'a '(b c)) ![<graphic>](ch6_0.gif) (a b c)`
+`(cons 'a '(b c)) ![<graphic>](img/ch6_0.gif) (a b c)`
 
-`(cons 3 4) ![<graphic>](ch6_0.gif) (3 . 4)`
+`(cons 3 4) ![<graphic>](img/ch6_0.gif) (3 . 4)`
 
 **procedure**: `(car *pair*)`
 
-**returns:** `*pair*`的car
+**returns:** `*pair*`的 car
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
 空列表不是一对，因此参数不能是空列表。
 
-`(car '(a)) ![<graphic>](ch6_0.gif) a`
+`(car '(a)) ![<graphic>](img/ch6_0.gif) a`
 
-`(car '(a b c)) ![<graphic>](ch6_0.gif) a`
+`(car '(a b c)) ![<graphic>](img/ch6_0.gif) a`
 
-`(car (cons 3 4)) ![<graphic>](ch6_0.gif) 3`
+`(car (cons 3 4)) ![<graphic>](img/ch6_0.gif) 3`
 
 **procedure**: `(cdr *pair*)`
 
-**returns:** `*pair*`的cdr
+**returns:** `*pair*`的 cdr
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
 空列表不是一对，因此参数不能是空列表。
 
-`(cdr '(a)) ![<graphic>](ch6_0.gif) ()`
+`(cdr '(a)) ![<graphic>](img/ch6_0.gif) ()`
 
-`(cdr '(a b c)) ![<graphic>](ch6_0.gif) (b c)`
+`(cdr '(a b c)) ![<graphic>](img/ch6_0.gif) (b c)`
 
-`(cdr (cons 3 4)) ![<graphic>](ch6_0.gif) 4`
+`(cdr (cons 3 4)) ![<graphic>](img/ch6_0.gif) 4`
 
 **procedure**: `(set-car! *pair* *obj*)`
 
@@ -958,13 +958,13 @@ Improper lists和trees需要稍微复杂的语法。单个对写作两个由空�
 
 **libraries:** `(rnrs mutable-pairs)`
 
-`set-car!`将`*pair*`的car更改为`*obj*`。
+`set-car!`将`*pair*`的 car 更改为`*obj*`。
 
 `(let ([x (list 'a 'b 'c)])`
 
 `(set-car! x 1)`
 
-x) ![<graphic>](ch6_0.gif) (1 b c)`
+x) ![<graphic>](img/ch6_0.gif) (1 b c)`
 
 **procedure**: `(set-cdr! *pair* *obj*)`
 
@@ -972,33 +972,33 @@ x) ![<graphic>](ch6_0.gif) (1 b c)`
 
 **libraries:** `(rnrs mutable-pairs)`
 
-`set-cdr!`将`*pair*`的cdr更改为`*obj*`。
+`set-cdr!`将`*pair*`的 cdr 更改为`*obj*`。
 
 `(let ([x (list 'a 'b 'c)])`
 
 `(set-cdr! x 1)`
 
-x) ![<graphic>](ch6_0.gif) (a . 1)`
+x) ![<graphic>](img/ch6_0.gif) (a . 1)`
 
 **procedure**: `(caar *pair*)`
 
-**procedure**: `(cadr *pair*)` ![<graphic>](ch6_3.gif)
+**procedure**: `(cadr *pair*)` ![<graphic>](img/ch6_3.gif)
 
 **procedure**: `(cddddr *pair*)`
 
-**returns:** `*pair*`的caar、cadr等
+**returns:** `*pair*`的 caar、cadr 等
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
 这些过程被定义为最多四个`car`和`cdr`的组合。在`c`和`r`之间的`a`和`d`表示从右到左应用`car`或`cdr`。例如，应用于一对的`cadr`过程会产生一对的`cdr`的`car`，等同于`(lambda (x) (car (cdr x)))`。
 
-`(caar '((a))) ![<graphic>](ch6_0.gif) a`
+`(caar '((a))) ![<graphic>](img/ch6_0.gif) a`
 
-`(cadr '(a b c)) ![<graphic>](ch6_0.gif) b`
+`(cadr '(a b c)) ![<graphic>](img/ch6_0.gif) b`
 
-`(cdddr '(a b c d)) ![<graphic>](ch6_0.gif) (d)`
+`(cdddr '(a b c d)) ![<graphic>](img/ch6_0.gif) (d)`
 
-`(cadadr '(a (b c))) ![<graphic>](ch6_0.gif) c`
+`(cadadr '(a (b c))) ![<graphic>](img/ch6_0.gif) c`
 
 **procedure**: `(list *obj* ...)`
 
@@ -1008,11 +1008,11 @@ x) ![<graphic>](ch6_0.gif) (a . 1)`
 
 `list`等同于`(lambda x x)`。
 
-`(list) ![<graphic>](ch6_0.gif) ()`
+`(list) ![<graphic>](img/ch6_0.gif) ()`
 
-`(list 1 2 3) ![<graphic>](ch6_0.gif) (1 2 3)`
+`(list 1 2 3) ![<graphic>](img/ch6_0.gif) (1 2 3)`
 
-`(list 3 2 1) ![<graphic>](ch6_0.gif) (3 2 1)`
+`(list 3 2 1) ![<graphic>](img/ch6_0.gif) (3 2 1)`
 
 **procedure**: `(cons* *obj* ... *final-obj*)`
 
@@ -1020,15 +1020,15 @@ x) ![<graphic>](ch6_0.gif) (a . 1)`
 
 **libraries:** `(rnrs lists)`, `(rnrs)`
 
-如果省略了`*obj* ...`，结果就是简单的`*final-obj*`。否则，将构建一个由`*obj* ...`组成的列表，类似于`list`，只是最终的cdr字段是`*final-obj*`而不是`()`。如果`*final-obj*`不是列表，则结果是不正确的列表。
+如果省略了`*obj* ...`，结果就是简单的`*final-obj*`。否则，将构建一个由`*obj* ...`组成的列表，类似于`list`，只是最终的 cdr 字段是`*final-obj*`而不是`()`。如果`*final-obj*`不是列表，则结果是不正确的列表。
 
-`(cons* '()) ![<graphic>](ch6_0.gif) ()`
+`(cons* '()) ![<graphic>](img/ch6_0.gif) ()`
 
-`(cons* '(a b)) ![<graphic>](ch6_0.gif) (a b)`
+`(cons* '(a b)) ![<graphic>](img/ch6_0.gif) (a b)`
 
-`(cons* 'a 'b 'c) ![<graphic>](ch6_0.gif) (a b . c)`
+`(cons* 'a 'b 'c) ![<graphic>](img/ch6_0.gif) (a b . c)`
 
-`(cons* 'a 'b '(c d)) ![<graphic>](ch6_0.gif) (a b c d)`
+`(cons* 'a 'b '(c d)) ![<graphic>](img/ch6_0.gif) (a b c d)`
 
 **procedure**: `(list? *obj*)`
 
@@ -1036,23 +1036,23 @@ x) ![<graphic>](ch6_0.gif) (a . 1)`
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`list?` 必须对所有不正确的列表返回 `#f`，包括循环列表。 `list?` 的定义如下所示，第 [67](further.html#defn:list?) 页。
+`list?` 必须对所有不正确的列表返回 `#f`，包括循环列表。 `list?` 的定义如下所示，第 67 页。
 
-`(list? '()) ![<graphic>](ch6_0.gif) #t
+`(list? '()) ![<graphic>](img/ch6_0.gif) #t
 
-(list? '(a b c)) ![<graphic>](ch6_0.gif) #t
+(list? '(a b c)) ![<graphic>](img/ch6_0.gif) #t
 
-(list? 'a) ![<graphic>](ch6_0.gif) #f
+(list? 'a) ![<graphic>](img/ch6_0.gif) #f
 
-(list? '(3 . 4)) ![<graphic>](ch6_0.gif) #f
+(list? '(3 . 4)) ![<graphic>](img/ch6_0.gif) #f
 
-(list? 3) ![<graphic>](ch6_0.gif) #f
+(list? 3) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([x (list 'a 'b 'c)])
 
 (set-cdr! (cddr x) x)
 
-(list? x)) ![<graphic>](ch6_0.gif) #f`
+(list? x)) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(length *list*)`
 
@@ -1060,7 +1060,7 @@ x) ![<graphic>](ch6_0.gif) (a . 1)`
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`length` 可以如下定义，使用了用于定义 `list?` 的乌龟和兔子算法的改编，该算法在第 [67](further.html#defn:list?) 页上用于定义 `list?`。
+`length` 可以如下定义，使用了用于定义 `list?` 的乌龟和兔子算法的改编，该算法在第 67 页上用于定义 `list?`。
 
 `(define length
 
@@ -1098,17 +1098,17 @@ n
 
 (improper-list))))))
 
-(length '()) ![<graphic>](ch6_0.gif) 0
+(length '()) ![<graphic>](img/ch6_0.gif) 0
 
-(length '(a b c)) ![<graphic>](ch6_0.gif) 3
+(length '(a b c)) ![<graphic>](img/ch6_0.gif) 3
 
-(length '(a b . c)) ![<graphic>](ch6_0.gif) *exception*
+(length '(a b . c)) ![<graphic>](img/ch6_0.gif) *exception*
 
 (length
 
 (let ([ls (list 'a 'b)])
 
-(set-cdr! (cdr ls) ls) ![<graphic>](ch6_0.gif) *exception*
+(set-cdr! (cdr ls) ls) ![<graphic>](img/ch6_0.gif) *exception*
 
 ls))
 
@@ -1116,7 +1116,7 @@ ls))
 
 (let ([ls (list 'a 'b)])
 
-(set-car! (cdr ls) ls) ![<graphic>](ch6_0.gif) 2
+(set-car! (cdr ls) ls) ![<graphic>](img/ch6_0.gif) 2
 
 ls))`
 
@@ -1138,11 +1138,11 @@ ls))`
 
 (list-ref (cdr ls) (- n 1)))))
 
-(list-ref '(a b c) 0) ![<graphic>](ch6_0.gif) a
+(list-ref '(a b c) 0) ![<graphic>](img/ch6_0.gif) a
 
-(list-ref '(a b c) 1) ![<graphic>](ch6_0.gif) b
+(list-ref '(a b c) 1) ![<graphic>](img/ch6_0.gif) b
 
-(list-ref '(a b c) 2) ![<graphic>](ch6_0.gif) c`
+(list-ref '(a b c) 2) ![<graphic>](img/ch6_0.gif) c`
 
 **procedure**: `(list-tail *list* *n*)`
 
@@ -1164,21 +1164,21 @@ ls
 
 (list-tail (cdr ls) (- n 1)))))
 
-(list-tail '(a b c) 0) ![<graphic>](ch6_0.gif) (a b c)
+(list-tail '(a b c) 0) ![<graphic>](img/ch6_0.gif) (a b c)
 
-(list-tail '(a b c) 2) ![<graphic>](ch6_0.gif) (c)
+(list-tail '(a b c) 2) ![<graphic>](img/ch6_0.gif) (c)
 
-(list-tail '(a b c) 3) ![<graphic>](ch6_0.gif) ()
+(list-tail '(a b c) 3) ![<graphic>](img/ch6_0.gif) ()
 
-(list-tail '(a b c . d) 2) ![<graphic>](ch6_0.gif) (c . d)
+(list-tail '(a b c . d) 2) ![<graphic>](img/ch6_0.gif) (c . d)
 
-(list-tail '(a b c . d) 3) ![<graphic>](ch6_0.gif) d
+(list-tail '(a b c . d) 3) ![<graphic>](img/ch6_0.gif) d
 
 (let ([x (list 1 2 3)])
 
 (eq? (list-tail x 2)
 
-(cddr x))) ![<graphic>](ch6_0.gif) #t`
+(cddr x))) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(append)`
 
@@ -1208,17 +1208,17 @@ ls
 
 (cons (car ls) (g (cdr ls)))))))))
 
-(append '(a b c) '()) ![<graphic>](ch6_0.gif) (a b c)
+(append '(a b c) '()) ![<graphic>](img/ch6_0.gif) (a b c)
 
-(append '() '(a b c)) ![<graphic>](ch6_0.gif) (a b c)
+(append '() '(a b c)) ![<graphic>](img/ch6_0.gif) (a b c)
 
-(append '(a b) '(c d)) ![<graphic>](ch6_0.gif) (a b c d)
+(append '(a b) '(c d)) ![<graphic>](img/ch6_0.gif) (a b c d)
 
-(append '(a b) 'c) ![<graphic>](ch6_0.gif) (a b . c)
+(append '(a b) 'c) ![<graphic>](img/ch6_0.gif) (a b . c)
 
 (let ([x (list 'b)])
 
-(eq? x (cdr (append '(a) x)))) ![<graphic>](ch6_0.gif) #t`
+(eq? x (cdr (append '(a) x)))) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**: `(reverse *list*)`
 
@@ -1240,9 +1240,9 @@ new
 
 (rev (cdr ls) (cons (car ls) new))))))
 
-(reverse '()) ![<graphic>](ch6_0.gif) ()
+(reverse '()) ![<graphic>](img/ch6_0.gif) ()
 
-(reverse '(a b c)) ![<graphic>](ch6_0.gif) (c b a)`
+(reverse '(a b c)) ![<graphic>](img/ch6_0.gif) (c b a)`
 
 **过程**: `(memq *obj* *list*)`
 
@@ -1272,27 +1272,27 @@ new
 
 `memv`和`member`可以类似地定义，其中`eqv?`和`equal?`代替`eq?`。
 
-`(memq 'a '(b c a d e)) ![<graphic>](ch6_0.gif) (a d e)
+`(memq 'a '(b c a d e)) ![<graphic>](img/ch6_0.gif) (a d e)
 
-(memq 'a '(b c d e g)) ![<graphic>](ch6_0.gif) #f
+(memq 'a '(b c d e g)) ![<graphic>](img/ch6_0.gif) #f
 
-(memq 'a '(b a c a d a)) ![<graphic>](ch6_0.gif) (a c a d a)
+(memq 'a '(b a c a d a)) ![<graphic>](img/ch6_0.gif) (a c a d a)
 
-(memv 3.4 '(1.2 2.3 3.4 4.5)) ![<graphic>](ch6_0.gif) (3.4 4.5)
+(memv 3.4 '(1.2 2.3 3.4 4.5)) ![<graphic>](img/ch6_0.gif) (3.4 4.5)
 
-(memv 3.4 '(1.3 2.5 3.7 4.9)) ![<graphic>](ch6_0.gif) #f
+(memv 3.4 '(1.3 2.5 3.7 4.9)) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([ls (list 'a 'b 'c)])
 
 (set-car! (memv 'b ls) 'z)
 
-ls) ![<graphic>](ch6_0.gif) (a z c)
+ls) ![<graphic>](img/ch6_0.gif) (a z c)
 
-(member '(b) '((a) (b) (c))) ![<graphic>](ch6_0.gif) ((b) (c))
+(member '(b) '((a) (b) (c))) ![<graphic>](img/ch6_0.gif) ((b) (c))
 
-(member '(d) '((a) (b) (c))) ![<graphic>](ch6_0.gif) #f
+(member '(d) '((a) (b) (c))) ![<graphic>](img/ch6_0.gif) #f
 
-(member "b" '("a" "b" "c")) ![<graphic>](ch6_0.gif) ("b" "c")
+(member "b" '("a" "b" "c")) ![<graphic>](img/ch6_0.gif) ("b" "c")
 
 (let ()
 
@@ -1302,7 +1302,7 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 （and （member x ls） #t）））
 
-（member? '（b） '（（a） （b） （c））） ![<graphic>](ch6_0.gif) #t
+（member? '（b） '（（a） （b） （c））） ![<graphic>](img/ch6_0.gif) #t
 
 （define count-occurrences
 
@@ -1318,29 +1318,29 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 \[else 0]））
 
-（count-occurrences 'a '（a b c d a）） ![<graphic>](ch6_0.gif) 2`
+（count-occurrences 'a '（a b c d a）） ![<graphic>](img/ch6_0.gif) 2`
 
 **procedure**：`（memp *procedure* *list*）`
 
-**返回：**`*procedure*`返回true的`*list*`的第一个尾部，或`#f`
+**返回：**`*procedure*`返回 true 的`*list*`的第一个尾部，或`#f`
 
 **libraries:** `（rnrs lists）`，`（rnrs）`
 
 `*procedure*`应该接受一个参数并返回一个值。它不应该修改`*list*`。
 
-`（memp odd? '（1 2 3 4））` ![<graphic>](ch6_0.gif) （1 2 3 4）
+`（memp odd? '（1 2 3 4））` ![<graphic>](img/ch6_0.gif) （1 2 3 4）
 
-（memp even? '（1 2 3 4）） ![<graphic>](ch6_0.gif) （2 3 4）
-
-（let （[ls （list 1 2 3 4）]）
-
-（eq? （memp odd? ls） ls）） ![<graphic>](ch6_0.gif) #t
+（memp even? '（1 2 3 4）） ![<graphic>](img/ch6_0.gif) （2 3 4）
 
 （let （[ls （list 1 2 3 4）]）
 
-（eq? （memp even? ls） （cdr ls））） ![<graphic>](ch6_0.gif) #t
+（eq? （memp odd? ls） ls）） ![<graphic>](img/ch6_0.gif) #t
 
-（memp odd? '（2 4 6 8）） ![<graphic>](ch6_0.gif) #f`
+（let （[ls （list 1 2 3 4）]）
+
+（eq? （memp even? ls） （cdr ls））） ![<graphic>](img/ch6_0.gif) #t
+
+（memp odd? '（2 4 6 8）） ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**：`（remq *obj* *list*）`
 
@@ -1356,13 +1356,13 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 `remq`的等价测试是`eq?`，对于`remv`是`eqv?`，对于`remove`是`equal?`。
 
-`（remq 'a '（a b a c a d））` ![<graphic>](ch6_0.gif) （b c d）
+`（remq 'a '（a b a c a d））` ![<graphic>](img/ch6_0.gif) （b c d）
 
-（remq 'a '（b c d）） ![<graphic>](ch6_0.gif) （b c d）
+（remq 'a '（b c d）） ![<graphic>](img/ch6_0.gif) （b c d）
 
-（remv 1/2 '（1.2 1/2 0.5 3/2 4）） ![<graphic>](ch6_0.gif) （1.2 0.5 3/2 4）
+（remv 1/2 '（1.2 1/2 0.5 3/2 4）） ![<graphic>](img/ch6_0.gif) （1.2 0.5 3/2 4）
 
-（remove '（b） '（（a） （b） （c））） ![<graphic>](ch6_0.gif) （（a） （c））`
+（remove '（b） '（（a） （b） （c））） ![<graphic>](img/ch6_0.gif) （（a） （c））`
 
 **procedure**：`（remp *procedure* *list*）`
 
@@ -1374,31 +1374,31 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 `remp`将`*procedure*`应用于`*list*`的每个元素，并返回一个仅包含`*procedure*`返回`#f`的元素的列表。返回的列表的元素按照它们在原始列表中出现的顺序排列。
 
-`（remp odd? '（1 2 3 4））` ![<graphic>](ch6_0.gif) （2 4）
+`（remp odd? '（1 2 3 4））` ![<graphic>](img/ch6_0.gif) （2 4）
 
 （remp
 
 （lambda （x）（and （> x 0）（< x 10）））
 
-'（-5 15 3 14 -20 6 0 -9）） ![<graphic>](ch6_0.gif) （-5 15 14 -20 0 -9）`
+'（-5 15 3 14 -20 6 0 -9）） ![<graphic>](img/ch6_0.gif) （-5 15 14 -20 0 -9）`
 
 **procedure**：`（filter *procedure* *list*）`
 
-**返回：**`*procedure*`返回true的`*list*`的元素列表
+**返回：**`*procedure*`返回 true 的`*list*`的元素列表
 
 **libraries:** `（rnrs lists）`，`（rnrs）`
 
 `*procedure*`应该接受一个参数并返回一个值。它不应该修改`*list*`。
 
-`filter`将`*procedure*`应用于`*list*`的每个元素，并返回一个新列表，仅包含`*procedure*`返回true的元素。返回的列表中的元素与它们在原始列表中出现的顺序相同。
+`filter`将`*procedure*`应用于`*list*`的每个元素，并返回一个新列表，仅包含`*procedure*`返回 true 的元素。返回的列表中的元素与它们在原始列表中出现的顺序相同。
 
-`(filter odd? '(1 2 3 4)) ![<graphic>](ch6_0.gif) (1 3)
+`(filter odd? '(1 2 3 4)) ![<graphic>](img/ch6_0.gif) (1 3)
 
 (filter
 
 (lambda (x) (and (> x 0) (< x 10)))
 
-'(-5 15 3 14 -20 6 0 -9)) ![<graphic>](ch6_0.gif) (3 6)`
+'(-5 15 3 14 -20 6 0 -9)) ![<graphic>](img/ch6_0.gif) (3 6)`
 
 **procedure**: `(partition *procedure* *list*)`
 
@@ -1408,41 +1408,41 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 `*procedure*`应接受一个参数并返回一个值。它不应修改`*list*`。
 
-`partition`将`*procedure*`应用于`*list*`的每个元素，并返回两个值：一个新列表，仅包含`*procedure*`返回true的元素，以及一个新列表，仅包含`*procedure*`返回`#f`的元素。返回的列表中的元素与它们在原始列表中出现的顺序相同。
+`partition`将`*procedure*`应用于`*list*`的每个元素，并返回两个值：一个新列表，仅包含`*procedure*`返回 true 的元素，以及一个新列表，仅包含`*procedure*`返回`#f`的元素。返回的列表中的元素与它们在原始列表中出现的顺序相同。
 
-`(partition odd? '(1 2 3 4)) ![<graphic>](ch6_0.gif) (1 3)
+`(partition odd? '(1 2 3 4)) ![<graphic>](img/ch6_0.gif) (1 3)
 
-![](ch3_ghostRightarrow.gif) (2 4)
+![](img/ch3_ghostRightarrow.gif) (2 4)
 
 (partition
 
 (lambda (x) (and (> x 0) (< x 10)))
 
-'(-5 15 3 14 -20 6 0 -9)) ![<graphic>](ch6_0.gif) (3 6)
+'(-5 15 3 14 -20 6 0 -9)) ![<graphic>](img/ch6_0.gif) (3 6)
 
-![](ch3_ghostRightarrow.gif) (-5 15 14 -20 0 -9)`
+![](img/ch3_ghostRightarrow.gif) (-5 15 14 -20 0 -9)`
 
 通过分别调用`filter`和`remp`可以获得`partition`返回的值，但这将要求对`*list*`的每个元素调用两次`*procedure*`。
 
 **procedure**: `(find *procedure* *list*)`
 
-**returns:** `*procedure*`对`*list*`返回true的第一个元素，或`#f`
+**returns:** `*procedure*`对`*list*`返回 true 的第一个元素，或`#f`
 
 **libraries:** `(rnrs lists)`, `(rnrs)`
 
 `*procedure*`应接受一个参数并返回一个值。它不应修改`*list*`。
 
-`find`按顺序遍历参数`*list*`，依次将`*procedure*`应用于每个元素。如果`*procedure*`对给定元素返回true值，则`find`返回该元素，而不会将`*procedure*`应用于剩余元素。如果`*procedure*`对`*list*`的每个元素都返回`#f`，则`find`返回`#f`。
+`find`按顺序遍历参数`*list*`，依次将`*procedure*`应用于每个元素。如果`*procedure*`对给定元素返回 true 值，则`find`返回该元素，而不会将`*procedure*`应用于剩余元素。如果`*procedure*`对`*list*`的每个元素都返回`#f`，则`find`返回`#f`。
 
 如果程序必须区分在列表中找到`#f`和根本找不到元素之间的区别，则应使用`memp`。
 
-`(find odd? '(1 2 3 4)) ![<graphic>](ch6_0.gif) 1
+`(find odd? '(1 2 3 4)) ![<graphic>](img/ch6_0.gif) 1
 
-(find even? '(1 2 3 4)) ![<graphic>](ch6_0.gif) 2
+(find even? '(1 2 3 4)) ![<graphic>](img/ch6_0.gif) 2
 
-(find odd? '(2 4 6 8)) ![<graphic>](ch6_0.gif) #f
+(find odd? '(2 4 6 8)) ![<graphic>](img/ch6_0.gif) #f
 
-(find not '(1 a #f 55)) ![<graphic>](ch6_0.gif) #f`
+(find not '(1 a #f 55)) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(assq *obj* *alist*)`
 
@@ -1474,27 +1474,27 @@ ls) ![<graphic>](ch6_0.gif) (a z c)
 
 `assv` 和 `assoc` 可以类似地定义，只需用 `eqv?` 和 `equal?` 替换 `eq?`。
 
-`(assq 'b '((a . 1) (b . 2))) ![<graphic>](ch6_0.gif) (b . 2)
+`(assq 'b '((a . 1) (b . 2))) ![<graphic>](img/ch6_0.gif) (b . 2)
 
-(cdr (assq 'b '((a . 1) (b . 2)))) ![<graphic>](ch6_0.gif) 2
+(cdr (assq 'b '((a . 1) (b . 2)))) ![<graphic>](img/ch6_0.gif) 2
 
-(assq 'c '((a . 1) (b . 2))) ![<graphic>](ch6_0.gif) #f
+(assq 'c '((a . 1) (b . 2))) ![<graphic>](img/ch6_0.gif) #f
 
-(assv 2/3 '((1/3 . 1) (2/3 . 2))) ![<graphic>](ch6_0.gif) (2/3 . 2)
+(assv 2/3 '((1/3 . 1) (2/3 . 2))) ![<graphic>](img/ch6_0.gif) (2/3 . 2)
 
-(assv 2/3 '((1/3 . a) (3/4 . b))) ![<graphic>](ch6_0.gif) #f
+(assv 2/3 '((1/3 . a) (3/4 . b))) ![<graphic>](img/ch6_0.gif) #f
 
-(assoc '(a) '(((a) . a) (-1 . b))) ![<graphic>](ch6_0.gif) ((a) . a)
+(assoc '(a) '(((a) . a) (-1 . b))) ![<graphic>](img/ch6_0.gif) ((a) . a)
 
-(assoc '(a) '(((b) . b) (a . c))) ![<graphic>](ch6_0.gif) #f
+(assoc '(a) '(((b) . b) (a . c))) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([alist (list (cons 2 'a) (cons 3 'b))])
 
 (set-cdr! (assv 3 alist) 'c)
 
-alist) ![<graphic>](ch6_0.gif) ((2 . a) (3 . c))`
+alist) ![<graphic>](img/ch6_0.gif) ((2 . a) (3 . c))`
 
-在第 [12.7](examples.html#g187) 节中给出的解释器将环境表示为关联列表，并对变量查找和赋值都使用 `assq`。
+在第 12.7 节中给出的解释器将环境表示为关联列表，并对变量查找和赋值都使用 `assq`。
 
 **procedure**: `(assp *procedure* *alist*)`
 
@@ -1504,19 +1504,19 @@ alist) ![<graphic>](ch6_0.gif) ((2 . a) (3 . c))`
 
 `*alist*` 必须是一个 *关联列表*。关联列表是一个适当的列表，其元素是形式为 `(key . value)` 的键-值对。`*procedure*` 应接受一个参数并返回一个值。它不应修改 `*list*`。
 
-`(assp odd? '((1 . a) (2 . b))) ![<graphic>](ch6_0.gif) (1 . a)
+`(assp odd? '((1 . a) (2 . b))) ![<graphic>](img/ch6_0.gif) (1 . a)
 
-(assp even? '((1 . a) (2 . b))) ![<graphic>](ch6_0.gif) (2 . b)
-
-(let ([ls (list (cons 1 'a) (cons 2 'b))])
-
-(eq? (assp odd? ls) (car ls))) ![<graphic>](ch6_0.gif) #t
+(assp even? '((1 . a) (2 . b))) ![<graphic>](img/ch6_0.gif) (2 . b)
 
 (let ([ls (list (cons 1 'a) (cons 2 'b))])
 
-(eq? (assp even? ls) (cadr ls))) ![<graphic>](ch6_0.gif) #t
+(eq? (assp odd? ls) (car ls))) ![<graphic>](img/ch6_0.gif) #t
 
-(assp odd? '((2 . b))) ![<graphic>](ch6_0.gif) #f`
+(let ([ls (list (cons 1 'a) (cons 2 'b))])
+
+(eq? (assp even? ls) (cadr ls))) ![<graphic>](img/ch6_0.gif) #t
+
+(assp odd? '((2 . b))) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(list-sort *predicate* *list*)`
 
@@ -1526,49 +1526,49 @@ alist) ![<graphic>](ch6_0.gif) ((2 . a) (3 . c))`
 
 `*predicate*` 应该是一个期望两个参数并在排序列表中第一个参数必须在第二个参数之前时返回 `#t` 的过程。也就是说，如果将 `*predicate*` 应用于两个元素 `*x*` 和 `*y*`，其中 `*x*` 在输入列表中位于 `*y*` 之后，则仅当 `*x*` 应该在输出列表中出现在 `*y*` 之前时，它才应返回 true。如果满足此约束，`list-sort` 执行稳定排序，即仅在根据 `*predicate*` 必要时重新排序两个元素。不会删除重复元素。此过程最多可能调用 *n*log*n* 次 `predicate`，其中 *n* 是 `*list*` 的长度。
 
-`(list-sort < '(3 4 2 1 2 5)) ![<graphic>](ch6_0.gif) (1 2 2 3 4 5)
+`(list-sort < '(3 4 2 1 2 5)) ![<graphic>](img/ch6_0.gif) (1 2 2 3 4 5)
 
-(list-sort > '(0.5 1/2)) ![<graphic>](ch6_0.gif) (0.5 1/2)
+(list-sort > '(0.5 1/2)) ![<graphic>](img/ch6_0.gif) (0.5 1/2)
 
-(list-sort > '(1/2 0.5)) ![<graphic>](ch6_0.gif) (1/2 0.5)
+(list-sort > '(1/2 0.5)) ![<graphic>](img/ch6_0.gif) (1/2 0.5)
 
 (list->string
 
 (list-sort char>?
 
-(string->list "hello"))) ![<graphic>](ch6_0.gif) "ollhe"`
+(string->list "hello"))) ![<graphic>](img/ch6_0.gif) "ollhe"`
 
 ### 第 6.4 节。数字
 
-方案数字可以分类为整数、有理数、实数或复数。这种分类是分层的，即所有整数都是有理数，所有有理数都是实数，所有实数都是复数。在[6.2](objects.html#g108)节中描述的`integer?`、`rational?`、`real?`和`complex?`谓词用于确定数字属于这些类别中的哪一个。
+方案数字可以分类为整数、有理数、实数或复数。这种分类是分层的，即所有整数都是有理数，所有有理数都是实数，所有实数都是复数。在 6.2 节中描述的`integer?`、`rational?`、`real?`和`complex?`谓词用于确定数字属于这些类别中的哪一个。
 
-方案数字也可以根据用于导出数字的操作的质量和这些操作的输入而分类为*精确*或*不精确*。谓词`exact?`和`inexact?`可用于确定数字的精确性。Scheme中的大多数数字操作都是*精确性保持*的：如果给定精确操作数，它们返回精确值，如果给定不精确操作数或精确和不精确操作数的组合，它们返回不精确值。
+方案数字也可以根据用于导出数字的操作的质量和这些操作的输入而分类为*精确*或*不精确*。谓词`exact?`和`inexact?`可用于确定数字的精确性。Scheme 中的大多数数字操作都是*精确性保持*的：如果给定精确操作数，它们返回精确值，如果给定不精确操作数或精确和不精确操作数的组合，它们返回不精确值。
 
 精确整数和有理数算术通常支持任意精度；整数的大小或比率的分母或分子仅受系统存储约束限制。虽然其他表示是可能的，但通常通过主机计算机硬件或系统软件支持的*浮点*数表示不精确数。复数通常表示为有序对(`*real-part*`、`*imag-part*`)，其中`*real-part*`和`*imag-part*`是精确整数、精确有理数或浮点数。
 
-Scheme数字的书写方式与书写数字的普通约定没有太大区别。精确整数通常写成一个由可选符号开头的数字序列。例如，`3`、`+19`、`-100000`和`208423089237489374`都表示精确整数。
+Scheme 数字的书写方式与书写数字的普通约定没有太大区别。精确整数通常写成一个由可选符号开头的数字序列。例如，`3`、`+19`、`-100000`和`208423089237489374`都表示精确整数。
 
 一个精确的有理数通常写成两个由斜杠(`/`)分隔的数字序列，并在可选的符号之前。例如，`3/4`、`-6/5`和`1/1208203823`都是精确的有理数。当读取时，比率立即缩减到最低项，实际上可能缩减为精确整数。
 
 不精确实数通常以浮点或科学记数法书写。浮点表示法由一个数字序列后跟一个小数点和另一个数字序列组成，所有这些数字序列之前都有一个可选符号。科学记数法由一个可选符号、一个数字序列、一个可选的小数点后跟一个第二个数字序列和一个指数组成；指数写为字母`e`后跟一个可选符号和一个数字序列。例如，`1.0`和`-200.0`是有效的不精确整数，`1.5`、`0.034`、`-10e-10`和`1.5e-5`是有效的不精确有理数。指数是应该缩放到指数之前的数字的十的幂，因此`2e3`等同于`2000.0`。
 
-尾数宽度`|*w*`可以作为实数或复数的实部的后缀，写成浮点或科学计数法。尾数宽度`*m*`表示数字表示中的有效位数。尾数宽度默认为53，即规范化IEEE双精度浮点数中的有效位数，或更多。对于非规范化IEEE双精度浮点数，尾数宽度小于53。如果实现无法表示具有指定尾数宽度的数字，则尽可能使用具有至少与请求的有效位数相同的表示，否则使用具有最大尾数宽度的表示。
+尾数宽度`|*w*`可以作为实数或复数的实部的后缀，写成浮点或科学计数法。尾数宽度`*m*`表示数字表示中的有效位数。尾数宽度默认为 53，即规范化 IEEE 双精度浮点数中的有效位数，或更多。对于非规范化 IEEE 双精度浮点数，尾数宽度小于 53。如果实现无法表示具有指定尾数宽度的数字，则尽可能使用具有至少与请求的有效位数相同的表示，否则使用具有最大尾数宽度的表示。
 
-精确和非精确实数被写成精确或非精确整数或有理数；Scheme数字的语法中没有为非有理实数（即无理数）提供规定。
+精确和非精确实数被写成精确或非精确整数或有理数；Scheme 数字的语法中没有为非有理实数（即无理数）提供规定。
 
 复数可以以矩形形式或极坐标形式表示。在矩形形式中，复数写成`*x*+*y*i`或`*x*-*y*i`，其中`*x*`是整数、有理数或实数，而`*y*`是无符号整数、有理数或实数。实部*x*可以省略，此时假定为零。例如，`3+4i`，`3.2-3/4i`，`+i`和`-3e-5i`是以矩形形式写成的复数。在极坐标形式中，复数写成`*x*@*y*`，其中`*x*`和`*y*`是整数、有理数或实数。例如，`1.1@1.764`和`-1@-1/2`是以极坐标形式写成的复数。
 
-语法`+inf.0`和`-inf.0`表示代表正无穷大和负无穷大的非精确实数。语法`+nan.0`和`-nan.0`表示非精确的“非数字”（NaN）值。通过将非精确的正值和负值除以非精确的零，可以产生无穷大，而通过将非精确的零除以非精确的零等方式也可以产生NaN。
+语法`+inf.0`和`-inf.0`表示代表正无穷大和负无穷大的非精确实数。语法`+nan.0`和`-nan.0`表示非精确的“非数字”（NaN）值。通过将非精确的正值和负值除以非精确的零，可以产生无穷大，而通过将非精确的零除以非精确的零等方式也可以产生 NaN。
 
-数字表示的精确性可以通过在表示之前加上`#e`或`#i`来覆盖。`#e`强制数字为精确值，而`#i`强制其为非精确值。例如，`1`，`#e1`，1/1，`#e1/1`，`#e1.0`和`#e1e0`都表示精确整数1，而`#i3/10`，`0.3`，`#i0.3`和`3e-1`都表示非精确有理数0.3。
+数字表示的精确性可以通过在表示之前加上`#e`或`#i`来覆盖。`#e`强制数字为精确值，而`#i`强制其为非精确值。例如，`1`，`#e1`，1/1，`#e1/1`，`#e1.0`和`#e1e0`都表示精确整数 1，而`#i3/10`，`0.3`，`#i0.3`和`3e-1`都表示非精确有理数 0.3。
 
-数字默认以十进制表示，尽管特殊前缀`#b`（二进制）、`#o`（八进制）、`#d`（十进制）和`#x`（十六进制）可用于指定基数2、基数8、基数10或基数16。对于基数16，字母`a`到`f`或`A`到`F`用作表示数字值10到15所需的额外数字。例如，`#b10101`是21[10]的二进制等价物，`#o72`是58[10]的八进制等价物，`#xC7`是199[10]的十六进制等价物。浮点数和科学计数法表示的数字始终以十进制表示。
+数字默认以十进制表示，尽管特殊前缀`#b`（二进制）、`#o`（八进制）、`#d`（十进制）和`#x`（十六进制）可用于指定基数 2、基数 8、基数 10 或基数 16。对于基数 16，字母`a`到`f`或`A`到`F`用作表示数字值 10 到 15 所需的额外数字。例如，`#b10101`是 21[10]的二进制等价物，`#o72`是 58[10]的八进制等价物，`#xC7`是 199[10]的十六进制等价物。浮点数和科学计数法表示的数字始终以十进制表示。
 
 如果两者都存在，基数和精确性前缀可以以任意顺序出现。
 
 Scheme 实现可能支持多种不精确数量的内部表示尺寸。指数标记符`s`（*short*）、`f`（*single*）、`d`（*double*）和`l`（*long*）可以出现在默认指数标记符`e`的位置，以覆盖科学计数法中写入的数字的默认尺寸。在支持多个表示的实现中，默认尺寸至少具有与 *double* 一样多的精度。
 
-为 Scheme 数字提供了精确的语法，请参见[459](grammar.html#grammar:numbers)页。
+为 Scheme 数字提供了精确的语法，请参见 459 页。
 
 任何数字都可以用各种不同的方式写入，但系统打印程序（通过`put-datum`、`write`和`display`调用）和`number->string`以紧凑的形式表达数字，使用尽可能少的数字以保留属性，即读取时打印的数字与原始数字相同。
 
@@ -1582,17 +1582,17 @@ Scheme 实现可能支持多种不精确数量的内部表示尺寸。指数标�
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(exact? 1) ![<graphic>](ch6_0.gif) #t
+`(exact? 1) ![<graphic>](img/ch6_0.gif) #t
 
-(exact? -15/16) ![<graphic>](ch6_0.gif) #t
+(exact? -15/16) ![<graphic>](img/ch6_0.gif) #t
 
-(exact? 2.01) ![<graphic>](ch6_0.gif) #f
+(exact? 2.01) ![<graphic>](img/ch6_0.gif) #f
 
-(exact? #i77) ![<graphic>](ch6_0.gif) #f
+(exact? #i77) ![<graphic>](img/ch6_0.gif) #f
 
-(exact? #i2/3) ![<graphic>](ch6_0.gif) #f
+(exact? #i2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(exact? 1.0-2i) ![<graphic>](ch6_0.gif) #f`
+(exact? 1.0-2i) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(inexact? *num*)`
 
@@ -1600,13 +1600,13 @@ Scheme 实现可能支持多种不精确数量的内部表示尺寸。指数标�
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(inexact? -123) ![<graphic>](ch6_0.gif) #f
+`(inexact? -123) ![<graphic>](img/ch6_0.gif) #f
 
-(inexact? #i123) ![<graphic>](ch6_0.gif) #t
+(inexact? #i123) ![<graphic>](img/ch6_0.gif) #t
 
-(inexact? 1e23) ![<graphic>](ch6_0.gif) #t
+(inexact? 1e23) ![<graphic>](img/ch6_0.gif) #t
 
-(inexact? +i) ![<graphic>](ch6_0.gif) #f`
+(inexact? +i) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(= *num[1]* *num[2]* *num[3]* ...)`
 
@@ -1626,55 +1626,55 @@ The predicate `=` returns `#t` if its arguments are equal. The predicate `<` ret
 
 As implied by the names of the arguments, `=` is defined for complex arguments while the other relational predicates are defined only for real arguments. Two complex numbers are considered equal if their real and imaginary parts are equal. Comparisons involving NaNs always return `#f`.
 
-`(= 7 7) ![<graphic>](ch6_0.gif) #t
+`(= 7 7) ![<graphic>](img/ch6_0.gif) #t
 
-(= 7 9) ![<graphic>](ch6_0.gif) #f
+(= 7 9) ![<graphic>](img/ch6_0.gif) #f
 
-(< 2e3 3e2) ![<graphic>](ch6_0.gif) #f
+(< 2e3 3e2) ![<graphic>](img/ch6_0.gif) #f
 
-(<= 1 2 3 3 4 5) ![<graphic>](ch6_0.gif) #t
+(<= 1 2 3 3 4 5) ![<graphic>](img/ch6_0.gif) #t
 
-(<= 1 2 3 4 5) ![<graphic>](ch6_0.gif) #t
+(<= 1 2 3 4 5) ![<graphic>](img/ch6_0.gif) #t
 
-(> 1 2 2 3 3 4) ![<graphic>](ch6_0.gif) #f
+(> 1 2 2 3 3 4) ![<graphic>](img/ch6_0.gif) #f
 
-(>= 1 2 2 3 3 4) ![<graphic>](ch6_0.gif) #f
+(>= 1 2 2 3 3 4) ![<graphic>](img/ch6_0.gif) #f
 
-(= -1/2 -0.5) ![<graphic>](ch6_0.gif) #t
+(= -1/2 -0.5) ![<graphic>](img/ch6_0.gif) #t
 
-(= 2/3 .667) ![<graphic>](ch6_0.gif) #f
+(= 2/3 .667) ![<graphic>](img/ch6_0.gif) #f
 
-(= 7.2+0i 7.2) ![<graphic>](ch6_0.gif) #t
+(= 7.2+0i 7.2) ![<graphic>](img/ch6_0.gif) #t
 
-(= 7.2-3i 7) ![<graphic>](ch6_0.gif) #f
+(= 7.2-3i 7) ![<graphic>](img/ch6_0.gif) #f
 
-(< 1/2 2/3 3/4) ![<graphic>](ch6_0.gif) #t
+(< 1/2 2/3 3/4) ![<graphic>](img/ch6_0.gif) #t
 
-(> 8 4.102 2/3 -5) ![<graphic>](ch6_0.gif) #t
+(> 8 4.102 2/3 -5) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([x 0.218723452])
 
-(< 0.210 x 0.220)) ![<graphic>](ch6_0.gif) #t
+(< 0.210 x 0.220)) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([i 1] [v (vector 'a 'b 'c)])
 
-(< -1 i (vector-length v))) ![<graphic>](ch6_0.gif) #t
+(< -1 i (vector-length v))) ![<graphic>](img/ch6_0.gif) #t
 
-(apply < '(1 2 3 4)) ![<graphic>](ch6_0.gif) #t
+(apply < '(1 2 3 4)) ![<graphic>](img/ch6_0.gif) #t
 
-(apply > '(4 3 3 2)) ![<graphic>](ch6_0.gif) #f
+(apply > '(4 3 3 2)) ![<graphic>](img/ch6_0.gif) #f
 
-(= +nan.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(= +nan.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(< +nan.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(< +nan.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(> +nan.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(> +nan.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(>= +inf.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(>= +inf.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(>= +nan.0 -inf.0) ![<graphic>](ch6_0.gif) #f
+(>= +nan.0 -inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(> +nan.0 0.0) ![<graphic>](ch6_0.gif) #f`
+(> +nan.0 0.0) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(+ *num* ...)`
 
@@ -1684,19 +1684,19 @@ As implied by the names of the arguments, `=` is defined for complex arguments w
 
 When called with no arguments, `+` returns 0.
 
-`(+) ![<graphic>](ch6_0.gif) 0
+`(+) ![<graphic>](img/ch6_0.gif) 0
 
-(+ 1 2) ![<graphic>](ch6_0.gif) 3
+(+ 1 2) ![<graphic>](img/ch6_0.gif) 3
 
-(+ 1/2 2/3) ![<graphic>](ch6_0.gif) 7/6
+(+ 1/2 2/3) ![<graphic>](img/ch6_0.gif) 7/6
 
-(+ 3 4 5) ![<graphic>](ch6_0.gif) 12
+(+ 3 4 5) ![<graphic>](img/ch6_0.gif) 12
 
-(+ 3.0 4) ![<graphic>](ch6_0.gif) 7.0
+(+ 3.0 4) ![<graphic>](img/ch6_0.gif) 7.0
 
-(+ 3+4i 4+3i) ![<graphic>](ch6_0.gif) 7+7i
+(+ 3+4i 4+3i) ![<graphic>](img/ch6_0.gif) 7+7i
 
-(apply + '(1 2 3 4 5)) ![<graphic>](ch6_0.gif) 15`
+(apply + '(1 2 3 4 5)) ![<graphic>](img/ch6_0.gif) 15`
 
 **procedure**: `(- *num*)`
 
@@ -1708,15 +1708,15 @@ When called with no arguments, `+` returns 0.
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(- 3) ![<graphic>](ch6_0.gif) -3
+`(- 3) ![<graphic>](img/ch6_0.gif) -3
 
-(- -2/3) ![<graphic>](ch6_0.gif) 2/3
+(- -2/3) ![<graphic>](img/ch6_0.gif) 2/3
 
-(- 4 3.0) ![<graphic>](ch6_0.gif) 1.0
+(- 4 3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(- 3.25+4.25i 1/4+1/4i) ![<graphic>](ch6_0.gif) 3.0+4.0i
+(- 3.25+4.25i 1/4+1/4i) ![<graphic>](img/ch6_0.gif) 3.0+4.0i
 
-(- 4 3 2 1) ![<graphic>](ch6_0.gif) -2`
+(- 4 3 2 1) ![<graphic>](img/ch6_0.gif) -2`
 
 **procedure**: `(* *num* ...)`
 
@@ -1726,17 +1726,17 @@ When called with no arguments, `+` returns 0.
 
 When called with no arguments, `*` returns 1.
 
-`(*) ![<graphic>](ch6_0.gif) 1
+`(*) ![<graphic>](img/ch6_0.gif) 1
 
-(* 3.4) ![<graphic>](ch6_0.gif) 3.4
+(* 3.4) ![<graphic>](img/ch6_0.gif) 3.4
 
-(* 1 1/2) ![<graphic>](ch6_0.gif) 1/2
+(* 1 1/2) ![<graphic>](img/ch6_0.gif) 1/2
 
-(* 3 4 5.5) ![<graphic>](ch6_0.gif) 66.0
+(* 3 4 5.5) ![<graphic>](img/ch6_0.gif) 66.0
 
-(* 1+2i 3+4i) ![<graphic>](ch6_0.gif) -5+10i
+(* 1+2i 3+4i) ![<graphic>](img/ch6_0.gif) -5+10i
 
-(apply * '(1 2 3 4 5)) ![<graphic>](ch6_0.gif) 120`
+(apply * '(1 2 3 4 5)) ![<graphic>](img/ch6_0.gif) 120`
 
 **过程**：`(/ *num*)`
 
@@ -1748,19 +1748,19 @@ When called with no arguments, `*` returns 1.
 
 **库**：`(rnrs base)`，`(rnrs)`
 
-`(/ -17) ![<graphic>](ch6_0.gif) -1/17
+`(/ -17) ![<graphic>](img/ch6_0.gif) -1/17
 
-(/ 1/2) ![<graphic>](ch6_0.gif) 2
+(/ 1/2) ![<graphic>](img/ch6_0.gif) 2
 
-(/ .5) ![<graphic>](ch6_0.gif) 2.0
+(/ .5) ![<graphic>](img/ch6_0.gif) 2.0
 
-(/ 3 4) ![<graphic>](ch6_0.gif) 3/4
+(/ 3 4) ![<graphic>](img/ch6_0.gif) 3/4
 
-(/ 3.0 4) ![<graphic>](ch6_0.gif) .75
+(/ 3.0 4) ![<graphic>](img/ch6_0.gif) .75
 
-(/ -5+10i 3+4i) ![<graphic>](ch6_0.gif) 1+2i
+(/ -5+10i 3+4i) ![<graphic>](img/ch6_0.gif) 1+2i
 
-(/ 60 5 4 3 2) ![<graphic>](ch6_0.gif) 1/2`
+(/ 60 5 4 3 2) ![<graphic>](img/ch6_0.gif) 1/2`
 
 **过程**：`(zero? *num*)`
 
@@ -1770,17 +1770,17 @@ When called with no arguments, `*` returns 1.
 
 `zero?`等同于`(lambda (x) (= x 0))`。
 
-`(zero? 0) ![<graphic>](ch6_0.gif) #t
+`(zero? 0) ![<graphic>](img/ch6_0.gif) #t
 
-(zero? 1) ![<graphic>](ch6_0.gif) #f
+(zero? 1) ![<graphic>](img/ch6_0.gif) #f
 
-(zero? (- 3.0 3.0)) ![<graphic>](ch6_0.gif) #t
+(zero? (- 3.0 3.0)) ![<graphic>](img/ch6_0.gif) #t
 
-(zero? (+ 1/2 1/2)) ![<graphic>](ch6_0.gif) #f
+(zero? (+ 1/2 1/2)) ![<graphic>](img/ch6_0.gif) #f
 
-(zero? 0+0i) ![<graphic>](ch6_0.gif) #t
+(zero? 0+0i) ![<graphic>](img/ch6_0.gif) #t
 
-(zero? 0.0-0.0i) ![<graphic>](ch6_0.gif) #t`
+(zero? 0.0-0.0i) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**：`(positive? *real*)`
 
@@ -1790,15 +1790,15 @@ When called with no arguments, `*` returns 1.
 
 `positive?`等同于`(lambda (x) (> x 0))`。
 
-`(positive? 128) ![<graphic>](ch6_0.gif) #t
+`(positive? 128) ![<graphic>](img/ch6_0.gif) #t
 
-(positive? 0.0) ![<graphic>](ch6_0.gif) #f
+(positive? 0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(positive? 1.8e-15) ![<graphic>](ch6_0.gif) #t
+(positive? 1.8e-15) ![<graphic>](img/ch6_0.gif) #t
 
-(positive? -2/3) ![<graphic>](ch6_0.gif) #f
+(positive? -2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(positive? .001-0.0i) ![<graphic>](ch6_0.gif) *异常：不是实数*
+(positive? .001-0.0i) ![<graphic>](img/ch6_0.gif) *异常：不是实数*
 
 **过程**：`(negative? *real*)`
 
@@ -1808,15 +1808,15 @@ When called with no arguments, `*` returns 1.
 
 `negative?`等同于`(lambda (x) (< x 0))`。
 
-`(negative? -65) ![<graphic>](ch6_0.gif) #t
+`(negative? -65) ![<graphic>](img/ch6_0.gif) #t
 
-(negative? 0) ![<graphic>](ch6_0.gif) #f
+(negative? 0) ![<graphic>](img/ch6_0.gif) #f
 
-(negative? -0.0121) ![<graphic>](ch6_0.gif) #t
+(negative? -0.0121) ![<graphic>](img/ch6_0.gif) #t
 
-(negative? 15/16) ![<graphic>](ch6_0.gif) #f
+(negative? 15/16) ![<graphic>](img/ch6_0.gif) #f
 
-(negative? -7.0+0.0i) ![<graphic>](ch6_0.gif) *异常：不是实数*
+(negative? -7.0+0.0i) ![<graphic>](img/ch6_0.gif) *异常：不是实数*
 
 **过程**：`(even? *int*)`
 
@@ -1828,25 +1828,25 @@ When called with no arguments, `*` returns 1.
 
 **库**：`(rnrs base)`，`(rnrs)`
 
-`(even? 0) ![<graphic>](ch6_0.gif) #t
+`(even? 0) ![<graphic>](img/ch6_0.gif) #t
 
-(even? 1) ![<graphic>](ch6_0.gif) #f
+(even? 1) ![<graphic>](img/ch6_0.gif) #f
 
-(even? 2.0) ![<graphic>](ch6_0.gif) #t
+(even? 2.0) ![<graphic>](img/ch6_0.gif) #t
 
-(even? -120762398465) ![<graphic>](ch6_0.gif) #f
+(even? -120762398465) ![<graphic>](img/ch6_0.gif) #f
 
-(even? 2.0+0.0i) ![<graphic>](ch6_0.gif) *异常：不是整数*
+(even? 2.0+0.0i) ![<graphic>](img/ch6_0.gif) *异常：不是整数*
 
-(odd? 0) ![<graphic>](ch6_0.gif) #f
+(odd? 0) ![<graphic>](img/ch6_0.gif) #f
 
-(odd? 1) ![<graphic>](ch6_0.gif) #t
+(odd? 1) ![<graphic>](img/ch6_0.gif) #t
 
-(odd? 2.0) ![<graphic>](ch6_0.gif) #f
+(odd? 2.0) ![<graphic>](img/ch6_0.gif) #f
 
-(odd? -120762398465) ![<graphic>](ch6_0.gif) #t
+(odd? -120762398465) ![<graphic>](img/ch6_0.gif) #t
 
-(odd? 2.0+0.0i) ![<graphic>](ch6_0.gif) *异常：不是整数*
+(odd? 2.0+0.0i) ![<graphic>](img/ch6_0.gif) *异常：不是整数*
 
 **过程**：`(finite? *real*)`
 
@@ -1862,29 +1862,29 @@ When called with no arguments, `*` returns 1.
 
 **库**：`(rnrs base)`，`(rnrs)`
 
-`(finite? 2/3) ![<graphic>](ch6_0.gif) #t
+`(finite? 2/3) ![<graphic>](img/ch6_0.gif) #t
 
-(infinite? 2/3) ![<graphic>](ch6_0.gif) #f
+(infinite? 2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(nan? 2/3) ![<graphic>](ch6_0.gif) #f
+(nan? 2/3) ![<graphic>](img/ch6_0.gif) #f
 
-(finite? 3.1415) ![<graphic>](ch6_0.gif) #t
+(finite? 3.1415) ![<graphic>](img/ch6_0.gif) #t
 
-(infinite? 3.1415) ![<graphic>](ch6_0.gif) #f
+(infinite? 3.1415) ![<graphic>](img/ch6_0.gif) #f
 
-(nan? 3.1415) ![<graphic>](ch6_0.gif) #f
+(nan? 3.1415) ![<graphic>](img/ch6_0.gif) #f
 
-(finite? +inf.0) ![<graphic>](ch6_0.gif) #f
+(finite? +inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(infinite? -inf.0) ![<graphic>](ch6_0.gif) #t
+(infinite? -inf.0) ![<graphic>](img/ch6_0.gif) #t
 
-(nan? -inf.0) ![<graphic>](ch6_0.gif) #f
+(nan? -inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(finite? +nan.0) ![<graphic>](ch6_0.gif) #f
+(finite? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(infinite? +nan.0) ![<graphic>](ch6_0.gif) #f
+(infinite? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(nan? +nan.0) ![<graphic>](ch6_0.gif) #t`
+(nan? +nan.0) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(quotient *int[1]* *int[2]*)`
 
@@ -1902,31 +1902,31 @@ When called with no arguments, `*` returns 1.
 
 `remainder` 的结果与 `*int[1]*` 的符号相同，而 `modulo` 的结果与 `*int[2]*` 的符号相同。
 
-`(quotient 45 6) ![<graphic>](ch6_0.gif) 7
+`(quotient 45 6) ![<graphic>](img/ch6_0.gif) 7
 
-(quotient 6.0 2.0) ![<graphic>](ch6_0.gif) 3.0
+(quotient 6.0 2.0) ![<graphic>](img/ch6_0.gif) 3.0
 
-(quotient 3.0 -2) ![<graphic>](ch6_0.gif) -1.0
+(quotient 3.0 -2) ![<graphic>](img/ch6_0.gif) -1.0
 
-(remainder 16 4) ![<graphic>](ch6_0.gif) 0
+(remainder 16 4) ![<graphic>](img/ch6_0.gif) 0
 
-(remainder 5 2) ![<graphic>](ch6_0.gif) 1
+(remainder 5 2) ![<graphic>](img/ch6_0.gif) 1
 
-(remainder -45.0 7) ![<graphic>](ch6_0.gif) -3.0
+(remainder -45.0 7) ![<graphic>](img/ch6_0.gif) -3.0
 
-(remainder 10.0 -3.0) ![<graphic>](ch6_0.gif) 1.0
+(remainder 10.0 -3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(remainder -17 -9) ![<graphic>](ch6_0.gif) -8
+(remainder -17 -9) ![<graphic>](img/ch6_0.gif) -8
 
-(modulo 16 4) ![<graphic>](ch6_0.gif) 0
+(modulo 16 4) ![<graphic>](img/ch6_0.gif) 0
 
-(modulo 5 2) ![<graphic>](ch6_0.gif) 1
+(modulo 5 2) ![<graphic>](img/ch6_0.gif) 1
 
-(modulo -45.0 7) ![<graphic>](ch6_0.gif) 4.0
+(modulo -45.0 7) ![<graphic>](img/ch6_0.gif) 4.0
 
-(modulo 10.0 -3.0) ![<graphic>](ch6_0.gif) -2.0
+(modulo 10.0 -3.0) ![<graphic>](img/ch6_0.gif) -2.0
 
-(modulo -17 -9) ![<graphic>](ch6_0.gif) -8`
+(modulo -17 -9) ![<graphic>](img/ch6_0.gif) -8`
 
 **procedure**: `(div *x[1]* *x[2]*)`
 
@@ -1948,25 +1948,25 @@ When called with no arguments, `*` returns 1.
 
 除非在上述情况下引发异常，否则它返回两个值：对这两个参数调用 `div` 的结果和对这两个参数调用 `mod` 的结果。
 
-`(div 17 3) ![<graphic>](ch6_0.gif) 5
+`(div 17 3) ![<graphic>](img/ch6_0.gif) 5
 
-(mod 17 3) ![<graphic>](ch6_0.gif) 2
+(mod 17 3) ![<graphic>](img/ch6_0.gif) 2
 
-(div -17 3) ![<graphic>](ch6_0.gif) -6
+(div -17 3) ![<graphic>](img/ch6_0.gif) -6
 
-(mod -17 3) ![<graphic>](ch6_0.gif) 1
+(mod -17 3) ![<graphic>](img/ch6_0.gif) 1
 
-(div 17 -3) ![<graphic>](ch6_0.gif) -5
+(div 17 -3) ![<graphic>](img/ch6_0.gif) -5
 
-(mod 17 -3) ![<graphic>](ch6_0.gif) 2
+(mod 17 -3) ![<graphic>](img/ch6_0.gif) 2
 
-(div -17 -3) ![<graphic>](ch6_0.gif) 6
+(div -17 -3) ![<graphic>](img/ch6_0.gif) 6
 
-(mod -17 -3) ![<graphic>](ch6_0.gif) 1
+(mod -17 -3) ![<graphic>](img/ch6_0.gif) 1
 
-(div-and-mod 17.5 3) ![<graphic>](ch6_0.gif) 5.0
+(div-and-mod 17.5 3) ![<graphic>](img/ch6_0.gif) 5.0
 
-![](ch3_ghostRightarrow.gif) 2.5`
+![](img/ch3_ghostRightarrow.gif) 2.5`
 
 **procedure**: `(div0 *x[1]* *x[2]*)`
 
@@ -1986,25 +1986,25 @@ When called with no arguments, `*` returns 1.
 
 也就是说，除非在上述情况下引发异常，否则它返回两个值：对两个参数调用 `div0` 的结果和对两个参数调用 `mod0` 的结果。
 
-`(div0 17 3) ![<graphic>](ch6_0.gif) 6
+`(div0 17 3) ![<graphic>](img/ch6_0.gif) 6
 
-(mod0 17 3) ![<graphic>](ch6_0.gif) -1
+(mod0 17 3) ![<graphic>](img/ch6_0.gif) -1
 
-(div0 -17 3) ![<graphic>](ch6_0.gif) -6
+(div0 -17 3) ![<graphic>](img/ch6_0.gif) -6
 
-(mod0 -17 3) ![<graphic>](ch6_0.gif) 1
+(mod0 -17 3) ![<graphic>](img/ch6_0.gif) 1
 
-(div0 17 -3) ![<graphic>](ch6_0.gif) -6
+(div0 17 -3) ![<graphic>](img/ch6_0.gif) -6
 
-(mod0 17 -3) ![<graphic>](ch6_0.gif) -1
+(mod0 17 -3) ![<graphic>](img/ch6_0.gif) -1
 
-(div0 -17 -3) ![<graphic>](ch6_0.gif) 6
+(div0 -17 -3) ![<graphic>](img/ch6_0.gif) 6
 
-(mod0 -17 -3) ![<graphic>](ch6_0.gif) 1
+(mod0 -17 -3) ![<graphic>](img/ch6_0.gif) 1
 
-(div0-and-mod0 17.5 3) ![<graphic>](ch6_0.gif) 6.0
+(div0-and-mod0 17.5 3) ![<graphic>](img/ch6_0.gif) 6.0
 
-![](ch3_ghostRightarrow.gif) -0.5`
+![](img/ch3_ghostRightarrow.gif) -0.5`
 
 **procedure**: `(truncate *real*)`
 
@@ -2014,51 +2014,51 @@ When called with no arguments, `*` returns 1.
 
 如果 `*real*` 是无穷大或 NaN，则 `truncate` 返回 `*real*`。
 
-`(truncate 19) ![<graphic>](ch6_0.gif) 19
+`(truncate 19) ![<graphic>](img/ch6_0.gif) 19
 
-(truncate 2/3) ![<graphic>](ch6_0.gif) 0
+(truncate 2/3) ![<graphic>](img/ch6_0.gif) 0
 
-(truncate -2/3) ![<graphic>](ch6_0.gif) 0
+(truncate -2/3) ![<graphic>](img/ch6_0.gif) 0
 
-(truncate 17.3)��![<graphic>](ch6_0.gif) 17.0
+(truncate 17.3)��![<graphic>](img/ch6_0.gif) 17.0
 
-(truncate -17/2) ![<graphic>](ch6_0.gif) -8`
+(truncate -17/2) ![<graphic>](img/ch6_0.gif) -8`
 
 **procedure**: `(floor *real*)`
 
-**returns:** 最接近 `*real*` 且朝 ![<graphic>](ch6_11.gif) 的整数
+**returns:** 最接近 `*real*` 且朝 ![<graphic>](img/ch6_11.gif) 的整数
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
 如果 `*real*` 是无穷大或 NaN，则 `floor` 返回 `*real*`。
 
-`(floor 19) ![<graphic>](ch6_0.gif) 19
+`(floor 19) ![<graphic>](img/ch6_0.gif) 19
 
-(floor 2/3) ![<graphic>](ch6_0.gif) 0
+(floor 2/3) ![<graphic>](img/ch6_0.gif) 0
 
-(floor -2/3) ![<graphic>](ch6_0.gif) -1
+(floor -2/3) ![<graphic>](img/ch6_0.gif) -1
 
-(floor 17.3) ![<graphic>](ch6_0.gif) 17.0
+(floor 17.3) ![<graphic>](img/ch6_0.gif) 17.0
 
-(floor -17/2) ![<graphic>](ch6_0.gif) -9`
+(floor -17/2) ![<graphic>](img/ch6_0.gif) -9`
 
 **procedure**: `(ceiling *real*)`
 
-**returns:** 最接近 `*real*` 且朝 ![<graphic>](ch6_12.gif) 的整数
+**returns:** 最接近 `*real*` 且朝 ![<graphic>](img/ch6_12.gif) 的整数
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
 如果 `*real*` 是无穷大或 NaN，则 `ceiling` 返回 `*real*`。
 
-`(ceiling 19) ![<graphic>](ch6_0.gif) 19
+`(ceiling 19) ![<graphic>](img/ch6_0.gif) 19
 
-(ceiling 2/3) ![<graphic>](ch6_0.gif) 1
+(ceiling 2/3) ![<graphic>](img/ch6_0.gif) 1
 
-(ceiling -2/3) ![<graphic>](ch6_0.gif) 0
+(ceiling -2/3) ![<graphic>](img/ch6_0.gif) 0
 
-(ceiling 17.3) ![<graphic>](ch6_0.gif) 18.0
+(ceiling 17.3) ![<graphic>](img/ch6_0.gif) 18.0
 
-(ceiling -17/2) ![<graphic>](ch6_0.gif) -8`
+(ceiling -17/2) ![<graphic>](img/ch6_0.gif) -8`
 
 **过程：** `(round *real*)`
 
@@ -2066,21 +2066,21 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-如果`*real*`恰好介于两个整数之间，���返回最接近的偶数。如果`*real*`是无穷大或NaN，则`round`返回`*real*`。
+如果`*real*`恰好介于两个整数之间，���返回最接近的偶数。如果`*real*`是无穷大或 NaN，则`round`返回`*real*`。
 
-`(round 19) ![<graphic>](ch6_0.gif) 19
+`(round 19) ![<graphic>](img/ch6_0.gif) 19
 
-(round 2/3) ![<graphic>](ch6_0.gif) 1
+(round 2/3) ![<graphic>](img/ch6_0.gif) 1
 
-(round -2/3) ![<graphic>](ch6_0.gif) -1
+(round -2/3) ![<graphic>](img/ch6_0.gif) -1
 
-(round 17.3) ![<graphic>](ch6_0.gif) 17.0
+(round 17.3) ![<graphic>](img/ch6_0.gif) 17.0
 
-(round -17/2) ![<graphic>](ch6_0.gif) -8
+(round -17/2) ![<graphic>](img/ch6_0.gif) -8
 
-(round 2.5) ![<graphic>](ch6_0.gif) 2.0
+(round 2.5) ![<graphic>](img/ch6_0.gif) 2.0
 
-(round 3.5) ![<graphic>](ch6_0.gif) 4.0`
+(round 3.5) ![<graphic>](img/ch6_0.gif) 4.0`
 
 **过程：** `(abs *real*)`
 
@@ -2088,15 +2088,15 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-`abs`等同于`(lambda (x) (if (< x 0) (- x) x))`。对于实数输入，`abs`和`magnitude`（见第[183](objects.html#page:magnitude)页）是相同的。
+`abs`等同于`(lambda (x) (if (< x 0) (- x) x))`。对于实数输入，`abs`和`magnitude`（见第 183 页）是相同的。
 
-`(abs 1) ![<graphic>](ch6_0.gif) 1
+`(abs 1) ![<graphic>](img/ch6_0.gif) 1
 
-(abs -3/4) ![<graphic>](ch6_0.gif) 3/4
+(abs -3/4) ![<graphic>](img/ch6_0.gif) 3/4
 
-(abs 1.83) ![<graphic>](ch6_0.gif) 1.83
+(abs 1.83) ![<graphic>](img/ch6_0.gif) 1.83
 
-(abs -0.093) ![<graphic>](ch6_0.gif) 0.093`
+(abs -0.093) ![<graphic>](img/ch6_0.gif) 0.093`
 
 **过程：** `(max *real[1]* *real[2]* ...)`
 
@@ -2104,19 +2104,19 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-`(max 4 -7 2 0 -6) ![<graphic>](ch6_0.gif) 4
+`(max 4 -7 2 0 -6) ![<graphic>](img/ch6_0.gif) 4
 
-(max 1/2 3/4 4/5 5/6 6/7) ![<graphic>](ch6_0.gif) 6/7
+(max 1/2 3/4 4/5 5/6 6/7) ![<graphic>](img/ch6_0.gif) 6/7
 
-(max 1.5 1.3 -0.3 0.4 2.0 1.8) ![<graphic>](ch6_0.gif) 2.0
+(max 1.5 1.3 -0.3 0.4 2.0 1.8) ![<graphic>](img/ch6_0.gif) 2.0
 
-(max 5 2.0) ![<graphic>](ch6_0.gif) 5.0
+(max 5 2.0) ![<graphic>](img/ch6_0.gif) 5.0
 
-(max -5 -2.0) ![<graphic>](ch6_0.gif) -2.0
+(max -5 -2.0) ![<graphic>](img/ch6_0.gif) -2.0
 
 (let ([ls '(7 3 5 2 9 8)])
 
-(apply max ls)) ![<graphic>](ch6_0.gif) 9`
+(apply max ls)) ![<graphic>](img/ch6_0.gif) 9`
 
 **过程：** `(min *real[1]* *real[2]* ...)`
 
@@ -2124,19 +2124,19 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-`(min 4 -7 2 0 -6) ![<graphic>](ch6_0.gif) -7
+`(min 4 -7 2 0 -6) ![<graphic>](img/ch6_0.gif) -7
 
-(min 1/2 3/4 4/5 5/6 6/7) ![<graphic>](ch6_0.gif) 1/2
+(min 1/2 3/4 4/5 5/6 6/7) ![<graphic>](img/ch6_0.gif) 1/2
 
-(min 1.5 1.3 -0.3 0.4 2.0 1.8) ![<graphic>](ch6_0.gif) -0.3
+(min 1.5 1.3 -0.3 0.4 2.0 1.8) ![<graphic>](img/ch6_0.gif) -0.3
 
-(min 5 2.0) ![<graphic>](ch6_0.gif) 2.0
+(min 5 2.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(min -5 -2.0) ![<graphic>](ch6_0.gif) -5.0
+(min -5 -2.0) ![<graphic>](img/ch6_0.gif) -5.0
 
 (let ([ls '(7 3 5 2 9 8)])
 
-(apply min ls)) ![<graphic>](ch6_0.gif) 2`
+(apply min ls)) ![<graphic>](img/ch6_0.gif) 2`
 
 **过程：** `(gcd *int* ...)`
 
@@ -2144,15 +2144,15 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-结果始终为非负数，即-1的因子被忽略。当没有参数时，`gcd`返回0。
+结果始终为非负数，即-1 的因子被忽略。当没有参数时，`gcd`返回 0。
 
-`(gcd) ![<graphic>](ch6_0.gif) 0
+`(gcd) ![<graphic>](img/ch6_0.gif) 0
 
-(gcd 34) ![<graphic>](ch6_0.gif) 34
+(gcd 34) ![<graphic>](img/ch6_0.gif) 34
 
-(gcd 33.0 15.0) ![<graphic>](ch6_0.gif) 3.0
+(gcd 33.0 15.0) ![<graphic>](img/ch6_0.gif) 3.0
 
-(gcd 70 -42 28) ![<graphic>](ch6_0.gif) 14`
+(gcd 70 -42 28) ![<graphic>](img/ch6_0.gif) 14`
 
 **过程：** `(lcm *int* ...)`
 
@@ -2160,17 +2160,17 @@ When called with no arguments, `*` returns 1.
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-结果始终为非负数，即-1的公共倍数被忽略。虽然`lcm`在没有参数的情况下应该返回![<graphic>](ch6_13.gif)，但它被定义为返回1。如果一个或多个参数为0，`lcm`返回0。
+结果始终为非负数，即-1 的公共倍数被忽略。虽然`lcm`在没有参数的情况下应该返回![<graphic>](img/ch6_13.gif)，但它被定义为返回 1。如果一个或多个参数为 0，`lcm`返回 0。
 
-`(lcm) ![<graphic>](ch6_0.gif) 1
+`(lcm) ![<graphic>](img/ch6_0.gif) 1
 
-(lcm 34) ![<graphic>](ch6_0.gif) 34
+(lcm 34) ![<graphic>](img/ch6_0.gif) 34
 
-(lcm 33.0 15.0) ![<graphic>](ch6_0.gif) 165.0
+(lcm 33.0 15.0) ![<graphic>](img/ch6_0.gif) 165.0
 
-(lcm 70 -42 28) ![<graphic>](ch6_0.gif) 420
+(lcm 70 -42 28) ![<graphic>](img/ch6_0.gif) 420
 
-(lcm 17.0 0) ![<graphic>](ch6_0.gif) 0.0`
+(lcm 17.0 0) ![<graphic>](img/ch6_0.gif) 0.0`
 
 **procedure**: `(expt *num[1]* *num[2]*)`
 
@@ -2180,17 +2180,17 @@ When called with no arguments, `*` returns 1.
 
 如果两个参数都是 0，则 `expt` 返回 1。
 
-`(expt 2 10) ![<graphic>](ch6_0.gif) 1024
+`(expt 2 10) ![<graphic>](img/ch6_0.gif) 1024
 
-(expt 2 -10) ![<graphic>](ch6_0.gif) 1/1024
+(expt 2 -10) ![<graphic>](img/ch6_0.gif) 1/1024
 
-(expt 2 -10.0) ![<graphic>](ch6_0.gif) 9.765625e-4
+(expt 2 -10.0) ![<graphic>](img/ch6_0.gif) 9.765625e-4
 
-(expt -1/2 5) ![<graphic>](ch6_0.gif) -1/32
+(expt -1/2 5) ![<graphic>](img/ch6_0.gif) -1/32
 
-(expt 3.0 3) ![<graphic>](ch6_0.gif) 27.0
+(expt 3.0 3) ![<graphic>](img/ch6_0.gif) 27.0
 
-(expt +i 2) ![<graphic>](ch6_0.gif) -1`
+(expt +i 2) ![<graphic>](img/ch6_0.gif) -1`
 
 **procedure**: `(inexact *num*)`
 
@@ -2200,15 +2200,15 @@ When called with no arguments, `*` returns 1.
 
 如果 `*num*` 已经是非精确的，则返回不变。如果实现不支持 `*num*` 的非精确表示，可能会引发带有条件类型 `&implementation-violation` 的异常。对于超出实现的非精确数表示范围的输入，`inexact` 也可能返回 `+inf.0` 或 `-inf.0`。
 
-`(inexact 3) ![<graphic>](ch6_0.gif) 3.0
+`(inexact 3) ![<graphic>](img/ch6_0.gif) 3.0
 
-(inexact 3.0) ![<graphic>](ch6_0.gif) 3.0
+(inexact 3.0) ![<graphic>](img/ch6_0.gif) 3.0
 
-(inexact -1/4) ![<graphic>](ch6_0.gif) -.25
+(inexact -1/4) ![<graphic>](img/ch6_0.gif) -.25
 
-(inexact 3+4i) ![<graphic>](ch6_0.gif) 3.0+4.0i
+(inexact 3+4i) ![<graphic>](img/ch6_0.gif) 3.0+4.0i
 
-(inexact (expt 10 20)) ![<graphic>](ch6_0.gif) 1e20`
+(inexact (expt 10 20)) ![<graphic>](img/ch6_0.gif) 1e20`
 
 **procedure**: `(exact *num*)`
 
@@ -2218,15 +2218,15 @@ When called with no arguments, `*` returns 1.
 
 如果 `*num*` 已经是精确的，则返回不变。如果实现不支持 `*num*` 的精确表示，可能会引发带有条件类型 `&implementation-violation` 的异常。
 
-`(exact 3.0) ![<graphic>](ch6_0.gif) 3
+`(exact 3.0) ![<graphic>](img/ch6_0.gif) 3
 
-(exact 3) ![<graphic>](ch6_0.gif) 3
+(exact 3) ![<graphic>](img/ch6_0.gif) 3
 
-(exact -.25) ![<graphic>](ch6_0.gif) -1/4
+(exact -.25) ![<graphic>](img/ch6_0.gif) -1/4
 
-(exact 3.0+4.0i) ![<graphic>](ch6_0.gif) 3+4i
+(exact 3.0+4.0i) ![<graphic>](img/ch6_0.gif) 3+4i
 
-(exact 1e20) ![<graphic>](ch6_0.gif) 100000000000000000000`
+(exact 1e20) ![<graphic>](img/ch6_0.gif) 100000000000000000000`
 
 **procedure**: `(exact->inexact *num*)`
 
@@ -2248,11 +2248,11 @@ When called with no arguments, `*` returns 1.
 
 `rationalize` 返回与 `*real[1]*` 最多相差 `*real[2]*` 的最简有理数。有理数 *q*[1] = *n*[1]/*m*[1] 比另一个有理数 *q*[2] = *n*[2]/*m*[2] 更简单，如果 |*n*[1]| ≤ |*n*[2]| 且 |*m*[1]| ≤ |*m*[2]|，并且 |*n*[1]| < |*n*[2]| 或 |*m*[1]| < |*m*[2]|.
 
-`(rationalize 3/10 1/10) ![<graphic>](ch6_0.gif) 1/3
+`(rationalize 3/10 1/10) ![<graphic>](img/ch6_0.gif) 1/3
 
-(rationalize .3 1/10) ![<graphic>](ch6_0.gif) 0.3333333333333333
+(rationalize .3 1/10) ![<graphic>](img/ch6_0.gif) 0.3333333333333333
 
-(eqv? (rationalize .3 1/10) #i1/3) ![<graphic>](ch6_0.gif) #t`
+(eqv? (rationalize .3 1/10) #i1/3) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(numerator *rat*)`
 
@@ -2262,17 +2262,17 @@ When called with no arguments, `*` returns 1.
 
 如果 `*rat*` 是整数，则分子是 `*rat*`。
 
-`(numerator 9) ![<graphic>](ch6_0.gif) 9
+`(numerator 9) ![<graphic>](img/ch6_0.gif) 9
 
-(numerator 9.0) ![<graphic>](ch6_0.gif) 9.0
+(numerator 9.0) ![<graphic>](img/ch6_0.gif) 9.0
 
-(numerator 0.0) ![<graphic>](ch6_0.gif) 0.0
+(numerator 0.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(numerator 2/3) ![<graphic>](ch6_0.gif) 2
+(numerator 2/3) ![<graphic>](img/ch6_0.gif) 2
 
-(numerator -9/4) ![<graphic>](ch6_0.gif) -9
+(numerator -9/4) ![<graphic>](img/ch6_0.gif) -9
 
-(numerator -2.25) ![<graphic>](ch6_0.gif) -9.0`
+(numerator -2.25) ![<graphic>](img/ch6_0.gif) -9.0`
 
 **procedure**: `(denominator *rat*)`
 
@@ -2282,19 +2282,19 @@ When called with no arguments, `*` returns 1.
 
 If `*rat*` is an integer, including zero, the denominator is one.
 
-`(denominator 9) ![<graphic>](ch6_0.gif) 1
+`(denominator 9) ![<graphic>](img/ch6_0.gif) 1
 
-(denominator 9.0) ![<graphic>](ch6_0.gif) 1.0
+(denominator 9.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(denominator 0) ![<graphic>](ch6_0.gif) 1
+(denominator 0) ![<graphic>](img/ch6_0.gif) 1
 
-(denominator 0.0) ![<graphic>](ch6_0.gif) 1.0
+(denominator 0.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(denominator 2/3) ![<graphic>](ch6_0.gif) 3
+(denominator 2/3) ![<graphic>](img/ch6_0.gif) 3
 
-(denominator -9/4) ![<graphic>](ch6_0.gif) 4
+(denominator -9/4) ![<graphic>](img/ch6_0.gif) 4
 
-(denominator -2.25) ![<graphic>](ch6_0.gif) 4.0`
+(denominator -2.25) ![<graphic>](img/ch6_0.gif) 4.0`
 
 **procedure**: `(real-part *num*)`
 
@@ -2304,15 +2304,15 @@ If `*rat*` is an integer, including zero, the denominator is one.
 
 If `*num*` is real, `real-part` returns `*num*`.
 
-`(real-part 3+4i) ![<graphic>](ch6_0.gif) 3
+`(real-part 3+4i) ![<graphic>](img/ch6_0.gif) 3
 
-(real-part -2.3+0.7i) ![<graphic>](ch6_0.gif) -2.3
+(real-part -2.3+0.7i) ![<graphic>](img/ch6_0.gif) -2.3
 
-(real-part -i) ![<graphic>](ch6_0.gif) 0
+(real-part -i) ![<graphic>](img/ch6_0.gif) 0
 
-(real-part 17.2) ![<graphic>](ch6_0.gif) 17.2
+(real-part 17.2) ![<graphic>](img/ch6_0.gif) 17.2
 
-(real-part -17/100) ![<graphic>](ch6_0.gif) -17/100`
+(real-part -17/100) ![<graphic>](img/ch6_0.gif) -17/100`
 
 **procedure**: `(imag-part *num*)`
 
@@ -2322,15 +2322,15 @@ If `*num*` is real, `real-part` returns `*num*`.
 
 If `*num*` is real, `imag-part` returns exact zero.
 
-`(imag-part 3+4i) ![<graphic>](ch6_0.gif) 4
+`(imag-part 3+4i) ![<graphic>](img/ch6_0.gif) 4
 
-(imag-part -2.3+0.7i) ![<graphic>](ch6_0.gif) 0.7
+(imag-part -2.3+0.7i) ![<graphic>](img/ch6_0.gif) 0.7
 
-(imag-part -i) ![<graphic>](ch6_0.gif) -1
+(imag-part -i) ![<graphic>](img/ch6_0.gif) -1
 
-(imag-part -2.5) ![<graphic>](ch6_0.gif) 0
+(imag-part -2.5) ![<graphic>](img/ch6_0.gif) 0
 
-(imag-part -17/100) ![<graphic>](ch6_0.gif) 0`
+(imag-part -17/100) ![<graphic>](img/ch6_0.gif) 0`
 
 **procedure**: `(make-rectangular *real[1]* *real[2]*)`
 
@@ -2338,11 +2338,11 @@ If `*num*` is real, `imag-part` returns exact zero.
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(make-rectangular -2 7) ![<graphic>](ch6_0.gif) -2+7i
+`(make-rectangular -2 7) ![<graphic>](img/ch6_0.gif) -2+7i
 
-(make-rectangular 2/3 -1/2) ![<graphic>](ch6_0.gif) 2/3-1/2i
+(make-rectangular 2/3 -1/2) ![<graphic>](img/ch6_0.gif) 2/3-1/2i
 
-(make-rectangular 3.2 5.3) ![<graphic>](ch6_0.gif) 3.2+5.3i`
+(make-rectangular 3.2 5.3) ![<graphic>](img/ch6_0.gif) 3.2+5.3i`
 
 **procedure**: `(make-polar *real[1]* *real[2]*)`
 
@@ -2350,13 +2350,13 @@ If `*num*` is real, `imag-part` returns exact zero.
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(make-polar 2 0) ![<graphic>](ch6_0.gif) 2
+`(make-polar 2 0) ![<graphic>](img/ch6_0.gif) 2
 
-(make-polar 2.0 0.0) ![<graphic>](ch6_0.gif) 2.0+0.0i
+(make-polar 2.0 0.0) ![<graphic>](img/ch6_0.gif) 2.0+0.0i
 
-(make-polar 1.0 (asin -1.0)) ![<graphic>](ch6_0.gif) 0.0-1.0i
+(make-polar 1.0 (asin -1.0)) ![<graphic>](img/ch6_0.gif) 0.0-1.0i
 
-(eqv? (make-polar 7.2 -0.588) 7.2@-0.588) ![<graphic>](ch6_0.gif) #t`
+(eqv? (make-polar 7.2 -0.588) 7.2@-0.588) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(angle *num*)`
 
@@ -2364,11 +2364,11 @@ If `*num*` is real, `imag-part` returns exact zero.
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](ch6_15.gif) (inclusive).
+The range of the result is ![<graphic>](img/ch6_14.gif) (exclusive) to ![<graphic>](img/ch6_15.gif) (inclusive).
 
-`(angle 7.3@1.5708) ![<graphic>](ch6_0.gif) 1.5708
+`(angle 7.3@1.5708) ![<graphic>](img/ch6_0.gif) 1.5708
 
-(angle 5.2) ![<graphic>](ch6_0.gif) 0.0`
+(angle 5.2) ![<graphic>](img/ch6_0.gif) 0.0`
 
 **procedure**: `(magnitude *num*)`
 
@@ -2376,19 +2376,19 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`magnitude` and `abs` (see page [178](objects.html#page:abs)) are identical for real arguments. The magnitude of a complex number *x* + *yi* is ![<graphic>](ch6_16.gif).
+`magnitude` and `abs` (see page 178) are identical for real arguments. The magnitude of a complex number *x* + *yi* is ![<graphic>](img/ch6_16.gif).
 
-`(magnitude 1) ![<graphic>](ch6_0.gif) 1
+`(magnitude 1) ![<graphic>](img/ch6_0.gif) 1
 
-(magnitude -3/4) ![<graphic>](ch6_0.gif) 3/4
+(magnitude -3/4) ![<graphic>](img/ch6_0.gif) 3/4
 
-(magnitude 1.83) ![<graphic>](ch6_0.gif) 1.83
+(magnitude 1.83) ![<graphic>](img/ch6_0.gif) 1.83
 
-(magnitude -0.093) ![<graphic>](ch6_0.gif) 0.093
+(magnitude -0.093) ![<graphic>](img/ch6_0.gif) 0.093
 
-(magnitude 3+4i) ![<graphic>](ch6_0.gif) 5
+(magnitude 3+4i) ![<graphic>](img/ch6_0.gif) 5
 
-(magnitude 7.25@1.5708) ![<graphic>](ch6_0.gif) 7.25`
+(magnitude 7.25@1.5708) ![<graphic>](img/ch6_0.gif) 7.25`
 
 **过程**: `(sqrt *num*)`
 
@@ -2398,17 +2398,17 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 当可行时，鼓励但不要求实现对 `sqrt` 的确切输入返回确切结果。
 
-`(sqrt 16) ![<graphic>](ch6_0.gif) 4
+`(sqrt 16) ![<graphic>](img/ch6_0.gif) 4
 
-(sqrt 1/4) ![<graphic>](ch6_0.gif) 1/2
+(sqrt 1/4) ![<graphic>](img/ch6_0.gif) 1/2
 
-(sqrt 4.84) ![<graphic>](ch6_0.gif) 2.2
+(sqrt 4.84) ![<graphic>](img/ch6_0.gif) 2.2
 
-(sqrt -4.84) ![<graphic>](ch6_0.gif) 0.0+2.2i
+(sqrt -4.84) ![<graphic>](img/ch6_0.gif) 0.0+2.2i
 
-(sqrt 3+4i) ![<graphic>](ch6_0.gif) 2+1i
+(sqrt 3+4i) ![<graphic>](img/ch6_0.gif) 2+1i
 
-(sqrt -3.0-4.0i) ![<graphic>](ch6_0.gif) 1.0-2.0i`
+(sqrt -3.0-4.0i) ![<graphic>](img/ch6_0.gif) 1.0-2.0i`
 
 **过程**: `(exact-integer-sqrt *n*)`
 
@@ -2418,17 +2418,17 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 此过程返回两个非负确切整数 *s* 和 *r*，其中 *n* = *s*² + *r*，且 *n* < (*s* + 1)²。
 
-`(exact-integer-sqrt 0) ![<graphic>](ch6_0.gif) 0
+`(exact-integer-sqrt 0) ![<graphic>](img/ch6_0.gif) 0
 
-![](ch3_ghostRightarrow.gif) 0
+![](img/ch3_ghostRightarrow.gif) 0
 
-(exact-integer-sqrt 9) ![<graphic>](ch6_0.gif) 3
+(exact-integer-sqrt 9) ![<graphic>](img/ch6_0.gif) 3
 
-![<graphic>](ch6_0.gif) 0
+![<graphic>](img/ch6_0.gif) 0
 
-(exact-integer-sqrt 19) ![<graphic>](ch6_0.gif) 4
+(exact-integer-sqrt 19) ![<graphic>](img/ch6_0.gif) 4
 
-![<graphic>](ch6_0.gif) 3`
+![<graphic>](img/ch6_0.gif) 3`
 
 **过程**: `(exp *num*)`
 
@@ -2436,11 +2436,11 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **库**: `(rnrs base)`, `(rnrs)`
 
-`(exp 0.0) ![<graphic>](ch6_0.gif) 1.0
+`(exp 0.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(exp 1.0) ![<graphic>](ch6_0.gif) 2.7182818284590455
+(exp 1.0) ![<graphic>](img/ch6_0.gif) 2.7182818284590455
 
-(exp -.5) ![<graphic>](ch6_0.gif) 0.6065306597126334`
+(exp -.5) ![<graphic>](img/ch6_0.gif) 0.6065306597126334`
 
 **过程**: `(log *num*)`
 
@@ -2452,17 +2452,17 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **库**: `(rnrs base)`, `(rnrs)`
 
-`(log 1.0) ![<graphic>](ch6_0.gif) 0.0
+`(log 1.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(log (exp 1.0)) ![<graphic>](ch6_0.gif) 1.0
+(log (exp 1.0)) ![<graphic>](img/ch6_0.gif) 1.0
 
-(/ (log 100) (log 10)) ![<graphic>](ch6_0.gif) 2.0
+(/ (log 100) (log 10)) ![<graphic>](img/ch6_0.gif) 2.0
 
-(log (make-polar (exp 2.0) 1.0)) ![<graphic>](ch6_0.gif) 2.0+1.0i
+(log (make-polar (exp 2.0) 1.0)) ![<graphic>](img/ch6_0.gif) 2.0+1.0i
 
-(log 100.0 10.0) ![<graphic>](ch6_0.gif) 2.0
+(log 100.0 10.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(log .125 2.0) ![<graphic>](ch6_0.gif) -3.0`
+(log .125 2.0) ![<graphic>](img/ch6_0.gif) -3.0`
 
 **过程**: `(sin *num*)`
 
@@ -2476,11 +2476,11 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 参数以弧度指定。
 
-`(sin 0.0) ![<graphic>](ch6_0.gif) 0.0
+`(sin 0.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(cos 0.0) ![<graphic>](ch6_0.gif) 1.0
+(cos 0.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(tan 0.0) ![<graphic>](ch6_0.gif) 0.0`
+(tan 0.0) ![<graphic>](img/ch6_0.gif) 0.0`
 
 **过程**: `(asin *num*)`
 
@@ -2492,13 +2492,13 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 结果以弧度表示。 复数 *z* 的反正弦和反余弦定义如下。
 
-![<graphic>](ch6_17.gif)
+![<graphic>](img/ch6_17.gif)
 
-![<graphic>](ch6_18.gif)
+![<graphic>](img/ch6_18.gif)
 
 `(define pi (* (asin 1) 2))
 
-(= (* (acos 0) 2) pi) ![<graphic>](ch6_0.gif) #t`
+(= (* (acos 0) 2) pi) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**: `(atan *num*)`
 
@@ -2510,13 +2510,13 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 当传递单个复数参数 `*num*`（第一种形式）时，`atan` 返回 `*num*` 的反正切。 复数 *z* 的反正切定义如下。
 
-![<graphic>](ch6_19.gif)
+![<graphic>](img/ch6_19.gif)
 
 当传递两个实数参数（第二种形式）时，`atan` 等效于 `(lambda (y x) (angle (make-rectangular x y)))`。
 
 `(define pi (* (atan 1) 4))
 
-(= (* (atan 1.0 0.0) 2) pi) ![<图形>](ch6_0.gif) #t`
+(= (* (atan 1.0 0.0) 2) pi) ![<图形>](img/ch6_0.gif) #t`
 
 **过程**: `(按位非 *exint*)`
 
@@ -2538,17 +2538,17 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 即使内部表示方式不是以二进制补码表示，输入也会被视为以二进制补码表示。
 
-`(按位非 0) ![<图形>](ch6_0.gif) -1
+`(按位非 0) ![<图形>](img/ch6_0.gif) -1
 
-(按位非 3) ![<图形>](ch6_0.gif) -4
+(按位非 3) ![<图形>](img/ch6_0.gif) -4
 
-(按位与 #b01101 #b00111) ![<图形>](ch6_0.gif) #b00101
+(按位与 #b01101 #b00111) ![<图形>](img/ch6_0.gif) #b00101
 
-(按位或 #b01101 #b00111) ![<图形>](ch6_0.gif) #b01111
+(按位或 #b01101 #b00111) ![<图形>](img/ch6_0.gif) #b01111
 
-(按位异或 #b01101 #b00111) ![<图形>](ch6_0.gif) #b01010`
+(按位异或 #b01101 #b00111) ![<图形>](img/ch6_0.gif) #b01010`
 
-**过程**: `(按位if *exint[1]* *exint[2]* *exint[3]*)`
+**过程**: `(按位 if *exint[1]* *exint[2]* *exint[3]*)`
 
 **返回**: 其参数的按位“if”
 
@@ -2558,11 +2558,11 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 对于`*exint[1]*`中设置的每个位，结果的相应位取自`*exint[2]*`，对于`*exint[1]*`中未设置的每个位，结果的相应位取自`*x[3]*`。
 
-`(按位if #b101010 #b111000 #b001100) ![<图形>](ch6_0.gif) #b101100`
+`(按位 if #b101010 #b111000 #b001100) ![<图形>](img/ch6_0.gif) #b101100`
 
-`按位if`可能定义如下：
+`按位 if`可能定义如下：
 
-`(定义 按位if
+`(定义 按位 if
 
 (lambda (exint1 exint2 exint3)
 
@@ -2580,19 +2580,19 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 对于非负输入，`按位计数`返回`*exint*`的二进制补码表示中设置的位数。对于负输入，它返回一个负数，其大小比`*exint*`的二进制补码表示中未设置的位数多一个，这等效于`(按位非 (按位计数 (按位非 *exint*)))`。
 
-`(按位计数 #b00000) ![<图形>](ch6_0.gif) 0
+`(按位计数 #b00000) ![<图形>](img/ch6_0.gif) 0
 
-(按位计数 #b00001) ![<图形>](ch6_0.gif) 1
+(按位计数 #b00001) ![<图形>](img/ch6_0.gif) 1
 
-(按位计数 #b00100) ![<图形>](ch6_0.gif) 1
+(按位计数 #b00100) ![<图形>](img/ch6_0.gif) 1
 
-(按位计数 #b10101) ![<图形>](ch6_0.gif) 3
+(按位计数 #b10101) ![<图形>](img/ch6_0.gif) 3
 
-(按位计数 -1) ![<图形>](ch6_0.gif) -1
+(按位计数 -1) ![<图形>](img/ch6_0.gif) -1
 
-(按位计数 -2) ![<图形>](ch6_0.gif) -2
+(按位计数 -2) ![<图形>](img/ch6_0.gif) -2
 
-(按位计数 -4) ![<图形>](ch6_0.gif) -3`
+(按位计数 -4) ![<图形>](img/ch6_0.gif) -3`
 
 **过程**: `(按位长度 *exint*)`
 
@@ -2600,21 +2600,21 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **库**: `(rnrs 算术 按位)`, `(rnrs)`
 
-该过程返回`*exint*`的最小二进制补码表示的位数，不包括负数的符号位。对于0，`按位长度`返回0。
+该过程返回`*exint*`的最小二进制补码表示的位数，不包括负数的符号位。对于 0，`按位长度`返回 0。
 
-`(按位长度 #b00000) ![<图形>](ch6_0.gif) 0
+`(按位长度 #b00000) ![<图形>](img/ch6_0.gif) 0
 
-(按位长度 #b00001) ![<图形>](ch6_0.gif) 1
+(按位长度 #b00001) ![<图形>](img/ch6_0.gif) 1
 
-(按位长度 #b00100) ![<图形>](ch6_0.gif) 3
+(按位长度 #b00100) ![<图形>](img/ch6_0.gif) 3
 
-(按位长度 #b00110) ![<图形>](ch6_0.gif) 3
+(按位长度 #b00110) ![<图形>](img/ch6_0.gif) 3
 
-(bitwise-length -1) ![<graphic>](ch6_0.gif) 0
+(bitwise-length -1) ![<graphic>](img/ch6_0.gif) 0
 
-(bitwise-length -6) ![<graphic>](ch6_0.gif) 3
+(bitwise-length -6) ![<graphic>](img/ch6_0.gif) 3
 
-(bitwise-length -9) ![<graphic>](ch6_0.gif) 4`
+(bitwise-length -9) ![<graphic>](img/ch6_0.gif) 4`
 
 **procedure**: `(bitwise-first-bit-set *exint*)`
 
@@ -2624,19 +2624,19 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 输入被视为以二进制补码表示，即使内部没有以这种方式表示。
 
-如果`*exint*`为0，则`bitwise-first-bit-set`返回-1。
+如果`*exint*`为 0，则`bitwise-first-bit-set`返回-1。
 
-`(bitwise-first-bit-set #b00000) ![<graphic>](ch6_0.gif) -1
+`(bitwise-first-bit-set #b00000) ![<graphic>](img/ch6_0.gif) -1
 
-(bitwise-first-bit-set #b00001) ![<graphic>](ch6_0.gif) 0
+(bitwise-first-bit-set #b00001) ![<graphic>](img/ch6_0.gif) 0
 
-(bitwise-first-bit-set #b01100) ![<graphic>](ch6_0.gif) 2
+(bitwise-first-bit-set #b01100) ![<graphic>](img/ch6_0.gif) 2
 
-(bitwise-first-bit-set -1) ![<graphic>](ch6_0.gif) 0
+(bitwise-first-bit-set -1) ![<graphic>](img/ch6_0.gif) 0
 
-(bitwise-first-bit-set -2) ![<graphic>](ch6_0.gif) 1
+(bitwise-first-bit-set -2) ![<graphic>](img/ch6_0.gif) 1
 
-(bitwise-first-bit-set -3) ![<graphic>](ch6_0.gif) 0`
+(bitwise-first-bit-set -3) ![<graphic>](img/ch6_0.gif) 0`
 
 **procedure**: `(bitwise-bit-set? *exint[1]* *exint[2]*)`
 
@@ -2644,21 +2644,21 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **libraries:** `(rnrs arithmetic bitwise)`, `(rnrs)`
 
-`*exint[2]*`被视为`*exint[1]*`的二进制补码表示中位的从零开始的索引。非负数的二进制补码表示在左侧（向更重要的位）概念上扩展为无限数量的零位，而负数的二进制补码表示在左侧概念上扩展为无限数量的一位。因此，精确整数可用于表示任意大的集合，其中0是空集，-1是全集，`bitwise-bit-set?`用于测试成员资格。
+`*exint[2]*`被视为`*exint[1]*`的二进制补码表示中位的从零开始的索引。非负数的二进制补码表示在左侧（向更重要的位）概念上扩展为无限数量的零位，而负数的二进制补码表示在左侧概念上扩展为无限数量的一位。因此，精确整数可用于表示任意大的集合，其中 0 是空集，-1 是全集，`bitwise-bit-set?`用于测试成员资格。
 
-`(bitwise-bit-set? #b01011 0) ![<graphic>](ch6_0.gif) #t
+`(bitwise-bit-set? #b01011 0) ![<graphic>](img/ch6_0.gif) #t
 
-(bitwise-bit-set? #b01011 2) ![<graphic>](ch6_0.gif) #f
+(bitwise-bit-set? #b01011 2) ![<graphic>](img/ch6_0.gif) #f
 
-(bitwise-bit-set? -1 0) ![<graphic>](ch6_0.gif) #t
+(bitwise-bit-set? -1 0) ![<graphic>](img/ch6_0.gif) #t
 
-(bitwise-bit-set? -1 20) ![<graphic>](ch6_0.gif) #t
+(bitwise-bit-set? -1 20) ![<graphic>](img/ch6_0.gif) #t
 
-(bitwise-bit-set? -3 1) ![<graphic>](ch6_0.gif) #f
+(bitwise-bit-set? -3 1) ![<graphic>](img/ch6_0.gif) #f
 
-(bitwise-bit-set? 0 5000) ![<graphic>](ch6_0.gif) #f
+(bitwise-bit-set? 0 5000) ![<graphic>](img/ch6_0.gif) #f
 
-(bitwise-bit-set? -1 5000) ![<graphic>](ch6_0.gif) #t`
+(bitwise-bit-set? -1 5000) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(bitwise-copy-bit *exint[1]* *exint[2]* *exint[3]*)`
 
@@ -2666,11 +2666,11 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **libraries:** `(rnrs arithmetic bitwise)`, `(rnrs)`
 
-`*exint[2]*`被视为`*exint[1]*`的二进制补码表示中位的从零开始的索引。`*exint[3]*`必须为0或1。该过程根据`*exint[3]*`的值有效地清除或设置指定的位。即使内部没有以二进制补码表示，也会将`*exint[1]*`视为以二进制补码表示。
+`*exint[2]*`被视为`*exint[1]*`的二进制补码表示中位的从零开始的索引。`*exint[3]*`必须为 0 或 1。该过程根据`*exint[3]*`的值有效地清除或设置指定的位。即使内部没有以二进制补码表示，也会将`*exint[1]*`视为以二进制补码表示。
 
-`(bitwise-copy-bit #b01110 0 1) ![<graphic>](ch6_0.gif) #b01111
+`(bitwise-copy-bit #b01110 0 1) ![<graphic>](img/ch6_0.gif) #b01111
 
-(bitwise-copy-bit #b01110 2 0) ![<graphic>](ch6_0.gif) #b01010`
+(bitwise-copy-bit #b01110 2 0) ![<graphic>](img/ch6_0.gif) #b01010`
 
 **procedure**: `(bitwise-bit-field *exint[1]* *exint[2]* *exint[3]*)`
 
@@ -2680,13 +2680,13 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 `*exint[2]*` 和 `*exint[3]*` 必须是非负数，且 `*exint[2]*` 不能大于 `*exint[3]*`。此过程返回从 `*exint[1]*` 中提取的位序列，从 `*exint[2]*`（包括）到 `*exint[3]*`（不包括）。`*exint[1]*` 被视为二进制补码表示，即使内部并非如此。
 
-`(位位域 #b10110 0 3) ![<graphic>](ch6_0.gif) #b00110
+`(位位域 #b10110 0 3) ![<graphic>](img/ch6_0.gif) #b00110
 
-(位位域 #b10110 1 3) ![<graphic>](ch6_0.gif) #b00011
+(位位域 #b10110 1 3) ![<graphic>](img/ch6_0.gif) #b00011
 
-(位位域 #b10110 2 3) ![<graphic>](ch6_0.gif) #b00001
+(位位域 #b10110 2 3) ![<graphic>](img/ch6_0.gif) #b00001
 
-(位位域 #b10110 3 3) ![<graphic>](ch6_0.gif) #b00000`
+(位位域 #b10110 3 3) ![<graphic>](img/ch6_0.gif) #b00000`
 
 **procedure**: `(位复制位域 *exint[1]* *exint[2]* *exint[3]* *exint[4]*)`
 
@@ -2696,13 +2696,13 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 `*exint[2]*` 和 `*exint[3]*` 必须是非负数，且 `*exint[2]*` 不能大于 `*exint[3]*`。此过程返回 `*exint[1]*`，其从 `*exint[2]*`（包括）到 `*exint[3]*`（不包括）的 `*n*` 位被替换为 `*exint[4]*` 的低阶 `*n*` 位。`*exint[1]*` 和 `*exint[4]*` 被视为二进制补码表示，即使内部并非如此。
 
-`(位复制位域 #b10000 0 3 #b10101) ![<graphic>](ch6_0.gif) #b10101
+`(位复制位域 #b10000 0 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10101
 
-(位复制位域 #b10000 1 3 #b10101) ![<graphic>](ch6_0.gif) #b10010
+(位复制位域 #b10000 1 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10010
 
-(位复制位域 #b10000 2 3 #b10101) ![<graphic>](ch6_0.gif) #b10100
+(位复制位域 #b10000 2 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10100
 
-(位复制位域 #b10000 3 3 #b10101) ![<graphic>](ch6_0.gif) #b10000`
+(位复制位域 #b10000 3 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10000`
 
 **procedure**: `(位算术右移 *exint[1]* *exint[2]*)`
 
@@ -2716,15 +2716,15 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 `*exint[2]*` 必须是非负数。`*exint[1]*` 被视为二进制补码表示，即使内部并非如此。
 
-`(位算术右移 #b10000 3) ![<graphic>](ch6_0.gif) #b00010
+`(位算术右移 #b10000 3) ![<graphic>](img/ch6_0.gif) #b00010
 
-(位算术右移 -1 1) ![<graphic>](ch6_0.gif) -1
+(位算术右移 -1 1) ![<graphic>](img/ch6_0.gif) -1
 
-(位算术右移 -64 3) ![<graphic>](ch6_0.gif) -8
+(位算术右移 -64 3) ![<graphic>](img/ch6_0.gif) -8
 
-(位算术左移 #b00010 2) ![<graphic>](ch6_0.gif) #b01000
+(位算术左移 #b00010 2) ![<graphic>](img/ch6_0.gif) #b01000
 
-(位算术左移 -1 2) ![<graphic>](ch6_0.gif) -4`
+(位算术左移 -1 2) ![<graphic>](img/ch6_0.gif) -4`
 
 **procedure**: `(位算术移位 *exint[1]* *exint[2]*)`
 
@@ -2734,15 +2734,15 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 如果 `*exint[2]*` 为负数，则 `位算术移位` 返回将 `*exint[1]*` 右移 `*exint[2]*` 位的结果。否则，`位算术移位` 返回将 `*exint[1]*` 左移 `*exint[2]*` 位的结果。`*exint[1]*` 被视为二进制补码表示，即使内部并非如此。
 
-`(位算术移位 #b10000 -3) ![<graphic>](ch6_0.gif) #b00010
+`(位算术移位 #b10000 -3) ![<graphic>](img/ch6_0.gif) #b00010
 
-(位算术移位 -1 -1) ![<graphic>](ch6_0.gif) -1
+(位算术移位 -1 -1) ![<graphic>](img/ch6_0.gif) -1
 
-(bitwise-arithmetic-shift -64 -3) ![<graphic>](ch6_0.gif) -8
+(bitwise-arithmetic-shift -64 -3) ![<graphic>](img/ch6_0.gif) -8
 
-(bitwise-arithmetic-shift #b00010 2) ![<graphic>](ch6_0.gif) #b01000
+(bitwise-arithmetic-shift #b00010 2) ![<graphic>](img/ch6_0.gif) #b01000
 
-(bitwise-arithmetic-shift -1 2) ![<graphic>](ch6_0.gif) -4`
+(bitwise-arithmetic-shift -1 2) ![<graphic>](img/ch6_0.gif) -4`
 
 因此，`bitwise-arithmetic-shift`的行为就像是这样定义的。
 
@@ -2764,9 +2764,9 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 `*exint[2]*`，`*exint[3]*`和`*exint[4]*`必须是非负的，且`*exint[2]*`不能大于`*exint[3]*`。该过程返回将`*exint[1]*`从第`*exint[2]*`位（包括）到第`*exint[3]*`位（不包括）左移`(mod *exint[4]* (- *exint[3]* *exint[2]*))`位后的结果，超出范围的位插入到范围的底端。即使内部没有以补码表示，`*exint[1]*`也被视为以补码表示。
 
-`(bitwise-rotate-bit-field #b00011010 0 5 3) ![<graphic>](ch6_0.gif) #b00010110
+`(bitwise-rotate-bit-field #b00011010 0 5 3) ![<graphic>](img/ch6_0.gif) #b00010110
 
-(bitwise-rotate-bit-field #b01101011 2 7 3) ![<graphic>](ch6_0.gif) #b01011011`
+(bitwise-rotate-bit-field #b01101011 2 7 3) ![<graphic>](img/ch6_0.gif) #b01011011`
 
 **过程：** `(bitwise-reverse-bit-field *exint[1]* *exint[2]* *exint[3]*)`
 
@@ -2776,9 +2776,9 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 `*exint[2]*`和`*exint[3]*`必须是非负的，且`*exint[2]*`不能大于`*exint[3]*`。该过程返回将`*exint[1]*`从第`*exint[2]*`位（包括）到第`*exint[3]*`位（不包括）反转后的结果。即使内部没有以补码表示，`*exint[1]*`也被视为以补码表示。
 
-`(bitwise-reverse-bit-field #b00011010 0 5) ![<graphic>](ch6_0.gif) #b00001011
+`(bitwise-reverse-bit-field #b00011010 0 5) ![<graphic>](img/ch6_0.gif) #b00001011
 
-(bitwise-reverse-bit-field #b01101011 2 7) ![<graphic>](ch6_0.gif) #b00101111`
+(bitwise-reverse-bit-field #b01101011 2 7) ![<graphic>](img/ch6_0.gif) #b00101111`
 
 **过程：** `(string->number *string*)`
 
@@ -2788,19 +2788,19 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-如果`*string*`是一个有效的数字表示，那么返回该数字，否则返回`#f`。数字在基数`*radix*`中解释，必须是集合{2,8,10,16}中的一个精确整数。如果未指定，默认为10。`*string*`中的任何基数说明符，例如`#x`，都会覆盖`*radix*`参数。
+如果`*string*`是一个有效的数字表示，那么返回该数字，否则返回`#f`。数字在基数`*radix*`中解释，必须是集合{2,8,10,16}中的一个精确整数。如果未指定，默认为 10。`*string*`中的任何基数说明符，例如`#x`，都会覆盖`*radix*`参数。
 
-`(string->number "0") ![<graphic>](ch6_0.gif) 0
+`(string->number "0") ![<graphic>](img/ch6_0.gif) 0
 
-(string->number "3.4e3") ![<graphic>](ch6_0.gif) 3400.0
+(string->number "3.4e3") ![<graphic>](img/ch6_0.gif) 3400.0
 
-(string->number "#x#e-2e2") ![<graphic>](ch6_0.gif) -738
+(string->number "#x#e-2e2") ![<graphic>](img/ch6_0.gif) -738
 
-(string->number "#e-2e2" 16) ![<graphic>](ch6_0.gif) -738
+(string->number "#e-2e2" 16) ![<graphic>](img/ch6_0.gif) -738
 
-(string->number "#i15/16") ![<graphic>](ch6_0.gif) 0.9375
+(string->number "#i15/16") ![<graphic>](img/ch6_0.gif) 0.9375
 
-(string->number "10" 16) ![<graphic>](ch6_0.gif) 16`
+(string->number "10" 16) ![<graphic>](img/ch6_0.gif) 16`
 
 **过程：** `(number->string *num*)`
 
@@ -2812,7 +2812,7 @@ The range of the result is ![<graphic>](ch6_14.gif) (exclusive) to ![<graphic>](
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精确整数。如果未指定，则 `*radix*` 默认为10。在任何情况下，结果字符串中不会出现基数说明符。
+num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精确整数。如果未指定，则 `*radix*` 默认为 10。在任何情况下，结果字符串中不会出现基数说明符。
 
 外部表示的特点是，当使用 `string->number` 转换回数字时，结果数值等效于 `*num*`。也就是说，对于所有输入：
 
@@ -2826,23 +2826,23 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 返回 `#t`。如果不可能，则引发条件类型为 `&implementation-restriction` 的异常。
 
-如果提供了 `*precision*`，则它必须是一个精确的正整数，`*num*` 必须是不精确的，`*radix*` 必须是10。在这种情况下，数的实部和，如果存在，数的虚部都将以显式的尾数宽度 `*m*` 打印出来，其中 `*m*` 是使上述表达式成立的大于或等于 `*precision*` 的最小可能值。
+如果提供了 `*precision*`，则它必须是一个精确的正整数，`*num*` 必须是不精确的，`*radix*` 必须是 10。在这种情况下，数的实部和，如果存在，数的虚部都将以显式的尾数宽度 `*m*` 打印出来，其中 `*m*` 是使上述表达式成立的大于或等于 `*precision*` 的最小可能值。
 
-如果 `*radix*` 是10，则 `*num*` 的不精确值使用可能的最少数量的有效数字表示 [[5](bibliography.html#g223)]，以不违反上述限制。
+如果 `*radix*` 是 10，则 `*num*` 的不精确值使用可能的最少数量的有效数字表示 [5]，以不违反上述限制。
 
-`(number->string 3.4) ![<graphic>](ch6_0.gif) "3.4"
+`(number->string 3.4) ![<graphic>](img/ch6_0.gif) "3.4"
 
-(number->string 1e2) ![<graphic>](ch6_0.gif) "100.0"
+(number->string 1e2) ![<graphic>](img/ch6_0.gif) "100.0"
 
-(number->string 1e-23) ![<graphic>](ch6_0.gif) "1e-23"
+(number->string 1e-23) ![<graphic>](img/ch6_0.gif) "1e-23"
 
-(number->string -7/2) ![<graphic>](ch6_0.gif) "-7/2"
+(number->string -7/2) ![<graphic>](img/ch6_0.gif) "-7/2"
 
-(number->string 220/9 16) ![<graphic>](ch6_0.gif) "DC/9"`
+(number->string 220/9 16) ![<graphic>](img/ch6_0.gif) "DC/9"`
 
-### 第6.5节。固定整数
+### 第 6.5 节。固定整数
 
-*Fixnums* 表示固定范围内的精确整数，该范围要求是一个封闭范围 [-2^(*w*-1),2^(*w*-2) - 1]，其中 *w*（*固定整数宽度*）至少为24。通过过程 `fixnum-width` 可以确定 *w* 的实现特定值，并且通过过程 `least-fixnum` 和 `greatest-fixnum` 可以确定范围的端点。
+*Fixnums* 表示固定范围内的精确整数，该范围要求是一个封闭范围 [-2^(*w*-1),2^(*w*-2) - 1]，其中 *w*（*固定整数宽度*）至少为 24。通过过程 `fixnum-width` 可以确定 *w* 的实现特定值，并且通过过程 `least-fixnum` 和 `greatest-fixnum` 可以确定范围的端点。
 
 仅对固定整数进行操作的算术过程的名称以前缀“`fx`”开头，以使它们与其通用对应项区分开来。
 
@@ -2858,47 +2858,47 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库：** `(rnrs arithmetic fixnums)`，`(rnrs)`
 
-`(fixnum? 0) ![<graphic>](ch6_0.gif) #t
+`(fixnum? 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fixnum? -1) ![<graphic>](ch6_0.gif) #t
+(fixnum? -1) ![<graphic>](img/ch6_0.gif) #t
 
-(fixnum? (- (expt 2 23))) ![<graphic>](ch6_0.gif) #t
+(fixnum? (- (expt 2 23))) ![<graphic>](img/ch6_0.gif) #t
 
-(fixnum? (- (expt 2 23) 1)) ![<graphic>](ch6_0.gif) #t`
+(fixnum? (- (expt 2 23) 1)) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程：** `(least-fixnum)`
 
-**returns:** 支持的实现中最小（最负数）的fixnum
+**returns:** 支持的实现中最小（最负数）的 fixnum
 
 **procedure**: `(greatest-fixnum)`
 
-**returns:** 支持的实现中最大（最正数）的fixnum
+**returns:** 支持的实现中最大（最正数）的 fixnum
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fixnum? (- (least-fixnum) 1)) ![<graphic>](ch6_0.gif) #f
+`(fixnum? (- (least-fixnum) 1)) ![<graphic>](img/ch6_0.gif) #f
 
-(fixnum? (least-fixnum)) ![<graphic>](ch6_0.gif) #t
+(fixnum? (least-fixnum)) ![<graphic>](img/ch6_0.gif) #t
 
-(fixnum? (greatest-fixnum)) ![<graphic>](ch6_0.gif) #t
+(fixnum? (greatest-fixnum)) ![<graphic>](img/ch6_0.gif) #t
 
-(fixnum? (+ (greatest-fixnum) 1)) ![<graphic>](ch6_0.gif) #f`
+(fixnum? (+ (greatest-fixnum) 1)) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(fixnum-width)`
 
-**returns:** 实现相关的*fixnum宽度*
+**returns:** 实现相关的*fixnum 宽度*
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-如本节导言所述，fixnum宽度确定了fixnum范围的大小，必须至少为24。
+如本节导言所述，fixnum 宽度确定了 fixnum 范围的大小，必须至少为 24。
 
 `(define w (fixnum-width))
 
-(= (least-fixnum) (- (expt 2 (- w 1)))) ![<graphic>](ch6_0.gif) #t
+(= (least-fixnum) (- (expt 2 (- w 1)))) ![<graphic>](img/ch6_0.gif) #t
 
-(= (greatest-fixnum) (- (expt 2 (- w 1)) 1)) ![<graphic>](ch6_0.gif) #t
+(= (greatest-fixnum) (- (expt 2 (- w 1)) 1)) ![<graphic>](img/ch6_0.gif) #t
 
-(>= w 24) ![<graphic>](ch6_0.gif) #t`
+(>= w 24) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(fx=? *fx[1]* *fx[2]* *fx[3]* ...)`
 
@@ -2916,19 +2916,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 谓词`fx=?`在其参数相等时返回`#t`。谓词`fx<?`在其参数单调递增时返回`#t`，即每个参数都大于前面的参数，而`fx>?`在其参数单调递减时返回`#t`。谓词`fx<=?`在其参数单调不减时返回`#t`，即每个参数都不小于前面的参数，而`fx>=?`在其参数单调不增时返回`#t`。
 
-`(fx=? 0 0) ![<graphic>](ch6_0.gif) #t
+`(fx=? 0 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fx=? -1 1) ![<graphic>](ch6_0.gif) #f
+(fx=? -1 1) ![<graphic>](img/ch6_0.gif) #f
 
-(fx<? (least-fixnum) 0 (greatest-fixnum)) ![<graphic>](ch6_0.gif) #t
+(fx<? (least-fixnum) 0 (greatest-fixnum)) ![<graphic>](img/ch6_0.gif) #t
 
-(let ([x 3]) (fx<=? 0 x 9)) ![<graphic>](ch6_0.gif) #t
+(let ([x 3]) (fx<=? 0 x 9)) ![<graphic>](img/ch6_0.gif) #t
 
-(fx>? 5 4 3 2 1) ![<graphic>](ch6_0.gif) #t
+(fx>? 5 4 3 2 1) ![<graphic>](img/ch6_0.gif) #t
 
-(fx<=? 1 3 2) ![<graphic>](ch6_0.gif) #f
+(fx<=? 1 3 2) ![<graphic>](img/ch6_0.gif) #f
 
-(fx>=? 0 0 (least-fixnum)) ![<graphic>](ch6_0.gif) #t`
+(fx>=? 0 0 (least-fixnum)) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(fxzero? *fx*)`
 
@@ -2946,21 +2946,21 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `fxzero?`等同于`(lambda (x) (fx=? x 0))`，`fxpositive?`等同于`(lambda (x) (fx>? x 0))`，而`fxnegative?`等同于`(lambda (x) (fx<? x 0))`。
 
-`(fxzero? 0) ![<graphic>](ch6_0.gif) #t
+`(fxzero? 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fxzero? 1) ![<graphic>](ch6_0.gif) #f
+(fxzero? 1) ![<graphic>](img/ch6_0.gif) #f
 
-(fxpositive? 128) ![<graphic>](ch6_0.gif) #t
+(fxpositive? 128) ![<graphic>](img/ch6_0.gif) #t
 
-(fxpositive? 0) ![<graphic>](ch6_0.gif) #f
+(fxpositive? 0) ![<graphic>](img/ch6_0.gif) #f
 
-(fxpositive? -1) ![<graphic>](ch6_0.gif) #f
+(fxpositive? -1) ![<graphic>](img/ch6_0.gif) #f
 
-(fxnegative? -65) ![<graphic>](ch6_0.gif) #t
+(fxnegative? -65) ![<graphic>](img/ch6_0.gif) #t
 
-(fxnegative? 0) ![<graphic>](ch6_0.gif) #f
+(fxnegative? 0) ![<graphic>](img/ch6_0.gif) #f
 
-(fxnegative? 1) ![<graphic>](ch6_0.gif) #f`
+(fxnegative? 1) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(fxeven? *fx*)`
 
@@ -2972,21 +2972,21 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fxeven? 0) ![<graphic>](ch6_0.gif) #t
+`(fxeven? 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fxeven? 1) ![<graphic>](ch6_0.gif) #f
+(fxeven? 1) ![<graphic>](img/ch6_0.gif) #f
 
-(fxeven? -1) ![<graphic>](ch6_0.gif) #f
+(fxeven? -1) ![<graphic>](img/ch6_0.gif) #f
 
-(fxeven? -10) ![<graphic>](ch6_0.gif) #t
+(fxeven? -10) ![<graphic>](img/ch6_0.gif) #t
 
-(fxodd? 0) ![<graphic>](ch6_0.gif) #f
+(fxodd? 0) ![<graphic>](img/ch6_0.gif) #f
 
-(fxodd? 1) ![<graphic>](ch6_0.gif) #t
+(fxodd? 1) ![<graphic>](img/ch6_0.gif) #t
 
-(fxodd? -1) ![<graphic>](ch6_0.gif) #t
+(fxodd? -1) ![<graphic>](img/ch6_0.gif) #t
 
-(fxodd? -10) ![<graphic>](ch6_0.gif) #f`
+(fxodd? -10) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(fxmin *fx[1]* *fx[2]* ...)`
 
@@ -2998,17 +2998,17 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fxmin 4 -7 2 0 -6) ![<graphic>](ch6_0.gif) -7
+`(fxmin 4 -7 2 0 -6) ![<graphic>](img/ch6_0.gif) -7
 
 (let ([ls '(7 3 5 2 9 8)])
 
-(apply fxmin ls)) ![<graphic>](ch6_0.gif) 2
+(apply fxmin ls)) ![<graphic>](img/ch6_0.gif) 2
 
-(fxmax 4 -7 2 0 -6) ![<graphic>](ch6_0.gif) 4
+(fxmax 4 -7 2 0 -6) ![<graphic>](img/ch6_0.gif) 4
 
 (let ([ls '(7 3 5 2 9 8)])
 
-(apply fxmax ls)) ![<graphic>](ch6_0.gif) 9`
+(apply fxmax ls)) ![<graphic>](img/ch6_0.gif) 9`
 
 **procedure**: `(fx+ *fx[1]* *fx[2]*)`
 
@@ -3016,7 +3016,7 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fx+ -3 4) ![<graphic>](ch6_0.gif) 1`
+`(fx+ -3 4) ![<graphic>](img/ch6_0.gif) 1`
 
 **procedure**: `(fx- *fx*)`
 
@@ -3028,9 +3028,9 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fx- 3) ![<graphic>](ch6_0.gif) -3
+`(fx- 3) ![<graphic>](img/ch6_0.gif) -3
 
-(fx- -3 4) ![<graphic>](ch6_0.gif) -7`
+(fx- -3 4) ![<graphic>](img/ch6_0.gif) -7`
 
 **procedure**: `(fx* *fx[1]* *fx[2]*)`
 
@@ -3038,7 +3038,7 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fx* -3 4) ![<graphic>](ch6_0.gif) -12`
+`(fx* -3 4) ![<graphic>](img/ch6_0.gif) -12`
 
 **procedure**: `(fxdiv *fx[1]* *fx[2]*)`
 
@@ -3052,25 +3052,25 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*` 不能为零。这些是通用 `div`、`mod` 和 `div-and-mod` 的 fixnum 版本。
 
-`(fxdiv 17 3) ![<graphic>](ch6_0.gif) 5
+`(fxdiv 17 3) ![<graphic>](img/ch6_0.gif) 5
 
-(fxmod 17 3) ![<graphic>](ch6_0.gif) 2
+(fxmod 17 3) ![<graphic>](img/ch6_0.gif) 2
 
-(fxdiv -17 3) ![<graphic>](ch6_0.gif) -6
+(fxdiv -17 3) ![<graphic>](img/ch6_0.gif) -6
 
-(fxmod -17 3) ![<graphic>](ch6_0.gif) 1
+(fxmod -17 3) ![<graphic>](img/ch6_0.gif) 1
 
-(fxdiv 17 -3) ![<graphic>](ch6_0.gif) -5
+(fxdiv 17 -3) ![<graphic>](img/ch6_0.gif) -5
 
-(fxmod 17 -3) ![<graphic>](ch6_0.gif) 2
+(fxmod 17 -3) ![<graphic>](img/ch6_0.gif) 2
 
-(fxdiv -17 -3) ![<graphic>](ch6_0.gif) 6
+(fxdiv -17 -3) ![<graphic>](img/ch6_0.gif) 6
 
-(fxmod -17 -3) ![<graphic>](ch6_0.gif) 1
+(fxmod -17 -3) ![<graphic>](img/ch6_0.gif) 1
 
-(fxdiv-and-mod 17 3) ![<graphic>](ch6_0.gif) 5
+(fxdiv-and-mod 17 3) ![<graphic>](img/ch6_0.gif) 5
 
-![](ch3_ghostRightarrow.gif) 2`
+![](img/ch3_ghostRightarrow.gif) 2`
 
 **procedure**: `(fxdiv0 *fx[1]* *fx[2]*)`
 
@@ -3084,25 +3084,25 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*` 不能为零。这些是通用 `div0`、`mod0` 和 `div0-and-mod0` 的 fixnum 版本。
 
-`(fxdiv0 17 3) ![<graphic>](ch6_0.gif) 6
+`(fxdiv0 17 3) ![<graphic>](img/ch6_0.gif) 6
 
-(fxmod0 17 3) ![<graphic>](ch6_0.gif) -1
+(fxmod0 17 3) ![<graphic>](img/ch6_0.gif) -1
 
-(fxdiv0 -17 3) ![<graphic>](ch6_0.gif) -6
+(fxdiv0 -17 3) ![<graphic>](img/ch6_0.gif) -6
 
-(fxmod0 -17 3) ![<graphic>](ch6_0.gif) 1
+(fxmod0 -17 3) ![<graphic>](img/ch6_0.gif) 1
 
-(fxdiv0 17 -3) ![<graphic>](ch6_0.gif) -6
+(fxdiv0 17 -3) ![<graphic>](img/ch6_0.gif) -6
 
-(fxmod0 17 -3) ![<graphic>](ch6_0.gif) -1
+(fxmod0 17 -3) ![<graphic>](img/ch6_0.gif) -1
 
-(fxdiv0 -17 -3) ![<graphic>](ch6_0.gif) 6
+(fxdiv0 -17 -3) ![<graphic>](img/ch6_0.gif) 6
 
-(fxmod0 -17 -3) ![<graphic>](ch6_0.gif) 1
+(fxmod0 -17 -3) ![<graphic>](img/ch6_0.gif) 1
 
-(fxdiv0-and-mod0 17 3) ![<graphic>](ch6_0.gif) 6
+(fxdiv0-and-mod0 17 3) ![<graphic>](img/ch6_0.gif) 6
 
-![](ch3_ghostRightarrow.gif) -1`
+![](img/ch3_ghostRightarrow.gif) -1`
 
 **procedure**: `(fx+/carry *fx[1]* *fx[2]* *fx[3]*)`
 
@@ -3164,15 +3164,15 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`(fxnot 0) ![<graphic>](ch6_0.gif) -1
+`(fxnot 0) ![<graphic>](img/ch6_0.gif) -1
 
-(fxnot 3) ![<graphic>](ch6_0.gif) -4
+(fxnot 3) ![<graphic>](img/ch6_0.gif) -4
 
-(fxand #b01101 #b00111) ![<graphic>](ch6_0.gif) #b00101
+(fxand #b01101 #b00111) ![<graphic>](img/ch6_0.gif) #b00101
 
-(fxior #b01101 #b00111) ![<graphic>](ch6_0.gif) #b01111
+(fxior #b01101 #b00111) ![<graphic>](img/ch6_0.gif) #b01111
 
-(fxxor #b01101 #b00111) ![<graphic>](ch6_0.gif) #b01010`
+(fxxor #b01101 #b00111) ![<graphic>](img/ch6_0.gif) #b01010`
 
 **procedure**: `(fxif *fx[1]* *fx[2]* *fx[3]*)`
 
@@ -3182,7 +3182,7 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 对于 `*fx[1]*` 中的每个设置位，结果的相应位取自 `*fx[2]*`，对于 `*fx[1]*` 中每个未设置的位，结果的相应位取自 `*x[3]*`。
 
-`(fxif #b101010 #b111000 #b001100) ![<graphic>](ch6_0.gif) #b101100`
+`(fxif #b101010 #b111000 #b001100) ![<graphic>](img/ch6_0.gif) #b101100`
 
 `fxif` 可能定义如下：
 
@@ -3202,19 +3202,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 对于非负输入，`fxbit-count` 返回在 `*fx*` 的二进制补码表示中设置的位数。对于负输入，它返回一个负数，其大小比 `*fx*` 中未设置的位数多一个，这等效于 `(fxnot (fxbit-count (fxnot *fx*)))`。
 
-`(fxbit-count #b00000) ![<graphic>](ch6_0.gif) 0
+`(fxbit-count #b00000) ![<graphic>](img/ch6_0.gif) 0
 
-(fxbit-count #b00001) ![<graphic>](ch6_0.gif) 1
+(fxbit-count #b00001) ![<graphic>](img/ch6_0.gif) 1
 
-(fxbit-count #b00100) ![<graphic>](ch6_0.gif) 1
+(fxbit-count #b00100) ![<graphic>](img/ch6_0.gif) 1
 
-(fxbit-count #b10101) ![<graphic>](ch6_0.gif) 3
+(fxbit-count #b10101) ![<graphic>](img/ch6_0.gif) 3
 
-(fxbit-count -1) ![<graphic>](ch6_0.gif) -1
+(fxbit-count -1) ![<graphic>](img/ch6_0.gif) -1
 
-(fxbit-count -2) ![<graphic>](ch6_0.gif) -2
+(fxbit-count -2) ![<graphic>](img/ch6_0.gif) -2
 
-(fxbit-count -4) ![<graphic>](ch6_0.gif) -3`
+(fxbit-count -4) ![<graphic>](img/ch6_0.gif) -3`
 
 **procedure**: `(fxlength *fx*)`
 
@@ -3222,21 +3222,21 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-此过程返回`*fx*`的最小二进制补码表示的位数，不包括负数的符号位。对于0，`fxlength`返回0。
+此过程返回`*fx*`的最小二进制补码表示的位数，不包括负数的符号位。对于 0，`fxlength`返回 0。
 
-`(fxlength #b00000) ![<graphic>](ch6_0.gif) 0
+`(fxlength #b00000) ![<graphic>](img/ch6_0.gif) 0
 
-(fxlength #b00001) ![<graphic>](ch6_0.gif) 1
+(fxlength #b00001) ![<graphic>](img/ch6_0.gif) 1
 
-(fxlength #b00100) ![<graphic>](ch6_0.gif) 3
+(fxlength #b00100) ![<graphic>](img/ch6_0.gif) 3
 
-(fxlength #b00110) ![<graphic>](ch6_0.gif) 3
+(fxlength #b00110) ![<graphic>](img/ch6_0.gif) 3
 
-(fxlength -1) ![<graphic>](ch6_0.gif) 0
+(fxlength -1) ![<graphic>](img/ch6_0.gif) 0
 
-(fxlength -6) ![<graphic>](ch6_0.gif) 3
+(fxlength -6) ![<graphic>](img/ch6_0.gif) 3
 
-(fxlength -9) ![<graphic>](ch6_0.gif) 4`
+(fxlength -9) ![<graphic>](img/ch6_0.gif) 4`
 
 **procedure**: `(fxfirst-bit-set *fx*)`
 
@@ -3244,19 +3244,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-如果`*fx*`为0，则`fxfirst-bit-set`返回-1。
+如果`*fx*`为 0，则`fxfirst-bit-set`返回-1。
 
-`(fxfirst-bit-set #b00000) ![<graphic>](ch6_0.gif) -1
+`(fxfirst-bit-set #b00000) ![<graphic>](img/ch6_0.gif) -1
 
-(fxfirst-bit-set #b00001) ![<graphic>](ch6_0.gif) 0
+(fxfirst-bit-set #b00001) ![<graphic>](img/ch6_0.gif) 0
 
-(fxfirst-bit-set #b01100) ![<graphic>](ch6_0.gif) 2
+(fxfirst-bit-set #b01100) ![<graphic>](img/ch6_0.gif) 2
 
-(fxfirst-bit-set -1) ![<graphic>](ch6_0.gif) 0
+(fxfirst-bit-set -1) ![<graphic>](img/ch6_0.gif) 0
 
-(fxfirst-bit-set -2) ![<graphic>](ch6_0.gif) 1
+(fxfirst-bit-set -2) ![<graphic>](img/ch6_0.gif) 1
 
-(fxfirst-bit-set -3) ![<graphic>](ch6_0.gif) 0`
+(fxfirst-bit-set -3) ![<graphic>](img/ch6_0.gif) 0`
 
 **procedure**: `(fxbit-set? *fx[1]* *fx[2]*)`
 
@@ -3266,19 +3266,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*`必须是非负的。它被视为`*fx[1]*`的二进制补码表示中位的基于零的索引，符号位在左侧被虚拟地复制了无限多次。
 
-`(fxbit-set? #b01011 0) ![<graphic>](ch6_0.gif) #t
+`(fxbit-set? #b01011 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fxbit-set? #b01011 2) ![<graphic>](ch6_0.gif) #f
+(fxbit-set? #b01011 2) ![<graphic>](img/ch6_0.gif) #f
 
-(fxbit-set? -1 0) ![<graphic>](ch6_0.gif) #t
+(fxbit-set? -1 0) ![<graphic>](img/ch6_0.gif) #t
 
-(fxbit-set? -1 20) ![<graphic>](ch6_0.gif) #t
+(fxbit-set? -1 20) ![<graphic>](img/ch6_0.gif) #t
 
-(fxbit-set? -3 1) ![<graphic>](ch6_0.gif) #f
+(fxbit-set? -3 1) ![<graphic>](img/ch6_0.gif) #f
 
-(fxbit-set? 0 (- (fixnum-width) 1)) ![<graphic>](ch6_0.gif) #f
+(fxbit-set? 0 (- (fixnum-width) 1)) ![<graphic>](img/ch6_0.gif) #f
 
-(fxbit-set? -1 (- (fixnum-width) 1)) ![<graphic>](ch6_0.gif) #t`
+(fxbit-set? -1 (- (fixnum-width) 1)) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(fxcopy-bit *fx[1]* *fx[2]* *fx[3]*)`
 
@@ -3286,11 +3286,11 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic fixnums)`, `(rnrs)`
 
-`*fx[2]*`必须是非负的，并且小于`(- (fixnum-width) 1)`的值。`*fx[3]*`必须是0或1。根据`*fx[3]*`的值，此过程有效地清除或设置指定的位。
+`*fx[2]*`必须是非负的，并且小于`(- (fixnum-width) 1)`的值。`*fx[3]*`必须是 0 或 1。根据`*fx[3]*`的值，此过程有效地清除或设置指定的位。
 
-`(fxcopy-bit #b01110 0 1) ![<graphic>](ch6_0.gif) #b01111
+`(fxcopy-bit #b01110 0 1) ![<graphic>](img/ch6_0.gif) #b01111
 
-(fxcopy-bit #b01110 2 0) ![<graphic>](ch6_0.gif) #b01010`
+(fxcopy-bit #b01110 2 0) ![<graphic>](img/ch6_0.gif) #b01010`
 
 **procedure**: `(fxbit-field *fx[1]* *fx[2]* *fx[3]*)`
 
@@ -3300,13 +3300,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*`和`*fx[3]*`必须是非负的，并且小于`(fixnum-width)`的值，且`*fx[2]*`不能大于`*fx[3]*`。此过程返回从`*fx[1]*`中提取的位序列，从`*fx[2]*`（包括）到`*fx[3]*`（不包括）。
 
-`(fxbit-field #b10110 0 3) ![<graphic>](ch6_0.gif) #b00110
+`(fxbit-field #b10110 0 3) ![<graphic>](img/ch6_0.gif) #b00110
 
-(fxbit-field #b10110 1 3) ![<graphic>](ch6_0.gif) #b00011
+(fxbit-field #b10110 1 3) ![<graphic>](img/ch6_0.gif) #b00011
 
-(fxbit-field #b10110 2 3) ![<graphic>](ch6_0.gif) #b00001
+(fxbit-field #b10110 2 3) ![<graphic>](img/ch6_0.gif) #b00001
 
-(fxbit-field #b10110 3 3) ![<graphic>](ch6_0.gif) #b00000`
+(fxbit-field #b10110 3 3) ![<graphic>](img/ch6_0.gif) #b00000`
 
 **过程：** `(fxcopy-bit-field *fx[1]* *fx[2]* *fx[3]* *fx[4]*)`
 
@@ -3316,13 +3316,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*` 和 `*fx[3]*` 必须是非负数且小于 `(fixnum-width)` 的值，且 `*fx[2]*` 不能大于 `*fx[3]*`。该过程返回 `*fx[1]*`，其中从 `*fx[2]*`（包括）到 `*fx[3]*`（不包括）的 `*n*` 位被 `*x[4]*` 的低位 `*n*` 位替换。
 
-`(fxcopy-bit-field #b10000 0 3 #b10101) ![<graphic>](ch6_0.gif) #b10101
+`(fxcopy-bit-field #b10000 0 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10101
 
-(fxcopy-bit-field #b10000 1 3 #b10101) ![<graphic>](ch6_0.gif) #b10010
+(fxcopy-bit-field #b10000 1 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10010
 
-(fxcopy-bit-field #b10000 2 3 #b10101) ![<graphic>](ch6_0.gif) #b10100
+(fxcopy-bit-field #b10000 2 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10100
 
-(fxcopy-bit-field #b10000 3 3 #b10101) ![<graphic>](ch6_0.gif) #b10000`
+(fxcopy-bit-field #b10000 3 3 #b10101) ![<graphic>](img/ch6_0.gif) #b10000`
 
 **过程：** `(fxarithmetic-shift-right *fx[1]* *fx[2]*)`
 
@@ -3336,15 +3336,15 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*` 必须是非负数且小于 `(fixnum-width)` 的值。
 
-`(fxarithmetic-shift-right #b10000 3) ![<graphic>](ch6_0.gif) #b00010
+`(fxarithmetic-shift-right #b10000 3) ![<graphic>](img/ch6_0.gif) #b00010
 
-(fxarithmetic-shift-right -1 1) ![<graphic>](ch6_0.gif) -1
+(fxarithmetic-shift-right -1 1) ![<graphic>](img/ch6_0.gif) -1
 
-(fxarithmetic-shift-right -64 3) ![<graphic>](ch6_0.gif) -8
+(fxarithmetic-shift-right -64 3) ![<graphic>](img/ch6_0.gif) -8
 
-(fxarithmetic-shift-left #b00010 2) ![<graphic>](ch6_0.gif) #b01000
+(fxarithmetic-shift-left #b00010 2) ![<graphic>](img/ch6_0.gif) #b01000
 
-(fxarithmetic-shift-left -1 2) ![<graphic>](ch6_0.gif) -4`
+(fxarithmetic-shift-left -1 2) ![<graphic>](img/ch6_0.gif) -4`
 
 **过程：** `(fxarithmetic-shift *fx[1]* *fx[2]*)`
 
@@ -3354,15 +3354,15 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*` 的绝对值必须小于 `(fixnum-width)` 的值。如果 `*fx[2]*` 是负数，`fxarithmetic-shift` 返回将 `*fx[1]*` 算术右移 `*fx[2]*` 位的结果。否则，`fxarithmetic-shift` 返回将 `*fx[1]*` 左移 `*fx[2]*` 位的结果。
 
-`(fxarithmetic-shift #b10000 -3) ![<graphic>](ch6_0.gif) #b00010
+`(fxarithmetic-shift #b10000 -3) ![<graphic>](img/ch6_0.gif) #b00010
 
-(fxarithmetic-shift -1 -1) ![<graphic>](ch6_0.gif) -1
+(fxarithmetic-shift -1 -1) ![<graphic>](img/ch6_0.gif) -1
 
-(fxarithmetic-shift -64 -3) ![<graphic>](ch6_0.gif) -8
+(fxarithmetic-shift -64 -3) ![<graphic>](img/ch6_0.gif) -8
 
-(fxarithmetic-shift #b00010 2) ![<graphic>](ch6_0.gif) #b01000
+(fxarithmetic-shift #b00010 2) ![<graphic>](img/ch6_0.gif) #b01000
 
-(fxarithmetic-shift -1 2) ![<graphic>](ch6_0.gif) -4`
+(fxarithmetic-shift -1 2) ![<graphic>](img/ch6_0.gif) -4`
 
 因此，`fxarithmetic-shift` 的行为就像是下面定义的一样。
 
@@ -3386,9 +3386,9 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 此过程返回将`*fx[1]*`的位从第`*fx[2]*`位（包括）到第`*fx[3]*`位（不包括）左移`*fx[4]*`位的结果，超出范围的位插入到范围的底部。
 
-`(fxrotate-bit-field #b00011010 0 5 3) ![<graphic>](ch6_0.gif) #b00010110`
+`(fxrotate-bit-field #b00011010 0 5 3) ![<graphic>](img/ch6_0.gif) #b00010110`
 
-(fxrotate-bit-field #b01101011 2 7 3) ![<graphic>](ch6_0.gif) #b01011011`
+(fxrotate-bit-field #b01101011 2 7 3) ![<graphic>](img/ch6_0.gif) #b01011011`
 
 **过程**：`(fxreverse-bit-field *fx[1]* *fx[2]* *fx[3]*)`
 
@@ -3398,15 +3398,15 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fx[2]*`和`*fx[3]*`必须是非负的且小于`(fixnum-width)`的值，而`*fx[2]*`不能大于`*fx[3]*`。此过程返回从第`*fx[2]*`位（包括）到第`*fx[3]*`位（不包括）反转`*fx[1]*`位的结果。
 
-`(fxreverse-bit-field #b00011010 0 5) ![<graphic>](ch6_0.gif) #b00001011`
+`(fxreverse-bit-field #b00011010 0 5) ![<graphic>](img/ch6_0.gif) #b00001011`
 
-(fxreverse-bit-field #b01101011 2 7) ![<graphic>](ch6_0.gif) #b00101111`
+(fxreverse-bit-field #b01101011 2 7) ![<graphic>](img/ch6_0.gif) #b00101111`
 
 ### 第 6.6 节。浮点数
 
 *浮点数*代表不精确的实数。实现必须将任何不精确的实数表示为浮点数，其词法语法不包含竖线和除`e`以外的指数标记，但不需要将任何其他不精确的实数表示为浮点数。
 
-实现通常使用IEEE双精度浮点表示浮点数，但不要求实现这样做，甚至不要求使用任何类型的浮点表示，尽管名为“flonum”。
+实现通常使用 IEEE 双精度浮点表示浮点数，但不要求实现这样做，甚至不要求使用任何类型的浮点表示，尽管名为“flonum”。
 
 本节描述了对浮点数的操作。特定于浮点数的过程名称以前缀"`fl`"开头，以将它们与其通用对应项区分开来。
 
@@ -3418,17 +3418,17 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库**：`(rnrs arithmetic flonums)`，`(rnrs)`
 
-`(flonum? 0) ![<graphic>](ch6_0.gif) #f`
+`(flonum? 0) ![<graphic>](img/ch6_0.gif) #f`
 
-(flonum? 3/4) ![<graphic>](ch6_0.gif) #f
+(flonum? 3/4) ![<graphic>](img/ch6_0.gif) #f
 
-(flonum? 3.5) ![<graphic>](ch6_0.gif) #t
+(flonum? 3.5) ![<graphic>](img/ch6_0.gif) #t
 
-(flonum? .02) ![<graphic>](ch6_0.gif) #t
+(flonum? .02) ![<graphic>](img/ch6_0.gif) #t
 
-(flonum? 1e10) ![<graphic>](ch6_0.gif) #t
+(flonum? 1e10) ![<graphic>](img/ch6_0.gif) #t
 
-(flonum? 3.0+0.0i) ![<graphic>](ch6_0.gif) #f`
+(flonum? 3.0+0.0i) ![<graphic>](img/ch6_0.gif) #f`
 
 **过程**：`(fl=? *fl[1]* *fl[2]* *fl[3]* ...)`
 
@@ -3448,27 +3448,27 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 涉及 NaN 的比较始终返回 `#f`。
 
-`(fl=? 0.0 0.0) ![<graphic>](ch6_0.gif) #t
+`(fl=? 0.0 0.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fl<? -1.0 0.0 1.0) ![<graphic>](ch6_0.gif) #t
+(fl<? -1.0 0.0 1.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fl>? -1.0 0.0 1.0) ![<graphic>](ch6_0.gif) #f
+(fl>? -1.0 0.0 1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fl<=? 0.0 3.0 3.0) ![<graphic>](ch6_0.gif) #t
+(fl<=? 0.0 3.0 3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fl>=? 4.0 3.0 3.0) ![<graphic>](ch6_0.gif) #t
+(fl>=? 4.0 3.0 3.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fl<? 7.0 +inf.0) ![<graphic>](ch6_0.gif) #t
+(fl<? 7.0 +inf.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fl=? +nan.0 0.0) ![<graphic>](ch6_0.gif) #f
+(fl=? +nan.0 0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fl=? +nan.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(fl=? +nan.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fl<? +nan.0 +nan.0) ![<graphic>](ch6_0.gif) #f
+(fl<? +nan.0 +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fl<=? +nan.0 +inf.0) ![<graphic>](ch6_0.gif) #f
+(fl<=? +nan.0 +inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fl>=? +nan.0 +inf.0) ![<graphic>](ch6_0.gif) #f`
+(fl>=? +nan.0 +inf.0) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(flzero? *fl*)`
 
@@ -3488,35 +3488,35 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 即使 flonum 表示区分了 -0.0 和 +0.0，-0.0 被视为零和非负数。
 
-`(flzero? 0.0) ![<graphic>](ch6_0.gif) #t
+`(flzero? 0.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flzero? 1.0) ![<graphic>](ch6_0.gif) #f
+(flzero? 1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flpositive? 128.0) ![<graphic>](ch6_0.gif) #t
+(flpositive? 128.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flpositive? 0.0) ![<graphic>](ch6_0.gif) #f
+(flpositive? 0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flpositive? -1.0) ![<graphic>](ch6_0.gif) #f
+(flpositive? -1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnegative? -65.0) ![<graphic>](ch6_0.gif) #t
+(flnegative? -65.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flnegative? 0.0) ![<graphic>](ch6_0.gif) #f
+(flnegative? 0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnegative? 1.0) ![<graphic>](ch6_0.gif) #f
+(flnegative? 1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flzero? -0.0) ![<graphic>](ch6_0.gif) #t
+(flzero? -0.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flnegative? -0.0) ![<graphic>](ch6_0.gif) #f
+(flnegative? -0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnegative? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flnegative? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flzero? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flzero? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flpositive? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flpositive? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnegative? +inf.0) ![<graphic>](ch6_0.gif) #f
+(flnegative? +inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnegative? -inf.0) ![<graphic>](ch6_0.gif) #t`
+(flnegative? -inf.0) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(flinteger? *fl*)`
 
@@ -3524,13 +3524,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`，`(rnrs)`
 
-`(flinteger? 0.0) ![<graphic>](ch6_0.gif) #t
+`(flinteger? 0.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flinteger? -17.0) ![<graphic>](ch6_0.gif) #t
+(flinteger? -17.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flinteger? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flinteger? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flinteger? +inf.0) ![<graphic>](ch6_0.gif) #f`
+(flinteger? +inf.0) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(flfinite? *fl*)`
 
@@ -3546,23 +3546,23 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`，`(rnrs)`
 
-`(flfinite? 3.1415) ![<graphic>](ch6_0.gif) #t
+`(flfinite? 3.1415) ![<graphic>](img/ch6_0.gif) #t
 
-(flinfinite? 3.1415) ![<graphic>](ch6_0.gif) #f
+(flinfinite? 3.1415) ![<graphic>](img/ch6_0.gif) #f
 
-(flnan? 3.1415) ![<graphic>](ch6_0.gif) #f
+(flnan? 3.1415) ![<graphic>](img/ch6_0.gif) #f
 
-(flfinite? +inf.0) ![<graphic>](ch6_0.gif) #f
+(flfinite? +inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flinfinite? -inf.0) ![<graphic>](ch6_0.gif) #t
+(flinfinite? -inf.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flnan? -inf.0) ![<graphic>](ch6_0.gif) #f
+(flnan? -inf.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flfinite? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flfinite? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flinfinite? +nan.0) ![<graphic>](ch6_0.gif) #f
+(flinfinite? +nan.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flnan? +nan.0) ![<graphic>](ch6_0.gif) #t`
+(flnan? +nan.0) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(fleven? *fl-int*)`
 
@@ -3576,21 +3576,21 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*fl-int*` 必须是整数值的 flonum。
 
-`(fleven? 0.0) ![<graphic>](ch6_0.gif) #t
+`(fleven? 0.0) ![<graphic>](img/ch6_0.gif) #t
 
-(fleven? 1.0) ![<graphic>](ch6_0.gif) #f
+(fleven? 1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fleven? -1.0) ![<graphic>](ch6_0.gif) #f
+(fleven? -1.0) ![<graphic>](img/ch6_0.gif) #f
 
-(fleven? -10.0) ![<graphic>](ch6_0.gif) #t
+(fleven? -10.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flodd? 0.0) ![<graphic>](ch6_0.gif) #f
+(flodd? 0.0) ![<graphic>](img/ch6_0.gif) #f
 
-(flodd? 1.0) ![<graphic>](ch6_0.gif) #t
+(flodd? 1.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flodd? -1.0) ![<graphic>](ch6_0.gif) #t
+(flodd? -1.0) ![<graphic>](img/ch6_0.gif) #t
 
-(flodd? -10.0) ![<graphic>](ch6_0.gif) #f`
+(flodd? -10.0) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(flmin *fl[1]* *fl[2]* ...)`
 
@@ -3602,17 +3602,17 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`，`(rnrs)`
 
-`(flmin 4.2 -7.5 2.0 0.0 -6.4) ![<graphic>](ch6_0.gif) -7.5
+`(flmin 4.2 -7.5 2.0 0.0 -6.4) ![<graphic>](img/ch6_0.gif) -7.5
 
 (let ([ls '(7.1 3.5 5.0 2.6 2.6 8.0)])
 
-(apply flmin ls)) ![<graphic>](ch6_0.gif) 2.6
+(apply flmin ls)) ![<graphic>](img/ch6_0.gif) 2.6
 
-(flmax 4.2 -7.5 2.0 0.0 -6.4) ![<graphic>](ch6_0.gif) 4.2
+(flmax 4.2 -7.5 2.0 0.0 -6.4) ![<graphic>](img/ch6_0.gif) 4.2
 
 (let ([ls '(7.1 3.5 5.0 2.6 2.6 8.0)])
 
-(apply flmax ls)) ![<graphic>](ch6_0.gif) 8.0`
+(apply flmax ls)) ![<graphic>](img/ch6_0.gif) 8.0`
 
 **procedure**: `(fl+ *fl* ...)`
 
@@ -3622,13 +3622,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 当不带参数调用时，`fl+` 返回 `0.0`。
 
-`(fl+) ![<graphic>](ch6_0.gif) 0.0
+`(fl+) ![<graphic>](img/ch6_0.gif) 0.0
 
-(fl+ 1.0 2.5) ![<graphic>](ch6_0.gif) 3.25
+(fl+ 1.0 2.5) ![<graphic>](img/ch6_0.gif) 3.25
 
-(fl+ 3.0 4.25 5.0) ![<graphic>](ch6_0.gif) 12.25
+(fl+ 3.0 4.25 5.0) ![<graphic>](img/ch6_0.gif) 12.25
 
-(apply fl+ '(1.0 2.0 3.0 4.0 5.0)) ![<graphic>](ch6_0.gif) 15.0`
+(apply fl+ '(1.0 2.0 3.0 4.0 5.0)) ![<graphic>](img/ch6_0.gif) 15.0`
 
 **procedure**: `(fl- *fl*)`
 
@@ -3654,13 +3654,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 因为后者对于 `0.0` 返回 `0.0` 而不是 `-0.0`。
 
-`(fl- 0.0) ![<graphic>](ch6_0.gif) -0.0
+`(fl- 0.0) ![<graphic>](img/ch6_0.gif) -0.0
 
-(fl- 3.0) ![<graphic>](ch6_0.gif) -3.0
+(fl- 3.0) ![<graphic>](img/ch6_0.gif) -3.0
 
-(fl- 4.0 3.0) ![<graphic>](ch6_0.gif) 1.0
+(fl- 4.0 3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fl- 4.0 3.0 2.0 1.0) ![<graphic>](ch6_0.gif) -2.0`
+(fl- 4.0 3.0 2.0 1.0) ![<graphic>](img/ch6_0.gif) -2.0`
 
 **procedure**: `(fl* *fl* ...)`
 
@@ -3670,13 +3670,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 当不带参数调用时，`fl*` 返回 `1.0`。
 
-`(fl*) ![<graphic>](ch6_0.gif) 1.0
+`(fl*) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fl* 1.5 2.5) ![<graphic>](ch6_0.gif) 3.75
+(fl* 1.5 2.5) ![<graphic>](img/ch6_0.gif) 3.75
 
-(fl* 3.0 -4.0 5.0) ![<graphic>](ch6_0.gif) -60.0
+(fl* 3.0 -4.0 5.0) ![<graphic>](img/ch6_0.gif) -60.0
 
-(apply fl* '(1.0 -2.0 3.0 -4.0 5.0)) ![<graphic>](ch6_0.gif) 120.0`
+(apply fl* '(1.0 -2.0 3.0 -4.0 5.0)) ![<graphic>](img/ch6_0.gif) 120.0`
 
 **过程**：`(fl/ *fl*)`
 
@@ -3688,13 +3688,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库**：`(rnrs arithmetic flonums)`，`(rnrs)`
 
-`(fl/ -4.0) ![<graphic>](ch6_0.gif) -0.25
+`(fl/ -4.0) ![<graphic>](img/ch6_0.gif) -0.25
 
-(fl/ 8.0 -2.0) ![<graphic>](ch6_0.gif) -4.0
+(fl/ 8.0 -2.0) ![<graphic>](img/ch6_0.gif) -4.0
 
-(fl/ -9.0 2.0) ![<graphic>](ch6_0.gif) -4.5
+(fl/ -9.0 2.0) ![<graphic>](img/ch6_0.gif) -4.5
 
-(fl/ 60.0 5.0 3.0 2.0) ![<graphic>](ch6_0.gif) 2.0`
+(fl/ 60.0 5.0 3.0 2.0) ![<graphic>](img/ch6_0.gif) 2.0`
 
 **过程**：`(fldiv *fl[1]* *fl[2]*)`
 
@@ -3706,27 +3706,27 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库**：`(rnrs arithmetic flonums)`，`(rnrs)`
 
-这些是通用`div`、`mod`和`div-and-mod`的flonum特定版本。
+这些是通用`div`、`mod`和`div-and-mod`的 flonum 特定版本。
 
-`(fldiv 17.0 3.0) ![<graphic>](ch6_0.gif) 5.0
+`(fldiv 17.0 3.0) ![<graphic>](img/ch6_0.gif) 5.0
 
-(flmod 17.0 3.0) ![<graphic>](ch6_0.gif) 2.0
+(flmod 17.0 3.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(fldiv -17.0 3.0) ![<graphic>](ch6_0.gif) -6.0
+(fldiv -17.0 3.0) ![<graphic>](img/ch6_0.gif) -6.0
 
-(flmod -17.0 3.0) ![<graphic>](ch6_0.gif) 1.0
+(flmod -17.0 3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fldiv 17.0 -3.0) ![<graphic>](ch6_0.gif) -5.0
+(fldiv 17.0 -3.0) ![<graphic>](img/ch6_0.gif) -5.0
 
-(flmod 17.0 -3.0) ![<graphic>](ch6_0.gif) 2.0
+(flmod 17.0 -3.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(fldiv -17.0 -3.0) ![<graphic>](ch6_0.gif) 6.0
+(fldiv -17.0 -3.0) ![<graphic>](img/ch6_0.gif) 6.0
 
-(flmod -17.0 -3.0) ![<graphic>](ch6_0.gif) 1.0
+(flmod -17.0 -3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fldiv-and-mod 17.5 3.75) ![<graphic>](ch6_0.gif) 4.0
+(fldiv-and-mod 17.5 3.75) ![<graphic>](img/ch6_0.gif) 4.0
 
-![](ch3_ghostRightarrow.gif) 2.5`
+![](img/ch3_ghostRightarrow.gif) 2.5`
 
 **过程**：`(fldiv0 *fl[1]* *fl[2]*)`
 
@@ -3738,27 +3738,27 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库**：`(rnrs arithmetic flonums)`，`(rnrs)`
 
-这些是通用`div0`、`mod0`和`div0-and-mod0`的flonum特定版本。
+这些是通用`div0`、`mod0`和`div0-and-mod0`的 flonum 特定版本。
 
-`(fldiv0 17.0 3.0) ![<graphic>](ch6_0.gif) 6.0
+`(fldiv0 17.0 3.0) ![<graphic>](img/ch6_0.gif) 6.0
 
-(flmod0 17.0 3.0) ![<graphic>](ch6_0.gif) -1.0
+(flmod0 17.0 3.0) ![<graphic>](img/ch6_0.gif) -1.0
 
-(fldiv0 -17.0 3.0) ![<graphic>](ch6_0.gif) -6.0
+(fldiv0 -17.0 3.0) ![<graphic>](img/ch6_0.gif) -6.0
 
-(flmod0 -17.0 3.0) ![<graphic>](ch6_0.gif) 1.0
+(flmod0 -17.0 3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fldiv0 17.0 -3.0) ![<graphic>](ch6_0.gif) -6.0
+(fldiv0 17.0 -3.0) ![<graphic>](img/ch6_0.gif) -6.0
 
-(flmod0 17.0 -3.0) ![<graphic>](ch6_0.gif) -1.0
+(flmod0 17.0 -3.0) ![<graphic>](img/ch6_0.gif) -1.0
 
-(fldiv0 -17.0 -3.0) ![<graphic>](ch6_0.gif) 6.0
+(fldiv0 -17.0 -3.0) ![<graphic>](img/ch6_0.gif) 6.0
 
-(flmod0 -17.0 -3.0) ![<graphic>](ch6_0.gif) 1.0
+(flmod0 -17.0 -3.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fldiv0-and-mod0 17.5 3.75) ![<graphic>](ch6_0.gif) 5.0
+(fldiv0-and-mod0 17.5 3.75) ![<graphic>](img/ch6_0.gif) 5.0
 
-![](ch3_ghostRightarrow.gif) -1.25`
+![](img/ch3_ghostRightarrow.gif) -1.25`
 
 **过程**：`(flround *fl*)`
 
@@ -3770,35 +3770,35 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **过程**：`(flfloor *fl*)`
 
-**返回**：最接近`*fl*`的整数朝向![<graphic>](ch6_11.gif)
+**返回**：最接近`*fl*`的整数朝向![<graphic>](img/ch6_11.gif)
 
 **过程**：`(flceiling *fl*)`
 
-**返回**：最接近`*fl*`的整数朝向![<graphic>](ch6_12.gif)
+**返回**：最接近`*fl*`的整数朝向![<graphic>](img/ch6_12.gif)
 
 **库**：`(rnrs arithmetic flonums)`，`(rnrs)`
 
-如果`*fl*`是整数、NaN或无穷大，则每个过程都返回`*fl*`。如果`*fl*`恰好处于两个整数之间，则`flround`返回最接近的偶数整数。
+如果`*fl*`是整数、NaN 或无穷大，则每个过程都返回`*fl*`。如果`*fl*`恰好处于两个整数之间，则`flround`返回最接近的偶数整数。
 
-`(flround 17.3) ![<graphic>](ch6_0.gif) 17.0
+`(flround 17.3) ![<graphic>](img/ch6_0.gif) 17.0
 
-(flround -17.3) ![<graphic>](ch6_0.gif) -17.0
+(flround -17.3) ![<graphic>](img/ch6_0.gif) -17.0
 
-(flround 2.5) ![<graphic>](ch6_0.gif) 2.0
+(flround 2.5) ![<graphic>](img/ch6_0.gif) 2.0
 
-(flround 3.5) ![<graphic>](ch6_0.gif) 4.0
+(flround 3.5) ![<graphic>](img/ch6_0.gif) 4.0
 
-(fltruncate 17.3) ![<graphic>](ch6_0.gif) 17.0
+(fltruncate 17.3) ![<graphic>](img/ch6_0.gif) 17.0
 
-(fltruncate -17.3) ![<graphic>](ch6_0.gif) -17.0
+(fltruncate -17.3) ![<graphic>](img/ch6_0.gif) -17.0
 
-(flfloor 17.3) ![<graphic>](ch6_0.gif) 17.0
+(flfloor 17.3) ![<graphic>](img/ch6_0.gif) 17.0
 
-(flfloor -17.3) ![<graphic>](ch6_0.gif) -18.0
+(flfloor -17.3) ![<graphic>](img/ch6_0.gif) -18.0
 
-(flceiling 17.3) ![<graphic>](ch6_0.gif) 18.0
+(flceiling 17.3) ![<graphic>](img/ch6_0.gif) 18.0
 
-(flceiling -17.3) ![<graphic>](ch6_0.gif) -17.0`
+(flceiling -17.3) ![<graphic>](img/ch6_0.gif) -17.0`
 
 **procedure**: 返回`(flnumerator *fl*)`
 
@@ -3810,25 +3810,25 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`
 
-如果`*fl*`是整数，包括0.0或无穷大，则分子为`*fl*`，分母为1.0。
+如果`*fl*`是整数，包括 0.0 或无穷大，则分子为`*fl*`，分母为 1.0。
 
-`(flnumerator -9.0) ![<graphic>](ch6_0.gif) -9.0
+`(flnumerator -9.0) ![<graphic>](img/ch6_0.gif) -9.0
 
-(fldenominator -9.0) ![<graphic>](ch6_0.gif) 1.0
+(fldenominator -9.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(flnumerator 0.0) ![<graphic>](ch6_0.gif) 0.0
+(flnumerator 0.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(fldenominator 0.0) ![<graphic>](ch6_0.gif) 1.0
+(fldenominator 0.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(flnumerator -inf.0) ![<graphic>](ch6_0.gif) -inf.0
+(flnumerator -inf.0) ![<graphic>](img/ch6_0.gif) -inf.0
 
-(fldenominator -inf.0) ![<graphic>](ch6_0.gif) 1.0`
+(fldenominator -inf.0) ![<graphic>](img/ch6_0.gif) 1.0`
 
-对于IEEE浮点数而言，以下结论成立，但其他浮点数表示法不一定成立。
+对于 IEEE 浮点数而言，以下结论成立，但其他浮点数表示法不一定成立。
 
-`(flnumerator 3.5) ![<graphic>](ch6_0.gif) 7.0
+`(flnumerator 3.5) ![<graphic>](img/ch6_0.gif) 7.0
 
-(fldenominator 3.5) ![<graphic>](ch6_0.gif) 2.0`
+(fldenominator 3.5) ![<graphic>](img/ch6_0.gif) 2.0`
 
 **procedure**: 返回`(flabs *fl*)`
 
@@ -3836,9 +3836,9 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`
 
-`(flabs 3.2) ![<graphic>](ch6_0.gif) 3.2
+`(flabs 3.2) ![<graphic>](img/ch6_0.gif) 3.2
 
-(flabs -2e-20) ![<graphic>](ch6_0.gif) 2e-20`
+(flabs -2e-20) ![<graphic>](img/ch6_0.gif) 2e-20`
 
 **procedure**: 返回`(flexp *fl*)`
 
@@ -3854,19 +3854,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`
 
-`(flexp 0.0) ![<graphic>](ch6_0.gif) 1.0
+`(flexp 0.0) ![<graphic>](img/ch6_0.gif) 1.0
 
-(flexp 1.0) ![<graphic>](ch6_0.gif) 2.7182818284590455
+(flexp 1.0) ![<graphic>](img/ch6_0.gif) 2.7182818284590455
 
-(fllog 1.0) ![<graphic>](ch6_0.gif) 0.0
+(fllog 1.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(fllog (exp 1.0)) ![<graphic>](ch6_0.gif) 1.0
+(fllog (exp 1.0)) ![<graphic>](img/ch6_0.gif) 1.0
 
-(fl/ (fllog 100.0) (fllog 10.0)) ![<graphic>](ch6_0.gif) 2.0
+(fl/ (fllog 100.0) (fllog 10.0)) ![<graphic>](img/ch6_0.gif) 2.0
 
-(fllog 100.0 10.0) ![<graphic>](ch6_0.gif) 2.0
+(fllog 100.0 10.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(fllog .125 2.0) ![<graphic>](ch6_0.gif) -3.0`
+(fllog .125 2.0) ![<graphic>](img/ch6_0.gif) -3.0`
 
 **procedure**: 返回`(flsin *fl*)`
 
@@ -3906,13 +3906,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`
 
-返回`*fl*`的主平方根。-0.0的平方根应为-0.0。其他负数的结果可能是NaN或其他未指定的浮点数。
+返回`*fl*`的主平方根。-0.0 的平方根应为-0.0。其他负数的结果可能是 NaN 或其他未指定的浮点数。
 
-`(flsqrt 4.0) ![<graphic>](ch6_0.gif) 2.0
+`(flsqrt 4.0) ![<graphic>](img/ch6_0.gif) 2.0
 
-(flsqrt 0.0) ![<graphic>](ch6_0.gif) 0.0
+(flsqrt 0.0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(flsqrt -0.0) ![<graphic>](ch6_0.gif) -0.0`
+(flsqrt -0.0) ![<graphic>](img/ch6_0.gif) -0.0`
 
 **procedure**: 返回`(flexpt *fl[1]* *fl[2]*)`
 
@@ -3920,37 +3920,37 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs arithmetic flonums)`, `(rnrs)`
 
-如果`*fl[1]*`为负且`*fl[2]*`不是整数，则结果可能是NaN或其他未指定的flonum。如果`*fl[1]*`和`*fl[2]*`都为零，则结果为1.0。如果`*fl[1]*`为零且`*fl[2]*`为正，则结果为零。在`*fl[1]*`为零的其他情况下，结果可能是NaN或其他未指定的flonum。
+如果`*fl[1]*`为负且`*fl[2]*`不是整数，则结果可能是 NaN 或其他未指定的 flonum。如果`*fl[1]*`和`*fl[2]*`都为零，则结果为 1.0。如果`*fl[1]*`为零且`*fl[2]*`为正，则结果为零。在`*fl[1]*`为零的其他情况下，结果可能是 NaN 或其他未指定的 flonum。
 
-`(flexpt 3.0 2.0) ![<graphic>](ch6_0.gif) 9.0
+`(flexpt 3.0 2.0) ![<graphic>](img/ch6_0.gif) 9.0
 
-(flexpt 0.0 +inf.0) ![<graphic>](ch6_0.gif) 0.0`
+(flexpt 0.0 +inf.0) ![<graphic>](img/ch6_0.gif) 0.0`
 
 **过程：** `(fixnum->flonum *fx*)`
 
-**返回：** 最接近`*fx*`的flonum表示
+**返回：** 最接近`*fx*`的 flonum 表示
 
 **过程：** `(real->flonum *real*)`
 
-**返回：** 最接近`*real*`的flonum表示
+**返回：** 最接近`*real*`的 flonum 表示
 
 **库：** `(rnrs arithmetic flonums)`，`(rnrs)`
 
-`fixnum->flonum`是`inexact`的受限变体。当输入为精确实数时，`real->flonum`是`inexact`的受限变体；当输入为非flonum的不精确实数时，它将不精确的非flonum实数转换为最接近的flonum。
+`fixnum->flonum`是`inexact`的受限变体。当输入为精确实数时，`real->flonum`是`inexact`的受限变体；当输入为非 flonum 的不精确实数时，它将不精确的非 flonum 实数转换为最接近的 flonum。
 
-`(fixnum->flonum 0) ![<graphic>](ch6_0.gif) 0.0
+`(fixnum->flonum 0) ![<graphic>](img/ch6_0.gif) 0.0
 
-(fixnum->flonum 13) ![<graphic>](ch6_0.gif) 13.0
+(fixnum->flonum 13) ![<graphic>](img/ch6_0.gif) 13.0
 
-(real->flonum -1/2) ![<graphic>](ch6_0.gif) -0.5
+(real->flonum -1/2) ![<graphic>](img/ch6_0.gif) -0.5
 
-(real->flonum 1s3) ![<graphic>](ch6_0.gif) 1000.0`
+(real->flonum 1s3) ![<graphic>](img/ch6_0.gif) 1000.0`
 
-### 第6.7节。字符
+### 第 6.7 节。字符
 
-字符是表示字母、数字、特殊符号（如`$`或`-`）以及某些非图形控制字符（如空格和换行符）的原子对象。字符以`#\`前缀写入。对于大多数字符，前缀后跟着字符本身。例如，字母`A`的书面字符表示为`#\A`。换行符、空格和制表符也可以用这种方式写入，但更清晰地写为`#\newline`、`#\space`和`#\tab`。其他字符名称也受支持，如页面[457](grammar.html#grammar:characters)上字符对象语法中定义的那样。任何Unicode字符都可以用语法`#\x*n*`写入，其中`*n*`由一个或多个十六进制数字组成，表示有效的Unicode标量值。
+字符是表示字母、数字、特殊符号（如`$`或`-`）以及某些非图形控制字符（如空格和换行符）的原子对象。字符以`#\`前缀写入。对于大多数字符，前缀后跟着字符本身。例如，字母`A`的书面字符表示为`#\A`。换行符、空格和制表符也可以用这种方式写入，但更清晰地写为`#\newline`、`#\space`和`#\tab`。其他字符名称也受支持，如页面 457 上字符对象语法中定义的那样。任何 Unicode 字符都可以用语法`#\x*n*`写入，其中`*n*`由一个或多个十六进制数字组成，表示有效的 Unicode 标量值。
 
-本节描述主要涉及字符的操作。另请参阅下一节关于字符串和第[7](io.html#g121)章关于输入和输出的其他与字符相关的操作。
+本节描述主要涉及字符的操作。另请参阅下一节关于字符串和第七章关于输入和输出的其他与字符相关的操作。
 
 **过程：** `(char=? *char[1]* *char[2]* *char[3]* ...)`
 
@@ -3966,21 +3966,21 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-这些谓词的行为方式类似于数值谓词`=`, `<`, `>`, `<=`和`>=`。例如，当其参数是等效字符时，`char=?`返回`#t`，当其参数是单调递增字符（Unicode标量）值时，`char<?`返回`#t`。
+这些谓词的行为方式类似于数值谓词`=`, `<`, `>`, `<=`和`>=`。例如，当其参数是等效字符时，`char=?`返回`#t`，当其参数是单调递增字符（Unicode 标量）值时，`char<?`返回`#t`。
 
-`(char>? #\a #\b) ![<graphic>](ch6_0.gif) #f
+`(char>? #\a #\b) ![<graphic>](img/ch6_0.gif) #f
 
-(char<? #\a #\b) ![<graphic>](ch6_0.gif) #t
+(char<? #\a #\b) ![<graphic>](img/ch6_0.gif) #t
 
-(char<? #\a #\b #\c) ![<graphic>](ch6_0.gif) #t
+(char<? #\a #\b #\c) ![<graphic>](img/ch6_0.gif) #t
 
 (let ([c #\r])
 
-(char<=? #\a c #\z)) ![<graphic>](ch6_0.gif) #t
+(char<=? #\a c #\z)) ![<graphic>](img/ch6_0.gif) #t
 
-(char<=? #\Z #\W) ![<graphic>](ch6_0.gif) #f
+(char<=? #\Z #\W) ![<graphic>](img/ch6_0.gif) #f
 
-(char=? #\+ #\+) ![<graphic>](ch6_0.gif) #t`
+(char=? #\+ #\+) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(char-ci=? *char[1]* *char[2]* *char[3]* ...)`
 
@@ -3998,17 +3998,17 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 这些谓词与谓词`char=?`、`char<?`、`char>?`、`char<=?`和`char>=?`相同，只是它们是不区分大小写的，即比较它们的参数的大小写折叠版本。例如，`char=?`认为`#\a`和`#\A`是不同的值；`char-ci=?`则不认为是。
 
-`(char-ci<? #\a #\B) ![<graphic>](ch6_0.gif) #t
+`(char-ci<? #\a #\B) ![<graphic>](img/ch6_0.gif) #t
 
-(char-ci=? #\W #\w) ![<graphic>](ch6_0.gif) #t
+(char-ci=? #\W #\w) ![<graphic>](img/ch6_0.gif) #t
 
-(char-ci=? #\= #\+) ![<graphic>](ch6_0.gif) #f
+(char-ci=? #\= #\+) ![<graphic>](img/ch6_0.gif) #f
 
 (let ([c #\R])
 
 (list (char<=? #\a c #\z)
 
-(char-ci<=? #\a c #\z))) ![<graphic>](ch6_0.gif) (#f #t)`
+(char-ci<=? #\a c #\z))) ![<graphic>](img/ch6_0.gif) (#f #t)`
 
 **procedure**: `(char-alphabetic? *char*)`
 
@@ -4024,29 +4024,29 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs unicode)`, `(rnrs)`
 
-一个字符如果具有Unicode的"Alphabetic"属性，则为字母，如果具有Unicode的"Numeric"属性，则为数字，如果具有Unicode的"White_Space"属性，则为空格。
+一个字符如果具有 Unicode 的"Alphabetic"属性，则为字母，如果具有 Unicode 的"Numeric"属性，则为数字，如果具有 Unicode 的"White_Space"属性，则为空格。
 
-`(char-alphabetic? #\a) ![<graphic>](ch6_0.gif) #t
+`(char-alphabetic? #\a) ![<graphic>](img/ch6_0.gif) #t
 
-(char-alphabetic? #\T) ![<graphic>](ch6_0.gif) #t
+(char-alphabetic? #\T) ![<graphic>](img/ch6_0.gif) #t
 
-(char-alphabetic? #\8) ![<graphic>](ch6_0.gif) #f
+(char-alphabetic? #\8) ![<graphic>](img/ch6_0.gif) #f
 
-(char-alphabetic? #\$) ![<graphic>](ch6_0.gif) #f
+(char-alphabetic? #\$) ![<graphic>](img/ch6_0.gif) #f
 
-(char-numeric? #\7) ![<graphic>](ch6_0.gif) #t
+(char-numeric? #\7) ![<graphic>](img/ch6_0.gif) #t
 
-(char-numeric? #\2) ![<graphic>](ch6_0.gif) #t
+(char-numeric? #\2) ![<graphic>](img/ch6_0.gif) #t
 
-(char-numeric? #\X) ![<graphic>](ch6_0.gif) #f
+(char-numeric? #\X) ![<graphic>](img/ch6_0.gif) #f
 
-(char-numeric? #\space) ![<graphic>](ch6_0.gif) #f
+(char-numeric? #\space) ![<graphic>](img/ch6_0.gif) #f
 
-(char-whitespace? #\space) ![<graphic>](ch6_0.gif) #t
+(char-whitespace? #\space) ![<graphic>](img/ch6_0.gif) #t
 
-(char-whitespace? #\newline) ![<graphic>](ch6_0.gif) #t
+(char-whitespace? #\newline) ![<graphic>](img/ch6_0.gif) #t
 
-(char-whitespace? #\Z) ![<graphic>](ch6_0.gif) #f`
+(char-whitespace? #\Z) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(char-lower-case? *char*)`
 
@@ -4062,19 +4062,19 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **libraries:** `(rnrs unicode)`, `(rnrs)`
 
-一个字符如果具有Unicode的"Uppercase"属性，则为大写，如果具有"Lowercase"属性，则为小写，如果在Lt一般类别中，则为标题大小写。
+一个字符如果具有 Unicode 的"Uppercase"属性，则为大写，如果具有"Lowercase"属性，则为小写，如果在 Lt 一般类别中，则为标题大小写。
 
-`(char-lower-case? #\r) ![<graphic>](ch6_0.gif) #t
+`(char-lower-case? #\r) ![<graphic>](img/ch6_0.gif) #t
 
-(char-lower-case? #\R) ![<graphic>](ch6_0.gif) #f
+(char-lower-case? #\R) ![<graphic>](img/ch6_0.gif) #f
 
-(char-upper-case? #\r) ![<graphic>](ch6_0.gif) #f
+(char-upper-case? #\r) ![<graphic>](img/ch6_0.gif) #f
 
-(char-upper-case? #\R) ![<graphic>](ch6_0.gif) #t
+(char-upper-case? #\R) ![<graphic>](img/ch6_0.gif) #t
 
-(char-title-case? #\I) ![<graphic>](ch6_0.gif) #f
+(char-title-case? #\I) ![<graphic>](img/ch6_0.gif) #f
 
-(char-title-case? #\x01C5) ![<graphic>](ch6_0.gif) #t`
+(char-title-case? #\x01C5) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(char-general-category *char*)`
 
@@ -4084,11 +4084,11 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 返回值是符号之一 `Lu`, `Ll`, `Lt`, `Lm`, `Lo`, `Mn`, `Mc`, `Me`, `Nd`, `Nl`, `No`, `Ps`, `Pe`, `Pi`, `Pf`, `Pd`, `Pc`, `Po`, `Sc`, `Sm`, `Sk`, `So`, `Zs`, `Zp`, `Zl`, `Cc`, `Cf`, `Cs`, `Co`, 或 `Cn`。
 
-`(char-general-category #\a) ![<graphic>](ch6_0.gif) Ll
+`(char-general-category #\a) ![<graphic>](img/ch6_0.gif) Ll
 
-(char-general-category #\space) ![<graphic>](ch6_0.gif) Zs
+(char-general-category #\space) ![<graphic>](img/ch6_0.gif) Zs
 
-(char-general-category #\x10FFFF) ![<graphic>](ch6_0.gif) Cn  `
+(char-general-category #\x10FFFF) ![<graphic>](img/ch6_0.gif) Cn  `
 
 **procedure**: `(char-upcase *char*)`
 
@@ -4098,13 +4098,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 如果`*char*`是小写或标题字符，并且有一个大写对应字符，`char-upcase`返回大写对应字符。否则`char-upcase`返回`*char*`。
 
-`(char-upcase #\g) ![<graphic>](ch6_0.gif) #\G
+`(char-upcase #\g) ![<graphic>](img/ch6_0.gif) #\G
 
-(char-upcase #\G) ![<graphic>](ch6_0.gif) #\G
+(char-upcase #\G) ![<graphic>](img/ch6_0.gif) #\G
 
-(char-upcase #\7) ![<graphic>](ch6_0.gif) #\7
+(char-upcase #\7) ![<graphic>](img/ch6_0.gif) #\7
 
-(char-upcase #\![<graphic>](ch6_20.gif)) ![<graphic>](ch6_0.gif) #\![<graphic>](ch6_21.gif)`
+(char-upcase #\![<graphic>](img/ch6_20.gif)) ![<graphic>](img/ch6_0.gif) #\![<graphic>](img/ch6_21.gif)`
 
 **procedure**: `(char-downcase *char*)`
 
@@ -4114,13 +4114,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 如果`*char*`是大写或标题字符，并且有一个小写对应字符，`char-downcase`返回小写对应字符。否则`char-downcase`返回`*char*`。
 
-`(char-downcase #\g) ![<graphic>](ch6_0.gif) #\g
+`(char-downcase #\g) ![<graphic>](img/ch6_0.gif) #\g
 
-(char-downcase #\G) ![<graphic>](ch6_0.gif) #\g
+(char-downcase #\G) ![<graphic>](img/ch6_0.gif) #\g
 
-(char-downcase #\7) ![<graphic>](ch6_0.gif) #\7
+(char-downcase #\7) ![<graphic>](img/ch6_0.gif) #\7
 
-(char-downcase #\![<graphic>](ch6_20.gif)) ![<graphic>](ch6_0.gif) #\![<graphic>](ch6_20.gif)`
+(char-downcase #\![<graphic>](img/ch6_20.gif)) ![<graphic>](img/ch6_0.gif) #\![<graphic>](img/ch6_20.gif)`
 
 **procedure**: `(char-titlecase *char*)`
 
@@ -4130,13 +4130,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 如果`*char*`是大写或小写字符，并且有一个标题字符对应字符，`char-titlecase`返回标题字符对应字符。否则，如果它不是标题字符，没有单个标题字符对应字符，但有一个单个大写字符对应字符，`char-titlecase`返回大写字符对应字符。否则`char-titlecase`返回`*char*`。
 
-`(char-titlecase #\g) ![<graphic>](ch6_0.gif) #\G
+`(char-titlecase #\g) ![<graphic>](img/ch6_0.gif) #\G
 
-(char-titlecase #\G) ![<graphic>](ch6_0.gif) #\G
+(char-titlecase #\G) ![<graphic>](img/ch6_0.gif) #\G
 
-(char-titlecase #\7) ![<graphic>](ch6_0.gif) #\7
+(char-titlecase #\7) ![<graphic>](img/ch6_0.gif) #\7
 
-(char-titlecase #\![<graphic>](ch6_20.gif)) ![<graphic>](ch6_0.gif) #\![<graphic>](ch6_21.gif)`
+(char-titlecase #\![<graphic>](img/ch6_20.gif)) ![<graphic>](img/ch6_0.gif) #\![<graphic>](img/ch6_21.gif)`
 
 **procedure**: `(char-foldcase *char*)`
 
@@ -4146,45 +4146,45 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 如果`*char*`有一个大小写折叠对应字符，`char-foldcase`返回大小写折叠对应字符。否则，`char-foldcase`返回`*char*`。对于大多数字符，`(char-foldcase *char*)`等同于`(char-downcase (char-upcase *char*))`，但对于土耳其 İ 和 ı，`char-foldcase` 作为恒等函数。
 
-`(char-foldcase #\g) ![<graphic>](ch6_0.gif) #\g
+`(char-foldcase #\g) ![<graphic>](img/ch6_0.gif) #\g
 
-(char-foldcase #\G) ![<graphic>](ch6_0.gif) #\g
+(char-foldcase #\G) ![<graphic>](img/ch6_0.gif) #\g
 
-(char-foldcase #\7) ![<graphic>](ch6_0.gif) #\7
+(char-foldcase #\7) ![<graphic>](img/ch6_0.gif) #\7
 
-(char-foldcase #\![<graphic>](ch6_20.gif)) ![<graphic>](ch6_0.gif) #\![<graphic>](ch6_22.gif)`
+(char-foldcase #\![<graphic>](img/ch6_20.gif)) ![<graphic>](img/ch6_0.gif) #\![<graphic>](img/ch6_22.gif)`
 
 **过程：** `(char->integer *char*)`
 
-**返回：** `*char*`的Unicode标量值作为精确整数
+**返回：** `*char*`的 Unicode 标量值作为精确整数
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-`(char->integer #\newline) ![<graphic>](ch6_0.gif) 10
+`(char->integer #\newline) ![<graphic>](img/ch6_0.gif) 10
 
-(char->integer #\space) ![<graphic>](ch6_0.gif) 32
+(char->integer #\space) ![<graphic>](img/ch6_0.gif) 32
 
-(- (char->integer #\Z) (char->integer #\A)) ![<graphic>](ch6_0.gif) 25`
+(- (char->integer #\Z) (char->integer #\A)) ![<graphic>](img/ch6_0.gif) 25`
 
 **过程：** `(integer->char *n*)`
 
-**返回：** 对应于Unicode标量值`*n*`的字符
+**返回：** 对应于 Unicode 标量值`*n*`的字符
 
 **库：** `(rnrs base)`，`(rnrs)`
 
-`*n*`必须是精确整数且有效的Unicode标量值，即 ![<graphic>](ch6_23.gif) 或 ![<graphic>](ch6_24.gif)。
+`*n*`必须是精确整数且有效的 Unicode 标量值，即 ![<graphic>](img/ch6_23.gif) 或 ![<graphic>](img/ch6_24.gif)。
 
-`(integer->char 48) ![<graphic>](ch6_0.gif) #\0
+`(integer->char 48) ![<graphic>](img/ch6_0.gif) #\0
 
-(integer->char #x3BB) ![<graphic>](ch6_0.gif) #\![<graphic>](ch6_25.gif)`
+(integer->char #x3BB) ![<graphic>](img/ch6_0.gif) #\![<graphic>](img/ch6_25.gif)`
 
-### 第6.8节。字符串
+### 第 6.8 节。字符串
 
-字符串是字符序列，通常用作消息、字符缓冲区或文本块的容器。Scheme提供了创建字符串、从字符串中提取字符、获取子字符串、连接字符串以及更改字符串内容的操作。
+字符串是字符序列，通常用作消息、字符缓冲区或文本块的容器。Scheme 提供了创建字符串、从字符串中提取字符、获取子字符串、连接字符串以及更改字符串内容的操作。
 
-字符串被写为用双引号括起来的字符序列，例如，`"hi there"`。双引号可以通过在其前面加上反斜杠来引入到字符串中，例如，`"two \"quotes\" within"`。反斜杠也可以通过在其前面加上反斜杠来包含，例如，`"a \\slash"`。各种特殊字符可以通过其他两个字符序列插入，例如，`\n`表示换行，`\r`表示回车，`\t`表示制表符。任何Unicode字符都可以用语法`#\x*n*;`插入，其中`*n*`由一个或多个十六进制数字组成，表示有效的Unicode标量值。定义字符串精确语法的语法在第[458](grammar.html#grammar:strings)页上给出。
+字符串被写为用双引号括起来的字符序列，例如，`"hi there"`。双引号可以通过在其前面加上反斜杠来引入到字符串中，例如，`"two \"quotes\" within"`。反斜杠也可以通过在其前面加上反斜杠来包含，例如，`"a \\slash"`。各种特殊字符可以通过其他两个字符序列插入，例如，`\n`表示换行，`\r`表示回车，`\t`表示制表符。任何 Unicode 字符都可以用语法`#\x*n*;`插入，其中`*n*`由一个或多个十六进制数字组成，表示有效的 Unicode 标量值。定义字符串精确语法的语法在第 458 页上给出。
 
-字符串由精确非负整数索引，并且任何字符串的第一个元素的索引为0。对于给定字符串的最高有效索引比其长度少1。
+字符串由精确非负整数索引，并且任何字符串的第一个元素的索引为 0。对于给定字符串的最高有效索引比其长度少 1。
 
 **过程：** `(string=? *string[1]* *string[2]* *string[3]* ...)`
 
@@ -4246,15 +4246,15 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 这些定义可以直接扩展以支持三个或更多参数。`string<=?`、`string>?`和`string>=?`可以类似地定义。
 
-`(string=? "mom" "mom") ![<graphic>](ch6_0.gif) #t
+`(string=? "mom" "mom") ![<graphic>](img/ch6_0.gif) #t
 
-(string<? "mom" "mommy") ![<graphic>](ch6_0.gif) #t
+(string<? "mom" "mommy") ![<graphic>](img/ch6_0.gif) #t
 
-(string>? "Dad" "Dad") ![<graphic>](ch6_0.gif) #f
+(string>? "Dad" "Dad") ![<graphic>](img/ch6_0.gif) #f
 
-(string=? "Mom and Dad" "mom and dad") ![<graphic>](ch6_0.gif) #f
+(string=? "Mom and Dad" "mom and dad") ![<graphic>](img/ch6_0.gif) #f
 
-(string<? "a" "b" "c") ![<graphic>](ch6_0.gif) #t`
+(string<? "a" "b" "c") ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**：`(string-ci=? *string[1]* *string[2]* *string[3]* ...)`
 
@@ -4272,13 +4272,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 这些谓词与`string=?`、`string<?`、`string>?`、`string<=?`和`string>=?`相同，只是它们区分大小写，即比较其参数的大小写折叠版本。
 
-`(string-ci=? "Mom and Dad" "mom and dad") ![<graphic>](ch6_0.gif) #t
+`(string-ci=? "Mom and Dad" "mom and dad") ![<graphic>](img/ch6_0.gif) #t
 
-(string-ci<=? "say what" "Say What!?") ![<graphic>](ch6_0.gif) #t
+(string-ci<=? "say what" "Say What!?") ![<graphic>](img/ch6_0.gif) #t
 
-(string-ci>? "N" "m" "L" "k") ![<graphic>](ch6_0.gif) #t
+(string-ci>? "N" "m" "L" "k") ![<graphic>](img/ch6_0.gif) #t
 
-(string-ci=? "Stra\sse" "Strasse") ![<graphic>](ch6_0.gif) #t`
+(string-ci=? "Stra\sse" "Strasse") ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**：`(string *char* ...)`
 
@@ -4286,11 +4286,11 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 **库**：`(rnrs base)`，`(rnrs)`
 
-`(string) ![<graphic>](ch6_0.gif) ""
+`(string) ![<graphic>](img/ch6_0.gif) ""
 
-(string #\a #\b #\c) ![<graphic>](ch6_0.gif) "abc"
+(string #\a #\b #\c) ![<graphic>](img/ch6_0.gif) "abc"
 
-(string #\H #\E #\Y #\!) ![<graphic>](ch6_0.gif) "HEY!"`
+(string #\H #\E #\Y #\!) ![<graphic>](img/ch6_0.gif) "HEY!"`
 
 **过程**：`(make-string *n*)`
 
@@ -4302,11 +4302,11 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 `*n*` must be an exact nonnegative integer. If `*char*` is supplied, the string is filled with `*n*` occurrences of `*char*`, otherwise the characters contained in the string are unspecified.
 
-`(make-string 0) ![<graphic>](ch6_0.gif) ""
+`(make-string 0) ![<graphic>](img/ch6_0.gif) ""
 
-(make-string 0 #\x) ![<graphic>](ch6_0.gif) ""
+(make-string 0 #\x) ![<graphic>](img/ch6_0.gif) ""
 
-(make-string 5 #\x) ![<graphic>](ch6_0.gif) "xxxxx"`
+(make-string 5 #\x) ![<graphic>](img/ch6_0.gif) "xxxxx"`
 
 **procedure**: `(string-length *string*)`
 
@@ -4316,13 +4316,13 @@ num 用基数 `*radix*` 表示，`*radix*` 必须是集合 {2,8,10,16} 中的精
 
 The length of a string is always an exact nonnegative integer.
 
-`(string-length "abc") ![<graphic>](ch6_0.gif) 3
+`(string-length "abc") ![<graphic>](img/ch6_0.gif) 3
 
-(string-length "") ![<graphic>](ch6_0.gif) 0
+(string-length "") ![<graphic>](img/ch6_0.gif) 0
 
-(string-length "hi there") ![<graphic>](ch6_0.gif) 8
+(string-length "hi there") ![<graphic>](img/ch6_0.gif) 8
 
-(string-length (make-string 1000000)) ![<graphic>](ch6_0.gif) 1000000`
+(string-length (make-string 1000000)) ![<graphic>](img/ch6_0.gif) 1000000`
 
 **procedure**: `(string-ref *string* *n*)`
 
@@ -4332,9 +4332,9 @@ The length of a string is always an exact nonnegative integer.
 
 `*n*` must be an exact nonnegative integer less than the length of `*string*`.
 
-`(string-ref "hi there" 0) ![<graphic>](ch6_0.gif) #\h
+`(string-ref "hi there" 0) ![<graphic>](img/ch6_0.gif) #\h
 
-(string-ref "hi there" 5) ![<graphic>](ch6_0.gif) #\e`
+(string-ref "hi there" 5) ![<graphic>](img/ch6_0.gif) #\e`
 
 **procedure**: `(string-set! *string* *n* *char*)`
 
@@ -4350,7 +4350,7 @@ The length of a string is always an exact nonnegative integer.
 
 (string-set! str 6 #\r)
 
-str) ![<graphic>](ch6_0.gif) "hi there"`
+str) ![<graphic>](img/ch6_0.gif) "hi there"`
 
 **procedure**: `(string-copy *string*)`
 
@@ -4360,11 +4360,11 @@ str) ![<graphic>](ch6_0.gif) "hi there"`
 
 This procedure creates a new string with the same length and contents as `*string*`.
 
-`(string-copy "abc") ![<graphic>](ch6_0.gif) "abc"
+`(string-copy "abc") ![<graphic>](img/ch6_0.gif) "abc"
 
 (let ([str "abc"])
 
-(eq? str (string-copy str))) ![<graphic>](ch6_0.gif) #f`
+(eq? str (string-copy str))) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(string-append *string* ...)`
 
@@ -4372,11 +4372,11 @@ This procedure creates a new string with the same length and contents as `*strin
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(string-append) ![<graphic>](ch6_0.gif) ""
+`(string-append) ![<graphic>](img/ch6_0.gif) ""
 
-(string-append "abc" "def") ![<graphic>](ch6_0.gif) "abcdef"
+(string-append "abc" "def") ![<graphic>](img/ch6_0.gif) "abcdef"
 
-(string-append "Hey " "you " "there!") ![<graphic>](ch6_0.gif) "Hey you there!"`
+(string-append "Hey " "you " "there!") ![<graphic>](img/ch6_0.gif) "Hey you there!"`
 
 The following implementation of `string-append` recurs down the list of strings to compute the total length, then allocates the new string, then fills it up as it unwinds the recursion.
 
@@ -4422,17 +4422,17 @@ The following implementation of `string-append` recurs down the list of strings 
 
 (string-set! s2 j (string-ref s1 i))))))
 
-(substring "hi there" 0 1) ![<graphic>](ch6_0.gif) "h"
+(substring "hi there" 0 1) ![<graphic>](img/ch6_0.gif) "h"
 
-(substring "hi there" 3 6) ![<graphic>](ch6_0.gif) "the"
+(substring "hi there" 3 6) ![<graphic>](img/ch6_0.gif) "the"
 
-(substring "hi there" 5 5) ![<graphic>](ch6_0.gif) ""
+(substring "hi there" 5 5) ![<graphic>](img/ch6_0.gif) ""
 
 (let ([str "hi there"])
 
 (let ([end (string-length str)])
 
-(substring str 0 end))) ![<graphic>](ch6_0.gif) "hi there"`
+(substring str 0 end))) ![<graphic>](img/ch6_0.gif) "hi there"`
 
 **procedure**：`(string-fill! *string* *char*)`
 
@@ -4446,7 +4446,7 @@ The following implementation of `string-append` recurs down the list of strings 
 
 (string-fill! str #\Z)
 
-str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
+str) ![<graphic>](img/ch6_0.gif) "ZZZZZZ"`
 
 `string-fill!`可能定义如下：
 
@@ -4462,7 +4462,7 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 (string-set! s i c)))))`
 
-另一种定义见第[276](io.html#backdoor-string-fill)页。
+另一种定义见第 276 页。
 
 **procedure**：`(string-upcase *string*)`
 
@@ -4482,61 +4482,61 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 **库：** `(rnrs unicode)`，`(rnrs)`
 
-这些过程实现了从标量值序列到标量值序列的Unicode区域无关大小写映射。这些映射并不总是将单个字符映射到单个字符，因此结果字符串的长度可能与`*string*`的长度不同。如果结果字符串与`*string*`相同（通过`string=?`），则可能返回`*string*`或`*string*`的副本。否则，将分配新的结果字符串。`string-foldcase`不使用土耳其语言的特殊映射。
+这些过程实现了从标量值序列到标量值序列的 Unicode 区域无关大小写映射。这些映射并不总是将单个字符映射到单个字符，因此结果字符串的长度可能与`*string*`的长度不同。如果结果字符串与`*string*`相同（通过`string=?`），则可能返回`*string*`或`*string*`的副本。否则，将分配新的结果字符串。`string-foldcase`不使用土耳其语言的特殊映射。
 
-`string-titlecase`将`*string*`中每个单词的第一个大写字符转换为其标题大小写形式，并将每个其他字符转换为其小写形式。单词分隔符按照Unicode标准附录#29 [[8](bibliography.html#g226)]指定的方式识别。
+`string-titlecase`将`*string*`中每个单词的第一个大写字符转换为其标题大小写形式，并将每个其他字符转换为其小写形式。单词分隔符按照 Unicode 标准附录#29 [8]指定的方式识别。
 
-`(string-upcase "Hi") ![<graphic>](ch6_0.gif) "HI"
+`(string-upcase "Hi") ![<graphic>](img/ch6_0.gif) "HI"
 
-(string-downcase "Hi") ![<graphic>](ch6_0.gif) "hi"
+(string-downcase "Hi") ![<graphic>](img/ch6_0.gif) "hi"
 
-(string-foldcase "Hi") ![<graphic>](ch6_0.gif) "hi"
+(string-foldcase "Hi") ![<graphic>](img/ch6_0.gif) "hi"
 
-(string-upcase "Straße") ![<graphic>](ch6_0.gif) "STRASSE"
+(string-upcase "Straße") ![<graphic>](img/ch6_0.gif) "STRASSE"
 
-(string-downcase "Straße") ![<graphic>](ch6_0.gif) "straße"
+(string-downcase "Straße") ![<graphic>](img/ch6_0.gif) "straße"
 
-(string-foldcase "Straße") ![<graphic>](ch6_0.gif) "strasse"
+(string-foldcase "Straße") ![<graphic>](img/ch6_0.gif) "strasse"
 
-(string-downcase "STRASSE")  ![<graphic>](ch6_0.gif) "strasse"
+(string-downcase "STRASSE")  ![<graphic>](img/ch6_0.gif) "strasse"
 
-(string-downcase "![<graphic>](ch6_21.gif)") ![<graphic>](ch6_0.gif) "![<graphic>](ch6_22.gif)"
+(string-downcase "![<graphic>](img/ch6_21.gif)") ![<graphic>](img/ch6_0.gif) "![<graphic>](img/ch6_22.gif)"
 
-(string-titlecase "kNock KNoCK") ![<graphic>](ch6_0.gif) "Knock Knock"
+(string-titlecase "kNock KNoCK") ![<graphic>](img/ch6_0.gif) "Knock Knock"
 
-(string-titlecase "who's there?") ![<graphic>](ch6_0.gif) "Who's There?"
+(string-titlecase "who's there?") ![<graphic>](img/ch6_0.gif) "Who's There?"
 
-(string-titlecase "r6rs") ![<graphic>](ch6_0.gif) "R6rs"
+(string-titlecase "r6rs") ![<graphic>](img/ch6_0.gif) "R6rs"
 
-(string-titlecase "R6RS") ![<graphic>](ch6_0.gif) "R6rs"
+(string-titlecase "R6RS") ![<graphic>](img/ch6_0.gif) "R6rs"
 
 **过程**：`(string-normalize-nfd *string*)`
 
-**返回：** 返回`*string*`的Unicode标准化形式D
+**返回：** 返回`*string*`的 Unicode 标准化形式 D
 
 **过程**：`(string-normalize-nfkd *string*)`
 
-**返回：** 返回`*string*`的Unicode标准化形式KD
+**返回：** 返回`*string*`的 Unicode 标准化形式 KD
 
 **过程**：`(string-normalize-nfc *string*)`
 
-**返回：** 返回`*string*`的Unicode标准化形式C
+**返回：** 返回`*string*`的 Unicode 标准化形式 C
 
 **过程**：`(string-normalize-nfkc *string*)`
 
-**返回：** 返回`*string*`的Unicode标准化形式KC
+**返回：** 返回`*string*`的 Unicode 标准化形式 KC
 
 **libraries:** `(rnrs unicode)`, `(rnrs)`
 
 如果结果字符串与`*string*`相同（通过`string=?`），则可能返回`*string*`或`*string*`的副本。否则，将新分配结果字符串。
 
-`(string-normalize-nfd "\xE9;") ![<graphic>](ch6_0.gif) "e\x301;"
+`(string-normalize-nfd "\xE9;") ![<graphic>](img/ch6_0.gif) "e\x301;"
 
-(string-normalize-nfc "\xE9;") ![<graphic>](ch6_0.gif) "\xE9;"
+(string-normalize-nfc "\xE9;") ![<graphic>](img/ch6_0.gif) "\xE9;"
 
-(string-normalize-nfd "\x65;\x301;") ![<graphic>](ch6_0.gif) "e\x301;"
+(string-normalize-nfd "\x65;\x301;") ![<graphic>](img/ch6_0.gif) "e\x301;"
 
-(string-normalize-nfc "\x65;\x301;") ![<graphic>](ch6_0.gif) "\xE9;"
+(string-normalize-nfc "\x65;\x301;") ![<graphic>](img/ch6_0.gif) "\xE9;"
 
 **过程**：`(string->list *string*)`
 
@@ -4544,7 +4544,7 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`string->list`允许将字符串转换为列表，以便将Scheme的列表处理操作应用于字符串的处理。`string->list`可以定义为无错误检查如下。
+`string->list`允许将字符串转换为列表，以便将 Scheme 的列表处理操作应用于字符串的处理。`string->list`可以定义为无错误检查如下。
 
 `(define string->list
 
@@ -4556,13 +4556,13 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 ((< i 0) ls))))
 
-(string->list "") ![<graphic>](ch6_0.gif) ()
+(string->list "") ![<graphic>](img/ch6_0.gif) ()
 
-(string->list "abc") ![<graphic>](ch6_0.gif) (#\a #\b #\c)
+(string->list "abc") ![<graphic>](img/ch6_0.gif) (#\a #\b #\c)
 
-(apply char<? (string->list "abc")) ![<graphic>](ch6_0.gif) #t
+(apply char<? (string->list "abc")) ![<graphic>](img/ch6_0.gif) #t
 
-(map char-upcase (string->list "abc")) ![<graphic>](ch6_0.gif) (#\A #\B #\C)
+(map char-upcase (string->list "abc")) ![<graphic>](img/ch6_0.gif) (#\A #\B #\C)
 
 **过程**：`(list->string *list*)`
 
@@ -4588,17 +4588,17 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 (string-set! s i (car ls))))))
 
-(list->string '()) ![<graphic>](ch6_0.gif) ""
+(list->string '()) ![<graphic>](img/ch6_0.gif) ""
 
-(list->string '(#\a #\b #\c)) ![<graphic>](ch6_0.gif) "abc"
+(list->string '(#\a #\b #\c)) ![<graphic>](img/ch6_0.gif) "abc"
 
 (list->string
 
 (map char-upcase
 
-(string->list "abc"))) ![<graphic>](ch6_0.gif) "ABC"
+(string->list "abc"))) ![<graphic>](img/ch6_0.gif) "ABC"
 
-### 第6.9节。向量
+### 第 6.9 节。向量
 
 向量对于某些应用程序比列表更方便和高效。访问列表中的任意元素需要线性遍历列表直到选定的元素，而任意向量元素的访问时间是常数。向量的 *长度* 是它包含的元素数。向量由精确的非负整数索引，并且任何向量的第一个元素的索引是 0。给定向量的最大有效索引比其长度少一个。
 
@@ -4612,9 +4612,9 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-`(vector) ![<graphic>](ch6_0.gif) #()
+`(vector) ![<graphic>](img/ch6_0.gif) #()
 
-(vector 'a 'b 'c) ![<graphic>](ch6_0.gif) #(a b c)`
+(vector 'a 'b 'c) ![<graphic>](img/ch6_0.gif) #(a b c)`
 
 **procedure**: `(make-vector *n*)`
 
@@ -4626,11 +4626,11 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 `*n*` 必须是一个精确的非负整数。如果提供了 `*obj*`，则向量的每个元素都将填充为 `*obj*`；否则，元素是未指定的。
 
-`(make-vector 0) ![<graphic>](ch6_0.gif) #()
+`(make-vector 0) ![<graphic>](img/ch6_0.gif) #()
 
-(make-vector 0 '#(a)) ![<graphic>](ch6_0.gif) #()
+(make-vector 0 '#(a)) ![<graphic>](img/ch6_0.gif) #()
 
-(make-vector 5 '#(a)) ![<graphic>](ch6_0.gif) #(#(a) #(a) #(a) #(a) #(a))`
+(make-vector 5 '#(a)) ![<graphic>](img/ch6_0.gif) #(#(a) #(a) #(a) #(a) #(a))`
 
 **procedure**: `(vector-length *vector*)`
 
@@ -4640,13 +4640,13 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 向量的长度始终是一个精确的非负整数。
 
-`(vector-length '#()) ![<graphic>](ch6_0.gif) 0
+`(vector-length '#()) ![<graphic>](img/ch6_0.gif) 0
 
-(vector-length '#(a b c)) ![<graphic>](ch6_0.gif) 3
+(vector-length '#(a b c)) ![<graphic>](img/ch6_0.gif) 3
 
-(vector-length (vector 1 '(2) 3 '#(4 5))) ![<graphic>](ch6_0.gif) 4
+(vector-length (vector 1 '(2) 3 '#(4 5))) ![<graphic>](img/ch6_0.gif) 4
 
-(vector-length (make-vector 300)) ![<graphic>](ch6_0.gif) 300`
+(vector-length (make-vector 300)) ![<graphic>](img/ch6_0.gif) 300`
 
 **procedure**: `(vector-ref *vector* *n*)`
 
@@ -4656,11 +4656,11 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 `*n*` 必须是小于 `*vector*` 长度的精确非负整数。
 
-`(vector-ref '#(a b c) 0) ![<graphic>](ch6_0.gif) a
+`(vector-ref '#(a b c) 0) ![<graphic>](img/ch6_0.gif) a
 
-(vector-ref '#(a b c) 1) ![<graphic>](ch6_0.gif) b
+(vector-ref '#(a b c) 1) ![<graphic>](img/ch6_0.gif) b
 
-(vector-ref '#(x y z w) 3) ![<graphic>](ch6_0.gif) w`
+(vector-ref '#(x y z w) 3) ![<graphic>](img/ch6_0.gif) w`
 
 **procedure**: `(vector-set! *vector* *n* *obj*)`
 
@@ -4674,7 +4674,7 @@ str) ![<graphic>](ch6_0.gif) "ZZZZZZ"`
 
 (vector-set! v 2 'x)
 
-v) ![<graphic>](ch6_0.gif) #(a b x d e)`
+v) ![<graphic>](img/ch6_0.gif) #(a b x d e)`
 
 **procedure**: `(vector-fill! *vector* *obj*)`
 
@@ -4700,7 +4700,7 @@ v) ![<graphic>](ch6_0.gif) #(a b x d e)`
 
 (vector-fill! v 0)
 
-v) ![<graphic>](ch6_0.gif) #(0 0 0)`
+v) ![<graphic>](img/ch6_0.gif) #(0 0 0)`
 
 **过程：** `(vector->list *vector*)`
 
@@ -4720,13 +4720,13 @@ v) ![<graphic>](ch6_0.gif) #(0 0 0)`
 
 ((< i 0) ls))))
 
-(vector->list (vector)) ![<graphic>](ch6_0.gif) ()
+(vector->list (vector)) ![<graphic>](img/ch6_0.gif) ()
 
-(vector->list '#(a b c)) ![<graphic>](ch6_0.gif) (a b c)
+(vector->list '#(a b c)) ![<graphic>](img/ch6_0.gif) (a b c)
 
 (let ((v '#(1 2 3 4 5)))
 
-(apply * (vector->list v))) ![<graphic>](ch6_0.gif) 120`
+(apply * (vector->list v))) ![<graphic>](img/ch6_0.gif) 120`
 
 **过程：** `(list->vector *list*)`
 
@@ -4750,15 +4750,15 @@ v) ![<graphic>](ch6_0.gif) #(0 0 0)`
 
 (vector-set! s i (car ls))))))
 
-(list->vector '()) ![<graphic>](ch6_0.gif) #()
+(list->vector '()) ![<graphic>](img/ch6_0.gif) #()
 
-(list->vector '(a b c)) ![<graphic>](ch6_0.gif) #(a b c)
+(list->vector '(a b c)) ![<graphic>](img/ch6_0.gif) #(a b c)
 
 (let ([v '#(1 2 3 4 5)])
 
 (let ([ls (vector->list v)])
 
-(list->vector (map * ls ls)))) ![<graphic>](ch6_0.gif) #(1 4 9 16 25)`
+(list->vector (map * ls ls)))) ![<graphic>](img/ch6_0.gif) #(1 4 9 16 25)`
 
 **过程：** `(vector-sort *predicate* *vector*)`
 
@@ -4770,21 +4770,21 @@ v) ![<graphic>](ch6_0.gif) #(0 0 0)`
 
 **库：** `(rnrs sorting)`，`(rnrs)`
 
-`*predicate*`应该是一个期望两个参数并在排序向量中第一个参数必须在第二个参数之前时返回`#t`的过程。也就是说，如果`*predicate*`应用于两个元素`*x*`和`*y*`，其中`*x*`在输入向量中出现在`*y*`之后，则只有当`*x*`应该在输出向量中出现在`*y*`之前时，谓词才应返回true。如果满足此约束，`vector-sort`执行稳定排序，即仅在必要时根据`*predicate*`重新排序两个元素。`vector-sort!`进行破坏性排序，不一定执行稳定排序。重复元素不会被移除。`*predicate*`不应具有任何副作用。
+`*predicate*`应该是一个期望两个参数并在排序向量中第一个参数必须在第二个参数之前时返回`#t`的过程。也就是说，如果`*predicate*`应用于两个元素`*x*`和`*y*`，其中`*x*`在输入向量中出现在`*y*`之后，则只有当`*x*`应该在输出向量中出现在`*y*`之前时，谓词才应返回 true。如果满足此约束，`vector-sort`执行稳定排序，即仅在必要时根据`*predicate*`重新排序两个元素。`vector-sort!`进行破坏性排序，不一定执行稳定排序。重复元素不会被移除。`*predicate*`不应具有任何副作用。
 
 `vector-sort`最多调用`*predicate*` *n*log*n*次，其中*n*是`*vector*`的长度，而`vector-sort!`最多调用谓词*n*²次。`vector-sort!`的较松限制允许实现使用快速排序算法，在某些情况下可能比具有较紧*n*log*n*限制的算法更快。
 
-`(vector-sort < '#(3 4 2 1 2 5)) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)
+`(vector-sort < '#(3 4 2 1 2 5)) ![<graphic>](img/ch6_0.gif) #(1 2 2 3 4 5)
 
-(vector-sort > '#(0.5 1/2)) ![<graphic>](ch6_0.gif) #(0.5 1/2)
+(vector-sort > '#(0.5 1/2)) ![<graphic>](img/ch6_0.gif) #(0.5 1/2)
 
-(vector-sort > '#(1/2 0.5)) ![<graphic>](ch6_0.gif) #(1/2 0.5)
+(vector-sort > '#(1/2 0.5)) ![<graphic>](img/ch6_0.gif) #(1/2 0.5)
 
 (let ([v (vector 3 4 2 1 2 5)])
 
 (vector-sort! < v)
 
-v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
+v) ![<graphic>](img/ch6_0.gif) #(1 2 2 3 4 5)`
 
 ### 第 6.10 节。字节向量
 
@@ -4796,11 +4796,11 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 字节向量使用 `#vu8(` 前缀代替向量的 `#(` 前缀进行编写，例如，`#vu8(1 2 3)`。以这种方式指定的字节向量的元素始终以 8 位无符号精确整数给出，即从 0 到 255（包括）的整数，使用任何有效的此类数字的语法编写。与字符串一样，字节向量是自我评估的，因此它们不需要引用。
 
-`'#vu8(1 2 3) ![<graphic>](ch6_0.gif) #vu8(1 2 3)
+`'#vu8(1 2 3) ![<graphic>](img/ch6_0.gif) #vu8(1 2 3)
 
-#vu8(1 2 3) ![<graphic>](ch6_0.gif) #vu8(1 2 3)
+#vu8(1 2 3) ![<graphic>](img/ch6_0.gif) #vu8(1 2 3)
 
-#vu8(#x3f #x7f #xbf #xff) ![<graphic>](ch6_0.gif) #vu8(63 127 191 255)`
+#vu8(#x3f #x7f #xbf #xff) ![<graphic>](img/ch6_0.gif) #vu8(63 127 191 255)`
 
 **语法**：`(endianness *symbol*)`
 
@@ -4810,11 +4810,11 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 `*symbol*` 必须是符号 `little`、符号 `big` 或实现识别为字节序符号的其他符号。如果 `*symbol*` 不是符号或者实现不识别它为字节序符号，则属于语法违例。
 
-`(endianness little) ![<graphic>](ch6_0.gif) little
+`(endianness little) ![<graphic>](img/ch6_0.gif) little
 
-(endianness big) ![<graphic>](ch6_0.gif) big
+(endianness big) ![<graphic>](img/ch6_0.gif) big
 
-(endianness "spam") ![<graphic>](ch6_0.gif) *exception*`
+(endianness "spam") ![<graphic>](img/ch6_0.gif) *exception*`
 
 **过程**: `(native-endianness)`
 
@@ -4824,7 +4824,7 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 返回值是符号`little`、符号`big`或实现中识别的其他字节序符号。通常反映底层硬件的字节序。
 
-`(symbol? (native-endianness)) ![<graphic>](ch6_0.gif) #t`
+`(symbol? (native-endianness)) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程**: `(make-bytevector *n*)`
 
@@ -4834,27 +4834,27 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 **库:** `(rnrs bytevectors)`, `(rnrs)`
 
-如果提供了`*fill*`，则字节向量的每个元素都初始化为`*fill*`；否则，元素是未指定的。`*fill*`值必须是有符号或无符号的8位值，即范围在-128到255之间。负的填充值被视为其二进制补码等价值。
+如果提供了`*fill*`，则字节向量的每个元素都初始化为`*fill*`；否则，元素是未指定的。`*fill*`值必须是有符号或无符号的 8 位值，即范围在-128 到 255 之间。负的填充值被视为其二进制补码等价值。
 
-`(make-bytevector 0) ![<graphic>](ch6_0.gif) #vu8()
+`(make-bytevector 0) ![<graphic>](img/ch6_0.gif) #vu8()
 
-(make-bytevector 0 7) ![<graphic>](ch6_0.gif) #vu8()
+(make-bytevector 0 7) ![<graphic>](img/ch6_0.gif) #vu8()
 
-(make-bytevector 5 7) ![<graphic>](ch6_0.gif) #vu8(7 7 7 7 7)
+(make-bytevector 5 7) ![<graphic>](img/ch6_0.gif) #vu8(7 7 7 7 7)
 
-(make-bytevector 5 -7) ![<graphic>](ch6_0.gif) #vu8(249 249 249 249 249)`
+(make-bytevector 5 -7) ![<graphic>](img/ch6_0.gif) #vu8(249 249 249 249 249)`
 
 **过程**: `(bytevector-length *bytevector*)`
 
-**返回值:** `*bytevector*`的长度，以8位字节为单位
+**返回值:** `*bytevector*`的长度，以 8 位字节为单位
 
 **库:** `(rnrs bytevectors)`, `(rnrs)`
 
-`(bytevector-length #vu8()) ![<graphic>](ch6_0.gif) 0
+`(bytevector-length #vu8()) ![<graphic>](img/ch6_0.gif) 0
 
-(bytevector-length #vu8(1 2 3)) ![<graphic>](ch6_0.gif) 3
+(bytevector-length #vu8(1 2 3)) ![<graphic>](img/ch6_0.gif) 3
 
-(bytevector-length (make-bytevector 300)) ![<graphic>](ch6_0.gif) 300`
+(bytevector-length (make-bytevector 300)) ![<graphic>](img/ch6_0.gif) 300`
 
 **过程**: `(bytevector=? *bytevector[1]* *bytevector[2]*)`
 
@@ -4864,13 +4864,13 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 仅当两个字节向量具有相同的长度和相同的内容时，它们才通过`bytevector=?`相等。
 
-`(bytevector=? #vu8() #vu8()) ![<graphic>](ch6_0.gif) #t
+`(bytevector=? #vu8() #vu8()) ![<graphic>](img/ch6_0.gif) #t
 
-(bytevector=? (make-bytevector 3 0) #vu8(0 0 0)) ![<graphic>](ch6_0.gif) #t
+(bytevector=? (make-bytevector 3 0) #vu8(0 0 0)) ![<graphic>](img/ch6_0.gif) #t
 
-(bytevector=? (make-bytevector 5 0) #vu8(0 0 0)) ![<graphic>](ch6_0.gif) #f
+(bytevector=? (make-bytevector 5 0) #vu8(0 0 0)) ![<graphic>](img/ch6_0.gif) #f
 
-(bytevector=? #vu8(1 127 128 255) #vu8(255 128 127 1)) ![<graphic>](ch6_0.gif) #f`
+(bytevector=? #vu8(1 127 128 255) #vu8(255 128 127 1)) ![<graphic>](img/ch6_0.gif) #f`
 
 **过程**: `(bytevector-fill! *bytevector* *fill*)`
 
@@ -4878,7 +4878,7 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 **库:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*fill*`值必须是有符号或无符号的8位值，即范围在-128到255之间。负的填充值被视为其二进制补码等价值。
+`*fill*`值必须是有符号或无符号的 8 位值，即范围在-128 到 255 之间。负的填充值被视为其二进制补码等价值。
 
 `bytevector-fill!`用`*fill*`替换`*bytevector*`的每个元素。
 
@@ -4886,13 +4886,13 @@ v) ![<graphic>](ch6_0.gif) #(1 2 2 3 4 5)`
 
 (bytevector-fill! v 255)
 
-v) ![<graphic>](ch6_0.gif) #vu8(255 255 255 255 255 255)
+v) ![<graphic>](img/ch6_0.gif) #vu8(255 255 255 255 255 255)
 
 (let ([v (make-bytevector 6)])
 
 (bytevector-fill! v -128)
 
-v) ![<graphic>](ch6_0.gif) #vu8(128 128 128 128 128 128)`
+v) ![<graphic>](img/ch6_0.gif) #vu8(128 128 128 128 128 128)`
 
 **过程**: `(bytevector-copy *bytevector*)`
 
@@ -4902,11 +4902,11 @@ v) ![<graphic>](ch6_0.gif) #vu8(128 128 128 128 128 128)`
 
 `bytevector-copy`创建一个与`*bytevector*`具有相同长度和内容的新字节向量。
 
-`(bytevector-copy #vu8(1 127 128 255)) ![<graphic>](ch6_0.gif) #vu8(1 127 128 255)
+`(bytevector-copy #vu8(1 127 128 255)) ![<graphic>](img/ch6_0.gif) #vu8(1 127 128 255)
 
 (let ([v #vu8(1 127 128 255)])
 
-(eq? v (bytevector-copy v))) ![<graphic>](ch6_0.gif) #f`
+(eq? v (bytevector-copy v))) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(bytevector-copy! *src* *src-start* *dst* *dst-start* *n*)`
 
@@ -4924,53 +4924,53 @@ v) ![<graphic>](ch6_0.gif) #vu8(128 128 128 128 128 128)`
 
 (bytevector-copy! v1 2 v2 1 4)
 
-v2 ![<graphic>](ch6_0.gif) #vu8(0 95 127 159 191 0 0 0 0 0)
+v2 ![<graphic>](img/ch6_0.gif) #vu8(0 95 127 159 191 0 0 0 0 0)
 
 (bytevector-copy! v1 5 v2 7 3)
 
-v2 ![<graphic>](ch6_0.gif) #vu8(0 95 127 159 191 0 0 191 223 255)
+v2 ![<graphic>](img/ch6_0.gif) #vu8(0 95 127 159 191 0 0 191 223 255)
 
 (bytevector-copy! v2 3 v2 0 6)
 
-v2 ![<graphic>](ch6_0.gif) #vu8(159 191 0 0 191 223 0 191 223 255)
+v2 ![<graphic>](img/ch6_0.gif) #vu8(159 191 0 0 191 223 0 191 223 255)
 
 (bytevector-copy! v2 0 v2 1 9)
 
-v2 ![<graphic>](ch6_0.gif) #vu8(159 159 191 0 0 191 223 0 191 223)`
+v2 ![<graphic>](img/ch6_0.gif) #vu8(159 159 191 0 0 191 223 0 191 223)`
 
 **procedure**: `(bytevector-u8-ref *bytevector* *n*)`
 
-**returns:** 返回：`*n*`索引处的8位无符号字节（从零开始），来自`*bytevector*`
+**returns:** 返回：`*n*`索引处的 8 位无符号字节（从零开始），来自`*bytevector*`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
 `*n*` 必须是一个小于 `*bytevector*` 长度的确切非负整数。
 
-值以精确的8位无符号整数返回，即在0到255范围内的值。
+值以精确的 8 位无符号整数返回，即在 0 到 255 范围内的值。
 
-`(bytevector-u8-ref #vu8(1 127 128 255) 0) ![<graphic>](ch6_0.gif) 1
+`(bytevector-u8-ref #vu8(1 127 128 255) 0) ![<graphic>](img/ch6_0.gif) 1
 
-(bytevector-u8-ref #vu8(1 127 128 255) 2) ![<graphic>](ch6_0.gif) 128
+(bytevector-u8-ref #vu8(1 127 128 255) 2) ![<graphic>](img/ch6_0.gif) 128
 
-(bytevector-u8-ref #vu8(1 127 128 255) 3) ![<graphic>](ch6_0.gif) 255`
+(bytevector-u8-ref #vu8(1 127 128 255) 3) ![<graphic>](img/ch6_0.gif) 255`
 
 **procedure**: `(bytevector-s8-ref *bytevector* *n*)`
 
-**returns:** 返回：`*n*`索引处的8位有符号字节（从零开始），来自`*bytevector*`
+**returns:** 返回：`*n*`索引处的 8 位有符号字节（从零开始），来自`*bytevector*`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
 `*n*` 必须是一个小于 `*bytevector*` 长度的确切非负整数。
 
-返回的值是一个精确的8位有符号整数，即-128到127之间的值，它是作为二进制补码值处理的存储值的等价物。
+返回的值是一个精确的 8 位有符号整数，即-128 到 127 之间的值，它是作为二进制补码值处理的存储值的等价物。
 
-`(bytevector-s8-ref #vu8(1 127 128 255) 0) ![<graphic>](ch6_0.gif) 1
+`(bytevector-s8-ref #vu8(1 127 128 255) 0) ![<graphic>](img/ch6_0.gif) 1
 
-(bytevector-s8-ref #vu8(1 127 128 255) 1) ![<graphic>](ch6_0.gif) 127
+(bytevector-s8-ref #vu8(1 127 128 255) 1) ![<graphic>](img/ch6_0.gif) 127
 
-(bytevector-s8-ref #vu8(1 127 128 255) 2) ![<graphic>](ch6_0.gif) -128
+(bytevector-s8-ref #vu8(1 127 128 255) 2) ![<graphic>](img/ch6_0.gif) -128
 
-(bytevector-s8-ref #vu8(1 127 128 255) 3) ![<graphic>](ch6_0.gif) -1`
+(bytevector-s8-ref #vu8(1 127 128 255) 3) ![<graphic>](img/ch6_0.gif) -1`
 
 **procedure**: `(bytevector-u8-set! *bytevector* *n* *u8*)`
 
@@ -4978,15 +4978,15 @@ v2 ![<graphic>](ch6_0.gif) #vu8(159 159 191 0 0 191 223 0 191 223)`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*`必须是小于`*bytevector*`长度的精确非负整数。`*u8*`必须是8位无符号值，即范围在0到255之间。
+`*n*`必须是小于`*bytevector*`长度的精确非负整数。`*u8*`必须是 8 位无符号值，即范围在 0 到 255 之间。
 
-`bytevector-u8-set!`将`*bytevector*`中索引为`*n*`（从零开始）的8位值更改为`*u8*`
+`bytevector-u8-set!`将`*bytevector*`中索引为`*n*`（从零开始）的 8 位值更改为`*u8*`
 
 `(let ([v (make-bytevector 5 -1)])
 
 (bytevector-u8-set! v 2 128)
 
-v) ![<graphic>](ch6_0.gif) #vu8(255 255 128 255 255)`
+v) ![<graphic>](img/ch6_0.gif) #vu8(255 255 128 255 255)`
 
 **procedure**: `(bytevector-s8-set! *bytevector* *n* *s8*)`
 
@@ -4994,9 +4994,9 @@ v) ![<graphic>](ch6_0.gif) #vu8(255 255 128 255 255)`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*`必须是小于`*bytevector*`长度的精确非负整数。`*s8*`必须是8位有符号值，即范围在-128到127之间。
+`*n*`必须是小于`*bytevector*`长度的精确非负整数。`*s8*`必须是 8 位有符号值，即范围在-128 到 127 之间。
 
-`bytevector-s8-set!`将`*bytevector*`中索引为`*n*`（从零开始）的8位值更改为`*s8*`的二进制补码等效值。
+`bytevector-s8-set!`将`*bytevector*`中索引为`*n*`（从零开始）的 8 位值更改为`*s8*`的二进制补码等效值。
 
 `(let ([v (make-bytevector 4 0)])
 
@@ -5004,21 +5004,21 @@ v) ![<graphic>](ch6_0.gif) #vu8(255 255 128 255 255)`
 
 (bytevector-s8-set! v 2 -100)
 
-v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
+v) ![<graphic>](img/ch6_0.gif) #vu8(0 100 156 0)`
 
 **procedure**: `(bytevector->u8-list *bytevector*)`
 
-**returns:** 返回`*bytevector*`的8位无符号元素列表
+**returns:** 返回`*bytevector*`的 8 位无符号元素列表
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`(bytevector->u8-list (make-bytevector 0)) ![<graphic>](ch6_0.gif) ()
+`(bytevector->u8-list (make-bytevector 0)) ![<graphic>](img/ch6_0.gif) ()
 
-(bytevector->u8-list #vu8(1 127 128 255)) ![<graphic>](ch6_0.gif) (1 127 128 255)
+(bytevector->u8-list #vu8(1 127 128 255)) ![<graphic>](img/ch6_0.gif) (1 127 128 255)
 
 (let ([v #vu8(1 2 3 255)])
 
-(apply * (bytevector->u8-list v))) ![<graphic>](ch6_0.gif) 1530`
+(apply * (bytevector->u8-list v))) ![<graphic>](img/ch6_0.gif) 1530`
 
 **procedure**: `(u8-list->bytevector *list*)`
 
@@ -5026,45 +5026,45 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*list*`必须完全由精确的8位无符号整数组成，即范围在0到255之间。
+`*list*`必须完全由精确的 8 位无符号整数组成，即范围在 0 到 255 之间。
 
-`(u8-list->bytevector '()) ![<graphic>](ch6_0.gif) #vu8()
+`(u8-list->bytevector '()) ![<graphic>](img/ch6_0.gif) #vu8()
 
-(u8-list->bytevector '(1 127 128 255)) ![<graphic>](ch6_0.gif) #vu8(1 127 128 255)
+(u8-list->bytevector '(1 127 128 255)) ![<graphic>](img/ch6_0.gif) #vu8(1 127 128 255)
 
 (let ([v #vu8(1 2 3 4 5)])
 
 (let ([ls (bytevector->u8-list v)])
 
-(u8-list->bytevector (map * ls ls)))) ![<graphic>](ch6_0.gif) #vu8(1 4 9 16 25)`
+(u8-list->bytevector (map * ls ls)))) ![<graphic>](img/ch6_0.gif) #vu8(1 4 9 16 25)`
 
 **procedure**: `(bytevector-u16-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的16位无符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 16 位无符号整数
 
 **procedure**: `(bytevector-s16-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的16位有符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 16 位有符号整数
 
 **procedure**: `(bytevector-u32-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的32位无符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 32 位无符号整数
 
 **procedure**: `(bytevector-s32-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的32位有符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 32 位有符号整数
 
 **procedure**: `(bytevector-u64-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的64位无符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 64 位无符号整数
 
 **procedure**: `(bytevector-s64-native-ref *bytevector* *n*)`
 
-**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的64位有符号整数
+**returns:** 返回`*bytevector*`中索引为`*n*`（从零开始）的 64 位有符号整数
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*`必须是一个精确的非负整数。它索引值的起始字节，必须是值所占字节数的倍数：16位值为2，32位值为4，64位值为8。`*n*`的总和和值所占字节数不得超过`*bytevector*`的长度。假定本机字节序。
+`*n*`必须是一个精确的非负整数。它索引值的起始字节，必须是值所占字节数的倍数：16 位值为 2，32 位值为 4，64 位值为 8。`*n*`的总和和值所占字节数不得超过`*bytevector*`的长度。假定本机字节序。
 
 返回值是适当范围内的精确整数，与值所占字节相对应。有符号值是存储值视为补码值的等价值。
 
@@ -5072,39 +5072,39 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 如果本机字节序为大端：
 
-`(bytevector-u16-native-ref v 2)` ![<graphic>](ch6_0.gif) #xfe56
+`(bytevector-u16-native-ref v 2)` ![<graphic>](img/ch6_0.gif) #xfe56
 
-`(bytevector-s16-native-ref v 2)` ![<graphic>](ch6_0.gif) #x-1aa
+`(bytevector-s16-native-ref v 2)` ![<graphic>](img/ch6_0.gif) #x-1aa
 
-`(bytevector-s16-native-ref v 6)` ![<graphic>](ch6_0.gif) #x7898
+`(bytevector-s16-native-ref v 6)` ![<graphic>](img/ch6_0.gif) #x7898
 
-`(bytevector-u32-native-ref v 0)` ![<graphic>](ch6_0.gif) #x1234fe56
+`(bytevector-u32-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x1234fe56
 
-`(bytevector-s32-native-ref v 0)` ![<graphic>](ch6_0.gif) #x1234fe56
+`(bytevector-s32-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x1234fe56
 
-`(bytevector-s32-native-ref v 4)` ![<graphic>](ch6_0.gif) #x-23458768
+`(bytevector-s32-native-ref v 4)` ![<graphic>](img/ch6_0.gif) #x-23458768
 
-`(bytevector-u64-native-ref v 0)` ![<graphic>](ch6_0.gif) #x1234fe56dcba7898
+`(bytevector-u64-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x1234fe56dcba7898
 
-`(bytevector-s64-native-ref v 0)` ![<graphic>](ch6_0.gif) #x1234fe56dcba7898`
+`(bytevector-s64-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x1234fe56dcba7898`
 
 如果本机字节序为小端：
 
-`(bytevector-u16-native-ref v 2)` ![<graphic>](ch6_0.gif) #x56fe
+`(bytevector-u16-native-ref v 2)` ![<graphic>](img/ch6_0.gif) #x56fe
 
-`(bytevector-s16-native-ref v 2)` ![<graphic>](ch6_0.gif) #x56fe
+`(bytevector-s16-native-ref v 2)` ![<graphic>](img/ch6_0.gif) #x56fe
 
-`(bytevector-s16-native-ref v 6)` ![<graphic>](ch6_0.gif) #x-6788
+`(bytevector-s16-native-ref v 6)` ![<graphic>](img/ch6_0.gif) #x-6788
 
-`(bytevector-u32-native-ref v 0)` ![<graphic>](ch6_0.gif) #x56fe3412
+`(bytevector-u32-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x56fe3412
 
-`(bytevector-s32-native-ref v 0)` ![<graphic>](ch6_0.gif) #x56fe3412
+`(bytevector-s32-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x56fe3412
 
-`(bytevector-s32-native-ref v 4)` ![<graphic>](ch6_0.gif) #x-67874524
+`(bytevector-s32-native-ref v 4)` ![<graphic>](img/ch6_0.gif) #x-67874524
 
-`(bytevector-u64-native-ref v 0)` ![<graphic>](ch6_0.gif) #x9878badc56fe3412
+`(bytevector-u64-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x9878badc56fe3412
 
-`(bytevector-s64-native-ref v 0)` ![<graphic>](ch6_0.gif) #x-67874523a901cbee`
+`(bytevector-s64-native-ref v 0)` ![<graphic>](img/ch6_0.gif) #x-67874523a901cbee`
 
 **过程**：`(bytevector-u16-native-set! *bytevector* *n* *u16*)`
 
@@ -5122,9 +5122,9 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 **库**：`(rnrs bytevectors)`，`(rnrs)`
 
-`*n*`必须是一个精确的非负整数。它索引了值的起始字节，必须是值占用的字节数的倍数：16位值占用2个字节，32位值占用4个字节，64位值占用8个字节。`*n*`和值占用的字节数的和不能超过`*bytevector*`的长度。`*u16*`必须是一个16位无符号值，即在0到2^(16) - 1的范围内的值；`*s16*`必须是一个16位有符号值，即在-2^(15)到2^(15) - 1的范围内的值；`*u32*`必须是一个32位无符号值，即在0到2^(32) - 1的范围内的值；`*s32*`必须是一个32位有符号值，即在-2^(31)到2^(31) - 1的范围内的值；`*u64*`必须是一个64位无符号值，即在0到2^(64) - 1的范围内的值；`*s64*`必须是一个64位有符号值，即在-2^(63)到2^(63) - 1的范围内的值。假定本地字节序为大端。
+`*n*`必须是一个精确的非负整数。它索引了值的起始字节，必须是值占用的字节数的倍数：16 位值占用 2 个字节，32 位值占用 4 个字节，64 位值占用 8 个字节。`*n*`和值占用的字节数的和不能超过`*bytevector*`的长度。`*u16*`必须是一个 16 位无符号值，即在 0 到 2¹⁶ - 1 的范围内的值；`*s16*`必须是一个 16 位有符号值，即在-2¹⁵到 2¹⁵ - 1 的范围内的值；`*u32*`必须是一个 32 位无符号值，即在 0 到 2³² - 1 的范围内的值；`*s32*`必须是一个 32 位有符号值，即在-2³¹到 2³¹ - 1 的范围内的值；`*u64*`必须是一个 64 位无符号值，即在 0 到 2⁶⁴ - 1 的范围内的值；`*s64*`必须是一个 64 位有符号值，即在-2⁶³到 2⁶³ - 1 的范围内的值。假定本地字节序为大端。
 
-这些过程将给定值存储在`*bytevector*`的索引为`*n*`（从零开始）的2、4或8个字节中。负值将存储为它们的二进制补码等效值。
+这些过程将给定值存储在`*bytevector*`的索引为`*n*`（从零开始）的 2、4 或 8 个字节中。负值将存储为它们的二进制补码等效值。
 
 `(define v (make-bytevector 8 0))
 
@@ -5136,11 +5136,11 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 如果本地字节序为大端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#xfe #x56 #xfe #x56 #x78 #x98 #x00 #x00)`
+`v ![<graphic>](img/ch6_0.gif) #vu8(#xfe #x56 #xfe #x56 #x78 #x98 #x00 #x00)`
 
 如果本地字节序为小端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#x56 #xfe #x56 #xfe #x98 #x78 #x00 #x00)`
+`v ![<graphic>](img/ch6_0.gif) #vu8(#x56 #xfe #x56 #xfe #x98 #x78 #x00 #x00)`
 
 `(define v (make-bytevector 16 0))
 
@@ -5152,15 +5152,15 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 如果本地字节序为大端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#x12 #x34 #xfe #x56 #x12 #x34 #xfe #x56
+`v ![<graphic>](img/ch6_0.gif) #vu8(#x12 #x34 #xfe #x56 #x12 #x34 #xfe #x56
 
-![](ch3_ghostRightarrow.gif)      #xdc #xba #x78 #x98 #x00 #x00 #x00 #x00)`
+![](img/ch3_ghostRightarrow.gif)      #xdc #xba #x78 #x98 #x00 #x00 #x00 #x00)`
 
 如果本地字节序为小端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#x56 #xfe #x34 #x12 #x56 #xfe #x34 #x12
+`v ![<graphic>](img/ch6_0.gif) #vu8(#x56 #xfe #x34 #x12 #x56 #xfe #x34 #x12
 
-![](ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x00 #x00 #x00 #x00)`
+![](img/ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x00 #x00 #x00 #x00)`
 
 `(define v (make-bytevector 24 0))
 
@@ -5172,83 +5172,83 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 如果本地字节序为大端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#x12 #x34 #xfe #x56 #xdc #xba #x78 #x98
+`v ![<graphic>](img/ch6_0.gif) #vu8(#x12 #x34 #xfe #x56 #xdc #xba #x78 #x98
 
-![](ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98
+![](img/ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98
 
-![](ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12)`
+![](img/ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12)`
 
 如果本地字节序为小端：
 
-`v ![<graphic>](ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12
+`v ![<graphic>](img/ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12
 
-![](ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12
+![](img/ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12
 
-![](ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98)`
+![](img/ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98)`
 
 **procedure**: `(bytevector-u16-ref *bytevector* *n* *eness*)`
 
-**返回:**`*bytevector*`的索引为`*n*`（从零开始）的16位无符号整数。
+**返回:**`*bytevector*`的索引为`*n*`（从零开始）的 16 位无符号整数。
 
 **procedure**: `(bytevector-s16-ref *bytevector* *n* *eness*)`
 
-**returns:** 返回索引为`*n*`（从零开始）的16位有符号整数`*bytevector*`
+**returns:** 返回索引为`*n*`（从零开始）的 16 位有符号整数`*bytevector*`
 
 **procedure**: `(bytevector-u32-ref *bytevector* *n* *eness*)`
 
-**returns:** 返回索引为`*n*`（从零开始）的32位无符号整数`*bytevector*`
+**returns:** 返回索引为`*n*`（从零开始）的 32 位无符号整数`*bytevector*`
 
 **procedure**: `(bytevector-s32-ref *bytevector* *n* *eness*)`
 
-**returns:** 返回索引为`*n*`（从零开始）的32位有符号整数`*bytevector*`
+**returns:** 返回索引为`*n*`（从零开始）的 32 位有符号整数`*bytevector*`
 
 **procedure**: `(bytevector-u64-ref *bytevector* *n* *eness*)`
 
-**returns:** 返回索引为`*n*`（从零开始）的64位无符号整数`*bytevector*`
+**returns:** 返回索引为`*n*`（从零开始）的 64 位无符号整数`*bytevector*`
 
 **procedure**: `(bytevector-s64-ref *bytevector* *n* *eness*)`
 
-**returns:** 返回索引为`*n*`（从零开始）的64位有符号整数`*bytevector*`
+**returns:** 返回索引为`*n*`（从零开始）的 64 位有符号整数`*bytevector*`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*`必须是精确的非负整数，并索引值的起始字节。`*n*`和值占用的字节数之和（16位值为2，32位值为4，64位值为8）不能超过`*bytevector*`的长度。`*n*`不需要是值占用的字节数的倍数。`*eness*`必须是一个有效的表示字节序的符号。
+`*n*`必须是精确的非负整数，并索引值的起始字节。`*n*`和值占用的字节数之和（16 位值为 2，32 位值为 4，64 位值为 8）不能超过`*bytevector*`的长度。`*n*`不需要是值占用的字节数的倍数。`*eness*`必须是一个有效的表示字节序的符号。
 
 返回值是适当范围内的精确整数，对于值占用的字节数而言。有符号值相当于存储值视为二进制补码值。
 
 `(define v #vu8(#x12 #x34 #xfe #x56 #xdc #xba #x78 #x98 #x9a #x76))
 
-(bytevector-u16-ref v 0 (endianness big)) ![<graphic>](ch6_0.gif) #x1234
+(bytevector-u16-ref v 0 (endianness big)) ![<graphic>](img/ch6_0.gif) #x1234
 
-(bytevector-s16-ref v 1 (endianness big)) ![<graphic>](ch6_0.gif) #x34fe
+(bytevector-s16-ref v 1 (endianness big)) ![<graphic>](img/ch6_0.gif) #x34fe
 
-(bytevector-s16-ref v 5 (endianness big)) ![<graphic>](ch6_0.gif) #x-4588
+(bytevector-s16-ref v 5 (endianness big)) ![<graphic>](img/ch6_0.gif) #x-4588
 
-(bytevector-u32-ref v 2 'big) ![<graphic>](ch6_0.gif) #xfe56dcba
+(bytevector-u32-ref v 2 'big) ![<graphic>](img/ch6_0.gif) #xfe56dcba
 
-(bytevector-s32-ref v 3 'big) ![<graphic>](ch6_0.gif) #x56dcba78
+(bytevector-s32-ref v 3 'big) ![<graphic>](img/ch6_0.gif) #x56dcba78
 
-(bytevector-s32-ref v 4 'big) ![<graphic>](ch6_0.gif) #x-23458768
+(bytevector-s32-ref v 4 'big) ![<graphic>](img/ch6_0.gif) #x-23458768
 
-(bytevector-u64-ref v 0 'big) ![<graphic>](ch6_0.gif) #x1234fe56dcba7898
+(bytevector-u64-ref v 0 'big) ![<graphic>](img/ch6_0.gif) #x1234fe56dcba7898
 
-(bytevector-s64-ref v 1 'big) ![<graphic>](ch6_0.gif) #x34fe56dcba78989a
+(bytevector-s64-ref v 1 'big) ![<graphic>](img/ch6_0.gif) #x34fe56dcba78989a
 
-(bytevector-u16-ref v 0 (endianness little)) ![<graphic>](ch6_0.gif) #x3412
+(bytevector-u16-ref v 0 (endianness little)) ![<graphic>](img/ch6_0.gif) #x3412
 
-(bytevector-s16-ref v 1 (endianness little)) ![<graphic>](ch6_0.gif) #x-1cc
+(bytevector-s16-ref v 1 (endianness little)) ![<graphic>](img/ch6_0.gif) #x-1cc
 
-(bytevector-s16-ref v 5 (endianness little)) ![<graphic>](ch6_0.gif) #x78ba
+(bytevector-s16-ref v 5 (endianness little)) ![<graphic>](img/ch6_0.gif) #x78ba
 
-(bytevector-u32-ref v 2 'little) ![<graphic>](ch6_0.gif) #xbadc56fe
+(bytevector-u32-ref v 2 'little) ![<graphic>](img/ch6_0.gif) #xbadc56fe
 
-(bytevector-s32-ref v 3 'little) ![<graphic>](ch6_0.gif) #x78badc56
+(bytevector-s32-ref v 3 'little) ![<graphic>](img/ch6_0.gif) #x78badc56
 
-(bytevector-s32-ref v 4 'little) ![<graphic>](ch6_0.gif) #x-67874524
+(bytevector-s32-ref v 4 'little) ![<graphic>](img/ch6_0.gif) #x-67874524
 
-(bytevector-u64-ref v 0 'little) ![<graphic>](ch6_0.gif) #x9878badc56fe3412
+(bytevector-u64-ref v 0 'little) ![<graphic>](img/ch6_0.gif) #x9878badc56fe3412
 
-(bytevector-s64-ref v 1 'little) ![<graphic>](ch6_0.gif) #x-6567874523a901cc`
+(bytevector-s64-ref v 1 'little) ![<graphic>](img/ch6_0.gif) #x-6567874523a901cc`
 
 **procedure**: `(bytevector-u16-set! *bytevector* *n* *u16* *eness*)`
 
@@ -5266,9 +5266,9 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*` 必须是一个精确的非负整数，并索引值的起始字节。 `*n*` 和值占用的字节数的总和不得超过 `*bytevector*` 的长度。 `*n*` 不必是值占用的字节数的倍数。 `*u16*` 必须是一个16位无符号值，即范围为0到2^(16) - 1（含）。 `*s16*` 必须是一个16位有符号值，即范围为-2^(15) 到2^(15) - 1（含）。 `*u32*` 必须是一个32位无符号值，即范围为0到2^(32) - 1（含）。 `*s32*` 必须是一个32位有符号值，即范围为-2^(31) 到2^(31) - 1（含）。 `*u64*` 必须是一个64位无符号值，即范围为0到2^(64) - 1（含）。 `*s64*` 必须是一个64位有符号值，即范围为-2^(63) 到2^(63) - 1（含）。 `*eness*` 必须是一个指定字节序的有效符号。
+`*n*` 必须是一个精确的非负整数，并索引值的起始字节。 `*n*` 和值占用的字节数的总和不得超过 `*bytevector*` 的长度。 `*n*` 不必是值占用的字节数的倍数。 `*u16*` 必须是一个 16 位无符号值，即范围为 0 到 2¹⁶ - 1（含）。 `*s16*` 必须是一个 16 位有符号值，即范围为-2¹⁵ 到 2¹⁵ - 1（含）。 `*u32*` 必须是一个 32 位无符号值，即范围为 0 到 2³² - 1（含）。 `*s32*` 必须是一个 32 位有符号值，即范围为-2³¹ 到 2³¹ - 1（含）。 `*u64*` 必须是一个 64 位无符号值，即范围为 0 到 2⁶⁴ - 1（含）。 `*s64*` 必须是一个 64 位有符号值，即范围为-2⁶³ 到 2⁶³ - 1（含）。 `*eness*` 必须是一个指定字节序的有效符号。
 
-这些过程将给定值存储在 `*bytevector*` 的索引 `*n*`（从零开始）处的2、4或8个字节中。 负值存储为它们的二进制补码等价值。
+这些过程将给定值存储在 `*bytevector*` 的索引 `*n*`（从零开始）处的 2、4 或 8 个字节中。 负值存储为它们的二进制补码等价值。
 
 `(define v (make-bytevector 8 0))
 
@@ -5278,7 +5278,7 @@ v) ![<graphic>](ch6_0.gif) #vu8(0 100 156 0)`
 
 (bytevector-s16-set! v 5 #x7898 (endianness big))
 
-v ![<graphic>](ch6_0.gif) #vu8(#xfe #x56 #x0 #x56 #xfe #x78 #x98 #x0)
+v ![<graphic>](img/ch6_0.gif) #vu8(#xfe #x56 #x0 #x56 #xfe #x78 #x98 #x0)
 
 (define v (make-bytevector 16 0))
 
@@ -5288,11 +5288,11 @@ v ![<graphic>](ch6_0.gif) #vu8(#xfe #x56 #x0 #x56 #xfe #x78 #x98 #x0)
 
 (bytevector-s32-set! v 11 #x-23458768 'little)
 
-v ![<graphic>](ch6_0.gif) #vu8(#x56 #xfe #x34 #x12 #x0 #x0
+v ![<graphic>](img/ch6_0.gif) #vu8(#x56 #xfe #x34 #x12 #x0 #x0
 
-![](ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #x0
+![](img/ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #x0
 
-![](ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x0)
+![](img/ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x0)
 
 (define v (make-bytevector 28 0))
 
@@ -5302,11 +5302,11 @@ v ![<graphic>](ch6_0.gif) #vu8(#x56 #xfe #x34 #x12 #x0 #x0
 
 (bytevector-s64-set! v 19 #x-67874523a901cbee 'big)
 
-v ![<graphic>](ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12 #x0 #x0
+v ![<graphic>](img/ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12 #x0 #x0
 
-![](ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98 #x0
+![](img/ch3_ghostRightarrow.gif)      #x12 #x34 #xfe #x56 #xdc #xba #x78 #x98 #x0
 
-![](ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12 #x0)`
+![](img/ch3_ghostRightarrow.gif)      #x98 #x78 #xba #xdc #x56 #xfe #x34 #x12 #x0)`
 
 **procedure**: `(bytevector-uint-ref *bytevector* *n* *eness* *size*)`
 
@@ -5324,21 +5324,21 @@ v ![<graphic>](ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12�
 
 `(define v #vu8(#x12 #x34 #xfe #x56 #xdc #xba #x78 #x98 #x9a #x76))
 
-(bytevector-uint-ref v 0 'big 1) ![<graphic>](ch6_0.gif) #x12
+(bytevector-uint-ref v 0 'big 1) ![<graphic>](img/ch6_0.gif) #x12
 
-(bytevector-uint-ref v 0 'little 1) ![<graphic>](ch6_0.gif) #x12
+(bytevector-uint-ref v 0 'little 1) ![<graphic>](img/ch6_0.gif) #x12
 
-(bytevector-uint-ref v 1 'big 3) ![<graphic>](ch6_0.gif) #x34fe56
+(bytevector-uint-ref v 1 'big 3) ![<graphic>](img/ch6_0.gif) #x34fe56
 
-(bytevector-uint-ref v 2 'little 7) ![<graphic>](ch6_0.gif) #x9a9878badc56fe
+(bytevector-uint-ref v 2 'little 7) ![<graphic>](img/ch6_0.gif) #x9a9878badc56fe
 
-(bytevector-sint-ref v 2 'big 1) ![<graphic>](ch6_0.gif) #x-02
+(bytevector-sint-ref v 2 'big 1) ![<graphic>](img/ch6_0.gif) #x-02
 
-(bytevector-sint-ref v 1 'little 6) ![<graphic>](ch6_0.gif) #x78badc56fe34
+(bytevector-sint-ref v 1 'little 6) ![<graphic>](img/ch6_0.gif) #x78badc56fe34
 
-(bytevector-sint-ref v 2 'little 7) ![<graphic>](ch6_0.gif) #x-6567874523a902
+(bytevector-sint-ref v 2 'little 7) ![<graphic>](img/ch6_0.gif) #x-6567874523a902
 
-(bytevector-sint-ref (make-bytevector 1000 -1) 0 'big 1000) ![<graphic>](ch6_0.gif) -1`
+(bytevector-sint-ref (make-bytevector 1000 -1) 0 'big 1000) ![<graphic>](img/ch6_0.gif) -1`
 
 **过程**：`(bytevector-uint-set! *bytevector* *n* *uint* *eness* *size*)`
 
@@ -5348,7 +5348,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12�
 
 **libraries:** `(rnrs bytevectors)`, `(rnrs)`
 
-`*n*`必须是一个正确的非负整数，并索引值的起始字节。`*size*`必须是一个正确的正整数，并指定值占用的字节数。`*n*`和`*size*`的总和不得超过`*bytevector*`的长度。`*n*`不需要是值占用的字节数的倍数。`*uint*`必须是一个在范围0到2^(*size*·8) - 1（包括）之间的正确整数。`*sint*`必须是一个在范围-2^(*size*·8-1)到2^(*size*·8-1) - 1（包括）之间的正确整数。`*eness*`必须是一个有效的描述字节顺序的符号。
+`*n*`必须是一个正确的非负整数，并索引值的起始字节。`*size*`必须是一个正确的正整数，并指定值占用的字节数。`*n*`和`*size*`的总和不得超过`*bytevector*`的长度。`*n*`不需要是值占用的字节数的倍数。`*uint*`必须是一个在范围 0 到 2^(*size*·8) - 1（包括）之间的正确整数。`*sint*`必须是一个在范围-2^(*size*·8-1)到 2^(*size*·8-1) - 1（包括）之间的正确整数。`*eness*`必须是一个有效的描述字节顺序的符号。
 
 这些过程将给定的值存储在从索引`*n*`（从零开始）开始的`*bytevector*`的`*size*`字节中。负值将存储为它们的二进制补码等价形式。
 
@@ -5356,13 +5356,13 @@ v ![<graphic>](ch6_0.gif) #vu8(#x98 #x78 #xba #xdc #x56 #xfe #x34 #x12�
 
 (bytevector-uint-set! v 1 #x123456 (endianness big) 3)
 
-v ![<graphic>](ch6_0.gif) #vu8(0 #x12 #x34 #x56 0)
+v ![<graphic>](img/ch6_0.gif) #vu8(0 #x12 #x34 #x56 0)
 
 `(define v (make-bytevector 7 -1))
 
 (bytevector-sint-set! v 1 #x-8000000000 (endianness little) 5)
 
-v ![<graphic>](ch6_0.gif) #vu8(#xff 0 0 0 0 #x80 #xff)`
+v ![<graphic>](img/ch6_0.gif) #vu8(#xff 0 0 0 0 #x80 #xff)`
 
 **过程**：`(bytevector->uint-list *bytevector* *eness* *size*)`
 
@@ -5376,15 +5376,15 @@ v ![<graphic>](ch6_0.gif) #vu8(#xff 0 0 0 0 #x80 #xff)`
 
 `*eness*`必须是一个有效的描述字节顺序的符号。`*size*`必须是一个正确的正整数，并指定值占用的字节数。它必须是能够整除`*bytevector*`的长度的值。
 
-`(bytevector->uint-list (make-bytevector 0) 'little 3) ![<graphic>](ch6_0.gif) ()
+`(bytevector->uint-list (make-bytevector 0) 'little 3) ![<graphic>](img/ch6_0.gif) ()
 
 (let ([v #vu8(1 2 3 4 5 6)])
 
-(bytevector->uint-list v 'big 3)) ![<graphic>](ch6_0.gif) (#x010203 #x040506)
+(bytevector->uint-list v 'big 3)) ![<graphic>](img/ch6_0.gif) (#x010203 #x040506)
 
 (let ([v (make-bytevector 80 -1)])
 
-(bytevector->sint-list v 'big 20)) ![<graphic>](ch6_0.gif) (-1 -1 -1 -1)`
+(bytevector->sint-list v 'big 20)) ![<graphic>](img/ch6_0.gif) (-1 -1 -1 -1)`
 
 **procedure**: `(uint-list->bytevector *list* *eness* *size*)`
 
@@ -5396,9 +5396,9 @@ v ![<graphic>](ch6_0.gif) #vu8(#xff 0 0 0 0 #x80 #xff)`
 
 `*eness*` must be a valid endianness symbol naming the endianness. `*size*` must be an exact positive integer and specifies the number of bytes occupied by the value. For `uint-list->bytevector`, `*list*` must consist entirely of `*size*`-byte exact unsigned integers, i.e., values in the range 0 to 2^(*size*·8) - 1 inclusive. For `sint-list->bytevector`, `*list*` must consist entirely of `*size*`-byte exact signed integers, i.e., values in the range -2^(*size*·8-1) to 2^(*size*·8-1) inclusive. Each value occupies `*size*` bytes in the resulting bytevector, whose length is thus `*size*` times the length of `*list*`.
 
-`(uint-list->bytevector '() 'big 25) ![<graphic>](ch6_0.gif) #vu8()
+`(uint-list->bytevector '() 'big 25) ![<graphic>](img/ch6_0.gif) #vu8()
 
-(sint-list->bytevector '(0 -1) 'big 3) ![<graphic>](ch6_0.gif) #vu8(0 0 0 #xff #xff #xff)
+(sint-list->bytevector '(0 -1) 'big 3) ![<graphic>](img/ch6_0.gif) #vu8(0 0 0 #xff #xff #xff)
 
 (define (f size)
 
@@ -5408,9 +5408,9 @@ v ![<graphic>](ch6_0.gif) #vu8(#xff 0 0 0 0 #x80 #xff)`
 
 (sint-list->bytevector ls 'little size)))
 
-(f 6) ![<graphic>](ch6_0.gif) #vu8(#x00 #x00 #x00 #x00 #x00 #x80
+(f 6) ![<graphic>](img/ch6_0.gif) #vu8(#x00 #x00 #x00 #x00 #x00 #x80
 
-![](ch3_ghostRightarrow.gif)      #xff #xff #xff #xff #xff #x7f)`
+![](img/ch3_ghostRightarrow.gif)      #xff #xff #xff #xff #xff #x7f)`
 
 **procedure**: `(bytevector-ieee-single-native-ref *bytevector* *n*)`
 
@@ -5448,11 +5448,11 @@ These procedures store the given value as an IEEE-754 single or double floating-
 
 (bytevector-ieee-single-native-ref v 0)
 
-(bytevector-ieee-single-native-ref v 4)) ![<graphic>](ch6_0.gif) (0.125 -1.5)
+(bytevector-ieee-single-native-ref v 4)) ![<graphic>](img/ch6_0.gif) (0.125 -1.5)
 
 (bytevector-ieee-double-native-set! v 0 1e23)
 
-(bytevector-ieee-double-native-ref v 0) ![<graphic>](ch6_0.gif) 1e23`
+(bytevector-ieee-double-native-ref v 0) ![<graphic>](img/ch6_0.gif) 1e23`
 
 **procedure**: `(bytevector-ieee-single-ref *bytevector* *n* *eness*)`
 
@@ -5490,23 +5490,23 @@ These procedures store the given value as an IEEE-754 single or double floating-
 
 (bytevector-ieee-single-ref v 1 'little)
 
-(bytevector-ieee-single-ref v 6 'big)) ![<graphic>](ch6_0.gif) (0.125 -1.5)
+(bytevector-ieee-single-ref v 6 'big)) ![<graphic>](img/ch6_0.gif) (0.125 -1.5)
 
-v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x0 #x0)
+v ![<graphic>](img/ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x0 #x0)
 
 (bytevector-ieee-double-set! v 1 1e23 'big)
 
-(bytevector-ieee-double-ref v 1 'big) ![<graphic>](ch6_0.gif) 1e23`
+(bytevector-ieee-double-ref v 1 'big) ![<graphic>](img/ch6_0.gif) 1e23`
 
 ### 第 6.11 节。符号
 
 符号在 Scheme 程序中用作各种目的的符号名称。字符串可以用于大多数相同的目的，但符号之间的比较更有效率是符号的一个重要特征。这个特征是具有相同名称的两个符号在 `eq?` 的意义上是相同的。原因是 Scheme 读取器（由 `get-datum` 和 `read` 调用）和过程 `string->symbol` 在内部符号表中编目符号，并且每当遇到相同的名称时，总是返回相同的符号。因此，不需要逐个字符比较，就像比较两个字符串所需的那样。
 
-两个符号可以快速比较是否相等的特性使它们非常适合用作程序表示中的标识符，允许快速比较标识符。这个特性也使符号在各种其他用途中非常有用。例如，符号可以用作程序之间传递的消息、列表结构记录的标签，或者存储在关联列表中的对象的名称（参见第[6.3](objects.html#g109)节中的`assq`）。
+两个符号可以快速比较是否相等的特性使它们非常适合用作程序表示中的标识符，允许快速比较标识符。这个特性也使符号在各种其他用途中非常有用。例如，符号可以用作程序之间传递的消息、列表结构记录的标签，或者存储在关联列表中的对象的名称（参见第 6.3 节中的`assq`）。
 
-符号不带双引号或其他括号字符。括号、双引号、空格以及大多数其他对Scheme读取器具有特殊含义的字符不允许出现在符号的打印表示中。这些以及任何其他Unicode字符可以以`#\x*n*;`的语法出现在符号的打印表示中的任何位置，其中`*n*`由一个或多个十六进制数字组成，表示有效的Unicode���量值。
+符号不带双引号或其他括号字符。括号、双引号、空格以及大多数其他对 Scheme 读取器具有特殊含义的字符不允许出现在符号的打印表示中。这些以及任何其他 Unicode 字符可以以`#\x*n*;`的语法出现在符号的打印表示中的任何位置，其中`*n*`由一个或多个十六进制数字组成，表示有效的 Unicode���量值。
 
-页[458](grammar.html#grammar:symbols)上的符号语法给出了符号语法的精确定义。
+页 458 上的符号语法给出了符号语法的精确定义。
 
 **过程：** `(symbol=? *symbol[1]* *symbol[2]*)`
 
@@ -5516,11 +5516,11 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 符号也可以用`eq?`进行比较，这通常比`symbol=?`更有效。
 
-`(symbol=? 'a 'a) ![<graphic>](ch6_0.gif) #t`
+`(symbol=? 'a 'a) ![<graphic>](img/ch6_0.gif) #t`
 
-`(symbol=? 'a (string->symbol "a")) ![<graphic>](ch6_0.gif) #t`
+`(symbol=? 'a (string->symbol "a")) ![<graphic>](img/ch6_0.gif) #t`
 
-`(symbol=? 'a 'b) ![<graphic>](ch6_0.gif) #f`
+`(symbol=? 'a 'b) ![<graphic>](img/ch6_0.gif) #f`
 
 **过程：** `(string->symbol *string*)`
 
@@ -5532,17 +5532,17 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 在将字符串用作`string->symbol`的参数后修改它的效果是未指定的。
 
-`(string->symbol "x") ![<graphic>](ch6_0.gif) x`
+`(string->symbol "x") ![<graphic>](img/ch6_0.gif) x`
 
-`(eq? (string->symbol "x") 'x) ![<graphic>](ch6_0.gif) #t`
+`(eq? (string->symbol "x") 'x) ![<graphic>](img/ch6_0.gif) #t`
 
-`(eq? (string->symbol "X") 'x) ![<graphic>](ch6_0.gif) #f`
+`(eq? (string->symbol "X") 'x) ![<graphic>](img/ch6_0.gif) #f`
 
 `(eq? (string->symbol "x")`
 
-`(string->symbol "x")) ![<graphic>](ch6_0.gif) #t`
+`(string->symbol "x")) ![<graphic>](img/ch6_0.gif) #t`
 
-`(string->symbol "()") ![<graphic>](ch6_0.gif) \x28;\x29;`
+`(string->symbol "()") ![<graphic>](img/ch6_0.gif) \x28;\x29;`
 
 **过程：** `(symbol->string *symbol*)`
 
@@ -5552,13 +5552,13 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 `symbol->string`返回的字符串应被视为不可变。如果通过`string-set!`或其他方式修改传递给`string->symbol`的字符串，则可能导致不可预测的行为。
 
-`(symbol->string 'xyz) ![<graphic>](ch6_0.gif) "xyz"`
+`(symbol->string 'xyz) ![<graphic>](img/ch6_0.gif) "xyz"`
 
-`(symbol->string 'Hi) ![<graphic>](ch6_0.gif) "Hi"`
+`(symbol->string 'Hi) ![<graphic>](img/ch6_0.gif) "Hi"`
 
-`(symbol->string (string->symbol "()")) ![<graphic>](ch6_0.gif) "()"`
+`(symbol->string (string->symbol "()")) ![<graphic>](img/ch6_0.gif) "()"`
 
-### 第6.12节。布尔值
+### 第 6.12 节。布尔值
 
 在条件上下文中，每个 Scheme 对象都有一个真值，除了`#f`之外的每个对象都被视为真。Scheme 提供了专用的真值`#t`，用于在表达式的值应该传达的仅仅是它为真时使用。
 
@@ -5570,15 +5570,15 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 布尔值`#t`和`#f`也可以用`eq?`进行比较，这通常比`boolean=?`更有效。
 
-`(boolean=? #t #t) ![<graphic>](ch6_0.gif) #t
+`(boolean=? #t #t) ![<graphic>](img/ch6_0.gif) #t
 
-`(boolean=? #t #f) ![<graphic>](ch6_0.gif) #f
+`(boolean=? #t #f) ![<graphic>](img/ch6_0.gif) #f
 
-`(boolean=? #t (< 3 4)) ![<graphic>](ch6_0.gif) #t`
+`(boolean=? #t (< 3 4)) ![<graphic>](img/ch6_0.gif) #t`
 
 ### 第 6.13 节。哈希表
 
-哈希表表示任意 Scheme 值之间的关联集合。它们基本上与关联列表（参见第 165 页 [objects.html#page:assq](objects.html#page:assq)）具有相同的目的，但在涉及大量关联时通常更快。
+哈希表表示任意 Scheme 值之间的关联集合。它们基本上与关联列表（参见第 165 页 objects.html#page:assq）具有相同的目的，但在涉及大量关联时通常更快。
 
 **过程：**`(make-eq-hashtable)`
 
@@ -5618,7 +5618,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 `*hash*`和`*equiv?*`必须是过程。如果提供了`*size*`，它必须是一个非负确切整数，表示哈希表最初应该容纳大约多少元素。哈希表会根据需要增长，但当哈希表增长时，通常必须重新对所有现有元素进行重新哈希。提供一个非零的`*size*`可以帮助限制在表最初填充时必须进行的重新哈希量。
 
-新哈希表使用`*hash*`计算哈希值，并使用`*equiv?*`比较键，两者都不应修改哈希表。`*equiv?*`应该比较两个键，只有在两个键应该被区分时才返回false。`*hash*`应该接受一个键作为参数，并返回一个非负确切整数值，每次用`*equiv?*`不区分的参数调用时返回相同的值。只要哈希表仅用于它们接受的键，`*hash*`和`*equiv?*`过程不需要接受任意输入，并且只要键在它们在表中存储关联时没有被修改，两个过程可以假定键是不可变的。哈希表操作可能对每个哈希表操作调用`*hash*`和`*equiv?*`一次、不调用或多次。
+新哈希表使用`*hash*`计算哈希值，并使用`*equiv?*`比较键，两者都不应修改哈希表。`*equiv?*`应该比较两个键，只有在两个键应该被区分时才返回 false。`*hash*`应该接受一个键作为参数，并返回一个非负确切整数值，每次用`*equiv?*`不区分的参数调用时返回相同的值。只要哈希表仅用于它们接受的键，`*hash*`和`*equiv?*`过程不需要接受任意输入，并且只要键在它们在表中存储关联时没有被修改，两个过程可以假定键是不可变的。哈希表操作可能对每个哈希表操作调用`*hash*`和`*equiv?*`一次、不调用或多次。
 
 `(define ht (make-hashtable string-hash string=?))`
 
@@ -5630,9 +5630,9 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 由上述哈希表创建过程之一返回的哈希表是可变的，但由`hashtable-copy`创建的哈希表可能是不可变的。不可变哈希表不能被`hashtable-set!`、`hashtable-update!`、`hashtable-delete!`或`hashtable-clear!`中的任何过程修改。
 
-`(hashtable-mutable? (make-eq-hashtable)) ![<graphic>](ch6_0.gif) #t`
+`(hashtable-mutable? (make-eq-hashtable)) ![<graphic>](img/ch6_0.gif) #t`
 
-(hashtable-mutable? (hashtable-copy (make-eq-hashtable))) ![<graphic>](ch6_0.gif) #f`
+(hashtable-mutable? (hashtable-copy (make-eq-hashtable))) ![<graphic>](img/ch6_0.gif) #f`
 
 **过程：** `(hashtable-hash-function *hashtable*)`
 
@@ -5644,19 +5644,19 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 **库：** `(rnrs hashtables)`，`(rnrs)`
 
-`hashtable-hash-function`对于eq和eqv哈希表返回`#f`。
+`hashtable-hash-function`对于 eq 和 eqv 哈希表返回`#f`。
 
 `(define ht (make-eq-hashtable))`
 
-(hashtable-hash-function ht) ![<graphic>](ch6_0.gif) #f
+(hashtable-hash-function ht) ![<graphic>](img/ch6_0.gif) #f
 
-(eq? (hashtable-equivalence-function ht) eq?) ![<graphic>](ch6_0.gif) #t
+(eq? (hashtable-equivalence-function ht) eq?) ![<graphic>](img/ch6_0.gif) #t
 
 (define ht (make-hashtable string-hash string=?))
 
-(eq? (hashtable-hash-function ht) string-hash) ![<graphic>](ch6_0.gif) #t
+(eq? (hashtable-hash-function ht) string-hash) ![<graphic>](img/ch6_0.gif) #t
 
-(eq? (hashtable-equivalence-function ht) string=?) ![<graphic>](ch6_0.gif) #t`
+(eq? (hashtable-equivalence-function ht) string=?) ![<graphic>](img/ch6_0.gif) #t`
 
 **过程：** `(equal-hash *obj*)`
 
@@ -5704,17 +5704,17 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 (hashtable-set! eqht p1 73)
 
-(hashtable-ref eqht p1 55) ![<graphic>](ch6_0.gif) 73
+(hashtable-ref eqht p1 55) ![<graphic>](img/ch6_0.gif) 73
 
-(hashtable-ref eqht p2 55) ![<graphic>](ch6_0.gif) 55
+(hashtable-ref eqht p2 55) ![<graphic>](img/ch6_0.gif) 55
 
 (define equalht (make-hashtable equal-hash equal?))
 
 (hashtable-set! equalht p1 73)
 
-(hashtable-ref equalht p1 55) ![<graphic>](ch6_0.gif) 73
+(hashtable-ref equalht p1 55) ![<graphic>](img/ch6_0.gif) 73
 
-(hashtable-ref equalht p2 55) ![<graphic>](ch6_0.gif) 73`
+(hashtable-ref equalht p2 55) ![<graphic>](img/ch6_0.gif) 73`
 
 **procedure**: `(hashtable-contains? *hashtable* *key*)`
 
@@ -5732,9 +5732,9 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 (hashtable-set! ht p1 73)
 
-(hashtable-contains? ht p1) ![<graphic>](ch6_0.gif) #t
+(hashtable-contains? ht p1) ![<graphic>](img/ch6_0.gif) #t
 
-(hashtable-contains? ht p2) ![<graphic>](ch6_0.gif) #f`
+(hashtable-contains? ht p2) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(hashtable-update! *hashtable* *key* *procedure* *default*)`
 
@@ -5766,7 +5766,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 55)
 
-(hashtable-ref ht 'a 0) ![<graphic>](ch6_0.gif) 110
+(hashtable-ref ht 'a 0) ![<graphic>](img/ch6_0.gif) 110
 
 (hashtable-update! ht 'a
 
@@ -5774,7 +5774,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 0)
 
-(hashtable-ref ht 'a 0) ![<graphic>](ch6_0.gif) 220`
+(hashtable-ref ht 'a 0) ![<graphic>](img/ch6_0.gif) 220`
 
 **过程**: `(hashtable-delete! *hashtable* *key*)`
 
@@ -5794,13 +5794,13 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 (hashtable-set! ht p1 73)
 
-(hashtable-contains? ht p1) ![<graphic>](ch6_0.gif) #t
+(hashtable-contains? ht p1) ![<graphic>](img/ch6_0.gif) #t
 
 (hashtable-delete! ht p1)
 
-(hashtable-contains? ht p1) ![<graphic>](ch6_0.gif) #f
+(hashtable-contains? ht p1) ![<graphic>](img/ch6_0.gif) #f
 
-(hashtable-contains? ht p2) ![<graphic>](ch6_0.gif) #f
+(hashtable-contains? ht p2) ![<graphic>](img/ch6_0.gif) #f
 
 (hashtable-delete! ht p2)`
 
@@ -5816,15 +5816,15 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 (define p2 (cons 'a 'b))
 
-(hashtable-size ht) ![<graphic>](ch6_0.gif) 0
+(hashtable-size ht) ![<graphic>](img/ch6_0.gif) 0
 
 (hashtable-set! ht p1 73)
 
-(hashtable-size ht) ![<graphic>](ch6_0.gif) 1
+(hashtable-size ht) ![<graphic>](img/ch6_0.gif) 1
 
 (hashtable-delete! ht p1)
 
-(hashtable-size ht) ![<graphic>](ch6_0.gif) 0`
+(hashtable-size ht) ![<graphic>](img/ch6_0.gif) 0`
 
 **过程**: `(hashtable-copy *hashtable*)`
 
@@ -5834,7 +5834,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 **库:** `(rnrs hashtables)`, `(rnrs)`
 
-如果`*mutable?*`存在且不为false，则复制是可变的；否则，复制是不可变的。
+如果`*mutable?*`存在且不为 false，则复制是可变的；否则，复制是不可变的。
 
 `(define ht (make-eq-hashtable))
 
@@ -5844,15 +5844,15 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 (define ht-copy (hashtable-copy ht))
 
-(hashtable-mutable? ht-copy) ![<graphic>](ch6_0.gif) #f
+(hashtable-mutable? ht-copy) ![<graphic>](img/ch6_0.gif) #f
 
 (hashtable-delete! ht p1)
 
-(hashtable-ref ht p1 #f) ![<graphic>](ch6_0.gif) #f
+(hashtable-ref ht p1 #f) ![<graphic>](img/ch6_0.gif) #f
 
-(hashtable-delete! ht-copy p1) ![<graphic>](ch6_0.gif) *异常: 不可变*
+(hashtable-delete! ht-copy p1) ![<graphic>](img/ch6_0.gif) *异常: 不可变*
 
-(hashtable-ref ht-copy p1 #f) ![<graphic>](ch6_0.gif) "c"`
+(hashtable-ref ht-copy p1 #f) ![<graphic>](img/ch6_0.gif) "c"`
 
 **过程**: `(hashtable-clear! *hashtable*)`
 
@@ -5876,13 +5876,13 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 `hashtable-set! ht p2 "second"`
 
-`(hashtable-size ht)` ![<graphic>](ch6_0.gif) 2
+`(hashtable-size ht)` ![<graphic>](img/ch6_0.gif) 2
 
 `hashtable-clear! ht`
 
-`(hashtable-size ht)` ![<graphic>](ch6_0.gif) 0
+`(hashtable-size ht)` ![<graphic>](img/ch6_0.gif) 0
 
-`(hashtable-ref ht p1 #f)` ![<graphic>](ch6_0.gif) #f`
+`(hashtable-ref ht p1 #f)` ![<graphic>](img/ch6_0.gif) #f`
 
 **过程：** `(hashtable-keys *hashtable*)`
 
@@ -5904,7 +5904,7 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 `(hashtable-set! ht 'q "three")`
 
-`(hashtable-keys ht)` ![<graphic>](ch6_0.gif) #((a . b) q (a . b))`
+`(hashtable-keys ht)` ![<graphic>](img/ch6_0.gif) #((a . b) q (a . b))`
 
 **过程：** `(hashtable-entries *hashtable*)`
 
@@ -5926,9 +5926,9 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 `hashtable-set! ht 'q "three"`
 
-`(hashtable-entries ht)` ![<graphic>](ch6_0.gif) #((a . b) q (a . b))
+`(hashtable-entries ht)` ![<graphic>](img/ch6_0.gif) #((a . b) q (a . b))
 
- ![](ch3_ghostRightarrow.gif) #("two" "three" "one")`
+ ![](img/ch3_ghostRightarrow.gif) #("two" "three" "one")`
 
 ### 第 6.14 节。枚举
 
@@ -5950,13 +5950,13 @@ v ![<graphic>](ch6_0.gif) #vu8(#xc7 #x0 #x0 #x0 #x3e #xc7 #xbf #xc0 #x
 
 weather)
 
-(weather-element hot) ![<graphic>](ch6_0.gif) hot
+(weather-element hot) ![<graphic>](img/ch6_0.gif) hot
 
-(weather-element fun) ![<graphic>](ch6_0.gif) *syntax violation*
+(weather-element fun) ![<graphic>](img/ch6_0.gif) *syntax violation*
 
-(weather hot sunny windy) ![<graphic>](ch6_0.gif) #<enum-set>
+(weather hot sunny windy) ![<graphic>](img/ch6_0.gif) #<enum-set>
 
-(enum-set->list (weather rainy cold rainy)) ![<graphic>](ch6_0.gif) (cold rainy)`
+(enum-set->list (weather rainy cold rainy)) ![<graphic>](img/ch6_0.gif) (cold rainy)`
 
 **procedure**: `(make-enumeration *symbol-list*)`
 
@@ -5968,7 +5968,7 @@ This procedure creates a new enumeration type whose universe comprises the eleme
 
 `(define positions (make-enumeration '(top bottom above top beside)))
 
-(enum-set->list positions) ![<graphic>](ch6_0.gif) (top bottom above beside)`
+(enum-set->list positions) ![<graphic>](img/ch6_0.gif) (top bottom above beside)`
 
 **procedure**: `(enum-set-constructor *enum-set*)`
 
@@ -5984,13 +5984,13 @@ This procedure returns a procedure `*p*` that may be used to create subsets of t
 
 (define e2 (p1 '(one three)))
 
-(enum-set->list e2) ![<graphic>](ch6_0.gif) (one three)
+(enum-set->list e2) ![<graphic>](img/ch6_0.gif) (one three)
 
 (define p2 (enum-set-constructor e2))
 
 (define e3 (p2 '(one two four)))
 
-(enum-set->list e3) ![<graphic>](ch6_0.gif) (one two four)`
+(enum-set->list e3) ![<graphic>](img/ch6_0.gif) (one two four)`
 
 **procedure**: `(enum-set-universe *enum-set*)`
 
@@ -6000,11 +6000,11 @@ This procedure returns a procedure `*p*` that may be used to create subsets of t
 
 `(define e1 (make-enumeration '(a b c a b c d)))
 
-(enum-set->list (enum-set-universe e1)) ![<graphic>](ch6_0.gif) (a b c d)
+(enum-set->list (enum-set-universe e1)) ![<graphic>](img/ch6_0.gif) (a b c d)
 
 (define e2 ((enum-set-constructor e1) '(c)))
 
-(enum-set->list (enum-set-universe e2)) ![<graphic>](ch6_0.gif) (a b c d)`
+(enum-set->list (enum-set-universe e2)) ![<graphic>](img/ch6_0.gif) (a b c d)`
 
 **procedure**: `(enum-set->list *enum-set*)`
 
@@ -6016,11 +6016,11 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 `(define e1 (make-enumeration '(a b c a b c d)))
 
-(enum-set->list e1) ![<graphic>](ch6_0.gif) (a b c d)
+(enum-set->list e1) ![<graphic>](img/ch6_0.gif) (a b c d)
 
 (define e2 ((enum-set-constructor e1) '(d c a b)))
 
-(enum-set->list e2) ![<graphic>](ch6_0.gif) (a b c d)`
+(enum-set->list e2) ![<graphic>](img/ch6_0.gif) (a b c d)`
 
 **procedure**: `(enum-set-subset? *enum-set[1]* *enum-set[2]*)`
 
@@ -6034,15 +6034,15 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define e2 (制作枚举 '(a b c d e)))
 
-(enum-set-subset? e1 e2) ![<graphic>](ch6_0.gif) #t
+(enum-set-subset? e1 e2) ![<graphic>](img/ch6_0.gif) #t
 
-(enum-set-subset? e2 e1) ![<graphic>](ch6_0.gif) #f
+(enum-set-subset? e2 e1) ![<graphic>](img/ch6_0.gif) #f
 
 (define e3 ((enum-set-constructor e2) '(a c)))
 
-(enum-set-subset? e3 e1) ![<graphic>](ch6_0.gif) #f
+(enum-set-subset? e3 e1) ![<graphic>](img/ch6_0.gif) #f
 
-(enum-set-subset? e3 e2) ![<graphic>](ch6_0.gif) #t`
+(enum-set-subset? e3 e2) ![<graphic>](img/ch6_0.gif) #t`
 
 **procedure**: `(enum-set=? *enum-set[1]* *enum-set[2]*)`
 
@@ -6056,15 +6056,15 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define e2 (制作枚举 '(b d c a)))
 
-(enum-set=? e1 e2) ![<graphic>](ch6_0.gif) #t
+(enum-set=? e1 e2) ![<graphic>](img/ch6_0.gif) #t
 
 (define e3 ((enum-set-constructor e1) '(a c)))
 
 (define e4 ((enum-set-constructor e2) '(a c)))
 
-(enum-set=? e3 e4) ![<graphic>](ch6_0.gif) #t
+(enum-set=? e3 e4) ![<graphic>](img/ch6_0.gif) #t
 
-(enum-set=? e3 e2) ![<graphic>](ch6_0.gif) #f`
+(enum-set=? e3 e2) ![<graphic>](img/ch6_0.gif) #f`
 
 `enum-set=?` 可以根据以下方式定义为 `enum-set-subset?`。
 
@@ -6084,9 +6084,9 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define e2 ((enum-set-constructor e1) '(d b)))
 
-(enum-set-member? 'c e1) ![<graphic>](ch6_0.gif) #t
+(enum-set-member? 'c e1) ![<graphic>](img/ch6_0.gif) #t
 
-(enum-set-member? 'c e2) ![<graphic>](ch6_0.gif) #f`
+(enum-set-member? 'c e2) ![<graphic>](img/ch6_0.gif) #f`
 
 **procedure**: `(enum-set-union *enum-set[1]* *enum-set[2]*)`
 
@@ -6110,17 +6110,17 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define e3 ((enum-set-constructor e1) '(b c)))
 
-(enum-set->list (enum-set-union e2 e3)) ![<graphic>](ch6_0.gif) (a b c)
+(enum-set->list (enum-set-union e2 e3)) ![<graphic>](img/ch6_0.gif) (a b c)
 
-(enum-set->list (enum-set-intersection e2 e3)) ![<graphic>](ch6_0.gif) (c)
+(enum-set->list (enum-set-intersection e2 e3)) ![<graphic>](img/ch6_0.gif) (c)
 
-(enum-set->list (enum-set-difference e2 e3)) ![<graphic>](ch6_0.gif) (a)
+(enum-set->list (enum-set-difference e2 e3)) ![<graphic>](img/ch6_0.gif) (a)
 
-(enum-set->list (enum-set-difference e3 e2)) ![<graphic>](ch6_0.gif) (b)
+(enum-set->list (enum-set-difference e3 e2)) ![<graphic>](img/ch6_0.gif) (b)
 
 (define e4 (制作枚举 '(b d c a)))
 
-(enum-set-union e1 e4) ![<graphic>](ch6_0.gif) *异常: 不同的枚举类型*`
+(enum-set-union e1 e4) ![<graphic>](img/ch6_0.gif) *异常: 不同的枚举类型*`
 
 **过程**: `(enum-set-complement *enum-set*)`
 
@@ -6130,11 +6130,11 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 `(define e1 (制作枚举 '(a b c d)))`
 
-(enum-set->list (enum-set-complement e1)) ![<graphic>](ch6_0.gif) ()
+(enum-set->list (enum-set-complement e1)) ![<graphic>](img/ch6_0.gif) ()
 
 (define e2 ((enum-set-constructor e1) '(a c)))
 
-(enum-set->list (enum-set-complement e2)) ![<graphic>](ch6_0.gif) (b d)`
+(enum-set->list (enum-set-complement e2)) ![<graphic>](img/ch6_0.gif) (b d)`
 
 **过程**: `(enum-set-projection *enum-set[1]* *enum-set[2]*)`
 
@@ -6152,13 +6152,13 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define e4 ((enum-set-constructor e2) '(a c e g)))
 
-(enum-set->list (enum-set-projection e4 e3)) ![<graphic>](ch6_0.gif) (a c)
+(enum-set->list (enum-set-projection e4 e3)) ![<graphic>](img/ch6_0.gif) (a c)
 
 (enum-set->list
 
 (enum-set-union e3
 
-(enum-set-projection e4 e3))) ![<graphic>](ch6_0.gif) (a c d)`
+(enum-set-projection e4 e3))) ![<graphic>](img/ch6_0.gif) (a c d)`
 
 **过程**: `(enum-set-indexer *enum-set*)`
 
@@ -6174,4 +6174,4 @@ The symbols in the resulting list appear in the order given to them when the enu
 
 (define p (enum-set-indexer e2))
 
-(list (p 'a) (p 'c) (p 'e)) ![<graphic>](ch6_0.gif) (0 2 #f)`
+(list (p 'a) (p 'c) (p 'e)) ![<graphic>](img/ch6_0.gif) (0 2 #f)`

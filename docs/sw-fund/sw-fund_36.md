@@ -8,7 +8,7 @@
 
 ```
 
-    The [Equiv](Equiv.html) chapter introduced constant folding as an example of a
+    The Equiv chapter introduced constant folding as an example of a
     program transformation and proved that it preserves the meaning of
     programs.  Constant folding operates on manifest constants such as
     ANum expressions.  For example, it simplifies the command Y ::= APlus (ANum 3) (ANum 1) to the command Y ::= ANum 4.  However,
@@ -679,15 +679,15 @@ c[1] / st ⇓ c[1]' / st'
 
 + (* 相等 *) 重写 IHpe_st。
 
-* (* 相等 *) 重写 [false_beq_id](Maps.html#false_beq_id); 自动。
+* (* 相等 *) 重写 false_beq_id; 自动。
 
-重写 [false_beq_id](Maps.html#false_beq_id); 自动。
+重写 false_beq_id; 自动。
 
 t_update (pe_update st pe_st) V n =
 
 递归 pe_remove (pe_st:pe_state) (V:id) : pe_state :=
 
-destruct ([beq_idP](Maps.html#beq_idP) V V[0]). 返回。
+destruct (beq_idP V V[0]). 返回。
 
 ELSE SKIP FI
 
@@ -697,13 +697,13 @@ pe_update st (pe_add pe_st V n).
 
 完成。
 
-- (* 相等 *) 重写 ← [beq_id_refl](Maps.html#beq_id_refl); 自动。
+- (* 相等 *) 重写 ← beq_id_refl; 自动。
 
-定义 pe_add (pe_st:[pe_state](PE.html#pe_state)) (V:[id](Maps.html#id)) (n:[nat](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nat)) : [pe_state](PE.html#pe_state) :=
+定义 pe_add (pe_st:pe_state) (V:id) (n:[nat](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nat)) : pe_state :=
 
 pe_lookup (pe_remove pe_st V) V[0]
 
-- (*  *) 分解 ([beq_id](Maps.html#beq_id) V V[0]); 返回。
+- (*  *) 分解 (beq_id V V[0]); 返回。
 
 * (* 不相等 *) 重写 IHpe_st。返回。
 
@@ -713,7 +713,7 @@ pe_lookup (pe_remove pe_st V) V[0]
 
 静态地了解 Y 与 4 的比较，因此我们必须部分评估
 
-重复重写 [false_beq_id](Maps.html#false_beq_id); 自动。
+重复重写 false_beq_id; 自动。
 
 知道最终 Y 的确切值。最终的
 
@@ -745,7 +745,7 @@ t_update (pe_update st pe_st) V n =
 
 定理 pe_update_update_add: ∀st pe_st V n,
 
-- (* 不相等 *) 重写 [pe_remove_correct](PE.html#pe_remove_correct)。
+- (* 不相等 *) 重写 pe_remove_correct。
 
 IFB BEq (AId X) (AId Y) THEN Y ::= ANum 999 ELSE SKIP FI
 
@@ -770,7 +770,7 @@ pe_update (t_update st V n) (pe_remove pe_st V)。
 
 ```
 
-([V](PE.html#V),[n](PE.html#n)) :: [pe_remove](PE.html#pe_remove) [pe_st](PE.html#pe_st) [V](PE.html#V)。
+(V,n) :: pe_remove pe_st V。
 
 IFB BLe (AId Y) (ANum 4) THEN
 
@@ -778,17 +778,17 @@ IFB BLe (AId Y) (ANum 4) THEN
 
 定理 pe_remove_correct: ∀pe_st V V[0],
 
-[pe_lookup](PE.html#pe_lookup) ([pe_add](PE.html#pe_add) [pe_st](PE.html#pe_st) [V](PE.html#V) [n](PE.html#n)) [V[0]](PE.html#V<sub>0</sub>)
+pe_lookup (pe_add pe_st V n) [V[0]](PE.html#V<sub>0</sub>)
 
     重写 pe_remove_correct。分解 (beq_id V V[0]); 返回。
 
     Y ::= ANum 4;;
 
-    证明。intros pe_st V n V[0]。展开 [pe_add](PE.html#pe_add)。简化。
+    证明。intros pe_st V n V[0]。展开 pe_add。简化。
 
     我们知道 Y 被设置为 4，甚至可以利用这个知识来
 
-    = 若 [beq_id](Maps.html#beq_id) [V](PE.html#V) [V[0]](PE.html#V<sub>0</sub>) 则 [Some](http://coq.inria.fr/library/Coq.Init.Datatypes.html#Some) [n](PE.html#n) 否则 [pe_lookup](PE.html#pe_lookup) [pe_st](PE.html#pe_st) [V[0]](PE.html#V<sub>0</sub>)。
+    = 若 beq_id V [V[0]](PE.html#V<sub>0</sub>) 则 [Some](http://coq.inria.fr/library/Coq.Init.Datatypes.html#Some) n 否则 pe_lookup pe_st [V[0]](PE.html#V<sub>0</sub>)。
 
     外部条件的两个分支。在 THEN 分支上，
 
@@ -1122,33 +1122,33 @@ assign pe_st ids / st ⇓ assigned pe_st ids st。
 
 证明。intros pe_st ids st。induction ids as [| V ids]；simpl。
 
-- (*  *) eapply [ceval_extensionality](PE.html#ceval_extensionality)。apply [E_Skip](Imp.html#E_Skip)。reflexivity。
+- (*  *) eapply ceval_extensionality。apply E_Skip。reflexivity。
 
 - (* V::ids *)
 
-remember ([pe_lookup](PE.html#pe_lookup) pe_st V) as lookup。destruct lookup。
+remember (pe_lookup pe_st V) as lookup。destruct lookup。
 
-+ (* Some *) eapply [E_Seq](Imp.html#E_Seq)。apply IHids。unfold [assigned](PE.html#assigned)。simpl。
++ (* Some *) eapply E_Seq。apply IHids。unfold assigned。simpl。
 
-eapply [ceval_extensionality](PE.html#ceval_extensionality)。apply [E_Ass](Imp.html#E_Ass)。simpl。reflexivity。
+eapply ceval_extensionality。apply E_Ass。simpl。reflexivity。
 
-intros V[0]. unfold [t_update](Maps.html#t_update). compare V V[0].
+intros V[0]. unfold t_update. compare V V[0].
 
-* (* equal *) rewrite ← Heqlookup。rewrite ← [beq_id_refl](Maps.html#beq_id_refl)。reflexivity。
+* (* equal *) rewrite ← Heqlookup。rewrite ← beq_id_refl。reflexivity。
 
-* (* not equal *) rewrite [false_beq_id](Maps.html#false_beq_id)；simpl；congruence。
+* (* not equal *) rewrite false_beq_id；simpl；congruence。
 
-+ (* None *) eapply [ceval_extensionality](PE.html#ceval_extensionality)。apply IHids。
++ (* None *) eapply ceval_extensionality。apply IHids。
 
-unfold [assigned](PE.html#assigned)。intros V[0]。simpl。compare V V[0]。
+unfold assigned。intros V[0]。simpl。compare V V[0]。
 
 * (* equal *) rewrite ← Heqlookup。
 
-重写 ← [beq_id_refl](Maps.html#beq_id_refl)。
+重写 ← beq_id_refl。
 
-destruct ([inbP](PE.html#inbP) _ _ [beq_idP](Maps.html#beq_idP) V ids); 反射性。
+destruct (inbP _ _ beq_idP V ids); 反射性。
 
-* (* not equal *) 重写 [false_beq_id](Maps.html#false_beq_id)；简化；恒等。
+* (* not equal *) 重写 false_beq_id；简化；恒等。
 
 证毕。
 

@@ -4,17 +4,17 @@
 
 你是否对所有关于函数式编程的炒作感到厌倦？我也是！我想抱怨一些像我们这样理智的人应该远离它的原因。
 
-[我想明确指出，当我说“静态类型函数式编程语言”时，我指的是还包括诸如类型推断、默认不可变性等内容的语言。实际上，这意味着Haskell和ML系列（包括OCaml和F＃）。]
+[我想明确指出，当我说“静态类型函数式编程语言”时，我指的是还包括诸如类型推断、默认不可变性等内容的语言。实际上，这意味着 Haskell 和 ML 系列（包括 OCaml 和 F＃）。]
 
 ## 第一个原因：我不想追随最新的潮流
 
-和大多数程序员一样，我天生保守，不喜欢学习新东西。这就是为什么我选择了IT职业。
+和大多数程序员一样，我天生保守，不喜欢学习新东西。这就是为什么我选择了 IT 职业。
 
 我不会因为所有“酷毙了的小孩”都在做某件事而跟风——我会等到事情成熟，我可以获得一些清晰的看法。
 
 对我来说，函数式编程还没有存在足够长的时间来说服我它是值得信赖的。
 
-是的，我想有些古板的人可能会声称[ML](http://en.wikipedia.org/wiki/ML_\(programming_language\))和[Haskell](http://en.wikipedia.org/wiki/Haskell_\(programming_language\))已经存在了几乎和Java和PHP等老牌语言一样长的时间，但我最近才听说Haskell，所以这个论点对我来说并不成立。
+是的，我想有些古板的人可能会声称[ML](http://en.wikipedia.org/wiki/ML_\(programming_language\))和[Haskell](http://en.wikipedia.org/wiki/Haskell_\(programming_language\))已经存在了几乎和 Java 和 PHP 等老牌语言一样长的时间，但我最近才听说 Haskell，所以这个论点对我来说并不成立。
 
 看看这些新人中最年轻的[F#](http://fsharp.org/)。它只有七岁，天哪！当然，对于地质学家来说，七年可能是很长的时间，但在互联网时间里，七年只是一眨眼的工夫。
 
@@ -22,9 +22,9 @@
 
 ## 第二个原因：我按行数计费
 
-我不知道你是怎么想的，但我写的代码行数越多，我就感到越有生产力。如果我一天可以输出500行代码，那就是干得好。我的提交很大，我的老板可以看到我一直很忙。
+我不知道你是怎么想的，但我写的代码行数越多，我就感到越有生产力。如果我一天可以输出 500 行代码，那就是干得好。我的提交很大，我的老板可以看到我一直很忙。
 
-但是当我[比较](fvsc-sum-of-squares.html)用函数式语言编写的代码和一个好老的类C语言时，代码量就少得多，这让我感到害怕。
+但是当我比较用函数式语言编写的代码和一个好老的类 C 语言时，代码量就少得多，这让我感到害怕。
 
 我的意思是，看看用熟悉的语言编写的这段代码：
 
@@ -53,7 +53,7 @@ let square x = x * x
 let sumOfSquares n = [1..n] |> List.map square |> List.sum 
 ```
 
-17行对比仅2行。[想象一下这种差异在整个项目中被放大的情况！](http://fpbridge.co.uk/why-fsharp.html#conciseness)
+17 行对比仅 2 行。[想象一下这种差异在整个项目中被放大的情况！](http://fpbridge.co.uk/why-fsharp.html#conciseness)
 
 如果我采用这种方法，我的生产力将急剧下降。很抱歉——我实在承受不起。
 
@@ -153,7 +153,7 @@ public IEnumerable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(
 
 我宁愿先让一切（大部分）按照正常路径工作，然后在问题出现时修复错误。
 
-## 理由8：我喜欢检查空值
+## 理由 8：我喜欢检查空值
 
 我非常注意在每个方法上[检查空值](http://stackoverflow.com/questions/7585493/null-parameter-checking-in-c-sharp)。因此，知道我的代码完全无懈可击让我感到非常满足。
 
@@ -167,17 +167,17 @@ void someMethod(SomeClass x) {
 
 哈哈！开玩笑！我当然不会费心到处放置空值检查代码。我永远不会完成任何真正的工作。
 
-但我只遇到过一次由NPE引起的严重崩溃。在我花了几个星期寻找问题期间，企业并没有损失太多钱。所以我不确定为什么这是一个[大问题](http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)。
+但我只遇到过一次由 NPE 引起的严重崩溃。在我花了几个星期寻找问题期间，企业并没有损失太多钱。所以我不确定为什么这是一个[大问题](http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)。
 
-## 理由9：我喜欢在任何地方使用设计模式
+## 理由 9：我喜欢在任何地方使用设计模式
 
 我首先在[设计模式书籍](http://www.amazon.com/First-Design-Patterns-Elisabeth-Freeman/dp/0596007124)中了解到设计模式（由于某种原因它被称为四人帮书，但我不确定原因），自那以后，我一直努力在所有问题上都使用它们。这确实让我的代码看起来严肃而“企业化”，并且让我的老板印象深刻。
 
-但我没有看到函数式设计中提到模式。你怎么可能在没有Strategy、AbstractFactory、Decorator、Proxy等的情况下完成有用的工作？
+但我没有看到函数式设计中提到模式。你怎么可能在没有 Strategy、AbstractFactory、Decorator、Proxy 等的情况下完成有用的工作？
 
 或许函数式程序员不知道它们的存在？
 
-## 理由10：这太数学化了
+## 理由 10：这太数学化了
 
 这里有一些用于计算平方和的代码。由于其中所有奇怪的符号，这太难理解了。
 
@@ -195,11 +195,11 @@ ss=: +/ @: *:
 
 你知道吗。我不明白。我不明白函数式编程有什么用处。
 
-我真正想要的是，有人能够在[单个页面上展示一些真正的好处](index2.html)，而不是给我太多信息。
+我真正想要的是，有人能够在单个页面上展示一些真正的好处，而不是给我太多信息。
 
 更新：所以现在我已经阅读了“一个页面上你需要知道的一切”的页面。但对我来说太简短和简单了。
 
-我真的想要一些更深入的东西——[一些](designing-for-correctness.html)我能够[深入研究](designing-with-types.html)的东西[。](computation-expressions-intro.html)
+我真的想要一些更深入的东西——一些我能够深入研究的东西。
 
 不，不要说我应该阅读[教程](http://learnyouahaskell.com/)，并且[尝试示例](http://www.tryfsharp.org/Learn)，以及编写自己的代码。我只是想要理解它而不必做所有这些工作。
 

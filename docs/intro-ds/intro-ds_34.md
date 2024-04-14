@@ -1,4 +1,4 @@
-[地图](data_mining_map.htm) > [问题定义](problem_definition.htm) > [数据准备](data_preparation.htm) > [数据探索](data_exploration.htm) > [建模](modeling.htm) > 评估 > [部署](model_deployment.htm)
+地图 > 问题定义 > 数据准备 > 数据探索 > 建模 > 评估 > 部署
 
 # 模型评估
 
@@ -12,6 +12,6 @@
 
 **交叉验证**当只有有限的数据可用时，为了获得模型性能的无偏估计，我们使用*k*折交叉验证。在*k*折交叉验证中，我们将数据分成*k*个大小相等的子集。我们构建模型*k*次，每次将一个子集从训练中排除并将其用作测试集。如果*k*等于样本大小，则称为“留一法”。模型评估可以分为两个部分：
 
-+   [分类评估](model_evaluation_c.htm)
++   分类评估
 
-+   [回归评估](model_evaluation_r.htm)
++   回归评估

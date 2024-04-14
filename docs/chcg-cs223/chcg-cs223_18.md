@@ -95,7 +95,7 @@ front `append` reverse back
 
 不会立即执行对`reverse`的单片调用，因为`append`是一个增量函数。只有在对`front`列表进行足够多次`dequeue`调用后，才会对`back`进行颠倒。让我们来看一下这种策略的实现，然后讨论它在面对上述问题序列时的表现。
 
-这种表示方式保持了`front`和`back`流的显式`Int`eger大小。
+这种表示方式保持了`front`和`back`流的显式`Int`eger 大小。
 
 ```
 type Queue a = Q Int (LazyList a) Int (LazyList a) 
@@ -153,7 +153,7 @@ check i front j back =
 
 即使使用持久数据结构，这种方法也能很好地处理，考虑之前的*m*次`dequeue`操作序列。第一个`dequeue q_0`创建了一个涉及`reverse`的悬挂，被`dequeue q_m`操作强制执行。序列中没有其他操作创建悬挂。因此，要再次强制调用`reverse`需要另一个对`dequeue q_0`的调用，后跟*m-1*次对`dequeue`的调用。因此，`reverse`的*O(m)*成本可以摊销到必须在其之前进行的*O(m)*操作序列中。
 
-教科书的第6.1、6.2和6.3节展示了如何通过调整银行家方法来适应惰性评估，从而形式化这一论点。
+教科书的第 6.1、6.2 和 6.3 节展示了如何通过调整银行家方法来适应惰性评估，从而形式化这一论点。
 
 ## 另一个聪明的方法 — [`PhysicistsQueue.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Laziness/PhysicistsQueue.elm)
 
@@ -240,10 +240,10 @@ dequeue (Q pre i front j back) =
                     Just (check pre' (i-1) front' j back) 
 ```
 
-课本的第6.4节展示了如何将物理学家的方法改编为考虑惰性求值并用来论证这种实现，就像`BankersQueue`一样，即使在持久访问的情况下也具有*O(1)*摊销成本。
+课本的第 6.4 节展示了如何将物理学家的方法改编为考虑惰性求值并用来论证这种实现，就像`BankersQueue`一样，即使在持久访问的情况下也具有*O(1)*摊销成本。
 
 ## 阅读
 
 #### 推荐
 
-+   Okasaki，第6.1—6.4章。虽然我们在这门课上不会涵盖会计技术，但鼓励你多次阅读这些材料，以帮助理解基本机制。
++   Okasaki，第 6.1—6.4 章。虽然我们在这门课上不会涵盖会计技术，但鼓励你多次阅读这些材料，以帮助理解基本机制。

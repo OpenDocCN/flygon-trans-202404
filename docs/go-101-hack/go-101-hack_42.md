@@ -1,6 +1,6 @@
-# 处理JSON对象
+# 处理 JSON 对象
 
-# 处理JSON对象
+# 处理 JSON 对象
 
 * * *
 
@@ -127,4 +127,4 @@ func postFunc(w http.ResponseWriter, r *http.Request) {
 
 [Package json](https://golang.org/pkg/encoding/json/)；
 
-[Go语言编程](http://www.gopl.io/)。
+[Go 语言编程](http://www.gopl.io/)。

@@ -1,8 +1,8 @@
-# 更改shell
+# 更改 shell
 
-## 更改shell
+## 更改 shell
 
-如果你之前在`Linux`上工作，可能会错过`Bash`，并且不习惯`FreeBSD`默认安装的`csh`。你可以按照以下说明将shell更改为`Bash`：
+如果你之前在`Linux`上工作，可能会错过`Bash`，并且不习惯`FreeBSD`默认安装的`csh`。你可以按照以下说明将 shell 更改为`Bash`：
 
 (1) `Bash`必须已经安装在你的`FreeBSD`上，并且其完整路径也应包含在`/etc/shells`中。例如：
 
@@ -42,7 +42,7 @@ New packages to be INSTALLED:
 chsh: user information updated 
 ```
 
-重新登录后，你会发现shell现在是`bash`了：
+重新登录后，你会发现 shell 现在是`bash`了：
 
 ```
 # echo $SHELL

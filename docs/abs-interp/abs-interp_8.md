@@ -2,23 +2,23 @@
 
 [[1]](#CITEAbramskyHankin87-1)
 
-S. Abramsky & C. Hankin，编辑。- *[抽象](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [解释](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [的](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [声明](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [语言](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE)*。- Ellis Horwood，1987年，《计算机及其应用》。
+S. Abramsky & C. Hankin，编辑。- *[抽象](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [解释](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [的](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [声明](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE) [语言](http://portal.acm.org/citation.cfm?id=38071&dl=GUIDE&coll=GUIDE)*。- Ellis Horwood，1987 年，《计算机及其应用》。
 
 [[2]](#CITEBarbutiEtAl93-1)
 
-R. Barbuti，R. Giacobazzi & G. Levi。- [基于语义的](http://citeseer.ist.psu.edu/barbuti93general.html) [逻辑](http://citeseer.ist.psu.edu/barbuti93general.html) [程序](http://citeseer.ist.psu.edu/barbuti93general.html) 的 [底向上](http://citeseer.ist.psu.edu/barbuti93general.html) [抽象](http://citeseer.ist.psu.edu/barbuti93general.html) [解释](http://citeseer.ist.psu.edu/barbuti93general.html) 的 [一般](http://citeseer.ist.psu.edu/barbuti93general.html) [框架](http://citeseer.ist.psu.edu/barbuti93general.html)。*TOPLAS*，Vol. 15，n&86; 1，1993年1月，pp. 133-181。
+R. Barbuti，R. Giacobazzi & G. Levi。- [基于语义的](http://citeseer.ist.psu.edu/barbuti93general.html) [逻辑](http://citeseer.ist.psu.edu/barbuti93general.html) [程序](http://citeseer.ist.psu.edu/barbuti93general.html) 的 [底向上](http://citeseer.ist.psu.edu/barbuti93general.html) [抽象](http://citeseer.ist.psu.edu/barbuti93general.html) [解释](http://citeseer.ist.psu.edu/barbuti93general.html) 的 [一般](http://citeseer.ist.psu.edu/barbuti93general.html) [框架](http://citeseer.ist.psu.edu/barbuti93general.html)。*TOPLAS*，Vol. 15，n&86; 1，1993 年 1 月，pp. 133-181。
 
 [[3]](#CITEBerdineEtAl-POPL07)
 
-J. Berdine，A. Chawdhary，B. Cook，D. Distefano & P. O'Hearn。- [来自](http://research.microsoft.com/~jjb/) [不变性](http://research.microsoft.com/~jjb/) [分析](http://research.microsoft.com/~jjb/) 的 [变异](http://research.microsoft.com/~jjb/) [分析](http://research.microsoft.com/~jjb/)。*在*：*第34^(*th*) POPL*，由M. F. Martin Hofmann编辑，法国尼斯，2007年。pp. 211-224。- ACM Press。
+J. Berdine，A. Chawdhary，B. Cook，D. Distefano & P. O'Hearn。- [来自](http://research.microsoft.com/~jjb/) [不变性](http://research.microsoft.com/~jjb/) [分析](http://research.microsoft.com/~jjb/) 的 [变异](http://research.microsoft.com/~jjb/) [分析](http://research.microsoft.com/~jjb/)。*在*：*第 34^(*th*) POPL*，由 M. F. Martin Hofmann 编辑，法国尼斯，2007 年。pp. 211-224。- ACM Press。
 
 [[4]](#CITEBlanchet-TOPLAS03)
 
-B. Blanchet。- [Java^(TM)](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz)的[逃逸](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz) [分析](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz)。*TOPLAS*，Vol. 25，n&86; 6，2003年11月，pp. 713-775。
+B. Blanchet。- [Java^(TM)](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz)的[逃逸](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz) [分析](http://www.di.ens.fr/~blanchet/publications/BlanchetToplas.ps.gz)。*TOPLAS*，Vol. 25，n&86; 6，2003 年 11 月，pp. 713-775。
 
 [[5]](#CITEBourdoncle92-1)
 
-F. Bourdoncle。- [动态划分](http://www.exalead.com/Francois.Bourdoncle/jfp92.pdf) [解释](http://www.exalead.com/Francois.Bourdoncle/jfp92.pdf)。*J. Func. Prog.*，Vol. 2，n&86; 4，1992年，pp. 407-435。
+F. Bourdoncle。- [动态划分](http://www.exalead.com/Francois.Bourdoncle/jfp92.pdf) [解释](http://www.exalead.com/Francois.Bourdoncle/jfp92.pdf)。*J. Func. Prog.*，Vol. 2，n&86; 4，1992 年，pp. 407-435。
 
 [[6]](#CITEBourdoncle-FMPA93)
 
@@ -62,15 +62,15 @@ P. Cousot. - [程序](http://www.di.ens.fr/~cousot/COUSOTpapers/PFA81.shtml) [�
 
 [[16]](#CITECousot97-1-POPL)
 
-P. Cousot. - [类型作为抽象解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL97.shtml)，*在*：*第24届POPL*，1997年1月，巴黎，法国。第316-331页。- ACM Press。
+P. Cousot. - [类型作为抽象解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL97.shtml)，*在*：*第 24 届 POPL*，1997 年 1 月，巴黎，法国。第 316-331 页。- ACM Press。
 
 [[17]](#CITECousot99-3-Marktoberdorf-paper)
 
-P. Cousot. - [一个](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [通用](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [解释器的计算设计](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml)，*在*：*计算系统设计*，由M. Broy & R. Steinbrüggen编辑，第421-505页。- 北约科学系列，计算机与系统科学系列。IOS Press，1999年，第173卷。
+P. Cousot. - [一个](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [通用](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml) [解释器的计算设计](http://www.di.ens.fr/~cousot/COUSOTpapers/Marktoberdorf98.shtml)，*在*：*计算系统设计*，由 M. Broy & R. Steinbrüggen 编辑，第 421-505 页。- 北约科学系列，计算机与系统科学系列。IOS Press，1999 年，第 173 卷。
 
 [[18]](#CITECousot00-SARA)
 
-P. Cousot. - [抽象不动点检查的部分完备性](http://www.di.ens.fr/~cousot/COUSOTpapers/SARA-00.shtml)，*在*：*第4届国际SARA研讨会*，由B. Choueiry & T. Walsh编辑，第1-25页。- Springer，2000年7月26-29日，*美国德克萨斯州马蹄湾，LNAI 1864*。
+P. Cousot. - [抽象不动点检查的部分完备性](http://www.di.ens.fr/~cousot/COUSOTpapers/SARA-00.shtml)，*在*：*第 4 届国际 SARA 研讨会*，由 B. Choueiry & T. Walsh 编辑，第 1-25 页。- Springer，2000 年 7 月 26-29 日，*美国德克萨斯州马蹄湾，LNAI 1864*。
 
 [[19]](#CITECousot02-TCS)
 
@@ -98,15 +98,15 @@ P. Cousot & R. Cousot. - [静态](http://www.di.ens.fr/~cousot/COUSOTpapers/IF
 
 [[25]](#CITECousotCousot79-3)
 
-P. Cousot & R. Cousot. - [Tarski的不动点定理](http://www.di.ens.fr/~cousot/COUSOTpapers/Tarski-79.shtml) 的[建设性版本](http://www.di.ens.fr/~cousot/COUSOTpapers/Tarski-79.shtml)。*Pacific J. Math.*, Vol. 82, n&86; 1, 1979, pp. 43-57.
+P. Cousot & R. Cousot. - [Tarski 的不动点定理](http://www.di.ens.fr/~cousot/COUSOTpapers/Tarski-79.shtml) 的[建设性版本](http://www.di.ens.fr/~cousot/COUSOTpapers/Tarski-79.shtml)。*Pacific J. Math.*, Vol. 82, n&86; 1, 1979, pp. 43-57.
 
 [[26]](#CITECousotCousot79-1-POPL)
 
-P. Cousot & R. Cousot. - [程序分析框架](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL79.shtml) 的[系统设计](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL79.shtml)。*In :* *第6届POPL*, 圣安东尼奥, 德克萨斯州, 1979\. pp. 269-282\. - ACM Press.
+P. Cousot & R. Cousot. - [程序分析框架](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL79.shtml) 的[系统设计](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL79.shtml)。*In :* *第 6 届 POPL*, 圣安东尼奥, 德克萨斯州, 1979\. pp. 269-282\. - ACM Press.
 
 [[27]](#CITECousotCousot80-1-ICALP)
 
-P. Cousot & R. Cousot. - [通信顺序进程](http://www.di.ens.fr/~cousot/COUSOTpapers/ICALP80.shtml) 的[语义分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICALP80.shtml)。*In :* *第7届ICALP*, edited by J. de Bakker & J. van Leeuwen. *LNCS 85*, pp. 119-133\. - Springer, Jul. 1980.
+P. Cousot & R. Cousot. - [通信顺序进程](http://www.di.ens.fr/~cousot/COUSOTpapers/ICALP80.shtml) 的[语义分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICALP80.shtml)。*In :* *第 7 届 ICALP*, edited by J. de Bakker & J. van Leeuwen. *LNCS 85*, pp. 119-133\. - Springer, Jul. 1980.
 
 [[28]](#CITECousotCousot84-1-BiermannGuihoKodratoff)
 
@@ -130,43 +130,43 @@ P. Cousot & R. Cousot. - [归纳](http://www.di.ens.fr/~cousot/COUSOTpapers/PO
 
 [[33]](#CITECousotCousot94-1-ICCL)
 
-P. Cousot & R. Cousot. - [高阶](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [(和](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [应用](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [于](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [行为](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [推广](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [严格性，](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [终止，](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [投影](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [PER](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [功能](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [语言),](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml)。 *在：* *1994年ICCL论文集*, Toulouse, FR, 1994年5月16-19日。 95-112页。 - IEEE Comp. Soc. Press.
+P. Cousot & R. Cousot. - [高阶](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [(和](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [应用](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [于](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [行为](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [推广](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [严格性，](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [终止，](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [投影](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [PER](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [功能](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [语言),](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/ICCL94.shtml)。 *在：* *1994 年 ICCL 论文集*, Toulouse, FR, 1994 年 5 月 16-19 日。 95-112 页。 - IEEE Comp. Soc. Press.
 
 [[34]](#CITECousotCousot95-4-CAV)
 
-P. Cousot & R. Cousot. - [组合](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [归纳](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [语义](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [定义](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [在](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [不动点，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [等式，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [约束，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [闭包条件，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [基于规则的](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [博弈论的](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [形式，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml)。 *在：* *第7届 CAV '95国际会议论文集*, 编辑：P. Wolper。 *Liège, BE, LNCS 939*, 293-308页。 - Springer, 1995年7月3-5日。
+P. Cousot & R. Cousot. - [组合](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [归纳](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [语义](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [定义](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [在](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [不动点，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [等式，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [约束，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [闭包条件，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [基于规则的](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [博弈论的](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [形式，](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/CAV95.shtml)。 *在：* *第 7 届 CAV '95 国际会议论文集*, 编辑：P. Wolper。 *Liège, BE, LNCS 939*, 293-308 页。 - Springer, 1995 年 7 月 3-5 日。
 
 [[35]](#CITECousotCousot95-3-FPCA)
 
-P. Cousot & R. Cousot. - [正式](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [语言](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [，](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [基于集约束](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [的程序](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml)。 *在 :* *第7届FPCA*, 美国加利福尼亚州拉荷亚, 1995年6月25-28日。pp. 170-181。 - ACM出版社。
+P. Cousot & R. Cousot. - [正式](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [语言](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [，](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [基于集约束](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [的程序](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/FPCA95.shtml)。 *在 :* *第 7 届 FPCA*, 美国加利福尼亚州拉荷亚, 1995 年 6 月 25-28 日。pp. 170-181。 - ACM 出版社。
 
 [[36]](#CITECousotCousot00-POPL)
 
-P. Cousot & R. Cousot. - [时间](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml)。 *在 :* *第27届POPL*, 美国马萨诸塞州波士顿, 2000年1月。pp. 12-25。 - ACM出版社。
+P. Cousot & R. Cousot. - [时间](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL00.shtml)。 *在 :* *第 27 届 POPL*, 美国马萨诸塞州波士顿, 2000 年 1 月。pp. 12-25。 - ACM 出版社。
 
 [[37]](#CITECousotCousot-CC02)
 
-P. Cousot & R. Cousot. - [模块化](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [静态](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [程序](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml)，[特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml)。 *在 :* *第11届CC国际会议 '2002*, 由R. Horspool编辑, 法国格勒诺布尔, 2002年4月6-14日。pp. 159-178。 - LNCS 2304, Springer。
+P. Cousot & R. Cousot. - [模块化](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [静态](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [程序](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml)，[特邀](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml) [论文](http://www.di.ens.fr/~cousot/COUSOTpapers/CC02.shtml)。 *在 :* *第 11 届 CC 国际会议 '2002*, 由 R. Horspool 编辑, 法国格勒诺布尔, 2002 年 4 月 6-14 日。pp. 159-178。 - LNCS 2304, Springer。
 
 [[38]](#CITECousotCousot02-POPL)
 
-P. Cousot & R. Cousot. - [程序](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [框架](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [的系统](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [设计](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml)。 *在 :* *第29届POPL*, 美国俄勒冈州波特兰, 2002年1月。pp. 178-190。 - ACM出版社。
+P. Cousot & R. Cousot. - [程序](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [框架](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [的系统](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [设计](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml) [解释](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL02.shtml)。 *在 :* *第 29 届 POPL*, 美国俄勒冈州波特兰, 2002 年 1 月。pp. 178-190。 - ACM 出版社。
 
 [[39]](#CITECousotCousot03-TCS-parsing)
 
-P. Cousot & R. Cousot. - [解析](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [作为](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [语义](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [的](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [解释。](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) *理论计算机科学*，Vol. 290, n&86; 1, 2003年1月，pp. 531-544。
+P. Cousot & R. Cousot. - [解析](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [作为](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [语义](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [的](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) [解释。](http://www.di.ens.fr/~cousot/COUSOTpapers/TCS03-parsing.shtml) *理论计算机科学*，Vol. 290, n&86; 1, 2003 年 1 月，pp. 531-544。
 
 [[40]](#CITECousotCousot04-POPL)
 
-P. Cousot & R. Cousot. - [基于](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [解释的](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [软件](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [水印](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [框架。](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) *在：* *第31届POPL*，意大利威尼斯，2004年1月14-16日。 pp. 173-185。 - ACM Press.
+P. Cousot & R. Cousot. - [基于](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [解释的](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [软件](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [水印](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) [框架。](http://www.di.ens.fr/~cousot/COUSOTpapers/POPL04.shtml) *在：* *第 31 届 POPL*，意大利威尼斯，2004 年 1 月 14-16 日。 pp. 173-185。 - ACM Press.
 
 [[41]](#CITECousotCousot06-RW)
 
-P. Cousot & R. Cousot. - [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [解析](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [解释，](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [邀请](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [章节](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml)。 *在：* *程序分析与编译，理论与实践：献给Reinhard Wilhelm的论文*，编辑：T. Reps, M. Sagiv & J. Bauer, pp. 178-203。 - Springer, 2006, *LNCS 4444*.
+P. Cousot & R. Cousot. - [语法](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [分析](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [和](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [解析](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [通过](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [抽象](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [解释，](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [邀请](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml) [章节](http://www.di.ens.fr/~cousot/COUSOTpapers/Wilhelm-Festschrift-06.shtml)。 *在：* *程序分析与编译，理论与实践：献给 Reinhard Wilhelm 的论文*，编辑：T. Reps, M. Sagiv & J. Bauer, pp. 178-203。 - Springer, 2006, *LNCS 4444*.
 
 [[42]](#CITECousotEtAl05-ESOP)
 
-P. Cousot, R. Cousot, J. Feret, L. Mauborgne, A. Miné, D. Monniaux & X. Rival. - [ASTRéE](http://www.di.ens.fr/~cousot/COUSOTpapers/ESOP05.shtml) [分析器。](http://www.di.ens.fr/~cousot/COUSOTpapers/ESOP05.shtml) *在：* *第14届ESOP '2005，英国爱丁堡*，编辑：M. Sagiv，pp. 21-30。 - Springer，2005年4月2-10日，*LNCS*，Vol. 3444。
+P. Cousot, R. Cousot, J. Feret, L. Mauborgne, A. Miné, D. Monniaux & X. Rival. - [ASTRéE](http://www.di.ens.fr/~cousot/COUSOTpapers/ESOP05.shtml) [分析器。](http://www.di.ens.fr/~cousot/COUSOTpapers/ESOP05.shtml) *在：* *第 14 届 ESOP '2005，英国爱丁堡*，编辑：M. Sagiv，pp. 21-30。 - Springer，2005 年 4 月 2-10 日，*LNCS*，Vol. 3444。
 
 [[43]](#CITECousotGantyRaskin07-SAS)
 
@@ -178,19 +178,19 @@ P. Cousot & N. Halbwachs. - [程序](http://www.di.ens.fr/~cousot/COUSOTpapers
 
 [[45]](#CITEDebrayWarren86-2)
 
-S. Debray & D. Warren. - [自动](http://citeseer.ist.psu.edu/correct/312184) [模式](http://citeseer.ist.psu.edu/correct/312184) [推理](http://citeseer.ist.psu.edu/correct/312184) [Prolog](http://citeseer.ist.psu.edu/correct/312184) [程序](http://citeseer.ist.psu.edu/correct/312184) 的 *In :* *1986国际逻辑编程研讨会论文集*，第 78-88 页 - IEEE 计算机协会出版社，1986 年 9 月，*盐湖城，犹他州*。
+S. Debray & D. Warren. - [自动](http://citeseer.ist.psu.edu/correct/312184) [模式](http://citeseer.ist.psu.edu/correct/312184) [推理](http://citeseer.ist.psu.edu/correct/312184) [Prolog](http://citeseer.ist.psu.edu/correct/312184) [程序](http://citeseer.ist.psu.edu/correct/312184) 的 *In :* *1986 国际逻辑编程研讨会论文集*，第 78-88 页 - IEEE 计算机协会出版社，1986 年 9 月，*盐湖城，犹他州*。
 
 [[46]](#CITEDeutsch95-1)
 
-A. Deutsch. - [语义](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [模型](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [和](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [抽象](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [解释](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [技术](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [用于](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [归纳](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [数据](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [结构](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [和](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [指针，](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [,](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [邀请](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [论文](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711). *在：* *Proc. PEPM '95*, 加利福尼亚州拉霍亚, 1995年6月21-23日。第226-229页。- ACM Press.
+A. Deutsch. - [语义](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [模型](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [和](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [抽象](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [解释](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [技术](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [用于](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [归纳](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [数据](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [结构](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [和](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [指针，](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [,](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [邀请](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711) [论文](http://portal.acm.org/ft_gateway.cfm?id=215594&type=pdf&coll=portal&dl=ACM&CFID=199981&CFTOKEN=53595711). *在：* *Proc. PEPM '95*, 加利福尼亚州拉霍亚, 1995 年 6 月 21-23 日。第 226-229 页。- ACM Press.
 
 [[47]](#CITEDeutsch97-1)
 
-A. Deutsch. - [关于](http://portal.acm.org/citation.cfm?id=263750) [逃逸](http://portal.acm.org/citation.cfm?id=263750) [分析](http://portal.acm.org/citation.cfm?id=263750) [的](http://portal.acm.org/citation.cfm?id=263750) [复杂性](http://portal.acm.org/citation.cfm?id=263750). *在：* *第24届POPL*，法国巴黎，1997年1月。第358-371页。- ACM Press.
+A. Deutsch. - [关于](http://portal.acm.org/citation.cfm?id=263750) [逃逸](http://portal.acm.org/citation.cfm?id=263750) [分析](http://portal.acm.org/citation.cfm?id=263750) [的](http://portal.acm.org/citation.cfm?id=263750) [复杂性](http://portal.acm.org/citation.cfm?id=263750). *在：* *第 24 届 POPL*，法国巴黎，1997 年 1 月。第 358-371 页。- ACM Press.
 
 [[48]](#CITEDiPierroHankinWiklicky-JLC05)
 
-A. Di Pierro, C. Hankin & H. Wiklicky. - 概率λ演算和定量程序分析。*逻辑与计算期刊*，第15卷，第2期，2005年，第159-179页。
+A. Di Pierro, C. Hankin & H. Wiklicky. - 概率λ演算和定量程序分析。*逻辑与计算期刊*，第 15 卷，第 2 期，2005 年，第 159-179 页。
 
 [[49]](#CITEFerdinandHeckmannEtAL01-EMSOFT)
 
@@ -210,7 +210,7 @@ G. Filè, R. Giacobazzi & F. Ranzato. - [一个](http://profs.sci.univr.it/~g
 
 [[53]](#CITEFileRanzato-TCS99)
 
-G. Filé & F. Ranzato. - [抽象](ftp://ftp.math.unipd.it/pub/People/franz/tcs99b.pdf) [解释](ftp://ftp.math.unipd.it/pub/People/franz/tcs99b.pdf) [上的](ftp://ftp.math.unipd.it/pub/People/franz/tcs99b.pdf) [幂集](ftp://ftp.math.unipd.it/pub/People/franz/tcs99b.pdf) [运算符](ftp://ftp.math.unipd.it/pub/People/franz/tcs99b.pdf)。*Theoret. Comput. Sci.*，第 222 卷，第 1-2 期，1999 年 7 月，第 77-111 页。
+G. Filé & F. Ranzato. - 抽象 解释 上的 幂集 运算符。*Theoret. Comput. Sci.*，第 222 卷，第 1-2 期，1999 年 7 月，第 77-111 页。
 
 [[54]](#CITEGiacobazziMastroeni03-transfinite)
 
@@ -254,63 +254,63 @@ P. Granger. - [线性](http://citeseer.ist.psu.edu/context/53370/0) [一致等�
 
 [[64]](#CITEHalbwachs93-1)
 
-N. Halbwachs。- [同步程序的延迟](http://www-verimag.imag.fr/~halbwach/polys.html)。*在*：*第5届CAV国际会议的论文集'93*，C. Courcoubatis编辑。*Elounda, GR, LNCS 697*，pp. 333-346。- Springer，1993年6月28日至7月1日。
+N. Halbwachs。- [同步程序的延迟](http://www-verimag.imag.fr/~halbwach/polys.html)。*在*：*第 5 届 CAV 国际会议的论文集'93*，C. Courcoubatis 编辑。*Elounda, GR, LNCS 697*，pp. 333-346。- Springer，1993 年 6 月 28 日至 7 月 1 日。
 
 [[65]](#CITEHalbwachs94-1)
 
-N. Halbwachs。- [关于同步编程和抽象解释](http://www-verimag.imag.fr/~halbwach/sas.html)。*在*：*第1届SAS国际研讨会的论文集'94*，B. Le Charlier编辑，pp. 179-192。- Springer，1994年，*纳穆尔, BE, 1994年9月20-22日，LNCS 864*。
+N. Halbwachs。- [关于同步编程和抽象解释](http://www-verimag.imag.fr/~halbwach/sas.html)。*在*：*第 1 届 SAS 国际研讨会的论文集'94*，B. Le Charlier 编辑，pp. 179-192。- Springer，1994 年，*纳穆尔, BE, 1994 年 9 月 20-22 日，LNCS 864*。
 
 [[66]](#CITEHalbwachsProyRoumanoff97-1)
 
-N. Halbwachs, Y. Proy & P. Roumanoff。- [使用线性关系分析验证实时系统](http://www-verimag.imag.fr/~halbwach/polka-fmsd.html)。*系统设计的形式方法*，Vol. 11，n&86; 2，1997年8月，pp. 157-185。
+N. Halbwachs, Y. Proy & P. Roumanoff。- [使用线性关系分析验证实时系统](http://www-verimag.imag.fr/~halbwach/polka-fmsd.html)。*系统设计的形式方法*，Vol. 11，n&86; 2，1997 年 8 月，pp. 157-185。
 
 [[67]](#CITEHecht77-1)
 
-M. Hecht. - *计算机程序的流分析*。- 北荷兰/埃尔塞维尔，1977年。
+M. Hecht. - *计算机程序的流分析*。- 北荷兰/埃尔塞维尔，1977 年。
 
 [[68]](#CITEHind-PASTE01)
 
-M. Hind。- [指针分析：我们还没有解决这个问题吗？](citeseer.ist.psu.edu/hind01pointer.html)。*在*：*2001年ACM SIGPLAN-SIGSOFT研讨会PASTE'01*，美国犹他州雪鸟，2001年。
+M. Hind。- 指针分析：我们还没有解决这个问题吗？。*在*：*2001 年 ACM SIGPLAN-SIGSOFT 研讨会 PASTE'01*，美国犹他州雪鸟，2001 年。
 
 [[69]](#CITEJeannetHalbwachsRaymond-SAS-99)
 
-B. Jeannet, N. Halbwachs & P. Raymond。- [数值属性分析中的动态分区](http://citeseer.ist.psu.edu/correct/423702)。*在*：*第6届SAS国际研讨会的论文集'99*，A. Cortesi & G. Filé编辑，pp. 18-38。- Springer，1999年，*威尼斯, IT, 1999年9月22-24日，LNCS 1694*。
+B. Jeannet, N. Halbwachs & P. Raymond。- [数值属性分析中的动态分区](http://citeseer.ist.psu.edu/correct/423702)。*在*：*第 6 届 SAS 国际研讨会的论文集'99*，A. Cortesi & G. Filé编辑，pp. 18-38。- Springer，1999 年，*威尼斯, IT, 1999 年 9 月 22-24 日，LNCS 1694*。
 
 [[70]](#CITEJones-ICALP81)
 
-N. 琼斯。- [λ表达式](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [流](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [分析](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [(初步](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [版本)](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618)。 *在：* *第8届ICALP*，编辑：S. Even & O. Kariv。 *LNCS 115*，第114-128页。 - Springer，1981年7月。
+N. 琼斯。- [λ表达式](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [流](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [分析](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [(初步](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618) [版本)](http://portal.acm.org/citation.cfm?id=682702&dl=ACM&coll=&CFID=15151515&CFTOKEN=6184618)。 *在：* *第 8 届 ICALP*，编辑：S. Even & O. Kariv。 *LNCS 115*，第 114-128 页。 - Springer，1981 年 7 月。
 
 [[71]](#CITEJones-SAS97)
 
-N. 琼斯。- [结合](http://www.diku.dk/topps/bibliography/1997.html#D-333) [摘要](http://www.diku.dk/topps/bibliography/1997.html#D-333) [解释](http://www.diku.dk/topps/bibliography/1997.html#D-333) [和](http://www.diku.dk/topps/bibliography/1997.html#D-333) [部分](http://www.diku.dk/topps/bibliography/1997.html#D-333) [评估](http://www.diku.dk/topps/bibliography/1997.html#D-333) [(简要](http://www.diku.dk/topps/bibliography/1997.html#D-333) [概述)](http://www.diku.dk/topps/bibliography/1997.html#D-333)。 *在：* *第4届国际SAS研讨会*，编辑：P. Van Hentenryck，第396-405页。 - Springer，1997年，*巴黎，FR，1997年9月8-10日，LNCS 1302*。
+N. 琼斯。- [结合](http://www.diku.dk/topps/bibliography/1997.html#D-333) [摘要](http://www.diku.dk/topps/bibliography/1997.html#D-333) [解释](http://www.diku.dk/topps/bibliography/1997.html#D-333) [和](http://www.diku.dk/topps/bibliography/1997.html#D-333) [部分](http://www.diku.dk/topps/bibliography/1997.html#D-333) [评估](http://www.diku.dk/topps/bibliography/1997.html#D-333) [(简要](http://www.diku.dk/topps/bibliography/1997.html#D-333) [概述)](http://www.diku.dk/topps/bibliography/1997.html#D-333)。 *在：* *第 4 届国际 SAS 研讨会*，编辑：P. Van Hentenryck，第 396-405 页。 - Springer，1997 年，*巴黎，FR，1997 年 9 月 8-10 日，LNCS 1302*。
 
 [[72]](#CITEJonesGomardSestoft93-1)
 
-N. 琼斯，C. 戈马德 & P. 塞斯托夫。- *部分求值和自动程序生成*。- Prentice-Hall，1993年6月，*计算机科学国际系列*。
+N. 琼斯，C. 戈马德 & P. 塞斯托夫。- *部分求值和自动程序生成*。- Prentice-Hall，1993 年 6 月，*计算机科学国际系列*。
 
 [[73]](#CITEJonesNielson95-1)
 
-N. 琼斯 & F. 尼尔森。- [摘要](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [解释:](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [一个](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [基于语义的](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [程序](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [分析](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [工具](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps)。 *在：* *语义建模*，编辑：S. Abramsky，D. Gabbay 和 T. Maibaum，第5章，第527-636页。 - Clarendon Press，1995年，*计算机科学手册*，Vol. 4。
+N. 琼斯 & F. 尼尔森。- [摘要](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [解释:](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [一个](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [基于语义的](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [程序](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [分析](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps) [工具](http://pag.csail.mit.edu/6.883/readings/jones-nielson.ps)。 *在：* *语义建模*，编辑：S. Abramsky，D. Gabbay 和 T. Maibaum，第五章，第 527-636 页。 - Clarendon Press，1995 年，*计算机科学手册*，Vol. 4。
 
 [[74]](#CITEJonesRosendahl97-jflp)
 
-N. 琼斯 & M. 罗森达尔。- [高阶](http://citeseer.ist.psu.edu/jones97higherorder.html) [最小](http://citeseer.ist.psu.edu/jones97higherorder.html) [函数](http://citeseer.ist.psu.edu/jones97higherorder.html) [图](http://citeseer.ist.psu.edu/jones97higherorder.html)。 *J. Func. and Logic Prog.*，Vol. 1997，n&86; 2，1997年2月。
+N. 琼斯 & M. 罗森达尔。- [高阶](http://citeseer.ist.psu.edu/jones97higherorder.html) [最小](http://citeseer.ist.psu.edu/jones97higherorder.html) [函数](http://citeseer.ist.psu.edu/jones97higherorder.html) [图](http://citeseer.ist.psu.edu/jones97higherorder.html)。 *J. Func. and Logic Prog.*，Vol. 1997，n&86; 2，1997 年 2 月。
 
 [[75]](#CITEMannilaUkkonen87-1)
 
-H. Mannila & E. Ukkonen. - [Prolog程序](http://citeseer.ist.psu.edu/context/74969/0)的[流程](http://citeseer.ist.psu.edu/context/74969/0)分析。 *在*：*1987年国际逻辑编程研讨会论文集*。 *旧金山，加利福尼亚*，pp. 205-214\. - IEEE计算机学会出版，1987年8月31日至9月4日。
+H. Mannila & E. Ukkonen. - [Prolog 程序](http://citeseer.ist.psu.edu/context/74969/0)的[流程](http://citeseer.ist.psu.edu/context/74969/0)分析。 *在*：*1987 年国际逻辑编程研讨会论文集*。 *旧金山，加利福尼亚*，pp. 205-214\. - IEEE 计算机学会出版，1987 年 8 月 31 日至 9 月 4 日。
 
 [[76]](#CITEMarriottSondergaard88-1)
 
-K. Marriott & H. Søndergaard. - [逻辑程序](http://citeseer.ist.psu.edu/context/244039/0)的自底向上[抽象解释](http://citeseer.ist.psu.edu/context/244039/0)。 *在*：*第5届逻辑编程国际会议和研讨会论文集，第1卷*，由R. Kowalski和K. Bowen编辑。 *西雅图，华盛顿州*，pp. 733-748\. - MIT出版社，1988年8月15日至19日。
+K. Marriott & H. Søndergaard. - [逻辑程序](http://citeseer.ist.psu.edu/context/244039/0)的自底向上[抽象解释](http://citeseer.ist.psu.edu/context/244039/0)。 *在*：*第 5 届逻辑编程国际会议和研讨会论文集，第 1 卷*，由 R. Kowalski 和 K. Bowen 编辑。 *西雅图，华盛顿州*，pp. 733-748\. - MIT 出版社，1988 年 8 月 15 日至 19 日。
 
 [[77]](#CITEMartel-VMCAI05)
 
-M. Martel. - [用于数值程序验证的语义](http://www.springerlink.com/index/963JPDY4REUB0HHN.pdf)概述。 *在*：*第6届VMCAI国际会议论文集*，由R. Cousot编辑，2005年1月17日至19日，巴黎，法国。pp. 59-77\. - LNCS 3385，Springer。
+M. Martel. - [用于数值程序验证的语义](http://www.springerlink.com/index/963JPDY4REUB0HHN.pdf)概述。 *在*：*第 6 届 VMCAI 国际会议论文集*，由 R. Cousot 编辑，2005 年 1 月 17 日至 19 日，巴黎，法国。pp. 59-77\. - LNCS 3385，Springer。
 
 [[78]](#CITEMauborgne-SAS-00)
 
-L. Mauborgne. - [树模式](http://www.di.ens.fr/~mauborgn/publi/sas00.html)和[公平终止](http://www.di.ens.fr/~mauborgn/publi/sas00.html)。 *在*：*第7届国际SAS研讨会论文集*，由J. Palsberg编辑，2000年6月29日至7月1日，圣巴巴拉，加利福尼亚，美国，LNCS 1824，Springer。
+L. Mauborgne. - [树模式](http://www.di.ens.fr/~mauborgn/publi/sas00.html)和[公平终止](http://www.di.ens.fr/~mauborgn/publi/sas00.html)。 *在*：*第 7 届国际 SAS 研讨会论文集*，由 J. Palsberg 编辑，2000 年 6 月 29 日至 7 月 1 日，圣巴巴拉，加利福尼亚，美国，LNCS 1824，Springer。
 
 [[79]](#CITEMauborgneRival05-ESOP)
 
@@ -350,31 +350,31 @@ D. Monniaux. - [对](http://www.di.ens.fr/~monniaux/biblio/Monniaux_SAS01.pdf) [
 
 [[88]](#CITEMonniaux_POPL01)
 
-D. Monniaux. - [一种](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [蒙特卡罗](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [方法](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [概率](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [程序](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [分析](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [(扩展](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [摘要)](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf)。 *在*：*28^(*th*) POPL*, 伦敦, 英国, 2001年1月。 第93-101页。 - ACM Press。  
+D. Monniaux. - [一种](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [蒙特卡罗](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [方法](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [概率](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [程序](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [分析](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [(扩展](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf) [摘要)](http://www.di.ens.fr/~monniaux/biblio/Monniaux_POPL01.pdf)。 *在*：*28^(*th*) POPL*, 伦敦, 英国, 2001 年 1 月。 第 93-101 页。 - ACM Press。  
 
 [[89]](#CITEMonniaux_ESOP01)
 
-D. Monniaux. - [反向](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [概要](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [概率](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [程序](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [解释](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf)。 *在*：*Proc. 10^(*th*) ESOP '2001*, 编辑者 D. Sands。 *热那亚, 意大利, 2001年4月2-6日, LNCS 2028*, 第367-382页。 - Springer, 2001年。
+D. Monniaux. - [反向](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [概要](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [概率](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [程序](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [的](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf) [解释](http://www.di.ens.fr/~monniaux/biblio/Monniaux_ESOP01.pdf)。 *在*：*Proc. 10^(*th*) ESOP '2001*, 编辑者 D. Sands。 *热那亚, 意大利, 2001 年 4 月 2-6 日, LNCS 2028*, 第 367-382 页。 - Springer, 2001 年。
 
 [[90]](#CITEMuthukumarHermenegildo89-1)
 
-K. Muthukumar & M. Hermenegildo. - [通过](http://citeseer.ist.psu.edu/context/59506/0) [抽象](http://citeseer.ist.psu.edu/context/59506/0) [解释](http://citeseer.ist.psu.edu/context/59506/0) [确定](http://citeseer.ist.psu.edu/context/59506/0) [变量](http://citeseer.ist.psu.edu/context/59506/0) [依赖](http://citeseer.ist.psu.edu/context/59506/0) [信息](http://citeseer.ist.psu.edu/context/59506/0)。 *在*：*NACLP 1989, Volume 1*, 编辑者 E. Lusk & R. Overbeek。 *克利夫兰, 俄亥俄州, 美国*, 第166-185页。 - MIT Press, 1989年10月16-20日。
+K. Muthukumar & M. Hermenegildo. - [通过](http://citeseer.ist.psu.edu/context/59506/0) [抽象](http://citeseer.ist.psu.edu/context/59506/0) [解释](http://citeseer.ist.psu.edu/context/59506/0) [确定](http://citeseer.ist.psu.edu/context/59506/0) [变量](http://citeseer.ist.psu.edu/context/59506/0) [依赖](http://citeseer.ist.psu.edu/context/59506/0) [信息](http://citeseer.ist.psu.edu/context/59506/0)。 *在*：*NACLP 1989, Volume 1*, 编辑者 E. Lusk & R. Overbeek。 *克利夫兰, 俄亥俄州, 美国*, 第 166-185 页。 - MIT Press, 1989 年 10 月 16-20 日。
 
 [[91]](#CITEMycroft80-1)
 
-A. Mycroft. - [转换](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [按需调用](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [为](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [按值调用](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [的](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [理论](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [和](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [实践](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526)。 *在*：*第4届国际编程研讨会，由B. Robinet编辑，第270-281页。 - Springer，1980年，*巴黎，法国，1980年4月22-24日，LNCS 83*。
+A. Mycroft. - [转换](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [按需调用](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [为](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [按值调用](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [的](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [理论](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [和](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526) [实践](http://portal.acm.org/citation.cfm?coll=GUIDE&dl=GUIDE&id=721526)。 *在*：*第 4 届国际编程研讨会，由 B. Robinet 编辑，第 270-281 页。 - Springer，1980 年，*巴黎，法国，1980 年 4 月 22-24 日，LNCS 83*。
 
 [[92]](#CITEMycroft81-1)
 
-A. Mycroft. - *[摘要](http://citeseer.ist.psu.edu/context/38871/0) [解释](http://citeseer.ist.psu.edu/context/38871/0) [和](http://citeseer.ist.psu.edu/context/38871/0) [优化](http://citeseer.ist.psu.edu/context/38871/0) [转换](http://citeseer.ist.psu.edu/context/38871/0) [适用程序](http://citeseer.ist.psu.edu/context/38871/0) [的](http://citeseer.ist.psu.edu/context/38871/0) [计算机科学系](http://citeseer.ist.psu.edu/context/38871/0)*。 - 英国爱丁堡，博士论文，CST-15-81，爱丁堡大学计算机科学系，1981年12月。
+A. Mycroft. - *[摘要](http://citeseer.ist.psu.edu/context/38871/0) [解释](http://citeseer.ist.psu.edu/context/38871/0) [和](http://citeseer.ist.psu.edu/context/38871/0) [优化](http://citeseer.ist.psu.edu/context/38871/0) [转换](http://citeseer.ist.psu.edu/context/38871/0) [适用程序](http://citeseer.ist.psu.edu/context/38871/0) [的](http://citeseer.ist.psu.edu/context/38871/0) [计算机科学系](http://citeseer.ist.psu.edu/context/38871/0)*。 - 英国爱丁堡，博士论文，CST-15-81，爱丁堡大学计算机科学系，1981 年 12 月。
 
 [[93]](#CITEMycroft93-1)
 
-A. Mycroft. - [完整性](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [和](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [基于谓词的](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [抽象](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [解释](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM)。 *在*：*PEPM '93会议论文集。 *哥本哈根，丹麦，1993年6月14-16日*，第80-87页。 - ACM Press，1993年。
+A. Mycroft. - [完整性](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [和](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [基于谓词的](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [抽象](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM) [解释](http://portal.acm.org/citation.cfm?id=154648&coll=portal&dl=ACM)。 *在*：*PEPM '93 会议论文集。 *哥本哈根，丹麦，1993 年 6 月 14-16 日*，第 80-87 页。 - ACM Press，1993 年。
 
 [[94]](#CITEMycroftJones86-1)
 
-A. Mycroft & N. Jones. - [一个](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [关系](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [框架](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [用于](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [抽象](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [解释](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi)。 *在*：*作为数据对象的程序，由N. Jones & H. Ganzinger编辑，第156-171页。 - Springer，1986年，*哥本哈根，丹麦，1985年10月17-19日，LNCS 215*。
+A. Mycroft & N. Jones. - [一个](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [关系](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [框架](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [用于](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [抽象](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi) [解释](http://www.cl.cam.ac.uk/~am21/papers/cph85.dvi)。 *在*：*作为数据对象的程序，由 N. Jones & H. Ganzinger 编辑，第 156-171 页。 - Springer，1986 年，*哥本哈根，丹麦，1985 年 10 月 17-19 日，LNCS 215*。
 
 [[95]](#CITENielson-POPL87)
 
@@ -414,11 +414,11 @@ M. Sagiv, T. Reps & R. Wilhelm. - [形状](http://www.cs.wisc.edu/wpis/papers
 
 [[104]](#CITESchmidt-APLAS06)
 
-D. Schmidt. - [比较静态分析的完备性属性及其逻辑](http://www.cis.ksu.edu/santos/schmidt/APLAS06/tech.pdf). *In :* *Proc. 2006年第4届 APLAS*, 编辑：N. Kobayashi, 悉尼, 澳大利亚, 2006年11月8-10日. pp. 183-199\. - LNCS 4279, Springer.
+D. Schmidt. - [比较静态分析的完备性属性及其逻辑](http://www.cis.ksu.edu/santos/schmidt/APLAS06/tech.pdf). *In :* *Proc. 2006 年第 4 届 APLAS*, 编辑：N. Kobayashi, 悉尼, 澳大利亚, 2006 年 11 月 8-10 日. pp. 183-199\. - LNCS 4279, Springer.
 
 [[105]](#CITEShivers-88-PLDI)
 
-O. Shivers. - [Scheme 中的控制流分析](ftp://ftp.cs.cmu.edu/afs%2Fcs.cmu.edu%2Fuser%2Fshivers%2Flib%2Fpapers/pldi88.ps.Z). *In :* *Proc. ACM SIGPLAN '1988 Conf. PLDI. ACM SIGPLAN Not. 23(7)*, 亚特兰大, 佐治亚州, 美国, 1988年6月22-24日. pp. 164-174\. - ACM Press.
+O. Shivers. - Scheme 中的控制流分析. *In :* *Proc. ACM SIGPLAN '1988 Conf. PLDI. ACM SIGPLAN Not. 23(7)*, 亚特兰大, 佐治亚州, 美国, 1988 年 6 月 22-24 日. pp. 164-174\. - ACM Press.
 
 [[106]](#CITEShivers-Signot04)
 
@@ -426,18 +426,18 @@ O. Shivers. - [高阶控制流分析](http://portal.acm.org/citation.cfm?id=989
 
 [[107]](#CITESondergaard86-1)
 
-H. Søndergaard. - [抽象](http://citeseer.ist.psu.edu/context/1116759/0) [解释](http://citeseer.ist.psu.edu/context/1116759/0) [逻辑](http://citeseer.ist.psu.edu/context/1116759/0) [程序的应用：](http://citeseer.ist.psu.edu/context/1116759/0) [发生](http://citeseer.ist.psu.edu/context/1116759/0) [检查](http://citeseer.ist.psu.edu/context/1116759/0) [归约](http://citeseer.ist.psu.edu/context/1116759/0)。 *在：* *Proc. ESOP '86*，由B. Robinet & R. Wilhelm编辑，pp. 327-338。 - Springer，1986年，*Saarbrücken, DE, 1986年3月17-19日，LNCS 213*。
+H. Søndergaard. - [抽象](http://citeseer.ist.psu.edu/context/1116759/0) [解释](http://citeseer.ist.psu.edu/context/1116759/0) [逻辑](http://citeseer.ist.psu.edu/context/1116759/0) [程序的应用：](http://citeseer.ist.psu.edu/context/1116759/0) [发生](http://citeseer.ist.psu.edu/context/1116759/0) [检查](http://citeseer.ist.psu.edu/context/1116759/0) [归约](http://citeseer.ist.psu.edu/context/1116759/0)。 *在：* *Proc. ESOP '86*，由 B. Robinet & R. Wilhelm 编辑，pp. 327-338。 - Springer，1986 年，*Saarbrücken, DE, 1986 年 3 月 17-19 日，LNCS 213*。
 
 [[108]](#CITEThompsonMycroft-SAS04)
 
-S. Thompson & A. Mycroft. - [抽象](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [解释](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [组合](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [异步](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [电路](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf)。 *在：* *Proc. 11^(*th*) Int. Symp. SAS '04*，由R. Giacobazzi编辑。 *Verona, IT, LNCS 3148*，pp. 181-196。 - Springer，2004年8月26日至28日。
+S. Thompson & A. Mycroft. - [抽象](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [解释](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [组合](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [异步](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf) [电路](http://www.cl.cam.ac.uk/~am21/papers/sas04.pdf)。 *在：* *Proc. 11^(*th*) Int. Symp. SAS '04*，由 R. Giacobazzi 编辑。 *Verona, IT, LNCS 3148*，pp. 181-196。 - Springer，2004 年 8 月 26 日至 28 日。
 
 [[109]](#CITEVenet98-1)
 
-A. Venet. - [自动](http://citeseer.ist.psu.edu/venet98automatic.html) [确定](http://citeseer.ist.psu.edu/venet98automatic.html) [移动](http://citeseer.ist.psu.edu/venet98automatic.html) [系统中的](http://citeseer.ist.psu.edu/venet98automatic.html) [通信](http://citeseer.ist.psu.edu/venet98automatic.html) [拓扑](http://citeseer.ist.psu.edu/venet98automatic.html)。 *在：* *Proc. 5^(*th*) Int. Symp. SAS '98*，由G. Levi编辑，pp. 152-167。 - Springer，1998年，*Pisa, IT, 1998年9月14-16日，LNCS 1503*。
+A. Venet. - [自动](http://citeseer.ist.psu.edu/venet98automatic.html) [确定](http://citeseer.ist.psu.edu/venet98automatic.html) [移动](http://citeseer.ist.psu.edu/venet98automatic.html) [系统中的](http://citeseer.ist.psu.edu/venet98automatic.html) [通信](http://citeseer.ist.psu.edu/venet98automatic.html) [拓扑](http://citeseer.ist.psu.edu/venet98automatic.html)。 *在：* *Proc. 5^(*th*) Int. Symp. SAS '98*，由 G. Levi 编辑，pp. 152-167。 - Springer，1998 年，*Pisa, IT, 1998 年 9 月 14-16 日，LNCS 1503*。
 
-[PDF版本](AI.pdf)。这份文件希望是正确的，可能过于抽象且必然不完整。欢迎在[`Patrick.Cousot@ens.fr`](Patrick.Cousot@ens.fr)处提出修改建议。
+PDF 版本。这份文件希望是正确的，可能过于抽象且必然不完整。欢迎在`Patrick.Cousot@ens.fr`处提出修改建议。
 
 ### 脚注：
 
-[¹](#tthFrefAAB)MOP通常代表“Meet Over all Path”，其中抽象meet对应于具体的连接，数据流分析中使用的顺序通常与抽象解释中使用的顺序相反，因此对应于具体的逆逻辑蕴涵，这有时可能是违反直觉的。
+¹MOP 通常代表“Meet Over all Path”，其中抽象 meet 对应于具体的连接，数据流分析中使用的顺序通常与抽象解释中使用的顺序相反，因此对应于具体的逆逻辑蕴涵，这有时可能是违反直觉的。

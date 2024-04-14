@@ -78,7 +78,7 @@ clicks = timestamp (Signal.sampleOn Mouse.clicks Mouse.position)
 
 +   `collage`（我们将用它来绘制整个窗口）居中于窗口中间，而
 
-+   `move`（提供正参数）将`Shapes`在collage中向上和向右移动。
++   `move`（提供正参数）将`Shapes`在 collage 中向上和向右移动。
 
 考虑到这些，我们绘制点如下：
 
@@ -215,7 +215,7 @@ view (w,h) (now,clicks) =
 
 注意，`view`不再需要过滤旧点，因为`upstate`已经处理了。更加令人愉快的工作分解！
 
-[![](../Images/34b82a1328e5ff6ada076d9f967a0287.jpg)](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Animations/FadingDots2.html)
+![](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/Animations/FadingDots2.html)
 
 现在我们正在绘制较大的圆圈，帧之间的延迟变得更加明显。所以，让我们加大它。
 

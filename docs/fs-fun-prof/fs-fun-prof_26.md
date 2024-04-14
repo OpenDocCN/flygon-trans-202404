@@ -1,40 +1,40 @@
-# "Map和Bind和Apply，哦我的上帝！"系列
+# "Map 和 Bind 和 Apply，哦我的上帝！"系列
 
 在这一系列文章中，我将尝试描述一些处理通用数据类型（如`Option`和`List`）的核心函数。这是我关于[函数式模式的讲座](http://fsharpforfunandprofit.com/fppatterns/)的后续文章。
 
-是的，我知道我[承诺过不做这种事情](why-i-wont-be-writing-a-monad-tutorial.html)，但是对于这篇文章，我想采取与大多数人不同的方法。与其谈论诸如类型类之类的抽象概念，我认为专注于核心函数本身以及它们在实践中的使用可能更有用。
+是的，我知道我承诺过不做这种事情，但是对于这篇文章，我想采取与大多数人不同的方法。与其谈论诸如类型类之类的抽象概念，我认为专注于核心函数本身以及它们在实践中的使用可能更有用。
 
 换句话说，这是`map`、`return`、`apply`和`bind`的一种类似于"man page"的东西。
 
 因此，每个函数都有一个部分，描述它们的名称（和常见别名），常见运算符，它们的类型签名，然后详细描述为什么需要它们以及如何使用它们，以及一些可视化内容（我总是觉得很有帮助）。
 
-+   [理解map和apply](elevated-world.html)。一个用于处理提升世界的工具集。
++   理解 map 和 apply。一个用于处理提升世界的工具集。
 
-+   [理解bind](elevated-world-2.html)。或者，如何组合跨世界的函数。
++   理解 bind。或者，如何组合跨世界的函数。
 
-+   [在实践中使用核心函数](elevated-world-3.html)。处理独立和依赖数据。
++   在实践中使用核心函数。处理独立和依赖数据。
 
-+   [理解traverse和sequence](elevated-world-4.html)。混合列表和提升值。
++   理解 traverse 和 sequence。混合列表和提升值。
 
-+   [在实践中使用map、apply、bind和sequence](elevated-world-5.html)。一个使用所有技术的真实例子。
++   在实践中使用 map、apply、bind 和 sequence。一个使用所有技术的真实例子。
 
-+   [重新设计Reader monad](elevated-world-6.html)。或者，设计您自己的提升世界。
++   重新设计 Reader monad。或者，设计您自己的提升世界。
 
-+   [Map和Bind和Apply，一个总结](elevated-world-7.html)。
++   Map 和 Bind 和 Apply，一个总结。
 
-# 理解map和apply
+# 理解 map 和 apply
 
-# 理解map和apply
+# 理解 map 和 apply
 
 在这一系列文章中，我将尝试描述一些处理通用数据类型（如`Option`和`List`）的核心函数。这是我关于[函数式模式的讲座](http://fsharpforfunandprofit.com/fppatterns/)的后续文章。
 
-是的，我知道我[承诺过不做这种事情](why-i-wont-be-writing-a-monad-tutorial.html)，但是对于这篇文章，我想采取与大多数人不同的方法。与其谈论诸如类型类之类的抽象概念，我认为专注于核心函数本身以及它们在实践中的使用可能更有用。
+是的，我知道我承诺过不做这种事情，但是对于这篇文章，我想采取与大多数人不同的方法。与其谈论诸如类型类之类的抽象概念，我认为专注于核心函数本身以及它们在实践中的使用可能更有用。
 
 换句话说，这是`map`、`return`、`apply`和`bind`的一种类似于["man page"](https://en.wikipedia.org/wiki/Man_page)的东西。
 
 因此，每个函数都有一个部分，描述它们的名称（和常见别名），常见运算符，它们的类型签名，然后详细描述为什么需要它们以及如何使用它们，以及一些可视化内容（我总是觉得很有帮助）。
 
-Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及数学，但会有相当多的泛泛之谈。我将避免使用行话和Haskell特定概念，比如类型类，并尽可能关注大局。这里的概念应适用于任何语言中的任何类型的函数式编程。
+Haskell 程序员和范畴论者现在可能会移开目光！这里不会涉及数学，但会有相当多的泛泛之谈。我将避免使用行话和 Haskell 特定概念，比如类型类，并尽可能关注大局。这里的概念应适用于任何语言中的任何类型的函数式编程。
 
 我知道有些人可能不喜欢这种方法。没关系。网上有[很多](https://wiki.haskell.org/Monad_tutorials_timeline)更学术的解释。可以从[这里](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)和[这里](http://www.soi.city.ac.uk/~ross/papers/Applicative.html)开始。
 
@@ -50,11 +50,11 @@ Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及�
 
 所以，例如，我们在正常世界中有一组称为`Int`的值，而在提升世界中，有一组并行的值称为，比如，`E<Int>`。同样地，我们在正常世界中有一组称为`String`的值，在提升世界中，有一组并行的值称为`E<String>`。
 
-![](vgfp_e_values.png)
+![](img/vgfp_e_values.png)
 
 此外，正如在正常世界中存在`Int`和`String`之间的函数一样，在提升世界中也存在`E<Int>`和`E<String>`之间的函数。
 
-![](vgfp_e_functions.png)
+![](img/vgfp_e_functions.png)
 
 请注意，我故意使用术语“世界”而不是“类型”，以强调世界中值之间的*关系*和底层数据类型一样重要。
 
@@ -78,71 +78,71 @@ Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及�
 
 +   接下来，我们将探讨一些将列表与其他提升值混合的方法。
 
-+   最后，我们将看两个真实世界的例子，将所有这些技术应用起来，我们会意外地发明Reader单子。
++   最后，我们将看两个真实世界的例子，将所有这些技术应用起来，我们会意外地发明 Reader 单子。
 
 这里是各种函数的快捷方式列表：
 
-+   **第1部分：提升到提升世界**
++   **第 1 部分：提升到提升世界**
 
-    +   [`map`函数](elevated-world.html#map)
+    +   `map`函数
 
-    +   [`return`函数](elevated-world.html#return)
+    +   `return`函数
 
-    +   [`apply`函数](elevated-world.html#apply)
+    +   `apply`函数
 
-    +   [`liftN`函数族](elevated-world.html#lift)
+    +   `liftN`函数族
 
-    +   [`zip`函数和ZipList世界](elevated-world.html#zip)
+    +   `zip`函数和 ZipList 世界
 
-+   **第2部分：如何组合跨世界函数**
++   **第 2 部分：如何组合跨世界函数**
 
-    +   [绑定（`bind`）函数](elevated-world-2.html#bind)
+    +   绑定（`bind`）函数
 
-    +   [列表不是一个单子。选项不是一个单子。](elevated-world-2.html#not-a-monad)
+    +   列表不是一个单子。选项不是一个单子。
 
-+   **第3部分：实践中使用核心函数**
++   **第 3 部分：实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [示例：使用应用风格和单子风格进行验证](elevated-world-3.html#validation)
+    +   示例：使用应用风格和单子风格进行验证
 
-    +   [提升到一致世界](elevated-world-3.html#consistent)
+    +   提升到一致世界
 
-    +   [Kleisli世界](elevated-world-3.html#kleisli)
+    +   Kleisli 世界
 
-+   **第4部分：混合列表和提升值**
++   **第 4 部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [`traverse`/`MapM`函数](elevated-world-4.html#traverse)
+    +   `traverse`/`MapM`函数
 
-    +   [`sequence`函数](elevated-world-4.html#sequence)
+    +   `sequence`函数
 
     +   "序列"作为临时实现的配方
 
-    +   [可读性 vs. 性能](elevated-world-4.html#readability)
+    +   可读性 vs. 性能
 
-    +   [伙计，我的`filter`在哪里？](elevated-world-4.html#filter)
+    +   伙计，我的`filter`在哪里？
 
-+   **第5部分：使用所有技术的真实世界示例**
++   **第 5 部分：使用所有技术的真实世界示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   示例：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
-+   **第6部分：设计自己的提升世界**
++   **第 6 部分：设计自己的提升世界**
 
-    +   [设计自己的提升世界](elevated-world-6.html#part6)
+    +   设计自己的提升世界
 
-    +   [过滤掉失败](elevated-world-6.html#filtering)
+    +   过滤掉失败
 
-    +   [Reader单子](elevated-world-6.html#readermonad)
+    +   Reader 单子
 
-+   **第7部分：总结**
++   **第 7 部分：总结**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators)
+    +   提到的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -164,7 +164,7 @@ Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及�
 
 现在因为每个提升的世界都是不同的，所以没有通用的提升实现，但我们可以给各种“提升”模式命名，例如`map`和`return`。
 
-*注意：这些提升的类型没有标准名称。我见过它们被称为“包装类型”或“增强类型”或“monadic类型”。我对这些名称都不是很满意，所以我发明了[一个新的名称](https://xkcd.com/927/)！另外，我正在尽量避免做出任何假设，所以我不想暗示提升的类型在某种程度上更好或包含额外的信息。我希望通过在本文中使用“提升”的词，可以将注意力集中在提升过程上，而不是类型本身上。*
+*注意：这些提升的类型没有标准名称。我见过它们被称为“包装类型”或“增强类型”或“monadic 类型”。我对这些名称都不是很满意，所以我发明了[一个新的名称](https://xkcd.com/927/)！另外，我正在尽量避免做出任何假设，所以我不想暗示提升的类型在某种程度上更好或包含额外的信息。我希望通过在本文中使用“提升”的词，可以将注意力集中在提升过程上，而不是类型本身上。*
 
 *至于使用“monadic”这个词，那是不准确的，因为这些类型不要求是单子的一部分。*
 
@@ -184,7 +184,7 @@ Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及�
 
 “map”是一个通用名称，用于将正常世界中的函数转换为提升世界中的对应函数。
 
-![](vgfp_map.png)
+![](img/vgfp_map.png)
 
 每个提升的世界都将有自己的`map`实现。
 
@@ -192,15 +192,15 @@ Haskell程序员和范畴论者现在可能会移开目光！这里不会涉及�
 
 对`map`的另一种解释是它是一个*两个*参数函数，它接受一个提升的值（`E<a>`）和一个普通函数（`a->b`），并返回一个通过将函数`a->b`应用于`E<a>`的内部元素而生成的新提升值（`E<b>`）。
 
-![](vgfp_map2.png)
+![](img/vgfp_map2.png)
 
-在默认柯里化函数的语言中，如F#，这两种解释是相同的。在其他语言中，您可能需要对函数进行柯里化/取消柯里化以在两种用法之间切换。
+在默认柯里化函数的语言中，如 F#，这两种解释是相同的。在其他语言中，您可能需要对函数进行柯里化/取消柯里化以在两种用法之间切换。
 
 注意*两个*参数版本通常具有`E<a> -> (a->b) -> E<b>`的签名，首先是提升值，然后是普通函数。从抽象的角度来看，它们之间没有区别--`map`概念是相同的--但显然，参数顺序会影响你在实践中如何使用`map`函数。
 
 ### 实现示例
 
-这里有两个示例，演示了在F#中如何定义选项和列表的`map`。
+这里有两个示例，演示了在 F#中如何定义选项和列表的`map`。
 
 ```
 /// map for Options
@@ -227,7 +227,7 @@ let rec mapList f list =
 
 ### 使用示例
 
-这里有一些在F#中如何使用`map`的示例：
+这里有一些在 F#中如何使用`map`的示例：
 
 ```
 // Define a function in the normal world
@@ -269,15 +269,15 @@ Some 2 |> Option.map add1    // Some 3
 
 首先，如果你在正常世界中使用`id`函数，并将其通过`map`提升到提升世界中，新函数必须与提升世界中的`id`函数*相同*。
 
-![](vgfp_functor_law_id.png)
+![](img/vgfp_functor_law_id.png)
 
 接下来，如果你在正常世界中使用两个函数`f`和`g`，并将它们组合（成为`h`），然后使用`map`提升结果函数，那么结果函数应该与如果你先将`f`和`g`提升到提升世界中，然后在那里组合它们后是*相同*的。
 
-![](vgfp_functor_law_compose.png)
+![](img/vgfp_functor_law_compose.png)
 
 这两个属性被称为["函子法则"](https://en.wikibooks.org/wiki/Haskell/The_Functor_class#The_functor_laws)，而**函子**（在编程意义上）被定义为一个通用数据类型--在我们的情况下是`E<T>`--加上一个遵守函子法则的`map`函数。
 
-*注意：“函子”是一个令人困惑的词。有“函子”在范畴论意义上，也有“函子”在编程意义上（如上所定义）。还有在库中定义的称为“函子”的东西，比如[Haskell中的`Functor`类型类](https://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Functor.html)，以及[Scalaz中的`Functor`特性](https://scalaz.github.io/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Functor.scala.html)，更不用说SML和[OCaml中的函子](https://realworldocaml.org/v1/en/html/functors.html)（以及[C++](http://www.cprogramming.com/tutorial/functors-function-objects-in-c++.html)），它们又是不同的！*
+*注意：“函子”是一个令人困惑的词。有“函子”在范畴论意义上，也有“函子”在编程意义上（如上所定义）。还有在库中定义的称为“函子”的东西，比如[Haskell 中的`Functor`类型类](https://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Functor.html)，以及[Scalaz 中的`Functor`特性](https://scalaz.github.io/scalaz/scalaz-2.9.0-1-6.0/doc.sxr/scalaz/Functor.scala.html)，更不用说 SML 和[OCaml 中的函子](https://realworldocaml.org/v1/en/html/functors.html)（以及[C++](http://www.cprogramming.com/tutorial/functors-function-objects-in-c++.html)），它们又是不同的！*
 
 *因此，我更喜欢谈论“可映射”的世界。在实际编程中，你几乎永远不会遇到一个不支持以某种方式映射的提升世界。*
 
@@ -287,7 +287,7 @@ Some 2 |> Option.map add1    // Some 3
 
 +   **常量映射**。常量或“替换为”映射将所有值替换为常量而不是函数的输出。在某些情况下，像这样的专门函数可以实现更高效的实现。
 
-+   **与跨世界函数一起工作的映射**。映射函数 `a->b` 完全存在于正常世界中。但是，如果您要映射的函数并不在正常世界中返回值，而是在另一个不同的增强世界中返回值呢？我们将在[后续文章](elevated-world-4.html)中看到如何解决这个挑战。
++   **与跨世界函数一起工作的映射**。映射函数 `a->b` 完全存在于正常世界中。但是，如果您要映射的函数并不在正常世界中返回值，而是在另一个不同的增强世界中返回值呢？我们将在后续文章中看到如何解决这个挑战。
 
 * * *
 
@@ -305,7 +305,7 @@ Some 2 |> Option.map add1    // Some 3
 
 "return"（也称为"unit"或"pure"）只是从普通值创建一个增强值。
 
-![](vgfp_return.png)
+![](img/vgfp_return.png)
 
 这个函数有很多名称，但我会保持一致，称之为`return`，因为这是 F# 中的通用术语，并且是计算表达式中使用的术语。
 
@@ -343,7 +343,7 @@ let returnList x  = [x]
 
 "apply"将包装在增强值内部的函数（`E<(a->b)>`）解包为一个提升函数 `E<a> -> E<b>`
 
-![](vgfp_apply.png)
+![](img/vgfp_apply.png)
 
 这可能看起来不重要，但实际上非常有价值，因为它允许您将正常世界中的多参数函数提升为增强世界中的多参数函数，我们很快就会看到。
 
@@ -353,11 +353,11 @@ let returnList x  = [x]
 
 例如，如果您有一个单参数函数（`E<(a->b)>`），您可以将其应用于单个增强参数，以获得输出作为另一个增强值。
 
-![](vgfp_apply2.png)
+![](img/vgfp_apply2.png)
 
 如果您有一个两参数函数（`E<(a->b->c)>`），您可以连续使用两次 `apply`，将两个增强参数传递给它，以获得增强输出。
 
-![](vgfp_apply3.png)
+![](img/vgfp_apply3.png)
 
 您可以继续使用这种技术来处理任意数量的参数。
 
@@ -414,7 +414,7 @@ let resultList =
 
 这是它的工作原理：要从普通函数构造一个提升函数，只需在普通函数上使用`return`然后`apply`。这给你的结果与你一开始就用`map`是一样的。
 
-![](vgfp_apply_vs_map.png)
+![](img/vgfp_apply_vs_map.png)
 
 这个技巧还意味着我们的中缀表示法可以简化一些。初始的`return`然后`apply`可以被`map`替换，我们通常也会为`map`创建一个中缀运算符，例如在 F# 中的`<!>`。
 
@@ -460,11 +460,11 @@ let batman =
 
 第一个定律说，如果你在普通世界中使用`id`函数，并且你使用`return`将它提升到提升的世界中，然后进行`apply`，新函数，类型为`E<a> -> E<a>`，应该与提升的世界中的`id`函数相同。
 
-![](vgfp_apply_law_id.png)
+![](img/vgfp_apply_law_id.png)
 
 第二个定律说，如果你拿一个函数`f`和一个普通世界中的值`x`，并将`f`应用于`x`以获得一个结果（比如`y`），然后使用`return`提升结果，那么结果值应该与如果你首先将`f`和`x`提升到提升世界中，然后在那里应用它们后相同。
 
-![](vgfp_apply_law_homomorphism.png)
+![](img/vgfp_apply_law_homomorphism.png)
 
 另外两个定律不容易用图表表示，所以我不会在这里记录它们，但这两个定律一起确保任何实现都是合理的。
 
@@ -488,7 +488,7 @@ lift3：`(a->b->c->d) -> E<a> -> E<b> -> E<c> -> E<d>`,
 
 ### 描述
 
-`apply`和`return`函数可以用来定义一系列辅助函数`liftN`（`lift2`、`lift3`、`lift4`等），这些函数接受具有N个参数的普通函数（其中N=2,3,4等）并将其转换为相应的提升函数。
+`apply`和`return`函数可以用来定义一系列辅助函数`liftN`（`lift2`、`lift3`、`lift4`等），这些函数接受具有 N 个参数的普通函数（其中 N=2,3,4 等）并将其转换为相应的提升函数。
 
 注意`lift1`只是`map`，通常不会单独定义为一个函数。
 
@@ -511,7 +511,7 @@ module Option =
 
 这是`lift2`的可视化表示：
 
-![](vgfp_lift2.png)
+![](img/vgfp_lift2.png)
 
 `lift`系列函数可以使代码更易读，因为通过使用预先制作的`lift`函数之一，我们可以避免使用`<*>`语法。
 
@@ -562,7 +562,7 @@ Option.lift2 (*) (Some 2) (Some 3)   // Some 6
 
 这是它在图表中的样子：
 
-![](vgfp_apply_combine.png)
+![](img/vgfp_apply_combine.png)
 
 这里是你可能为选项和列表实现它的方式：
 
@@ -657,7 +657,7 @@ combineList [1;2] []
 // Result => Empty list 
 ```
 
-可以创建一种忽略缺失或错误值的替代组合器，就像将“0”添加到数字中一样会被忽略。有关更多信息，请参阅我的文章[“不费吹灰之力的单子”](monoids-without-tears.html)。
+可以创建一种忽略缺失或错误值的替代组合器，就像将“0”添加到数字中一样会被忽略。有关更多信息，请参阅我的文章“不费吹灰之力的单子”。
 
 ### 单侧组合器`<*`和`*>`
 
@@ -673,14 +673,14 @@ let ( *> ) x y =
     List.lift2 (fun left right -> right) x y 
 ```
 
-然后，我们可以将一个2元素列表和一个3元素列表组合起来，得到一个预期的6元素列表，但内容只来自一侧或另一侧。
+然后，我们可以将一个 2 元素列表和一个 3 元素列表组合起来，得到一个预期的 6 元素列表，但内容只来自一侧或另一侧。
 
 ```
 [1;2] <* [3;4;5]   // [1; 1; 1; 2; 2; 2]
 [1;2] *> [3;4;5]   // [3; 4; 5; 3; 4; 5] 
 ```
 
-我们可以将此转换为一个特性！我们可以通过与`[1..n]`交叉来多次复制一个值N次。
+我们可以将此转换为一个特性！我们可以通过与`[1..n]`交叉来多次复制一个值 N 次。
 
 ```
 let repeat n pattern =
@@ -715,11 +715,11 @@ let readQuotedString =
 
 * * *
 
-## `zip`函数和ZipList世界
+## `zip`函数和 ZipList 世界
 
 **常见名称**：`zip`，`zipWith`，`map2`
 
-**常见运算符**：`<*>`（在ZipList世界的上下文中）
+**常见运算符**：`<*>`（在 ZipList 世界的上下文中）
 
 **功能**：使用指定的函数组合两个列表（或其他可枚举对象）
 
@@ -837,13 +837,13 @@ module ZipSeq =
 
 但是在实践中，事情并不那么简单。我们经常不得不处理跨越世界的函数。它们的输入在普通世界中，但输出在提升世界中。
 
-在[下一篇文章](elevated-world-2.html)中，我们将展示如何将这些跨世界函数提升到提升世界中。
+在下一篇文章中，我们将展示如何将这些跨世界函数提升到提升世界中。
 
 # 理解绑定
 
 # 理解绑定
 
-本文是系列文章中的第二篇。在[上一篇文章](elevated-world.html)中，我描述了一些将值从普通世界提升到提升世界的核心函数。
+本文是系列文章中的第二篇。在上一篇文章中，我描述了一些将值从普通世界提升到提升世界的核心函数。
 
 在本文中，我们将探讨“跨越世界”的函数，以及如何使用`bind`函数来驯服它们。
 
@@ -853,65 +853,65 @@ module ZipSeq =
 
 +   **第一部分：提升到提升世界**
 
-    +   [映射（`map`）函数](elevated-world.html#map)
+    +   映射（`map`）函数
 
-    +   [返回（`return`）函数](elevated-world.html#return)
+    +   返回（`return`）函数
 
-    +   [应用（`apply`）函数](elevated-world.html#apply)
+    +   应用（`apply`）函数
 
-    +   [`liftN`函数族](elevated-world.html#lift)
+    +   `liftN`函数族
 
-    +   [`zip`函数和ZipList世界](elevated-world.html#zip)
+    +   `zip`函数和 ZipList 世界
 
 +   **第二部分：如何编写跨世界函数**
 
-    +   [绑定（`bind`）函数](elevated-world-2.html#bind)
+    +   绑定（`bind`）函数
 
-    +   [列表不是单子。选项不是单子。](elevated-world-2.html#not-a-monad)
+    +   列表不是单子。选项不是单子。
 
 +   **第三部分：实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [示例：使用应用风格和单子风格进行验证](elevated-world-3.html#validation)
+    +   示例：使用应用风格和单子风格进行验证
 
-    +   [提升到一致的世界](elevated-world-3.html#consistent)
+    +   提升到一致的世界
 
-    +   [Kleisli世界](elevated-world-3.html#kleisli)
+    +   Kleisli 世界
 
 +   **第四部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [遍历（`traverse`）/`MapM`函数](elevated-world-4.html#traverse)
+    +   遍历（`traverse`）/`MapM`函数
 
-    +   [序列（`sequence`）函数](elevated-world-4.html#sequence)
+    +   序列（`sequence`）函数
 
-    +   [“序列”作为临时实现的配方](elevated-world-4.html#adhoc)
+    +   “序列”作为临时实现的配方
 
-    +   [可读性与性能](elevated-world-4.html#readability)
+    +   可读性与性能
 
-    +   [伙计，我的`filter`在哪里？](elevated-world-4.html#filter)
+    +   伙计，我的`filter`在哪里？
 
 +   **第五部分：使用所有技术的真实示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   示例：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
 +   **第六部分：设计您自己的提升世界**
 
-    +   [设计您自己的提升世界](elevated-world-6.html#part6)
+    +   设计您自己的提升世界
 
-    +   [过滤失败](elevated-world-6.html#filtering)
+    +   过滤失败
 
-    +   [读取器单子](elevated-world-6.html#readermonad)
+    +   读取器单子
 
 +   **第七部分：总结**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators)
+    +   提到的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -937,17 +937,17 @@ module ZipSeq =
 
 这类“跨世界”函数以它们的签名`a -> E<b>`可识别; 它们的输入在正常世界，但它们的输出在提升世界。不幸的是，这意味着这类函数不能使用标准组合链接在一起。
 
-![](vgfp_bind_noncomposition.png)
+![](img/vgfp_bind_noncomposition.png)
 
 “bind”的作用是将一个跨世界函数（通常称为“单子函数”）转换为一个提升的函数 `E<a> -> E<b>`。
 
-![](vgfp_bind.png)
+![](img/vgfp_bind.png)
 
 这样做的好处是生成的提升函数纯粹存在于提升世界中，因此可以轻松地通过组合结合在一起。
 
 例如，类型为 `a -> E<b>` 的函数不能直接与类型为 `b -> E<c>` 的函数组合，但在使用 `bind` 后，第二个函数变成了类型为 `E<b> -> E<c>` 的函数，可以进行组合。
 
-![](vgfp_bind_composition.png)
+![](img/vgfp_bind_composition.png)
 
 这样，`bind`让我们能够链式地连接任意数量的单子函数。
 
@@ -955,7 +955,7 @@ module ZipSeq =
 
 对 `bind` 的另一种解释是，它是一个 *双* 参数函数，它接受一个提升的值（`E<a>`）和一个“单子函数”（`a -> E<b>`），并返回通过“解包”输入中的值，并对其运行函数 `a -> E<b>` 生成的新提升值（`E<b>`）。当然，“解包”这个隐喻并不适用于每一个提升世界，但仍然经常有用地这样思考它。
 
-![](vgfp_bind2.png)
+![](img/vgfp_bind2.png)
 
 ### 实现示例
 
@@ -1006,7 +1006,7 @@ let parseInt str =
 // signature is string -> int option 
 ```
 
-有时它返回一个int，有时不返回。因此签名是`string -> int option` -- 一个跨世界函数。
+有时它返回一个 int，有时不返回。因此签名是`string -> int option` -- 一个跨世界函数。
 
 假设我们有另一个以`int`为输入并返回`OrderQty`类型的函数：
 
@@ -1079,7 +1079,7 @@ statement4;
 
 大多数函数式编程语言都有某种形式的语法支持`bind`，让你避免编写一系列的延续或使用显式的绑定。
 
-在F#中，它是计算表达式的一个组件，因此以下显式的`bind`链接：
+在 F#中，它是计算表达式的一个组件，因此以下显式的`bind`链接：
 
 ```
 initialExpression >>= (fun x ->
@@ -1098,7 +1098,7 @@ elevated {
     return x+y+z } 
 ```
 
-在Haskell中，等价的是"do notation"：
+在 Haskell 中，等价的是"do notation"：
 
 ```
 do
@@ -1108,7 +1108,7 @@ do
     return x+y+z 
 ```
 
-在Scala中，等价的是"for comprehension"：
+在 Scala 中，等价的是"for comprehension"：
 
 ```
 for {
@@ -1132,9 +1132,9 @@ for {
 
 +   接下来，使用`bind`将这个跨世界函数转换为一个提升函数。这将给你与一开始使用`map`时相同的结果。
 
-![](vgfp_bind_vs_map.png)
+![](img/vgfp_bind_vs_map.png)
 
-同样，`bind`可以模拟`apply`。以下是如何为F#中的Options使用`bind`和`return`定义`map`和`apply`：
+同样，`bind`可以模拟`apply`。以下是如何为 F#中的 Options 使用`bind`和`return`定义`map`和`apply`：
 
 ```
 // map defined in terms of bind and return (Some)
@@ -1152,7 +1152,7 @@ let apply fOpt xOpt =
 
 答案是，仅仅因为`apply` *可以*被`bind`模拟，并不意味着它*应该*被模拟。例如，可以以一种无法被`bind`实现模拟的方式实现`apply`。
 
-实际上，使用`apply`（“应用风格”）或`bind`（“单子风格”）对程序的工作方式有着深远的影响！我们将在[本文第3部分](elevated-world-3.html#dependent)中更详细地讨论这两种方法。
+实际上，使用`apply`（“应用风格”）或`bind`（“单子风格”）对程序的工作方式有着深远的影响！我们将在本文第 3 部分中更详细地讨论这两种方法。
 
 ### 正确的`bind`/`return`实现的属性
 
@@ -1164,29 +1164,29 @@ let apply fOpt xOpt =
 
 首先，注意`return`函数本身就是一个跨世界函数：
 
-![](vgfp_monad_law1_a.png)
+![](img/vgfp_monad_law1_a.png)
 
 这意味着我们可以使用`bind`将其提升到升级世界中的函数中。这个提升的函数做什么？希望什么都不做！它应该只是返回其输入。
 
 这正是第一个单子律：它说这个提升的函数必须与升级世界中的`id`函数相同。
 
-![](vgfp_monad_law1_b.png)
+![](img/vgfp_monad_law1_b.png)
 
 第二个律则是类似的，但是`bind`和`return`被颠倒了。假设我们有一个普通值`a`和一个跨世界函数`f`，将`a`转换为`E<b>`。
 
-![](vgfp_monad_law2_a.png)
+![](img/vgfp_monad_law2_a.png)
 
 让我们将它们都提升到升级世界中，使用`bind`在`f`上和`return`在`a`上。
 
-![](vgfp_monad_law2_b.png)
+![](img/vgfp_monad_law2_b.png)
 
 现在，如果我们将`f`的升级版本应用于`a`的升级版本，我们会得到一些值`E<b>`。
 
-![](vgfp_monad_law2_c.png)
+![](img/vgfp_monad_law2_c.png)
 
 另一方面，如果我们将`f`的普通版本应用于`a`的普通版本，我们同样会得到一些值`E<b>`。
 
-![](vgfp_monad_law2_d.png)
+![](img/vgfp_monad_law2_d.png)
 
 第二个单子律说这两个升级值（`E<b>`）应该是相同的。换句话说，所有这些绑定和返回不应该扭曲数据。
 
@@ -1212,13 +1212,13 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 * * *
 
-## List不是单子。Option也不是单子。
+## List 不是单子。Option 也不是单子。
 
 如果你看上面的定义，一个单子有一个类型构造函数（也称为“泛型类型”）*和*两个函数*和*一组必须满足的属性。
 
 因此，`List`数据类型只是单子的一个组成部分，就像`Option`数据类型一样。`List`和`Option`本身并不是单子。
 
-或许更好的想法是将单子视为一种*转换*，因此，“List单子”是将正常世界转换为升高的“List世界”的转换，“Option单子”是将正常世界转换为升高的“Option世界”的转换。
+或许更好的想法是将单子视为一种*转换*，因此，“List 单子”是将正常世界转换为升高的“List 世界”的转换，“Option 单子”是将正常世界转换为升高的“Option 世界”的转换。
 
 我认为这就是很多混淆的来源。单词“List”可以有许多不同的含义：
 
@@ -1248,15 +1248,15 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 但还有一些问题尚未解决，比如“为什么我应该选择`apply`而不是`bind`？”或者“我如何处理多个升高的世界？”
 
-在[下一篇文章](elevated-world-3.html)中，我们将解决这些问题，并演示如何使用这套工具集进行一系列实际示例。
+在下一篇文章中，我们将解决这些问题，并演示如何使用这套工具集进行一系列实际示例。
 
-*更新：修复了由@joseanpg指出的单子定律中的错误。谢谢！*
-
-# 在实践中使用核心函数
+*更新：修复了由@joseanpg 指出的单子定律中的错误。谢谢！*
 
 # 在实践中使用核心函数
 
-本文是系列的第三篇。在[前两篇文章](elevated-world.html)中，我描述了处理通用数据类型的一些核心函数：`map`、`apply`、`bind`等等。
+# 在实践中使用核心函数
+
+本文是系列的第三篇。在前两篇文章中，我描述了处理通用数据类型的一些核心函数：`map`、`apply`、`bind`等等。
 
 在本文中，我将展示如何在实践中使用这些函数，并解释所谓的“应用”和“单子”风格之间的区别。
 
@@ -1266,65 +1266,65 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 +   **第 1 部分：提升到提升世界**
 
-    +   [The `map` function](elevated-world.html#map)
+    +   The `map` function
 
-    +   [The `return` function](elevated-world.html#return)
+    +   The `return` function
 
-    +   [The `apply` function](elevated-world.html#apply)
+    +   The `apply` function
 
-    +   [The `liftN` family of functions](elevated-world.html#lift)
+    +   The `liftN` family of functions
 
-    +   [The `zip` function and ZipList 世界](elevated-world.html#zip)
+    +   The `zip` function and ZipList 世界
 
 +   **第 2 部分：如何组合跨世界函数**
 
-    +   [The `bind` function](elevated-world-2.html#bind)
+    +   The `bind` function
 
-    +   [列表不是一个单调。选项不是一个单调。](elevated-world-2.html#not-a-monad)
+    +   列表不是一个单调。选项不是一个单调。
 
 +   **第 3 部分：在实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [示例：使用应用程序样式和单调样式进行验证](elevated-world-3.html#validation)
+    +   示例：使用应用程序样式和单调样式进行验证
 
-    +   [提升到一致的世界](elevated-world-3.html#consistent)
+    +   提升到一致的世界
 
-    +   [Kleisli 世界](elevated-world-3.html#kleisli)
+    +   Kleisli 世界
 
 +   **第 4 部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [The `traverse`/`MapM` function](elevated-world-4.html#traverse)
+    +   The `traverse`/`MapM` function
 
-    +   [The `sequence` function](elevated-world-4.html#sequence)
+    +   The `sequence` function
 
-    +   ["序列" 作为临时实现的配方](elevated-world-4.html#adhoc)
+    +   "序列" 作为临时实现的配方
 
-    +   [可读性 vs. 性能](elevated-world-4.html#readability)
+    +   可读性 vs. 性能
 
-    +   [小伙子，我的 `filter` 呢？](elevated-world-4.html#filter)
+    +   小伙子，我的 `filter` 呢？
 
 +   **第 5 部分：使用所有技术的真实示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   示例：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
 +   **第 6 部分：设计您自己的提升世界**
 
-    +   [设计您自己的提升世界](elevated-world-6.html#part6)
+    +   设计您自己的提升世界
 
-    +   [过滤出失败](elevated-world-6.html#filtering)
+    +   过滤出失败
 
-    +   [Reader 单调](elevated-world-6.html#readermonad)
+    +   Reader 单调
 
 +   **第 7 部分：摘要**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators)
+    +   提到的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -1342,11 +1342,11 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 使用 `apply` 时，您可以看到每个参数（`E<a>`、`E<b>`）完全独立于其他参数。`E<b>` 的值不取决于 `E<a>` 是什么。
 
-![](vgfp_apply3.png)
+![](img/vgfp_apply3.png)
 
 另一方面，当使用 `bind` 时，`E<b>` 的值 *确实* 取决于 `E<a>` 是什么。
 
-![](vgfp_bind.png)
+![](img/vgfp_bind.png)
 
 处理独立值或依赖值之间的区别导致了两种不同的样式：
 
@@ -1360,15 +1360,15 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 现在你有一个选择：
 
-+   **你想要并行获取所有URL吗？** 如果是这样，请将`GetURL`视为独立数据并使用应用风格。
++   **你想要并行获取所有 URL 吗？** 如果是这样，请将`GetURL`视为独立数据并使用应用风格。
 
-+   **你想要一次获取一个URL，并在前一个失败时跳过下一个吗？** 如果是这样，请将`GetURL`视为依赖数据并使用单调风格。这种线性方法总体上会比上面的“应用”版本慢，但也会避免不必要的I/O。
++   **你想要一次获取一个 URL，并在前一个失败时跳过下一个吗？** 如果是这样，请将`GetURL`视为依赖数据并使用单调风格。这种线性方法总体上会比上面的“应用”版本慢，但也会避免不必要的 I/O。
 
-+   **下一个网站的URL是否取决于你从前一个网站下载的内容？** 在这种情况下，你被*迫*使用“单调”风格，因为每个`GetURL`取决于前一个的输出。
++   **下一个网站的 URL 是否取决于你从前一个网站下载的内容？** 在这种情况下，你被*迫*使用“单调”风格，因为每个`GetURL`取决于前一个的输出。
 
 正如你所看到的，选择应用风格和单调风格之间并不是一成不变的；它取决于你想做什么。
 
-我们将在[此系列的最后一篇文章](elevated-world-5.html#asynclist)中看一个这个例子的真实实现。
+我们将在此系列的最后一篇文章中看一个这个例子的真实实现。
 
 **但是...**
 
@@ -1380,7 +1380,7 @@ let groupFromTheRight = a >>= (fun x -> f x >>= g)
 
 如果你使用应用风格，这意味着你预先定义了所有操作 -- 就像是“静态的”一样。
 
-在下载示例中，应用风格要求你提前指定将访问哪些URL。由于需要更多的预先知识，这意味着我们可能可以做诸如并行化或其他优化的事情。
+在下载示例中，应用风格要求你提前指定将访问哪些 URL。由于需要更多的预先知识，这意味着我们可能可以做诸如并行化或其他优化的事情。
 
 另一方面，单调风格意味着只有最初的操作是预先知道的。其余的操作是根据以前操作的输出动态确定的。这更灵活，但也限制了我们预先了解整体情况的能力。
 
@@ -1505,7 +1505,7 @@ module Result =
 
 +   `bind`的签名是：`('a -> Result<'b>) -> Result<'a> -> Result<'b>`
 
-我在模块中定义了一个`retn`函数以保持一致，但我并不经常使用它。`return`的*概念*很重要，但实际上，我可能会直接使用`Success`构造函数。在具有类型类的语言中，例如Haskell，`return`的使用要多得多。
+我在模块中定义了一个`retn`函数以保持一致，但我并不经常使用它。`return`的*概念*很重要，但实际上，我可能会直接使用`Success`构造函数。在具有类型类的语言中，例如 Haskell，`return`的使用要多得多。
 
 还要注意，如果两个参数都是失败的话，`apply`将连接每一边的错误消息。这使我们能够收集所有失败而不丢弃任何失败。这就是为什么我让`Failure`情况有一个字符串列表，而不是一个字符串的原因。
 
@@ -1543,7 +1543,7 @@ let createCustomerResultA id email =
 
 这个签名显示我们从普通的`int`和`string`开始，返回一个`Result<CustomerInfo>`
 
-![](vgfp_applicative_style.png)
+![](img/vgfp_applicative_style.png)
 
 让我们尝试一下一些好的和坏的数据：
 
@@ -1570,11 +1570,11 @@ let badCustomerA =
 
 现在让我们做另一个实现，但这次使用单子风格。在这个版本中，逻辑将是：
 
-+   尝试将int转换为`CustomerId`
++   尝试将 int 转换为`CustomerId`
 
 +   如果成功，尝试将字符串转换为`EmailAddress`
 
-+   如果成功，从customerId和email创建一个`CustomerInfo`。
++   如果成功，从 customerId 和 email 创建一个`CustomerInfo`。
 
 这是代码：
 
@@ -1593,7 +1593,7 @@ let createCustomerResultM id email =
 
 单子风格`createCustomerResultM`的签名与应用风格`createCustomerResultA`完全相同，但内部执行的操作是不同的，这将反映在我们得到的不同结果中。
 
-![](vgfp_monadic_style.png)
+![](img/vgfp_monadic_style.png)
 
 ```
 let goodCustomerM =
@@ -1615,11 +1615,11 @@ let badCustomerM =
 
 +   *应用*示例首先进行了所有验证，然后组合了结果。好处是我们没有丢失任何验证错误。缺点是我们可能做了一些不需要做的工作。
 
-![](vgfp_applicative_style.png)
+![](img/vgfp_applicative_style.png)
 
 +   另一方面，单子示例一次执行一个验证，链接在一起。好处是一旦发生错误，我们就会短路链的其余部分，避免额外工作。缺点是我们只得到*第一个*错误。
 
-![](vgfp_monadic_style.png)
+![](img/vgfp_monadic_style.png)
 
 ### 混合两种风格
 
@@ -1627,7 +1627,7 @@ let badCustomerM =
 
 例如，我们可以使用应用样式构建`CustomerInfo`，以便不丢失任何错误，但在程序的后续部分，当验证后跟着数据库更新时，我们可能希望使用单子样式，以便如果验证失败，则跳过数据库更新。
 
-### 使用F#计算表达式
+### 使用 F#计算表达式
 
 最后，让我们为这些`Result`类型构建一个计算表达式。
 
@@ -1655,7 +1655,7 @@ let createCustomerResultCE id email = result {
 
 这个计算表达式版本几乎看起来像是使用命令式语言。
 
-注意，F#计算表达式始终是单子的，就像Haskell的do-notation和Scala的for-comprehensions一样。这通常不是问题，因为如果你需要应用样式，那么很容易在没有任何语言支持的情况下编写。
+注意，F#计算表达式始终是单子的，就像 Haskell 的 do-notation 和 Scala 的 for-comprehensions 一样。这通常不是问题，因为如果你需要应用样式，那么很容易在没有任何语言支持的情况下编写。
 
 * * *
 
@@ -1701,7 +1701,7 @@ let createCustomerResultA id name email =
 // ERROR                            ~~~~ 
 ```
 
-但是这不会编译通过！在参数系列`idResult <*> name <*> emailResult`中，有一个与其他不同。问题在于`idResult`和`emailResult`都是Results，但`name`仍然是一个字符串。
+但是这不会编译通过！在参数系列`idResult <*> name <*> emailResult`中，有一个与其他不同。问题在于`idResult`和`emailResult`都是 Results，但`name`仍然是一个字符串。
 
 修复的方法只是通过使用`return`将`name`提升到结果的世界中（比如说`nameResult`），这对于`Result`来说只是`Success`。这是修正后的确实有效的函数版本：
 
@@ -1729,7 +1729,7 @@ let createCustomerResultA id name email =
 
 对于错误处理，我喜欢把它看作是两个轨道：一个成功轨道和一个失败轨道。在这个模型中，生成错误的函数类似于铁路开关（美国）或交叉渡线（英国）。
 
-![](vgfp_rop_before.png)
+![](img/vgfp_rop_before.png)
 
 这个问题在于这些函数无法粘合在一起；它们都是不同的形状。
 
@@ -1741,27 +1741,27 @@ let createCustomerResultA id name email =
 
 `Canonicalize` 函数是一个单轨道函数。我们可以使用 `map` 将其转换为双轨道函数。
 
-![](vgfp_rop_map.png)
+![](img/vgfp_rop_map.png)
 
 `DbFetch` 函数是一个跨世界函数。我们可以使用 `bind` 将其转换为完全双轨道函数。
 
-![](vgfp_rop_bind.png)
+![](img/vgfp_rop_bind.png)
 
 `DbUpdate` 函数更复杂一些。我们不喜欢死胡同函数，所以首先需要将其转换为数据保持流动的函数。我将这个函数称为 `tee`。`tee` 的输出有一个输入轨道和一个输出轨道，因此我们需要再次使用 `map` 将其转换为双轨道函数。
 
-![](vgfp_rop_tee.png)
+![](img/vgfp_rop_tee.png)
 
 所有这些转换之后，我们可以重新组装这些函数的新版本。结果如下所示：
 
-![](vgfp_rop_after.png)
+![](img/vgfp_rop_after.png)
 
 当然，这些函数现在可以非常容易地组合在一起，以便我们最终得到一个单一函数，形式如下，具有一个输入和一个成功/失败的输出：
 
-![](vgfp_rop_after2.png)
+![](img/vgfp_rop_after2.png)
 
 这个组合函数又是另一个形式为 `a->Result<b>` 的跨世界函数，因此它反过来可以用作更大函数的组成部分。
 
-欲了解更多关于“将一切提升到相同世界”的示例，请参阅我的[函数式错误处理](http://fsharpforfunandprofit.com/rop/)和[线程状态](handling-state.html)的帖子。
+欲了解更多关于“将一切提升到相同世界”的示例，请参阅我的[函数式错误处理](http://fsharpforfunandprofit.com/rop/)和线程状态的帖子。
 
 * * *
 
@@ -1773,7 +1773,7 @@ let createCustomerResultA id name email =
 
 在 Kleisli 世界中，跨世界函数可以直接组合，使用一个称为 `>=>` 的操作符进行从左到右的组合，或者使用 `<=<` 进行从右到左的组合。
 
-![](vgfp_kleisli_3.png)
+![](img/vgfp_kleisli_3.png)
 
 使用之前相同的例子，我们可以将所有函数提升到 Kleisli 世界。
 
@@ -1781,15 +1781,15 @@ let createCustomerResultA id name email =
 
 +   单轨道 `Canonicalize` 函数可以通过将输出提升为双轨道值而轻松提升为开关。我们称之为 `toSwitch`。
 
-![](vgfp_kleisli_1.png)
+![](img/vgfp_kleisli_1.png)
 
 +   线程-d 的 `DbUpdate` 函数也可以通过在线程之后执行 `toSwitch` 来提升为开关。
 
-![](vgfp_kleisli_2.png)
+![](img/vgfp_kleisli_2.png)
 
 一旦所有函数都被提升到 Kleisli 世界，它们就可以使用 Kleisli 组合进行组合：
 
-![](vgfp_kleisli_4.png)
+![](img/vgfp_kleisli_4.png)
 
 克莱斯利世界有一些好的特性，两轨道世界没有，但另一方面，我发现很难理解它！所以我通常将两轨道世界作为我的基础，用于这样的事情。
 
@@ -1799,13 +1799,13 @@ let createCustomerResultA id name email =
 
 我们还看到了如何将不同类型的值和函数提升到一个一致的世界，以便可以轻松地使用它们。
 
-在[下一篇文章](elevated-world-4.html)中，我们将讨论一个常见的问题：如何处理提高值的列表。
+在下一篇文章中，我们将讨论一个常见的问题：如何处理提高值的列表。
 
 # 理解 traverse 和 sequence
 
 # 理解 traverse 和 sequence
 
-本文是系列文章之一。在[前两篇文章](elevated-world.html)中，我描述了一些用于处理通用数据类型的核心函数：`map`、`bind`等等。在[上一篇文章](elevated-world-3.html)中，我讨论了"应用"与"单子"风格，以及如何提升值和函数以使它们彼此一致。
+本文是系列文章之一。在前两篇文章中，我描述了一些用于处理通用数据类型的核心函数：`map`、`bind`等等。在上一篇文章中，我讨论了"应用"与"单子"风格，以及如何提升值和函数以使它们彼此一致。
 
 在这篇文章中，我们将讨论一个常见的问题：如何处理提高值的列表。
 
@@ -1815,65 +1815,65 @@ let createCustomerResultA id name email =
 
 +   **第一部分：抬升到提高的世界**
 
-    +   [`map` 函数](elevated-world.html#map)
+    +   `map` 函数
 
-    +   [`return` 函数](elevated-world.html#return)
+    +   `return` 函数
 
-    +   [`apply` 函数](elevated-world.html#apply)
+    +   `apply` 函数
 
-    +   [`liftN` 函数系列](elevated-world.html#lift)
+    +   `liftN` 函数系列
 
-    +   [`zip` 函数和 ZipList 世界](elevated-world.html#zip)
+    +   `zip` 函数和 ZipList 世界
 
 +   **第二部分：如何组合跨世界函数**
 
-    +   [`bind` 函数](elevated-world-2.html#bind)
+    +   `bind` 函数
 
-    +   [列表不是单子。选项不是单子。](elevated-world-2.html#not-a-monad)
+    +   列表不是单子。选项不是单子。
 
 +   **第三部分：在实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [示例：使用应用样式和单子样式进行验证](elevated-world-3.html#validation)
+    +   示例：使用应用样式和单子样式进行验证
 
-    +   [提升到一致的世界](elevated-world-3.html#consistent)
+    +   提升到一致的世界
 
-    +   [克莱斯利世界](elevated-world-3.html#kleisli)
+    +   克莱斯利世界
 
 +   **第四部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [`traverse`/`MapM` 函数](elevated-world-4.html#traverse)
+    +   `traverse`/`MapM` 函数
 
-    +   [`sequence` 函数](elevated-world-4.html#sequence)
+    +   `sequence` 函数
 
     +   作为临时实现的"Sequence"配方
 
-    +   [可读性与性能](elevated-world-4.html#readability)
+    +   可读性与性能
 
-    +   [伙计，我的`filter`在哪里？](elevated-world-4.html#filter)
+    +   伙计，我的`filter`在哪里？
 
 +   **第五部分：一个使用所有技术的真实示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   示例：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
 +   **第六部分：设计您自己的提升世界**
 
-    +   [设计您自己的提升世界](elevated-world-6.html#part6)
+    +   设计您自己的提升世界
 
-    +   [过滤掉失败](elevated-world-6.html#filtering)
+    +   过滤掉失败
 
-    +   [阅读器单子](elevated-world-6.html#readermonad)
+    +   阅读器单子
 
 +   **第七部分：概要**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators)
+    +   提到的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -1885,7 +1885,7 @@ let createCustomerResultA id name email =
 
 +   **示例 1：** 我们有一个签名为`string -> int option`的`parseInt`，以及一个字符串列表。我们想一次解析所有字符串。当然，我们可以使用`map`将字符串列表转换为选项列表。但我们*真正*想要的不是“选项列表”，而是“列表的选项”，即一个包含解析整数的列表，以防有任何失败的选项。
 
-+   **示例 2：** 我们有一个签名为`CustomerId -> Result<Customer>`的`readCustomerFromDb`函数，如果可以找到并返回记录，则返回`Success`，否则返回`Failure`。假设我们有一个`CustomerId`列表，我们想一次读取所有客户。同样，我们可以使用`map`将id列表转换为结果列表。但我们*真正*想要的不是`Result<Customer>`列表，而是包含`Customer list`的`Result`，在出现错误时包含`Failure`情况。
++   **示例 2：** 我们有一个签名为`CustomerId -> Result<Customer>`的`readCustomerFromDb`函数，如果可以找到并返回记录，则返回`Success`，否则返回`Failure`。假设我们有一个`CustomerId`列表，我们想一次读取所有客户。同样，我们可以使用`map`将 id 列表转换为结果列表。但我们*真正*想要的不是`Result<Customer>`列表，而是包含`Customer list`的`Result`，在出现错误时包含`Failure`情况。
 
 +   **示例 3：** 我们有一个签名为`Uri -> Async<string>`的`fetchWebPage`函数，它将返回一个任务，根据需要下载页面内容。假设我们有一个`Uri`列表，我们想一次获取所有页面。同样，我们可以使用`map`将`Uri`列表转换为`Async`列表。但我们*真正*想要的不是`Async`列表，而是包含字符串列表的`Async`。
 
@@ -1901,7 +1901,7 @@ let createCustomerResultA id name email =
 
 但这需要*两次*通过列表。我们能否一次完成？
 
-是的！如果我们考虑列表是如何构建的，有一个`cons`函数（在F#中是`::`）用于将头部连接到尾部。如果我们将这个提升到`Option`世界，我们可以使用`Option.apply`来使用`cons`的提升版本将头部`Option`与尾部`Option`连接起来。
+是的！如果我们考虑列表是如何构建的，有一个`cons`函数（在 F#中是`::`）用于将头部连接到尾部。如果我们将这个提升到`Option`世界，我们可以使用`Option.apply`来使用`cons`的提升版本将头部`Option`与尾部`Option`连接起来。
 
 ```
 let (<*>) = Option.apply
@@ -1920,7 +1920,7 @@ let rec mapOption f list =
 
 这是一个作为图表的实现：
 
-![](vgfp_mapOption.png)
+![](img/vgfp_mapOption.png)
 
 如果您对此如何工作感到困惑，请阅读本系列中第一篇文章中关于`apply`的部分。
 
@@ -1942,13 +1942,13 @@ let bad = ["1";"x";"y"] |> mapOption parseInt
 // None 
 ```
 
-我们首先定义类型为`string -> int option`的`parseInt`（借助现有的.NET库）。
+我们首先定义类型为`string -> int option`的`parseInt`（借助现有的.NET 库）。
 
 我们使用`mapOption`对一组良好的值运行它，我们得到`Some [1; 2; 3]`，列表*在*选项内，正如我们所希望的那样。
 
 如果我们使用的列表中有一些坏值，那么整个结果都会得到`None`。
 
-### 映射一个生成Result的函数
+### 映射一个生成 Result 的函数
 
 让我们重复这个过程，但这次使用先前验证示例中的`Result`类型。
 
@@ -1988,9 +1988,9 @@ let bad = ["1";"x";"y"] |> mapResult parseInt
 // Failure ["x is not an int"; "y is not an int"] 
 ```
 
-### 我们能否制作一个通用的mapXXX函数？
+### 我们能否制作一个通用的 mapXXX 函数？
 
-`mapOption`和`mapResult`的实现代码完全相同，唯一的区别是不同的`retn`和`<*>`函数（分别来自Option和Result）。
+`mapOption`和`mapResult`的实现代码完全相同，唯一的区别是不同的`retn`和`<*>`函数（分别来自 Option 和 Result）。
 
 所以自然而然地提出了一个问题，我们是否可以为*所有*提升的类型制作一个完全通用的`mapXXX`版本？
 
@@ -2008,7 +2008,7 @@ let rec mapE (retn,ap) f list =
         (retn cons) <*> (f head) <*> (mapE retn ap f tail) 
 ```
 
-但是这样做也存在一些问题。首先，这段代码在F#中无法编译！但即使可以，我们也希望确保*相同的*两个参数在任何地方都被传递。
+但是这样做也存在一些问题。首先，这段代码在 F#中无法编译！但即使可以，我们也希望确保*相同的*两个参数在任何地方都被传递。
 
 我们可能会尝试通过创建一个包含两个参数的记录结构，然后为每种类型的提升的世界创建一个实例来实现此目的：
 
@@ -2040,7 +2040,7 @@ let rec mapE appl f list =
         (retn cons) <*> (f head) <*> (mapE retn ap f tail) 
 ```
 
-在使用时，我们会传入我们想要的特定applicative实例，就像这样：
+在使用时，我们会传入我们想要的特定 applicative 实例，就像这样：
 
 ```
 // build an Option specific version...
@@ -2050,11 +2050,11 @@ let mapOption = mapE applOption
 let good = ["1";"2";"3"] |> mapOption parseInt 
 ```
 
-不幸的是，这些方法都不起作用，至少在F#中不起作用。如定义的那样，`Applicative`类型无法编译。这是因为F#不支持“高种类类型”。也就是说，我们不能使用泛型类型，只能使用具体类型来参数化`Applicative`类型。
+不幸的是，这些方法都不起作用，至少在 F#中不起作用。如定义的那样，`Applicative`类型无法编译。这是因为 F#不支持“高种类类型”。也就是说，我们不能使用泛型类型，只能使用具体类型来参数化`Applicative`类型。
 
-在Haskell和支持“高种类类型”的语言中，我们定义的`Applicative`类型类似于“类型类”。更重要的是，使用类型类时，我们不必显式传递函数 - 编译器会为我们做这个工作。
+在 Haskell 和支持“高种类类型”的语言中，我们定义的`Applicative`类型类似于“类型类”。更重要的是，使用类型类时，我们不必显式传递函数 - 编译器会为我们做这个工作。
 
-实际上，有一种聪明（而且有些狡猾）的方法可以在F#中获得相同的效果，即使用静态类型约束。我不打算在这里讨论它，但你可以在[FSharpx库](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs)中看到它的使用。
+实际上，有一种聪明（而且有些狡猾）的方法可以在 F#中获得相同的效果，即使用静态类型约束。我不打算在这里讨论它，但你可以在[FSharpx 库](https://github.com/fsprojects/FSharpx.Extras/blob/master/src/FSharpx.Extras/ComputationExpressions/Monad.fs)中看到它的使用。
 
 所有这些抽象的替代方法就是为我们想要使用的每个提升的世界创建一个`mapXXX`函数：`mapOption`，`mapResult`，`mapAsync`等等。
 
@@ -2072,13 +2072,13 @@ let good = ["1";"2";"3"] |> mapOption parseInt
 
 **它的作用**：将一个跨世界函数转换为一个适用于集合的跨世界函数
 
-**签名**：`(a->E<b>) -> a list -> E<b list>`（或者替换list为其他集合类型的变体）
+**签名**：`(a->E<b>) -> a list -> E<b list>`（或者替换 list 为其他集合类型的变体）
 
 ### 描述
 
-我们之前看到，我们可以定义一组`mapXXX`函数，其中XXX代表一个应用世界--一个具有`apply`和`return`的世界。每个`mapXXX`函数将一个跨世界函数转换为一个适用于集合的跨世界函数。
+我们之前看到，我们可以定义一组`mapXXX`函数，其中 XXX 代表一个应用世界--一个具有`apply`和`return`的世界。每个`mapXXX`函数将一个跨世界函数转换为一个适用于集合的跨世界函数。
 
-![](vgfp_traverse.png)
+![](img/vgfp_traverse.png)
 
 正如我们上面所指出的，如果语言支持类型类，我们可以通过一个单一实现来完成，称为`mapM`或`traverse`。从现在开始，我将称这个通用概念为`traverse`，以明确表示它与`map`不同。
 
@@ -2094,41 +2094,41 @@ let good = ["1";"2";"3"] |> mapOption parseInt
 
 如果一个可遍历世界在顶部，那会产生一个类型，比如`List<a>`，如果一个应用世界在顶部，那会产生一个类型，比如`Result<a>`。
 
-![](vgfp_mstack_1.png)
+![](img/vgfp_mstack_1.png)
 
-*重要提示：我将使用语法`List<_>`来表示“List世界”，以保持与`Result<_>`等的一致性。这*不*意味着与.NET List类相同！在F#中，这将由不可变的`list`类型实现*。
+*重要提示：我将使用语法`List<_>`来表示“List 世界”，以保持与`Result<_>`等的一致性。这*不*意味着与.NET List 类相同！在 F#中，这将由不可变的`list`类型实现*。
 
 但从现在开始，我们将处理*两种*类型的高级世界在同一个“堆栈”中。
 
 可遍历世界可以堆叠在应用世界上，产生诸如`List<Result<a>>`之类的类型，或者，应用世界可以堆叠在可遍历世界上，产生诸如`Result<List<a>>`之类的类型。
 
-![](vgfp_mstack_2.png)
+![](img/vgfp_mstack_2.png)
 
 现在让我们看看使用这种符号的不同种类的函数是什么样子的。
 
 让我们从一个简单的跨世界函数开始，比如`a -> Result<b>`，其中目标世界是一个应用世界。在图中，输入是一个正常世界（在左侧），输出（在右侧）是一个堆叠在正常世界上方的应用世界。
 
-![](vgfp_traverse_cross.png)
+![](img/vgfp_traverse_cross.png)
 
 现在，如果我们有一组普通的`a`值，然后我们使用`map`来使用类似`a -> Result<b>`的函数转换每个`a`值，结果也将是一个列表，但其中的内容是`Result<b>`值而不是`a`值。
 
-![](vgfp_traverse_map.png)
+![](img/vgfp_traverse_map.png)
 
 当涉及到`traverse`时，效果是完全不同的。如果我们使用`traverse`来使用该函数转换`a`值的列表，输出将是一个`Result`，而不是一个列表。而`Result`的内容将是一个`List<b>`。
 
-![](vgfp_traverse_traverse.png)
+![](img/vgfp_traverse_traverse.png)
 
-换句话说，使用`traverse`，`List`保持连接到正常世界，而Applicative世界（比如`Result`）则添加在顶部。
+换句话说，使用`traverse`，`List`保持连接到正常世界，而 Applicative 世界（比如`Result`）则添加在顶部。
 
 好的，我知道这听起来很抽象，但实际上这是一种非常有用的技术。我们将在下面看到一个实际应用的例子。
 
-### Applicative与monadic版本的`traverse`
+### Applicative 与 monadic 版本的`traverse`
 
-事实证明，`traverse`可以以applicative风格或monadic风格实现，因此通常有两种不同的实现可供选择。applicative版本通常以`A`结尾，而monadic版本以`M`结尾，这很有帮助！
+事实证明，`traverse`可以以 applicative 风格或 monadic 风格实现，因此通常有两种不同的实现可供选择。applicative 版本通常以`A`结尾，而 monadic 版本以`M`结尾，这很有帮助！
 
 让我们看看这如何与我们可靠的`Result`类型配合使用。
 
-首先，我们将使用applicative和monadic方法实现`traverseResult`。
+首先，我们将使用 applicative 和 monadic 方法实现`traverseResult`。
 
 ```
 module List =
@@ -2181,9 +2181,9 @@ module List =
             retn (cons h t) )) 
 ```
 
-applicative版本是我们之前使用的相同实现。
+applicative 版本是我们之前使用的相同实现。
 
-Monadic版本将函数`f`应用于第一个元素，然后将其传递给`bind`。与monadic风格一样，如果结果不好，列表的其余部分将被跳过。
+Monadic 版本将函数`f`应用于第一个元素，然后将其传递给`bind`。与 monadic 风格一样，如果结果不好，列表的其余部分将被跳过。
 
 另一方面，如果结果是好的，那么列表中的下一个元素就会被处理，依此类推。然后结果再次连接在一起。
 
@@ -2232,7 +2232,7 @@ let badM = ["1"; "x"; "y"] |> List.traverseResultM parseInt
 // Failure ["x is not an int"] 
 ```
 
-Applicative版本返回*所有*的错误，而monadic版本只返回第一个错误。
+Applicative 版本返回*所有*的错误，而 monadic 版本只返回第一个错误。
 
 ### 使用`fold`实现`traverse`
 
@@ -2242,7 +2242,7 @@ Applicative版本返回*所有*的错误，而monadic版本只返回第一个错
 
 实际上，我总是喜欢在可能的情况下使用`fold`及其类似物，这样我就永远不必担心尾递归是否正确！
 
-因此，这里是使用`List.foldBack`重新实现的`traverseResult`。我尽可能保持代码的相似性，但将循环列表的工作委托给了fold函数，而不是创建一个递归函数。
+因此，这里是使用`List.foldBack`重新实现的`traverseResult`。我尽可能保持代码的相似性，但将循环列表的工作委托给了 fold 函数，而不是创建一个递归函数。
 
 ```
 /// Map a Result producing function over a list to get a new Result 
@@ -2380,7 +2380,7 @@ let goodNone = None |> Option.traverseResultA parseInt
 
 但是，如果你手头只有一个 `List<Result>`，而你需要将其更改为 `Result<List>`。也就是说，你需要交换栈上世界的顺序：
 
-![](vgfp_sequence_stack.png)
+![](img/vgfp_sequence_stack.png)
 
 这就是 `sequence` 有用的地方 -- 这正是它的作用！`sequence` 函数"交换层"。
 
@@ -2456,7 +2456,7 @@ let badSequenceM =
 
 ## "Sequence"作为一种特定实现的配方
 
-我们在上面看到，拥有类似Applicative的类型类意味着您只需要一次实现`traverse`和`sequence`。在F#和其他没有高种类型的语言中，您必须为要遍历的每种类型创建一个实现。
+我们在上面看到，拥有类似 Applicative 的类型类意味着您只需要一次实现`traverse`和`sequence`。在 F#和其他没有高种类型的语言中，您必须为要遍历的每种类型创建一个实现。
 
 这是否意味着`traverse`和`sequence`的概念是无关紧要或太抽象了？我不这么认为。
 
@@ -2486,7 +2486,7 @@ let desiredOutput = [Some 1; Some 3; None; Some 7],[Some 2; Some 4; None; Some 8
 
 另一方面，如果您认识到这个任务只是将一堆世界转换为另一堆世界，您几乎可以*机械化*地创建一个函数，几乎不用思考。
 
-![](vgfp_tuple_sequence-1.png)
+![](img/vgfp_tuple_sequence-1.png)
 
 ### 设计解决方案
 
@@ -2500,11 +2500,11 @@ let desiredOutput = [Some 1; Some 3; None; Some 7],[Some 2; Some 4; None; Some 8
 
 +   `optionSequenceTuple`会将一个选项向下移动，一个元组向上移动。
 
-![](vgfp_tuple_sequence-2.png)
+![](img/vgfp_tuple_sequence-2.png)
 
 +   `listSequenceTuple`会将一个列表向下移动，一个元组向上移动。
 
-![](vgfp_tuple_sequence-3.png)
+![](img/vgfp_tuple_sequence-3.png)
 
 这些辅助函数是否需要在库中？不。我不太可能再次需要它们，即使我偶尔需要它们，我也更愿意从头开始编写它们，以避免必须承担依赖关系。
 
@@ -2599,7 +2599,7 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 好的，这个解决方案比有一个可重用函数更费力，但因为它是机械的，编码只需要几分钟，而且比尝试想出自己的解决方案还要容易！
 
-*还想了解更多？关于在实际问题中使用`sequence`的示例，请阅读[此帖子](recursive-types-and-folds-3b.html#json-with-error-handling)。*
+*还想了解更多？关于在实际问题中使用`sequence`的示例，请阅读此帖子。*
 
 * * *
 
@@ -2626,7 +2626,7 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 好吧，有时候你会被给定一个特定的结构，你别无选择，但在其他情况下，我可能仍然更喜欢两步的`map-sequence`方法，只因为它更容易理解。对于大多数人来说，“map”然后“swap”的思维模型似乎更容易理解，比一步到位的遍历要容易。
 
-换句话说，我总是会选择可读性，除非你能证明性能受到影响。在我看来，过度神秘并不是有用的，因为许多人仍在学习FP。
+换句话说，我总是会选择可读性，除非你能证明性能受到影响。在我看来，过度神秘并不是有用的，因为许多人仍在学习 FP。
 
 * * *
 
@@ -2646,13 +2646,13 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 在本文中，我们学习了使用 traverse 和 sequence 处理提升值列表的方法。
 
-在[下一篇文章](elevated-world-5.html)中，我们将通过一个实际示例来完成，该示例使用了所有已讨论的技术。
+在下一篇文章中，我们将通过一个实际示例来完成，该示例使用了所有已讨论的技术。
 
 # 在实践中使用 map、apply、bind 和 sequence
 
 # 在实践中使用 map、apply、bind 和 sequence
 
-本文是系列的第五篇。在[前两篇文章](elevated-world.html)中，我描述了一些处理通用数据类型的核心函数：map、bind 等等。在[第三篇文章](elevated-world-3.html)中，我讨论了“应用”与“单子”风格，以及如何提升值和函数使它们彼此一致。在[上一篇文章](elevated-world-4.html)中，我介绍了使用 traverse 和 sequence 处理提升值列表的方法。
+本文是系列的第五篇。在前两篇文章中，我描述了一些处理通用数据类型的核心函数：map、bind 等等。在第三篇文章中，我讨论了“应用”与“单子”风格，以及如何提升值和函数使它们彼此一致。在上一篇文章中，我介绍了使用 traverse 和 sequence 处理提升值列表的方法。
 
 在本文中，我们将通过一个实际示例来完成，该示例使用了到目前为止已讨论的所有技术。
 
@@ -2662,65 +2662,65 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 +   **第一部分：提升到提升世界**
 
-    +   [map 函数](elevated-world.html#map)
+    +   map 函数
 
-    +   [return 函数](elevated-world.html#return)
+    +   return 函数
 
-    +   [apply 函数](elevated-world.html#apply)
+    +   apply 函数
 
-    +   [liftN 函数族](elevated-world.html#lift)
+    +   liftN 函数族
 
-    +   [zip 函数和 ZipList 世界](elevated-world.html#zip)
+    +   zip 函数和 ZipList 世界
 
 +   **第二部分：如何组合跨世界函数**
 
-    +   [bind 函数](elevated-world-2.html#bind)
+    +   bind 函数
 
-    +   [列表不是一个单子。选项不是一个单子。](elevated-world-2.html#not-a-monad)
+    +   列表不是一个单子。选项不是一个单子。
 
 +   **第三部分：在实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [示例：使用应用风格和单子风格进行验证](elevated-world-3.html#validation)
+    +   示例：使用应用风格和单子风格进行验证
 
-    +   [提升到一致世界](elevated-world-3.html#consistent)
+    +   提升到一致世界
 
-    +   [Kleisli 世界](elevated-world-3.html#kleisli)
+    +   Kleisli 世界
 
 +   **第四部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [traverse/MapM 函数](elevated-world-4.html#traverse)
+    +   traverse/MapM 函数
 
-    +   [序列函数](elevated-world-4.html#sequence)
+    +   序列函数
 
-    +   [“序列”作为即兴实现的配方](elevated-world-4.html#adhoc)
+    +   “序列”作为即兴实现的配方
 
-    +   [可读性 vs. 性能](elevated-world-4.html#readability)
+    +   可读性 vs. 性能
 
-    +   [伙计，我的`filter`在哪里？](elevated-world-4.html#filter)
+    +   伙计，我的`filter`在哪里？
 
 +   **第 5 部分：使用所有技术的真实示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   示例：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
 +   **第 6 部分：设计自己的升级世界**
 
-    +   [设计自己的升级世界](elevated-world-6.html#part6)
+    +   设计自己的升级世界
 
-    +   [过滤失败](elevated-world-6.html#filtering)
+    +   过滤失败
 
-    +   [Reader monad](elevated-world-6.html#readermonad)
+    +   Reader monad
 
 +   **第 7 部分：摘要**
 
-    +   [提及的运算符列表](elevated-world-7.html#operators)
+    +   提及的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -2730,7 +2730,7 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 ## 示例：下载和处理网站列表
 
-该示例将是在[第三篇文章](elevated-world-3.html)开头提到的一个变体：
+该示例将是在第三篇文章开头提到的一个变体：
 
 +   给定一个网站列表，创建一个找到具有最大主页的站点的操作。
 
@@ -2744,7 +2744,7 @@ output = desiredOutput |> printfn "Is output correct? %b"
 
 ### 下载程序
 
-首先，我们需要创建一个下载器。我会使用内置的`System.Net.WebClient`类，但出于某种原因它不允许超时的重写。我将希望在后面对坏的URIs进行较小的超时测试，因此这很重要。
+首先，我们需要创建一个下载器。我会使用内置的`System.Net.WebClient`类，但出于某种原因它不允许超时的重写。我将希望在后面对坏的 URIs 进行较小的超时测试，因此这很重要。
 
 一个技巧是简单地对`WebClient`进行子类化并拦截构建请求的方法。所以这里是：
 
@@ -2762,9 +2762,9 @@ type WebClientWithTimeout(timeout:int<ms>) =
         result 
 ```
 
-注意我在超时值上使用的计量单位。我发现计量单位对于区分秒和毫秒非常宝贵。我曾经不小心将超时设置为2000秒而不是2000毫秒，我不想再犯这个错误！
+注意我在超时值上使用的计量单位。我发现计量单位对于区分秒和毫秒非常宝贵。我曾经不小心将超时设置为 2000 秒而不是 2000 毫秒，我不想再犯这个错误！
 
-下一部分代码定义了我们的领域类型。我们希望在处理它们时能够将网址和大小保持在一起。我们可以使用元组，但我主张[使用类型来模拟您的领域](designing-with-types-single-case-dus.html)，即使只是用于文档目的。
+下一部分代码定义了我们的领域类型。我们希望在处理它们时能够将网址和大小保持在一起。我们可以使用元组，但我主张使用类型来模拟您的领域，即使只是用于文档目的。
 
 ```
 // The content of a downloaded page 
@@ -2802,7 +2802,7 @@ let getUriContent (uri:System.Uri) =
 
 注意：
 
-+   .NET库会在各种错误上抛出异常，所以我正在捕获并将其转换为`Failure`。
++   .NET 库会在各种错误上抛出异常，所以我正在捕获并将其转换为`Failure`。
 
 +   `use client =` 部分确保在块结束时客户端将被正确处理。
 
@@ -2929,7 +2929,7 @@ let makeContentSize (UriContent (uri, html)) =
 
 接下来，使用 `Async.map` 将其从一个 `a -> b` 函数转换为一个 `Async<a> -> Async<b>` 函数。在这种情况下，`Result<UriContent> -> Result<UriContentSize>` 变为 `Async<Result<UriContent>> -> Async<Result<UriContentSize>`。
 
-![](vgfp_urlcontentsize.png)
+![](img/vgfp_urlcontentsize.png)
 
 现在它有了正确类型的输入，所以我们可以与 `getUriContent` 组合：
 
@@ -3010,15 +3010,15 @@ let maxContentSize list =
 
 +   接下来，我们需要交换栈的顶部两个部分。也就是说，将 `List<Async>` 转换为 `Async<List>`。
 
-![](vgfp_download_stack_1.png)
+![](img/vgfp_download_stack_1.png)
 
 +   接下来，我们需要交换栈的*底部*两个部分--将 `List<Result>` 转换为 `Result<List>`。但是栈的两个底部部分被包裹在 `Async` 中，所以我们需要使用 `Async.map` 来完成这个任务。
 
-![](vgfp_download_stack_2.png)
+![](img/vgfp_download_stack_2.png)
 
 +   最后，我们需要对底部的 `List` 使用 `List.maxBy`，将其转换为单个值。也就是说，将 `List<UriContentSize>` 转换为 `UriContentSize`。但是栈底部被包裹在 `Async` 中的 `Result` 中，所以我们需要使用 `Async.map` 和 `Result.map` 来完成这个任务。
 
-![](vgfp_download_stack_3.png)
+![](img/vgfp_download_stack_3.png)
 
 这是完整的代码：
 
@@ -3218,7 +3218,7 @@ largestPageSizeA_Bad: Average time per run:  2252ms
 
 `largestPageSizeA` 中有一系列的映射和序列化操作，这意味着列表被迭代了三次，并且异步操作被映射了两次。
 
-正如[我之前所说的](elevated-world-4.html#readability)，我更喜欢清晰而不是微观优化，除非有证据证明，所以这对我没有影响。
+正如我之前所说的，我更喜欢清晰而不是微观优化，除非有证据证明，所以这对我没有影响。
 
 然而，让我们看看如果你想的话你*可以*做些什么。
 
@@ -3266,7 +3266,7 @@ let largestPageSizeA urls =
 
 就我个人而言，我认为我们做得太过分了。我更喜欢原始版本而不是这个版本！
 
-顺便说一句，获得两全其美的一种方法是使用一个自动合并映射的“streams”库。在F#中，一个很好的选择是[Nessos Streams](https://nessos.github.io/Streams/)。这里是一篇展示流和标准`seq`之间差异的[博客文章](http://trelford.com/blog/post/SeqVsStream.aspx)。
+顺便说一句，获得两全其美的一种方法是使用一个自动合并映射的“streams”库。在 F#中，一个很好的选择是[Nessos Streams](https://nessos.github.io/Streams/)。这里是一篇展示流和标准`seq`之间差异的[博客文章](http://trelford.com/blog/post/SeqVsStream.aspx)。
 
 ### 以单子方式下载
 
@@ -3286,7 +3286,7 @@ let largestPageSizeM urls =
 
 这个使用了单子的`sequence`函数（我不会展示它们 -- 实现就像你期望的那样）。
 
-让我们用好站点列表运行`largestPageSizeM` 10次，看看与应用版本有什么不同：
+让我们用好站点列表运行`largestPageSizeM` 10 次，看看与应用版本有什么不同：
 
 ```
 let f() = 
@@ -3314,7 +3314,7 @@ largestPageSizeM_Good: Average time per run:   955ms
 
 现在有了很大的不同 -- 很明显下载是按顺序进行的 -- 每一个只有在前一个完成后才开始。
 
-结果，平均运行时间为955毫秒，几乎是应用版本的两倍。
+结果，平均运行时间为 955 毫秒，几乎是应用版本的两倍。
 
 现在如果有些站点是坏的呢？我们应该期待什么？因为它是单子的，我们应该期待在第一个错误之后，剩下的站点被跳过，对吧？让我们看看会发生什么！
 
@@ -3374,15 +3374,15 @@ largestPageSizeM_Bad: Average time per run:  2371ms
 
 如果它们是单一类型，那么`bind`看起来像这样：
 
-![](vgfp_asyncresult-1.png)
+![](img/vgfp_asyncresult-1.png)
 
 这意味着前一个值将决定下一个值。
 
 而且，“交换”变得简单得多：
 
-![](vgfp_asyncresult-2.png)
+![](img/vgfp_asyncresult-2.png)
 
-### 定义AsyncResult类型
+### 定义 AsyncResult 类型
 
 好的，让我们定义`AsyncResult`类型及其关联的`map`、`return`、`apply`和`bind`函数。
 
@@ -3421,7 +3421,7 @@ module AsyncResult =
 
     +   如果内部的`Result`成功了，连续函数`f`将与结果一起评估。`return!`语法表示返回值已经被提升。
 
-    +   如果内部的`Result`是失败的，我们必须将失败提升为一个Async。
+    +   如果内部的`Result`是失败的，我们必须将失败提升为一个 Async。
 
 ### 定义`traverse`和`sequence`函数
 
@@ -3458,7 +3458,7 @@ module List =
 
 ### 定义和测试下载函数
 
-最后，`largestPageSize`函数现在更简单了，只需要一个sequence。
+最后，`largestPageSize`函数现在更简单了，只需要一个 sequence。
 
 ```
 let largestPageSizeM_AR urls = 
@@ -3468,7 +3468,7 @@ let largestPageSizeM_AR urls =
     |> AsyncResult.map maxContentSize 
 ```
 
-让我们用好站点列表运行`largestPageSizeM_AR` 10次，看看与应用程序版本是否有任何不同：
+让我们用好站点列表运行`largestPageSizeM_AR` 10 次，看看与应用程序版本是否有任何不同：
 
 ```
 let f() = 
@@ -3522,13 +3522,13 @@ largestPageSizeM_AR_Bad: Average time per run:   117ms
 
 在本文中，我们通过一个小的实际示例进行了工作。我希望这个例子表明了`map`、`apply`、`bind`、`traverse`和`sequence`不仅仅是学术上的抽象，而且是你工具箱中的基本工具。
 
-在[下一篇文章](elevated-world-6.html)中，我们将通过另一个实际示例进行工作，但这次我们将创建我们*自己*的提升世界。到时候见！
+在下一篇文章中，我们将通过另一个实际示例进行工作，但这次我们将创建我们*自己*的提升世界。到时候见！
 
-# 重塑Reader monad
+# 重塑 Reader monad
 
-# 重塑Reader monad
+# 重塑 Reader monad
 
-这篇文章是系列的第六篇。在[前两篇文章](elevated-world.html)中，我描述了一些处理通用数据类型的核心函数：`map`、`bind`等等。在[第三篇文章](elevated-world-3.html)中，我讨论了“应用”与“单子”风格，以及如何提升值和函数以使它们彼此一致。在[第四篇](elevated-world-4.html)和[之前的](elevated-world-5.html)文章中，我介绍了`traverse`和`sequence`作为处理提升值列表的方法，并且我们看到了它在一个实际示例中的应用：下载一些URL。
+这篇文章是系列的第六篇。在前两篇文章中，我描述了一些处理通用数据类型的核心函数：`map`、`bind`等等。在第三篇文章中，我讨论了“应用”与“单子”风格，以及如何提升值和函数以使它们彼此一致。在第四篇和之前的文章中，我介绍了`traverse`和`sequence`作为处理提升值列表的方法，并且我们看到了它在一个实际示例中的应用：下载一些 URL。
 
 在本文中，我们将通过另一个实际示例完成工作，但这次我们将创建自己的“提升世界”作为处理笨拙代码的一种方式。我们将看到这种方法是如此常见，以至于它有一个名字——“Reader monad”。
 
@@ -3536,67 +3536,67 @@ largestPageSizeM_AR_Bad: Average time per run:   117ms
 
 这是一系列中提到的各种函数的快捷方式列表：
 
-+   **第1部分：提升到提升世界**
++   **第 1 部分：提升到提升世界**
 
-    +   [`map`函数](elevated-world.html#map) 
+    +   `map`函数 
 
-    +   [`return`函数](elevated-world.html#return) 
+    +   `return`函数 
 
-    +   [`apply`函数](elevated-world.html#apply) 
+    +   `apply`函数 
 
-    +   [函数族`liftN`](elevated-world.html#lift) 
+    +   函数族`liftN` 
 
-    +   [`zip`函数和ZipList世界](elevated-world.html#zip) 
+    +   `zip`函数和 ZipList 世界 
 
 +   **第二部分：如何组合跨世界函数**
 
-    +   [`bind`函数](elevated-world-2.html#bind)
+    +   `bind`函数
 
-    +   [列表不是单子。选项不是单子。](elevated-world-2.html#not-a-monad) 
+    +   列表不是单子。选项不是单子。 
 
 +   **第三部分：实践中使用核心函数**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent) 
+    +   独立和依赖数据 
 
-    +   [示例：使用应用风格和单子风格进行验证](elevated-world-3.html#validation) 
+    +   示例：使用应用风格和单子风格进行验证 
 
-    +   [提升到一致世界](elevated-world-3.html#consistent) 
+    +   提升到一致世界 
 
-    +   [Kleisli世界](elevated-world-3.html#kleisli) 
+    +   Kleisli 世界 
 
 +   **第四部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing) 
+    +   混合列表和提升值 
 
-    +   [`traverse`/`MapM`函数](elevated-world-4.html#traverse) 
+    +   `traverse`/`MapM`函数 
 
-    +   [`sequence`函数](elevated-world-4.html#sequence) 
+    +   `sequence`函数 
 
-    +   ["Sequence"作为临时实现的配方](elevated-world-4.html#adhoc) 
+    +   "Sequence"作为临时实现的配方 
 
-    +   [可读性 vs. 性能](elevated-world-4.html#readability) 
+    +   可读性 vs. 性能 
 
-    +   [伙计，我的`filter`在哪里？](elevated-world-4.html#filter) 
+    +   伙计，我的`filter`在哪里？ 
 
 +   **第五部分：使用所有技术的真实示例**
 
-    +   [示例：下载和处理网站列表](elevated-world-5.html#asynclist) 
+    +   示例：下载和处理网站列表 
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult) 
+    +   将两个世界视为一个 
 
 +   **第六部分：设计您自己的提升世界**
 
-    +   [设计您自己的提升世界](elevated-world-6.html#part6) 
+    +   设计您自己的提升世界 
 
-    +   [过滤掉失败](elevated-world-6.html#filtering) 
+    +   过滤掉失败 
 
-    +   [Reader单子](elevated-world-6.html#readermonad) 
+    +   Reader 单子 
 
 +   **第七部分：总结**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators) 
+    +   提到的运算符列表 
 
-    +   [进一步阅读](elevated-world-7.html#further-reading) 
+    +   进一步阅读 
 
 * * *
 
@@ -3606,7 +3606,7 @@ largestPageSizeM_AR_Bad: Average time per run:   117ms
 
 *一个客户访问您的网站，想要查看他们购买的产品信息。*
 
-在这个例子中，我们假设您有一个用于键/值存储的API（如Redis或NoSql数据库），并且所有您需要的信息都存储在那里。
+在这个例子中，我们假设您有一个用于键/值存储的 API（如 Redis 或 NoSql 数据库），并且所有您需要的信息都存储在那里。
 
 所以我们需要的代码看起来会像这样：
 
@@ -3625,7 +3625,7 @@ Return the list of product infos
 
 * * *
 
-## 定义域和一个虚拟的ApiClient 
+## 定义域和一个虚拟的 ApiClient 
 
 首先让我们定义域类型：
 
@@ -3641,7 +3641,7 @@ type ProductId = ProductId of string
 type ProductInfo = {ProductName: string; } 
 ```
 
-为了测试我们的API，让我们创建一个带有一些`Get`和`Set`方法的`ApiClient`类，由静态可变字典支持。这是基于类似Redis客户端的API。
+为了测试我们的 API，让我们创建一个带有一些`Get`和`Set`方法的`ApiClient`类，由静态可变字典支持。这是基于类似 Redis 客户端的 API。
 
 注意：
 
@@ -3758,7 +3758,7 @@ let getPurchaseInfo (custId:CustId) : Result<ProductInfo list> =
 
 好的，我们如何创建我们的`productInfosResult`？
 
-那应该很简单。如果`productIdsResult`是成功的，那么循环遍历每个id并获取每个id的信息。如果`productIdsResult`是失败的，那么就返回该失败。
+那应该很简单。如果`productIdsResult`是成功的，那么循环遍历每个 id 并获取每个 id 的信息。如果`productIdsResult`是失败的，那么就返回该失败。
 
 ```
 let getPurchaseInfo (custId:CustId) : Result<ProductInfo list> =
@@ -3915,7 +3915,7 @@ module Result =
     let result = new ResultBuilder() 
 ```
 
-我有一系列关于[计算表达式内部](computation-expressions.html)的文章，所以我不想在这里解释所有那些代码。相反，在本文的其余部分，我们将致力于重构`getPurchaseInfo`，到最后我们将看到我们根本不需要`result`计算表达式。
+我有一系列关于计算表达式内部的文章，所以我不想在这里解释所有那些代码。相反，在本文的其余部分，我们将致力于重构`getPurchaseInfo`，到最后我们将看到我们根本不需要`result`计算表达式。
 
 * * *
 
@@ -3925,9 +3925,9 @@ module Result =
 
 这种方法存在一些问题：
 
-+   如果我们想要使用API进行不同的工作，我们必须重复这段代码的打开/关闭部分。而且有可能其中一个实现会打开API但忘记关闭它。
++   如果我们想要使用 API 进行不同的工作，我们必须重复这段代码的打开/关闭部分。而且有可能其中一个实现会打开 API 但忘记关闭它。
 
-+   无法使用模拟API客户端进行测试。
++   无法使用模拟 API 客户端进行测试。
 
 通过将`ApiClient`的创建与其使用分离，通过参数化操作，我们可以解决这两个问题，就像这样。
 
@@ -3981,7 +3981,7 @@ executeApiAction action
 
 ### 更多重构
 
-我们可能需要为其他目的获取产品ID，还有产品信息，所以让我们也将这些内容重构成单独的函数：
+我们可能需要为其他目的获取产品 ID，还有产品信息，所以让我们也将这些内容重构成单独的函数：
 
 ```
 /// CustId -> ApiClient -> Result<ProductId list>
@@ -4022,7 +4022,7 @@ let getPurchaseInfo (custId:CustId) =
 
 或者用图示表示：
 
-![](vgfp_api_pipe.png)
+![](img/vgfp_api_pipe.png)
 
 但我不能这样做，有两个原因：
 
@@ -4038,23 +4038,23 @@ let getPurchaseInfo (custId:CustId) =
 
 让我们解决第一个问题。当额外的`ApiClient`参数不断干扰时，我们如何组合函数？
 
-这是一个典型的API调用函数的样子：
+这是一个典型的 API 调用函数的样子：
 
-![](vgfp_api_action1.png)
+![](img/vgfp_api_action1.png)
 
 如果我们查看类型签名，我们会看到这样一个具有两个参数的函数：
 
-![](vgfp_api_action2.png)
+![](img/vgfp_api_action2.png)
 
 但是，解释这个函数的*另一种*方式是将其视为具有*一个*参数并返回另一个函数。返回的函数具有一个`ApiClient`参数并返回最终输出。
 
-![](vgfp_api_action3.png)
+![](img/vgfp_api_action3.png)
 
-你可以���样想：我现在有一个输入，但直到以后我才会有一个实际的`ApiClient`，所以让我使用输入来创建一个可以在各种方式中粘合的消费API函数，而无需任何`ApiClient`。
+你可以���样想：我现在有一个输入，但直到以后我才会有一个实际的`ApiClient`，所以让我使用输入来创建一个可以在各种方式中粘合的消费 API 函数，而无需任何`ApiClient`。
 
-让我们给这个消费api的函数取一个名字。我们称之为`ApiAction`。
+让我们给这个消费 api 的函数取一个名字。我们称之为`ApiAction`。
 
-![](vgfp_api_action4.png)
+![](img/vgfp_api_action4.png)
 
 事实上，让我们做得更多一些 -- 让它成为一个类型！
 
@@ -4062,13 +4062,13 @@ let getPurchaseInfo (custId:CustId) =
 type ApiAction<'a> = (ApiClient -> 'a) 
 ```
 
-不幸的是，就目前而言，这只是一个函数的类型别名，而不是一个独立的类型。我们需要将其包装在一个[single case union](designing-with-types-single-case-dus.html)中，以使其成为一个不同的类型。
+不幸的是，就目前而言，这只是一个函数的类型别名，而不是一个独立的类型。我们需要将其包装在一个 single case union 中，以使其成为一个不同的类型。
 
 ```
 type ApiAction<'a> = ApiAction of (ApiClient -> 'a) 
 ```
 
-### 重写为使用ApiAction
+### 重写为使用 ApiAction
 
 现在我们有了一个真实的类型可用，我们可以重写我们的核心领域函数来使用它。
 
@@ -4086,7 +4086,7 @@ let getPurchaseIds (custId:CustId) =
     ApiAction action 
 ```
 
-现在签名是`CustId -> ApiAction<Result<ProductId list>>`，你可以解释为："给我一个CustId，我会给你一个ApiAction，当给定一个api时，它会生成一个ProductId列表"。
+现在签名是`CustId -> ApiAction<Result<ProductId list>>`，你可以解释为："给我一个 CustId，我会给你一个 ApiAction，当给定一个 api 时，它会生成一个 ProductId 列表"。
 
 类似地，`getProductInfo`可以重写为返回一个`ApiAction`：
 
@@ -4110,37 +4110,37 @@ let getProductInfo (productId:ProductId) =
 
 这开始看起来非常熟悉了。我们不是在前一篇文章中看到过类似的东西，使用`Async<Result<_>>`吗？
 
-### ApiAction作为一个高级世界
+### ApiAction 作为一个高级世界
 
 如果我们画出这两个函数涉及的各种类型的图表，我们可以清楚地看到`ApiAction`是一个高级世界，就像`List`和`Result`一样。这意味着我们应该能够使用*相同*的技术，就像以前使用的`map`、`bind`、`traverse`等。
 
 这是`getPurchaseIds`的堆栈图。输入是一个`CustId`，输出是一个`ApiAction<Result<List<ProductId>>>`：
 
-![](vgfp_api_getpurchaseids.png)
+![](img/vgfp_api_getpurchaseids.png)
 
 而`getProductInfo`的输入是`ProductId`，输出是`ApiAction<Result<ProductInfo>>`：
 
-![](vgfp_api_getproductinfo.png)
+![](img/vgfp_api_getproductinfo.png)
 
 我们想要的组合函数`getPurchaseInfo`应该是这样的：
 
-![](vgfp_api_getpurchaseinfo.png)
+![](img/vgfp_api_getpurchaseinfo.png)
 
 现在合并这两个函数中的问题非常清楚了：`getPurchaseIds`的输出不能作为`getProductInfo`的输入使用：
 
-![](vgfp_api_noncompose.png)
+![](img/vgfp_api_noncompose.png)
 
 但我认为你可以看到我们有些希望！应该有某种方法来操作这些层，使它们*匹配起来*，然后我们就可以轻松地组合它们。
 
 这就是我们接下来要处理的内容。
 
-### 引入ApiActionResult
+### 引入 ApiActionResult
 
 在上一篇文章中，我们将`Async`和`Result`合并为复合类型`AsyncResult`。我们可以在这里做同样的事情，并创建类型`ApiActionResult`。
 
 当我们进行这个改变时，我们的两个函数变得稍微简单了：
 
-![](vgfp_api_apiactionresult_functions.png)
+![](img/vgfp_api_apiactionresult_functions.png)
 
 足够的图表 -- 现在让我们写一些代码吧。
 
@@ -4199,7 +4199,7 @@ module ApiAction =
 
 最后，在底部，有一个`execute`函数，它创建一个`ApiClient`，打开连接，运行操作，然后关闭连接。
 
-有了为`ApiAction`定义的核心函数，我们可以继续定义复合类型`ApiActionResult`的函数，就像我们在[上一篇文章](elevated-world-5.html#asyncresult)中为`AsyncResult`所做的那样：
+有了为`ApiAction`定义的核心函数，我们可以继续定义复合类型`ApiActionResult`的函数，就像我们在上一篇文章中为`AsyncResult`所做的那样：
 
 ```
 module ApiActionResult = 
@@ -4249,25 +4249,25 @@ module ApiActionResult =
 
 +   我们必须操纵`getProductInfo`的*右*侧（输出），使其与我们理想的`getPurchaseInfo`的输出匹配。
 
-![](vgfp_api_wanted.png)
+![](img/vgfp_api_wanted.png)
 
 ### Map
 
 提醒一下，`map`在两侧都添加了一个新的堆栈。所以如果我们从一个像这样的通用世界穿越函数开始：
 
-![](vgfp_api_generic.png)
+![](img/vgfp_api_generic.png)
 
 然后，在`List.map`之后，我们将在每个站点上有一个新的`List`堆栈。
 
-![](vgfp_api_map_generic.png)
+![](img/vgfp_api_map_generic.png)
 
 这是我们进行转换之前的`getProductInfo`。
 
-![](vgfp_api_getproductinfo2.png)
+![](img/vgfp_api_getproductinfo2.png)
 
 这是在使用`List.map`后的样子。
 
-![](vgfp_api_map_getproductinfo.png)
+![](img/vgfp_api_map_getproductinfo.png)
 
 这看起来很有希望--现在我们有一个`ProductId`的`List`作为输入，如果我们可以在顶部堆叠一个`ApiActionResult`，我们将匹配`getPurchaseId`的输出。
 
@@ -4279,13 +4279,13 @@ module ApiActionResult =
 
 如果你还记得，`bind`通过在*左*侧添加一个新的堆栈将“对角线”函数转换为水平函数。因此，例如，右侧顶部的任何提升世界都将添加到左侧。
 
-![](vgfp_api_generic.png)
+![](img/vgfp_api_generic.png)
 
-![](vgfp_api_bind_generic.png)
+![](img/vgfp_api_bind_generic.png)
 
 这是我们在使用`ApiActionResult.bind`后`getProductInfo`会是什么样子。
 
-![](vgfp_api_bind_getproductinfo.png)
+![](img/vgfp_api_bind_getproductinfo.png)
 
 这对我们没有好处。我们需要将`List`的`ProductId`作为输入。
 
@@ -4295,13 +4295,13 @@ module ApiActionResult =
 
 `traverse`将对角线值函数转换为用列表包装值的对角线函数。也就是说，`List`被添加为左侧的顶部堆栈，并且作为右侧次顶部堆栈。
 
-![](vgfp_api_generic.png)
+![](img/vgfp_api_generic.png)
 
-![](vgfp_api_traverse_generic.png)
+![](img/vgfp_api_traverse_generic.png)
 
 如果我们在`getProductInfo`上尝试一下，我们会得到一些非常有希望的东西。
 
-![](vgfp_api_traverse_getproductinfo.png)
+![](img/vgfp_api_traverse_getproductinfo.png)
 
 输入是所需的列表。而输出是完美的。我们想要一个 `ApiAction<Result<List<ProductInfo>>>`，现在我们有了。
 
@@ -4309,7 +4309,7 @@ module ApiActionResult =
 
 好吧，我们刚刚看到了这个！就是 `bind`。所以如果我们也这样做了，我们就完成了。
 
-![](vgfp_api_complete_getproductinfo.png)
+![](img/vgfp_api_complete_getproductinfo.png)
 
 并且这是以代码的形式表达的：
 
@@ -4575,7 +4575,7 @@ let folder head tail =
 
 +   但是如果新的第一个元素是一个失败，那么记录内部错误（`errs`）与传入的日志函数（`log`），并且只重用当前的尾部。这样，失败的元素不会被添加到列表中，但也不会导致整个函数失败。
 
-让我们创建一个新函数`getPurchasesInfoWithLog`，并尝试使用客户C2和缺失的产品PX：
+让我们创建一个新函数`getPurchasesInfoWithLog`，并尝试使用客户 C2 和缺失的产品 PX：
 
 ```
 let getPurchasesInfoWithLog =
@@ -4592,7 +4592,7 @@ CustId "C2"
 |> showResult 
 ```
 
-现在结果是一个成功，但只返回了一个`ProductInfo`，用于P2，日志显示PX被跳过了。
+现在结果是一个成功，但只返回了一个`ProductInfo`，用于 P2，日志显示 PX 被跳过了。
 
 ```
 [API] Opening
@@ -4607,7 +4607,7 @@ SUCCESS: [{ProductName = "P2-Name";}]
 
 * * *
 
-## Reader单子
+## Reader 单子
 
 如果你仔细观察`ApiResult`模块，你会发现`map`、`bind`和所有其他函数都不使用传递的`api`信息。我们可以将其定义为任何类型，这些函数仍然可以正常工作。
 
@@ -4677,11 +4677,11 @@ module Reader =
 
 现在类型签名有点难以阅读了！
 
-`Reader`类型，加上`bind`和`return`，再加上`bind`和`return`实现单子定律，意味着`Reader`通常被称为“Reader单子”。
+`Reader`类型，加上`bind`和`return`，再加上`bind`和`return`实现单子定律，意味着`Reader`通常被称为“Reader 单子”。
 
-我不打算在这里深入讨论Reader单子，但我希望你能看到它实际上是一个有用的东西，而不是一些奇怪的象牙塔概念。
+我不打算在这里深入讨论 Reader 单子，但我希望你能看到它实际上是一个有用的东西，而不是一些奇怪的象牙塔概念。
 
-### Reader单子与显式类型
+### Reader 单子与显式类型
 
 现在，如果你愿意，你可以用`Reader`代码替换上面的所有`ApiAction`代码，它仍然可以正常工作。但是*你应该*吗？
 
@@ -4697,9 +4697,9 @@ module Reader =
 
 在这篇文章中，我们通过了另一个实际例子，创建了自己的提升世界，这使事情变得*容易得多*，并且在这个过程中，无意中重新发明了阅读器单子。
 
-如果你喜欢这个系列，你可以在我关于["弗兰肯函子与单子斯特"](monadster.html)的系列中看到一个类似的实际例子，这次是关于State单子的。
+如果你喜欢这个系列，你可以在我关于"弗兰肯函子与单子斯特"的系列中看到一个类似的实际例子，这次是关于 State 单子的。
 
-[下一个也是最后一篇文章](elevated-world-7.html)对本系列进行了简要总结，并提供了一些进一步阅读资料。
+下一个也是最后一篇文章对本系列进行了简要总结，并提供了一些进一步阅读资料。
 
 # 映射、绑定和应用，一个总结
 
@@ -4707,19 +4707,19 @@ module Reader =
 
 ## 系列总结
 
-嗯，[这个系列](map-and-bind-and-apply-oh-my.html)比我最初计划的要长。感谢你能看到最后！
+嗯，这个系列比我最初计划的要长。感谢你能看到最后！
 
 我希望这次讨论对理解诸如`map`和`bind`之类的各种函数变换有所帮助，并为处理涉及跨世界函数的一些有用技巧提供了一些技巧——也许甚至是稍微揭开了“m-字”一点神秘的面纱！
 
-如果你想开始在你自己的代码中使用这些类型的函数，我希望你能看到它们编写起来是多么容易，但你也应该考虑使用其中一个出色的F#实用程序库，其中包含这些函数以及更多内容：
+如果你想开始在你自己的代码中使用这些类型的函数，我希望你能看到它们编写起来是多么容易，但你也应该考虑使用其中一个出色的 F#实用程序库，其中包含这些函数以及更多内容：
 
-+   **ExtCore** ([源](https://github.com/jack-pappas/ExtCore)，[NuGet](https://www.nuget.org/packages/ExtCore/))。ExtCore为F#核心库（FSharp.Core）提供扩展，并旨在帮助您构建工业级别的F#应用程序。这些扩展包括对Array、List、Set和Map等模块的附加功能；不可变的IntSet、IntMap、LazyList和Queue集合；各种计算表达式（工作流）；以及“工作流集合”——已经适应从工作流中无缝工作的集合模块。
++   **ExtCore** ([源](https://github.com/jack-pappas/ExtCore)，[NuGet](https://www.nuget.org/packages/ExtCore/))。ExtCore 为 F#核心库（FSharp.Core）提供扩展，并旨在帮助您构建工业级别的 F#应用程序。这些扩展包括对 Array、List、Set 和 Map 等模块的附加功能；不可变的 IntSet、IntMap、LazyList 和 Queue 集合；各种计算表达式（工作流）；以及“工作流集合”——已经适应从工作流中无缝工作的集合模块。
 
 +   **FSharpx.Extras**（[主页](https://fsprojects.github.io/FSharpx.Extras/)）。 FSharpx.Extras 是 FSharpx 系列库的一部分。 它实现了几个标准的单子（State、Reader、Writer、Either、Continuation、Distribution）、适用函子验证、通用函数（如 flip）以及一些异步编程实用程序，以及使 C# - F# 互操作更容易的函数。
 
-例如，我在[这篇文章](elevated-world-4.html#traverse)中实现的单子遍历 `List.traverseResultM` 已经在 [这里](https://github.com/jack-pappas/ExtCore/blob/4fc2302e74a9b5217d980e5ce2680f0b3db26c3d/ExtCore/ControlCollections.Choice.fs#L398) 的 ExtCore 中可用。
+例如，我在这篇文章中实现的单子遍历 `List.traverseResultM` 已经在 [这里](https://github.com/jack-pappas/ExtCore/blob/4fc2302e74a9b5217d980e5ce2680f0b3db26c3d/ExtCore/ControlCollections.Choice.fs#L398) 的 ExtCore 中可用。
 
-如果你喜欢这个系列，我有一些关于状态单子的文章在我的系列 ["Dr Frankenfunctor and the Monadster"](monadster.html) 中，还有关于 Either 单子的演讲 ["铁路导向编程"](http://fsharpforfunandprofit.com/rop/) 中有关于的文章。
+如果你喜欢这个系列，我有一些关于状态单子的文章在我的系列 "Dr Frankenfunctor and the Monadster" 中，还有关于 Either 单子的演讲 ["铁路导向编程"](http://fsharpforfunandprofit.com/rop/) 中有关于的文章。
 
 正如我在一开始所说的，撰写这篇文章对我来说也是一个学习过程。我不是专家，所以如果我有任何错误，请务必让我知道。
 
@@ -4731,65 +4731,65 @@ module Reader =
 
 +   **第一部分：提升到提升世界**
 
-    +   [`map` 函数](elevated-world.html#map)
+    +   `map` 函数
 
-    +   [`return` 函数](elevated-world.html#return)
+    +   `return` 函数
 
-    +   [`apply` 函数](elevated-world.html#apply)
+    +   `apply` 函数
 
-    +   [`liftN` 函数家族](elevated-world.html#lift)
+    +   `liftN` 函数家族
 
-    +   [`zip` 函数和 ZipList 世界](elevated-world.html#zip)
+    +   `zip` 函数和 ZipList 世界
 
 +   **第二部分：如何组合跨世界函数**
 
-    +   [`bind` 函数](elevated-world-2.html#bind)
+    +   `bind` 函数
 
-    +   [列表不是一个单子。选项不是一个单子。](elevated-world-2.html#not-a-monad)
+    +   列表不是一个单子。选项不是一个单子。
 
 +   **第三部分：实践中使用核心功能**
 
-    +   [独立和依赖数据](elevated-world-3.html#dependent)
+    +   独立和依赖数据
 
-    +   [例子：使用适用和单子风格进行验证](elevated-world-3.html#validation)
+    +   例子：使用适用和单子风格进行验证
 
-    +   [提升到一致世界](elevated-world-3.html#consistent)
+    +   提升到一致世界
 
-    +   [Kleisli 世界](elevated-world-3.html#kleisli)
+    +   Kleisli 世界
 
 +   **第四部分：混合列表和提升值**
 
-    +   [混合列表和提升值](elevated-world-4.html#mixing)
+    +   混合列表和提升值
 
-    +   [`traverse`/`MapM` 函数](elevated-world-4.html#traverse)
+    +   `traverse`/`MapM` 函数
 
-    +   [`sequence` 函数](elevated-world-4.html#sequence)
+    +   `sequence` 函数
 
-    +   ["Sequence" 作为临时实现的配方](elevated-world-4.html#adhoc)
+    +   "Sequence" 作为临时实现的配方
 
-    +   [可读性 vs. 性能](elevated-world-4.html#readability)
+    +   可读性 vs. 性能
 
-    +   [哥们，我的 `filter` 在哪里？](elevated-world-4.html#filter)
+    +   哥们，我的 `filter` 在哪里？
 
 +   **第五部分：一个使用所有技巧的真实示例**
 
-    +   [例子：下载和处理网站列表](elevated-world-5.html#asynclist)
+    +   例子：下载和处理网站列表
 
-    +   [将两个世界视为一个](elevated-world-5.html#asyncresult)
+    +   将两个世界视为一个
 
 +   **第六部分：设计你自己的提升世界**
 
-    +   [设计你自己的提升世界](elevated-world-6.html#part6)
+    +   设计你自己的提升世界
 
-    +   [过滤掉失败](elevated-world-6.html#filtering)
+    +   过滤掉失败
 
-    +   [阅读器单子](elevated-world-6.html#readermonad)
+    +   阅读器单子
 
 +   **第七部分：总结**
 
-    +   [提到的运算符列表](elevated-world-7.html#operators)
+    +   提到的运算符列表
 
-    +   [进一步阅读](elevated-world-7.html#further-reading)
+    +   进一步阅读
 
 * * *
 
@@ -4799,19 +4799,19 @@ module Reader =
 
 | 运算符 | 等效函数 | 讨论 |
 | --- | --- | --- |
-| `>>` | 从左到右的组合 | 不是本系列的一部分，但[在这里讨论](function-composition.html) |
+| `>>` | 从左到右的组合 | 不是本系列的一部分，但在这里讨论 |
 | `<<` | 从右到左的组合 | 如上所述 |
 | `&#124;>` | 从左到右的管道 | 如上所述 |
 | `< | ` | 从右到左的管道 | 如上所述 |
-| `<!>` | `map` | [在这里讨论](elevated-world.html#map) |
-| `<$>` | `map` | Haskell中的map运算符，但在F#中不是有效运算符，所以在这个系列中我使用`<!>`。 |
-| `<*>` | `apply` | [在这里讨论](elevated-world.html#apply) |
-| `<*` | - | 单边组合器。[在这里讨论](elevated-world.html#lift) |
-| `*>` | - | 单边组合器。[在这里讨论](elevated-world.html#lift) |
-| `>>=` | 从左到右的`bind` | [在这里讨论](elevated-world-2.html#bind) |
+| `<!>` | `map` | 在这里讨论 |
+| `<$>` | `map` | Haskell 中的 map 运算符，但在 F#中不是有效运算符，所以在这个系列中我使用`<!>`。 |
+| `<*>` | `apply` | 在这里讨论 |
+| `<*` | - | 单边组合器。在这里讨论 |
+| `*>` | - | 单边组合器。在这里讨论 |
+| `>>=` | 从左到右的`bind` | 在这里讨论 |
 | `=<<` | 从右到左的`bind` | 如上所述 |
-| `>=>` | 从左到右的Kleisli组合 | [在这里讨论](elevated-world-3.html#kleisli) |
-| `<=<` | 从右到左的Kleisli组合 | 如上所述 |
+| `>=>` | 从左到右的 Kleisli 组合 | 在这里讨论 |
+| `<=<` | 从右到左的 Kleisli 组合 | 如上所述 |
 
 * * *
 
@@ -4823,17 +4823,17 @@ module Reader =
 
 +   [图片中的函子、应用函子和单子](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html)。
 
-+   [Kleisli组合 ? la Up-Goer Five](http://mergeconflict.com/kleisli-composition-a-la-up-goer-five/)。我觉得这个很有趣。
++   [Kleisli 组合 ? la Up-Goer Five](http://mergeconflict.com/kleisli-composition-a-la-up-goer-five/)。我觉得这个很有趣。
 
-+   [Eric Lippert在C#中的单子系列](http://ericlippert.com/category/monads/)。
++   [Eric Lippert 在 C#中的单子系列](http://ericlippert.com/category/monads/)。
 
 面向学术的：
 
-+   [函数式编程中的单子](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)（PDF），作者是Philip Wadler。最早的单子论文之一。
++   [函数式编程中的单子](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)（PDF），作者是 Philip Wadler。最早的单子论文之一。
 
-+   [带效果的应用编程](http://www.soi.city.ac.uk/~ross/papers/Applicative.pdf)（PDF），作者是Conor McBride和Ross Paterson。
++   [带效果的应用编程](http://www.soi.city.ac.uk/~ross/papers/Applicative.pdf)（PDF），作者是 Conor McBride 和 Ross Paterson。
 
-+   [迭代器模式的本质](http://www.comlab.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf)（PDF），作者是Jeremy Gibbons和Bruno Oliveira。
++   [迭代器模式的本质](http://www.comlab.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf)（PDF），作者是 Jeremy Gibbons 和 Bruno Oliveira。
 
 F# 示例：
 
@@ -4841,7 +4841,7 @@ F# 示例：
 
 +   [FSharpx.Async](https://github.com/fsprojects/FSharpx.Async/blob/master/src/FSharpx.Async/Async.fs) 有`map`、`apply`、`liftN`（称为"Parallel"）、`bind`和其他对`Async`有用的扩展。
 
-+   Applicatives非常适合用于解析，如下面这些帖子中所解释的：
++   Applicatives 非常适合用于解析，如下面这些帖子中所解释的：
 
     +   [在 F# 中使用应用函子进行解析](http://bugsquash.blogspot.co.uk/2011/01/parsing-with-applicative-functors-in-f.html)。
 

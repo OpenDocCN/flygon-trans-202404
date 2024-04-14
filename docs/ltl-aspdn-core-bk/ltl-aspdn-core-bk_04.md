@@ -99,7 +99,7 @@ dotnet ef migrations add AddItems
 
 如果你打开 `Data/Migrations` 目录，你会看到一些文件：
 
-![多个迁移](migrations.png)
+![多个迁移](img/migrations.png)
 
 第一个迁移文件（类似于 `00_CreateIdentitySchema.cs` 的名称）是在你运行 `dotnet new` 时创建和应用的。当你创建时，你的新 `AddItem` 迁移文件会带有时间戳前缀。
 
@@ -140,19 +140,19 @@ protected override void Down(MigrationBuilder migrationBuilder) {
 } 
 ```
 
-当你将迁移应用到数据库时，`Up`方法会运行。由于你向数据库上下文添加了一个`DbSet<TodoItem>`，当你应用迁移时，Entity Framework Core将创建一个`Items`表（其列与`TodoItem`匹配）。
+当你将迁移应用到数据库时，`Up`方法会运行。由于你向数据库上下文添加了一个`DbSet<TodoItem>`，当你应用迁移时，Entity Framework Core 将创建一个`Items`表（其列与`TodoItem`匹配）。
 
 `Down`方法执行相反的操作：如果需要撤消（回滚）迁移，`Items`表将被删除。
 
-### SQLite限制的解决方法
+### SQLite 限制的解决方法
 
-如果你尝试按原样运行迁移，SQLite存在一些限制会导致问题。在这个问题修复之前，使用这个解决方法：
+如果你尝试按原样运行迁移，SQLite 存在一些限制会导致问题。在这个问题修复之前，使用这个解决方法：
 
 +   在`Up`方法中注释掉`migrationBuilder.AddForeignKey`行。
 
 +   在`Down`方法中注释掉任何`migrationBuilder.DropForeignKey`行。
 
-如果你使用全功能的SQL数据库，比如SQL Server或MySQL，这不会是一个问题，你不需要执行这个（诚然有些巧妙的）解决方法。
+如果你使用全功能的 SQL 数据库，比如 SQL Server 或 MySQL，这不会是一个问题，你不需要执行这个（诚然有些巧妙的）解决方法。
 
 ### 应用迁移
 
@@ -162,7 +162,7 @@ protected override void Down(MigrationBuilder migrationBuilder) {
 dotnet ef database update 
 ```
 
-这个命令将导致Entity Framework Core在数据库中创建`Items`表。
+这个命令将导致 Entity Framework Core 在数据库中创建`Items`表。
 
 > 如果你想回滚数据库，可以提供*之前*迁移的名称：`dotnet ef database update CreateIdentitySchema` 这将运行任何新于你指定的迁移的`Down`方法。
 > 
@@ -174,7 +174,7 @@ dotnet ef database update
 
 ## 创建一个新的服务类
 
-回到*MVC基础*章节，你创建了一个`FakeTodoItemService`，其中包含硬编码的待办事项。现在你有了数据库上下文，可以创建一个新的服务类，该类将使用Entity Framework Core从数据库中获取真实的项目。
+回到*MVC 基础*章节，你创建了一个`FakeTodoItemService`，其中包含硬编码的待办事项。现在你有了数据库上下文，可以创建一个新的服务类，该类将使用 Entity Framework Core 从数据库中获取真实的项目。
 
 删除`FakeTodoItemService.cs`文件，并创建一个新文件：
 
@@ -211,7 +211,7 @@ namespace AspNetCoreTodo.Services
 } 
 ```
 
-你会注意到这里使用了与MVC基础章节中相同的依赖注入模式，只是这次注入的是`ApplicationDbContext`。`ApplicationDbContext`已经被添加到服务容器中的`ConfigureServices`方法中，因此可以在这里进行注入。
+你会注意到这里使用了与 MVC 基础章节中相同的依赖注入模式，只是这次注入的是`ApplicationDbContext`。`ApplicationDbContext`已经被添加到服务容器中的`ConfigureServices`方法中，因此可以在这里进行注入。
 
 让我们更仔细地看一下`GetIncompleteItemsAsync`方法的代码。首先，它使用上下文的`Items`属性来访问`DbSet`中的所有待办事项：
 
@@ -225,9 +225,9 @@ var items = await _context.Items
 .Where(x => x.IsDone == false) 
 ```
 
-`Where`方法是C#的一个特性，称为LINQ（**l**anguage **in**tegrated **q**uery），它借鉴了函数式编程的特点，使得在代码中表达数据库查询变得容易。在底层，Entity Framework Core将该方法转换为类似`SELECT * FROM Items WHERE IsDone = 0`的语句，或者在NoSQL数据库中等效的查询文档。
+`Where`方法是 C#的一个特性，称为 LINQ（**l**anguage **in**tegrated **q**uery），它借鉴了函数式编程的特点，使得在代码中表达数据库查询变得容易。在底层，Entity Framework Core 将该方法转换为类似`SELECT * FROM Items WHERE IsDone = 0`的语句，或者在 NoSQL 数据库中等效的查询文档。
 
-最后，`ToArrayAsync`方法告诉Entity Framework Core获取与过滤器匹配的所有实体，并将它们作为数组返回。`ToArrayAsync`方法是异步的（它返回一个`Task`），因此必须`await`它以获取其值。
+最后，`ToArrayAsync`方法告诉 Entity Framework Core 获取与过滤器匹配的所有实体，并将它们作为数组返回。`ToArrayAsync`方法是异步的（它返回一个`Task`），因此必须`await`它以获取其值。
 
 为了使方法变得更短一些，您可以删除中间的`items`变量，直接返回查询结果（这样做的效果是一样的）：
 
@@ -250,9 +250,9 @@ services.AddScoped<ITodoItemService, TodoItemService>();
 
 `AddScoped` 使用**scoped**生命周期将您的服务添加到服务容器中。这意味着在每个 web 请求期间将创建`TodoItemService`类的新实例。这对于与数据库交互的服务类是必需的。
 
-> 添加一个与Entity Framework Core（和您的数据库）交互的服务类，并使用单例生命周期（或其他生命周期）可能会导致问题，因为Entity Framework Core在幕后每个请求管理数据库连接。为了避免这种情况，始终对与Entity Framework Core交互的服务使用scoped生命周期。
+> 添加一个与 Entity Framework Core（和您的数据库）交互的服务类，并使用单例生命周期（或其他生命周期）可能会导致问题，因为 Entity Framework Core 在幕后每个请求管理数据库连接。为了避免这种情况，始终对与 Entity Framework Core 交互的服务使用 scoped 生命周期。
 
-依赖于`ITodoItemService`的`TodoController`将对更改毫不知情，但在幕后，您将使用Entity Framework Core并与真实数据库交互！
+依赖于`ITodoItemService`的`TodoController`将对更改毫不知情，但在幕后，您将使用 Entity Framework Core 并与真实数据库交互！
 
 ### 测试一下
 

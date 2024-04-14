@@ -4,11 +4,11 @@
 
 ## Daniela Ushizima
 
-我的名字是Daniela Ushizima，我目前是劳伦斯伯克利国家实验室的[高级科学家](http://vis.lbl.gov/~daniela)，也是加州大学伯克利分校数据科学研究所的[数据科学研究员](https://bids.berkeley.edu/people/daniela-ushizima)。我的许多研究工作是设计机器视觉和模式识别算法，作为处理图像中心数据的软件工具的一部分，特别是那些来自[能源部](https://energy.gov/)成像设施的数据。我在这里描述的案例研究展示了设计机器视觉算法来分析一组数字图像并根据所需标准组织它们的核心步骤。有几个图像处理和分析框架封装了算法；这个案例研究涉及应用[ImageJ](https://imagej.nih.gov/ij/)，一个强大的图像分析工具。
+我的名字是 Daniela Ushizima，我目前是劳伦斯伯克利国家实验室的[高级科学家](http://vis.lbl.gov/~daniela)，也是加州大学伯克利分校数据科学研究所的[数据科学研究员](https://bids.berkeley.edu/people/daniela-ushizima)。我的许多研究工作是设计机器视觉和模式识别算法，作为处理图像中心数据的软件工具的一部分，特别是那些来自[能源部](https://energy.gov/)成像设施的数据。我在这里描述的案例研究展示了设计机器视觉算法来分析一组数字图像并根据所需标准组织它们的核心步骤。有几个图像处理和分析框架封装了算法；这个案例研究涉及应用[ImageJ](https://imagej.nih.gov/ij/)，一个强大的图像分析工具。
 
 ### 工作流程
 
-![流程图](dushizima.png) 这个工作流程图遵循一个名为SIPOC的数据模型，它代表供应商、输入、过程、输出和客户；这些对应于表格的列。在这里，我们调整SIPOC图以更好地代表我们的用例，因此第一列称为来源，最后一列代表存储库。建议的工作流程优先考虑了软件工具不同处理步骤的分隔，并隐藏了可能发生的反馈循环。
+![流程图](img/dushizima.png) 这个工作流程图遵循一个名为 SIPOC 的数据模型，它代表供应商、输入、过程、输出和客户；这些对应于表格的列。在这里，我们调整 SIPOC 图以更好地代表我们的用例，因此第一列称为来源，最后一列代表存储库。建议的工作流程优先考虑了软件工具不同处理步骤的分隔，并隐藏了可能发生的反馈循环。
 
 这个图表讲述了医生、细胞病理学家、物理学家和计算机科学家之间的研究调查，旨在设计、开发和部署用于改善生物医学图像分析的算法。一些任务包括增加受审查的图像领域数量，以加快细胞计数和识别，比较细胞，对样本进行定量描述，等等。
 
@@ -26,7 +26,7 @@
 
 ### 痛点
 
-软件工具的设计和测试需要团队成员之间通过报告和演示进行紧密的沟通。尽管团队的一部分使用了版本控制，但大部分代码仍需通过GitHub开放源代码。除了提交消息（通常较短）外，我们还保持了一份电子活动日记——这些对保持整个团队同步和了解最新情况至关重要。这种电子实验室手册的痛苦一面是输入的非结构化格式可能需要额外的时间来解析。
+软件工具的设计和测试需要团队成员之间通过报告和演示进行紧密的沟通。尽管团队的一部分使用了版本控制，但大部分代码仍需通过 GitHub 开放源代码。除了提交消息（通常较短）外，我们还保持了一份电子活动日记——这些对保持整个团队同步和了解最新情况至关重要。这种电子实验室手册的痛苦一面是输入的非结构化格式可能需要额外的时间来解析。
 
 ### 关键优势
 
@@ -34,7 +34,7 @@
 
 ### 关键工具
 
-一个重要的工具是ImageJ，这是一个基于Java的图像处理软件程序，最初由[Wayne Rasband](http://imagej.net/Wayne_Rasband)于1997年左右在国家卫生研究院开发。尽管大多数ImageJ插件侧重于医学影像，但这个框架已被广泛应用于其他应用领域，如[材料科学](https://github.com/CameraIA/F3D)。
+一个重要的工具是 ImageJ，这是一个基于 Java 的图像处理软件程序，最初由[Wayne Rasband](http://imagej.net/Wayne_Rasband)于 1997 年左右在国家卫生研究院开发。尽管大多数 ImageJ 插件侧重于医学影像，但这个框架已被广泛应用于其他应用领域，如[材料科学](https://github.com/CameraIA/F3D)。
 
 ### 问题
 
@@ -48,7 +48,7 @@
 
 #### 你是如何学习到可重现性的？
 
-流程图和代码文档在大学期间提高了成绩，它们的缺失意味着严重的惩罚：可复现性曾经是一个耗时的协议，以获得良好的成绩，并额外花费了我的点阵打印机的色带。科技行业向我介绍了版本控制，我和[TortoiseSVN](https://tortoisesvn.net/docs/nightly/TortoiseSVN_en/tsvn-preface-development.html)以及几位同事开始合作。其他软件也随之而来，例如[git](https://git-scm.com/)和[Atlassian](https://www.atlassian.com/software)算法以增强代码的可用性和扩展性。进入BIDS后，可复现性变成了一项有趣的活动，一个交谈的起点和一个永无止境的代码改进过程。许多概念更系统地汇集在一起，特别是在参加了软件教学课程并成为自己的教师之后。
+流程图和代码文档在大学期间提高了成绩，它们的缺失意味着严重的惩罚：可复现性曾经是一个耗时的协议，以获得良好的成绩，并额外花费了我的点阵打印机的色带。科技行业向我介绍了版本控制，我和[TortoiseSVN](https://tortoisesvn.net/docs/nightly/TortoiseSVN_en/tsvn-preface-development.html)以及几位同事开始合作。其他软件也随之而来，例如[git](https://git-scm.com/)和[Atlassian](https://www.atlassian.com/software)算法以增强代码的可用性和扩展性。进入 BIDS 后，可复现性变成了一项有趣的活动，一个交谈的起点和一个永无止境的代码改进过程。许多概念更系统地汇集在一起，特别是在参加了软件教学课程并成为自己的教师之后。
 
 #### 您认为您领域内进行可复现研究的主要挑战是什么，并且您有任何建议吗？
 
@@ -64,4 +64,4 @@
 
 #### 你会推荐学习更多关于可复现性的特定资源吗？
 
-在众多选择中，[Software Carpentry](software-carpentry.org)无疑是一个重要的资源，书籍[《Making Software》](http://deca.cuc.edu.cn/Community/cfs-filesystemfile.ashx/__key/CommunityServer.Components.PostAttachments/00.00.00.22.46/Oreilly.Making.Software.Oct.2010.pdf)由A. Oram和G. Wilson所著。
+在众多选择中，Software Carpentry 无疑是一个重要的资源，书籍[《Making Software》](http://deca.cuc.edu.cn/Community/cfs-filesystemfile.ashx/__key/CommunityServer.Components.PostAttachments/00.00.00.22.46/Oreilly.Making.Software.Oct.2010.pdf)由 A. Oram 和 G. Wilson 所著。

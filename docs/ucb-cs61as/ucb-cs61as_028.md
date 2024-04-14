@@ -20,12 +20,12 @@
 
 每个组合由一个具有对应子表达式的分支的节点表示。末端分支是运算符或数字。我们可以想象操作数的值向上游动，从树的底部开始，在每个分支处进行评估，并导致一个新值，该值在更高级别进一步评估。
 
-![递归树](../Images/ec7ad933748d031f908ecb610b8aa307.jpg)
+![递归树](img/ec7ad933748d031f908ecb610b8aa307.jpg)
 
 [wiki entry](https://edge.edx.org/courses/uc-berkeley/cs61as-1x/SICP/wiki/cs61as-1x/eval/)中对 eval 给出了更详细的解释，并将在关于替换模型的部分进一步解释。
 
 ## 定义？
 
-那么`define`呢？原来，普通的评估规则对`define`不起作用，因为`(define x 3)`不将`define`应用于两个参数；它实际上将`x`的值存储为3。Define 是所谓的[特殊形式](https://edge.edx.org/courses/uc-berkeley/cs61as-1x/SICP/wiki/cs61as-1x/special-form/)，特殊形式是评估规则的唯一例外。
+那么`define`呢？原来，普通的评估规则对`define`不起作用，因为`(define x 3)`不将`define`应用于两个参数；它实际上将`x`的值存储为 3。Define 是所谓的[特殊形式](https://edge.edx.org/courses/uc-berkeley/cs61as-1x/SICP/wiki/cs61as-1x/special-form/)，特殊形式是评估规则的唯一例外。
 
 以下哪个不是 Racket 中的原始函数？

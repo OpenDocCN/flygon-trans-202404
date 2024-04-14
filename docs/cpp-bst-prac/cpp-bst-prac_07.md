@@ -12,7 +12,7 @@
 
 ### 共享指针
 
-`std::shared_ptr`就像全局一样好（[http://stackoverflow.com/a/18803611/29975](http://stackoverflow.com/a/18803611/29975)），因为它允许多个代码片段与相同的数据进行交互。
+`std::shared_ptr`就像全局一样好（[`stackoverflow.com/a/18803611/29975`](http://stackoverflow.com/a/18803611/29975)），因为它允许多个代码片段与相同的数据进行交互。
 
 ### 单例
 
@@ -28,8 +28,8 @@
 
 +   可变成员变量被假定为共享变量，因此应使用互斥量进行同步（或使其原子化）
 
-+   如果成员变量本身是互斥量，则应将其声明为可变的。这是在const成员函数中使用它所必需的。
++   如果成员变量本身是互斥量，则应将其声明为可变的。这是在 const 成员函数中使用它所必需的。
 
-更多信息，请参阅Herb Sutter的以下文章：[http://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/](http://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/)
+更多信息，请参阅 Herb Sutter 的以下文章：[`herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/`](http://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/)
 
-还请参阅[相关的安全讨论](04-Considering_Safety.html#consider-return-by-value-for-mutable-data-const--for-immutable)，关于`const &`返回值
+还请参阅相关的安全讨论，关于`const &`返回值

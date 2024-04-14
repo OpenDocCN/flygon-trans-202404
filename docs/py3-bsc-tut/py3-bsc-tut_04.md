@@ -6,7 +6,7 @@
 
 将数据样本与其类型匹配。
 
-![数据类型练习](datatypes.png)
+![数据类型练习](img/datatypes.png)
 
 # 定义
 

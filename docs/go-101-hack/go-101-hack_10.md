@@ -43,7 +43,7 @@ func main()  {
 s = append([]int{0}, s...) 
 ```
 
-顺便说一句，我也尝试编写了一个"通用"的prepend：
+顺便说一句，我也尝试编写了一个"通用"的 prepend：
 
 ```
 func Prepend(v interface{}, slice []interface{}) []interface{}{
@@ -51,7 +51,7 @@ func Prepend(v interface{}, slice []interface{}) []interface{}{
 } 
 ```
 
-但是由于`[]T`不能直接转换为`[]interface{}`（请参考[https://golang.org/doc/faq#convert_slice_of_interface](https://golang.org/doc/faq#convert_slice_of_interface)，这只是一个玩具，没有实际用处。
+但是由于`[]T`不能直接转换为`[]interface{}`（请参考[`golang.org/doc/faq#convert_slice_of_interface`](https://golang.org/doc/faq#convert_slice_of_interface)，这只是一个玩具，没有实际用处。
 
 参考：
 

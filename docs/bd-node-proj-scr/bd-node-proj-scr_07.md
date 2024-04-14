@@ -1,52 +1,52 @@
 # Bower
 
-# 用Bower管理所有事情
+# 用 Bower 管理所有事情
 
-除非您生活在洞里，您应该很清楚JavaScript革命已经无处不在。我在Rails生态系统中发现的许多令人惊奇的概念现在正在爆发到JavaScript空间，允许更广泛地分发令人敬畏的内容。三大支柱是; Yeoman、Bower和Grunt。
+除非您生活在洞里，您应该很清楚 JavaScript 革命已经无处不在。我在 Rails 生态系统中发现的许多令人惊奇的概念现在正在爆发到 JavaScript 空间，允许更广泛地分发令人敬畏的内容。三大支柱是; Yeoman、Bower 和 Grunt。
 
-我需要解决的问题是; 如何以最佳方式将一些库代码放到Github上，并使其对用户易于访问，而无需克隆项目？因为，那真的很糟糕，对吧？
+我需要解决的问题是; 如何以最佳方式将一些库代码放到 Github 上，并使其对用户易于访问，而无需克隆项目？因为，那真的很糟糕，对吧？
 
-## Yeoman生成器
+## Yeoman 生成器
 
-最初我遇到了[generator-sass-boilerplate](https://github.com/srsgores/generator-sass-boilerplate)，一个'快速搭建Sass样式的Yeoman生成器'。这是一种非常有趣的方法，用于创建一个复杂的库，并允许用户定制安装。但对于一个更简单的代码库，也许只是一些函数和混合，这就太繁琐了。
+最初我遇到了[generator-sass-boilerplate](https://github.com/srsgores/generator-sass-boilerplate)，一个'快速搭建 Sass 样式的 Yeoman 生成器'。这是一种非常有趣的方法，用于创建一个复杂的库，并允许用户定制安装。但对于一个更简单的代码库，也许只是一些函数和混合，这就太繁琐了。
 
-## Bower就是答案
+## Bower 就是答案
 
-快进到现在。我最近看到了一些新的帖子，真正解释了Bower是什么以及它最擅长什么。我恍然大悟，这就是答案！
+快进到现在。我最近看到了一些新的帖子，真正解释了 Bower 是什么以及它最擅长什么。我恍然大悟，这就是答案！
 
-对于不了解的人来说，Bower是前端包管理的极其简单的解决方案。
+对于不了解的人来说，Bower 是前端包管理的极其简单的解决方案。
 
-> 它提供了一个通用的、无偏见的解决方案来解决前端包管理的问题，同时通过一个API公开了包依赖模型，这个API可以被更具偏见的构建堆栈所使用。
+> 它提供了一个通用的、无偏见的解决方案来解决前端包管理的问题，同时通过一个 API 公开了包依赖模型，这个 API 可以被更具偏见的构建堆栈所使用。
 
-Bower之美在于其简洁性。Bower有一个注册表，但这并非必需。常见命令是`bower install <package>`，其中`<package>`可以指代[大量选项](http://bower.io/#using-a-different-name-and-a-specific-version-of-a-package)，因此只需分享一些代码就变得非常简单。不错！
+Bower 之美在于其简洁性。Bower 有一个注册表，但这并非必需。常见命令是`bower install <package>`，其中`<package>`可以指代[大量选项](http://bower.io/#using-a-different-name-and-a-specific-version-of-a-package)，因此只需分享一些代码就变得非常简单。不错！
 
-坚持'非常简单'的主题，您可以使用Bower轻松将一个仓库拉入项目中，而无需克隆它。即使没有`bower.json`文件。
+坚持'非常简单'的主题，您可以使用 Bower 轻松将一个仓库拉入项目中，而无需克隆它。即使没有`bower.json`文件。
 
-例如Stipe，一个我编写的Compass扩展库，根本不了解Bower。
+例如 Stipe，一个我编写的 Compass 扩展库，根本不了解 Bower。
 
 ```
 $ bower install git://github.com/Toadstool-Stipe/stipe.git 
 ```
 
-在任何文件夹中运行该命令，您将获取整个仓库，没有Github历史记录。这本身就相当有趣。
+在任何文件夹中运行该命令，您将获取整个仓库，没有 Github 历史记录。这本身就相当有趣。
 
-## 使用Bower入门
+## 使用 Bower 入门
 
-要开始，实际上很简单。假设您的本地计算机已安装了Node和npm，运行：
+要开始，实际上很简单。假设您的本地计算机已安装了 Node 和 npm，运行：
 
 ```
 $ npm install -g bower 
 ```
 
-### 安装Bower包
+### 安装 Bower 包
 
-我这里不会详细说明，但99%的情况下，您只需运行：
+我这里不会详细说明，但 99%的情况下，您只需运行：
 
 ```
 $ bower install <package> 
 ```
 
-如上所述，还有其他安装选项，但主要解决方案是在仓库中有一个`bower.json`文件，并将其注册到Bower中。
+如上所述，还有其他安装选项，但主要解决方案是在仓库中有一个`bower.json`文件，并将其注册到 Bower 中。
 
 如果您的项目中有一个`bower.json`文件，在下一节中解释，您可以在安装时添加`--save`标志，这将将库添加为项目的依赖项。太棒了。
 

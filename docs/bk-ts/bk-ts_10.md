@@ -174,20 +174,20 @@ class DBHelper<T extends DBBackedEntity> {
 } 
 ```
 
-这个语法，`<T extends DBBackedEntity>`有效地表示，“DB助手类适用于任何实现DBBackedEntity接口的类型（类）”。当客户端代码实例化DBHelper的实例时，它将为该参数`T`指定一个值。这两行展示了如何为`T`传递一个值：
+这个语法，`<T extends DBBackedEntity>`有效地表示，“DB 助手类适用于任何实现 DBBackedEntity 接口的类型（类）”。当客户端代码实例化 DBHelper 的实例时，它将为该参数`T`指定一个值。这两行展示了如何为`T`传递一个值：
 
 ```
 const gameStateHelper = new DBHelper<GameState>();
 const gamePlayerHelper = new DBHelper<GamePlayer>(); 
 ```
 
-在使用泛型时，我们通过尖括号提供类型参数：`DBHelper<GameState>`和`DBHelper<GamePlayer>`。TypeScript分别用`GameState`和`GamePlayer`替换`DBHelper`类中的`T`参数。
+在使用泛型时，我们通过尖括号提供类型参数：`DBHelper<GameState>`和`DBHelper<GamePlayer>`。TypeScript 分别用`GameState`和`GamePlayer`替换`DBHelper`类中的`T`参数。
 
 # 进一步阅读
 
-+   我写了一篇详尽的博客文章，描述了如何使用泛型来实现二分查找。你可以在这里阅读：[https://blog.hellojs.org/implement-binary-search-in-typescript-using-generics-with-useful-refactorings-a4bcda932d7](https://blog.hellojs.org/implement-binary-search-in-typescript-using-generics-with-useful-refactorings-a4bcda932d7)。
++   我写了一篇详尽的博客文章，描述了如何使用泛型来实现二分查找。你可以在这里阅读：[`blog.hellojs.org/implement-binary-search-in-typescript-using-generics-with-useful-refactorings-a4bcda932d7`](https://blog.hellojs.org/implement-binary-search-in-typescript-using-generics-with-useful-refactorings-a4bcda932d7)。
 
-+   对React开发者特别感兴趣的是，这篇文章描述了如何在泛型中使用默认值：[https://blog.mariusschulz.com/2017/06/02/typescript-2-3-generic-parameter-defaults](https://blog.mariusschulz.com/2017/06/02/typescript-2-3-generic-parameter-defaults)。请注意，它是在React应用程序的背景下编写的，但该功能并不与React绑定。
++   对 React 开发者特别感兴趣的是，这篇文章描述了如何在泛型中使用默认值：[`blog.mariusschulz.com/2017/06/02/typescript-2-3-generic-parameter-defaults`](https://blog.mariusschulz.com/2017/06/02/typescript-2-3-generic-parameter-defaults)。请注意，它是在 React 应用程序的背景下编写的，但该功能并不与 React 绑定。
 
 # 总结
 

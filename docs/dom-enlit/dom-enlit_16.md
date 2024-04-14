@@ -1,4 +1,4 @@
-# 第 11 章 - DOM 事件
+# 第十一章 - DOM 事件
 
 ## 11.1 DOM 事件概述
 
@@ -6,7 +6,7 @@
 
 可以使用内联属性事件处理程序、属性事件处理程序或*addEventListener()*方法来设置事件。在下面的代码中，我演示了这三种设置事件的模式。这三种模式都添加了一个在鼠标点击 HTML 文档中的*<div>*时调用的*click*事件。
 
-在线代码：[http://jsfiddle.net/domenlightenment/4EPjN](http://jsfiddle.net/domenlightenment/4EPjN)
+在线代码：[`jsfiddle.net/domenlightenment/4EPjN`](http://jsfiddle.net/domenlightenment/4EPjN)
 
 ```
 <!DOCTYPE html>
@@ -37,7 +37,7 @@ elementDiv.addEventListener('click',function(){console.log('fire/trigger addEven
 
 使用属性事件处理程序的缺点是事件属性一次只能分配一个值。也就是说，当将事件分配为属性值时，不能向 DOM 节点添加多个属性事件处理程序。下面的代码通过两次将值分配给*onclick*属性来显示示例，当事件被调用时，使用最后设置的值。
 
-在线代码：[http://jsfiddle.net/domenlightenment/U8bWR](http://jsfiddle.net/domenlightenment/U8bWR)
+在线代码：[`jsfiddle.net/domenlightenment/U8bWR`](http://jsfiddle.net/domenlightenment/U8bWR)
 
 ```
 <!DOCTYPE html>
@@ -78,7 +78,7 @@ elementDiv.onclick = function(){console.log('I\'m first, but I get overidden/rep
 
 | 事件类型 | 事件接口 | 描述 | 事件目标 | 冒泡 | 可取消 |
 | --- | --- | --- | --- | --- | --- |
-| *load* | *Event*, *UIEvent* | 当资源（HTML页面、图像、CSS、frameset、*<object>* 或 JS 文件）加载时触发。 | *Element*, *Document*, *window*, *XMLHttpRequest*, *XMLHttpRequestUpload* | 否 | 否 |
+| *load* | *Event*, *UIEvent* | 当资源（HTML 页面、图像、CSS、frameset、*<object>* 或 JS 文件）加载时触发。 | *Element*, *Document*, *window*, *XMLHttpRequest*, *XMLHttpRequestUpload* | 否 | 否 |
 | *unload* | *UIEvent* | 当用户代理移除资源（文档、元素、defaultView）或任何依赖资源（图像、CSS 文件等）时触发 | *window*, *<body>*, *<frameset>* | 否 | 否 |
 | *abort* | *Event*, *UIEvent* | 当资源（对象/图像）在完全加载之前被停止加载时触发 | *Element*, *XMLHttpRequest*, *XMLHttpRequestUpload* | 是 | 否 |
 | *error* | *Event*, *UIEvent* | 当资源加载失败，或已加载但无法根据其语义解释时触发，例如无效图像、脚本执行错误或非格式良好的 XML | *Element*, *XMLHttpRequest*, *XMLHttpRequestUpload* | 是 | 否 |
@@ -112,8 +112,8 @@ elementDiv.onclick = function(){console.log('I\'m first, but I get overidden/rep
 | *dblclick* | *MouseEvent* | 当鼠标指针在元素上双击时触发。双击的定义取决于环境配置，除了事件目标在 *mousedown*、*mouseup* 和 *dblclick* 之间必须相同外。如果同时发生单击和双击，则此事件类型必须在 *click* 事件之后分派，否则在 *mouseup* 事件之后分派 | *Element*, *Document*, *window* | 是 | 是 |
 | *mousedown* | *MouseEvent* | 当鼠标指针在元素上按下时触发 | *Element*, *Document*, *window* | 是 | 是 |
 | *mouseenter* | *MouseEvent* | 当鼠标指针移动到元素或其后代元素的边界上时触发。此事件类型类似于 *mouseover*，但不同之处在于它不冒泡，并且当指针设备从一个元素移动到其后代元素的边界时，*mouseenter* 事件不得分派 | *Element*, *Document*, *window* | 否 | 否 |
-| *mouseleave* | *MouseEvent* | 鼠标指针移出元素及其所有后代元素的边界时触发。此事件类型类似于mouseout，但不同之处在于它不冒泡，并且只有在指针设备离开元素及其所有子元素的边界后才能触发 | *Element*, *Document*, *window* | 否 | 否 |
-| *mousemove* | *MouseEvent* | 当鼠标指针在元素上移动时触发。指针设备移动时事件的频率与实现、设备和平台有关，但应为持续指针设备移动触发多个连续的mousemove事件，而不是每次鼠标移动的实例都触发单个事件。鼓励实现确定平衡响应性和性能的最佳频率 | *Element*, *Document*, *window* | 是 | 否 |
+| *mouseleave* | *MouseEvent* | 鼠标指针移出元素及其所有后代元素的边界时触发。此事件类型类似于 mouseout，但不同之处在于它不冒泡，并且只有在指针设备离开元素及其所有子元素的边界后才能触发 | *Element*, *Document*, *window* | 否 | 否 |
+| *mousemove* | *MouseEvent* | 当鼠标指针在元素上移动时触发。指针设备移动时事件的频率与实现、设备和平台有关，但应为持续指针设备移动触发多个连续的 mousemove 事件，而不是每次鼠标移动的实例都触发单个事件。鼓励实现确定平衡响应性和性能的最佳频率 | *Element*, *Document*, *window* | 是 | 否 |
 | *mouseout* | *MouseEvent* | 鼠标指针移出元素的边界时触发。此事件类型类似于*mouseleave*，但不同之处在于它冒泡，并且当指针设备从一个元素移动到其后代元素的边界上时必须触发 | *Element*, *Document*, *window* | 是 | 是 |
 | *mouseup* | *MouseEvent* | 鼠标指针按钮释放时在元素上触发 | *Element*, *Document*, *window* | 是 | 是 |
 | *mouseover* | *MouseEvent* | 鼠标指针移过元素时触发 | *Element*, *Document*, *window* | 是 | 是 |
@@ -139,13 +139,13 @@ elementDiv.onclick = function(){console.log('I\'m first, but I get overidden/rep
 | *touchstart* | *TouchEvent* | 触发事件以指示用户在触摸表面上放置一个触摸点 | *元素*，*文档*，*窗口* | 是 | 是 |
 | *touchend* | *TouchEvent* | 触发事件以指示用户从触摸表面移除一个触摸点，也包括触摸点物理上离开触摸表面的情况，例如被拖出屏幕 | *元素*，*文档*，*窗口* | 是 | 是 |
 | *touchmove* | *TouchEvent* | 触发事件以指示用户沿着触摸表面移动一个触摸点 | *元素*，*文档*，*窗口* | 是 | 是 |
-| *touchenter* | *TouchEvent* | 触发事件以指示触摸点移入DOM元素定义的交互区域 | *元素*，*文档*，*窗口* | 否 | ? |
-| *toucheleave* | *TouchEvent* | 触发事件以指示触摸点移出DOM元素定义的交互区域 | *元素*，*文档*，*窗口* | 否 | ? |
-| *touchcancel* | *TouchEvent* | 触发事件以指示触摸点以实现特定于实现的方式被中断，例如来自UA取消触摸的同步事件或操作，或者触摸点离开文档窗口进入能够处理用户交互的非文档区域。 | *元素*，*文档*，*窗口* | 是 | 否 |
+| *touchenter* | *TouchEvent* | 触发事件以指示触摸点移入 DOM 元素定义的交互区域 | *元素*，*文档*，*窗口* | 否 | ? |
+| *toucheleave* | *TouchEvent* | 触发事件以指示触摸点移出 DOM 元素定义的交互区域 | *元素*，*文档*，*窗口* | 否 | ? |
+| *touchcancel* | *TouchEvent* | 触发事件以指示触摸点以实现特定于实现的方式被中断，例如来自 UA 取消触摸的同步事件或操作，或者触摸点离开文档窗口进入能够处理用户交互的非文档区域。 | *元素*，*文档*，*窗口* | 是 | 否 |
 
 ### 注意
 
-触摸事件通常仅受iOS、安卓和黑莓浏览器或可以切换到触摸模式的浏览器（例如chrome）支持
+触摸事件通常仅受 iOS、安卓和黑莓浏览器或可以切换到触摸模式的浏览器（例如 chrome）支持
 
 **窗口，*<body>* 和特定框架的事件**
 
@@ -154,7 +154,7 @@ elementDiv.onclick = function(){console.log('I\'m first, but I get overidden/rep
 | *afterprint* | ? | 在对象关联的文档打印或打印预览后立即触发 | *窗口*，*<body>*，*<frameset>* | 否 | 否 |
 | *beforeprint* | ? | 在对象关联的文档打印或打印预览之前触发 | *窗口*，*<body>*，*<frameset>* | 否 | 否 |
 | *beforeunload* | ? | 在文档被卸载之前触发 | *窗口*，*<body>*，*<frameset>* | 否 | 是 |
-| *hashchange* | *HashChangeEvent* | 在URL中跟随井号(#)后面的部分发生变化时触发 | *窗口*，*<body>*，*<frameset>* | 否 | 否 |
+| *hashchange* | *HashChangeEvent* | 在 URL 中跟随井号(#)后面的部分发生变化时触发 | *窗口*，*<body>*，*<frameset>* | 否 | 否 |
 | *messsage* | ? | 当用户发送跨文档消息或从带有 *postMessage* 的 *Worker* 发送消息时触发。 | *window*, *<body>*, *<frameset>* | 否 | 否 |
 | *offline* | *NavigatorOnLine* | 浏览器离线工作时触发。 | *window*, *<body>*, *<frameset>* | 否 | 否 |
 | *online* | *NavigatorOnLine* | 浏览器在线工作时触发。 | *window*, *<body>*, *<frameset>* | 否 | 否 |
@@ -182,21 +182,21 @@ elementDiv.onclick = function(){console.log('I\'m first, but I get overidden/rep
 
 ### Notes
 
-下表是根据以下三个资源制作的：[文档对象模型（DOM）3级事件规范5用户事件模块](http://www.w3.org/TR/DOM-Level-3-Events/#events-module)，[DOM事件参考](https://developer.mozilla.org/en/DOM/DOM_event_reference)，[HTML Living Standard 7.1.6 元素、文档对象和窗口对象上的事件处理程序](http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#events)，以及[事件兼容性表](http://www.quirksmode.org/dom/events/)。
+下表是根据以下三个资源制作的：[文档对象模型（DOM）3 级事件规范 5 用户事件模块](http://www.w3.org/TR/DOM-Level-3-Events/#events-module)，[DOM 事件参考](https://developer.mozilla.org/en/DOM/DOM_event_reference)，[HTML Living Standard 7.1.6 元素、文档对象和窗口对象上的事件处理程序](http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#events)，以及[事件兼容性表](http://www.quirksmode.org/dom/events/)。
 
-我在本节中仅提到了最常见的事件类型。请记住，我在本节中排除了许多HTML5 API（例如，[媒体事件](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-definitions)用于*<video>*和*<audio>*元素，或者[XMLHttpRequest Level 2](http://www.w3.org/TR/XMLHttpRequest/#event-handlers)的所有状态更改事件）。
+我在本节中仅提到了最常见的事件类型。请记住，我在本节中排除了许多 HTML5 API（例如，[媒体事件](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-definitions)用于*<video>*和*<audio>*元素，或者[XMLHttpRequest Level 2](http://www.w3.org/TR/XMLHttpRequest/#event-handlers)的所有状态更改事件）。
 
-*copy*、*cut*和*textinput*事件未被DOM 3事件或HTML5定义。
+*copy*、*cut*和*textinput*事件未被 DOM 3 事件或 HTML5 定义。
 
-使用mouseenter和mouseleave代替mouseover和mouseout。不幸的是，Firefox、Chrome和Safari仍未添加这些事件！
+使用 mouseenter 和 mouseleave 代替 mouseover 和 mouseout。不幸的是，Firefox、Chrome 和 Safari 仍未添加这些事件！
 
 ## 11.3 事件流
 
-当事件被调用时，[事件通过DOM流动或传播](http://www.w3.org/TR/DOM-Level-3-Events/#dom-event-architecture)，在其他节点和JavaScript对象上触发相同的事件。事件流可以被编程为发生在捕获阶段（即DOM树从树干到树枝）或冒泡阶段（即DOM树从树枝到树干），或两者兼而有之。
+当事件被调用时，[事件通过 DOM 流动或传播](http://www.w3.org/TR/DOM-Level-3-Events/#dom-event-architecture)，在其他节点和 JavaScript 对象上触发相同的事件。事件流可以被编程为发生在捕获阶段（即 DOM 树从树干到树枝）或冒泡阶段（即 DOM 树从树枝到树干），或两者兼而有之。
 
-在下面的代码中，我设置了10个事件监听器，所有这些监听器都可以通过在HTML文档中的*<div>*元素上点击一次来调用，由于事件流的原因。当点击*<div>*时，捕获阶段从*window*对象开始，沿着DOM树向下传播，为每个对象（即*window* **>** *document* **>** *<html>* **>** *<body>* **>** 事件目标）触发*click*事件，直到达到事件目标。一旦捕获阶段结束，目标阶段开始，为目标元素本身触发*click*事件。接下来，传播阶段从事件目标开始向上传播，触发*click*事件，直到达到*window*对象（即事件目标 **>** *<body>* **>** *<html>* **>** *document* **>** *window*）。有了这个知识，很明显为什么��代码示例中点击*<div>*会将1,2,3,4,5,6,7,8,9,11记录到控制台。
+在下面的代码中，我设置了 10 个事件监听器，所有这些监听器都可以通过在 HTML 文档中的*<div>*元素上点击一次来调用，由于事件流的原因。当点击*<div>*时，捕获阶段从*window*对象开始，沿着 DOM 树向下传播，为每个对象（即*window* **>** *document* **>** *<html>* **>** *<body>* **>** 事件目标）触发*click*事件，直到达到事件目标。一旦捕获阶段结束，目标阶段开始，为目标元素本身触发*click*事件。接下来，传播阶段从事件目标开始向上传播，触发*click*事件，直到达到*window*对象（即事件目标 **>** *<body>* **>** *<html>* **>** *document* **>** *window*）。有了这个知识，很明显为什么��代码示例中点击*<div>*会将 1,2,3,4,5,6,7,8,9,11 记录到控制台。
 
-实时代码：[http://jsfiddle.net/domenlightenment/CAdTv](http://jsfiddle.net/domenlightenment/CAdTv)
+实时代码：[`jsfiddle.net/domenlightenment/CAdTv`](http://jsfiddle.net/domenlightenment/CAdTv)
 
 ```
 <!DOCTYPE html>
@@ -251,17 +251,17 @@ window.addEventListener('click',function(){console.log(10)},false);
 
 1.  捕获阶段在设置为在捕获时触发的文档上调用点击事件
 
-1.  捕获阶段在设置为在捕获时触发的html元素上调用点击事件
+1.  捕获阶段在设置为在捕获时触发的 html 元素上调用点击事件
 
-1.  捕获阶段在设置为在捕获时触发的body元素上调用点击事件
+1.  捕获阶段在设置为在捕获时触发的 body 元素上调用点击事件
 
-1.  目标阶段在设置为在捕获时触发的div元素上调用点击事件
+1.  目标阶段在设置为在捕获时触发的 div 元素上调用点击事件
 
-1.  目标阶段调用设置为冒泡触发的div元素上的点击事件
+1.  目标阶段调用设置为冒泡触发的 div 元素上的点击事件
 
-1.  冒泡阶段调用点击事件在body元素上设置为冒泡触发
+1.  冒泡阶段调用点击事件在 body 元素上设置为冒泡触发
 
-1.  冒泡阶段调用点击事件在html元素上设置为冒泡触发
+1.  冒泡阶段调用点击事件在 html 元素上设置为冒泡触发
 
 1.  冒泡阶段调用点击事件在文档上设置为冒泡触发
 
@@ -269,7 +269,7 @@ window.addEventListener('click',function(){console.log(10)},false);
 
 由于缺乏对此阶段的浏览器支持，使用捕获阶段并不那么常见。通常事件被认为是在冒泡阶段调用的。在下面的代码中，我从上一个代码示例中删除了捕获阶段，并演示了事件调用时通常发生的情况。
 
-实时代码：[http://jsfiddle.net/domenlightenment/C6qmZ](http://jsfiddle.net/domenlightenment/C6qmZ)
+实时代码：[`jsfiddle.net/domenlightenment/C6qmZ`](http://jsfiddle.net/domenlightenment/C6qmZ)
 
 ```
 <!DOCTYPE html>
@@ -309,13 +309,13 @@ window.addEventListener('click',function(){console.log(5)},false);
 
 当您阅读本章的事件委托部分时，请将事件捕获和冒泡的知识放在首要位置。
 
-传递给事件监听器函数的事件对象包含一个*eventPhase*属性，其中包含一个数字，指示事件在哪个阶段调用。值为1表示捕获阶段。值为2表示目标阶段。值为3表示冒泡阶段。
+传递给事件监听器函数的事件对象包含一个*eventPhase*属性，其中包含一个数字，指示事件在哪个阶段调用。值为 1 表示捕获阶段。值为 2 表示目标阶段。值为 3 表示冒泡阶段。
 
 ## 11.4 向*Element*节点、*window*对象和*Document*对象添加事件监听器
 
-*addEventListener()*方法适用于所有*Element*节点、*window*对象和*document*对象，提供了向HTML文档的部分以及与DOM和[BOM](https://developer.mozilla.org/en-US/docs/DOM/window)（浏览器对象模型）相关的JavaScript对象添加事件监听器的能力。在下面的代码中，我利用这个方法向*<div>*元素、*document*对象和*window*对象添加了一个*mousemove*事件。请注意，由于事件流，鼠标移动特别是在*<div>*上时，每次移动都会调用这三个监听器。
+*addEventListener()*方法适用于所有*Element*节点、*window*对象和*document*对象，提供了向 HTML 文档的部分以及与 DOM 和[BOM](https://developer.mozilla.org/en-US/docs/DOM/window)（浏览器对象模型）相关的 JavaScript 对象添加事件监听器的能力。在下面的代码中，我利用这个方法向*<div>*元素、*document*对象和*window*对象添加了一个*mousemove*事件。请注意，由于事件流，鼠标移动特别是在*<div>*上时，每次移动都会调用这三个监听器。
 
-实时代码：[http://jsfiddle.net/domenlightenment/sSFK5](http://jsfiddle.net/domenlightenment/sSFK5)
+实时代码：[`jsfiddle.net/domenlightenment/sSFK5`](http://jsfiddle.net/domenlightenment/sSFK5)
 
 ```
 <!DOCTYPE html>
@@ -348,15 +348,15 @@ document.querySelector('div').addEventListener('mousemove',function(){console.lo
 
 我故意避免讨论内联事件处理程序和属性事件处理程序，而是倡导使用*addEventListener()*。
 
-通常，开发人员希望事件在冒泡阶段触发，以便对象事件处理在将事件冒泡到DOM之前处理事件。因此，您几乎总是将*false*值作为*addEventListener()*的最后一个参数提供。在现代浏览器中，如果未指定第三个参数，则默认为false。
+通常，开发人员希望事件在冒泡阶段触发，以便对象事件处理在将事件冒泡到 DOM 之前处理事件。因此，您几乎总是将*false*值作为*addEventListener()*的最后一个参数提供。在现代浏览器中，如果未指定第三个参数，则默认为 false。
 
 您应该知道*addEventListener()*方法也可以用于*XMLHttpRequest*对象。
 
 ## 11.5 移除事件侦听器
 
-如果原始侦听器不是使用匿名函数添加的，则可以使用*removeEventListener()*方法来移除事件侦听器。在下面的代码中，我向HTML文档添加了两个事件侦听器，并尝试移除它们。然而，只有使用函数引用附加的侦听器被移除。
+如果原始侦听器不是使用匿名函数添加的，则可以使用*removeEventListener()*方法来移除事件侦听器。在下面的代码中，我向 HTML 文档添加了两个事件侦听器，并尝试移除它们。然而，只有使用函数引用附加的侦听器被移除。
 
-实时代码：[http://jsfiddle.net/domenlightenment/XP2Ug](http://jsfiddle.net/domenlightenment/XP2Ug)
+实时代码：[`jsfiddle.net/domenlightenment/XP2Ug`](http://jsfiddle.net/domenlightenment/XP2Ug)
 
 ```
 <!DOCTYPE html>
@@ -395,7 +395,7 @@ document.body.removeEventListener('click',function(){console.log('dude');},false
 
 事件触发时调用的处理程序或回调函数默认会接收一个包含有关事件本身的所有相关信息的参数。在下面的代码中，我演示了如何访问此事件对象，并记录了加载事件和点击事件的所有属性和值。确保点击*<div*>以查看与点击事件相关的属性。
 
-实时代码：[http://jsfiddle.net/domenlightenment/d4SnQ](http://jsfiddle.net/domenlightenment/d4SnQ)
+实时代码：[`jsfiddle.net/domenlightenment/d4SnQ`](http://jsfiddle.net/domenlightenment/d4SnQ)
 
 ```
 <!DOCTYPE html>
@@ -437,7 +437,7 @@ Object.keys(event).sort().forEach(function(item){
 
 传递给*addEventListener()*方法的事件侦听器函数内部的*this*的值将是事件附加到的节点或对象的引用。在下面的代码中，我将事件附加到一个*<div>*，然后在事件侦听器内部使用*this*来访问事件附加的*<div>*元素。
 
-在线代码：[http://jsfiddle.net/domenlightenment/HwKgH](http://jsfiddle.net/domenlightenment/HwKgH)
+在线代码：[`jsfiddle.net/domenlightenment/HwKgH`](http://jsfiddle.net/domenlightenment/HwKgH)
 
 ```
 <!DOCTYPE html>
@@ -461,7 +461,7 @@ console.log(this); *//logs '<div>'*
 
 当事件作为事件流的一部分被触发时，*this*值将保持事件侦听器附加到的节点或对象的值。在下面的代码中，我们向*<body>*添加了一个*click*事件侦听器，无论您点击*<div>*还是*<body>*，*this*的值始终指向*<body>*。
 
-在线代码：[http://jsfiddle.net/domenlightenment/NF2gn](http://jsfiddle.net/domenlightenment/NF2gn)
+在线代码：[`jsfiddle.net/domenlightenment/NF2gn`](http://jsfiddle.net/domenlightenment/NF2gn)
 
 ```
 <!DOCTYPE html>
@@ -485,7 +485,7 @@ console.log(this); *//log <body>...</body>*
 
 另外，可以使用*event.currentTarget*属性来获取相同的引用，即触发事件侦听器的节点或对象，就像*this*属性提供的那样。在下面的代码中，我利用*event.currentTarget*事件对象属性展示它返回与*this*相同的值。
 
-在线代码：[http://jsfiddle.net/domenlightenment/uQm3f](http://jsfiddle.net/domenlightenment/uQm3f)
+在线代码：[`jsfiddle.net/domenlightenment/uQm3f`](http://jsfiddle.net/domenlightenment/uQm3f)
 
 ```
 <!DOCTYPE html>
@@ -522,7 +522,7 @@ console.log(this);
 
 因为事件流的存在，可能会点击包含在*<body>*元素内部的*<div>*，并且触发附加到*<body>*元素的*click*事件侦听器。当这种情况发生时，传递给附加到*<body>*的事件侦听器函数的事件对象（即*event.target*）提供了对产生事件的节点或对象的引用（即目标）。在下面的代码中，当点击*<div>*时，将调用*<body>*元素的*click*事件侦听器，并且*event.target*属性引用了原始的*<div>*，即点击事件的目标。当事件因事件流而触发时，*event.target*可以非常有用，以获取有关事件来源的知识。
 
-在线代码：[http://jsfiddle.net/domenlightenment/dGkTQ](http://jsfiddle.net/domenlightenment/dGkTQ)
+在线代码：[`jsfiddle.net/domenlightenment/dGkTQ`](http://jsfiddle.net/domenlightenment/dGkTQ)
 
 ```
 <!DOCTYPE html>
@@ -548,9 +548,9 @@ console.log(event.target);
 
 ## 11.9 使用*preventDefault()*取消默认浏览器事件
 
-当向用户呈现HTML页面时，浏览器提供了几个已经连接的事件。例如，单击链接具有相应的事件（即导航到URL）。单击复选框也是如此（即选中框），或者在文本字段中输入文本（即输入文本并显示在屏幕上）。这些浏览器事件可以通过在与调用浏览器默认事件的节点或对象相关联的事件处理程序函数中调用*preventDefault()*方法来阻止。在下面的代码中，我阻止了发生在*<a>*、*<input>*和*<textarea>*上的默认事件。
+当向用户呈现 HTML 页面时，浏览器提供了几个已经连接的事件。例如，单击链接具有相应的事件（即导航到 URL）。单击复选框也是如此（即选中框），或者在文本字段中输入文本（即输入文本并显示在屏幕上）。这些浏览器事件可以通过在与调用浏览器默认事件的节点或对象相关联的事件处理程序函数中调用*preventDefault()*方法来阻止。在下面的代码中，我阻止了发生在*<a>*、*<input>*和*<textarea>*上的默认事件。
 
-live code: [http://jsfiddle.net/domenlightenment/Ywcyh](http://jsfiddle.net/domenlightenment/Ywcyh)
+live code: [`jsfiddle.net/domenlightenment/Ywcyh`](http://jsfiddle.net/domenlightenment/Ywcyh)
 
 ```
 <!DOCTYPE html>
@@ -598,13 +598,13 @@ console.log('the event flow still flows!');
 
 传递给事件监听器函数的事件对象包含一个布尔值*cancelable*属性，该属性指示事件是否会响应*preventDefault()*方法并取消默认行为
 
-传递给事件监听器函数的事件对象包含一个*defaultPrevented*属性，如果对冒泡事件调用了*preventDefault()*，则该属性为true。
+传递给事件监听器函数的事件对象包含一个*defaultPrevented*属性，如果对冒泡事件调用了*preventDefault()*，则该属性为 true。
 
 ## 11.10 使用*stopPropagation()*停止事件流
 
 从事件处理程序/监听器内部调用*stopProgagation()*将停止捕获和冒泡事件流阶段，但仍将调用直接附加到节点或对象的任何事件。在下面的代码中，由于我们阻止了事件冒泡到*<body>*上的*onclick*事件，因此*<body>*上的*onclick*事件永远不会被调用。
 
-live code: [http://jsfiddle.net/domenlightenment/RFKmA](http://jsfiddle.net/domenlightenment/RFKmA)
+live code: [`jsfiddle.net/domenlightenment/RFKmA`](http://jsfiddle.net/domenlightenment/RFKmA)
 
 ```
 <!DOCTYPE html>
@@ -639,13 +639,13 @@ console.log('What, denied from being invoked!');
 
 ```
 
-请注意，仍会调用附加到*<div>*的其他点击事件！此外，使用*stopPropagation()*不会阻止默认事件。如果我们的代码示例中的*<div>*是一个带有href值的*<a>*，调用stopPropagation将不会阻止浏览器默认事件的调用。
+请注意，仍会调用附加到*<div>*的其他点击事件！此外，使用*stopPropagation()*不会阻止默认事件。如果我们的代码示例中的*<div>*是一个带有 href 值的*<a>*，调用 stopPropagation 将不会阻止浏览器默认事件的调用。
 
 ## 11.11 使用*stopImmediatePropagation()*停止事件流以及目标上的其他类似事件
 
 在事件处理程序/监听器内部调用*stopImmediatePropagation()*将停止事件流阶段（即*stopPropagation()*），以及任何其他类似事件，这些事件附加到在调用*stopImmediatePropagation()*方法的事件监听器之后的事件目标上。在下面的代码示例中，如果我们从附加到*<div>*的第二个事件监听器中调用*stopImmediatePropagation()*，则接下来的点击事件将不会被调用。
 
-实时代码：[http://jsfiddle.net/domenlightenment/znSjM](http://jsfiddle.net/domenlightenment/znSjM)
+实时代码：[`jsfiddle.net/domenlightenment/znSjM`](http://jsfiddle.net/domenlightenment/znSjM)
 
 ```
 <!DOCTYPE html>
@@ -690,7 +690,7 @@ console.log('What, denied from being invoked!');
 
 开发人员不仅限于预定义的事件类型。可以使用*addEventListener()*方法像平常一样结合*document.createEvent()*、*initCustomEvent()*和*dispatchEvent()*来附加和调用自定义事件。在下面的代码中，我创建了一个名为*goBigBlue*的自定义事件并调用了该事件。
 
-实时代码：[http://jsfiddle.net/domenlightenment/fRndj](http://jsfiddle.net/domenlightenment/fRndj)
+实时代码：[`jsfiddle.net/domenlightenment/fRndj`](http://jsfiddle.net/domenlightenment/fRndj)
 
 ```
 <!DOCTYPE html>
@@ -725,15 +725,15 @@ divElement.dispatchEvent(cheer);​
 
 ### 注意
 
-IE9要求（不是可选的）*initiCustomEvent()*的第四个参数
+IE9 要求（不是可选的）*initiCustomEvent()*的第四个参数
 
-[DOM 4规范添加了一个*CustomEvent()*构造函数](http://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#interface-customevent)，简化了自定义事件的生命周期，但在ie9中不受支持，在撰写本文时仍在变化中。
+[DOM 4 规范添加了一个*CustomEvent()*构造函数](http://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#interface-customevent)，简化了自定义事件的生命周期，但在 ie9 中不受支持，在撰写本文时仍在变化中。
 
 ## 11.13 模拟/触发鼠标事件
 
-模拟事件与创建自定义事件并没有太大不同。在模拟鼠标事件的情况下，我们使用*document.createEvent()*创建一个*'MouseEvent'*。然后，使用*initMouseEvent()*设置即将发生的鼠标事件。接下来，将鼠标事件分派到我们想要模拟事件的元素上（即html文档中的*<div>*）。在下面的代码中，一个点击事件被附加到页面中的*<div>*上。而不是点击*<div>*来调用点击事件，事件是通过程序化地设置鼠标事件并将事件分派到*<div>*来触发或模拟的。
+模拟事件与创建自定义事件并没有太大不同。在模拟鼠标事件的情况下，我们使用*document.createEvent()*创建一个*'MouseEvent'*。然后，使用*initMouseEvent()*设置即将发生的鼠标事件。接下来，将鼠标事件分派到我们想要模拟事件的元素上（即 html 文档中的*<div>*）。在下面的代码中，一个点击事件被附加到页面中的*<div>*上。而不是点击*<div>*来调用点击事件，事件是通过程序化地设置鼠标事件并将事件分派到*<div>*来触发或模拟的。
 
-实时代码：[http://jsfiddle.net/domenlightenment/kx7zJ](http://jsfiddle.net/domenlightenment/kx7zJ)
+实时代码：[`jsfiddle.net/domenlightenment/kx7zJ`](http://jsfiddle.net/domenlightenment/kx7zJ)
 
 ```
 <!DOCTYPE html>
@@ -769,13 +769,13 @@ divElement.dispatchEvent(simulateDivClick);
 
 ### 注意
 
-在撰写本文时，模拟/触发鼠标事件在所有现代浏览器中都有效。模拟其他类型的事件很快变得更加复杂，需要利用[simulate.js](https://github.com/airportyh/simulate.js)或jQuery（例如jQuery的*trigger()*方法）。
+在撰写本文时，模拟/触发鼠标事件在所有现代浏览器中都有效。模拟其他类型的事件很快变得更加复杂，需要利用[simulate.js](https://github.com/airportyh/simulate.js)或 jQuery（例如 jQuery 的*trigger()*方法）。
 
 ## 11.14 事件委托
 
-事件委托，简单地说，是利用事件流和单个事件监听器来处理多个事件目标的编程行为。事件委托的一个副作用是，事件目标在事件创建时不必在DOM中，也能响应事件。这在处理更新DOM的XHR响应时非常方便。通过实现事件委托，添加到DOM中的新内容在JavaScript加载解析后可以立即开始响应事件。想象一下，你有一个拥有无限行和列的表格。使用事件委托，我们可以为*<table>*节点添加一个单个事件监听器，作为事件的初始目标的委托。在下面的代码示例中，点击任何一个*<td>*（即事件的目标）将把它的事件委托给*<table>*上的*click*监听器。不要忘记，所有这些都是因为事件流，特别是冒泡阶段，才变得可能。
+事件委托，简单地说，是利用事件流和单个事件监听器来处理多个事件目标的编程行为。事件委托的一个副作用是，事件目标在事件创建时不必在 DOM 中，也能响应事件。这在处理更新 DOM 的 XHR 响应时非常方便。通过实现事件委托，添加到 DOM 中的新内容在 JavaScript 加载解析后可以立即开始响应事件。想象一下，你有一个拥有无限行和列的表格。使用事件委托，我们可以为*<table>*节点添加一个单个事件监听器，作为事件的初始目标的委托。在下面的代码示例中，点击任何一个*<td>*（即事件的目标）将把它的事件委托给*<table>*上的*click*监听器。不要忘记，所有这些都是因为事件流，特别是冒泡阶段，才变得可能。
 
-在线代码：[http://jsfiddle.net/domenlightenment/BRkVL](http://jsfiddle.net/domenlightenment/BRkVL)
+在线代码：[`jsfiddle.net/domenlightenment/BRkVL`](http://jsfiddle.net/domenlightenment/BRkVL)
 
 ```
 <!DOCTYPE html>

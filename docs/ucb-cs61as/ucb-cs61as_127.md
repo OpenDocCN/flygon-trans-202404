@@ -48,9 +48,9 @@
 
 ## 原始过程
 
-此时，或许很长时间以来，您可能想知道如何在Scheme中表示原始过程。实际上，表示原始过程没有正确的方式，只要`apply`可以使用`primitive-procedure?`和`apply-primitive- procedure`识别和应用它们即可。
+此时，或许很长时间以来，您可能想知道如何在 Scheme 中表示原始过程。实际上，表示原始过程没有正确的方式，只要`apply`可以使用`primitive-procedure?`和`apply-primitive- procedure`识别和应用它们即可。
 
-创建Scheme的人决定将原始过程表示为以符号`primitive`开头并包含实现该原始过程的基础Lisp中的过程的列表。
+创建 Scheme 的人决定将原始过程表示为以符号`primitive`开头并包含实现该原始过程的基础 Lisp 中的过程的列表。
 
 ```
 (define (primitive-procedure? proc)
@@ -75,7 +75,7 @@
        primitive-procedures)) 
 ```
 
-要应用原始过程，我们只需将实现过程应用于参数，使用底层的Lisp系统：
+要应用原始过程，我们只需将实现过程应用于参数，使用底层的 Lisp 系统：
 
 ```
 (define (apply-primitive-procedure proc args)

@@ -3,8 +3,8 @@
 ```
 
     In this chapter, we combine two significant extensions of the pure
-    STLC — records (from chapter [Records](Records.html)) and subtyping (from
-    chapter [Sub](Sub.html)) — and explore their interactions.  Most of the
+    STLC — records (from chapter Records) and subtyping (from
+    chapter Sub) — and explore their interactions.  Most of the
     concepts have already been discussed in those chapters, so the
     presentation here is somewhat terse.  We just comment where things
     are nonstandard.
@@ -192,7 +192,7 @@ Hint Constructors step.
 ## Definition
 
     The definition of subtyping is essentially just what we sketched
-    in the discussion of record subtyping in chapter [Sub](Sub.html), but we
+    in the discussion of record subtyping in chapter Sub, but we
     need to add well-formedness side conditions to some of the rules.
     Also, we replace the "n-ary" width, depth, and permutation
     subtyping rules by binary rules that deal with just the first
@@ -302,7 +302,7 @@ TRCons i[1] T[1] (TRCons i[2] T[2] Tr[3])
 
 TRCons k（TArrow A A）TRcd_j。 （{k:C->C,j:B->B}）
 
-示例子类型示例_0：
+示例子类型示例 _0：
 
 subtype (TArrow C TRcd_kj)
 
@@ -330,7 +330,7 @@ subtype (TArrow C TRcd_kj)
 
 ```
 
-示例子类型示例_1：
+示例子类型示例 _1：
 
 subtype TRcd_kj TRcd_j。
 
@@ -348,7 +348,7 @@ subtype TRcd_kj TRcd_j。
 
 ```
 
-示例子类型示例_2：
+示例子类型示例 _2：
 
 subtype (TArrow TTop TRcd_kj)
 
@@ -692,7 +692,7 @@ Example typing_example_2 :
 
     ☐
 
-End [Examples2](RecordSub.html#Examples2).
+End Examples2.
 
 ## Properties of Typing
 
@@ -716,11 +716,11 @@ has_type Γ t T → well_formed_ty T.
 
 - (* T_Proj *)
 
-应用 [wf_rcd_lookup](RecordSub.html#wf_rcd_lookup)...
+应用 wf_rcd_lookup...
 
 - (* T_Sub *)
 
-应用 [subtype__wf](RecordSub.html#subtype__wf) 到 H。
+应用 subtype__wf 到 H。
 
 解构 H...
 
@@ -760,7 +760,7 @@ Tlookup i T = Some Ti →
 
     证明与 eauto。
 
-记住 [empty](Maps.html#empty) 为 Γ。
+记住 empty 为 Γ。
 
 引言 t T i Ti Hval Htyp。 反转 Ti HeqGamma Hval。
 
@@ -768,7 +768,7 @@ Tlookup i T = Some Ti →
 
 - (* T_Sub *)
 
-应用 ([rcd_types_match](RecordSub.html#rcd_types_match) S) 到 H[0]...
+应用 (rcd_types_match S) 到 H[0]...
 
 解构 H[0] 为 [Si [HgetSi Hsub]]。
 
@@ -778,7 +778,7 @@ Tlookup i T = Some Ti →
 
 在 H[0] 中简化。 简化。 在 H[1] 中简化。
 
-解构 ([beq_id](Maps.html#beq_id) i i[0])。
+解构 (beq_id i i[0])。
 
 + (* i 首先出现 *)
 
@@ -816,15 +816,15 @@ s = tabs x S[1] s[2]。
 
 定理 进展: ∀t T,
 
-[has_type](RecordSub.html#has_type) [empty](Maps.html#empty) [t](RecordSub.html#t) [T](RecordSub.html#T) →
+has_type empty t T →
 
-[value](RecordSub.html#value) [t](RecordSub.html#t) ∨ ∃t', [t](RecordSub.html#t) ⇒ [t'](RecordSub.html#t')。
+value t ∨ ∃t', t ⇒ t'。
 
     证明与 eauto。
 
 引言 t T Ht。
 
-记住 [empty](Maps.html#empty) 为 Γ。
+记住 empty 为 Γ。
 
 反转 HeqGamma。
 
@@ -848,7 +848,7 @@ s = tabs x S[1] s[2]。
 
 * (* t[2] 是一个值 *)
 
-解构 ([canonical_forms_of_arrow_types](RecordSub.html#canonical_forms_of_arrow_types) [empty](Maps.html#empty) t[1] T[1] T[2])
+解构 (canonical_forms_of_arrow_types empty t[1] T[1] T[2])
 
 如 [x [S[1] [t[12] Heqt1]]]...
 
@@ -856,11 +856,11 @@ s = tabs x S[1] s[2]。
 
 * (* t[2] 步骤 *)
 
-解构 H[0] 为 [t[2]' Hstp]。 ∃([tapp](RecordSub.html#tapp) t[1] t[2]')...
+解构 H[0] 为 [t[2]' Hstp]。 ∃(tapp t[1] t[2]')...
 
 + (* t[1] 步骤 *)
 
-解构 H 为 [t[1]' Hstp]。 ∃([tapp](RecordSub.html#tapp) t[1]' t[2])...
+解构 H 为 [t[1]' Hstp]。 ∃(tapp t[1]' t[2])...
 
 - (* T_Proj *)
 
@@ -868,13 +868,13 @@ s = tabs x S[1] s[2]。
 
 + (* rcd 是值 *)
 
-解构 ([lookup_field_in_value](RecordSub.html#lookup_field_in_value) t T i Ti)
+解构 (lookup_field_in_value t T i Ti)
 
 为 [t' [Hget Ht']]...
 
 + (* rcd_steps *)
 
-解构 H[0] 为 [t' Hstp]。 ∃([tproj](RecordSub.html#tproj) t' i)...
+解构 H[0] 为 [t' Hstp]。 ∃(tproj t' i)...
 
 - (* T_RCons *)
 
@@ -888,13 +888,13 @@ s = tabs x S[1] s[2]。
 
 正确。 解构 H[2] 为 [tr' Hstp]。
 
-∃([trcons](RecordSub.html#trcons) i t tr')...
+∃(trcons i t tr')...
 
 + (* 头部 步骤 *)
 
 正确。 解构 H[1] 为 [t' Hstp]。
 
-∃([trcons](RecordSub.html#trcons) i t' tr)... 完毕。
+∃(trcons i t' tr)... 完毕。
 
     *定理* : 对于任意项 t 和类型 T，如果 empty ⊢ t : T
 
@@ -904,39 +904,39 @@ s = tabs x S[1] s[2]。
 
     根据给定的类型推导进行归纳。
 
-+   在类型推导的最后一步是T_Abs或T_RNil的情况下是显而易见的，因为抽象和{}总是值。对于T_Var的情况是无效的，因为变量不能在空上下文中被类型化。
++   在类型推导的最后一步是 T_Abs 或 T_RNil 的情况下是显而易见的，因为抽象和{}总是值。对于 T_Var 的情况是无效的，因为变量不能在空上下文中被类型化。
 
-+   如果在类型推导中的最后一步是通过T_App，则存在项t[1] t[2]和类型T[1] T[2]，使得t = t[1] t[2]，T = T[2]，empty ⊢ t[1] : T[1] → T[2]和empty ⊢ t[2] : T[1]。
++   如果在类型推导中的最后一步是通过 T_App，则存在项 t[1] t[2]和类型 T[1] T[2]，使得 t = t[1] t[2]，T = T[2]，empty ⊢ t[1] : T[1] → T[2]和 empty ⊢ t[2] : T[1]。
 
-    这些类型推导的归纳假设表明t[1]是一个值或步骤，t[2]是一个值或步骤。
+    这些类型推导的归纳假设表明 t[1]是一个值或步骤，t[2]是一个值或步骤。
 
-    +   假设对于某个项t[1]'，t[1] ⇒ t[1]'。那么t[1] t[2] ⇒ t[1]' t[2]通过ST_App1。
+    +   假设对于某个项 t[1]'，t[1] ⇒ t[1]'。那么 t[1] t[2] ⇒ t[1]' t[2]通过 ST_App1。
 
-    +   否则t[1]是一个值。
+    +   否则 t[1]是一个值。
 
-        +   假设对于某个项t[2]'，t[2] ⇒ t[2]'。那么由于t[1]是一个值，所以t[1] t[2] ⇒ t[1] t[2]'通过ST_App2。
+        +   假设对于某个项 t[2]'，t[2] ⇒ t[2]'。那么由于 t[1]是一个值，所以 t[1] t[2] ⇒ t[1] t[2]'通过 ST_App2。
 
-        +   否则，t[2]是一个值。根据引理canonical_forms_for_arrow_types，t[1] = \x:S[1].s2，其中x，S[1]和s[2]。但是由于t[2]是一个值，所以(λx:S[1].s2) t[2] ⇒ [x:=t[2]]s[2]通过ST_AppAbs。
+        +   否则，t[2]是一个值。根据引理 canonical_forms_for_arrow_types，t[1] = \x:S[1].s2，其中 x，S[1]和 s[2]。但是由于 t[2]是一个值，所以(λx:S[1].s2) t[2] ⇒ [x:=t[2]]s[2]通过 ST_AppAbs。
 
-+   如果推导的最后一步是通过T_Proj，则存在一个项tr，一个类型Tr和一个标签i，使得t = tr.i，empty ⊢ tr : Tr，以及Tlookup i Tr = Some T。
++   如果推导的最后一步是通过 T_Proj，则存在一个项 tr，一个类型 Tr 和一个标签 i，使得 t = tr.i，empty ⊢ tr : Tr，以及 Tlookup i Tr = Some T。
 
-    通过IH，tr要么是一个值，要么是一个步骤。如果对于某个项tr'，tr ⇒ tr'，那么通过规则ST_Proj1，tr.i ⇒ tr'.i。
+    通过 IH，tr 要么是一个值，要么是一个步骤。如果对于某个项 tr'，tr ⇒ tr'，那么通过规则 ST_Proj1，tr.i ⇒ tr'.i。
 
-    如果tr是一个值，则引理lookup_field_in_value表明存在一个项ti，使得tlookup i tr = Some ti。由此可知tr.i ⇒ ti通过规则ST_ProjRcd。
+    如果 tr 是一个值，则引理 lookup_field_in_value 表明存在一个项 ti，使得 tlookup i tr = Some ti。由此可知 tr.i ⇒ ti 通过规则 ST_ProjRcd。
 
-+   如果推导的最后一步是通过T_Sub，则存在一个类型S，使得S <: T且empty ⊢ t : S。所需的结果正是类型子推导的归纳假设。
++   如果推导的最后一步是通过 T_Sub，则存在一个类型 S，使得 S <: T 且 empty ⊢ t : S。所需的结果正是类型子推导的归纳假设。
 
-+   如果推导的最后一步是通过T_RCons，则存在一些项t[1] tr，类型T[1] Tr和一个标签t，使得t = {i=t[1], tr}，T = {i:T[1], Tr}，record_tm tr，record_tm Tr，empty ⊢ t[1] : T[1]和empty ⊢ tr : Tr。
++   如果推导的最后一步是通过 T_RCons，则存在一些项 t[1] tr，类型 T[1] Tr 和一个标签 t，使得 t = {i=t[1], tr}，T = {i:T[1], Tr}，record_tm tr，record_tm Tr，empty ⊢ t[1] : T[1]和 empty ⊢ tr : Tr。
 
-    这些类型推导的归纳假设表明t[1]是一个值或步骤，tr是一个值或步骤。我们考虑每种情况：
+    这些类型推导的归纳假设表明 t[1]是一个值或步骤，tr 是一个值或步骤。我们考虑每种情况：
 
-    +   假设对于某个项t[1]'，t[1] ⇒ t[1]'。那么由于t[1]是一个值，所以{i=t[1], tr} ⇒ {i=t[1]', tr}通过规则ST_Rcd_Head。
+    +   假设对于某个项 t[1]'，t[1] ⇒ t[1]'。那么由于 t[1]是一个值，所以{i=t[1], tr} ⇒ {i=t[1]', tr}通过规则 ST_Rcd_Head。
 
-    +   否则t[1]是一个值。
+    +   否则 t[1]是一个值。
 
-        +   假设对于某个项tr'，tr ⇒ tr'。那么由于t[1]是一个值，所以{i=t[1], tr} ⇒ {i=t[1], tr'}通过规则ST_Rcd_Tail。
+        +   假设对于某个项 tr'，tr ⇒ tr'。那么由于 t[1]是一个值，所以{i=t[1], tr} ⇒ {i=t[1], tr'}通过规则 ST_Rcd_Tail。
 
-        +   否则，tr也是一个值。因此，{i=t[1], tr}也是一个值，根据v_rcons。
+        +   否则，tr 也是一个值。因此，{i=t[1], tr}也是一个值，根据 v_rcons。
 
 ```
 
@@ -944,9 +944,9 @@ s = tabs x S[1] s[2]。
 
 ```
 
-引理typing_inversion_var：对于所有Γ x T，
+引理 typing_inversion_var：对于所有Γ x T，
 
-在Γ（tvar x）T下有类型 →
+在Γ（tvar x）T 下有类型 →
 
 ∃S。
 
@@ -956,11 +956,11 @@ s = tabs x S[1] s[2]。
 
 intros Γ x T Hty。
 
-记住([tvar](RecordSub.html#tvar) x)为t。
+记住(tvar x)为 t。
 
-对归纳Hty; intros;
+对归纳 Hty; intros;
 
-反演Heqt; 替换; 尝试通过反演解决。
+反演 Heqt; 替换; 尝试通过反演解决。
 
 - (* T_Var *)
 
@@ -968,9 +968,9 @@ intros Γ x T Hty。
 
 - (* T_Sub *)
 
-将IHHty解构为[U [Hctx HsubU]]... 完成。
+将 IHHty 解构为[U [Hctx HsubU]]... 完成。
 
-引理typing_inversion_app：对于所有Γ t[1] t[2] T[2]，
+引理 typing_inversion_app：对于所有Γ t[1] t[2] T[2]，
 
 在Γ（tapp t[1] t[2]）T[2]下有类型 →
 
@@ -984,11 +984,11 @@ intros Γ x T Hty。
 
 intros Γ t[1] t[2] T[2] Hty.
 
-记住([tapp](RecordSub.html#tapp) t[1] t[2])为t。
+记住(tapp t[1] t[2])为 t。
 
-对于归纳Hty; intros;
+对于归纳 Hty; intros;
 
-反演Heqt; 替换; 尝试通过反演解决。
+反演 Heqt; 替换; 尝试通过反演解决。
 
 - (* T_App *)
 
@@ -996,9 +996,9 @@ intros Γ t[1] t[2] T[2] Hty.
 
 - (* T_Sub *)
 
-将IHHty解构为[U[1] [Hty1 Hty2]]...
+将 IHHty 解构为[U[1] [Hty1 Hty2]]...
 
-断言 Hwf := [has_type__wf](RecordSub.html#has_type__wf) _ _ _ Hty2。
+断言 Hwf := has_type__wf _ _ _ Hty2。
 
 ∃U[1]... Qed。
 
@@ -1014,7 +1014,7 @@ intros Γ t[1] t[2] T[2] Hty.
 
 intros Γ x S[1] t[2] T H。
 
-记住 ([tabs](RecordSub.html#tabs) x S[1] t[2]) 为 t。
+记住 (tabs x S[1] t[2]) 为 t。
 
 对 H 进行归纳。
 
@@ -1022,7 +1022,7 @@ intros Γ x S[1] t[2] T H。
 
 - （* T_Abs *）
 
-断言 Hwf := [has_type__wf](RecordSub.html#has_type__wf) _ _ _ H[0]。
+断言 Hwf := has_type__wf _ _ _ H[0]。
 
 ∃T[12]...
 
@@ -1044,7 +1044,7 @@ Qed。
 
 intros Γ i t[1] Ti H。
 
-记住 ([tproj](RecordSub.html#tproj) t[1] i) 为 t。
+记住 (tproj t[1] i) 为 t。
 
 对 I 进行归纳；
 
@@ -1052,13 +1052,13 @@ intros Γ i t[1] Ti H。
 
 - （* T_Proj *）
 
-断言 [well_formed_ty](RecordSub.html#well_formed_ty) Ti 为 Hwf。
+断言 well_formed_ty Ti 为 Hwf。
 
 {（* 断言的证明 *）
 
-应用 ([wf_rcd_lookup](RecordSub.html#wf_rcd_lookup) i T Ti)...
+应用 (wf_rcd_lookup i T Ti)...
 
-在 H 中应用 [has_type__wf](RecordSub.html#has_type__wf)... }
+在 H 中应用 has_type__wf... }
 
 ∃T。∃Ti...
 
@@ -1082,7 +1082,7 @@ subtype（TRCons i Si Sr）T ∧ Γ ti 有类型 Si ∧
 
 对 Γ i ti tr T Hty 进行归纳。
 
-记住 ([trcons](RecordSub.html#trcons) i ti tr) 为 t。
+记住 (trcons i ti tr) 为 t。
 
 对 Hty 进行归纳；
 
@@ -1098,13 +1098,13 @@ subtype（TRCons i Si Sr）T ∧ Γ ti 有类型 Si ∧
 
 - （* T_RCons *）
 
-断言 [well_formed_ty](RecordSub.html#well_formed_ty) ([TRCons](RecordSub.html#TRCons) i T Tr) 为 Hwf。
+断言 well_formed_ty (TRCons i T Tr) 为 Hwf。
 
 {（* 断言的证明 *）
 
-在 Hty1 中应用 [has_type__wf](RecordSub.html#has_type__wf)。
+在 Hty1 中应用 has_type__wf。
 
-在 Hty2 中应用 [has_type__wf](RecordSub.html#has_type__wf)...
+在 Hty2 中应用 has_type__wf...
 
 ∃T。∃Tr... Qed。
 
@@ -1120,11 +1120,11 @@ subtype T[1] S[1]
 
 intros x S[1] s[2] T[1] T[2] Hty。
 
-在 Hty 中应用 [typing_inversion_abs](RecordSub.html#typing_inversion_abs)。
+在 Hty 中应用 typing_inversion_abs。
 
 将 Hty 分解为 [S[2] [Hsub Hty]]。
 
-在 Hsub 中应用 [子反转箭头](RecordSub.html#sub_inversion_arrow)。
+在 Hsub 中应用 子反转箭头。
 
 将 Hsub 分解为 [U[1] [U[2] [Heq [Hsub1 Hsub2]]]]。
 
@@ -1196,21 +1196,21 @@ intros Γ' Heqv...
 
 - (* T_Var *)
 
-应用[T_Var](RecordSub.html#T_Var)... 重写 ← Heqv...
+应用 T_Var... 重写 ← Heqv...
 
 - (* T_Abs *)
 
-应用[T_Abs](RecordSub.html#T_Abs)... 应用 IHhas_type。intros x[0] Hafi。
+应用 T_Abs... 应用 IHhas_type。intros x[0] Hafi。
 
-展开[update](Maps.html#update), [t_update](Maps.html#t_update)。分解([beq_idP](Maps.html#beq_idP) x x[0])...
+展开 update, t_update。分解(beq_idP x x[0])...
 
 - (* T_App *)
 
-应用[T_App](RecordSub.html#T_App)与T[1]...
+应用 T_App 与 T[1]...
 
 - (* T_RCons *)
 
-应用[T_RCons](RecordSub.html#T_RCons)... 完成。
+应用 T_RCons... 完成。
 
 引理自由出现在上下文中：∀x t T Γ，
 
@@ -1230,9 +1230,9 @@ intros x t T Γ Hafi Htyp。
 
 将 IHHtyp H[5] 分解为[T Hctx]。 ∃T。
 
-在 Hctx 中展开[update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-在 Hctx 中重写[false_beq_id](Maps.html#false_beq_id)... 完成。
+在 Hctx 中重写 false_beq_id... 完成。
 
 ```
 
@@ -1260,11 +1260,11 @@ intros Γ x U v t S Htypt Htypv。
 
 将 i 重命名为 y。
 
-分解([typing_inversion_var](RecordSub.html#typing_inversion_var) _ _ _ Htypt)为[T [Hctx Hsub]]。
+分解(typing_inversion_var _ _ _ Htypt)为[T [Hctx Hsub]]。
 
-在 Hctx 中展开[update](Maps.html#update), [t_update](Maps.html#t_update)。
+在 Hctx 中展开 update, t_update。
 
-分解([beq_idP](Maps.html#beq_idP) x y)...
+分解(beq_idP x y)...
 
 + (* x=y *)
 
@@ -1272,87 +1272,87 @@ intros Γ x U v t S Htypt Htypv。
 
 反演 Hctx；替换。清除 Hctx。
 
-应用[context_invariance](RecordSub.html#context_invariance)与[empty](Maps.html#empty)...
+应用 context_invariance 与 empty...
 
 intros x Hcontra。
 
-分解([free_in_context](RecordSub.html#free_in_context) _ _ S [empty](Maps.html#empty) Hcontra)为[T' HT']...
+分解(free_in_context _ _ S empty Hcontra)为[T' HT']...
 
 反演 HT'。
 
 + (* x<>y *)
 
-分解([subtype__wf](RecordSub.html#subtype__wf) _ _ Hsub)...
+分解(subtype__wf _ _ Hsub)...
 
 - (* tapp *)
 
-分解([typing_inversion_app](RecordSub.html#typing_inversion_app) _ _ _ _ Htypt)
+分解(typing_inversion_app _ _ _ _ Htypt)
 
 作为[T[1] [Htypt1 Htypt2]]。
 
-应用[T_App](RecordSub.html#T_App)...
+应用 T_App...
 
 - (* tabs *)
 
 将 i 重命名为 y。将 t 重命名为 T[1]。
 
-分解([typing_inversion_abs](RecordSub.html#typing_inversion_abs) _ _ _ _ _ Htypt)
+分解(typing_inversion_abs _ _ _ _ _ Htypt)
 
 作为[T[2] [Hsub Htypt2]]。
 
-分解([subtype__wf](RecordSub.html#subtype__wf) _ _ Hsub)为[Hwf1 Hwf2]。
+分解(subtype__wf _ _ Hsub)为[Hwf1 Hwf2]。
 
 反演 Hwf2。替换。
 
-应用[T_Sub](RecordSub.html#T_Sub)与([TArrow](RecordSub.html#TArrow) T[1] T[2])... 应用[T_Abs](RecordSub.html#T_Abs)...
+应用 T_Sub 与(TArrow T[1] T[2])... 应用 T_Abs...
 
-分解([beq_idP](Maps.html#beq_idP) x y)。
+分解(beq_idP x y)。
 
 + (* x=y *)
 
-应用[context_invariance](RecordSub.html#context_invariance)...
+应用 context_invariance...
 
 替换。
 
-intros x Hafi. 展开[update](Maps.html#update), [t_update](Maps.html#t_update)。
+intros x Hafi. 展开 update, t_update。
 
-分解([beq_id](Maps.html#beq_id) y x)...
+分解(beq_id y x)...
 
 + (* x<>y *)
 
-应用 IHt。应用[context_invariance](RecordSub.html#context_invariance)...
+应用 IHt。应用 context_invariance...
 
-intros z Hafi。展开[update](Maps.html#update), [t_update](Maps.html#t_update)。
+intros z Hafi。展开 update, t_update。
 
-分解([beq_idP](Maps.html#beq_idP) y z)...
+分解(beq_idP y z)...
 
-替换。重写[false_beq_id](Maps.html#false_beq_id)...
+替换。重写 false_beq_id...
 
 - (* tproj *)
 
-解构（[typing_inversion_proj](RecordSub.html#typing_inversion_proj) _ _ _ _ Htypt）
+解构（typing_inversion_proj _ _ _ _ Htypt）
 
 作为 [T [Ti [Hget [Hsub Htypt1]]]]...
 
 - (* trnil *)
 
-应用 [context_invariance](RecordSub.html#context_invariance)...
+应用 context_invariance...
 
 推断 y Hcontra。反演 Hcontra。
 
 - (* trcons *)
 
-解构（[typing_inversion_rcons](RecordSub.html#typing_inversion_rcons) _ _ _ _ _ Htypt）为
+解构（typing_inversion_rcons _ _ _ _ _ Htypt）为
 
 [Ti [Tr [Hsub [HtypTi [Hrcdt2 HtypTr]]]]]。
 
-应用 [T_Sub](RecordSub.html#T_Sub) 与 ([TRCons](RecordSub.html#TRCons) i Ti Tr)...
+应用 T_Sub 与 (TRCons i Ti Tr)...
 
-应用 [T_RCons](RecordSub.html#T_RCons)...
+应用 T_RCons...
 
 + (* 记录类型 Tr *)
 
-应用 [subtype__wf](RecordSub.html#subtype__wf) 在 Hsub 中。解构 Hsub。反演 H[0]...
+应用 subtype__wf 在 Hsub 中。解构 Hsub。反演 H[0]...
 
 + (* 记录项 (x:=vt[2]) *)
 
@@ -1370,7 +1370,7 @@ t ⇒ t'  →
 
 推断 t t' T HT。
 
-记住 [empty](Maps.html#empty) 为 Γ。推广依赖于 HeqGamma。
+记住 empty 为 Γ。推广依赖于 HeqGamma。
 
 推广依赖于 t'。
 
@@ -1384,13 +1384,13 @@ t ⇒ t'  →
 
 + (* ST_AppAbs *)
 
-解构（[abs_arrow](RecordSub.html#abs_arrow) _ _ _ _ _ HT[1]）为 [HA[1] HA[2]]。
+解构（abs_arrow _ _ _ _ _ HT[1]）为 [HA[1] HA[2]]。
 
-应用 [substitution_preserves_typing](RecordSub.html#substitution_preserves_typing) 与 T...
+应用 substitution_preserves_typing 与 T...
 
 - (* T_Proj *)
 
-解构（[lookup_field_in_value](RecordSub.html#lookup_field_in_value) _ _ _ _ H[2] HT H）
+解构（lookup_field_in_value _ _ _ _ H[2] HT H）
 
 作为 [vi [Hget Hty]]。
 
@@ -1398,7 +1398,7 @@ t ⇒ t'  →
 
 - (* T_RCons *)
 
-使用 [step_preserves_record_tm](RecordSub.html#step_preserves_record_tm) 自动完成。完成。
+使用 step_preserves_record_tm 自动完成。完成。
 
 ```
 

@@ -6,7 +6,7 @@
 
 假设您已经在 AwesomeProject 中创建了一些功能，您想要为当前项目创建完全相同的环境。
 
-![](integrationdemo.png)
+![](img/integrationdemo.png)
 
 **请注意**，版本在您的应用程序发布后非常重要。如果您想要升级 react-native 并打包代码，那几乎意味着您不想再维护旧版本了。
 
@@ -34,7 +34,7 @@
 
     然后 `pod install`
 
-    ![](pod_integration.png)
+    ![](img/pod_integration.png)
 
 # 8.1.1 包
 
@@ -71,9 +71,9 @@ react-native bundle
 
 但演示正常运行，所以我决定复制它的构建设置。最后在我的 Nexus 5X 上正常工作。步骤：
 
-+   添加路径到根 gradle 文件，![](integration_android_step11.png)
++   添加路径到根 gradle 文件，![](img/integration_android_step11.png)
 
-+   修改应用 gradle 文件，![](integration_android_step22.png)
++   修改应用 gradle 文件，![](img/integration_android_step22.png)
 
     *1\. 官方演示使用此变量来控制是否为不同的 cpu 构建不同的应用程序，这将减小每个应用程序的大小，我在这里只是忽略它。
 
@@ -93,11 +93,11 @@ react-native bundle
       compile 'org.webkit:android-jsc:r174650' 
     ```
 
-+   修改根 gradle.properties，![](integration_android_step3.png)
++   修改根 gradle.properties，![](img/integration_android_step3.png)
 
-+   添加 proguard 规则，![](integration_android_step4.png)
++   添加 proguard 规则，![](img/integration_android_step4.png)
 
-+   AndroidManifest.xml，如果不需要调试模式，则可以删除权限。![](integration_android_step5.png)
++   AndroidManifest.xml，如果不需要调试模式，则可以删除权限。![](img/integration_android_step5.png)
 
 # 8.2.1 包
 

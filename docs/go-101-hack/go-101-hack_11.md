@@ -50,7 +50,7 @@ package main
 import "fmt"
 
 func main()  {
-    s := "日志log"
+    s := "日志 log"
     fmt.Println(len(s))
 } 
 ```
@@ -70,7 +70,7 @@ package main
 import "fmt"
 
 func main() {
-    s := "日志log"
+    s := "日志 log"
     for index, runeValue := range s {
         fmt.Printf("%#U starts at byte position %d\n", runeValue, index)
     }

@@ -94,6 +94,6 @@ func main()  {
 
 参考资料：
 
-[Go编程语言](http://www.gopl.io/)；
+[Go 编程语言](http://www.gopl.io/)；
 
 [延迟、恐慌和恢复](https://blog.golang.org/defer-panic-and-recover)。

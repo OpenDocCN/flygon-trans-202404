@@ -48,7 +48,7 @@ Require Import Coq.Logic.FunctionalExtensionality.
 
     标准库的文档可以在
 
-    [http://coq.inria.fr/library/](http://coq.inria.fr/library/).
+    [`coq.inria.fr/library/`](http://coq.inria.fr/library/).
 
     使用搜索命令是查找涉及定理的好方法
 
@@ -60,7 +60,7 @@ Require Import Coq.Logic.FunctionalExtensionality.
 
     First, we need a type for the keys that we use to index into our
     maps.  For this purpose, we again use the type id from the
-    [Lists](Lists.html) chapter.  To make this chapter self contained, we repeat
+    Lists chapter.  To make this chapter self contained, we repeat
     its definition here, together with the equality comparison
     function for ids and its fundamental property.
 
@@ -117,7 +117,7 @@ beq_id x y = true ↔ x = y。
 
 intros [n[1]] [n[2]]。
 
-展开 [beq_id](Maps.html#beq_id)。
+展开 beq_id。
 
 destruct ([string_dec](http://coq.inria.fr/library/Coq.Strings.String.html#string_dec) n[1] n[2])。
 
@@ -145,7 +145,7 @@ beq_id x y = false
 
     Proof.
 
-intros x y. 重写 ← [beq_id_true_iff](Maps.html#beq_id_true_iff)。
+intros x y. 重写 ← beq_id_true_iff。
 
 rewrite [not_true_iff_false](http://coq.inria.fr/library/Coq.Bool.Bool.html#not_true_iff_false). reflexivity. Qed.
 
@@ -163,7 +163,7 @@ x ≠ y
 
     Proof。
 
-intros x y. rewrite [beq_id_false_iff](Maps.html#beq_id_false_iff).
+intros x y. rewrite beq_id_false_iff.
 
 intros H. 应用 H. Qed.
 
@@ -173,7 +173,7 @@ intros H. 应用 H. Qed.
 
     Our main job in this chapter will be to build a definition of
     partial maps that is similar in behavior to the one we saw in the
-    [Lists](Lists.html) chapter, plus accompanying lemmas about its behavior.
+    Lists chapter, plus accompanying lemmas about its behavior.
 
     This time around, though, we're going to use *functions*, rather
     than lists of key-value pairs, to build maps.  The advantage of
@@ -267,7 +267,7 @@ Example update_example4 : examplemap (Id "bar") = true。
     facts about how they behave.  Even if you don't work the following
     exercises, make sure you thoroughly understand the statements of
     the lemmas!  (Some of the proofs require the functional
-    extensionality axiom, which is discussed in the [Logic](Logic.html)
+    extensionality axiom, which is discussed in the Logic
     chapter.) 
 
 #### Exercise: 1 star, optional (t_apply_empty)
@@ -355,13 +355,13 @@ t_update (t_update m x v[1]) x v[2]
     ☐ 
 
     For the final two lemmas about total maps, it's convenient to use
-    the reflection idioms introduced in chapter [IndProp](IndProp.html).  We begin
+    the reflection idioms introduced in chapter IndProp.  We begin
     by proving a fundamental *reflection lemma* relating the equality
     proposition on ids with the boolean function beq_id. 
 
 #### Exercise: 2 stars, optional (beq_idP)
 
-    Use the proof of beq_natP in chapter [IndProp](IndProp.html) as a template to
+    Use the proof of beq_natP in chapter IndProp as a template to
     prove the following:
 
 ```
@@ -382,7 +382,7 @@ t_update (t_update m x v[1]) x v[2]
 
 #### Exercise: 2 stars (t_update_same)
 
-    With the example in chapter [IndProp](IndProp.html) as a template, use
+    With the example in chapter IndProp as a template, use
     beq_idP to prove the following theorem, which states that if we
     update a map to assign key x the same value as it already has in
     m, then the result is equal to m:
@@ -457,7 +457,7 @@ Definition update {A:Type} (m : partial_map A)
 Lemma apply_empty : ∀A x, @empty A x = None.
 
     Proof.
-  intros. unfold [empty](Maps.html#empty). rewrite [t_apply_empty](Maps.html#t_apply_empty).
+  intros. unfold empty. rewrite t_apply_empty.
   reflexivity.
     Qed.
 
@@ -465,7 +465,7 @@ Lemma update_eq : ∀A (m: partial_map A) x v,
   (update m x v) x = Some v.
 
     Proof.
-  intros. unfold [update](Maps.html#update). rewrite [t_update_eq](Maps.html#t_update_eq).
+  intros. unfold update. rewrite t_update_eq.
   reflexivity.
     Qed.
 
@@ -476,14 +476,14 @@ Theorem update_neq : ∀(X:Type) v x[1] x[2]
 
     Proof.
   intros X v x[1] x[2] m H.
-  unfold [update](Maps.html#update). rewrite [t_update_neq](Maps.html#t_update_neq). reflexivity.
+  unfold update. rewrite t_update_neq. reflexivity.
   apply H. Qed.
 
 Lemma update_shadow : ∀A (m: partial_map A) v[1] v[2] x,
   update (update m x v[1]) x v[2] = update m x v[2].
 
     Proof.
-  intros A m v[1] v[2] x[1]. unfold [update](Maps.html#update). rewrite [t_update_shadow](Maps.html#t_update_shadow).
+  intros A m v[1] v[2] x[1]. unfold update. rewrite t_update_shadow.
   reflexivity.
     Qed.
 
@@ -492,8 +492,8 @@ Theorem update_same : ∀X v x (m : partial_map X),
   update m x v = m.
 
     Proof.
-  intros X v x m H. unfold [update](Maps.html#update). rewrite ← H.
-  apply [t_update_same](Maps.html#t_update_same).
+  intros X v x m H. unfold update. rewrite ← H.
+  apply t_update_same.
     Qed.
 
 Theorem update_permute : ∀(X:Type) v[1] v[2] x[1] x[2]
@@ -503,8 +503,8 @@ Theorem update_permute : ∀(X:Type) v[1] v[2] x[1] x[2]
   = (update (update m x[1] v[1]) x[2] v[2]).
 
     Proof.
-  intros X v[1] v[2] x[1] x[2] m. unfold [update](Maps.html#update).
-  apply [t_update_permute](Maps.html#t_update_permute).
+  intros X v[1] v[2] x[1] x[2] m. unfold update.
+  apply t_update_permute.
     Qed.
 
 ```

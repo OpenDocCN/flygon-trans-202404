@@ -1,4 +1,4 @@
-[地图](data_mining_map.htm) > [数据科学](data_mining.htm) > [预测未来](predicting_the_future.htm) > [建模](modeling.htm) > 聚类
+地图 > 数据科学 > 预测未来 > 建模 > 聚类
 
 # 聚类
 
@@ -6,17 +6,17 @@
 
 1.  分层
 
-    +   [聚合](clustering_hierarchical.htm)
+    +   聚合
 
-    +   [分裂](clustering_hierarchical.htm)
+    +   分裂
 
 1.  部分的
 
-    +   [K 均值](clustering_kmeans.htm)
+    +   K 均值
 
-    +   [自组织映射](clustering_som.htm)
+    +   自组织映射
 
-<map name="FPMap0"></map>![](../Images/59715853427e490bfa39277b4393688d.jpg)
+<map name="FPMap0"></map>![](img/59715853427e490bfa39277b4393688d.jpg)
 
 一个好的聚类方法的要求是：
 
@@ -34,4 +34,4 @@
 
 聚类中一个重要问题是如何确定两个对象之间的相似性，以便可以从具有高相似性的对象形成簇，并且簇内的相似性低于簇间的相似性。通常，为了测量对象之间的相似性或差异性，会使用距离度量，如欧氏距离、曼哈顿距离和闵可夫斯基距离。距离函数会为彼此更相似的对象对返回较低的值。
 
-![](../Images/3cb28db6e74c54ef6fb827ef1e9a8f3e.jpg)
+![](img/3cb28db6e74c54ef6fb827ef1e9a8f3e.jpg)

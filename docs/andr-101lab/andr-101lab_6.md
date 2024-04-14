@@ -6,7 +6,7 @@
 
 # 目标
 
-在这个实验中，你将完成我们的Donation案例研究**Donation.5.0**的另一个重构。我们将在之前的实验基础上进行扩展，并添加一些新功能，最重要的是，连接到基于REST的Web服务。完成这个实验后，你将能够
+在这个实验中，你将完成我们的 Donation 案例研究**Donation.5.0**的另一个重构。我们将在之前的实验基础上进行扩展，并添加一些新功能，最重要的是，连接到基于 REST 的 Web 服务。完成这个实验后，你将能够
 
 +   连接到远程服务器以检索和删除捐赠
 
@@ -18,31 +18,31 @@
 
 # 设置 - 起始代码
 
-与之前的实验一样，你可以下载[Donation.5.0.starter](Donation.5.0.Starter.zip)的解决方案/起始代码，或者继续使用你自己的版本。
+与之前的实验一样，你可以下载 Donation.5.0.starter 的解决方案/起始代码，或者继续使用你自己的版本。
 
 你当前的项目（重命名/复制后）应该如下所示：
 
-![](lab6s101.png)
+![](img/lab6s101.png)
 
 在这个实验中，你需要做以下事情：
 
-+   通过[捐赠姐妹网站](http://donationweb-4-0.herokuapp.com)添加REST支持
++   通过[捐赠姐妹网站](http://donationweb-4-0.herokuapp.com)添加 REST 支持
 
 +   删除数据库支持并恢复原始的捐赠列表
 
-+   重构现有类以适应新的REST API
++   重构现有类以适应新的 REST API
 
-以下步骤将指导你完成这些要求，所以我们将从引入连接到我们Web服务所需的类开始。
+以下步骤将指导你完成这些要求，所以我们将从引入连接到我们 Web 服务所需的类开始。
 
 # 步骤 02
 
-# 添加REST支持和项目清理
+# 添加 REST 支持和项目清理
 
-这个版本的Donation的主要目的是连接到一个Web服务（[我们的姐妹网站](http://donationweb-4-0.herokuapp.com)）并能够检索、插入和删除捐赠。
+这个版本的 Donation 的主要目的是连接到一个 Web 服务（[我们的姐妹网站](http://donationweb-4-0.herokuapp.com)）并能够检索、插入和删除捐赠。
 
-为了让事情变得更容易，我开发了一个简单的API来进行HTTP调用，并将响应从JSON转换为我们的Android应用程序可以使用的对象。
+为了让事情变得更容易，我开发了一个简单的 API 来进行 HTTP 调用，并将响应从 JSON 转换为我们的 Android 应用程序可以使用的对象。
 
-所以继续并下载这个包[这里](api.zip)。
+所以继续并下载这个包这里。
 
 解压后的存档包括以下内容：
 
@@ -50,25 +50,25 @@
 
 +   Rest.java
 
-（在Finder中查看）
+（在 Finder 中查看）
 
-![](lab6s201.png)
+![](img/lab6s201.png)
 
-你需要将这些类添加到你的Android Studio项目中，最简单的方法是在Windows资源管理器或Finder中复制api文件夹，然后直接粘贴到Android Studio项目中的**ie.app**包中。完成后，你的项目应该看起来像这样：
+你需要将这些类添加到你的 Android Studio 项目中，最简单的方法是在 Windows 资源管理器或 Finder 中复制 api 文件夹，然后直接粘贴到 Android Studio 项目中的**ie.app**包中。完成后，你的项目应该看起来像这样：
 
-![](lab6s202.png)
+![](img/lab6s202.png)
 
 现在，如果你重新构建项目
 
 构建->重新构建项目
 
-你会遇到一些与[Google的Gson](https://sites.google.com/site/gson/gson-user-guide)相关的错误，所以首先要做的是将**Google的Gson**依赖项添加到我们的项目中：
+你会遇到一些与[Google 的 Gson](https://sites.google.com/site/gson/gson-user-guide)相关的错误，所以首先要做的是将**Google 的 Gson**依赖项添加到我们的项目中：
 
 打开你的'app'的'build.gradle'文件，而不是项目的���
 
-![](lab6s203.png)
+![](img/lab6s203.png)
 
-添加Gson依赖
+添加 Gson 依赖
 
 ```
 compile 'com.google.code.gson:gson:2.2.3' 
@@ -76,17 +76,17 @@ compile 'com.google.code.gson:gson:2.2.3'
 
 所以你的构建文件中的依赖关系看起来像这样
 
-![](lab6s204.png)
+![](img/lab6s204.png)
 
 再次重建你的项目，现在应该没有错误了！
 
-我们接下来需要做的是删除我们的数据库类，并将一个简单的列表重新引入到我们的DonationApp应用程序类中。
+我们接下来需要做的是删除我们的数据库类，并将一个简单的列表重新引入到我们的 DonationApp 应用程序类中。
 
 所以，
 
 +   首先，只需删除整个**ie.app.database**包（不用担心错误，我们很快会修复它们）
 
-+   接下来，将我们的捐赠列表重新引入DonationApp类中
++   接下来，将我们的捐赠列表重新引入 DonationApp 类中
 
     ```
     public List <Donation> donations    = new ArrayList<Donation>(); 
@@ -94,17 +94,17 @@ compile 'com.google.code.gson:gson:2.2.3'
 
 +   最后，在项目中删除所有对**dbManager**的引用，并替换为我们的**donations**或**app.donations**（根据上下文而定）。
 
-就功能而言，我们实际上已经退步了，因为我们不是直接将捐赠添加到我们的列表中 - 列表只用于保存我们REST调用的结果。
+就功能而言，我们实际上已经退步了，因为我们不是直接将捐赠添加到我们的列表中 - 列表只用于保存我们 REST 调用的结果。
 
-那么让我们继续开始使用我们的REST类进行数据检索。
+那么让我们继续开始使用我们的 REST 类进行数据检索。
 
-# 第03步
+# 第 03 步
 
 # 捐赠活动 - 获取运行总数
 
 当我们的捐赠应用程序初始启动时，我们希望确保当前总数（如果有）已正确设置，并且与我们姊妹网站列出的捐赠相对应。
 
-我们需要从服务器检索所有捐赠的列表并设置我们的总数。我们将通过我们的REST类和使用AsyncTasks在后台线程上执行这些调用来实现这一点。
+我们需要从服务器检索所有捐赠的列表并设置我们的总数。我们将通过我们的 REST 类和使用 AsyncTasks 在后台线程上执行这些调用来实现这一点。
 
 在我们开始之前，我们需要允许我们的应用程序访问互联网（和网络），因此我们需要在清单文件中添加一些权限，因此请将以下内容添加到您的**AndroidManifest.xml**文件中（就在<application>标签之前）
 
@@ -171,15 +171,15 @@ private class GetAllTask extends AsyncTask<String, Void, List<Donation>> {
     } 
 ```
 
-如果您尝试运行您的应用程序，它将连接到Web服务并从姊妹站点返回我们的列表 - 但然后会崩溃。您能从日志中找出这是为什么发生的以及如何修复吗？
+如果您尝试运行您的应用程序，它将连接到 Web 服务并从姊妹站点返回我们的列表 - 但然后会崩溃。您能从日志中找出这是为什么发生的以及如何修复吗？
 
-# 第04步
+# 第 04 步
 
 # 重构我们的捐赠模型
 
-如果您特别注意了上一个请求返回的JSON字符串，您会看到有4个不同类型的属性 - 它们与我们当前的**Donation**类不匹配。
+如果您特别注意了上一个请求返回的 JSON 字符串，您会看到有 4 个不同类型的属性 - 它们与我们当前的**Donation**类不匹配。
 
-这就是应用程序崩溃的原因 - 我们试图将我们的json字符串转换为不同类型的对象列表。
+这就是应用程序崩溃的原因 - 我们试图将我们的 json 字符串转换为不同类型的对象列表。
 
 那么，请继续使用此模型替换您当前的捐赠模型
 
@@ -210,15 +210,15 @@ public class Donation {
 
 有一些小错误要修复，但是一旦您修复了，再次运行您的应用程序，您应该会得到类似以下的东西：
 
-![](lab6s401.png)
+![](img/lab6s401.png)
 
-# 第05步
+# 第 05 步
 
 # 报告活动 - 重构我们的布局
 
 现在我们可以看到我们的总捐款了，让我们在我们的报告活动中显示它们。
 
-我们首先需要对我们的布局进行一些修改，并且我们将介绍Android的[SwipereRreshLayout](http://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html)功能，因此请用此布局替换您当前的报告布局
+我们首先需要对我们的布局进行一些修改，并且我们将介绍 Android 的[SwipereRreshLayout](http://developer.android.com/reference/android/support/v4/widget/SwipeRefreshLayout.html)功能，因此请用此布局替换您当前的报告布局
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -297,13 +297,13 @@ public class Donation {
 </RelativeLayout> 
 ```
 
-我们还需要修改我们的自定义行，以便用户可以看到每笔捐赠的'upvotes'数量，因此请尝试通过引入新的TextView资源来重构您的row_donate.xml以显示'upvotes'。我们还将能够通过“删除”按钮删除捐赠，因此在重构自定义行时，请尝试这样做（就像这样）
+我们还需要修改我们的自定义行，以便用户可以看到每笔捐赠的'upvotes'数量，因此请尝试通过引入新的 TextView 资源来重构您的 row_donate.xml 以显示'upvotes'。我们还将能够通过“删除”按钮删除捐赠，因此在重构自定义行时，请尝试这样做（就像这样）
 
-![](lab6s501.png)
+![](img/lab6s501.png)
 
 （别担心，解决方案在下一步，但首先试试）
 
-# 第06步
+# 第 06 步
 
 # 报告活动 - 显示我们的捐赠
 
@@ -357,23 +357,23 @@ public class Donation {
 
 现在，如果您再次运行应用程序，并选择报告菜单选项，您实际上将看到从服务器检索到的列表（尚未进行任何投票） - 无需额外编码 - 这是如何可能的？
 
-![](lab6s601.png)
+![](img/lab6s601.png)
 
 尝试滑动刷新手势，看看会发生什么？
 
-# 第07步
+# 第 07 步
 
 # 报告活动 - 实施滑动刷新
 
 您可能已经注意到，即使我们可以“刷新”报告列表，但我们看到的只是刷新进度一直旋转 - 除了关闭活动外，我们没有停止它的办法。
 
-![](lab6s701.png)
+![](img/lab6s701.png)
 
 原因是，我们没有后端实现手势来实际刷新列表中的数据 - 所以让我们做这个。
 
-我们需要做的第一件事是引入一个新的AsyncTask来检索捐款 - 更高级的方法可以利用接口和继承来重用已经存在的AsyncTasks（例如我们的GetAllTask），但目前我们将尽量保持尽可能简单，并为报告活动编写一个新的GetAllTask。
+我们需要做的第一件事是引入一个新的 AsyncTask 来检索捐款 - 更高级的方法可以利用接口和继承来重用已经存在的 AsyncTasks（例如我们的 GetAllTask），但目前我们将尽量保持尽可能简单，并为报告活动编写一个新的 GetAllTask。
 
-将以下AsyncTask添加到Report Activity中；
+将以下 AsyncTask 添加到 Report Activity 中；
 
 ```
 private class GetAllTask extends AsyncTask<String, Void, List<Donation>> {
@@ -421,13 +421,13 @@ private class GetAllTask extends AsyncTask<String, Void, List<Donation>> {
     } 
 ```
 
-修复所有错误（除了1个），然后引入以下参考资料
+修复所有错误（除了 1 个），然后引入以下参考资料
 
 ```
 SwipeRefreshLayout mSwipeRefreshLayout; 
 ```
 
-用这个方法替换现有的onCreate()方法
+用这个方法替换现有的 onCreate()方法
 
 ```
 @Override
@@ -449,17 +449,17 @@ SwipeRefreshLayout mSwipeRefreshLayout;
     } 
 ```
 
-再次运行您的应用程序，并确认刷新是否正常工作，方法是在Web上添加或删除捐款，然后刷新您的报告屏幕。
+再次运行您的应用程序，并确认刷新是否正常工作，方法是在 Web 上添加或删除捐款，然后刷新您的报告屏幕。
 
-## **注意：由于每个人都可以通过Web应用程序添加和/或删除捐款，因此我建议您在测试时将捐款列表保持在4或5个捐款**
+## **注意：由于每个人都可以通过 Web 应用程序添加和/或删除捐款，因此我建议您在测试时将捐款列表保持在 4 或 5 个捐款**
 
 我们还应该显示每笔捐款的“赞数”，所以在查看下一步的解决方案之前，请查看是否可以实现它。
 
-# 第08步
+# 第 08 步
 
 # 报告活动 - 事件处理
 
-这是我们更新后的DonationAdapter类的解决方案，所以请将您当前的DonationAdapter替换为此解决方案，并再次运行和测试您的应用程序，以完成此步骤。
+这是我们更新后的 DonationAdapter 类的解决方案，所以请将您当前的 DonationAdapter 替换为此解决方案，并再次运行和测试您的应用程序，以完成此步骤。
 
 ```
 class DonationAdapter extends ArrayAdapter<Donation> {
@@ -506,7 +506,7 @@ class DonationAdapter extends ArrayAdapter<Donation> {
 
 +   通过删除按钮删除特定的捐款
 
-在报告活动中引入此AsyncTask
+在报告活动中引入此 AsyncTask
 
 ```
 private class GetTask extends AsyncTask<String, Void, Donation> {
@@ -553,11 +553,11 @@ private class GetTask extends AsyncTask<String, Void, Donation> {
     } 
 ```
 
-修复任何错误，并查看您是否可以向我们的Report类添加一个**OnItemClickListener**以在选择行时显示Toast（下面是），通过调用上面的AsyncTask。
+修复任何错误，并查看您是否可以向我们的 Report 类添加一个**OnItemClickListener**以在选择行时显示 Toast（下面是），通过调用上面的 AsyncTask。
 
-![](lab6s801.png)
+![](img/lab6s801.png)
 
-要实现删除功能，我们需要实现一个**OnClickListener**接口，所以继续这样做，并引入这个AsyncTask来开始。
+要实现删除功能，我们需要实现一个**OnClickListener**接口，所以继续这样做，并引入这个 AsyncTask 来开始。
 
 ```
 private class DeleteTask extends AsyncTask<String, Void, String> {
@@ -633,9 +633,9 @@ public void onDonationDelete(final Donation donation) {
 
 现在，看看您是否可以在您的**onClick()**方法中调用上述**onDonationDelete()**，以便您在单击删除按钮时会得到像这样的内容
 
-![](lab6s802.png)
+![](img/lab6s802.png)
 
-# 第09步
+# 第 09 步
 
 # 捐赠活动 - 添加捐款
 
@@ -994,7 +994,7 @@ private class InsertTask extends AsyncTask<Object, Void, String> {
 
 让我们通过实现“重置”菜单选项来完成我们的捐赠 5.0 应用程序。
 
-首先要做的是引入这个AsyncTask。
+首先要做的是引入这个 AsyncTask。
 
 ```
 private class ResetTask extends AsyncTask<Object, Void, String> {
@@ -1050,7 +1050,7 @@ private class ResetTask extends AsyncTask<Object, Void, String> {
 
 看看你能否修复这个 bug，并且还添加一个功能来询问用户是否确定要重置所有的捐赠（类似于报告屏幕上的删除捐赠功能），如下所示。
 
-![lab6s1001.png](lab6s1001.png)
+![lab6s1001.png](img/lab6s1001.png)
 
 # 解决方案。
 
@@ -1058,4 +1058,4 @@ private class ResetTask extends AsyncTask<Object, Void, String> {
 
 这是实验的解决方案：
 
-+   [捐赠.5.0](Donation.5.0.zip)
++   捐赠.5.0

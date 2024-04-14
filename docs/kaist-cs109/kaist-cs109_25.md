@@ -16,7 +16,7 @@ Kotlin 自带一个编译器，将 Kotlin 源代码编译成 JavaScript，准备
 
 让我们从最后一个开始：kotlin.js 包含在 Kotlin 编译器附带的 kotlin-jslib.jar 文件中。用你喜欢的工具提取 kotlin.js 并将其放在你的新目录中（jar 文件只是被简单压缩的存档）。
 
-文件 jscanvas.js 也很容易获得：它包含在你[之前安装过](project-install.html)的档案 cs109-jslib.jar 中。
+文件 jscanvas.js 也很容易获得：它包含在你之前安装过的档案 cs109-jslib.jar 中。
 
 这是一个示例 HTML 文件（[canvas.html](https://github.com/otfried/cs109-kotlin/raw/master/js/canvas/canvas.html)）：
 
@@ -329,7 +329,7 @@ fun start() {
 
 ```
 
-现在你可以编写自己的 web 应用程序了。或者尝试一下 [我的实现](js/2048/2048.html) 的 [2048 游戏](project-2048.html)。移动键是 'u'、'd'、'l' 和 'r'。
+现在你可以编写自己的 web 应用程序了。或者尝试一下 我的实现 的 2048 游戏。移动键是 'u'、'd'、'l' 和 'r'。
 
 #### 直接使用 Javascript Canvas API
 

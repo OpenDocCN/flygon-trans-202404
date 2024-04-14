@@ -1,24 +1,24 @@
-# 使用libcurl的HTTP
+# 使用 libcurl 的 HTTP
 
-# 使用libcurl的HTTP
+# 使用 libcurl 的 HTTP
 
-HTTP是libcurl用户最常用的协议，libcurl提供了无数种修改这种传输的方式。请参阅[HTTP协议基础知识](http-basics.html)了解HTTP协议的基础知识。
+HTTP 是 libcurl 用户最常用的协议，libcurl 提供了无数种修改这种传输的方式。请参阅 HTTP 协议基础知识了解 HTTP 协议的基础知识。
 
 ## HTTPS
 
 待定
 
-## HTTP代理
+## HTTP 代理
 
 待定
 
-# HTTP响应
+# HTTP 响应
 
-# HTTP响应
+# HTTP 响应
 
-每个HTTP请求都包含一个HTTP响应。HTTP响应是一组元数据和一个响应主体，其中主体有时可能为零字节，因此不存在。但是HTTP响应始终会有响应头。
+每个 HTTP 请求都包含一个 HTTP 响应。HTTP 响应是一组元数据和一个响应主体，其中主体有时可能为零字节，因此不存在。但是 HTTP 响应始终会有响应头。
 
-响应主体将传递给[写回调](callback-write.html)，响应头将传递给[头回调](callback-header.html)，但有时应用程序只想知道数据的大小。
+响应主体将传递给写回调，响应头将传递给头回调，但有时应用程序只想知道数据的大小。
 
 可以通过以下方式使用`curl_easy_getinfo()`提取服务器头告知的响应大小：
 
@@ -27,16 +27,16 @@ double size;
 curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &size); 
 ```
 
-但是，如果您可以等到传输完成后再执行此操作，这也是一种更可靠的方法，因为并非所有URL都会提供立即大小（例如对于按需生成内容的服务器）。您可以询问最近传输的下载数据量。
+但是，如果您可以等到传输完成后再执行此操作，这也是一种更可靠的方法，因为并非所有 URL 都会提供立即大小（例如对于按需生成内容的服务器）。您可以询问最近传输的下载数据量。
 
 ```
 double size;
 curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &size); 
 ```
 
-## HTTP响应代码
+## HTTP 响应代码
 
-每个HTTP响应都以包含HTTP响应代码的单行开头。它是一个三位数，包含服务器对请求的状态的想法。这些数字在HTTP标准规范中有详细说明，但它们被分成基本上如下工作的范围：
+每个 HTTP 响应都以包含 HTTP 响应代码的单行开头。它是一个三位数，包含服务器对请求的状态的想法。这些数字在 HTTP 标准规范中有详细说明，但它们被分成基本上如下工作的范围：
 
 | 代码 | 含义 |
 | --- | --- |
@@ -53,21 +53,21 @@ long code;
 curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code); 
 ```
 
-## 关于HTTP响应代码“错误”
+## 关于 HTTP 响应代码“错误”
 
-虽然响应代码数字可能包括服务器用于表示处理请求时出现错误的数字（在4xx和5xx范围内），但重要的是要意识到这不会导致libcurl返回错误。
+虽然响应代码数字可能包括服务器用于表示处理请求时出现错误的数字（在 4xx 和 5xx 范围内），但重要的是要意识到这不会导致 libcurl 返回错误。
 
-当要求libcurl执行HTTP传输时，如果该HTTP传输失败，它将返回错误。但是，得到HTTP 404或类似错误对于libcurl来说不是问题。这不是HTTP传输错误。用户很可能正在编写一个用于测试服务器HTTP响应的客户端。
+当要求 libcurl 执行 HTTP 传输时，如果该 HTTP 传输失败，它将返回错误。但是，得到 HTTP 404 或类似错误对于 libcurl 来说不是问题。这不是 HTTP 传输错误。用户很可能正在编写一个用于测试服务器 HTTP 响应的客户端。
 
-如果您坚持要求curl将400及以上的HTTP响应代码视为错误，libcurl提供了`CURLOPT_FAILONERROR`选项，如果设置了该选项，curl会在这种情况下返回`CURLE_HTTP_RETURNED_ERROR`。然后它会尽快返回错误，而不会传递响应主体。
+如果您坚持要求 curl 将 400 及以上的 HTTP 响应代码视为错误，libcurl 提供了`CURLOPT_FAILONERROR`选项，如果设置了该选项，curl 会在这种情况下返回`CURLE_HTTP_RETURNED_ERROR`。然后它会尽快返回错误，而不会传递响应主体。
 
-# HTTP请求
+# HTTP 请求
 
-# HTTP请求
+# HTTP 请求
 
-当curl发送告诉服务器要做什么时，curl发送的是HTTP请求。当它想要获取数据或发送数据时。所有涉及HTTP的传输都始于HTTP请求。
+当 curl 发送告诉服务器要做什么时，curl 发送的是 HTTP 请求。当它想要获取数据或发送数据时。所有涉及 HTTP 的传输都始于 HTTP 请求。
 
-HTTP请求包含方法、路径、HTTP版本和一组请求头。当然，使用libcurl的应用程序可以调整所有这些字段。
+HTTP 请求包含方法、路径、HTTP 版本和一组请求头。当然，使用 libcurl 的应用程序可以调整所有这些字段。
 
 ## 请求方法
 
@@ -88,7 +88,7 @@ CURLOPT_CUSTOMREQUEST 设置应该仅是用作 HTTP 请求行中方法的单个�
 
 当 libcurl 发出 HTTP 请求作为执行你要求它执行的数据传输的一部分时，它当然会带着一组适合完成任务的 HTTP 头部发送它们。
 
-如果只给出 URL "[http://localhost/file1.txt](http://localhost/file1.txt)"，libcurl 7.51.0 将向服务器发送以下请求：
+如果只给出 URL "[`localhost/file1.txt`](http://localhost/file1.txt)"，libcurl 7.51.0 将向服务器发送以下请求：
 
 ```
 GET /file1.txt HTTP/1.1
@@ -146,7 +146,7 @@ curl_slist_free_all(list); /* free the list again */
 
 ### 提供一个没有内容的头部
 
-正如你在上面的部分中可能已经注意到的，如果你试图在冒号的右侧添加一个没有内容的头部，它将被视为删除指令，并且它将完全禁止该头部被发送。如果你*真的*想发送一个右侧没有内容的头部，你需要使用一个特殊的标记。你必须在分号而不是正确的冒号后提供头部。比如`Header;`。所以如果你想在发送的HTTP请求中添加一个只有`Moo:`而没有跟随冒号的头部，你可以这样写：
+正如你在上面的部分中可能已经注意到的，如果你试图在冒号的右侧添加一个没有内容的头部，它将被视为删除指令，并且它将完全禁止该头部被发送。如果你*真的*想发送一个右侧没有内容的头部，你需要使用一个特殊的标记。你必须在分号而不是正确的冒号后提供头部。比如`Header;`。所以如果你想在发送的 HTTP 请求中添加一个只有`Moo:`而没有跟随冒号的头部，你可以这样写：
 
 ```
 struct curl_slist *list = NULL;
@@ -158,7 +158,7 @@ curl_slist_free_all(list); /* free the list again */
 
 ## 引用者
 
-`Referer:`头部（是的，它拼写错误）是一个标准的HTTP头部，它告诉服务器用户代理从哪个URL被引导到现在请求的URL时的来源。它是一个普通的头部，所以你可以像上面展示的`CURLOPT_HEADER`方法一样自己设置它，或者你可以使用称为`CURLOPT_REFERER`的快捷方式。就像这样： 
+`Referer:`头部（是的，它拼写错误）是一个标准的 HTTP 头部，它告诉服务器用户代理从哪个 URL 被引导到现在请求的 URL 时的来源。它是一个普通的头部，所以你可以像上面展示的`CURLOPT_HEADER`方法一样自己设置它，或者你可以使用称为`CURLOPT_REFERER`的快捷方式。就像这样： 
 
 ```
 curl_easy_setopt(curl, CURLOPT_REFERER, "https://example.com/fromhere/");
@@ -167,7 +167,7 @@ curl_easy_perform(curl);
 
 ### 自动引用者
 
-当libcurl被要求使用`CURLOPT_FOLLOWLOCATION`选项自己跟随重定向，并且你仍然希望`Referer:`头设置为正确的前一个URL，从中进行重定向，你可以让libcurl自己设置：
+当 libcurl 被要求使用`CURLOPT_FOLLOWLOCATION`选项自己跟随重定向，并且你仍然希望`Referer:`头设置为正确的前一个 URL，从中进行重定向，你可以让 libcurl 自己设置：
 
 ```
 curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -176,88 +176,88 @@ curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/redirected.cgi");
 curl_easy_perform(curl); 
 ```
 
-# HTTP版本
+# HTTP 版本
 
-# HTTP版本
+# HTTP 版本
 
-与任何其他互联网协议一样，HTTP协议随着时间的推移而不断发展，现在有分布在世界各地和时间的不同版本和不同成功级别的客户端和服务器。所以为了让libcurl能够处理你在libcurl中传递的URL，libcurl提供了方法让你指定请求和传输应该使用哪个HTTP版本。libcurl被设计成首先尝试使用最常见的，最明智的默认值，但有时这是不够的，那么你可能需要告诉libcurl要做什么。
+与任何其他互联网协议一样，HTTP 协议随着时间的推移而不断发展，现在有分布在世界各地和时间的不同版本和不同成功级别的客户端和服务器。所以为了让 libcurl 能够处理你在 libcurl 中传递的 URL，libcurl 提供了方法让你指定请求和传输应该使用哪个 HTTP 版本。libcurl 被设计成首先尝试使用最常见的，最明智的默认值，但有时这是不够的，那么你可能需要告诉 libcurl 要做什么。
 
-自2016年中期以来，如果你的libcurl具有内置的HTTP/2能力，libcurl默认使用HTTP/2来处理HTTPS服务器，libcurl将尝试自动使用HTTP/2，否则在协商失败时会降级到1.1。不支持HTTP/2的libcurl默认在HTTPS上使用1.1。普通HTTP请求仍然默认使用HTTP/1.1。
+自 2016 年中期以来，如果你的 libcurl 具有内置的 HTTP/2 能力，libcurl 默认使用 HTTP/2 来处理 HTTPS 服务器，libcurl 将尝试自动使用 HTTP/2，否则在协商失败时会降级到 1.1。不支持 HTTP/2 的 libcurl 默认在 HTTPS 上使用 1.1。普通 HTTP 请求仍然默认使用 HTTP/1.1。
 
 如果默认行为对你的传输不够好，`CURLOPT_HTTP_VERSION`选项可以帮助你。
 
 | 选项 | 描述 |
 | --- | --- |
 | CURL_HTTP_VERSION_NONE | 重置为默认行为 |
-| CURL_HTTP_VERSION_1_0 | 强制使用传统的HTTP/1.0协议版本 |
-| CURL_HTTP_VERSION_1_1 | 使用HTTP/1.1协议版本进行请求 |
-| CURL_HTTP_VERSION_2_0 | 尝试使用HTTP/2 |
-| CURL_HTTP_VERSION_2TLS | 仅在HTTPS连接上尝试使用HTTP/2，否则使用HTTP/1.1 |
-| CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE | 直接使用HTTP/2，无需从1.1“升级”。这要求你知道这个服务器支持它。 |
+| CURL_HTTP_VERSION_1_0 | 强制使用传统的 HTTP/1.0 协议版本 |
+| CURL_HTTP_VERSION_1_1 | 使用 HTTP/1.1 协议版本进行请求 |
+| CURL_HTTP_VERSION_2_0 | 尝试使用 HTTP/2 |
+| CURL_HTTP_VERSION_2TLS | 仅在 HTTPS 连接上尝试使用 HTTP/2，否则使用 HTTP/1.1 |
+| CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE | 直接使用 HTTP/2，无需从 1.1“升级”。这要求你知道这个服务器支持它。 |
 
-# HTTP范围
+# HTTP 范围
 
-## HTTP范围
+## HTTP 范围
 
-如果客户端只想要远程资源的前200字节，或者也许是中间某处的300字节怎么办？HTTP协议允许客户端仅请求特定的数据范围。客户端通过指定起始偏移量和结束偏移量向服务器请求特定范围。它甚至可以结合起来，通过只列出一堆相邻的片段来请求同一请求中的几个范围。当服务器发送多个独立的片段以回答此类请求时，您将用mime边界字符串将它们分开，并且将由用户应用程序相应地处理。curl不会进一步分离这样的响应。
+如果客户端只想要远程资源的前 200 字节，或者也许是中间某处的 300 字节怎么办？HTTP 协议允许客户端仅请求特定的数据范围。客户端通过指定起始偏移量和结束偏移量向服务器请求特定范围。它甚至可以结合起来，通过只列出一堆相邻的片段来请求同一请求中的几个范围。当服务器发送多个独立的片段以回答此类请求时，您将用 mime 边界字符串将它们分开，并且将由用户应用程序相应地处理。curl 不会进一步分离这样的响应。
 
 然而，字节范围只是对服务器的一个请求。它不必遵守请求，在许多情况下，比如当服务器在被请求时自动生成内容时，它会简单地拒绝执行，并且它会以任何方式回应完整的内容。
 
-你可以让libcurl使用`CURLOPT_RANGE`请求一个范围。比如，如果你想要从某个地方获取前200字节：
+你可以让 libcurl 使用`CURLOPT_RANGE`请求一个范围。比如，如果你想要从某个地方获取前 200 字节：
 
 ```
 curl_easy_setopt(curl, CURLOPT_RANGE, "0-199"); 
 ```
 
-或者从索引200开始的文件中的所有内容：
+或者从索引 200 开始的文件中的所有内容：
 
 ```
 curl_easy_setopt(curl, CURLOPT_RANGE, "200-"); 
 ```
 
-从索引0获取200字节 *以及* 从索引1000获取200字节：
+从索引 0 获取 200 字节 *以及* 从索引 1000 获取 200 字节：
 
 ```
 curl_easy_setopt(curl, CURLOPT_RANGE, "0-199,1000-199"); 
 ```
 
-# 使用libcurl处理cookie
+# 使用 libcurl 处理 cookie
 
-# 使用libcurl处理cookie
+# 使用 libcurl 处理 cookie
 
-默认情况下，libcurl使传输尽可能基本，并且需要启用功能才能使用。其中一个功能就是HTTP cookie，更为人所知的是“cookie”。
+默认情况下，libcurl 使传输尽可能基本，并且需要启用功能才能使用。其中一个功能就是 HTTP cookie，更为人所知的是“cookie”。
 
-cookie是由服务器发送的名称/值对（使用`Set-Cookie：`头）以存储在客户端，并且然后在请求中再次发送，以匹配来自服务器的cookie时指定的主机和路径要求（使用`Cookie：`头）。在当今的现代网络中，网站有时会使用大量的cookie。
+cookie 是由服务器发送的名称/值对（使用`Set-Cookie：`头）以存储在客户端，并且然后在请求中再次发送，以匹配来自服务器的 cookie 时指定的主机和路径要求（使用`Cookie：`头）。在当今的现代网络中，网站有时会使用大量的 cookie。
 
-## cookie引擎
+## cookie 引擎
 
-当您为特定的easy句柄启用“cookie引擎”时，这意味着它将记录传入的cookie，将它们存储在与easy句柄关联的内存中的“cookie存储”中，并在随后进行的HTTP请求中发送适当的cookie回来。
+当您为特定的 easy 句柄启用“cookie 引擎”时，这意味着它将记录传入的 cookie，将它们存储在与 easy 句柄关联的内存中的“cookie 存储”中，并在随后进行的 HTTP 请求中发送适当的 cookie 回来。
 
-有两种方法可以启用cookie引擎：
+有两种方法可以启用 cookie 引擎：
 
-### 启用带有读取功能的cookie引擎
+### 启用带有读取功能的 cookie 引擎
 
-使用`CURLOPT_COOKIEFILE`选项，请求libcurl从给定文件名导入cookie到easy句柄中：
+使用`CURLOPT_COOKIEFILE`选项，请求 libcurl 从给定文件名导入 cookie 到 easy 句柄中：
 
 ```
 curl_easy_setopt(easy, CURLOPT_COOKIEFILE, "cookies.txt"); 
 ```
 
-一个常见的技巧是只需指定一个不存在的文件名或简单的 "" 来激活带有空白cookie存储的cookie引擎。
+一个常见的技巧是只需指定一个不存在的文件名或简单的 "" 来激活带有空白 cookie 存储的 cookie 引擎。
 
 此选项可以设置多次，然后将读取每个给定文件。
 
-### 启用带有写入功能的cookie引擎
+### 启用带有写入功能的 cookie 引擎
 
-使用`CURLOPT_COOKIEJAR`选项，请求将接收的cookie存储到文件中：
+使用`CURLOPT_COOKIEJAR`选项，请求将接收的 cookie 存储到文件中：
 
 ```
 curl_easy_setopt(easy, CURLOPT_COOKIEJAR, "cookies.txt"); 
 ```
 
-当以后使用`curl_easy_cleanup()`关闭easy句柄时，所有已知的cookie将写入到给定的文件中。文件格式是浏览器曾经使用的众所周知的“Netscape cookie文件”格式。
+当以后使用`curl_easy_cleanup()`关闭 easy 句柄时，所有已知的 cookie 将写入到给定的文件中。文件格式是浏览器曾经使用的众所周知的“Netscape cookie 文件”格式。
 
-## 设置自定义cookie
+## 设置自定义 cookie
 
 一种更简单、更直接的方式，只需在请求中传递一组特定的 cookie，而不向 cookie 存储添加任何 cookie，甚至不激活 cookie 引擎，就是设置 `CURLOPT_COOKIE:` 参数：
 
@@ -343,7 +343,7 @@ cookie 文件格式是基于文本的，每行存储一个 cookie。以 `#` 开�
 | 1 | FALSE | 包括子域布尔值 |
 | 2 | /foobar/ | 路径 |
 | 3 | FALSE | 通过安全传输设置 |
-| 4 | 1462299217 | 到期时间 - 自1970年1月1日以来的秒数，或 0 |
+| 4 | 1462299217 | 到期时间 - 自 1970 年 1 月 1 日以来的秒数，或 0 |
 | 5 | person | cookie 的名称 |
 | 6 | daniel | cookie 的值 |
 
@@ -378,7 +378,7 @@ curl_easy_setopt(easy, CURLOPT_URL, "http://example.com/");
 curl_easy_perform(easy); 
 ```
 
-或者您可以选择将头部存储在单独的下载文件中，依赖于 [write](callback-write.html) 和 [header 回调](callback-header.html) 的默认行为：
+或者您可以选择将头部存储在单独的下载文件中，依赖于 write 和 header 回调 的默认行为：
 
 ```
 easy = curl_easy_init();
@@ -412,7 +412,7 @@ curl_easy_setopt(easy, CURLOPT_POSTFIELDS, dataptr);
 curl_easy_setopt(easy, CURLOPT_POSTFIELDSIZE, (long)datalength); 
 ```
 
-或者您告诉 libcurl 这是一个 post 请求，但更希望 libcurl 通过使用常规的 [read 回调](callback-read.html) 获取数据：
+或者您告诉 libcurl 这是一个 post 请求，但更希望 libcurl 通过使用常规的 read 回调 获取数据：
 
 ```
 curl_easy_setopt(easy, CURLOPT_POST, 1L);

@@ -2,7 +2,7 @@
 
 ## Goroutine
 
-运行中的`Go`程序由一个或多个goroutine组成，每个goroutine都可以被视为一个独立的任务。 Goroutine和线程有许多共同点，例如：每个goroutine（线程）都有其私有的堆栈和寄存器；如果主goroutine（线程）退出，则程序将退出，等等。但是在现代操作系统（例如，`Linux`）上，实际执行和调度的单位是线程，因此如果goroutine希望变为运行状态，它必须“附加”到一个线程。让我们看一个例子：
+运行中的`Go`程序由一个或多个 goroutine 组成，每个 goroutine 都可以被视为一个独立的任务。 Goroutine 和线程有许多共同点，例如：每个 goroutine（线程）都有其私有的堆栈和寄存器；如果主 goroutine（线程）退出，则程序将退出，等等。但是在现代操作系统（例如，`Linux`）上，实际执行和调度的单位是线程，因此如果 goroutine 希望变为运行状态，它必须“附加”到一个线程。让我们看一个例子：
 
 ```
 package main
@@ -35,7 +35,7 @@ func main() {
 1040  1041  1042  1043  1044 
 ```
 
-是的，`Delve`的线程信息是正确的！检查goroutine的细节：
+是的，`Delve`的线程信息是正确的！检查 goroutine 的细节：
 
 ```
 (dlv) goroutines
@@ -46,7 +46,7 @@ func main() {
 * Goroutine 4 - User: /usr/local/go/src/runtime/lock_futex.go:206 runtime.notetsleepg (0x40b1ce) 
 ```
 
-只有一个`main` goroutine，其他`3`个goroutine到底是什么鬼？实际上，其他`3`个goroutine是系统goroutine，你可以参考相关信息[这里](https://github.com/derekparker/delve/issues/553)。`main` goroutine的数量是`1`，你可以检查它：
+只有一个`main` goroutine，其他`3`个 goroutine 到底是什么鬼？实际上，其他`3`个 goroutine 是系统 goroutine，你可以参考相关信息[这里](https://github.com/derekparker/delve/issues/553)。`main` goroutine 的数量是`1`，你可以检查它：
 
 ```
 (dlv) goroutine 1
@@ -66,7 +66,7 @@ Switched from 4 to 1 (thread 1040)
    at /usr/local/go/src/runtime/asm_amd64.s:1998 
 ```
 
-使用`go`关键字可以创建并启动一个goroutine，看另一个案例：
+使用`go`关键字可以创建并启动一个 goroutine，看另一个案例：
 
 ```
 package main
@@ -94,7 +94,7 @@ func main() {
 } 
 ```
 
-`go func`语句生成另一个作为生产者的goroutine；而`main` goroutine则作为消费者。输出应该是：
+`go func`语句生成另一个作为生产者的 goroutine；而`main` goroutine 则作为消费者。输出应该是：
 
 ```
 1
@@ -102,7 +102,7 @@ func main() {
 ...... 
 ```
 
-使用`Delve`检查goroutine方面：
+使用`Delve`检查 goroutine 方面：
 
 ```
 (dlv) goroutines
@@ -145,9 +145,9 @@ Switched from 1 to 5 (thread 1997)
    at /usr/local/go/src/runtime/asm_amd64.s:1998 
 ```
 
-`main` goroutine的数量是`1`，而`func`是`5`。
+`main` goroutine 的数量是`1`，而`func`是`5`。
 
-另一个你应该注意的警告是goroutine之间的切换点。它可以是阻塞的系统调用、通道操作等。
+另一个你应该注意的警告是 goroutine 之间的切换点。它可以是阻塞的系统调用、通道操作等。
 
 参考:
 
@@ -155,4 +155,4 @@ Switched from 1 to 5 (thread 1997)
 
 [没有事件循环的性能](http://dave.cheney.net/2015/08/08/performance-without-the-event-loop);
 
-[Goroutines如何工作](http://blog.nindalf.com/how-goroutines-work/)。
+[Goroutines 如何工作](http://blog.nindalf.com/how-goroutines-work/)。

@@ -5,7 +5,7 @@
     This short (and optional) chapter develops some basic definitions
     and a few theorems about binary relations in Coq.  The key
     definitions are repeated where they are actually used (in the
-    [Smallstep](Smallstep.html) chapter), so readers who are already comfortable with
+    Smallstep chapter), so readers who are already comfortable with
     these ideas can safely skim or skip this chapter.  However,
     relations are also a good source of exercises for developing
     facility with Coq's basic reasoning facilities, so it may be
@@ -43,13 +43,13 @@
 
 ```
 
-打印le。
+打印 le。
 
-(* ====> 归纳le（n：nat）：nat -> Prop :=              le_n：n <= n            | le_S：forall m：nat，n <= m -> n <= S m *)
+(* ====> 归纳 le（n：nat）：nat -> Prop :=              le_n：n <= n            | le_S：forall m：nat，n <= m -> n <= S m *)
 
-检查le：nat → nat → Prop。
+检查 le：nat → nat → Prop。
 
-检查le：关系nat。
+检查 le：关系 nat。
 
 ```
 
@@ -75,11 +75,11 @@
 
 ### 部分函数
 
-    集合X上的关系R是*部分函数*，如果对于每个
+    集合 X 上的关系 R 是*部分函数*，如果对于每个
 
-    x，最多只有一个y满足R x y — 即，R x y[1]
+    x，最多只有一个 y 满足 R x y — 即，R x y[1]
 
-    和R x y[2]一起暗示y[1] = y[2]。
+    和 R x y[2]一起暗示 y[1] = y[2]。
 
 ```
 Definition partial_function {X: Type} (R: relation X) :=
@@ -87,7 +87,7 @@ Definition partial_function {X: Type} (R: relation X) :=
 
 ```
 
-    例如，先前定义的next_nat关系是一个部分
+    例如，先前定义的 next_nat 关系是一个部分
 
     函数。
 
@@ -100,7 +100,7 @@ Theorem next_nat_partial_function :
    partial_function next_nat.
 
     Proof.
-  unfold [partial_function](Rel.html#partial_function).
+  unfold partial_function.
   intros x y[1] y[2] H[1] H[2].
   inversion H[1]. inversion H[2].
   reflexivity. Qed.
@@ -111,7 +111,7 @@ Theorem next_nat_partial_function :
 
     函数。（假设，为了矛盾，≤是一个部分
 
-    函数。但是，由于0 ≤ 0和0 ≤ 1，所以
+    函数。但是，由于 0 ≤ 0 和 0 ≤ 1，所以
 
     0 = 1。这是荒谬的，所以我们的假设是
 
@@ -122,7 +122,7 @@ Theorem le_not_a_partial_function :
   ¬ (partial_function le).
 
     Proof.
-  unfold [not](http://coq.inria.fr/library/Coq.Init.Logic.html#not). unfold [partial_function](Rel.html#partial_function). intros Hc.
+  unfold [not](http://coq.inria.fr/library/Coq.Init.Logic.html#not). unfold partial_function. intros Hc.
   assert (0 = 1) as Nonsense. { 
     apply Hc with (x := 0).
     - apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n).
@@ -131,9 +131,9 @@ Theorem le_not_a_partial_function :
 
 ```
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
-    显示先前定义的total_relation不是一个部分
+    显示先前定义的 total_relation 不是一个部分
 
     函数。
 
@@ -144,9 +144,9 @@ Theorem le_not_a_partial_function :
 
     ☐
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
-    显示我们先前定义的empty_relation是一个
+    显示我们先前定义的 empty_relation 是一个
 
     部分函数。
 
@@ -159,9 +159,9 @@ Theorem le_not_a_partial_function :
 
 ### 反射关系
 
-    集合X上的*反射*关系是每个元素都是这样的关系
+    集合 X 上的*反射*关系是每个元素都是这样的关系
 
-    X的元素与自身相关联。
+    X 的元素与自身相关联。
 
 ```
 Definition reflexive {X: Type} (R: relation X) :=
@@ -171,15 +171,15 @@ Theorem le_reflexive :
   reflexive le.
 
     Proof.
-  unfold [reflexive](Rel.html#reflexive). intros n. apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n). Qed.
+  unfold reflexive. intros n. apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n). Qed.
 
 ```
 
 ### 传递关系
 
-    如果R a b和R a c成立，则关系R是*传递*的。
+    如果 R a b 和 R a c 成立，则关系 R 是*传递*的。
 
-    和R b c。
+    和 R b c。
 
 ```
 Definition transitive {X: Type} (R: relation X) :=
@@ -198,20 +198,20 @@ Theorem lt_trans:
   transitive lt.
 
     Proof.
-  unfold [lt](IndProp.html#lt). unfold [transitive](Rel.html#transitive).
+  unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   apply [le_S](http://coq.inria.fr/library/Coq.Init.Peano.html#le_S) in Hnm.
-  apply [le_trans](Rel.html#le_trans) with (a := ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n)) (b := ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) m)) (c := o).
+  apply le_trans with (a := ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n)) (b := ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) m)) (c := o).
   apply Hnm.
   apply Hmo. Qed.
 
 ```
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
-    我们也可以通过归纳更费力地证明lt_trans，
+    我们也可以通过归纳更费力地证明 lt_trans，
 
-    不使用le_trans。做到这一点。
+    不使用 le_trans。做到这一点。
 
 ```
 Theorem lt_trans' :
@@ -227,16 +227,16 @@ Proof.
 
     ☐
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
-    再次通过对o的归纳证明相同的事情。
+    再次通过对 o 的归纳证明相同的事情。
 
 ```
 Theorem lt_trans'' :
   transitive lt.
 
     Proof.
-  unfold [lt](IndProp.html#lt). unfold [transitive](Rel.html#transitive).
+  unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction o as [| o'].
   (* FILL IN HERE *) Admitted.
@@ -245,7 +245,7 @@ Theorem lt_trans'' :
 
     ☐
 
-    le的传递性，反过来，可以用来证明一些事实
+    le 的传递性，反过来，可以用来证明一些事实
 
     这将在以后有用（例如，用于证明反对称性的证明
 
@@ -255,14 +255,14 @@ Theorem lt_trans'' :
 Theorem le_Sn_le : ∀n m, S n ≤ m → n ≤ m.
 
     Proof.
-  intros n m H. apply [le_trans](Rel.html#le_trans) with ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n).
+  intros n m H. apply le_trans with ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n).
   - apply [le_S](http://coq.inria.fr/library/Coq.Init.Peano.html#le_S). apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n).
   - apply H.
     Qed.
 
 ```
 
-#### 练习：1星，可选
+#### 练习：1 星，可选
 
 ```
 Theorem le_S_n : ∀n m,
@@ -274,11 +274,11 @@ Proof.
 
     ☐
 
-#### 练习：2星，可选（le_Sn_n_inf）
+#### 练习：2 星，可选（le_Sn_n_inf）
 
     提供以下定理的非正式证明：
 
-    定理：对于每个n，¬（S n ≤ n）
+    定理：对于每个 n，¬（S n ≤ n）
 
     这个的正式证明是下面的一个可选练习，但是尝试
 
@@ -290,7 +290,7 @@ Proof.
 
     ☐
 
-#### 练习：1星，可选
+#### 练习：1 星，可选
 
 ```
 Theorem le_Sn_n : ∀n,
@@ -306,11 +306,11 @@ Proof.
 
     后面的章节，但是，为了额外练习处理
 
-    Coq中的关系，让我们看看其他一些常见的...
+    Coq 中的关系，让我们看看其他一些常见的...
 
 ### 对称和反对称关系
 
-    如果R a b暗示R b a，则关系R是*对称*的。
+    如果 R a b 暗示 R b a，则关系 R 是*对称*的。
 
 ```
 Definition symmetric {X: Type} (R: relation X) :=
@@ -318,7 +318,7 @@ Definition symmetric {X: Type} (R: relation X) :=
 
 ```
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
 ```
 Theorem le_not_symmetric :
@@ -330,9 +330,9 @@ Proof.
 
     ☐
 
-    如果R a b和R b a一起
+    如果 R a b 和 R b a 一起
 
-    暗示a = b — 也就是说，如果R中唯一的“循环”是平凡的
+    暗示 a = b — 也就是说，如果 R 中唯一的“循环”是平凡的
 
     一个。
 
@@ -342,7 +342,7 @@ Definition antisymmetric {X: Type} (R: relation X) :=
 
 ```
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
 ```
 Theorem le_antisymmetric :
@@ -354,7 +354,7 @@ Proof.
 
     ☐
 
-#### 练习：2星，可选
+#### 练习：2 星，可选
 
 ```
 Theorem le_step : ∀n m p,
@@ -384,7 +384,7 @@ Definition equivalence {X:Type} (R: relation X) :=
 
     当它是反射性时，关系是*部分顺序*，
 
-    *反*-对称和传递。在Coq标准库中
+    *反*-对称和传递。在 Coq 标准库中
 
     简称为“order”。
 
@@ -406,23 +406,23 @@ Theorem le_order :
   order le.
 
     Proof.
-  unfold [order](Rel.html#order). split.
-    - (* refl *) apply [le_reflexive](Rel.html#le_reflexive).
+  unfold order. split.
+    - (* refl *) apply le_reflexive.
     - split.
-      + (* antisym *) apply [le_antisymmetric](Rel.html#le_antisymmetric).
-      + (* transitive. *) apply [le_trans](Rel.html#le_trans). Qed.
+      + (* antisym *) apply le_antisymmetric.
+      + (* transitive. *) apply le_trans. Qed.
 
 ```
 
 # 自反传递闭包
 
-    关系R的*自反传递闭包*是
+    关系 R 的*自反传递闭包*是
 
-    包含R并且既是自反的又是最小关系
+    包含 R 并且既是自反的又是最小关系
 
-    传递性。形式上，它是这样在Relations中定义的
+    传递性。形式上，它是这样在 Relations 中定义的
 
-    Coq标准库的模块：
+    Coq 标准库的模块：
 
 ```
 Inductive clos_refl_trans {A: Type} (R: relation A) : relation A :=
@@ -437,7 +437,7 @@ Inductive clos_refl_trans {A: Type} (R: relation A) : relation A :=
 
     例如，关系的自反传递闭包
 
-    next_nat关系与le关系一致。
+    next_nat 关系与 le 关系一致。
 
 ```
 Theorem next_nat_closure_is_le : ∀n m,
@@ -447,16 +447,16 @@ Theorem next_nat_closure_is_le : ∀n m,
   intros n m. split.
   - (* -> *)
     intro H. induction H.
-    + (* le_n *) apply [rt_refl](Rel.html#rt_refl).
+    + (* le_n *) apply rt_refl.
     + (* le_S *)
-      apply [rt_trans](Rel.html#rt_trans) with m. apply IHle. apply [rt_step](Rel.html#rt_step).
-      apply [nn](IndProp.html#nn).
+      apply rt_trans with m. apply IHle. apply rt_step.
+      apply nn.
   - (* <- *)
     intro H. induction H.
     + (* rt_step *) inversion H. apply [le_S](http://coq.inria.fr/library/Coq.Init.Peano.html#le_S). apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n).
     + (* rt_refl *) apply [le_n](http://coq.inria.fr/library/Coq.Init.Peano.html#le_n).
     + (* rt_trans *)
-      apply [le_trans](Rel.html#le_trans) with y.
+      apply le_trans with y.
       apply IHclos_refl_trans1.
       apply IHclos_refl_trans2. Qed.
 
@@ -464,15 +464,15 @@ Theorem next_nat_closure_is_le : ∀n m,
 
     上述自反传递闭包的定义是自然的：
 
-    明确表示，关系R的自反传递闭包是
+    明确表示，关系 R 的自反传递闭包是
 
-    R是包含R并且是封闭的最小关系
+    R 是包含 R 并且是封闭的最小关系
 
     在自反性和传递性规则下。但事实证明
 
     这个定义并不是做证明很方便，
 
-    由于rt_trans规则的“非确定性”有时候
+    由于 rt_trans 规则的“非确定性”有时候
 
     导致棘手的归纳。这里是一个更有用的定义：
 
@@ -489,9 +489,9 @@ Inductive clos_refl_trans_1n {A : Type}
 
     我们的新定义的自反传递闭包“捆绑”
 
-    将rt_step和rt_trans规则合并为单一规则step。
+    将 rt_step 和 rt_trans 规则合并为单一规则 step。
 
-    这一步的左侧前提是R的单次使用，
+    这一步的左侧前提是 R 的单次使用，
 
     导致了一个更简单的归纳原理。
 
@@ -499,9 +499,9 @@ Inductive clos_refl_trans_1n {A : Type}
 
     确实定义了相同的关系...
 
-    首先，我们证明两个引理，表明clos_refl_trans_1n模拟
+    首先，我们证明两个引理，表明 clos_refl_trans_1n 模拟
 
-    两个“缺失”的clos_refl_trans的行为
+    两个“缺失”的 clos_refl_trans 的行为
 
     构造函数。
 
@@ -511,11 +511,11 @@ Lemma rsc_R : ∀(X:Type) (R:relation X) (x y : X),
 
     Proof.
   intros X R x y H.
-  apply [rt1n_trans](Rel.html#rt1n_trans) with y. apply H. apply [rt1n_refl](Rel.html#rt1n_refl). Qed.
+  apply rt1n_trans with y. apply H. apply rt1n_refl. Qed.
 
 ```
 
-#### 练习：2星，可选（rsc_trans）
+#### 练习：2 星，可选（rsc_trans）
 
 ```
 Lemma rsc_trans :
@@ -536,7 +536,7 @@ Proof.
 
     关系。
 
-#### 练习：3星，可选（rtc_rsc_coincide）
+#### 练习：3 星，可选（rtc_rsc_coincide）
 
 ```
 Theorem rtc_rsc_coincide :

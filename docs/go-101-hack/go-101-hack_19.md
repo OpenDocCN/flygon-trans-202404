@@ -35,7 +35,7 @@ func main() {
 2 occurs 2 times 
 ```
 
-此外，根据[Go规范](https://golang.org/ref/spec#Map_types)："映射是一组**无序**的元素，类型相同，称为元素类型，由另一种类型的一组唯一键索引，称为键类型"。所以，如果你再次运行上述程序，输出可能会不同：
+此外，根据[Go 规范](https://golang.org/ref/spec#Map_types)："映射是一组**无序**的元素，类型相同，称为元素类型，由另一种类型的一组唯一键索引，称为键类型"。所以，如果你再次运行上述程序，输出可能会不同：
 
 ```
 2 occurs 2 times
@@ -45,7 +45,7 @@ func main() {
 
 你不能假设映射的元素顺序。
 
-映射的键类型必须能够与“`==`”运算符进行比较：内置类型，如int、string等，满足此要求；而切片则不满足。对于结构体类型，如果它的成员都可以通过“`==`”运算符进行比较，则此结构体也可以用作键。
+映射的键类型必须能够与“`==`”运算符进行比较：内置类型，如 int、string 等，满足此要求；而切片则不满足。对于结构体类型，如果它的成员都可以通过“`==`”运算符进行比较，则此结构体也可以用作键。
 
 当你访问映射中不存在的键时，映射将返回元素的`nil`值。即：
 
@@ -72,7 +72,7 @@ func main() {
 false true false 
 ```
 
-`m[0]`和`m[2]`的值都为`false`，所以你无法区分键是否真的存在于映射中。解决方法是使用“逗号OK”方法：
+`m[0]`和`m[2]`的值都为`false`，所以你无法区分键是否真的存在于映射中。解决方法是使用“逗号 OK”方法：
 
 ```
 value, ok := map[key] 
@@ -122,6 +122,6 @@ delete(map, key)
 
 [Effective Go](https://golang.org/doc/effective_go.html);
 
-[Go编程语言规范](https://golang.org/ref/spec);
+[Go 编程语言规范](https://golang.org/ref/spec);
 
-[Go编程语言](http://www.gopl.io/)。
+[Go 编程语言](http://www.gopl.io/)。

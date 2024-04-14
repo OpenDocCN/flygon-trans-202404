@@ -6,11 +6,11 @@
 
 有趣的是，这两种方法都倾向于产生更清晰、更模块化的设计，这也是我喜欢它们的原因！
 
-+   [授权的函数式方法](capability-based-security.html)。基于能力的安全等等。
++   授权的函数式方法。基于能力的安全等等。
 
-+   [基于身份和角色的能力限制](capability-based-security-2.html)。授权的函数式方法，第2部分。
++   基于身份和角色的能力限制。授权的函数式方法，第 2 部分。
 
-+   [使用类型作为访问令牌](capability-based-security-3.html)。授权的函数式方法，第3部分。
++   使用类型作为访问令牌。授权的函数式方法，第 3 部分。
 
 # 授权的函数式方法
 
@@ -24,23 +24,23 @@
 
 有趣的是，这两种方法都倾向于产生更清晰、更模块化的设计，这也是我喜欢它们的原因！
 
-在我开始之前，我必须提到一个主要的警告。在.NET环境中，你通常可以使用反射来绕过编译时检查，因此这里展示的方法并不是关于防止真正恶意的攻击，而更多地是帮助你创建减少*无意中*的安全漏洞的设计。
+在我开始之前，我必须提到一个主要的警告。在.NET 环境中，你通常可以使用反射来绕过编译时检查，因此这里展示的方法并不是关于防止真正恶意的攻击，而更多地是帮助你创建减少*无意中*的安全漏洞的设计。
 
 最后，我不是安全方面的专家 -- 我只是写下了一些我自己的想法和建议。这篇文章当然不是为了替代一个完整的安全设计，也不是对安全实践的严肃研究。如果你想了解更多，文章底部有进一步阅读的链接。
 
-## 第1部分：一个配置示例
+## 第 1 部分：一个配置示例
 
 首先，让我们从一个简单的场景开始：
 
 +   你有一个配置选项，可以由代码的一部分设置。假设它是一个名为`DontShowThisMessageAgain`的布尔值。
 
-+   我们有一个应用程序的组件（比如说UI），想要设置这个选项。
++   我们有一个应用程序的组件（比如说 UI），想要设置这个选项。
 
 +   另外，我们还假设该组件是由一个恶意的开发者编写的，并且如果可能的话，他会试图制造麻烦。
 
 那么，我们应该如何向潜在恶意的调用者公开这个配置设置呢？
 
-**尝试1：将配置文件的名称提供给调用者**
+**尝试 1：将配置文件的名称提供给调用者**
 
 让我们从一个非常糟糕的想法开始。我们只需将配置文件的名称提供给调用者，并让他们自己更改文件。
 
@@ -170,7 +170,7 @@ interface IWarningMessageConfiguration
 
 我希望在这篇文章中演示，通过在代码中使用基于能力的方法，你可以创建设计更好、更健壮的代码。此外，潜在的安全错误将在*编译时*而不是运行时可检测到。
 
-正如我上面提到的，如果你的应用被信任，你总是可以使用.NET反射来“伪造”你没有权限的能力。所以，这里展示的方法不是为了防止真正的恶意攻击，而是为了创建一个更加健壮的设计，减少*无意中*的安全漏洞。
+正如我上面提到的，如果你的应用被信任，你总是可以使用.NET 反射来“伪造”你没有权限的能力。所以，这里展示的方法不是为了防止真正的恶意攻击，而是为了创建一个更加健壮的设计，减少*无意中*的安全漏洞。
 
 ## 权威 vs. 权限
 
@@ -182,7 +182,7 @@ interface IWarningMessageConfiguration
 
 看起来基于权威的系统比基于权限的系统更加开放和“危险”。但在基于权限的系统中，如果其他人可以接触到我，并且我与他们合作，我可以代表他们做任何事情，因此第三方仍然可以*间接*获得权限。权限并不能真正增加安全性--攻击者只需使用更加复杂的方法。
 
-这里有一个具体的例子。假设Alice信任我开她的车，并且她愿意让我借车，但她不信任Bob。如果我和Bob是朋友，我可以在Alice不注意的时候让Bob开车。所以如果Alice信任我，她也隐含地信任我信任的任何人。基于权威的系统只是让这一点明确化。Alice把车钥匙交给我就是给我开她的车的“能力”，她完全知道我可能把车钥匙给别人。
+这里有一个具体的例子。假设 Alice 信任我开她的车，并且她愿意让我借车，但她不信任 Bob。如果我和 Bob 是朋友，我可以在 Alice 不注意的时候让 Bob 开车。所以如果 Alice 信任我，她也隐含地信任我信任的任何人。基于权威的系统只是让这一点明确化。Alice 把车钥匙交给我就是给我开她的车的“能力”，她完全知道我可能把车钥匙给别人。
 
 当然，在基于权限的系统中，当我作为第三方的代理时，如果我愿意，我可以停止与第三方合作，此时第三方失去了他们的访问权限。
 
@@ -205,7 +205,7 @@ interface IWarningMessageConfiguration
 Action<MessageFlag> messageFlagCapability = // get function; 
 ```
 
-或者在F#中：
+或者在 F#中：
 
 ```
 let messageFlagCapability = // get function; 
@@ -312,7 +312,7 @@ class ApplicationWindow
 
 它非常粗糙和丑陋 -- 在制作过程中没有 UI 设计师受伤 -- 但它应该演示了到目前为止的主要观点。
 
-![示例应用程序](auth_annoying_popup.png)
+![示例应用程序](img/auth_annoying_popup.png)
 
 ### 配置系统
 
@@ -528,7 +528,7 @@ module Startup =
 
 正如你所看到的，这段代码与使用依赖注入设计的 OO 系统非常相似。没有全局访问能力，只有从父级传递的能力。
 
-![示例1](auth_1.png)
+![示例 1](img/auth_1.png)
 
 当然，像这样使用函数来参数化行为并不特别。这是最基本的函数式编程技术之一。因此，这段代码实际上并没有展示任何新的想法，而只是演示了如何将标准的函数式编程方法应用于强制访问路径。
 
@@ -556,9 +556,9 @@ module Startup =
 
 **问题：有什么阻止别人在不遵循这种方法的情况下访问全局功能？**
 
-在C#或F#中没有任何东西可以阻止您访问全局公共函数。就像其他最佳实践一样，例如避免全局变量，我们必须依靠自律（也许是代码审查）来保持我们走在正确的道路上！
+在 C#或 F#中没有任何东西可以阻止您访问全局公共函数。就像其他最佳实践一样，例如避免全局变量，我们必须依靠自律（也许是代码审查）来保持我们走在正确的道路上！
 
-但在[本系列的第三部分](capability-based-security-3.html)中，我们将探讨一种通过使用访问令牌来防止对全局函数的访问的方法。
+但在本系列的第三部分中，我们将探讨一种通过使用访问令牌来防止对全局函数的访问的方法。
 
 **问题：这些只是标准的函数式编程技术吗？**
 
@@ -568,9 +568,9 @@ module Startup =
 
 是的，这些功能函数不是纯的。这里的目标不是纯粹 -- 而是明确提供功能的目的。
 
-即使我们使用纯`IO`上下文（例如在Haskell中），也无法帮助控制对功能的访问。也就是说，在安全性的背景下，改变密码或信用卡的能力与改变背景颜色配置的能力之间存在很大的区别，尽管从计算的角度来看它们都只是"IO"。
+即使我们使用纯`IO`上下文（例如在 Haskell 中），也无法帮助控制对功能的访问。也就是说，在安全性的背景下，改变密码或信用卡的能力与改变背景颜色配置的能力之间存在很大的区别，尽管从计算的角度来看它们都只是"IO"。
 
-创建纯功能是可能的，但在F#中并不是很容易做到，所以我将在本文中将其排除在外。
+创建纯功能是可能的，但在 F#中并不是很容易做到，所以我将在本文中将其排除在外。
 
 **问题：对于某人写的内容，你有什么回应？为什么没有引用某篇论文？**
 
@@ -580,33 +580,33 @@ module Startup =
 
 **我还有更多问题...**
 
-一些额外的问题在[第二部分的结尾](capability-based-security-2.html#summary)有答案，所以请先阅读那些答案。否则，请在下面的评论中添加您的问题，我会尽力回答。
+一些额外的问题在第二部分的结尾有答案，所以请先阅读那些答案。否则，请在下面的评论中添加您的问题，我会尽力回答。
 
 ## 进一步阅读
 
-这里关于基于能力的安全性的想法主要来源于Mark Miller和Marc Stiegler的工作，以及[erights.org](http://www.erights.org/)网站，尽管我的版本��加简单和粗糙。
+这里关于基于能力的安全性的想法主要来源于 Mark Miller 和 Marc Stiegler 的工作，以及[erights.org](http://www.erights.org/)网站，尽管我的版本��加简单和粗糙。
 
 为了更全面地理解，我建议你查看以下链接：
 
 +   [基于能力的安全性](https://zh.wikipedia.org/wiki/%E5%9F%BA%E4%BA%8E%E8%83%BD%E5%8A%9B%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7)和[对象能力模型](https://zh.wikipedia.org/wiki/%E5%AF%B9%E8%B1%A1%E8%83%BD%E5%8A%9B%E6%A8%A1%E5%9E%8B)的维基百科文章是一个很好的起点。
 
-+   [能力到底是什么？](https://webcache.googleusercontent.com/search?q=cache:www.eros-os.org/essays/capintro.html)，来自EROS项目的Jonathan Shapiro。他还讨论了基于ACL的安全性与基于能力的模型。
++   [能力到底是什么？](https://webcache.googleusercontent.com/search?q=cache:www.eros-os.org/essays/capintro.html)，来自 EROS 项目的 Jonathan Shapiro。他还讨论了基于 ACL 的安全性与基于能力的模型。
 
-+   ["懒惰程序员的安全计算指南"](http://www.youtube.com/watch?v=eL5o4PFuxTY)，Marc Stiegler关于基于能力的安全性的一个很棒的视频。不要错过最后5分钟（大约从1小时02分钟10秒开始）！
++   ["懒惰程序员的安全计算指南"](http://www.youtube.com/watch?v=eL5o4PFuxTY)，Marc Stiegler 关于基于能力的安全性的一个很棒的视频。不要错过最后 5 分钟（大约从 1 小时 02 分钟 10 秒开始）！
 
-+   ["安全的对象能力"](https://www.youtube.com/watch?v=EGX2I31OhBE)，David Wagner的一个很好的演讲。
++   ["安全的对象能力"](https://www.youtube.com/watch?v=EGX2I31OhBE)，David Wagner 的一个很好的演讲。
 
-已经有很多关于加固语言以提高安全性和安全性的工作。例如[E语言](http://www.erights.org/elang/index.html)和[Mark Miller关于E语言的论文](http://www.erights.org/talks/thesis/markm-thesis.pdf)(PDF)；建立在Java之上的[Joe-E语言](https://en.wikipedia.org/wiki/Joe-E)；Google的基于JavaScript的[Caja](https://developers.google.com/caja/)；[Emily](http://www.hpl.hp.com/techreports/2006/HPL-2006-116.html)，一种基于OCaml的能力语言；以及[Safe Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/safe-haskell/safe-haskell.pdf)(PDF)。
+已经有很多关于加固语言以提高安全性和安全性的工作。例如[E 语言](http://www.erights.org/elang/index.html)和[Mark Miller 关于 E 语言的论文](http://www.erights.org/talks/thesis/markm-thesis.pdf)(PDF)；建立在 Java 之上的[Joe-E 语言](https://en.wikipedia.org/wiki/Joe-E)；Google 的基于 JavaScript 的[Caja](https://developers.google.com/caja/)；[Emily](http://www.hpl.hp.com/techreports/2006/HPL-2006-116.html)，一种基于 OCaml 的能力语言；以及[Safe Haskell](http://research.microsoft.com/en-us/um/people/simonpj/papers/safe-haskell/safe-haskell.pdf)(PDF)。
 
-我的方法不是严格的安全性，而是积极地设计以避免意外违规，上面的参考资料并没有专注于设计。我发现最有用的是[E中关于能力模式的部分](http://www.skyhunter.com/marcs/ewalnut.html#SEC45)。
+我的方法不是严格的安全性，而是积极地设计以避免意外违规，上面的参考资料并没有专注于设计。我发现最有用的是[E 中关于能力模式的部分](http://www.skyhunter.com/marcs/ewalnut.html#SEC45)。
 
-如果你喜欢这种类型的东西，那就去LtU看看，那里有许多讨论，比如[这个](http://lambda-the-ultimate.org/node/1635)和[这个](http://lambda-the-ultimate.org/node/3930)，以及[这篇论文](http://lambda-the-ultimate.org/node/2253)。
+如果你喜欢这种类型的东西，那就去 LtU 看看，那里有许多讨论，比如[这个](http://lambda-the-ultimate.org/node/1635)和[这个](http://lambda-the-ultimate.org/node/3930)，以及[这篇论文](http://lambda-the-ultimate.org/node/2253)。
 
 ## 即将推出
 
-在[下一篇文章](capability-based-security-2.html)中，我们将看看如何基于声明（如当前用户的身份和角色）来限制能力。
+在下一篇文章中，我们将看看如何基于声明（如当前用户的身份和角色）来限制能力。
 
-*注意：本文中所有代码都可以在[gist这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)找到。*
+*注意：本文中所有代码都可以在[gist 这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_configexample-fsx)找到。*
 
 # 基于身份和角色来限制能力
 
@@ -614,7 +614,7 @@ module Startup =
 
 *更新：[关于这个主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/cap/)*
 
-在[上一篇文章](capability-based-security.html)中，我们开始研究了“能力”作为确保代码不能做更多事情的基础。我用一个简单的应用程序演示了这一点，该应用程序更改了一个配置标志。
+在上一篇文章中，我们开始研究了“能力”作为确保代码不能做更多事情的基础。我用一个简单的应用程序演示了这一点，该应用程序更改了一个配置标志。
 
 在这篇文章中，我们将看看如何根据当前用户的身份和角色来限制能力。
 
@@ -630,7 +630,7 @@ module Startup =
 
 这意味着在某个时候，我们将根据用户的身份和角色进行授权。（我们将假设用户已经成功认证）。
 
-许多Web框架的倾向是将授权放在UI层中，通常是[在控制器中](https://msdn.microsoft.com/en-us/library/system.web.mvc.authorizeattribute.aspx)。我对这种方法的担忧是，一旦您“内部”（通过门户），应用程序的任何部分都具有完全访问数据库的权限，并且很容易由于错误而使代码做错事，从而导致安全漏洞。
+许多 Web 框架的倾向是将授权放在 UI 层中，通常是[在控制器中](https://msdn.microsoft.com/en-us/library/system.web.mvc.authorizeattribute.aspx)。我对这种方法的担忧是，一旦您“内部”（通过门户），应用程序的任何部分都具有完全访问数据库的权限，并且很容易由于错误而使代码做错事，从而导致安全漏洞。
 
 不仅如此，因为权限随处可见（"环境"），很难审查代码以查找潜在的安全问题。
 
@@ -638,7 +638,7 @@ module Startup =
 
 我们将从一个明显的方法开始。我们将将身份和角色添加到每个数据库调用中，然后在那里进行授权。
 
-以下方法假设存在一个 `CustomerIdBelongsToPrincipal` 函数，用于检查正在访问的客户ID是否属于请求访问的主体。然后，如果 `customerId` 确实属于主体，或者主体具有 "CustomerAgent" 角色，则授予访问权限。
+以下方法假设存在一个 `CustomerIdBelongsToPrincipal` 函数，用于检查正在访问的客户 ID 是否属于请求访问的主体。然后，如果 `customerId` 确实属于主体，或者主体具有 "CustomerAgent" 角色，则授予访问权限。
 
 ```
 public class CustomerDatabase
@@ -707,9 +707,9 @@ class CustomerDatabase
 
 如您所见，如果授权成功，则向调用者返回对`GetCustomer`方法的引用。
 
-可能不明显，但是上面的代码有一个相当大的安全漏洞。我可以请求特定客户ID的能力，但我得到的是一个可以为*任何*客户ID调用的函数！这不太安全，对吗？
+可能不明显，但是上面的代码有一个相当大的安全漏洞。我可以请求特定客户 ID 的能力，但我得到的是一个可以为*任何*客户 ID 调用的函数！这不太安全，对吗？
 
-我们需要的是将客户ID“固定”到能力中，以防止被滥用。现在返回值将是一个`Func<CustomerData>`，其中客户ID不再可传递。
+我们需要的是将客户 ID“固定”到能力中，以防止被滥用。现在返回值将是一个`Func<CustomerData>`，其中客户 ID 不再可传递。
 
 ```
 class CustomerDatabase
@@ -763,7 +763,7 @@ class CustomerDatabase
 } 
 ```
 
-这假设我们在C#中使用某种`Option`类型，而不仅仅是返回null！
+这假设我们在 C#中使用某种`Option`类型，而不仅仅是返回 null！
 
 最后，我们可以将授权逻辑放入其自己的类中（比如说`CustomerDatabaseCapabilityProvider`），以将授权问题与`CustomerDatabase`分开处理。
 
@@ -801,7 +801,7 @@ public class CustomerDatabaseCapabilityProvider
 } 
 ```
 
-这是相同代码的F#版本：
+这是相同代码的 F#版本：
 
 ```
 /// not accessible to the business layer
@@ -823,7 +823,7 @@ module CustomerDatabaseCapabilityProvider =
 
 这是表示此设计的图表：
 
-![示例2](auth_2.png)
+![示例 2](img/auth_2.png)
 
 **这种模型的问题**
 
@@ -841,7 +841,7 @@ module CustomerDatabaseCapabilityProvider =
 
 将函数转换为新函数！这是我们可以轻松做到的事情。
 
-所以，让我们编写一个转换器，给定类型为`CustomerId -> 'a`的*任何*函数，我们返回一个将客户ID固定在内的函数（`unit -> 'a`），但仅当满足授权要求时。
+所以，让我们编写一个转换器，给定类型为`CustomerId -> 'a`的*任何*函数，我们返回一个将客户 ID 固定在内的函数（`unit -> 'a`），但仅当满足授权要求时。
 
 ```
 module CustomerCapabilityFilter =         
@@ -857,7 +857,7 @@ module CustomerCapabilityFilter =
             None 
 ```
 
-`onlyForSameIdOrAgents`函数的类型签名是`(CustomerId -> 'a) -> (unit -> 'a) option`。如果授权成功，它接受任何基于`CustomerId`的函数，并返回可能已经应用了客户ID的相同函数。如果授权不成功，则返回`None`。
+`onlyForSameIdOrAgents`函数的类型签名是`(CustomerId -> 'a) -> (unit -> 'a) option`。如果授权成功，它接受任何基于`CustomerId`的函数，并返回可能已经应用了客户 ID 的相同函数。如果授权不成功，则返回`None`。
 
 您可以看到，这个函数将与*任何*以`CustomerId`作为第一个参数的函数通用地工作。这可以是“获取”，“更新”，“删除”等。
 
@@ -906,7 +906,7 @@ match getCustomerOnlyForSameIdOrAgents with
 
 这是代表此设计的图表：
 
-![示例3](auth_3.png)
+![示例 3](img/auth_3.png)
 
 ## 更多关于功能的转换
 
@@ -930,11 +930,11 @@ module CustomerCapabilityFilter =
             None 
 ```
 
-对于第一个业务规则，`onlyForSameId`，我们像以前一样返回一个带有客户ID的功能。
+对于第一个业务规则，`onlyForSameId`，我们像以前一样返回一个带有客户 ID 的功能。
 
-第二个业务规则，`onlyForAgents`，在任何地方都没有提及客户ID，那么为什么我们要将函数参数限制为`CustomerId -> 'a`？原因是它强制该规则*仅适用于*与客户相关的功能，而不适用于与产品或支付相关的功能。
+第二个业务规则，`onlyForAgents`，在任何地方都没有提及客户 ID，那么为什么我们要将函数参数限制为`CustomerId -> 'a`？原因是它强制该规则*仅适用于*与客户相关的功能，而不适用于与产品或支付相关的功能。
 
-但是现在，为了使此过滤器的输出与第一个规则（`unit -> 'a`）兼容，我们需要传入一个客户ID并部分应用它。这有点像个技巧，但现在它能用。
+但是现在，为了使此过滤器的输出与第一个规则（`unit -> 'a`）兼容，我们需要传入一个客户 ID 并部分应用它。这有点像个技巧，但现在它能用。
 
 我们还可以编写一个从列表中返回第一个有效功能的通用组合子。
 
@@ -991,7 +991,7 @@ let getCustomerOnlyForAgentsInBusinessHours =
 
 我们可以将其与先前的`onlyForSameId`过滤器结合使用，构建一个可以访问客户数据的复合功能：
 
-+   如果您在任何时间都有相同的客户ID
++   如果您在任何时间都有相同的客户 ID
 
 +   如果您是客户代理（仅在工作时间）
 
@@ -1184,7 +1184,7 @@ module Domain =
 type GetCustomerCap = unit -> SuccessFailure<CustomerData,FailureCase> 
 ```
 
-最后，`CapabilityProvider`是一组函数记录，每个函数接受一个客户ID和主体，返回指定类型的可选能力。此记录在顶级模型中创建，然后传递给子组件。
+最后，`CapabilityProvider`是一组函数记录，每个函数接受一个客户 ID 和主体，返回指定类型的可选能力。此记录在顶级模型中创建，然后传递给子组件。
 
 这是该模块的完整代码：
 
@@ -1249,7 +1249,7 @@ module Authentication =
         |> Rop.orElse false 
 ```
 
-`customerIdForName`函数尝试找到与特定名称关联的客户ID，而`customerIdOwnedByPrincipal`将此ID与另一个进行比较。
+`customerIdForName`函数尝试找到与特定名称关联的客户 ID，而`customerIdOwnedByPrincipal`将此 ID 与另一个进行比较。
 
 ### 实现授权
 
@@ -1394,7 +1394,7 @@ module BusinessServices =
 
 +   最后，`Exit`状态是应用程序关闭的信号。
 
-我非常喜欢使用这样的“状态”设计，因为它确保我们不会意外访问我们不应该访问的数据。例如，当没有选择客户时，我们实际上无法访问客户，因为在该状态下没有客户ID！
+我非常喜欢使用这样的“状态”设计，因为它确保我们不会意外访问我们不应该访问的数据。例如，当没有选择客户时，我们实际上无法访问客户，因为在该状态下没有客户 ID！
 
 对于每个状态，都有一个相应的函数。
 
@@ -1676,13 +1676,13 @@ match updateCapability with
 
 **我有更多的问题...**
 
-如果你错过了它们，一些额外的问题在[第1部分的结尾](capability-based-security.html#summary)得到了解答。否则，请在下面的评论中添加您的问题，我会尽力解答。
+如果你错过了它们，一些额外的问题在第 1 部分的结尾得到了解答。否则，请在下面的评论中添加您的问题，我会尽力解答。
 
 ## 即将到来
 
-在[下一篇文章](capability-based-security-3.html)中，我们将看看如何使用类型来模拟访问令牌，并防止对全局函数的未经授权访问。
+在下一篇文章中，我们将看看如何使用类型来模拟访问令牌，并防止对全局函数的未经授权访问。
 
-*注：本文的所有代码都可以在[gist这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx)和[这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)找到。*
+*注：本文的所有代码都可以在[gist 这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_dbexample-fsx)和[这里](https://gist.github.com/swlaschin/909c5b24bf921e5baa8c#file-capabilitybasedsecurity_consoleexample-fsx)找到。*
 
 # 使用类型作为访问令牌
 
@@ -1690,7 +1690,7 @@ match updateCapability with
 
 *更新：[关于此主题的演讲幻灯片和视频](http://fsharpforfunandprofit.com/cap/)*
 
-在之前的文章中（[链接](capability-based-security.html)，[链接](capability-based-security-2.html)），我们以“能力”作为限制代码的基础。
+在之前的文章中（链接，链接），我们以“能力”作为限制代码的基础。
 
 但在迄今为止的大多数示例中，我们一直依赖自律来避免使用全局能力，或者尝试使用`internal`关键字隐藏“原始”能力。
 
@@ -1704,11 +1704,11 @@ match updateCapability with
 
 这是一个基本授权系统的简化图示（例如[OAuth 2.0](https://developers.google.com/accounts/docs/OAuth2#basicsteps)）。
 
-![简化的认证](auth_token.png)
+![简化的认证](img/auth_token.png)
 
 这些步骤，以它们最粗糙的形式来说，是：
 
-+   客户端向授权服务呈现一些声明，包括身份、服务的ID和范围（能力）。
++   客户端向授权服务呈现一些声明，包括身份、服务的 ID 和范围（能力）。
 
 +   授权服务检查客户端是否被授权，如果是，则创建一个访问令牌并返回给客户端。
 
@@ -1726,7 +1726,7 @@ match updateCapability with
 
 我们将设置这样一个类型，只能由授权服务创建，但必须传递给数据库服务。
 
-例如，这里是`AccessToken`类型的一个F#实现。构造函数是私有的，还有一个静态成员，如果允许授权，则返回一个实例。
+例如，这里是`AccessToken`类型的一个 F#实现。构造函数是私有的，还有一个静态成员，如果允许授权，则返回一个实例。
 
 ```
 type AccessToken private() = 
@@ -1740,9 +1740,9 @@ type AccessToken private() =
             None 
 ```
 
-接下来，在数据库模块中，我们将为每个函数添加一个额外的参数，即AccessToken。
+接下来，在数据库模块中，我们将为每个函数添加一个额外的参数，即 AccessToken。
 
-因为需要AccessToken令牌，我们现在可以安全地将数据库模块设为公共的，因为没有未经授权的客户端可以调用这些函数。
+因为需要 AccessToken 令牌，我们现在可以安全地将数据库模块设为公共的，因为没有未经授权的客户端可以调用这些函数。
 
 ```
 let getCustomer (accessToken:AccessToken) (id:CustomerId) = 
@@ -1752,7 +1752,7 @@ let updateCustomer (accessToken:AccessToken) (id:CustomerId) (data:CustomerData)
     // update database 
 ```
 
-请注意，accessToken实际上并没有在实现中使用。它只是在编译时强制调用者获取令牌。
+请注意，accessToken 实际上并没有在实现中使用。它只是在编译时强制调用者获取令牌。
 
 那么让我们看看这在实践中是如何使用的。
 
@@ -1787,13 +1787,13 @@ match getCustomerCapability with
 
 第一个问题是`AccessToken`类型太广泛了。如果我可以某种方式获取一个用于无辜写入配置文件的访问令牌，我也许还可以用它来恶意更新密码。
 
-第二个问题是`AccessToken`丢失了操作的上下文。例如，我可能获得了一个用于更新`CustomerId 1`的访问令牌，但当我实际*使用*这个功能时，我可能会传入`CustomerId 2`作为客户ID！
+第二个问题是`AccessToken`丢失了操作的上下文。例如，我可能获得了一个用于更新`CustomerId 1`的访问令牌，但当我实际*使用*这个功能时，我可能会传入`CustomerId 2`作为客户 ID！
 
 这两个问题的答案是在授权时将信息存储在访问令牌本身中。
 
 例如，如果令牌存储了请求的操作，服务可以检查令牌是否与调用的操作匹配，这确保了令牌只能用于特定的操作。实际上，正如我们马上会看到的，我们可以懒惰一点，让*编译器*来为我们进行这个检查！
 
-如果我们还存储了授权请求中的任何数据（如客户ID），那么我们就不需要在服务中再次请求它。
+如果我们还存储了授权请求中的任何数据（如客户 ID），那么我们就不需要在服务中再次请求它。
 
 更重要的是，我们可以相信令牌中存储的信息没有被伪造或篡改，因为只有授权服务才能创建令牌。换句话说，这相当于令牌被“签名”。
 
@@ -2046,7 +2046,7 @@ let updatePassword (accessToken:AccessToken<UpdatePassword>) (password:Password)
 
 ### 实现业务服务和用户界面
 
-与业务服务和UI相关的代码完全没有变化。
+与业务服务和 UI 相关的代码完全没有变化。
 
 因为这些函数只传递了功能，它们与应用程序的低层级和高层级都解耦了，所以授权逻辑的任何更改都不会影响到这些层。
 
@@ -2105,7 +2105,7 @@ let tokenToCap f token =
 
 **问题：为什么不在访问令牌中也存储调用者，这样其他客户端就不能使用它了？**
 
-这是不需要的，因为我们正在使用基于权限的方法。正如在[第一篇文章](capability-based-security.html#authority)中讨论的那样，一旦客户端具有某项功能，他们就可以将其传递给其他人使用，因此将其限制为特定调用者是没有意义的。
+这是不需要的，因为我们正在使用基于权限的方法。正如在第一篇文章中讨论的那样，一旦客户端具有某项功能，他们就可以将其传递给其他人使用，因此将其限制为特定调用者是没有意义的。
 
 **问题：授权模块现在需要了解功能和访问令牌类型。这不是增加了额外的耦合吗？**
 
@@ -2125,7 +2125,7 @@ let tokenToCap f token =
 
 **我有更多问题...**
 
-[第 1 部分](capability-based-security.html#summary) 和 [第 2 部分](capability-based-security-2.html#summary) 结尾回答了一些额外的问题，所以请先阅读这些答案。否则，请在下面的评论中添加您的问题，我会尽力解答。
+第 1 部分 和 第 2 部分 结尾回答了一些额外的问题，所以请先阅读这些答案。否则，请在下面的评论中添加您的问题，我会尽力解答。
 
 ## 结论
 

@@ -10,7 +10,7 @@
 buffer([breakObservable]) 
 ```
 
-Buffer本身意味着我们等待直到`breakObservable`发生才发出任何值。一个例子是以下内容：
+Buffer 本身意味着我们等待直到`breakObservable`发生才发出任何值。一个例子是以下内容：
 
 ```
 let breakWhen$ = Rx.Observable.timer(1000);
@@ -21,7 +21,7 @@ let stream$ = Rx.Observable.interval(200)
 stream$.subscribe((data) => console.log( 'values',data )); 
 ```
 
-在这种情况下，值0,1,2,3一次性发出。
+在这种情况下，值 0,1,2,3 一次性发出。
 
 ### 业务案例
 
@@ -31,7 +31,7 @@ stream$.subscribe((data) => console.log( 'values',data ));
 
 +   用户输入按键
 
-+   基于这些按键击键进行搜索。然而，重要的是搜索本身是在您输入时进行的，无论是因为您输入了x个字符还是更常见的方法是让您完成输入并进行搜索，您可能正在输入时进行编辑。因此，让我们迈出这样一个解决方案的第一步：
++   基于这些按键击键进行搜索。然而，重要的是搜索本身是在您输入时进行的，无论是因为您输入了 x 个字符还是更常见的方法是让您完成输入并进行搜索，您可能正在输入时进行编辑。因此，让我们迈出这样一个解决方案的第一步：
 
 ```
 let input = document.getElementById('example');
@@ -47,7 +47,7 @@ let stream$ = input$
 stream$.subscribe((data) => console.log( 'values',data )); 
 ```
 
-我们捕获`keyup`事件。我们还使用了一个`debounce()`运算符，它基本上表示; 一旦您停止输入x毫秒，我将发出值。然而，这个解决方案只是迈出的第一步，因为它报告了实际键入的确切键。一个更好的解决方案是捕获输入元素的实际内容，并执行一个ajax调用，所以让我们看一个更精细的解决方案：
+我们捕获`keyup`事件。我们还使用了一个`debounce()`运算符，它基本上表示; 一旦您停止输入 x 毫秒，我将发出值。然而，这个解决方案只是迈出的第一步，因为它报告了实际键入的确切键。一个更好的解决方案是捕获输入元素的实际内容，并执行一个 ajax 调用，所以让我们看一个更精细的解决方案：
 
 ```
 let input = document.getElementById('example');
@@ -69,7 +69,7 @@ let stream$ = input$
 stream$.subscribe((data) => console.log( 'values',data )); 
 ```
 
-让我们称之为`超级自动完成`。之所以取这个名字是因为我们保存用户最终决定成为Ajax调用之前所做的每一个交互。因此，上面的结果可能如下所示：
+让我们称之为`超级自动完成`。之所以取这个名字是因为我们保存用户最终决定成为 Ajax 调用之前所做的每一个交互。因此，上面的结果可能如下所示：
 
 ```
 // from switchMap
@@ -83,7 +83,7 @@ app-buffer.js:31 values ajax based on fghfgh
 
 **双击**
 
-在上面的示例中，我展示了如何捕获键的组可能是有趣的，但另一组可能感兴趣的UI事件是鼠标点击，即捕获单击、双击或三击。如果不使用Rxjs，编写这样的代码会相当不优雅，但使用Rxjs，就像轻而易举一样：
+在上面的示例中，我展示了如何捕获键的组可能是有趣的，但另一组可能感兴趣的 UI 事件是鼠标点击，即捕获单击、双击或三击。如果不使用 Rxjs，编写这样的代码会相当不优雅，但使用 Rxjs，就像轻而易举一样：
 
 ```
 let btn = document.getElementById('btn2');
@@ -100,7 +100,7 @@ let btnBuffered$ = btn$
 btnBuffered$.subscribe((data) => console.log( 'values',data )); 
 ```
 
-多亏了`debounce()`运算符，我们能够表达在发出任何内容之前等待300毫秒。这是相当少的行数，我们很容易决定我们的过滤器应该是什么样子。
+多亏了`debounce()`运算符，我们能够表达在发出任何内容之前等待 300 毫秒。这是相当少的行数，我们很容易决定我们的过滤器应该是什么样子。
 
 ## bufferTime
 
@@ -110,7 +110,7 @@ btnBuffered$.subscribe((data) => console.log( 'values',data ));
 bufferTime([ms]) 
 ```
 
-这个想法是记录在那个时间片段内发生的一切并输出所有值。下面是在1秒时间片段内记录输入上的所有活动的示例。
+这个想法是记录在那个时间片段内发生的一切并输出所有值。下面是在 1 秒时间片段内记录输入上的所有活动的示例。
 
 ```
 let input = document.getElementById('example');

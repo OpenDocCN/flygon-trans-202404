@@ -77,7 +77,7 @@ db.execute  "SELECT host_key, path, name, value FROM cookies"
 
 ## Windows 注册表
 
-![](win-foren__winreg1.png)
+![](img/win-foren__winreg1.png)
 
 ### 枚举
 
@@ -378,11 +378,11 @@ end
 
 <!--
 
-[http://www.behindthefirewalls.com/2014/01/extracting-files-from-network-traffic-pcap.html](http://www.behindthefirewalls.com/2014/01/extracting-files-from-network-traffic-pcap.html)
+[`www.behindthefirewalls.com/2014/01/extracting-files-from-network-traffic-pcap.html`](http://www.behindthefirewalls.com/2014/01/extracting-files-from-network-traffic-pcap.html)
 
-[http://jarmoc.com/blog/2013/05/22/bsjtf-ctf-writeup-what-in-the-name-of-zeus/](http://jarmoc.com/blog/2013/05/22/bsjtf-ctf-writeup-what-in-the-name-of-zeus/)
+[`jarmoc.com/blog/2013/05/22/bsjtf-ctf-writeup-what-in-the-name-of-zeus/`](http://jarmoc.com/blog/2013/05/22/bsjtf-ctf-writeup-what-in-the-name-of-zeus/)
 
-[http://hamsa.cs.northwestern.edu/readings/password-cracking2/](http://hamsa.cs.northwestern.edu/readings/password-cracking2/)
+[`hamsa.cs.northwestern.edu/readings/password-cracking2/`](http://hamsa.cs.northwestern.edu/readings/password-cracking2/)
 
 -->
 
@@ -392,7 +392,7 @@ end
 
 #
 
-# [https://www.youtube.com/watch?v=owsr3X453Z4](https://www.youtube.com/watch?v=owsr3X453Z4)
+# [`www.youtube.com/watch?v=owsr3X453Z4`](https://www.youtube.com/watch?v=owsr3X453Z4)
 
 require 'packetfu'
 
@@ -412,7 +412,7 @@ end
 
 # 数组 56
 
-包括PacketFu
+包括 PacketFu
 
 packets = PcapFile.file_to_array '/home/KING/wireless.pcap'
 
@@ -466,17 +466,17 @@ puts pkt.inspect_hex
 
 # 解析日志文件
 
-## Apache日志文件
+## Apache 日志文件
 
-让我们首先列出我们可能需要从Apache日志中获取的重要信息
+让我们首先列出我们可能需要从 Apache 日志中获取的重要信息
 
-+   IP地址
++   IP 地址
 
 +   时间戳
 
-+   HTTP方法
++   HTTP 方法
 
-+   URI路径
++   URI 路径
 
 +   响应代码
 
@@ -488,13 +488,13 @@ puts pkt.inspect_hex
 apache_logs = File.readlines "/var/log/apache2/access.log" 
 ```
 
-我正在寻找Apache日志的简单正则表达式。我在[这里](http://stackoverflow.com/questions/4846394/how-to-efficiently-parse-large-text-files-in-ruby)找到了一个，稍作调整。
+我正在寻找 Apache 日志的简单正则表达式。我在[这里](http://stackoverflow.com/questions/4846394/how-to-efficiently-parse-large-text-files-in-ruby)找到了一个，稍作调整。
 
 ```
 apache_regex = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - (.{0})- \[([^\]]+?)\] "(GET|POST|PUT|DELETE) ([^\s]+?) (HTTP\/1\.1)" (\d+) (\d+) "-" "(.*)"/ 
 ```
 
-所以我想出了这个小方法，它解析并将Apache的"access.log"文件转换为包含我们所需信息的哈希列表的数组。
+所以我想出了这个小方法，它解析并将 Apache 的"access.log"文件转换为包含我们所需信息的哈希列表的数组。
 
 ```
 #!/usr/bin/env ruby
@@ -579,27 +579,27 @@ pp parse(apache_logs)
 
 注意：Apache LogFormat 配置为 `LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined`，这是默认配置。
 
-+   %h 是远程主机（即客户端IP地址）
++   %h 是远程主机（即客户端 IP 地址）
 
-+   %l 是由identd确定的用户标识（通常不使用，因为不可靠）
++   %l 是由 identd 确定的用户标识（通常不使用，因为不可靠）
 
-+   %u 是由HTTP身份验证确定的用户名
++   %u 是由 HTTP 身份验证确定的用户名
 
 +   %t 是接收到请求的时间。
 
 +   %r 是来自客户端的请求行。("GET / HTTP/1.0")
 
-+   %>s 是服务器发送给客户端的状态代码（200、404等）
++   %>s 是服务器发送给客户端的状态代码（200、404 等）
 
 +   %b 是发送给客户端的响应大小（以字节为单位）
 
-+   引用者是链接到此URL的页面。
++   引用者是链接到此 URL 的页面。
 
 +   用户代理是浏览器识别字符串。
 
-## IIS日志文件
+## IIS 日志文件
 
-这是一个基本的IIS日志正则表达式
+这是一个基本的 IIS 日志正则表达式
 
 ```
 iis_regex = /(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) ([^\s]++?) (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) (\d{2}) (GET|POST|PUT|DELETE) ([^\s]++?) - (\d+) (\d+) (\d+) (\d+) ([^\s]++?) (.*)/ 

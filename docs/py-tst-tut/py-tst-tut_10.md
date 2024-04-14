@@ -6,11 +6,11 @@
 
 *船长艾哈布是凶残的，因为白鲸摩比·迪克咬掉了他的腿。所以船长起航去狩猎。几个月来，他在海上寻找这只白鲸。船长最终用鱼叉攻击了鲸鱼。鲸鱼毫不畏惧，吞噬了船长、船员和船只。鲸鱼获胜。*
 
-![统计单词时的刻度标记](counting470.png "统计单词")
+![统计单词时的刻度标记](img/counting470.png "统计单词")
 
 #### 视频
 
-[Youtube上《摩比·迪克》简短概要](https://www.youtube.com/watch?v=EFPhnR5CZtc)
+[Youtube 上《摩比·迪克》简短概要](https://www.youtube.com/watch?v=EFPhnR5CZtc)
 
 ## 课程目标
 

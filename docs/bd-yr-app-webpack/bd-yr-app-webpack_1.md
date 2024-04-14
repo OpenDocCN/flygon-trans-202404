@@ -2,15 +2,15 @@
 
 # 介绍
 
-+   [什么是webpack](Webpack.html)
++   什么是 webpack
 
-+   [安装](Installation.html)
++   安装
 
-# 什么是Webpack
+# 什么是 Webpack
 
-# 什么是Webpack
+# 什么是 Webpack
 
-Webpack是JavaScript生态系统的模块打包工具。它的主要目标是[捆绑](GLOSSARY.html#Bundle)你的应用程序代码和依赖项，以在浏览器中使用。
+Webpack 是 JavaScript 生态系统的模块打包工具。它的主要目标是捆绑你的应用程序代码和依赖项，以在浏览器中使用。
 
 ## 它真正做了什么？
 
@@ -32,7 +32,7 @@ Webpack是JavaScript生态系统的模块打包工具。它的主要目标是[�
 
 当你的应用程序开始增长时，你会意识到处理所有依赖项是多么麻烦。
 
-现在，想象一下能够直接将你需要的Javascript库`require`到你的`.js`文件中，就像这样：
+现在，想象一下能够直接将你需要的 Javascript 库`require`到你的`.js`文件中，就像这样：
 
 ```
 var boostrap = require('boostrap');
@@ -48,12 +48,12 @@ var boostrap = require('boostrap');
   </head>
   <body>
     <!-- That's where the webpack magic happens -->
-    <script src="js/[bundle](GLOSSARY.html#bundle "Basically taking multiple files (your code, JS libraries, and even static resources like images and more...)  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js"></script>
+    <script src="js/bundle  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js"></script>
   </body>
 </html> 
 ```
 
-这就是Webpack的全部内容。它负责加载和创建最终的`js`文件，以便导入到你的`index.html`中。
+这就是 Webpack 的全部内容。它负责加载和创建最终的`js`文件，以便导入到你的`index.html`中。
 
 # 安装
 
@@ -61,13 +61,13 @@ var boostrap = require('boostrap');
 
 ## Webpack
 
-首先全局安装Webpack
+首先全局安装 Webpack
 
 ```
 npm install -g webpack 
 ```
 
-开发时，将Webpack作为项目的依赖是一个好的做法。
+开发时，将 Webpack 作为项目的依赖是一个好的做法。
 
 ```
 npm install --save-dev webpack 
@@ -75,7 +75,7 @@ npm install --save-dev webpack
 
 ## WebpackDevServer
 
-Webpack带有一个用于开发的包。
+Webpack 带有一个用于开发的包。
 
 它允许你实时构建和提供你的文件，当你更新文件时自动重建，还有一些其他很棒的功能！
 

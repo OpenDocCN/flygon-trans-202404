@@ -1,10 +1,10 @@
-# 用于Coq的UseTacticsTactic库：温和介绍
+# 用于 Coq 的 UseTacticsTactic 库：温和介绍
 
 ```
 
 ```
 
-(* 由Arthur Chargueraud编写和维护的章节*)
+(* 由 Arthur Chargueraud 编写和维护的章节*)
 
 ```
 
@@ -18,17 +18,17 @@
 
 ```
 
-导入Coq.Arith.Arith。
+导入 Coq.Arith.Arith。
 
-导入Maps。
+导入 Maps。
 
-导入Imp。
+导入 Imp。
 
-导入Types。
+导入 Types。
 
-导入Smallstep。
+导入 Smallstep。
 
-导入LibTactics。
+导入 LibTactics。
 
 ```
 
@@ -43,7 +43,7 @@
     from the "LibTactics" library. It does not aim at presenting all
     the features of "LibTactics". The detailed specification of tactics
     can be found in the source file LibTactics.v. Further documentation
-    as well as demos can be found at [http://www.chargueraud.org/softs/tlc/](http://www.chargueraud.org/softs/tlc/). 
+    as well as demos can be found at [`www.chargueraud.org/softs/tlc/`](http://www.chargueraud.org/softs/tlc/). 
 
     In this tutorial, tactics are presented using examples taken from
     the core chapters of the "Software Foundations" course. To illustrate
@@ -63,7 +63,7 @@
 
 +   cases，用于执行案例分析而不丢失信息，
 
-+   cases_if，用于自动化对if参数进行案例分析。
++   cases_if，用于自动化对 if 参数进行案例分析。
 
 ```
 
@@ -71,13 +71,13 @@
 
 ```
 
-模块IntrovExamples。
+模块 IntrovExamples。
 
-导入Stlc。
+导入 Stlc。
 
-导入Imp。
+导入 Imp。
 
-导入STLC。
+导入 STLC。
 
 ```
 
@@ -92,7 +92,7 @@
 
 ```
 
-定理ceval_deterministic：∀c st st[1] st[2]，
+定理 ceval_deterministic：∀c st st[1] st[2]，
 
 c / st ⇓ st[1] →
 
@@ -113,7 +113,7 @@ introv E[1] E[2]. (* was intros c st st[1] st[2] E[1] E[2] *)
 
 ```
 
-定理dist_exists_or：∀(X:Type) (P Q : X → Prop)，
+定理 dist_exists_or：∀(X:Type) (P Q : X → Prop)，
 
 (∃x，P x ∨ Q x) ↔ (∃x，P x) ∨ (∃x，Q x)。
 
@@ -130,7 +130,7 @@ introv。(* was intros X P Q *)
 
 ```
 
-定理ceval_deterministic'：∀c st st[1]，
+定理 ceval_deterministic'：∀c st st[1]，
 
 (c / st ⇓ st[1]) → ∀st[2]，(c / st ⇓ st[2]) → st[1] = st[2]。
 
@@ -147,7 +147,7 @@ introv E[1] E[2]. (* was intros c st st[1] E[1] st[2] E[2] *)
 
 ```
 
-定理exists_impl：∀X (P : X → Prop) (Q : Prop) (R : Prop)，
+定理 exists_impl：∀X (P : X → Prop) (Q : Prop) (R : Prop)，
 
 (∀x，P x → Q) →
 
@@ -157,7 +157,7 @@ introv E[1] E[2]. (* was intros c st st[1] E[1] st[2] E[2] *)
 
 introv [x H[2]]。eauto。
 
-(* same as intros X P Q R H[1] [x H[2]].，这本身是intros X P Q R H[1] H[2]的简写。destruct H[2] as [x H[2]]。*)
+(* same as intros X P Q R H[1] [x H[2]].，这本身是 intros X P Q R H[1] H[2]的简写。destruct H[2] as [x H[2]]。*)
 
 完成。
 
@@ -168,7 +168,7 @@ introv [x H[2]]。eauto。
 
 ```
 
-模块IntrovExamples。
+模块 IntrovExamples。
 
 ```
 
@@ -176,15 +176,15 @@ introv [x H[2]]。eauto。
 
 ```
 
-模块InvertsExamples。
+模块 InvertsExamples。
 
-导入Stlc。
+导入 Stlc。
 
-导入Equiv。
+导入 Equiv。
 
-导入Imp。
+导入 Imp。
 
-导入STLC。
+导入 STLC。
 
 ```
 
@@ -205,23 +205,23 @@ introv [x H[2]]。eauto。
 
 ```
 
-定理skip_left：∀c，
+定理 skip_left：∀c，
 
 cequiv (SKIP;; c) c。
 
 证明。
 
-introv。分割；引入H。
+introv。分割；引入 H。
 
 dup。(* 复制目标以进行比较*)
 
 (* was... *)
 
-- 反演H。替换。反演H[2]。替换。假设。
+- 反演 H。替换。反演 H[2]。替换。假设。
 
 (* 现在... *)
 
-- 反演H。反演H[2]。假设。
+- 反演 H。反演 H[2]。假设。
 
 放弃。
 
@@ -231,7 +231,7 @@ dup。(* 复制目标以进行比较*)
 
 ```
 
-定理ceval_deterministic：∀c st st[1] st[2]，
+定理 ceval_deterministic：∀c st st[1] st[2]，
 
 c / st ⇓ st[1] →
 
@@ -241,9 +241,9 @@ st[1] = st[2]。
 
 证明。
 
-introv E[1] E[2]。推广依赖于st[2]。
+introv E[1] E[2]。推广依赖于 st[2]。
 
-对E[1]进行归纳；引入st[2]和E[2]。
+对 E[1]进行归纳；引入 st[2]和 E[2]。
 
 承认。承认。(* 跳过一些基本情况*)
 
@@ -251,11 +251,11 @@ dup。(* 复制目标以进行比较*)
 
 (* was: *)
 
-- 反演E[2]。替换。承认。
+- 反演 E[2]。替换。承认。
 
 (* 现在：*)
 
-- 反演E[2]。承认。
+- 反演 E[2]。承认。
 
 放弃。
 
@@ -269,7 +269,7 @@ dup。(* 复制目标以进行比较*)
 
 ```
 
-定理ceval_deterministic'：∀c st st[1] st[2]，
+定理 ceval_deterministic'：∀c st st[1] st[2]，
 
 c / st ⇓ st[1] →
 
@@ -279,35 +279,35 @@ st[1] = st[2]。
 
 证明。
 
-introv E[1] E[2]。推广依赖于st[2]。
+introv E[1] E[2]。推广依赖于 st[2]。
 
-(对E[1]进行归纳)；引入st[2]和E[2]；
+(对 E[1]进行归纳)；引入 st[2]和 E[2]；
 
-反演E[2]为。
+反演 E[2]为。
 
 - (* E_Skip *) reflexivity.
 
 - (* E_Ass *)
 
-(* 请注意，变量n不会自动替换，因为与inversion E[2]; subst相反，tactic inverts E[2]在运行反演之前不会替换存在的等式。*)
+(* 请注意，变量 n 不会自动替换，因为与 inversion E[2]; subst 相反，tactic inverts E[2]在运行反演之前不会替换存在的等式。*)
 
-(* new: *) 替换n。
+(* new: *) 替换 n。
 
 反演。
 
 - (* E_Seq *)
 
-(* 在这里，新创建的变量可以通过intros引入，这样它们可以被赋予有意义的名称，例如st[3]而不是st'0。*)
+(* 在这里，新创建的变量可以通过 intros 引入，这样它们可以被赋予有意义的名称，例如 st[3]而不是 st'0。*)
 
-(* new: *) 引入st[3] Red1 Red2。
+(* new: *) 引入 st[3] Red1 Red2。
 
-断言(st' = st[3])为EQ[1]。
+断言(st' = st[3])为 EQ[1]。
 
-{ (* 断言的证明*)应用IHE1_1；假设。}
+{ (* 断言的证明*)应用 IHE1_1；假设。}
 
-替换st[3]。
+替换 st[3]。
 
-应用IHE1_2。假设。
+应用 IHE1_2。假设。
 
 (* E_IfTrue *)
 
@@ -1396,7 +1396,7 @@ End ExamplesLets.
 
     使用 applys 的示例稍后出现。几个示例
 
-    forwards 的使用可以在教程章节 [UseAuto](UseAuto.html) 中找到。
+    forwards 的使用可以在教程章节 UseAuto 中找到。
 
 ```
 
@@ -1570,7 +1570,7 @@ lets (Htyp1&Htyp2&Htyp3): typing_inversion_if Htypt...
 
     If you are interested in using LibTactics.v in your own developments,
     make sure you get the lastest version from:
-    [http://www.chargueraud.org/softs/tlc/](http://www.chargueraud.org/softs/tlc/).
+    [`www.chargueraud.org/softs/tlc/`](http://www.chargueraud.org/softs/tlc/).
 
 ```
 

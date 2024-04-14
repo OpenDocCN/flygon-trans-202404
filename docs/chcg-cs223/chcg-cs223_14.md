@@ -111,7 +111,7 @@ sum_tr_ acc n =
 
 注意，可变变量`i`和`res`分别用（不可变的）值`n`和`acc`初始化，并且`while`循环迭代地更新这些变量，只要`i`的当前值为非负。执行循环不会向调用堆栈添加任何帧，因此翻译版本不会出现耗尽堆栈空间以跟踪未完成递归调用的可能性。
 
-尾调用消除对大多数函数式编程语言至关重要。然而，Elm并没有提供这种优化。事实上，我们的尾递归函数似乎比我们的原始版本更早耗尽堆栈空间！
+尾调用消除对大多数函数式编程语言至关重要。然而，Elm 并没有提供这种优化。事实上，我们的尾递归函数似乎比我们的原始版本更早耗尽堆栈空间！
 
 ```
 > sum_tr 100
@@ -127,11 +127,11 @@ RangeError: Maximum call stack size exceeded
 RangeError: Maximum call stack size exceeded 
 ```
 
-Elm与用户没有达成尾调用消除协议，部分原因是目标语言JavaScript不支持它。然而，Elm提供了一些非常合理的解决方法。
+Elm 与用户没有达成尾调用消除协议，部分原因是目标语言 JavaScript 不支持它。然而，Elm 提供了一些非常合理的解决方法。
 
 #### Trampolines
 
-[`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)库提供了一个API，允许程序员显式地“请求”尾调用优化。为此，程序员不会像上面那样编写一个函数
+[`Trampoline`](http://package.elm-lang.org/packages/elm-lang/core/1.1.0/Trampoline)库提供了一个 API，允许程序员显式地“请求”尾调用优化。为此，程序员不会像上面那样编写一个函数
 
 ```
 sum_tr_ : Int -> Int -> Int 
@@ -185,9 +185,9 @@ RangeError: Maximum call stack size exceeded
 5000000050000000 : Int 
 ```
 
-正如你可能已经猜到的，[`Trampoline.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Trampoline.elm)中`trampoline`的实现使用了一个原生的JavaScript函数，在[`Trampoline.js`](https://github.com/elm-lang/core/blob/1.1.0/src/Native/Trampoline.js)中定义，该函数使用循环来评估计算。酷！
+正如你可能已经猜到的，[`Trampoline.elm`](https://github.com/elm-lang/core/blob/1.1.0/src/Trampoline.elm)中`trampoline`的实现使用了一个原生的 JavaScript 函数，在[`Trampoline.js`](https://github.com/elm-lang/core/blob/1.1.0/src/Native/Trampoline.js)中定义，该函数使用循环来评估计算。酷！
 
-注意，上面对`sum_tramp`的最后一次调用仍然非常慢 — 这是由于在JavaScript中创建如此多的thunk相对昂贵 — 但至少它成功完成了。
+注意，上面对`sum_tramp`的最后一次调用仍然非常慢 — 这是由于在 JavaScript 中创建如此多的 thunk 相对昂贵 — 但至少它成功完成了。
 
 关于我们对`sum_tramp_`的定义，还有一件事情要注意，诱人的是将惰性求值重写为对`always`的调用，如下所示：
 

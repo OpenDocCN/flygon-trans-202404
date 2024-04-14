@@ -22,7 +22,7 @@
     normalization property does not extend to full-blown programming
     languages, because these languages nearly always extend the simply
     typed lambda-calculus with constructs, such as general
-    recursion (see the [MoreStlc](MoreStlc.html) chapter) or recursive types, that
+    recursion (see the MoreStlc chapter) or recursive types, that
     can be used to write nonterminating programs.  However, the issue
     of normalization reappears at the level of *types* when we
     consider the metatheory of polymorphic versions of the lambda
@@ -73,7 +73,7 @@
 
     我们首先重复相关的语言定义，即
 
-    类似于[MoreStlc](MoreStlc.html) 章节中的内容，还支持
+    类似于 MoreStlc 章节中的内容，还支持
 
     包括类型保持和步骤确定性的结果。 （我们
 
@@ -311,7 +311,7 @@ intros t H; induction H; intros [t' ST]; inversion ST...
 
 Inductive has_type : context → tm → ty → Prop :=
 
-(* proper terms的类型规则*)
+(* proper terms 的类型规则*)
 
 | T_Var : ∀Γ x T,
 
@@ -483,21 +483,21 @@ intros Γ' Heqv...
 
 - (* T_Var *)
 
-apply [T_Var](Norm.html#T_Var)... rewrite ← Heqv...
+apply T_Var... rewrite ← Heqv...
 
 - (* T_Abs *)
 
-apply [T_Abs](Norm.html#T_Abs)... apply IHhas_type. intros y Hafi.
+apply T_Abs... apply IHhas_type. intros y Hafi.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update). destruct ([beq_idP](Maps.html#beq_idP) x y)...
+unfold update, t_update. destruct (beq_idP x y)...
 
 - (* T_Pair *)
 
-apply [T_Pair](Norm.html#T_Pair)...
+apply T_Pair...
 
 - (* T_If *)
 
-eapply [T_If](Norm.html#T_If)...
+eapply T_If...
 
     Qed.
 
@@ -519,9 +519,9 @@ induction Htyp; inversion Hafi; subst...
 
 destruct IHHtyp as [T' Hctx]... ∃T'.
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in Hctx.
+unfold update, t_update in Hctx.
 
-rewrite [false_beq_id](Maps.html#false_beq_id) in Hctx...
+rewrite false_beq_id in Hctx...
 
     Qed.
 
@@ -533,9 +533,9 @@ closed t.
 
     Proof.
 
-intros. unfold [closed](Norm.html#closed). intros x H[1].
+intros. unfold closed. intros x H[1].
 
-destruct ([free_in_context](Norm.html#free_in_context) _ _ _ _ H[1] H) as [T' C].
+destruct (free_in_context _ _ _ _ H[1] H) as [T' C].
 
 inversion C. Qed.
 
@@ -573,9 +573,9 @@ simpl. rename i into y.
 
 (* 如果 t = y，则 我们 知道 empty ⊢ v : U 且 Γ,x:U ⊢ y : S 并且，通过 反演，update Γ x U y = Some S。 我们 想要 展示 Γ ⊢ [x:=v]y : S。 有 两种 情况 要考虑：要么 x=y 要么 x≠y。 *)
 
-unfold [update](Maps.html#update), [t_update](Maps.html#t_update) in H[1].
+unfold update, t_update in H[1].
 
-destruct ([beq_idP](Maps.html#beq_idP) x y).
+destruct (beq_idP x y).
 
 + (* x=y *)
 
@@ -585,11 +585,11 @@ subst.
 
 inversion H[1]; subst. clear H[1].
 
-eapply [context_invariance](Norm.html#context_invariance)...
+eapply context_invariance...
 
 intros x Hcontra.
 
-destruct ([free_in_context](Norm.html#free_in_context) _ _ S [empty](Maps.html#empty) Hcontra) as [T' HT']...
+destruct (free_in_context _ _ S empty Hcontra) as [T' HT']...
 
 inversion HT'.
 
@@ -597,7 +597,7 @@ inversion HT'.
 
 (* 如果 x ≠ y，则 Γ y = Some S 且 替换 没有 效果。 我们 可以 通过 T_Var 展示 Γ ⊢ y : S。 *)
 
-apply [T_Var](Norm.html#T_Var)...
+apply T_Var...
 
 - (* tabs *)
 
@@ -605,33 +605,33 @@ rename i into y. rename t into T[11].
 
 (* 如果 t = tabs y T[11] t[0]，则 我们 知道 Γ,x:U ⊢ tabs y T[11] t[0] : T[11]→T[12] Γ,x:U,y:T[11] ⊢ t[0] : T[12] empty ⊢ v : U 根据 我们 的 IH，我们 知道 对于 所有 S Gamma， Γ,x:U ⊢ t[0] : S → Γ ⊢ [x:=v]t[0] S 我们 可以 计算 x:=vt = tabs y T[11] (if beq_id x y then t[0] else x:=vt[0]) 并且 我们 必须 展示 Γ ⊢ [x:=v]t : T[11]→T[12]。 我们 知道 我们 将 使用 T_Abs 来 做 到 这一点，所以 仍然 需要 展示： Γ,y:T[11] ⊢ if beq_id x y then t[0] else [x:=v]t[0] : T[12] 我们 考虑 两种 情况：x = y 和 x ≠ y。 *)
 
-apply [T_Abs](Norm.html#T_Abs)...
+apply T_Abs...
 
-destruct ([beq_idP](Maps.html#beq_idP) x y).
+destruct (beq_idP x y).
 
 + (* x=y *)
 
 (* 如果 x = y，则替换没有影响。上下文不变性表明 Γ,y:U,y:T[11] 和 Γ,y:T[11] 是等价的。由于前者上下文表明 t[0] : T[12]，所以后者也是。*)
 
-应用 [context_invariance](Norm.html#context_invariance)...
+应用 context_invariance...
 
 替换。
 
-对 x Hafi 进行引入。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。
+对 x Hafi 进行引入。展开 update，t_update。
 
-分情况讨论 ([beq_id](Maps.html#beq_id) y x)...
+分情况讨论 (beq_id y x)...
 
 + (* x<>y *)
 
 (* 如果 x ≠ y，则 IH 和上下文不变性允许我们展示          Γ,x:U,y:T[11] ⊢ t[0] : T[12]       =>          Γ,y:T[11],x:U ⊢ t[0] : T[12]       =>          Γ,y:T[11] ⊢ [x:=v]t[0] : T[12] *)
 
-应用 IHt。应用 [context_invariance](Norm.html#context_invariance)...
+应用 IHt。应用 context_invariance...
 
-对 z Hafi 进行引入。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。
+对 z Hafi 进行引入。展开 update，t_update。
 
-分情况讨论 ([beq_idP](Maps.html#beq_idP) y z)...
+分情况讨论 (beq_idP y z)...
 
-替换。重写 [false_beq_id](Maps.html#false_beq_id)...
+替换。重写 false_beq_id...
 
     证毕。
 
@@ -649,7 +649,7 @@ t ⇒ t' →
 
 (* 定理：如果 empty ⊢ t : T 并且 t ⇒ t'，那么 empty ⊢ t' : T。*)
 
-记住 (@[empty](Maps.html#empty) [ty](Norm.html#ty)) 为 Γ。推广 HeqGamma。
+记住 (@empty ty) 为 Γ。推广 HeqGamma。
 
 推广 t'。
 
@@ -669,7 +669,7 @@ t ⇒ t' →
 
 (* 对于第三种情况，假设            t[1] = tabs x T[11] t[12]          且            t[2] = v[2]。          我们必须证明 empty ⊢ [x:=v[2]]t[12] : T[2]。          根据假设我们知道              empty ⊢ tabs x T[11] t[12] : T[1]→T[2]          并且根据反演              x:T[1] ⊢ t[12] : T[2]          我们已经证明了替换保持类型和              empty ⊢ v[2] : T[1]          所以我们完成了。*)
 
-应用 [substitution_preserves_typing](Norm.html#substitution_preserves_typing) with T[1]...
+应用 substitution_preserves_typing with T[1]...
 
 反演 HT[1]...
 
@@ -695,7 +695,7 @@ t ⇒ t' →
 
     证明与 eauto。
 
-展开 [deterministic](Smallstep.html#deterministic)。
+展开 deterministic。
 
 对 t t' t'' E[1] E[2]。
 
@@ -707,7 +707,7 @@ t ⇒ t' →
 
 - 反演 H[3]。
 
-- 反证法；在 H 中应用 [value__normal](Norm.html#value__normal)...
+- 反证法；在 H 中应用 value__normal...
 
 (* ST_App1 *)
 
@@ -715,13 +715,13 @@ t ⇒ t' →
 
 - 相等...
 
-- 反证法；在 H[1] 中应用 [value__normal](Norm.html#value__normal)...
+- 反证法；在 H[1] 中应用 value__normal...
 
 (* ST_App2 *)
 
-- 反证法；在 H[3] 中应用 [value__normal](Norm.html#value__normal)...
+- 反证法；在 H[3] 中应用 value__normal...
 
-- 反证法；在 H 中应用 [value__normal](Norm.html#value__normal)...
+- 反证法；在 H 中应用 value__normal...
 
 - 相等...
 
@@ -729,11 +729,11 @@ t ⇒ t' →
 
 - 相等...
 
-- 矛盾；应用 [value__normal](Norm.html#value__normal) 到 H[1]...
+- 矛盾；应用 value__normal 到 H[1]...
 
 (* ST_Pair2 *)
 
-- 矛盾；应用 [value__normal](Norm.html#value__normal) 到 H...
+- 矛盾；应用 value__normal 到 H...
 
 - 相等...
 
@@ -745,9 +745,9 @@ t ⇒ t' →
 
 反转 E[1]；替换。
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[0]...
++ 应用 value__normal 到 H[0]...
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[1]...
++ 应用 value__normal 到 H[1]...
 
 (* ST_FstPair *)
 
@@ -755,9 +755,9 @@ t ⇒ t' →
 
 反转 H[2]；替换。
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H...
++ 应用 value__normal 到 H...
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[0]...
++ 应用 value__normal 到 H[0]...
 
 (* ST_Snd *)
 
@@ -767,9 +767,9 @@ t ⇒ t' →
 
 反转 E[1]；替换。
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[0]...
++ 应用 value__normal 到 H[0]...
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[1]...
++ 应用 value__normal 到 H[1]...
 
 (* ST_SndPair *)
 
@@ -777,9 +777,9 @@ t ⇒ t' →
 
 反转 H[2]；替换。
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H...
++ 应用 value__normal 到 H...
 
-+ 应用 [value__normal](Norm.html#value__normal) 到 H[0]...
++ 应用 value__normal 到 H[0]...
 
 - (* ST_IfTrue *)
 
@@ -828,11 +828,11 @@ t ⇒ t' →
 
     证明。
 
-intros v H. 展开 [halts](Norm.html#halts)。
+intros v H. 展开 halts。
 
 ∃v. 分割。
 
-应用 [multi_refl](Smallstep.html#multi_refl)。
+应用 multi_refl。
 
 假设。
 
@@ -954,13 +954,13 @@ Fixpoint R (T:ty) (t:tm) {struct T} : Prop :=
 Lemma R_halts : ∀{T} {t}, R T t → halts t.
 
     Proof.
-  intros. destruct T; unfold [R](Norm.html#R) in H; inversion H; inversion H[1];  assumption.
+  intros. destruct T; unfold R in H; inversion H; inversion H[1];  assumption.
     Qed.
 
 Lemma R_typable_empty : ∀{T} {t}, R T t → has_type empty t T.
 
     Proof.
-  intros. destruct T; unfold [R](Norm.html#R) in H; inversion H; inversion H[1]; assumption.
+  intros. destruct T; unfold R in H; inversion H; inversion H[1]; assumption.
     Qed.
 
 ```
@@ -995,7 +995,7 @@ Lemma R_typable_empty : ∀{T} {t}, R T t → has_type empty t T.
 
     证明。
 
-intros t t' ST. 展开 [halts](Norm.html#halts).
+intros t t' ST. 展开 halts.
 
 分割。
 
@@ -1005,9 +1005,9 @@ intros [t'' [STM V]]。
 
 反转 STM；替换。
 
-矛盾。应用[value__normal](Norm.html#value__normal)中的 V。在 V 中展开[normal_form](Smallstep.html#normal_form)。应用 V。∃t'。自动。
+矛盾。应用 value__normal 中的 V。在 V 中展开 normal_form。应用 V。∃t'。自动。
 
-重写([step_deterministic](Norm.html#step_deterministic) _ _ _ ST H)。∃t''。分裂；假设。
+重写(step_deterministic _ _ _ ST H)。∃t''。分裂；假设。
 
 - (* <- *)
 
@@ -1033,29 +1033,29 @@ intros [t'0 [STM V]]。
 
     证明。
 
-对 T 进行归纳；intros t t' E Rt；展开[R](Norm.html#R)；折叠[R](Norm.html#R)；在 Rt 中展开[R](Norm.html#R)；在 Rt 中折叠[R](Norm.html#R)；
+对 T 进行归纳；intros t t' E Rt；展开 R；折叠 R；在 Rt 中展开 R；在 Rt 中折叠 R；
 
 将 Rt 分解为[typable_empty_t [halts_t RRt]]。
 
 (* TBool *)
 
-分裂。应用[preservation](Norm.html#preservation)；自动。
+分裂。应用 preservation；自动。
 
-分裂。应用([step_preserves_halting](Norm.html#step_preserves_halting) _ _ E)；自动。
+分裂。应用(step_preserves_halting _ _ E)；自动。
 
 自动。
 
 (* TArrow *)
 
-分裂。应用[preservation](Norm.html#preservation)；自动。
+分裂。应用 preservation；自动。
 
-分裂。应用([step_preserves_halting](Norm.html#step_preserves_halting) _ _ E)；自动。
+分裂。应用(step_preserves_halting _ _ E)；自动。
 
 intros。
 
 应用 IHT2。
 
-应用[ST_App1](Norm.html#ST_App1)。应用 E。
+应用 ST_App1。应用 E。
 
 应用 RRt；自动。
 
@@ -1077,7 +1077,7 @@ intros T t t' STM；对 STM 进行归纳；intros。
 
 假设。
 
-应用 IHSTM。应用[step_preserves_R](Norm.html#step_preserves_R)。应用 H。假设。
+应用 IHSTM。应用 step_preserves_R。应用 H。假设。
 
     完成。
 
@@ -1108,9 +1108,9 @@ intros T t t' HT STM。
 
 假设。
 
-应用[step_preserves_R'](Norm.html#step_preserves_R')。假设。应用 H。应用 IHSTM。
+应用 step_preserves_R'。假设。应用 H。应用 IHSTM。
 
-应用[preservation](Norm.html#preservation)；自动。自动。
+应用 preservation；自动。自动。
 
     完成。
 
@@ -1294,7 +1294,7 @@ closed t  →
 
     证明。
 
-intros。应用 [vacuous_substitution](Norm.html#vacuous_substitution)。应用 H。证毕。
+intros。应用 vacuous_substitution。应用 H。证毕。
 
 Lemma subst_not_afi : ∀t x v,
 
@@ -1302,13 +1302,13 @@ closed v →  x 不出现在 ([x:=v]t) 中。
 
     证明，使用 eauto。 (* 这种方式相对较慢 *)
 
-展开 [closed](Norm.html#closed)，[not](http://coq.inria.fr/library/Coq.Init.Logic.html#not)。
+展开 closed，[not](http://coq.inria.fr/library/Coq.Init.Logic.html#not)。
 
 对 t 进行归纳；对 x v P A 进行引入；A 简化。
 
 - (* tvar *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x i)...
+destruct (beq_idP x i)...
 
 对 A 进行反演；替换。自动。
 
@@ -1318,7 +1318,7 @@ destruct ([beq_idP](Maps.html#beq_idP) x i)...
 
 - (* 标签 *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x i)...
+destruct (beq_idP x i)...
 
 + 对 A 进行反演；替换...
 
@@ -1352,11 +1352,11 @@ destruct ([beq_idP](Maps.html#beq_idP) x i)...
 
 Lemma duplicate_subst : ∀t' x t v,
 
-closed v → [x:=t]([x:=v]t') = [x:=v]t'。
+closed v → x:=t = [x:=v]t'。
 
     证明。
 
-intros。应用 [vacuous_substitution](Norm.html#vacuous_substitution)。应用 [subst_not_afi](Norm.html#subst_not_afi)。自动。
+intros。应用 vacuous_substitution。应用 subst_not_afi。自动。
 
     证毕。
 
@@ -1366,7 +1366,7 @@ x ≠ x[1] →
 
 closed v → closed v[1] →
 
-[x[1]:=v[1]]([x:=v]t) = [x:=v]([x[1]:=v[1]]t).
+[x[1]:=v[1]]([x:=v]t) = x:=v.
 
     证明，使用 eauto。
 
@@ -1374,15 +1374,15 @@ closed v → closed v[1] →
 
 - (* tvar *)
 
-destruct ([beq_idP](Maps.html#beq_idP) x i); destruct ([beq_idP](Maps.html#beq_idP) x[1] i).
+destruct (beq_idP x i); destruct (beq_idP x[1] i).
 
 + 替换。矛盾...
 
-+ 替换。简化。重写 ← [beq_id_refl](Maps.html#beq_id_refl)。应用 [subst_closed](Norm.html#subst_closed)...
++ 替换。简化。重写 ← beq_id_refl。应用 subst_closed...
 
-+ 替换。简化。重写 ← [beq_id_refl](Maps.html#beq_id_refl)。重写 [subst_closed](Norm.html#subst_closed)...
++ 替换。简化。重写 ← beq_id_refl。重写 subst_closed...
 
-+ 简化。重写 [false_beq_id](Maps.html#false_beq_id)... 重写 [false_beq_id](Maps.html#false_beq_id)...
++ 简化。重写 false_beq_id... 重写 false_beq_id...
 
 (* 在此填写内容 *) 已略过。
 
@@ -1400,7 +1400,7 @@ Lemma msubst_closed: ∀t, closed t → ∀ss, msubst ss t = t.
 
 自反性。
 
-destruct a. 简化。重写 [subst_closed](Norm.html#subst_closed); 假设成立。
+destruct a. 简化。重写 subst_closed; 假设成立。
 
     证毕。
 
@@ -1429,7 +1429,7 @@ Fixpoint closed_env (env:env) {struct env} :=
 
 Lemma subst_msubst: ∀env x v t, 闭合 v → 闭合环境 env →
 
-msubst env ([x:=v]t) = [x:=v](msubst (drop x env) t)。
+msubst env ([x:=v]t) = x:=v t)。
 
     Proof.
 
@@ -1437,13 +1437,13 @@ msubst env ([x:=v]t) = [x:=v](msubst (drop x env) t)。
 
 分解 a。简化。
 
-推导 H[0]。在 H[2] 中重写 [closed_env](Norm.html#closed_env)。
+推导 H[0]。在 H[2] 中重写 closed_env。
 
-分解 ([beq_idP](Maps.html#beq_idP) i x)。
+分解 (beq_idP i x)。
 
-- 替换。重写 [duplicate_subst](Norm.html#duplicate_subst)；自动。
+- 替换。重写 duplicate_subst；自动。
 
-- 简化。重写 [swap_subst](Norm.html#swap_subst)；自动。
+- 简化。重写 swap_subst；自动。
 
     Qed。
 
@@ -1467,9 +1467,9 @@ end。
 
 分解 a。
 
-简化。分解 ([beq_id](Maps.html#beq_id) i x)。
+简化。分解 (beq_id i x)。
 
-应用 [msubst_closed](Norm.html#msubst_closed)。推导 H；自动。
+应用 msubst_closed。推导 H；自动。
 
 应用 IHss。推导 H；自动。
 
@@ -1487,7 +1487,7 @@ msubst ss (tabs x T t) = tabs x T (msubst (drop x ss) t)。
 
 分解 a。
 
-简化。分解 ([beq_id](Maps.html#beq_id) i x)；简化；自动。
+简化。分解 (beq_id i x)；简化；自动。
 
     Qed。
 
@@ -1532,7 +1532,7 @@ Lemma mupdate_lookup : ∀(c : tass) (x:id),
 
 自动。
 
-分解 a。展开 [lookup](Norm.html#lookup)，[mupdate](Norm.html#mupdate)，[update](Maps.html#update)，[t_update](Maps.html#t_update)。分解 ([beq_id](Maps.html#beq_id) i x)；自动。
+分解 a。展开 lookup，mupdate，update，t_update。分解 (beq_id i x)；自动。
 
     Qed.
 
@@ -1546,19 +1546,19 @@ mupdate Γ (drop x c) x'。
 
 归纳 c；引入。
 
-- 分解 ([beq_idP](Maps.html#beq_idP) x x')；自动。
+- 分解 (beq_idP x x')；自动。
 
 - 分解 a。简化。
 
-分解 ([beq_idP](Maps.html#beq_idP) i x)。
+分解 (beq_idP i x)。
 
 + 替换。重写 IHc。
 
-展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。分解 ([beq_idP](Maps.html#beq_idP) x x')；自动。
+展开 update，t_update。分解 (beq_idP x x')；自动。
 
-+ 简化。展开 [update](Maps.html#update)，[t_update](Maps.html#t_update)。分解 ([beq_idP](Maps.html#beq_idP) i x')；自动。
++ 简化。展开 update，t_update。分解 (beq_idP i x')；自动。
 
-替换。重写 [false_beq_id](Maps.html#false_beq_id)；一致性。
+替换。重写 false_beq_id；一致性。
 
     Qed。
 
@@ -1586,7 +1586,7 @@ Lemma instantiation_domains_match: ∀{c} {e},
 
 简化。
 
-分解 ([beq_id](Maps.html#beq_id) x x[0])；自动。
+分解 (beq_id x x[0])；自动。
 
     Qed.
 
@@ -1600,9 +1600,9 @@ Lemma instantiation_env_closed : ∀c e，
 
 构造者。
 
-展开 [closed_env](Norm.html#closed_env)。重写 [closed_env](Norm.html#closed_env)。
+展开 closed_env。重写 closed_env。
 
-分割。应用 [typable_empty__closed](Norm.html#typable_empty__closed)。应用 [R_typable_empty](Norm.html#R_typable_empty)。自动。
+分割。应用 typable_empty__closed。应用 R_typable_empty。自动。
 
 自动。
 
@@ -1624,7 +1624,7 @@ Lemma instantiation_R : ∀c e，
 
 解决反转。
 
-展开 [lookup](Norm.html#lookup)。分解 ([beq_id](Maps.html#beq_id) x x')。
+展开 lookup。分解 (beq_id x x')。
 
 推导 G；推导 E；替换。自动。
 
@@ -1644,7 +1644,7 @@ intros c e V。对 V 进行归纳。
 
 intros。简化。构造。
 
-intros。展开 [drop](Norm.html#drop)。解构 ([beq_id](Maps.html#beq_id) x x[0]); 自动。构造; 自动。
+intros。展开 drop。解构 (beq_id x x[0]); 自动。构造; 自动。
 
     完成。
 
@@ -1664,11 +1664,11 @@ intros。展开 [drop](Norm.html#drop)。解构 ([beq_id](Maps.html#beq_id) x x[
 
 intros v t t' V STM。对 STM 进行归纳。
 
-应用 [multi_refl](Smallstep.html#multi_refl)。
+应用 multi_refl。
 
-应用 [multi_step](Smallstep.html#multi_step)。
+应用 multi_step。
 
-应用 [ST_App2](Norm.html#ST_App2); 自动。自动。
+应用 ST_App2; 自动。自动。
 
     完成。
 
@@ -1703,9 +1703,9 @@ H[2] 简化。简化。
 
 应用 IHinstantiation。
 
-应用 [substitution_preserves_typing](Norm.html#substitution_preserves_typing); 自动。
+应用 substitution_preserves_typing; 自动。
 
-应用 ([R_typable_empty](Norm.html#R_typable_empty) H[0])。
+应用 (R_typable_empty H[0])。
 
     完成。
 
@@ -1731,11 +1731,11 @@ intros c env0 t T HT V。
 
 (* 我们需要在进行归纳之前稍微概括一下假设。 *)
 
-记住 ([mupdate](Norm.html#mupdate) [empty](Maps.html#empty) c) 为 Γ。
+记住 (mupdate empty c) 为 Γ。
 
-断言 (∀x, Γ [x](Norm.html#x) = [lookup](Norm.html#lookup) [x](Norm.html#x) c)。
+断言 (∀x, Γ x = lookup x c)。
 
-intros。重写 HeqGamma。重写 [mupdate_lookup](Norm.html#mupdate_lookup)。自动。
+intros。重写 HeqGamma。重写 mupdate_lookup。自动。
 
 清除 HeqGamma。
 
@@ -1745,31 +1745,31 @@ intros。重写 HeqGamma。重写 [mupdate_lookup](Norm.html#mupdate_lookup)。�
 
 - (* T_Var *)
 
-在 H 中重写 H[0]。将 ([instantiation_domains_match](Norm.html#instantiation_domains_match) V H) 解构为 [t P]。
+在 H 中重写 H[0]。将 (instantiation_domains_match V H) 解构为 [t P]。
 
-应用 [instantiation_R](Norm.html#instantiation_R); 自动。
+应用 instantiation_R; 自动。
 
-重写 [msubst_var](Norm.html#msubst_var)。重写 P。自动。应用 [instantiation_env_closed](Norm.html#instantiation_env_closed); 自动。
+重写 msubst_var。重写 P。自动。应用 instantiation_env_closed; 自动。
 
 - (* T_Abs *)
 
-重写 [msubst_abs](Norm.html#msubst_abs)。
+重写 msubst_abs。
 
 (* 我们将需要以下事实的变体多次，因此最好只建立一次。 *)
 
-断言 (WT: [has_type](Norm.html#has_type) [empty](Maps.html#empty) ([tabs](Norm.html#tabs) x T[11] ([msubst](Norm.html#msubst) ([drop](Norm.html#drop) x env0) t[12])) ([TArrow](Norm.html#TArrow) T[11] T[12])).
+断言 (WT: has_type empty (tabs x T[11] (msubst (drop x env0) t[12])) (TArrow T[11] T[12])).
 
-{ 应用 [T_Abs](Norm.html#T_Abs)。应用 [msubst_preserves_typing](Norm.html#msubst_preserves_typing)。
+{ 应用 T_Abs。应用 msubst_preserves_typing。
 
-{ 应用 [instantiation_drop](Norm.html#instantiation_drop); 自动。 }
+{ 应用 instantiation_drop; 自动。 }
 
-应用 [context_invariance](Norm.html#context_invariance)。
+应用 context_invariance。
 
 { 应用 HT。 }
 
 intros。
 
-展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。重写 [mupdate_drop](Norm.html#mupdate_drop)。解构 ([beq_idP](Maps.html#beq_idP) x x[0])。
+展开 update, t_update。重写 mupdate_drop。解构 (beq_idP x x[0])。
 
 + 自动。
 
@@ -1777,57 +1777,57 @@ intros。
 
 清除 - c n。对 c 进行归纳。
 
-简化。重写 [false_beq_id](Maps.html#false_beq_id); 自动。
+简化。重写 false_beq_id; 自动。
 
-简化。解构 a。展开 [update](Maps.html#update), [t_update](Maps.html#t_update)。
+简化。解构 a。展开 update, t_update。
 
-解构 ([beq_id](Maps.html#beq_id) i x[0]); 自动。}
+解构 (beq_id i x[0]); 自动。}
 
-展开 [R](Norm.html#R)。折叠 [R](Norm.html#R)。分割。
+展开 R。折叠 R。分割。
 
 自动。
 
-分解。应用[value_halts](Norm.html#value_halts)。应用[v_abs](Norm.html#v_abs)。
+分解。应用 value_halts。应用 v_abs。
 
 引入。
 
-将([R_halts](Norm.html#R_halts) H[0])分解为[v [P Q]]。
+将(R_halts H[0])分解为[v [P Q]]。
 
-引入证明([multistep_preserves_R](Norm.html#multistep_preserves_R) _ _ _ P H[0])。
+引入证明(multistep_preserves_R _ _ _ P H[0])。
 
-应用[multistep_preserves_R'](Norm.html#multistep_preserves_R')，使用([msubst](Norm.html#msubst) ((x,v)::env0) t[12])。
+应用 multistep_preserves_R'，使用(msubst ((x,v)::env0) t[12])。
 
-应用[T_App](Norm.html#T_App)。自动。
+应用 T_App。自动。
 
-应用[R_typable_empty](Norm.html#R_typable_empty); 自动。
+应用 R_typable_empty; 自动。
 
-应用[multi_trans](Smallstep.html#multi_trans)。应用[multistep_App2](Norm.html#multistep_App2); 自动。
+应用 multi_trans。应用 multistep_App2; 自动。
 
-应用[multi_R](Smallstep.html#multi_R)。
+应用 multi_R。
 
-简化。重写[subst_msubst](Norm.html#subst_msubst)。
+简化。重写 subst_msubst。
 
-应用[ST_AppAbs](Norm.html#ST_AppAbs); 自动。
+应用 ST_AppAbs; 自动。
 
-应用[typable_empty__closed](Norm.html#typable_empty__closed)。
+应用 typable_empty__closed。
 
-应用([R_typable_empty](Norm.html#R_typable_empty) H[1])。
+应用(R_typable_empty H[1])。
 
-应用[instantiation_env_closed](Norm.html#instantiation_env_closed); 自动。
+应用 instantiation_env_closed; 自动。
 
 应用(IHHT ((x,T[11])::c))。
 
-引入。展开[update](Maps.html#update)，[t_update](Maps.html#t_update)，[lookup](Norm.html#lookup)。分解([beq_id](Maps.html#beq_id) x x[0]); 自动。
+引入。展开 update，t_update，lookup。分解(beq_id x x[0]); 自动。
 
 构造者; 自动。
 
 - (* T_App *)
 
-重写[msubst_app](Norm.html#msubst_app)。
+重写 msubst_app。
 
-将IHHT1 c H env0 V的证明分解为[_ [_ P[1]]]。
+将 IHHT1 c H env0 V 的证明分解为[_ [_ P[1]]]。
 
-将IHHT2 c H env0 V的证明命名为P[2]。在P[1]中折叠[R](Norm.html#R)。自动。
+将 IHHT2 c H env0 V 的证明命名为 P[2]。在 P[1]中折叠 R。自动。
 
 (* 在此填写 *) 已承认。
 
@@ -1843,13 +1843,13 @@ intros。
 
 引入。
 
-用([msubst](Norm.html#msubst) [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil) t)替换t，通过反射性。
+用(msubst [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil) t)替换 t，通过反射性。
 
-应用(@[R_halts](Norm.html#R_halts) T)。
+应用(@R_halts T)。
 
-应用([msubst_R](Norm.html#msubst_R) [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)); 自动。
+应用(msubst_R [nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)); 自动。
 
-应用[V_nil](Norm.html#V_nil)。
+应用 V_nil。
 
     完成。
 

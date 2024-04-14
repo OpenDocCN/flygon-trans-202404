@@ -1,12 +1,12 @@
 # Mapreduce
 
-### Mapreduce简介
+### Mapreduce 简介
 
-在本节中，我们将重新访问第2单元的高阶函数（`map`和`accumulate`）并将其与并行性结合起来，从而使我们能够高效地处理大量数据。
+在本节中，我们将重新访问第 2 单元的高阶函数（`map`和`accumulate`）并将其与并行性结合起来，从而使我们能够高效地处理大量数据。
 
-### Mapreduce背景
+### Mapreduce 背景
 
-Google的工程师们注意到他们的大部分计算可以分解为对数据的某个函数的`map`，然后是之后的`accumulate`（也称为`reduce`，因此得名）。结果是一个名为`mapreduce`的库过程，它接受两个函数作为参数；一个充当`mapper`，另一个充当`reducer`。它接受大量数据，将它们分成较小的部分，将`mapper`应用于较小的数据，并使用`reducer`组合结果。Mapreduce处理与并行性有关的一切，我们只需提供这两个函数。
+Google 的工程师们注意到他们的大部分计算可以分解为对数据的某个函数的`map`，然后是之后的`accumulate`（也称为`reduce`，因此得名）。结果是一个名为`mapreduce`的库过程，它接受两个函数作为参数；一个充当`mapper`，另一个充当`reducer`。它接受大量数据，将它们分成较小的部分，将`mapper`应用于较小的数据，并使用`reducer`组合结果。Mapreduce 处理与并行性有关的一切，我们只需提供这两个函数。
 
 尽管这可能*看起来*像`mapreduce`正在做的事情，但这**不是**`mapreduce`：
 
@@ -15,13 +15,13 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
     (accumulate reducer base-case (map mapper data))) 
 ```
 
-为什么不是mapreduce呢？因为它没有处理数据的划分，应用映射器并行性以及在减少之前对它们进行排序。不过，它做对的是，想要使用mapreduce的人只需要传递四个参数：`mapper, reducer, base-case`和我们要处理的`data`给`mapreduce`函数。
+为什么不是 mapreduce 呢？因为它没有处理数据的划分，应用映射器并行性以及在减少之前对它们进行排序。不过，它做对的是，想要使用 mapreduce 的人只需要传递四个参数：`mapper, reducer, base-case`和我们要处理的`data`给`mapreduce`函数。
 
-如果您感兴趣，[这里](http://static.googleusercontent.com/media/research.google.com/en/us/archive/mapreduce-osdi04.pdf)是由提出mapreduce的Google员工撰写的一篇论文。这不是必需的，但它非常易读和有趣。[旧的讲义](http://inst.eecs.berkeley.edu/~cs61as/reader/notes.pdf#page=24)也有很好的解释，如果您觉得不理解mapreduce，应该阅读这些内容。
+如果您感兴趣，[这里](http://static.googleusercontent.com/media/research.google.com/en/us/archive/mapreduce-osdi04.pdf)是由提出 mapreduce 的 Google 员工撰写的一篇论文。这不是必需的，但它非常易读和有趣。[旧的讲义](http://inst.eecs.berkeley.edu/~cs61as/reader/notes.pdf#page=24)也有很好的解释，如果您觉得不理解 mapreduce，应该阅读这些内容。
 
-### Mapreduce的分解
+### Mapreduce 的分解
 
-![](/static/mapreduce.jpg)
+![](img/mapreduce.jpg)
 
 1.  将`mapper`映射到较小的数据（并行完成）。这涉及选择我们要处理的输入部分并为每个结果“附加”一个键
 
@@ -62,11 +62,11 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 
 请注意，每一行都带有它们的标题。我们建议将此标签打开在某个地方，以便您知道我们的输入是什么样子的。
 
-您可以在此处获取我们的mapreduce实现的数据和其他函数[这里](/static/mapreduce.scm)。请注意，此实现不涉及并行性。
+您可以在此处获取我们的 mapreduce 实现的数据和其他函数这里。请注意，此实现不涉及并行性。
 
 ### 映射器
 
-![](/static/mapreduce_mapper.jpg)
+![](img/mapreduce_mapper.jpg)
 
 ```
 (map mapper data) 
@@ -76,7 +76,7 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 
 +   **输出**：键-值对列表
 
-`映射器`是一个接受数据（作为键值对）并返回**键值对列表**的函数。键值对列表与我们在第9课中玩过的关联列表（也称为a-lists）相同。键用于跟踪数据的来源；这对于并行化很重要。请注意，输入的键不一定与映射器输出的键相同。这将是我们的键值对的ADT：
+`映射器`是一个接受数据（作为键值对）并返回**键值对列表**的函数。键值对列表与我们在第 9 课中玩过的关联列表（也称为 a-lists）相同。键用于跟踪数据的来源；这对于并行化很重要。请注意，输入的键不一定与映射器输出的键相同。这将是我们的键值对的 ADT：
 
 ```
  (define make-kv-pair cons)
@@ -97,7 +97,7 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 
 +   **无键值**：有时我们的数据中可能没有我们感兴趣的键。例如，想象一种情况，你想要统计一个单词中元音字母的数量，然后遇到了单词'fly'。在这种情况下，我们将返回空列表。
 
-+   **多个键值**：有时我们的数据对应于我们想要生成的2个或更多个键。这适用于我们的歌词示例（如下所示）
++   **多个键值**：有时我们的数据对应于我们想要生成的 2 个或更多个键。这适用于我们的歌词示例（如下所示）
 
 ### 扩展示例：单词计数
 
@@ -114,11 +114,11 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 ((please . 1) (please . 1) (me . 1)) 
 ```
 
-我们的映射器做什么？它接受一个键值对（其键是歌曲标题，其值是歌曲中的一行）。对于行中的每个单词，将该单词用作新键，并将其与值1配对。请注意，即使单词在行中出现两次，比如'(please please me)'，它也会输出'(please . 1)'两次而不是'(please . 2)'。这没问题，因为这里我们只是从1开始计数。我们稍后将它们相加。
+我们的映射器做什么？它接受一个键值对（其键是歌曲标题，其值是歌曲中的一行）。对于行中的每个单词，将该单词用作新键，并将其与值 1 配对。请注意，即使单词在行中出现两次，比如'(please please me)'，它也会输出'(please . 1)'两次而不是'(please . 2)'。这没问题，因为这里我们只是从 1 开始计数。我们稍后将它们相加。
 
 ### 按桶排序
 
-![](/static/mapreduce_sort.jpg)
+![](img/mapreduce_sort.jpg)
 
 在我们实际进入`减少器`之前，有一个中间步骤对键进行排序，并将相同的键分组在一起。幸运的是，我们可以利用抽象化，并使用函数`**按桶排序**`将它们排序到'桶'中。具有相同键的键值对被分组到同一个'桶'下。这是调用上一步映射器的结果：
 
@@ -156,7 +156,7 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 
 ### 减少器
 
-![](/static/mapreduce_reduce.jpg)
+![](img/mapreduce_reduce.jpg)
 
 +   **输入**：两个“值”
 
@@ -274,4 +274,4 @@ Google的工程师们注意到他们的大部分计算可以分解为对数据�
 ((i . 4)) 
 ```
 
-读者不包含MapReduce练习。如果你想获得更多练习，Lesson 14讨论中有MapReduce问题。
+读者不包含 MapReduce 练习。如果你想获得更多练习，Lesson 14 讨论中有 MapReduce 问题。

@@ -123,4 +123,4 @@ func main() {
 
 [Go – x.(T)类型断言](https://codingair.wordpress.com/2014/07/21/go-x-t-type-assertions/)；
 
-[如何在Golang中找到对象的类型？](http://stackoverflow.com/questions/20170275/how-to-find-a-type-of-a-object-in-golang)。
+[如何在 Golang 中找到对象的类型？](http://stackoverflow.com/questions/20170275/how-to-find-a-type-of-a-object-in-golang)。

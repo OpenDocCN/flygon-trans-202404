@@ -1,4 +1,4 @@
-# 第9章 监控
+# 第九章 监控
 
 获取执行信息的一般方法包括以下内容：
 
@@ -12,21 +12,21 @@
 
 +   它们需要额外的软件组件 —— 数据库、日志聚合器等，这意味着需要额外的维护。
 
-最近，[Flink](http://bit.ly/2zgfsif)和[Kafka Streams](http://docs.confluent.io/current/streams/developer-guide.html#id8)都引入了可查询状态（[图9-1](#queryable_state)），这是一种与此类监控不同的方法。
+最近，[Flink](http://bit.ly/2zgfsif)和[Kafka Streams](http://docs.confluent.io/current/streams/developer-guide.html#id8)都引入了可查询状态（图 9-1），这是一种与此类监控不同的方法。
 
-[Kafka Streams文档](http://docs.confluent.io/current/streams/developer-guide.html#id8)将可查询状态（交互式查询）定义为一种方法，根据文档描述
+[Kafka Streams 文档](http://docs.confluent.io/current/streams/developer-guide.html#id8)将可查询状态（交互式查询）定义为一种方法，根据文档描述
 
 > 让你从流中获取更多，不仅仅是数据的处理。这个特性允许你将流处理层视为轻量级的嵌入式数据库，并且更具体地，直接查询流处理应用程序的最新状态，而无需首先将该状态材料化到外部数据库或外部存储中。
 
-![smlt 0901](assets/smlt_0901.png)
+![smlt 0901](img/smlt_0901.png)
 
-###### 图9-1\. 可查询状态
+###### 图 9-1\. 可查询状态
 
 # Flink
 
-Flink最近引入了一种管理的键控状态接口，该接口提供对当前执行的键范围内状态的访问。这意味着这种类型的状态只能在Flink `KeyedStream`上使用，并且仅适用于Flink的基于键的连接实现。
+Flink 最近引入了一种管理的键控状态接口，该接口提供对当前执行的键范围内状态的访问。这意味着这种类型的状态只能在 Flink `KeyedStream`上使用，并且仅适用于 Flink 的基于键的连接实现。
 
-当前的Flink实现包括以下[状态选项](http://bit.ly/2yh8sUw)：
+当前的 Flink 实现包括以下[状态选项](http://bit.ly/2yh8sUw)：
 
 `ValueState<T>`
 
@@ -46,7 +46,7 @@ Flink最近引入了一种管理的键控状态接口，该接口提供对当前
 
 Flink 还提供了 `QueryableStateClient` 类，您可以用于针对内部提供状态的 [KvState](http://vishnuviswanath.com/flink_queryable_state1.html) 实例进行查询。您需要使用有效的 Flink `JobManager` 地址、端口和作业 ID 进行配置。
 
-要在我们的实现中合并可查询统计信息，必须通过向 `DataProcessor` 类（[示例 4-1](ch04.html#the_dataprocessor_class)）添加 `ValueState<T>` 来修改。此类的更新版本如[示例 9-1](#the_modeltoservestats_class)所示（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)）。
+要在我们的实现中合并可查询统计信息，必须通过向 `DataProcessor` 类（示例 4-1）添加 `ValueState<T>` 来修改。此类的更新版本如示例 9-1 所示（[完整代码在此处可用](http://bit.ly/DataProcessorKeyed)）。
 
 ##### 示例 9-1\. ModelToServeStats 类
 
@@ -61,15 +61,11 @@ class DataProcessorKeyed
  ...
 
  override def open(parameters: Configuration): Unit = {
- val modelDesc = new ValueStateDescriptor[ModelToServeStats](
-   "currentModel",
-   createTypeInformation[ModelToServeStats])
+ val modelDesc = new ValueStateDescriptorModelToServeStats
    modelDesc.setQueryable("currentModel")
 
  modelState = getRuntimeContext.getState(modelDesc)
- val newModelDesc = new ValueStateDescriptor[ModelToServeStats](
-   "newModel",
-   createTypeInformation[ModelToServeStats])
+ val newModelDesc = new ValueStateDescriptorModelToServeStats
  newModelState = getRuntimeContext.getState(newModelDesc)
 }
 
@@ -103,7 +99,7 @@ override def processElement2(model: ModelToServe,
 
 此添加跟踪当前模型名称，引入时间，使用次数，总执行时间以及最小/最大执行时间。
 
-您可以通过使用可查询状态客户端来访问此信息，如[示例 9-2](#flink_queryable_state_client)所示（[完整代码在此处可用](http://bit.ly/2zg0J77)）。
+您可以通过使用可查询状态客户端来访问此信息，如示例 9-2 所示（[完整代码在此处可用](http://bit.ly/2zg0J77)）。
 
 ##### 示例 9-2\. Flink 可查询状态客户端
 
@@ -159,7 +155,7 @@ object ModelStateQuery {
 
 要查询应用程序的完整状态，需要从每个实例的本地片段汇总状态。这意味着除了能够查询本地状态存储之外，还需要能够发现应用程序的所有运行实例。总体而言，这些构建块使得在应用程序内部进行通信（同一应用程序的实例之间）以及进行交互式查询的应用程序之间的通信成为可能。
 
-实现始于定义状态表示，`ModelServingInfo`，可以查询以获取有关处理当前状态的信息，如[示例 9-3](#the_modelservinginfo_class)（[完整代码在此处可用](http://bit.ly/2kGYGWu)）所示。
+实现始于定义状态表示，`ModelServingInfo`，可以查询以获取有关处理当前状态的信息，如示例 9-3（[完整代码在此处可用](http://bit.ly/2kGYGWu)）所示。
 
 ##### 示例 9-3\. ModelServingInfo 类
 
@@ -184,9 +180,9 @@ public class ModelServingInfo {
 }
 ```
 
-现在，您必须将此信息添加到[示例 7-2](ch07.html#model_state_store_class)中显示的状态存储中。 [示例 9-4](#updated_statestore_class)向您展示了如何做到这一点（[完整代码在此处可用](http://bit.ly/2gbUCvJ))。
+现在，您必须将此信息添加到示例 7-2 中显示的状态存储中。 示例 9-4 向您展示了如何做到这一点（[完整代码在此处可用](http://bit.ly/2gbUCvJ))。
 
-##### 示例 9-4\. 更新的StoreState类
+##### 示例 9-4\. 更新的 StoreState 类
 
 ```
 public class StoreState {
@@ -211,9 +207,9 @@ public class StoreState {
 }
 ```
 
-这将添加两个`ModelServingInfo`类的实例（类似于`Model`类）。 添加这些实例将需要对`ModelSerde`进行更改（[示例 7-4](ch07.html#state_serializer_solidus_deserializer)）以实现对`ModelServingInfo`类的序列化/反序列化支持（[完整代码在此处可用](http://bit.ly/2zgeXVy)）。 [示例 9-5](#modelservinginfo_serialization_solidus)展示了如何实现这一点。
+这将添加两个`ModelServingInfo`类的实例（类似于`Model`类）。 添加这些实例将需要对`ModelSerde`进行更改（示例 7-4）以实现对`ModelServingInfo`类的序列化/反序列化支持（[完整代码在此处可用](http://bit.ly/2zgeXVy)）。 示例 9-5 展示了如何实现这一点。
 
-##### 示例 9-5\. ModelServingInfo序列化/反序列化
+##### 示例 9-5\. ModelServingInfo 序列化/反序列化
 
 ```
 ...
@@ -260,7 +256,7 @@ private ModelServingInfo readServingInfo(DataInputStream input) {
 }
 ```
 
-最后，您还必须更改`ModelStateStore`类（[示例 7-2](ch07.html#model_state_store_class)）。 首先，Streams可查询状态仅允许对存储数据进行读取访问，这需要引入一个仅支持读取访问的接口，该接口可用于查询（[示例 9-6](#queryable_state_store_interface)）：
+最后，您还必须更改`ModelStateStore`类（示例 7-2）。 首先，Streams 可查询状态仅允许对存储数据进行读取访问，这需要引入一个仅支持读取访问的接口，该接口可用于查询（示例 9-6）：
 
 ##### 示例 9-6\. 可查询状态存储接口
 
@@ -270,7 +266,7 @@ public interface ReadableModelStateStore {
 }
 ```
 
-有了这个信息，您可以扩展`DataProcessorWithStore`类（[示例 7-7](ch07.html#model_processor)）以收集您的执行信息，如[示例 9-7](#updated_data_processor_class)所示（[完整代码在此处可用](http://bit.ly/2kH9HqR))。
+有了这个信息，您可以扩展`DataProcessorWithStore`类（示例 7-7）以收集您的执行信息，如示例 9-7 所示（[完整代码在此处可用](http://bit.ly/2kH9HqR))。
 
 ##### 示例 9-7\. 更新的数据处理器类
 
@@ -285,7 +281,7 @@ public interface ReadableModelStateStore {
 ...
 ```
 
-要使应用程序的完整状态（所有实例）可查询，需要提供额外实例的可发现性。 [示例 9-8](#simple_metadata_service)展示了这种服务的简单实现（[完整代码在此处可用](http://bit.ly/2wNZfzs))。
+要使应用程序的完整状态（所有实例）可查询，需要提供额外实例的可发现性。 示例 9-8 展示了这种服务的简单实现（[完整代码在此处可用](http://bit.ly/2wNZfzs))。
 
 ##### 示例 9-8\. 简单的元数据服务
 
@@ -322,9 +318,9 @@ public class MetadataService {
 }
 ```
 
-为了实际提供这些信息，您需要实现一个简单的REST服务，使用HTTP服务器实现从元数据服务暴露信息以及用于构建REST服务的框架。 在此示例中，我使用了Java生态系统中流行的Jetty和JAX-RS（具有相应的JAX-RS注解），这是流行的选择。 [示例 9-9](#simple_rest_service_implementation)展示了一个使用元数据服务和模型服务信息的简单REST服务实现（[完整代码在此处可用](http://bit.ly/2i2QAXj))。
+为了实际提供这些信息，您需要实现一个简单的 REST 服务，使用 HTTP 服务器实现从元数据服务暴露信息以及用于构建 REST 服务的框架。 在此示例中，我使用了 Java 生态系统中流行的 Jetty 和 JAX-RS（具有相应的 JAX-RS 注解），这是流行的选择。 示例 9-9 展示了一个使用元数据服务和模型服务信息的简单 REST 服务实现（[完整代码在此处可用](http://bit.ly/2i2QAXj))。
 
-##### 示例 9-9\. 简单的REST服务实现
+##### 示例 9-9\. 简单的 REST 服务实现
 
 ```
 @Path("state")
@@ -369,15 +365,15 @@ public class QueriesRestService {
 }
 ```
 
-此实现提供了几种REST方法：
+此实现提供了几种 REST 方法：
 
-+   获取应用程序实例列表（请记住，为了可伸缩性，可以运行多个Kafka Streams应用程序实例，其中每个实例负责一部分主题的分区）。 它返回每个实例中可用的状态存储列表。
++   获取应用程序实例列表（请记住，为了可伸缩性，可以运行多个 Kafka Streams 应用程序实例，其中每个实例负责一部分主题的分区）。 它返回每个实例中可用的状态存储列表。
 
 +   获取包含具有给定名称的存储的应用程序实例列表。
 
 +   从具有给定名称的存储中获取`Model`服务信息。
 
-此代码需要实现两个额外的类：一个用作返回有关给定主机上存储的信息的数据容器的类，以及用于在Kafka Streams实例中定位存储的模型存储类型。[示例 9-10](#host_store_information)展示了数据容器类的外观（[完整代码在此处可用](http://bit.ly/2xzllVI)）。
+此代码需要实现两个额外的类：一个用作返回有关给定主机上存储的信息的数据容器的类，以及用于在 Kafka Streams 实例中定位存储的模型存储类型。示例 9-10 展示了数据容器类的外观（[完整代码在此处可用](http://bit.ly/2xzllVI)）。
 
 ##### 示例 9-10\. 主机存储信息
 
@@ -398,7 +394,7 @@ public class HostStoreInfo {
 }
 ```
 
-模型存储类型看起来像[示例 9-11](#host_store_information-id1)（[完整代码在此处可用](http://bit.ly/2xyoyK8)）：
+模型存储类型看起来像示例 9-11（[完整代码在此处可用](http://bit.ly/2xyoyK8)）：
 
 ##### 示例 9-11\. 主机存储信息
 
@@ -415,9 +411,9 @@ QueryableStoreType<ReadableModelStateStore> {
 }
 ```
 
-最后，为了将所有内容整合在一起，您需要更新使用Kafka Streams进行模型服务的整体实现，如[示例 7-6](ch07.html#implementation_of_model_serving)中所示，如[示例 9-12](#updated_model_serving_with_kafka_streams)（[完整代码在此处可用](http://bit.ly/2xzyYEs)）。
+最后，为了将所有内容整合在一起，您需要更新使用 Kafka Streams 进行模型服务的整体实现，如示例 7-6 中所示，如示例 9-12（[完整代码在此处可用](http://bit.ly/2xzyYEs)）。
 
-##### 示例 9-12\. 使用Kafka Streams更新模型服务
+##### 示例 9-12\. 使用 Kafka Streams 更新模型服务
 
 ```
 public class ModelServerWithStore {
@@ -453,9 +449,9 @@ public class ModelServerWithStore {
 
 # Akka Streams
 
-Akka Streams不支持可查询状态（或任何状态），但通过对我们的自定义阶段实现进行小改动（[示例 8-2](ch08.html#stage_implementation)），可以从阶段中公开状态。
+Akka Streams 不支持可查询状态（或任何状态），但通过对我们的自定义阶段实现进行小改动（示例 8-2），可以从阶段中公开状态。
 
-要做到这一点，首先必须创建一个用于从阶段查询状态的接口，如[示例 9-13](#state_query_interface)中所示（与Kafka Streams可查询状态存储接口[示例 9-6](#queryable_state_store_interface)进行比较）。
+要做到这一点，首先必须创建一个用于从阶段查询状态的接口，如示例 9-13 中所示（与 Kafka Streams 可查询状态存储接口示例 9-6 进行比较）。
 
 ##### 示例 9-13\. 状态查询接口
 
@@ -465,9 +461,9 @@ trait ReadableModelStateStore {
 }
 ```
 
-有了这个，您可以编写阶段实现以支持此接口并收集统计信息，如[示例 9-14](#updated_model_stage)中所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
+有了这个，您可以编写阶段实现以支持此接口并收集统计信息，如示例 9-14 中所示（[完整代码在此处可用](http://bit.ly/2zeLEm9)）。
 
-##### 示例 9-14\. 更新的ModelStage
+##### 示例 9-14\. 更新的 ModelStage
 
 ```
 class ModelStage extends GraphStageWithMaterializedValue
@@ -511,11 +507,11 @@ class ModelStage extends GraphStageWithMaterializedValue
 }
 ```
 
-在此实现中，`dataRecordIn`处理程序被扩展以收集执行统计信息。此外，提供了状态查询接口的实现（[示例 9-13](#state_query_interface)），以便可以查询当前模型状态的阶段。
+在此实现中，`dataRecordIn`处理程序被扩展以收集执行统计信息。此外，提供了状态查询接口的实现（示例 9-13），以便可以查询当前模型状态的阶段。
 
-对于REST接口的实现，我使用了[Akka HTTP](http://doc.akka.io/docs/akka-http/current/scala/http/)。用于访问统计信息的资源可以按照[示例 9-15](#implementing_rest_resource)中所示进行实现（[完整代码在此处可用](http://bit.ly/2xzNwJi)）。
+对于 REST 接口的实现，我使用了[Akka HTTP](http://doc.akka.io/docs/akka-http/current/scala/http/)。用于访问统计信息的资源可以按照示例 9-15 中所示进行实现（[完整代码在此处可用](http://bit.ly/2xzNwJi)）。
 
-##### 示例 9-15\. 实现REST资源
+##### 示例 9-15\. 实现 REST 资源
 
 ```
 object QueriesAkkaHttpResource extends JacksonSupport {
@@ -533,9 +529,9 @@ object QueriesAkkaHttpResource extends JacksonSupport {
 }
 ```
 
-要将所有内容整合在一起，您必须修改Akka模型服务器（[示例 8-3](ch08.html#akka_model_server_implementation)）中所示的方式，如[示例 9-16](#updated_akka_model_server_implementation)（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
+要将所有内容整合在一起，您必须修改 Akka 模型服务器（示例 8-3）中所示的方式，如示例 9-16（[完整代码在此处可用](http://bit.ly/2zfyrtf)）。
 
-##### 示例 9-16\. 更新的Akka模型服务器实现
+##### 示例 9-16\. 更新的 Akka 模型服务器实现
 
 ```
 object AkkaModelServer {
@@ -555,8 +551,7 @@ object AkkaModelServer {
 
    val model = new ModelStage()
 
-   def keepModelMaterializedValue[M1, M2, M3](
-     m1: M1, m2: M2, m3: M3): M3 = m3
+   def keepModelMaterializedValueM1, M2, M3: M3 = m3
 
    val modelPredictions :
      Source[Option[Double], ReadableModelStateStore] =
@@ -602,7 +597,7 @@ object AkkaModelServer {
 
 +   我们将使用`keepModelMaterializedValue`而不是`dropMaterializedValue`。
 
-+   实现了一个新方法 `startRest`，它基于资源（[示例 9-16](#updated_akka_model_server_implementation)）和接口的实现（[示例 9-14](#updated_model_stage)）启动了一个内部 REST 服务。
++   实现了一个新方法 `startRest`，它基于资源（示例 9-16）和接口的实现（示例 9-14）启动了一个内部 REST 服务。
 
 +   材料化状态用于访问统计数据。
 
@@ -614,12 +609,12 @@ object AkkaModelServer {
 
 对于 Spark，还有另一个选择：使用[Spark Job Server](https://github.com/spark-jobserver/spark-jobserver)，它为 Spark 作业和上下文提供了一个 REST API。Spark Job Server 支持将 Spark 用作[查询引擎](http://bit.ly/2wOEkMy)（类似于可查询状态）。
 
-从架构上看，[Spark Job Server](http://bit.ly/2wOEkMy) 包括一个 REST 作业服务器，为消费者提供 API，并管理应用程序 jar 包、执行上下文以及在 Spark 运行时的作业执行。共享[上下文](https://github.com/spark-jobserver/spark-jobserver/blob/master/doc/contexts.md)允许多个作业访问相同的对象（在我们的情况下是弹性分布式数据集 [RDD] 状态）。因此，在这种情况下，我们的 Spark 实现（[示例 6-1](ch06.html#model_serving_with_spark)）可以扩展以将模型执行状态添加到 RDD 状态中。这将使得可以创建一个简单的应用程序，使用 Spark Job Server 查询此状态数据。
+从架构上看，[Spark Job Server](http://bit.ly/2wOEkMy) 包括一个 REST 作业服务器，为消费者提供 API，并管理应用程序 jar 包、执行上下文以及在 Spark 运行时的作业执行。共享[上下文](https://github.com/spark-jobserver/spark-jobserver/blob/master/doc/contexts.md)允许多个作业访问相同的对象（在我们的情况下是弹性分布式数据集 [RDD] 状态）。因此，在这种情况下，我们的 Spark 实现（示例 6-1）可以扩展以将模型执行状态添加到 RDD 状态中。这将使得可以创建一个简单的应用程序，使用 Spark Job Server 查询此状态数据。
 
 # 结论
 
-现在，您应该对在流式应用程序中为机器学习生成的模型提供服务的复杂性有了全面的了解。您学会了如何以TensorFlow和PMML格式导出训练好的模型，并使用几种流行的流处理引擎和框架提供这些模型的服务。您还可以考虑几种解决方案。在决定具体技术实现时，您应考虑您正在提供的模型数量、每个模型要评分的数据量和计算复杂性、您的可扩展性要求以及您组织的现有专业知识。我鼓励您查看文本中引用的材料，以获取更多信息，帮助您实施解决方案。
+现在，您应该对在流式应用程序中为机器学习生成的模型提供服务的复杂性有了全面的了解。您学会了如何以 TensorFlow 和 PMML 格式导出训练好的模型，并使用几种流行的流处理引擎和框架提供这些模型的服务。您还可以考虑几种解决方案。在决定具体技术实现时，您应考虑您正在提供的模型数量、每个模型要评分的数据量和计算复杂性、您的可扩展性要求以及您组织的现有专业知识。我鼓励您查看文本中引用的材料，以获取更多信息，帮助您实施解决方案。
 
 # 关于作者
 
-**鲍里斯·卢布林斯基**是Lightbend的首席架构师。他在企业、技术架构和软件工程方面拥有超过25年的经验。他是《应用SOA：面向服务的架构和设计策略》（Wiley）和《专业Hadoop解决方案》（Wiley）的合著者。他还是关于架构、编程、大数据、SOA和BPM的大量文章的作者。
+**鲍里斯·卢布林斯基**是 Lightbend 的首席架构师。他在企业、技术架构和软件工程方面拥有超过 25 年的经验。他是《应用 SOA：面向服务的架构和设计策略》（Wiley）和《专业 Hadoop 解决方案》（Wiley）的合著者。他还是关于架构、编程、大数据、SOA 和 BPM 的大量文章的作者。

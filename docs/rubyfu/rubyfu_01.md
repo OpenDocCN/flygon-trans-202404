@@ -447,7 +447,7 @@ puts
 "41424344".scan(/../).map(&:hex).pack("C*")    #=> ABCD 
 ```
 
-对于超出`.chr`范围的二进制情况。例如，你可能需要将IP地址转换为十六进制原始数据，然后通过套接字发送。仅仅将其转换为十六进制是行不通的
+对于超出`.chr`范围的二进制情况。例如，你可能需要将 IP 地址转换为十六进制原始数据，然后通过套接字发送。仅仅将其转换为十六进制是行不通的
 
 ```
 >> ip = "192.168.100.10"
@@ -456,9 +456,9 @@ puts
 => "\\xc0\\xa8\\x64\\x0a" 
 ```
 
-正如你所看到的，Ruby读取返回`"\\xc0\\xa8\\x64\\x0a"`，这与`"\xc0\xa8\x64\x0a"`不相等。尝试直接在irb中输入这个值（带双引号）`"\xc0\xa8\x64\x0a"`，你会注意到返回值是`"\xC0\xA8d\n"`，这才是应该传递给原始套接字的值，而不是`"\\xc0\\xa8\\x64\\x0a"`。主要原因是Ruby转义了反斜杠（`\`）。
+正如你所看到的，Ruby 读取返回`"\\xc0\\xa8\\x64\\x0a"`，这与`"\xc0\xa8\x64\x0a"`不相等。尝试直接在 irb 中输入这个值（带双引号）`"\xc0\xa8\x64\x0a"`，你会注意到返回值是`"\xC0\xA8d\n"`，这才是应该传递给原始套接字的值，而不是`"\\xc0\\xa8\\x64\\x0a"`。主要原因是 Ruby 转义了反斜杠（`\`）。
 
-要解决这个问题，使用打包将整数转换为8位无符号（无符号字符）
+要解决这个问题，使用打包将整数转换为 8 位无符号（无符号字符）
 
 ```
 ip.split(".").map(&:to_i).pack("C*")    #=> "\xC0\xA8d\n" 
@@ -476,25 +476,25 @@ ip.split(".").map(&:to_i).pack("C*")    #=> "\xC0\xA8d\n"
 
 在利用中，这并不像看起来那么简单，因为我们处理的是可能不代表可打印字符的十六进制值。
 
-假设我们有`0x77d6b141`作为返回地址，我们想将其转换为小端格式以使CPU正确读取它。
+假设我们有`0x77d6b141`作为返回地址，我们想将其转换为小端格式以使 CPU 正确读取它。
 
-一般来说，将`0x77d6b141`转换为`\x41\xb1\xd6\x77`是一个微不足道的任务，因为这是一个一次性过程，但如果你有一个需要在利用中分阶段的ROP链，情况就不同了。要做到这一点，只需将其作为数组`pack`
+一般来说，将`0x77d6b141`转换为`\x41\xb1\xd6\x77`是一个微不足道的任务，因为这是一个一次性过程，但如果你有一个需要在利用中分阶段的 ROP 链，情况就不同了。要做到这一点，只需将其作为数组`pack`
 
 ```
 [0x77d6b141].pack('V') 
 ```
 
-有时会因为非Unicode字符串问题而出现错误。要解决这个问题，只需强制编码为UTF-8，但大多数情况下你不会遇到这个问题
+有时会因为非 Unicode 字符串问题而出现错误。要解决这个问题，只需强制编码为 UTF-8，但大多数情况下你不会遇到这个问题
 
 ```
 [0x77d6b141].pack('V').force_encoding("UTF-8") 
 ```
 
-如果你有一个ROP链，那么每次应用这个方法并不合适 - 所以你可以使用第一种方法，并在你的利用文件顶部添加**(**`# -*- coding: binary -*-`**)**。
+如果你有一个 ROP 链，那么每次应用这个方法并不合适 - 所以你可以使用第一种方法，并在你的利用文件顶部添加**(**`# -*- coding: binary -*-`**)**。
 
-## 转换为Unicode转义
+## 转换为 Unicode 转义
 
-**十六进制Unicode转义**
+**十六进制 Unicode 转义**
 
 ```
 "Rubyfu".each_char.map {|c| '\u' + c.ord.to_s(16).rjust(4, '0')}.join 
@@ -512,7 +512,7 @@ ip.split(".").map(&:to_i).pack("C*")    #=> "\xC0\xA8d\n"
 "Rubyfu".unpack('U*').map{ |i| "\\u00%x" % i }.join 
 ```
 
-**八进制Unicode转义**
+**八进制 Unicode 转义**
 
 八进制转义与十六进��转义完全相同，只是我们将字符串转换为八进制而不是十六进制
 
@@ -526,7 +526,7 @@ ip.split(".").map(&:to_i).pack("C*")    #=> "\xC0\xA8d\n"
 "\u{52 75 62 79 66 75}" 
 ```
 
-## 编码/解码base-64字符串
+## 编码/解码 base-64 字符串
 
 我们将以几种方式呈现这个问题。
 
@@ -557,11 +557,11 @@ Base64.encode64 "RubyFu"
 
 > **提示：**
 > 
-> 字符串解包方法对于将我们读取的数据作为字符串转换回其原始形式非常有用。要了解更多，请访问www.ruby-doc.org/core/classes/String.html上的String类参考。
+> 字符串解包方法对于将我们读取的数据作为字符串转换回其原始形式非常有用。要了解更多，请访问 www.ruby-doc.org/core/classes/String.html 上的 String 类参考。
 
-## 编码/解码URL字符串
+## 编码/解码 URL 字符串
 
-URL编码/解码是众所周知的。从黑客的角度来看，我们经常需要它来处理客户端漏洞。
+URL 编码/解码是众所周知的。从黑客的角度来看，我们经常需要它来处理客户端漏洞。
 
 **编码字符串**
 
@@ -577,17 +577,17 @@ require 'uri'
 puts URI.decode "http://vulnerable.site/search.aspx?txt=%22%3E%3Cscript%3Ealert(/Rubyfu/.source)%3C/script%3E" 
 ```
 
-你可以编码/解码任何非URL字符串，当然。
+你可以编码/解码任何非 URL 字符串，当然。
 
-上述方法仅对任何非URL标准字符串进行编码（例如`<>"{}`），但如果要对整个字符串进行编码，请使用`URI.encode_www_form_component`
+上述方法仅对任何非 URL 标准字符串进行编码（例如`<>"{}`），但如果要对整个字符串进行编码，请使用`URI.encode_www_form_component`
 
 ```
 puts URI.encode_www_form_component 'http://vulnerable.site/search.aspx?txt="><script>alert(/Rubyfu/.source)</script>' 
 ```
 
-## HTML编码/解码
+## HTML 编码/解码
 
-**编码HTML**
+**编码 HTML**
 
 ```
 require 'cgi'
@@ -600,7 +600,7 @@ CGI.escapeHTML('"><script>alert("Rubyfu!")</script>')
 &quot;&gt;&lt;script&gt;alert(&quot;Rubyfu!&quot;)&lt;/script&gt; 
 ```
 
-**解码HTML**
+**解码 HTML**
 
 ```
 require 'cgi'
@@ -613,9 +613,9 @@ CGI.unescapeHTML("&quot;&gt;&lt;script&gt;alert(&quot;Rubyfu!&quot;)&lt;/script&
 "><script>alert("Rubyfu!")</script> 
 ```
 
-## 解码/编码SAML字符串
+## 解码/编码 SAML 字符串
 
-**解码SAML**
+**解码 SAML**
 
 ```
 # SAML Request 
@@ -639,23 +639,23 @@ zlib.inflate(inflated)
 
 [来源](http://stackoverflow.com/questions/3253298/base64-decode64-in-ruby-returning-strange-results)
 
-[关于SAML的更多信息][3]
+[关于 SAML 的更多信息][3]
 
 * * *
 
-[3]: [http://dev.gettinderbox.com/2013/12/16/introduction-to-saml/](http://dev.gettinderbox.com/2013/12/16/introduction-to-saml/)
+[3]: [`dev.gettinderbox.com/2013/12/16/introduction-to-saml/`](http://dev.gettinderbox.com/2013/12/16/introduction-to-saml/)
 
 # 提取
 
 # 提取
 
-字符串提取是所有程序员需要做的主要任务之一。这通常很困难，因为我们没有一个易于提取有用数据/信息的字符串呈现。以下是一些有用的Ruby字符串提取案例。
+字符串提取是所有程序员需要做的主要任务之一。这通常很困难，因为我们没有一个易于提取有用数据/信息的字符串呈现。以下是一些有用的 Ruby 字符串提取案例。
 
 ## 从网络中提取字符串
 
-### 从字符串中提取MAC地址
+### 从字符串中提取 MAC 地址
 
-我们需要从任意字符串中提取所有MAC地址
+我们需要从任意字符串中提取所有 MAC 地址
 
 ```
 mac = "ads fs:ad fa:fs:fe: Wind00-0C-29-38-1D-61ows 1100:50:7F:E6:96:20dsfsad fas fa1 3c:77:e6:68:66:e9 f2" 
@@ -663,9 +663,9 @@ mac = "ads fs:ad fa:fs:fe: Wind00-0C-29-38-1D-61ows 1100:50:7F:E6:96:20dsfsad fa
 
 **使用正则表达式**
 
-这个正则表达式应该支持Windows和Linux的MAC地址格式。
+这个正则表达式应该支持 Windows 和 Linux 的 MAC 地址格式。
 
-找到我们的mac
+找到我们的 mac
 
 ```
 mac_regex = /(?:[0-9A-F][0-9A-F][:\-]){5}[0-9A-F][0-9A-F]/i
@@ -678,9 +678,9 @@ mac.scan mac_regex
 ["00-0C-29-38-1D-61", "00:50:7F:E6:96:20", "3c:77:e6:68:66:e9"] 
 ```
 
-### 从字符串中提取IPv4地址
+### 从字符串中提取 IPv4 地址
 
-我们需要从任意字符串中提取所有IPv4地址
+我们需要从任意字符串中提取所有 IPv4 地址
 
 ```
 ip = "ads fs:ad fa:fs:fe: Wind10.0.4.5ows 11192.168.0.15dsfsad fas fa1 20.555.1.700 f2" 
@@ -690,7 +690,7 @@ ip = "ads fs:ad fa:fs:fe: Wind10.0.4.5ows 11192.168.0.15dsfsad fas fa1 20.555.1.
 ipv4_regex = /(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/ 
 ```
 
-让我们找到我们的IP地址
+让我们找到我们的 IP 地址
 
 ```
 ip.scan ipv4_regex 
@@ -702,7 +702,7 @@ ip.scan ipv4_regex
 [["10", "0", "4", "5"], ["192", "168", "0", "15"]] 
 ```
 
-### 从字符串中提取IPv6地址
+### 从字符串中提取 IPv6 地址
 
 ```
  ipv6_regex = /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/ 
@@ -712,13 +712,13 @@ ip.scan ipv4_regex
 
 +   另请参阅
 
-    +   [https://gist.github.com/cpetschnig/294476](https://gist.github.com/cpetschnig/294476)
+    +   [`gist.github.com/cpetschnig/294476`](https://gist.github.com/cpetschnig/294476)
 
-    +   [http://snipplr.com/view/43003/regex--match-ipv6-address/](http://snipplr.com/view/43003/regex--match-ipv6-address/)
+    +   [`snipplr.com/view/43003/regex--match-ipv6-address/`](http://snipplr.com/view/43003/regex--match-ipv6-address/)
 
 ## 从网页中提取字符串
 
-### 从文件中提取URL
+### 从文件中提取 URL
 
 假设我们有以下字符串
 
@@ -732,16 +732,16 @@ string = "text here http://foo1.example.org/bla1 and http://foo2.example.org/bla
 string.scan(/https?:\/\/[\S]+/) 
 ```
 
-**使用标准URI模块**
+**使用标准 URI 模块**
 
-这将返回一个URL数组
+这将返回一个 URL 数组
 
 ```
 require 'uri'
 URI.extract(string, ["http" , "https"]) 
 ```
 
-### 从网页中提取URL
+### 从网页中提取 URL
 
 使用上述技巧
 
@@ -768,9 +768,9 @@ require 'net/http'
 Net::HTTP.get(URI.parse("http://isemail.info/_system/is_email/test/?all")).scan(email_regex).uniq 
 ```
 
-### 从HTML标签中提取字符串
+### 从 HTML 标签中提取字符串
 
-假设我们有以下HTML内容，我们需要仅获取字符串并消除所有HTML标签
+假设我们有以下 HTML 内容，我们需要仅获取字符串并消除所有 HTML 标签
 
 ```
 string = "<!DOCTYPE html>
@@ -860,13 +860,13 @@ ruby -e 'h={};File.read("text.txt").split("\n").map{|l|l.split(":", 2)}.map{|k, 
 
 #### 模式创建
 
-假设模式长度=500（您可以将其更改为任何值）。默认情况下，这将创建20280个最大可能性。
+假设模式长度=500（您可以将其更改为任何值）。默认情况下，这将创建 20280 个最大可能性。
 
 ```
 pattern_create = ('Aa0'..'Zz9').to_a.join.each_char.first(500).join 
 ```
 
-如果您需要更长的模式（例如30000），可以执行以下操作
+如果您需要更长的模式（例如 30000），可以执行以下操作
 
 ```
 pattern_create = ('Aa0'..'Zz9').to_a.join
@@ -909,4 +909,4 @@ puts (0..255).map {|b| ('\x%02X' % b)}
 
 * * *
 
-[1]: [https://github.com/KINGSABRI/BufferOverflow-Kit/blob/master/lib/pattern.rb](https://github.com/KINGSABRI/BufferOverflow-Kit/blob/master/lib/pattern.rb)
+[1]: [`github.com/KINGSABRI/BufferOverflow-Kit/blob/master/lib/pattern.rb`](https://github.com/KINGSABRI/BufferOverflow-Kit/blob/master/lib/pattern.rb)

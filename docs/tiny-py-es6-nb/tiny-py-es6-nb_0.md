@@ -19,7 +19,7 @@ python --version
 
 否则，请从网站安装 Python [[1]](#id2)。
 
-| [[1]](#id1) | [http://python.org](http://python.org) |
+| [[1]](#id1) | [`python.org`](http://python.org) |
 | --- | --- |
 
 ### 调用 Python
@@ -126,7 +126,7 @@ Python 变量就像牛标签一样，它们指向对象（可以是类、实例�
 
 `#` 字符表示注释的开始。虽然没有多行注释，但大多数带有 Python 支持的编辑器都可以注释掉一个区域。
 
-[![../Images/rebind2.png](../Images/rebind2.png)](../Images/rebind2.png)
+![../Images/rebind2.png](img/rebind2.png)
 
 重用相同变量的示例
 
@@ -259,7 +259,7 @@ Python 2 字符串保存字节字符串。要创建 Unicode 字符串，需要�
 | `s.capitalize()` | 字符串首字母大写 |
 | `s.center(w, [char])` | 在`w`个空格中居中字符串，使用`char`（默认为`" "） |
 | `s.count(sub, [start, [end]])` | 计算`sub`在`start`和`end`之间的`s`中出现次数 |
-| `s.decode(encoding, errors= 'strict')` | 将（字节）字符串解码为Unicode字符串 |
+| `s.decode(encoding, errors= 'strict')` | 将（字节）字符串解码为 Unicode 字符串 |
 | `s.encode(encoding, errors= 'strict')` | 将（Unicode）字符串编码为字节字符串 |
 | `s.endswith(sub)` | 检查是否有后缀 |
 | `s.expandtabs( tabsize=8)` | 用空格替换制表符 |
@@ -636,22 +636,22 @@ set([0, 3, 4, 5, 6, 7, 8])
 | `bytearray(x)` | 从整数可迭代对象、文本字符串、字节、整数创建可变字节数组，或者不传任何内容以创建空字节数组 |
 | `bytes(x)` | 从整数可迭代对象、文本字符串、字节、整数创建不可变字节，或者不传任何内容以创建空字节 |
 | `callable(x)` | 检查是否可以执行`x()`（即`x.__call__`存在） |
-| `chr(i)` | 将整数码点转换为Unicode字符串（`ord(chr(i))`可逆） |
+| `chr(i)` | 将整数码点转换为 Unicode 字符串（`ord(chr(i))`可逆） |
 | `@classmethod` | 用于装饰方法，以便可以在类上调用它 |
-| `cmp(a, b)` | 如果`a` <、= 或 > `b`，则返回-1、0或1 |
+| `cmp(a, b)` | 如果`a` <、= 或 > `b`，则返回-1、0 或 1 |
 | `coerce(num1, num2)` | 将数字强制转换为公共类型 |
 | `compile(source, fname, mode)` | 将`source`编译为代码（`fname`用于错误，`mode`为`exec`：模块，`single`：语句，`eval`：表达式）。可以在表达式上运行`eval(code)`，在语句上运行`exec(code)` |
 | `complex(i, y)` | 创建复数 |
-| `copyright` | Python版权字符串 |
-| `credits` | Python鸣谢字符串 |
+| `copyright` | Python 版权字符串 |
+| `credits` | Python 鸣谢字符串 |
 | `delattr(obj, attr)` | 从`obj`中删除属性（`del obj.attr`） |
-| `dict([x])` | 从映射、k、v元组的可迭代对象、命名参数创建字典，或者不传任何内容以创建空字典 |
+| `dict([x])` | 从映射、k、v 元组的可迭代对象、命名参数创建字典，或者不传任何内容以创建空字典 |
 | `dir([obj])` | 列出`obj`的属性，如果没��提供`obj`，则列出当前命名空间中的名称 |
 | `divmod(num, denom)` | 返回`num//denom`和`num%denom`的元组对 |
 | `enumerate(seq, [start])` | 返回索引、项目元组对的迭代器。索引从`start`或`0`（默认）开始 |
 | `eval(source, globals=None, locals=None)` | 使用全局变量和局部变量运行`source`（表达式字符串或`compile`的结果） |
 | `execfile(filename, globals=None, locals=None)` | 使用全局变量和局部变量在`filename`中运行代码 |
-| `exit(code)` | 退出Python解释器并返回代码 |
+| `exit(code)` | 退出 Python 解释器并返回代码 |
 | `file(name, [mode, [buffering]])` | 以指定模式打开文件 |
 | `filter([function], seq)` | 返回满足`function(item)`为真值的项目的迭代器（如果缺少`function`，则`item`为真值） |
 | `float(x)` | 将字符串或数字转换为浮点数（调用`x.__float__()`） |
@@ -671,7 +671,7 @@ set([0, 3, 4, 5, 6, 7, 8])
 | `issubclass(cls, class_or_tuple)` | 检查`cls`是否是类或派生自`class_or_tuple`的布尔值 |
 | `iter(seq)` | 迭代协议（调用`seq.__iter__()`） |
 | `len(seq)` | 序列中的项目数 |
-| `license()` | 显示Python许可证 |
+| `license()` | 显示 Python 许可证 |
 | `list([seq])` | 将`seq`转换为列表（如果缺失则为空） |
 | `locals()` | 返回本地属性的字典（不像`globals`，在变异时不保证更新命名空间） |
 | `long(num)` | 将`num`强制转换为长整型 |
@@ -683,7 +683,7 @@ set([0, 3, 4, 5, 6, 7, 8])
 | `object` | 根基类型 |
 | `oct(i)` | 包含数字的八进制版本的字符串（`int(oct(i), 8)`可逆转） |
 | `open(filename, [mode], [buffereing])` | 打开文件 |
-| `ord(s)` | 将Unicode字符串转换为整数码点（`chr(ord(s))`可逆转） |
+| `ord(s)` | 将 Unicode 字符串转换为整数码点（`chr(ord(s))`可逆转） |
 | `pow(num, exp, [z])` | 幂协议（调用`num.__pow__(exp, z)`）（`num ** exp`或`num ** exp % z`） |
 | `print val, [val2 ...][,]` | 将值打印到标准输出。打印协议（调用`val.__str__()`） |
 | `@property` | 将方法转换为属性的装饰器 |
@@ -707,14 +707,14 @@ set([0, 3, 4, 5, 6, 7, 8])
 | `tuple([seq])` | 将`seq`转换为元组（如果缺失则为空） |
 | `type(name, bases, dict)` | 创建一个新的`name`类型，具有基类`bases`和属性`dict` |
 | `type(obj)` | 返回`obj`的类型 |
-| `unichr(num)` | 从整数`num`返回Unicode字符串 |
-| `unicode(s)` | 强制将`s`转换为Unicode字符串 |
+| `unichr(num)` | 从整数`num`返回 Unicode 字符串 |
+| `unicode(s)` | 强制将`s`转换为 Unicode 字符串 |
 | `xrange([start], stop, [step])` | 返回从`start`（默认为`0`）到`stop-1`，以`step`增量（默认为`1`）迭代的范围对象 |
 | `zip(seq1, [seq2, ...])` | 返回元组列表`(seq1[0], seq2[0])`，`(seq1[1], seq2[1])`，...直到最短序列为止 |
 
 ## Unicode
 
-Python 2表示字符串字节序列。要创建一个带有Unicode字符的文字Unicode字符串，我们需要在字符串前面加上`u`。我们可以*编码*Unicode字符串为一系列字节，比如UTF-8。如果我们有一个普通字符串（字节），我们可以*解码*它们为Unicode字符串：
+Python 2 表示字符串字节序列。要创建一个带有 Unicode 字符的文字 Unicode 字符串，我们需要在字符串前面加上`u`。我们可以*编码*Unicode 字符串为一系列字节，比如 UTF-8。如果我们有一个普通字符串（字节），我们可以*解码*它们为 Unicode 字符串：
 
 ```
 >>> x_sq = u'x²'
@@ -735,7 +735,7 @@ x²
 
 ```
 
-如果您有Unicode字形，可以直接使用。或者，您可以使用`\u`后跟16位十六进制值xxxx输入代码点。对于更大的代码点，请使用`\U`后跟xxxxxxxx。如果您有Unicode名称（通过���unicode.org上查看表格获得），您可以使用`\N`语法。以下是等效的：
+如果您有 Unicode 字形，可以直接使用。或者，您可以使用`\u`后跟 16 位十六进制值 xxxx 输入代码点。对于更大的代码点，请使用`\U`后跟 xxxxxxxx。如果您有 Unicode 名称（通过���unicode.org 上查看表格获得），您可以使用`\N`语法。以下是等效的：
 
 ```
 >>> result = u'x²'
@@ -745,13 +745,13 @@ x²
 
 ```
 
-[![../Images/uniencode2.png](../Images/uniencode2.png)](../Images/uniencode2.png)
+![../Images/uniencode2.png](img/uniencode2.png)
 
-描述*编码*Unicode字符串为字节表示的图像。在这种情况下，我们转换为UTF-8。对于这个字符串，还有其他字节编码。如果我们有一个UTF-8字节字符串，我们可以*解码*它为Unicode字符串。请注意，我们应该明确解码，因为可能有其他编码可以解码为可能给我们错误数据或*乱码*的Unicode字符串。
+描述*编码*Unicode 字符串为字节表示的图像。在这种情况下，我们转换为 UTF-8。对于这个字符串，还有其他字节编码。如果我们有一个 UTF-8 字节字符串，我们可以*解码*它为 Unicode 字符串。请注意，我们应该明确解码，因为可能有其他编码可以解码为可能给我们错误数据或*乱码*的 Unicode 字符串。
 
 ## 字符串格式化
 
-大多数现代Python代码使用`.format`方法（PEP 3101）从其他部分创建字符串。格式方法使用`{}`作为占位符。
+大多数现代 Python 代码使用`.format`方法（PEP 3101）从其他部分创建字符串。格式方法使用`{}`作为占位符。
 
 在占位符内，我们可以提供不同的说明符：
 
@@ -840,7 +840,7 @@ Format Str Repr
 | 整数类型 | 含义 |
 | --- | --- |
 | `b` | 二进制 |
-| `c` | 字符 - 转换为Unicode字符 |
+| `c` | 字符 - 转换为 Unicode 字符 |
 | `d` | 十进制（默认） |
 | `n` | 具有区域设置特定分隔符的十进制 |
 | `o` | 八进制 |
@@ -848,23 +848,23 @@ Format Str Repr
 | `X` | 十六进制（大写） |
 | 浮点类型 | 含义 |
 | --- | --- |
-| `e`/`E` | 指数。小写/大写e |
+| `e`/`E` | 指数。小写/大写 e |
 | `f` | 固定点 |
 | `g`/`G` | 通用。对于大和小数字的固定指数（`g`默认） |
 | `n` | 具有区域设置特定分隔符的`g` |
-| `%` | 百分比（乘以100） |
+| `%` | 百分比（乘以 100） |
 
 ### 一些`format`示例
 
-这里有一些使用`.format`的示例。让我们将一个字符串格式化在`*`包围的12个字符中心。`*`是*填充*字符，`^`是*对齐*字段，`12`是*宽度*字段：
+这里有一些使用`.format`的示例。让我们将一个字符串格式化在`*`包围的 12 个字符中心。`*`是*填充*字符，`^`是*对齐*字段，`12`是*宽度*字段：
 
 ```
->>> "Name: {:*^12}".format("Ringo")
+>>> "Name: {:*¹²}".format("Ringo")
 'Name: ***Ringo****'
 
 ```
 
-接下来，我们使用宽度为10，一位小数点和符号在宽度填充之前的百分比格式化。`=`是*对齐*字段，`10.1`是*宽度*和*精度*字段，`%`是*浮点类型*，将数字转换为百分比：
+接下来，我们使用宽度为 10，一位小数点和符号在宽度填充之前的百分比格式化。`=`是*对齐*字段，`10.1`是*宽度*和*精度*字段，`%`是*浮点类型*，将数字转换为百分比：
 
 ```
 >>> "Percent: {:=10.1%}".format(-44./100)
@@ -1139,7 +1139,7 @@ Python 支持面向对象编程，但不要求你创建类。你可以有效地�
 
 ```
 
-如果在实例上找不到属性，Python将在类上查找，它将继续查找父类以尝试找到它。如果查找不成功，将引发`AttributeError`。
+如果在实例上找不到属性，Python 将在类上查找，它将继续查找父类以尝试找到它。如果查找不成功，将引发`AttributeError`。
 
 ### 子类
 
@@ -1168,7 +1168,7 @@ Python 支持面向对象编程，但不要求你创建类。你可以有效地�
 
 注意
 
-`super`函数在旧式类中不起作用。确保你的基类在Python 2中继承自`object`。
+`super`函数在旧式类中不起作用。确保你的基类在 Python 2 中继承自`object`。
 
 子类的实例可以调用在其类或父类上定义的方法：
 
@@ -1394,7 +1394,7 @@ StopIteration
 
 ## 条件语句
 
-Python有一个带有零个或多个`elif`语句的`if`语句，并在最后有一个可选的`else`语句。在Python中，`elif`一词是荷兰语，意为*else if*：
+Python 有一个带有零个或多个`elif`语句的`if`语句，并在最后有一个可选的`else`语句。在 Python 中，`elif`一词是荷兰语，意为*else if*：
 
 ```
 >>> grade = 72
@@ -1414,9 +1414,9 @@ Python有一个带有零个或多个`elif`语句的`if`语句，并在最后有�
 
 ```
 
-Python支持以下测试：`>`, `>=`, `<`, `<=`, `==`, 和 `!=`。对于布尔运算符使用`and`，`or`，和`not`（`&`，`|`，和`^`是位运算符）。
+Python 支持以下测试：`>`, `>=`, `<`, `<=`, `==`, 和 `!=`。对于布尔运算符使用`and`，`or`，和`not`（`&`，`|`，和`^`是位运算符）。
 
-注意，Python也支持*范围比较*：
+注意，Python 也支持*范围比较*：
 
 ```
 >>> x = 4
@@ -1426,7 +1426,7 @@ Four!
 
 ```
 
-Python没有switch语句，通常使用字典来支持类似的结构：
+Python 没有 switch 语句，通常使用字典来支持类似的结构：
 
 ```
 >>> def add(x, y):
@@ -1440,14 +1440,14 @@ Python没有switch语句，通常使用字典来支持类似的结构：
 >>> op = '+'
 >>> a = 2
 >>> b = 3
->>> ops[op](a, b)
+>>> opsop
 5
 
 ```
 
 ### 真值性
 
-您可以定义`__nonzero__`方法来教导您的类在布尔上下文中如何行事。如果不存在，Python将使用`__len__`，最后默认为`True`。
+您可以定义`__nonzero__`方法来教导您的类在布尔上下文中如何行事。如果不存在，Python 将使用`__len__`，最后默认为`True`。
 
 以下表列出了*真值*和*假值*：
 
@@ -1483,18 +1483,18 @@ Python没有switch语句，通常使用字典来支持类似的结构：
 
 ### 三元运算符
 
-Python有自己的三元运算符，称为*条件表达式*（参见PEP 308）。这些很方便，因为它们可以用于理解构造和`lambda`函数中：
+Python 有自己的三元运算符，称为*条件表达式*（参见 PEP 308）。这些很方便，因为它们可以用于理解构造和`lambda`函数中：
 
 ```
 >>> last = 'Lennon' if band == 'Beatles' else 'Jones'
 
 ```
 
-请注意，这与`if`语句具有类似的行为，但它是一个表达式，而不是语句。Python区分这两者。区分两者的一个简单方法是记住表达式跟随`return`语句。你可以`return`的任何东西都是表达式。
+请注意，这与`if`语句具有类似的行为，但它是一个表达式，而不是语句。Python 区分这两者。区分两者的一个简单方法是记住表达式跟随`return`语句。你可以`return`的任何东西都是表达式。
 
 ## 异常
 
-Python可以捕获一个或多个异常（PEP 3110）。如果您想要有不同的反应，可以提供一系列不同的异常来捕获。一些建议：
+Python 可以捕获一个或多个异常（PEP 3110）。如果您想要有不同的反应，可以提供一系列不同的异常来捕获。一些建议：
 
 +   尽量将`try`语句块保持在引发异常的代码范围内
 
@@ -1502,7 +1502,7 @@ Python可以捕获一个或多个异常（PEP 3110）。如果您想要有不同
 
 +   如果要检查异常，请使用`as`创建一个指向它的变量
 
-如果在`except`块中使用裸`raise`，Python的回溯将指向原始异常的位置，而不是引发异常的位置。
+如果在`except`块中使用裸`raise`，Python 的回溯将指向原始异常的位置，而不是引发异常的位置。
 
 ```
 >>> def avg(seq):
@@ -1634,7 +1634,7 @@ Result:0.2
 
 ## 类装饰器和类元类
 
-Python允许你动态创建和修改类。类装饰器和类元类是实现这一点的两种方式。
+Python 允许你动态创建和修改类。类装饰器和类元类是实现这一点的两种方式。
 
 ### 类装饰器
 
@@ -1755,7 +1755,7 @@ MEOW
 
 ## 推导式
 
-理解构造允许我们将map和filter背后的功能思想结合到易于阅读的单行代码中。当你看到代码在列表（或字典、集合或生成器）中聚合时，可以用列表推导式（或字典、集合推导式或生成器表达式）替换它。这是一个代码异味的例子：
+理解构造允许我们将 map 和 filter 背后的功能思想结合到易于阅读的单行代码中。当你看到代码在列表（或字典、集合或生成器）中聚合时，可以用列表推导式（或字典、集合推导式或生成器表达式）替换它。这是一个代码异味的例子：
 
 ```
 >>> nums = range(10)
@@ -1790,7 +1790,7 @@ MEOW
 
     ```
 
-+   在for循环后插入任何过滤累积的操作：
++   在 for 循环后插入任何过滤累积的操作：
 
     ```
     result = [for num in nums if num % 2 == 0]
@@ -1841,7 +1841,7 @@ set([0, 16, 4, 64, 36])
 
 上下文管理器可以通过函数或类创建。
 
-如果我们正在编写一个用于编写TeX的Python模块，我们可能会这样做以确保环境被正确关闭：
+如果我们正在编写一个用于编写 TeX 的 Python 模块，我们可能会这样做以确保环境被正确关闭：
 
 ```
 >>> def start(env):
@@ -1952,7 +1952,7 @@ with open('/tmp/test.txt') as fin:
 
 ### 脚本
 
-一个脚本是一个你在上面调用`python`的Python文件。通常在底部附近有一行看起来像这样的代码：
+一个脚本是一个你在上面调用`python`的 Python 文件。通常在底部附近有一行看起来像这样的代码：
 
 ```
 if __name__ == '__main__':
@@ -1964,7 +1964,7 @@ if __name__ == '__main__':
 
 ### 模块
 
-模块是以`.py`结尾的文件。根据PEP 8，我们将模块名小写，并且不在它们之间加下划线。任何在`PYTHONPATH`环境变量或`sys.path`列表中找到的模块都可以被导入。
+模块是以`.py`结尾的文件。根据 PEP 8，我们将模块名小写，并且不在它们之间加下划线。任何在`PYTHONPATH`环境变量或`sys.path`列表中找到的模块都可以被导入。
 
 ### 包
 
@@ -2021,28 +2021,28 @@ package_fib()
 
 ## 环境
 
-Python 2不包含开箱即用的创建*虚拟环境*的功能。要安装用于为项目创建沙盒的`virtualenv`模块，请运行以下命令（可能需要使用`sudo`运行）：
+Python 2 不包含开箱即用的创建*虚拟环境*的功能。要安装用于为项目创建沙盒的`virtualenv`模块，请运行以下命令（可能需要使用`sudo`运行）：
 
 ```
 $ pip install virtualenv
 
 ```
 
-在Unix和Windows系统上创建环境，请运行：
+在 Unix 和 Windows 系统上创建环境，请运行：
 
 ```
 $ virtualenv /path/to/env
 
 ```
 
-要进入或*激活*Unix环境，请运行：
+要进入或*激活*Unix 环境，请运行：
 
 ```
 $ source /path/to/env/bin/activate
 
 ```
 
-在Windows上运行：
+在 Windows 上运行：
 
 ```
 c:\>c:\path\to\env\Scripts\activate.bat
@@ -2058,14 +2058,14 @@ c:\>c:\path\to\env\Scripts\activate.bat
 
 ### 安装软件包
 
-现在你应该有一个`pip`可执行文件，它将从PyPI [[2]](#id4)安装一个软件包到你的虚拟环境中：
+现在你应该有一个`pip`可执行文件，它将从 PyPI [[2]](#id4)安装一个软件包到你的虚拟环境中：
 
 ```
 (env) $ pip install django
 
 ```
 
-| [[2]](#id3) | [https://pypi.python.org/pypi](https://pypi.python.org/pypi) |
+| [[2]](#id3) | [`pypi.python.org/pypi`](https://pypi.python.org/pypi) |
 | --- | --- |
 
 要卸载软件包，请运行：
@@ -2075,7 +2075,7 @@ c:\>c:\path\to\env\Scripts\activate.bat
 
 ```
 
-如果安装软件包时遇到问题，您可能需要考虑使用其他Python发行版，如Anaconda [[3]](#id6)，其中预先打包了许多难以安装的软件包。
+如果安装软件包时遇到问题，您可能需要考虑使用其他 Python 发行版，如 Anaconda [[3]](#id6)，其中预先打包了许多难以安装的软件包。
 
-| [[3]](#id5) | [https://docs.continuum.io/anaconda/](https://docs.continuum.io/anaconda/) |
+| [[3]](#id5) | [`docs.continuum.io/anaconda/`](https://docs.continuum.io/anaconda/) |
 | --- | --- |

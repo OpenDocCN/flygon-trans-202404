@@ -1,4 +1,4 @@
-![数据科学的艺术](images/title_page.png)
+![数据科学的艺术](img/title_page.png)
 
 ## 数据科学的艺术
 
@@ -6,11 +6,11 @@
 
 #### 罗杰·D·彭（Roger D. Peng）和伊丽莎白·松井（Elizabeth Matsui）
 
-本书在 [http://leanpub.com/artofdatascience](http://leanpub.com/artofdatascience) 上有售
+本书在 [`leanpub.com/artofdatascience`](http://leanpub.com/artofdatascience) 上有售
 
 本版本发布于 2017-01-13
 
-![出版商的标志](images/skybrudeconsultingllc-logo.png)
+![出版商的标志](img/skybrudeconsultingllc-logo.png)
 
 *   *   *   *   *
 

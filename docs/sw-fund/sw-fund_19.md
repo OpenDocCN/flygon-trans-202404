@@ -1,4 +1,4 @@
-# Hoare2Hoare逻辑，第二部分
+# Hoare2Hoare 逻辑，第二部分
 
 ```
 
@@ -256,7 +256,7 @@ END
 
     我们可以使用装饰证明这个程序是正确的 —
 
-    即，它总是交换变量X和Y的值。
+    即，它总是交换变量 X 和 Y 的值。
 
 [
 
@@ -286,9 +286,9 @@ END
 
             和后置条件(5)。在前置条件中，我们使用参数
 
-            m和n以记住变量X的初始值
+            m 和 n 以记住变量 X 的初始值
 
-            和Y，这样我们可以在
+            和 Y，这样我们可以在
 
             后置条件(5)。
 
@@ -302,15 +302,15 @@ END
 
             分配。例如，我们通过替换获得(4)
 
-            X用X - Y替换在(5)中，并通过用X -替换Y
+            X 用 X - Y 替换在(5)中，并通过用 X -替换 Y
 
-            Y在(4)中。
+            Y 在(4)中。
 
 +   最后，我们验证(1)逻辑上蕴含(2) — 即，
 
             从(1)到(2)是法则的有效使用
 
-            结果。为此，我们将X替换为m，Y替换为n
+            结果。为此，我们将 X 替换为 m，Y 替换为 n
 
             并计算如下：
 
@@ -429,9 +429,9 @@ FI
 
 ## 例如：减少到零
 
-这是一个WHILE循环，非常简单，不需要
+这是一个 WHILE 循环，非常简单，不需要
 
-    不变量（即，不变量True将完成工作）。
+    不变量（即，不变量 True 将完成工作）。
 
 ```
         (1)      {{ True }}
@@ -450,7 +450,7 @@ FI
 
 +   从外部前提（1）和后提（6）开始。
 
-+   遵循由hoare_while规则规定的格式，我们
++   遵循由 hoare_while 规则规定的格式，我们
 
         将（1）复制到（4）。 我们与保护合并（1）以获得（2）和
 
@@ -460,7 +460,7 @@ FI
 
         需要从（5）到（6）的平凡使用后果规则。
 
-+   断言（3）与（4）相同，因为X不出现在中
++   断言（3）与（4）相同，因为 X 不出现在中
 
         4，因此在赋值规则中的替换是平凡的。
 
@@ -468,11 +468,11 @@ FI
 
 从这个非正式证明中，很容易读出一个正式证明
 
-    使用Hoare规则的Coq版本。 请注意，我们不要*不要*
+    使用 Hoare 规则的 Coq 版本。 请注意，我们不要*不要*
 
-    在此证明中的任何位置展开hoare_triple的定义-
+    在此证明中的任何位置展开 hoare_triple 的定义-
 
-    思想是使用Hoare规则作为“自包含”的逻辑
+    思想是使用 Hoare 规则作为“自包含”的逻辑
 
     对程序进行推理。
 
@@ -509,9 +509,9 @@ Proof.
 
 ## 例如：分割
 
-以下的Imp程序计算整数商和
+以下的 Imp 程序计算整数商和
 
-    两个任意常数m和n的余数
+    两个任意常数 m 和 n 的余数
 
     在程序中。
 
@@ -525,25 +525,25 @@ Proof.
 
 ```
 
-    在我们用具体数字替换m和n并执行时
+    在我们用具体数字替换 m 和 n 并执行时
 
-    程序，它将以变量X设置为
+    程序，它将以变量 X 设置为
 
-    m除以n时的余数，Y设置为
+    m 除以 n 时的余数，Y 设置为
 
     商。
 
 为了给这个程序一个规范，我们需要
 
-    记住，将m除以n会产生余数X和a
+    记住，将 m 除以 n 会产生余数 X 和 a
 
-    商Y，使n * Y + X = m ∧ X <n。
+    商 Y，使 n * Y + X = m ∧ X <n。
 
     结果发现我们对这个程序很幸运，不必
 
     非常努力考虑循环不变性：不变性就是
 
-    第一个合取n * Y + X = m，我们可以使用此合取
+    第一个合取 n * Y + X = m，我们可以使用此合取
 
     装饰程序。
 
@@ -816,13 +816,13 @@ END
 
 ## 练习：慢赋值
 
-#### 练习：2星M（慢赋值）
+#### 练习：2 星 M（慢赋值）
 
-一个将当前存储在X中的数字分配给的绕道方法
+一个将当前存储在 X 中的数字分配给的绕道方法
 
-    变量Y是从0开始的，然后递减X直到
+    变量 Y 是从 0 开始的，然后递减 X 直到
 
-    它达到0时，每一步都会增加Y。这是一个实现这个想法的程序
+    它达到 0 时，每一步都会增加 Y。这是一个实现这个想法的程序
 
     实现这个想法：
 
@@ -888,7 +888,7 @@ END
 
 这是一个用于计算奇偶性的可爱小程序
 
-    最初存储在X中的值（由Daniel Cristofani）。
+    最初存储在 X 中的值（由 Daniel Cristofani）。
 
 ```
          {{ X = m }}
@@ -901,7 +901,7 @@ END
 
     规范中使用的数学奇偶函数是
 
-    在Coq中定义如下：
+    在 Coq 中定义如下：
 
 ```
 Fixpoint parity x :=
@@ -915,19 +915,19 @@ Fixpoint parity x :=
 
 循环开始时不满足后置条件
 
-    因为m = 奇偶性m对于任意m都不成立，所以我们
+    因为 m = 奇偶性 m 对于任意 m 都不成立，所以我们
 
     不能将其用作不变量。要找到有效的不变量，
 
     让我们思考一下这个循环的作用。每次迭代时
 
-    递减2，这保持了X的奇偶性。因此
+    递减 2，这保持了 X 的奇偶性。因此
 
-    X的奇偶性不会改变，即它是不变的。初始
+    X 的奇偶性不会改变，即它是不变的。初始
 
-    X的奇偶性始终等于X的奇偶性
+    X 的奇偶性始终等于 X 的奇偶性
 
-    m的奇偶性。使用奇偶性X = 奇偶性m作为不变量
+    m 的奇偶性。使用奇偶性 X = 奇偶性 m 作为不变量
 
     获得以下装��程序：
 
@@ -947,17 +947,17 @@ Fixpoint parity x :=
 
     有了这个不变量，条件（a），（b）和（c）都是
 
-    满足。验证（b）时，我们观察到，当X < 2时，我们
+    满足。验证（b）时，我们观察到，当 X < 2 时，我们
 
-    具有奇偶性X = X（我们可以在定义中轻松看到这一点
+    具有奇偶性 X = X（我们可以在定义中轻松看到这一点
 
-    奇偶性）。验证（c）时，我们观察到，当2 ≤ X时，我们
+    奇偶性）。验证（c）时，我们观察到，当 2 ≤ X 时，我们
 
-    具有奇偶性X = 奇偶性(X-2)。
+    具有奇偶性 X = 奇偶性(X-2)。
 
-#### 练习：3星，可选（奇偶形式）
+#### 练习：3 星，可选（奇偶形式）
 
-将此证明翻译为Coq。参考reduce_to_zero示例
+将此证明翻译为 Coq。参考 reduce_to_zero 示例
 
     对于想法。您可能会发现以下两个引理有用：
 
@@ -1154,7 +1154,7 @@ Z ::= Z+1
 
     从一开始 Z 就是 m*m。如果我们看看 Z 的进展
 
-    在循环中，第1次迭代后 Z = m，第2次迭代后
+    在循环中，第 1 次迭代后 Z = m，第 2 次迭代后
 
     迭代 Z = 2*m，最终 Z = m*m。由于变量
 
@@ -1267,7 +1267,7 @@ X ::= X - 1
 
 ## 练习：Min
 
-#### 练习：3星M（Min_Hoare）
+#### 练习：3 星 M（Min_Hoare）
 
 为以下程序填写有效的装饰。
 
@@ -1311,7 +1311,7 @@ X ::= X - 1
 
 ☐
 
-#### 练习：3星M（two_loops）
+#### 练习：3 星 M（two_loops）
 
 这是一个非常低效的方法来相加 3 个数字：
 
@@ -1375,7 +1375,7 @@ X ::= X - 1
 #### Exercise: 4 stars, optional (dpow2_down)
 
  Here is a program that computes the series:
-    1 + 2 + 2^2 + ... + 2^m = 2^(m+1) - 1
+    1 + 2 + 2² + ... + 2^m = 2^(m+1) - 1
 
 ```
 
@@ -1437,15 +1437,15 @@ X ::= X + 1
 
     是有用的：它告诉我们，如果我们可以以某种方式创造一种情况
 
-    在我们知道Y ≤ 4 ∧ Z = 0的情况下，然后运行此命令
+    在我们知道 Y ≤ 4 ∧ Z = 0 的情况下，然后运行此命令
 
     将产生一个满足后置条件的状态。然而，这
 
-    三元组仍然不如它本应该的那么有用，因为Z = 0
+    三元组仍然不如它本应该的那么有用，因为 Z = 0
 
     前提子句实际上与
 
-    后置条件X ≤ 5。*最*有用的三元组（对于这个
+    后置条件 X ≤ 5。*最*有用的三元组（对于这个
 
     命令和后置条件）是这个：
 
@@ -1454,17 +1454,17 @@ X ::= X + 1
 
 ```
 
-    换句话说，Y ≤ 4是X ::= Y + 1的*最弱*有效前置条件
+    换句话说，Y ≤ 4 是 X ::= Y + 1 的*最弱*有效前置条件
 
-    命令X ::= Y + 1的后置条件为X ≤ 5。
+    命令 X ::= Y + 1 的后置条件为 X ≤ 5。
 
-一般来说，我们说“P是c的最弱前置条件
+一般来说，我们说“P 是 c 的最弱前置条件
 
     如果{{P}} c {{Q}}，并且，
 
-    每当P'是一个断言，使得{{P'}} c {{Q}}，它就是
+    每当 P'是一个断言，使得{{P'}} c {{Q}}，它就是
 
-    如果P' st意味着对于所有状态st都成立。
+    如果 P' st 意味着对于所有状态 st 都成立。
 
 ```
 Definition is_wp P c Q :=
@@ -1473,15 +1473,15 @@ Definition is_wp P c Q :=
 
 ```
 
-也就是说，P是Q的c的最弱前置条件
+也就是说，P 是 Q 的 c 的最弱前置条件
 
-    如果（a）P *是* Q和c的前提条件，且（b）P是
+    如果（a）P *是* Q 和 c 的前提条件，且（b）P 是
 
     *最弱*（最容易满足）的断言，保证
 
-    Q将在执行c后成立。
+    Q 将在执行 c 后成立。
 
-#### 练习：1星，可选（wp）
+#### 练习：1 星，可选（wp）
 
 以下命令的最弱前置条件是什么
 
@@ -1515,13 +1515,13 @@ Definition is_wp P c Q :=
 
 ☐
 
-#### 练习：3星，高级，可选（is_wp_formal）
+#### 练习：3 星，高级，可选（is_wp_formal）
 
-正式证明，使用hoare_triple的定义，Y ≤ 4
+正式证明，使用 hoare_triple 的定义，Y ≤ 4
 
-实际上是X ::= Y + 1的最弱前置条件
+实际上是 X ::= Y + 1 的最弱前置条件
 
-后置条件X ≤ 5。
+后置条件 X ≤ 5。
 
 ```
 Theorem is_wp_example :
@@ -1534,9 +1534,9 @@ Proof.
 
 ☐
 
-#### 练习：2星，高级，可选（hoare_asgn_weakest）
+#### 练习：2 星，高级，可选（hoare_asgn_weakest）
 
-显示hoare_asgn规则中的前置条件实际上是
+显示 hoare_asgn 规则中的前置条件实际上是
 
     最弱前置条件。
 
@@ -1550,11 +1550,11 @@ Proof.
 
 ☐
 
-#### 练习：2星，高级，可选（hoare_havoc_weakest）
+#### 练习：2 星，高级，可选（hoare_havoc_weakest）
 
-显示你从himp_hoare练习中的havoc_pre规则
+显示你从 himp_hoare 练习中的 havoc_pre 规则
 
-    在[Hoare](Hoare.html)章节中返回最弱的前置条件。
+    在 Hoare 章节中返回最弱的前置条件。
 
 ```
 Module Himp2.
@@ -1599,7 +1599,7 @@ Proof.
 
 ```
 
-归纳dcom：类型：=
+归纳 dcom：类型：=
 
 | DCSkip：  断言 → dcom
 
@@ -1625,51 +1625,51 @@ Proof.
 
 :=（DCSkip P）
 
-（在10级别）：dcom_scope。
+（在 10 级别）：dcom_scope。
 
 符号"l '::=' a {{ P }}"
 
 :=（DCAsgn l a P）
 
-（在60级别，下一个级别为a）：dcom_scope。
+（在 60 级别，下一个级别为 a）：dcom_scope。
 
 符号"'WHILE' b 'DO' {{ Pbody }} d 'END' {{ Ppost }}"
 
 :=（DCWhile b Pbody d Ppost）
 
-（在80级别，右结合性）：dcom_scope。
+（在 80 级别，右结合性）：dcom_scope。
 
 符号"'IFB' b 'THEN' {{ P }} d 'ELSE' {{ P' }} d' 'FI' {{ Q }}"
 
 :=（DCIf b P d P' d' Q）
 
-（在80级别，右结合性）：dcom_scope。
+（在 80 级别，右结合性）：dcom_scope。
 
 符号"'⇾' {{ P }} d"
 
 :=（DCPre P d）
 
-（在90级别，右结合性）：dcom_scope。
+（在 90 级别，右结合性）：dcom_scope。
 
 符号"d '⇾' {{ P }}"
 
 :=（DCPost d P）
 
-（在80级别，右结合性）：dcom_scope。
+（在 80 级别，右结合性）：dcom_scope。
 
 符号"d ;; d' "
 
 :=（DCSeq d d'）
 
-（在80级别，右结合性）：dcom_scope。
+（在 80 级别，右结合性）：dcom_scope。
 
 符号"{{ P }} d"
 
 :=（Decorated P d）
 
-（在90级别）：dcom_scope。
+（在 90 级别）：dcom_scope。
 
-使用dcom的Delimit Scope dcom_scope。
+使用 dcom 的 Delimit Scope dcom_scope。
 
 ```
 
@@ -1686,7 +1686,7 @@ To avoid clashing with the existing Notation definitions
 
 ```
 
-示例dec_while：装饰 := (
+示例 dec_while：装饰 := (
 
 {{ fun st ⇒ True }}
 
@@ -1928,9 +1928,9 @@ induction d; intros P H; simpl in *.
 
 - (* 跳过 *)
 
-eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre).
+eapply hoare_consequence_pre.
 
-apply [hoare_skip](Hoare.html#hoare_skip).
+apply hoare_skip.
 
 assumption.
 
@@ -1938,7 +1938,7 @@ assumption.
 
 inversion H as [H[1] H[2]]. clear H.
 
-eapply [hoare_seq](Hoare.html#hoare_seq).
+eapply hoare_seq.
 
 apply IHd2. apply H[2].
 
@@ -1946,9 +1946,9 @@ apply IHd1. apply H[1].
 
 - (* 赋值 *)
 
-eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre).
+eapply hoare_consequence_pre.
 
-apply [hoare_asgn](Hoare.html#hoare_asgn).
+apply hoare_asgn.
 
 assumption.
 
@@ -1962,41 +1962,41 @@ apply IHd1 in HThen. clear IHd1.
 
 apply IHd2 in HElse. clear IHd2.
 
-apply [hoare_if](Hoare.html#hoare_if).
+apply hoare_if.
 
-+ eapply [hoare_consequence_post](Hoare.html#hoare_consequence_post) with (Q':=[post](Hoare2.html#post) d[1]); eauto.
++ eapply hoare_consequence_post with (Q':=post d[1]); eauto.
 
-eapply [hoare_consequence_pre](Hoare.html#hoare_consequence_pre); eauto.
+eapply hoare_consequence_pre; eauto.
 
-+使用[hoare_consequence_post](Hoare.html#hoare_consequence_post)with（Q':=[post](Hoare2.html#post) d[2]）; eauto。
++使用 hoare_consequence_postwith（Q':=post d[2]）; eauto。
 
-使用[hoare_consequence_pre](Hoare.html#hoare_consequence_pre); eauto。
+使用 hoare_consequence_pre; eauto。
 
 验证。
 
-作为[Hpre [Hbody1 [Hpost1 Hd]]]进行反演。 清除H。
+作为[Hpre [Hbody1 [Hpost1 Hd]]]进行反演。 清除 H。
 
 匹配目标；
 
-使用[hoare_consequence_post](Hoare.html#hoare_consequence_post)； eauto。
+使用 hoare_consequence_post； eauto。
 
-应用[hoare_while](Hoare.html#hoare_while)。
+应用 hoare_while。
 
 {{fun st ⇒ st Z - st X = p - m ∧ st X = 0}} ⇾
 
 - （* 前 *）
 
-作为[H：_ = st _⊢_]⇒重写← H在*中; 清除H
+作为[H：_ = st _⊢_]⇒重写← H 在*中; 清除 H
 
-使用[hoare_consequence_pre](Hoare.html#hoare_consequence_pre)。 应用IHd。 应用Hd。 假设。
+使用 hoare_consequence_pre。 应用 IHd。 应用 Hd。 假设。
 
 - （* 后置 *）
 
 Z :: = AMinus（AId Z）（ANum 1）
 
-应用[hoare_consequence_post](Hoare.html#hoare_consequence_post)。 应用IHd。 应用Hd。 假设。
+应用 hoare_consequence_post。 应用 IHd。 应用 Hd。 假设。
 
-重复在t_update_eq中写入;
+重复在 t_update_eq 中写入;
 
 ```
 
@@ -2013,7 +2013,7 @@ Z :: = AMinus（AId Z）（ANum 1）
 
 ```
 
-定义verification_conditions_dec（dec：decorated）：= 
+定义 verification_conditions_dec（dec：decorated）：= 
 
 - （* 当 *）
 
@@ -2021,13 +2021,13 @@ Z :: = AMinus（AId Z）（ANum 1）
 
 结束。
 
-匹配dec与
+匹配 dec 与
 
-使用[hoare_consequence_pre](Hoare.html#hoare_consequence_pre); eauto。
+使用 hoare_consequence_pre; eauto。
 
 证明。
 
-对[P d]进行推理。 应用verification_correct。
+对[P d]进行推理。 应用 verification_correct。
 
 完成。
 
@@ -2038,7 +2038,7 @@ The propositions generated by verification_conditions are fairly
 
 ```
 
-在verification_conditions_dec dec_while中评估简化。
+在 verification_conditions_dec dec_while 中评估简化。
 
 ```
 
@@ -2067,21 +2067,21 @@ verification_conditions_dec dec→dec_correct dec。
     a bit of automation.  We first define a custom verify tactic
     that uses split repeatedly to turn all the conjunctions into
     separate subgoals and then uses omega and eauto (described in
-    chapter [Auto](Auto.html)) to deal with as many of them as possible. 
+    chapter Auto) to deal with as many of them as possible. 
 
 ```
 
-重复在t_update_eq中写入;
+重复在 t_update_eq 中写入;
 
-应用verification_correct。
+应用 verification_correct。
 
-作为[Hd HQ]反演H。 清除H。
+作为[Hd HQ]反演 H。 清除 H。
 
-简化; 展开assert_implies;
+简化; 展开 assert_implies;
 
-在*中展开bassn; 在*中展开beval; 在*中展开aeval;
+在*中展开 bassn; 在*中展开 beval; 在*中展开 aeval;
 
-展开assn_sub; 进入;
+展开 assn_sub; 进入;
 
 重复分割;
 
@@ -2089,23 +2089,23 @@ verification_conditions_dec dec→dec_correct dec。
 
 简化*;
 
-重复匹配目标，其中[H：_∧_⊢_]⇒分解H结束;
+重复匹配目标，其中[H：_∧_⊢_]⇒分解 H 结束;
 
-重复在*中写入not_true_iff;
+重复在*中写入 not_true_iff;
 
-在*中重复写入not_false_iff;
+在*中重复写入 not_false_iff;
 
-在*中重复写入negb_true_iff;
+在*中重复写入 negb_true_iff;
 
-重复在*中写入negb_false_iff;
+重复在*中写入 negb_false_iff;
 
-在*中重复写入beq_nat_true_iff;
+在*中重复写入 beq_nat_true_iff;
 
-重复在beq_nat_false_iff中写入*;
+重复在 beq_nat_false_iff 中写入*;
 
-重复在leb_iff中写入*;
+重复在 leb_iff 中写入*;
 
-重复在leb_iff_conv中写入*;
+重复在 leb_iff_conv 中写入*;
 
 尝试替换;
 
@@ -2115,17 +2115,17 @@ verification_conditions_dec dec→dec_correct dec。
 
 [st：state ⊢ _]⇒
 
-| [H：_ = st _⊢_]⇒重写← H在*中; 清除H
+| [H：_ = st _⊢_]⇒重写← H 在*中; 清除 H
 
-[H：st _ = _⊢_]⇒重写→H在*中; 清除H
+[H：st _ = _⊢_]⇒重写→H 在*中; 清除 H
 
-定理verification_correct_dec：∀dec，
+定理 verification_correct_dec：∀dec，
 
 结束
 
 结束;
 
-尝试eauto; 尝试omega。
+尝试 eauto; 尝试 omega。
 
 ```
 
@@ -2136,9 +2136,9 @@ What's left after verify does its thing is "just the interesting
 
 ```
 
-定理dec_while_correct：
+定理 dec_while_correct：
 
-verification_conditions_dec dec_while正确。
+verification_conditions_dec dec_while 正确。
 
 证明。 验证。 完成。
 
@@ -2149,7 +2149,7 @@ Another example (formalizing a decorated program we've seen
 
 ```
 
-例子subtract_slowly_dec（m：nat）（p：nat）：decorated：= (
+例子 subtract_slowly_dec（m：nat）（p：nat）：decorated：= (
 
 {{fun st ⇒ st X = m ∧ st Z = p}} ⇾
 
@@ -2161,7 +2161,7 @@ DO   {{fun st ⇒ st Z - st X = p - m ∧ st X ≠ 0}} ⇾
 
 {{fun st ⇒（st Z - 1）-（st X - 1）= p - m}}
 
-使用[hoare_consequence_pre](Hoare.html#hoare_consequence_pre); eauto。
+使用 hoare_consequence_pre; eauto。
 
 {{fun st ⇒ st Z -（st X - 1）= p - m}} ;;
 
@@ -2583,11 +2583,11 @@ intros m。验证；
 
 尝试在 * 中重写 leb_iff_conv；intuition；eauto；尝试 omega。
 
-- (* 不变量保持（部分1） *)
+- (* 不变量保持（部分 1） *)
 
 在 H[0] 中重写 l[4]；eauto。
 
-- (* 不变量保持（部分2） *)
+- (* 不变量保持（部分 2） *)
 
 重写 l[4]；eauto。
 
@@ -2613,7 +2613,7 @@ apply H[0]。constructor。
 
 + (* st X = 2 *)
 
-清除 H[0] H H[3]。 (* 否则omega会混淆 *)
+清除 H[0] H H[3]。 (* 否则 omega 会混淆 *)
 
 omega。
 
@@ -3327,7 +3327,7 @@ dec_correct (dfib n)。
 
 #### Exercise: 4 stars, advanced, optional (implement_dcom)
 
- Adapt the parser for Imp presented in chapter [ImpParser](ImpParser.html) 
+ Adapt the parser for Imp presented in chapter ImpParser 
     to parse decorated commands (either ours or the ones you defined
     in the previous exercise). 
 

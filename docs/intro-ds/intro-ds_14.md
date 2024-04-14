@@ -1,4 +1,4 @@
-[地图](data_mining_map.htm) > [数据科学](data_mining.htm) > [预测未来](predicting_the_future.htm) > [建模](modeling.htm) > 分类
+地图 > 数据科学 > 预测未来 > 建模 > 分类
 
 # 分类
 
@@ -6,26 +6,26 @@
 
 1.  频率表
 
-    +   [ZeroR](zeror.htm)
+    +   ZeroR
 
-    +   [OneR](oner.htm)
+    +   OneR
 
-    +   [朴素贝叶斯算法](naive_bayesian.htm)
+    +   朴素贝叶斯算法
 
-    +   [决策树](decision_tree.htm)
+    +   决策树
 
 1.  协方差矩阵
 
-    +   [线性判别分析](lda.htm)
+    +   线性判别分析
 
-    +   [逻辑回归](logistic_regression.htm)
+    +   逻辑回归
 
 1.  相似性函数
 
-    +   [K近邻算法](k_nearest_neighbors.htm)
+    +   K 近邻算法
 
 1.  其他
 
-    +   [人工神经网络](artificial_neural_network.htm)
+    +   人工神经网络
 
-    +   [支持向量机](support_vector_machine.htm)
+    +   支持向量机

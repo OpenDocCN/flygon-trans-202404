@@ -2,7 +2,7 @@
 
 # 贡献者
 
-![](Ruby_Loves_Us.jpg)**对那些以任何方式支持这本书的人表示感谢。**
+![](img/Ruby_Loves_Us.jpg)**对那些以任何方式支持这本书的人表示感谢。**
 
 ## 创始人
 
@@ -24,9 +24,9 @@
 
 +   Ahmed Aboul-Ela | @aboul3la - *增强书籍网页设计*
 
-+   Sven Vetsch | @disenchant - *PR校对*
++   Sven Vetsch | @disenchant - *PR 校对*
 
-+   Christian Fernandez | @b1naryFreed0m - *编码和PR*
++   Christian Fernandez | @b1naryFreed0m - *编码和 PR*
 
 +   Arron Crawford | @SquirrelsNabrrl - *社交媒体、背景、建议等*
 
@@ -42,7 +42,7 @@
 
 **模块 0x1 | 基础 Ruby 功夫**
 
-+   非字母数字 Ruby（链接1，链接2）
++   非字母数字 Ruby（链接 1，链接 2）
 
 **模块 0x2 | 系统功夫**
 

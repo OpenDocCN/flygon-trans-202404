@@ -125,7 +125,7 @@ Eval-1 负责返回作为 exp 传递的任何计算的结果。它由一个 cond
 
 **互递归（在 racket-1 中）**
 
-![eval](/static/eval.png)
+![eval](img/eval.png)
 
 ## 与 Racket-1 练习
 

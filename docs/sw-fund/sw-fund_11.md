@@ -32,7 +32,7 @@
     let's experiment with directly using apply nat_ind, instead of
     the induction tactic, to carry out some proofs.  Here, for
     example, is an alternate proof of a theorem that we saw in the
-    [Basics](Basics.html) chapter.
+    Basics chapter.
 
 ```
 
@@ -130,7 +130,7 @@ Check yesno_ind.
 
 ```
 
-#### 练习：1星，可选（rgb）
+#### 练习：1 星，可选（rgb）
 
     写出 Coq 将为以下定义生成的归纳原理
 
@@ -163,7 +163,7 @@ Check natlist_ind.
 
 ```
 
-#### 练习：1星，可选（natlist1）
+#### 练习：1 星，可选（natlist1）
 
     假设我们稍微修改了上述定义
 
@@ -190,7 +190,7 @@ Inductive natlist1 : Type :=
 
     +   “对于类型 a[1]...an 的所有值 x[1]...xn，如果 P 对归纳参数（每个类型为 t 的 xi）都成立，则 P 对 c x[1] ... xn 也成立”。
 
-#### 练习：1星，可选（byntree_ind）
+#### 练习：1 星，可选（byntree_ind）
 
     写出 Coq 将为以下定义生成的归纳原理
 
@@ -210,7 +210,7 @@ Inductive byntree : Type :=
 
     ☐
 
-#### 练习：1星，可选（ex_set）
+#### 练习：1 星，可选（ex_set）
 
     这是一个归纳原理，适用于一个归纳定义的
 
@@ -318,7 +318,7 @@ mytype_ind :
 
     ☐
 
-#### 练习：1星，可选（foo）
+#### 练习：1 星，可选（foo）
 
     找到导致
 
@@ -392,19 +392,19 @@ P 0  →
 
 P（或者更准确地说，对于所有的命题族
 
-命题P以数字n为索引）。每次我们
+命题 P 以数字 n 为索引）。每次我们
 
-使用这个原理，我们选择P为一个特定的
+使用这个原理，我们选择 P 为一个特定的
 
-类型为nat→Prop的表达式。
+类型为 nat→Prop 的表达式。
 
     我们可以通过给出更明确的归纳原理来使归纳证明更加明确
 
 给这个表达式一个名称。例如，不是陈述
 
-定理mult_0_r为“∀ n, n * 0 = 0”，我们可以
+定理 mult_0_r 为“∀ n, n * 0 = 0”，我们可以
 
-将其写为“∀ n, P_m0r n”，其中P_m0r被定义为
+将其写为“∀ n, P_m0r n”，其中 P_m0r 被定义为
 
 如...
 
@@ -422,7 +422,7 @@ Definition P_m0r' : nat→Prop :=
 
 ```
 
-    现在更容易看到P_m0r在证明中的出现位置。
+    现在更容易看到 P_m0r 在证明中的出现位置。
 
 ```
 Theorem mult_0_r'' : ∀n:nat,
@@ -443,21 +443,21 @@ Proof.
 
     或两个，因为这样可以让我们准确地看到归纳的过程
 
-    假设是。如果我们通过对n进行归纳证明∀ n, P_m0r n
+    假设是。如果我们通过对 n 进行归纳证明∀ n, P_m0r n
 
-    n（使用归纳或应用nat_ind），我们看到
+    n（使用归纳或应用 nat_ind），我们看到
 
-    第一个子目标要求我们证明P_m0r 0（“P对0成立”）。
+    第一个子目标要求我们证明 P_m0r 0（“P 对 0 成立”）。
 
-    zero”），而第二个子目标要求我们证明∀ n'，P_m0r n' → P_m0r (S n')（即“如果P对S n'成立，则P对n'成立”）。每次我们
+    zero”），而第二个子目标要求我们证明∀ n'，P_m0r n' → P_m0r (S n')（即“如果 P 对 S n'成立，则 P 对 n'成立”）。每次我们
 
-    对n成立”或者更优雅地说“P被S保持”）。
+    对 n 成立”或者更优雅地说“P 被 S 保持”）。
 
     归纳假设是后者的前提
 
-    蕴含关系 —— 假设P对n'成立，我们
+    蕴含关系 —— 假设 P 对 n'成立，我们
 
-    在证明P对S n'成立时允许使用
+    在证明 P 对 S n'成立时允许使用
 
 ```
 
@@ -488,25 +488,25 @@ Proof.
 
 ```
 
-定理plus_assoc'：∀n m p：nat，
+定理 plus_assoc'：∀n m p：nat，
 
 n + (m + p) = (n + m) + p.
 
 证明。
 
-(* ...我们首先将所有3个变量引入上下文，这相当于说“考虑任意的n，m和p...”*)
+(* ...我们首先将所有 3 个变量引入上下文，这相当于说“考虑任意的 n，m 和 p...”*)
 
 intros n m p.
 
-(* ...现在我们使用归纳策略证明P n（即，n + (m + p) = (n + m) + p）对所有n成立，因此也对此刻上下文中的特定n成立。*)
+(* ...现在我们使用归纳策略证明 P n（即，n + (m + p) = (n + m) + p）对所有 n 成立，因此也对此刻上下文中的特定 n 成立。*)
 
-对n进行归纳，如 [| n']。
+对 n 进行归纳，如 [| n']。
 
 - (* n = O *) reflexivity.
 
 - (* n = S n' *)
 
-(* 在归纳生成的第二个子目标中，即“归纳步骤”中，我们必须证明对所有n'，P n' 蕴含 P (S n')。归纳策略会自动将n'和P n'引入上下文，只留下P (S n')作为目标。*)
+(* 在归纳生成的第二个子目标中，即“归纳步骤”中，我们必须证明对所有 n'，P n' 蕴含 P (S n')。归纳策略会自动将 n'和 P n'引入上下文，只留下 P (S n')作为目标。*)
 
 简化。rewrite → IHn'。reflexivity。Qed。
 
@@ -517,13 +517,13 @@ intros n m p.
 
 ```
 
-定理plus_comm'：∀n m：nat，
+定理 plus_comm'：∀n m：nat，
 
 n + m = m + n。
 
 证明。
 
-对n进行归纳，如 [| n']。
+对 n 进行归纳，如 [| n']。
 
 - (* n = O *) intros m. rewrite ← plus_n_O. reflexivity.
 
@@ -544,15 +544,15 @@ rewrite ← plus_n_Sm. reflexivity. Qed.
 
 ```
 
-定理plus_comm''：∀n m：nat，
+定理 plus_comm''：∀n m：nat，
 
 n + m = m + n.
 
 证明。
 
-(* 这次我们对m进行归纳，而不是n...*)
+(* 这次我们对 m 进行归纳，而不是 n...*)
 
-对m进行归纳，如 [| m']。
+对 m 进行归纳，如 [| m']。
 
 - (* m = O *) simpl. rewrite ← plus_n_O。reflexivity。
 
@@ -580,19 +580,19 @@ rewrite ← plus_n_Sm。reflexivity。Qed。
 
 ```
 
-# Proposition中的归纳原理
+# Proposition 中的归纳原理
 
-    早些时候，我们详细研究了Coq的归纳原理
+    早些时候，我们详细研究了 Coq 的归纳原理
 
     生成用于归纳定义的*集合*的。归纳
 
-    用于归纳定义的*命题*的原则如ev是a
+    用于归纳定义的*命题*的原则如 ev 是 a
 
     稍微复杂一些。与所有归纳原理一样
 
-    想要使用ev的归纳原理来证明事实
+    想要使用 ev 的归纳原理来证明事实
 
-    归纳考虑了ev中的可能形状
+    归纳考虑了 ev 中的可能形状
 
     可以有。直觉上讲，但我们要证明的是
 
@@ -604,7 +604,7 @@ rewrite ← plus_n_Sm。reflexivity。Qed。
 
     例如，从我们到目前为止所说的，您可能会期望
 
-    ev的归纳定义...
+    ev 的归纳定义...
 
 ```
       Inductive ev : nat → Prop :=
@@ -631,15 +631,15 @@ P n E
 
     ...因为：
 
-+   由于ev由数字n索引（每个ev对象E是某个特定数字n为偶数的证据），所以命题P参数化为n和E两者-也就是说，归纳原理可用于证明涉及偶数和证据的断言。
++   由于 ev 由数字 n 索引（每个 ev 对象 E 是某个特定数字 n 为偶数的证据），所以命题 P 参数化为 n 和 E 两者-也就是说，归纳原理可用于证明涉及偶数和证据的断言。
 
-+   由于有两种提供偶数证据的方法（ev有两个构造函数），应用归纳原理会生成两个子目标：
++   由于有两种提供偶数证据的方法（ev 有两个构造函数），应用归纳原理会生成两个子目标：
 
-    +   我们必须证明P适用于O和ev_0。
+    +   我们必须证明 P 适用于 O 和 ev_0。
 
-    +   我们必须证明，无论何时n是一个偶数，E是其偶数性的证据，如果P对n和E成立，则它也对S（S n）和ev_SS n E成立。
+    +   我们必须证明，无论何时 n 是一个偶数，E 是其偶数性的证据，如果 P 对 n 和 E 成立，则它也对 S（S n）和 ev_SS n E 成立。
 
-+   如果这些子目标可以证明，那么归纳原则告诉我们，P对*所有*偶数n及其偶数性的证据E都成立。
++   如果这些子目标可以证明，那么归纳原则告诉我们，P 对*所有*偶数 n 及其偶数性的证据 E 都成立。
 
     这比我们通常需要或想要的灵活性更大：
 
@@ -653,11 +653,11 @@ P n E
 
     关于证据。因此，更方便的是
 
-    用于证明命题P的归纳原理
+    用于证明命题 P 的归纳原理
 
-    参数化只是通过n并且其结论为P
+    参数化只是通过 n 并且其结论为 P
 
-    所有偶数n：
+    所有偶数 n：
 
 ```
        ∀P : nat → Prop,
@@ -670,9 +670,9 @@ P n E
 
 ```
 
-检查ev_ind。
+检查 ev_ind。
 
-（* ===> ev_ind ：对于所有P：nat -> Prop，P 0 -> （对于所有n：nat，ev n -> P n -> P（S（S n）））-> 对于所有n：nat，ev n -> P n *）
+（* ===> ev_ind ：对于所有 P：nat -> Prop，P 0 -> （对于所有 n：nat，ev n -> P n -> P（S（S n）））-> 对于所有 n：nat，ev n -> P n *）
 
 ```
 
@@ -695,15 +695,15 @@ P n E
 
 ```
 
-定理ev_ev'：∀n，ev n → ev' n。
+定理 ev_ev'：∀n，ev n → ev' n。
 
 证明。
 
-应用ev_ind。
+应用 ev_ind。
 
 - （* ev_0 *）
 
-应用ev'_0。
+应用 ev'_0。
 
 - （* ev_SS *）
 
@@ -711,9 +711,9 @@ intros m Hm IH。
 
 应用（ev'_sum 2 m）。
 
-+ 应用ev'_2。
++ 应用 ev'_2。
 
-+ 应用IH。
++ 应用 IH。
 
 Qed。
 
@@ -722,7 +722,7 @@ Qed。
     The precise form of an Inductive definition can affect the
     induction principle Coq generates.
 
-    For example, in chapter [IndProp](IndProp.html), we defined ≤ as:
+    For example, in chapter IndProp, we defined ≤ as:
 
 ```
 
@@ -737,7 +737,7 @@ Qed。
 
 ```
 
-归纳le（n：nat）：nat → Prop：=
+归纳 le（n：nat）：nat → Prop：=
 
 | le_n：le n n
 
@@ -752,9 +752,9 @@ Qed。
 
 ```
 
-检查le_ind。
+检查 le_ind。
 
-（* === >  forall（n：nat）（P：nat -> Prop），P n -> （对于所有m：nat，n <= m -> P m -> P（S m））-> 对于所有n [0]：nat，n <= n [0] -> P n [0] *）
+（* === >  forall（n：nat）（P：nat -> Prop），P n -> （对于所有 m：nat，n <= m -> P m -> P（S m））-> 对于所有 n [0]：nat，n <= n [0] -> P n [0] *）
 
 ```
 

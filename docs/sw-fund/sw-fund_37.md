@@ -86,15 +86,15 @@
 
     *CompCert*是一个几乎所有的完全验证的优化编译器 
 
-    ISO C[90] / ANSI C语言的代码，为x[86]，ARM生成代码， 
+    ISO C[90] / ANSI C 语言的代码，为 x[86]，ARM 生成代码， 
 
-    和PowerPC处理器。 CompCert的整体都是用 
+    和 PowerPC 处理器。 CompCert 的整体都是用 
 
-    Gallina并提取为一个高效的OCaml程序，使用Coq的 
+    Gallina 并提取为一个高效的 OCaml 程序，使用 Coq 的 
 
     提取设施。 
 
-    "CompCert项目调查了 
+    "CompCert 项目调查了 
 
     适用于关键嵌入式软件的现实编译器。 这样的 
 
@@ -110,29 +110,29 @@
 
     方法到源程序。 
 
-    2011年，CompCert被纳入一项关于模糊测试的里程碑研究 
+    2011 年，CompCert 被纳入一项关于模糊测试的里程碑研究 
 
-    大量真实世界的C编译器使用CSmith工具。 
+    大量真实世界的 C 编译器使用 CSmith 工具。 
 
-    CSmith的作者写道： 
+    CSmith 的作者写道： 
 
-+   我们CompCert结果的显着之处在于我们在所有其他编译器中发现的中间错误在其中都不存在。 截至2011年初，我们测试过的正在开发中的CompCert版本是我们测试过的唯一一个Csmith找不到错误代码错误的编译器。 这不是因为没有尝试：我们已经致力于这项任务约六个CPU年。 CompCert的明显不可破坏性支持了一个强有力的论点，即在证明框架内开发编译器优化，其中安全检查是明确的并且经过机器检查，对于编译器用户具有切实的好处。 
++   我们 CompCert 结果的显着之处在于我们在所有其他编译器中发现的中间错误在其中都不存在。 截至 2011 年初，我们测试过的正在开发中的 CompCert 版本是我们测试过的唯一一个 Csmith 找不到错误代码错误的编译器。 这不是因为没有尝试：我们已经致力于这项任务约六个 CPU 年。 CompCert 的明显不可破坏性支持了一个强有力的论点，即在证明框架内开发编译器优化，其中安全检查是明确的并且经过机器检查，对于编译器用户具有切实的好处。 
 
-    [http://compcert.inria.fr](http://compcert.inria.fr) 
+    [`compcert.inria.fr`](http://compcert.inria.fr) 
 
 ### seL4 
 
     *seL4*是一个完全验证的微内核，被认为是 
 
-    具有实现端到端证明的世界第一的OS内核 
+    具有实现端到端证明的世界第一的 OS 内核 
 
-    正确性和安全执行。 它是用C实现的 
+    正确性和安全执行。 它是用 C 实现的 
 
-    ARM汇编并使用Isabelle指定和验证。 代码 
+    ARM 汇编并使用 Isabelle 指定和验证。 代码 
 
     可作为开源提供。
 
-    "seL4已经全面形式验证：一个严格的 
+    "seL4 已经全面形式验证：一个严格的 
 
     证明其可执行代码的数学过程，因为它 
 
@@ -150,15 +150,15 @@
 
     传统方法无法提供的保证。 
 
-    [https://sel4.systems](https://sel4.systems)。 
+    [`sel4.systems`](https://sel4.systems)。 
 
 ### CertiKOS 
 
     *CertiKOS*是一个全面验证的清洁状态虚拟化程序，编写在 
 
-    CompCert C和Coq中的验证
+    CompCert C 和 Coq 中的验证
 
-    “CertiKOS项目旨在开发一种新颖实用的
+    “CertiKOS 项目旨在开发一种新颖实用的
 
     用于构建大规模认证的编程基础设施
 
@@ -180,7 +180,7 @@
 
     使认证软件开发真正扩展？
 
-    [http://flint.cs.yale.edu/certikos/](http://flint.cs.yale.edu/certikos/)
+    [`flint.cs.yale.edu/certikos/`](http://flint.cs.yale.edu/certikos/)
 
 ### 铁甲
 
@@ -194,7 +194,7 @@
 
     该系统是以面向验证的编程编写的
 
-    语言Dafny并使用Boogie进行验证，一种验证工具
+    语言 Dafny 并使用 Boogie 进行验证，一种验证工具
 
     基于霍尔逻辑。
 
@@ -218,7 +218,7 @@
 
     远程用户。”
 
-    [https://github.com/Microsoft/Ironclad/tree/master/ironclad-apps](https://github.com/Microsoft/Ironclad/tree/master/ironclad-apps)
+    [`github.com/Microsoft/Ironclad/tree/master/ironclad-apps`](https://github.com/Microsoft/Ironclad/tree/master/ironclad-apps)
 
 ### Verdi
 
@@ -226,33 +226,33 @@
 
     分布式系统。
 
-    “Verdi支持几种不同的故障模型，范围从
+    “Verdi 支持几种不同的故障模型，范围从
 
-    理想到现实。Verdi的验证系统
+    理想到现实。Verdi 的验证系统
 
     变压器（VSTs）封装了常见的容错
 
     技术。开发人员可以在理想化的环境中验证应用程序
 
-    故障模型，然后应用VST获得一个应用程序
+    故障模型，然后应用 VST 获得一个应用程序
 
     保证在更具对抗性的环境中具有类似的属性
 
-    环境。Verdi是使用Coq证明助手开发的
+    环境。Verdi 是使用 Coq 证明助手开发的
 
-    系统被提取到OCaml以供执行。Verdi系统，
+    系统被提取到 OCaml 以供执行。Verdi 系统，
 
     包括容错键值存储，实现可比较的
 
     性能与未经验证的对应物相比。”
 
-    [http://verdi.uwplse.org](http://verdi.uwplse.org)
+    [`verdi.uwplse.org`](http://verdi.uwplse.org)
 
 ### DeepSpec
 
-    *深度规范的科学*是NSF的“远征”
+    *深度规范的科学*是 NSF 的“远征”
 
-    项目（从2016年到2020年）专注于
+    项目（从 2016 年到 2020 年）专注于
 
     完全正确的规范和验证
 
@@ -260,13 +260,13 @@
 
     学校。
 
-+   网站：[http://deepspec.org/](http://deepspec.org/)
++   网站：[`deepspec.org/`](http://deepspec.org/)
 
 +   概述演示：
 
-    +   [http://deepspec.org/about/](http://deepspec.org/about/)
+    +   [`deepspec.org/about/`](http://deepspec.org/about/)
 
-    +   [https://www.youtube.com/watch?v=IPNdsnRWBkk](https://www.youtube.com/watch?v=IPNdsnRWBkk)
+    +   [`www.youtube.com/watch?v=IPNdsnRWBkk`](https://www.youtube.com/watch?v=IPNdsnRWBkk)
 
 ### REMS
 
@@ -274,19 +274,19 @@
 
     系统。它已经制定了广泛的正式规范
 
-    一系列关键的现实世界接口、协议和API，
+    一系列关键的现实世界接口、协议和 API，
 
     包括
 
-    C语言，
+    C 语言，
 
-    ELF链接器格式，
+    ELF 链接器格式，
 
-    ARM、Power、MIPS、CHERI和RISC-V指令集，
+    ARM、Power、MIPS、CHERI 和 RISC-V 指令集，
 
-    ARM和Power处理器的弱内存模型，以及
+    ARM 和 Power 处理器的弱内存模型，以及
 
-    POSIX文件系统。
+    POSIX 文件系统。
 
     “该项目专注于轻量级严格方法：精确
 
@@ -312,23 +312,23 @@
 
     规范工具及其基础。
 
-    [http://www.cl.cam.ac.uk/~pes20/rems/](http://www.cl.cam.ac.uk/~pes20/rems/)
+    [`www.cl.cam.ac.uk/~pes20/rems/`](http://www.cl.cam.ac.uk/~pes20/rems/)
 
 ### 其他
 
     还有更多。其他值得关注的项目包括：
 
-+   Vellvm（LLVM优化通道的形式化规范和验证）
++   Vellvm（LLVM 优化通道的形式化规范和验证）
 
 +   扎克·塔特洛克的正式认证的浏览器
 
-+   托比亚斯·尼普考对大部分Java的形式化
++   托比亚斯·尼普考对大部分 Java 的形式化
 
-+   CakeML验证ML编译器
++   CakeML 验证 ML 编译器
 
-+   格雷格·莫里塞特对x[86]指令集和RockSalt软件故障隔离工具（谷歌原生客户端的更好、更快、更安全版本）的正式规范
++   格雷格·莫里塞特对 x[86]指令集和 RockSalt 软件故障隔离工具（谷歌原生客户端的更好、更快、更安全版本）的正式规范
 
-+   Ur/Web，一种用于在Coq中嵌入的验证Web应用程序的编程语言
++   Ur/Web，一种用于在 Coq 中嵌入的验证 Web 应用程序的编程语言
 
 +   普林斯顿验证软件工具链
 
@@ -338,7 +338,7 @@
 
     Some good places to learn more...
 
-*   This book includes several optional chapters covering topics that you may find useful. Take a look at the [table of contents](toc.html) and the [chapter dependency diagram](deps.html) to find them. 
+*   This book includes several optional chapters covering topics that you may find useful. Take a look at the table of contents and the chapter dependency diagram to find them. 
 
 *   Cutting-edge conferences on programming languages and formal verification: 
 

@@ -4,51 +4,51 @@
 
 该项目的源代码以一种允许在几乎任何操作系统和平台上编译和构建的方式编写，尽可能少地限制和要求。
 
-如果您有32位（或更大）的CPU架构，如果您有一个符合C89标准的编译器，并且您大致有一个支持POSIX套接字API的系统，那么您很可能可以为您的目标系统构建curl和libcurl。
+如果您有 32 位（或更大）的 CPU 架构，如果您有一个符合 C89 标准的编译器，并且您大致有一个支持 POSIX 套接字 API 的系统，那么您很可能可以为您的目标系统构建 curl 和 libcurl。
 
-对于最流行的平台，curl项目已经准备好并准备好了构建系统，以允许您轻松地自行构建。
+对于最流行的平台，curl 项目已经准备好并准备好了构建系统，以允许您轻松地自行构建。
 
-也有友好的个人和组织会打包curl和libcurl的二进制包，并提供下载。下面将探讨不同的选项。
+也有友好的个人和组织会打包 curl 和 libcurl 的二进制包，并提供下载。下面将探讨不同的选项。
 
 ## 最新版本？
 
-查看curl网站[https://curl.haxx.se](https://curl.haxx.se)，您可以看到该项目发布的最新curl和libcurl版本。那是您可以获取的最新源代码包。
+查看 curl 网站[`curl.haxx.se`](https://curl.haxx.se)，您可以看到该项目发布的最新 curl 和 libcurl 版本。那是您可以获取的最新源代码包。
 
 当您选择预先构建和打包版本以供您选择的操作系统或分发版本时，您可能不会总是找到最新版本，但您可能必须要么满足于某人为您的环境打包的最新版本，要么需要自己从源代码构建。
 
-curl项目还在此URL提供了关于最新版本的稍微更加机器可读的信息：`https://curl.haxx.se/info`。
+curl 项目还在此 URL 提供了关于最新版本的稍微更加机器可读的信息：`https://curl.haxx.se/info`。
 
-## 从git上获取！
+## 从 git 上获取！
 
-当然，当从源代码构建时，您也可以选择构建最新的版本，该版本存在于[git存储库](https://github.com/curl/curl)中。但这可能会更加脆弱，并且可能需要更多的注意细节。
+当然，当从源代码构建时，您也可以选择构建最新的版本，该版本存在于[git 存储库](https://github.com/curl/curl)中。但这可能会更加脆弱，并且可能需要更多的注意细节。
 
 # 安装预编译的二进制文件
 
 ## 安装预编译的二进制文件
 
-有许多友好的个人和组织会打包curl和libcurl的二进制包，并提供下载。
+有许多友好的个人和组织会打包 curl 和 libcurl 的二进制包，并提供下载。
 
-许多操作系统提供了一个“软件包存储库”，其中包含了可供您安装的软件包。您还可以从[curl下载页面](https://curl.haxx.se/download.html)跟随链接到流行操作系统的纯二进制包。
+许多操作系统提供了一个“软件包存储库”，其中包含了可供您安装的软件包。您还可以从[curl 下载页面](https://curl.haxx.se/download.html)跟随链接到流行操作系统的纯二进制包。
 
 ## 从您的软件包存储库安装
 
-curl和libcurl已经存在很长时间了，大多数Linux发行版、BSD版本和其他*nix版本都有包存储库，允许您安装curl包。
+curl 和 libcurl 已经存在很长时间了，大多数 Linux 发行版、BSD 版本和其他*nix 版本都有包存储库，允许您安装 curl 包。
 
 最常见的描述如下。
 
 ### apt
 
-`apt`是在Debian Linux和Ubuntu Linux发行版及其派生版本上安装预编译软件包的工具。
+`apt`是在 Debian Linux 和 Ubuntu Linux 发行版及其派生版本上安装预编译软件包的工具。
 
-要安装curl命令行工具，通常只需执行
+要安装 curl 命令行工具，通常只需执行
 
 ```
 apt install curl 
 ```
 
-…然后确保安装了依赖项，通常还会单独安装libcurl作为一个单独的包。
+…然后确保安装了依赖项，通常还会单独安装 libcurl 作为一个单独的包。
 
-如果您想要针对libcurl构建应用程序，则需要安装一个开发包以获取包含头文件和一些额外文档等内容。然后您可以选择您喜欢的带有TLS后端的libcurl：
+如果您想要针对 libcurl 构建应用程序，则需要安装一个开发包以获取包含头文件和一些额外文档等内容。然后您可以选择您喜欢的带有 TLS 后端的 libcurl：
 
 ```
 apt install libcurl4-openssl-dev 
@@ -142,21 +142,21 @@ curl 项目根本不提供任何已构建的二进制文件，它只提供源代
 
 +   它提供了命令行选项，因此作为构建者，您可以决定在构建中启用和禁用什么。功能和协议等可以切换打开/关闭。甚至可以切换编译器警告级别等。
 
-+   它提供了命令行选项，让构建者指向各种第三方依赖项的特定安装路径，以便curl可以构建以使用它们。
++   它提供了命令行选项，让构建者指向各种第三方依赖项的特定安装路径，以便 curl 可以构建以使用它们。
 
 +   指定生成的安装应该放置在哪个文件路径上，当最终进行构建并调用“make install”时
 
 在最基本的用法中，只需在源代码目录中运行`./configure`即可。当脚本完成时，它会输出一个摘要，列出它检测到/启用的选项以及仍然禁用的功能，其中一些可能是因为它未能检测到必要的第三方依赖项的存在而禁用的，这些依赖项是这些功能正常工作所必需的。
 
-然后你调用`make`来构建整个项目，使用`make install`来安装curl、libcurl及其相关组件。`make install`需要你在系统中拥有正确的权限来创建和写入安装目录中的文件，否则会出现一些错误。
+然后你调用`make`来构建整个项目，使用`make install`来安装 curl、libcurl 及其相关组件。`make install`需要你在系统中拥有正确的权限来创建和写入安装目录中的文件，否则会出现一些错误。
 
 ### 交叉编译
 
-交叉编译意味着您在一个架构上构建源代码，但输出是为在不同架构上运行而创建的。例如，您可以在Linux机器上构建源代码，但输出却能在Windows机器上运行。
+交叉编译意味着您在一个架构上构建源代码，但输出是为在不同架构上运行而创建的。例如，您可以在 Linux 机器上构建源代码，但输出却能在 Windows 机器上运行。
 
 要使交叉编译生效，您需要为您要构建的特定目标系统设置专用的编译器和构建系统。如何获取和安装该系统不在本书的范围之内。
 
-一旦你有了交叉编译器，你可以指示configure在构建curl时使用该编译器，而不是使用“本地”编译器，这样最终结果就可以移植并在其他机器上使用。
+一旦你有了交叉编译器，你可以指示 configure 在构建 curl 时使用该编译器，而不是使用“本地”编译器，这样最终结果就可以移植并在其他机器上使用。
 
 ### CMake
 
@@ -166,7 +166,7 @@ curl 项目根本不提供任何已构建的二进制文件，它只提供源代
 
 待定
 
-## 在Windows上
+## 在 Windows 上
 
 待定
 
@@ -186,15 +186,15 @@ curl 项目根本不提供任何已构建的二进制文件，它只提供源代
 
 待定
 
-## 将curl移植到不受支持的系统
+## 将 curl 移植到不受支持的系统
 
 待定
 
-## 选择TLS后端
+## 选择 TLS 后端
 
-基于configure的构建允许用户在构建时从各种不同的TLS库中进行选择。您可以通过使用正确的命令行选项来选择它们。
+基于 configure 的构建允许用户在构建时从各种不同的 TLS 库中进行选择。您可以通过使用正确的命令行选项来选择它们。
 
-默认的OpenSSL配置检查也将检测并使用BoringSSL或libressl。
+默认的 OpenSSL 配置检查也将检测并使用 BoringSSL 或 libressl。
 
 +   GnuTLS：`--without-ssl --with-gnutls`。
 
@@ -218,77 +218,77 @@ curl 项目根本不提供任何已构建的二进制文件，它只提供源代
 
 制作优秀软件的关键是在其他优秀软件的基础上构建。通过使用许多其他人使用的库，我们减少了重复造轮子的次数，我们得到的软件更可靠，因为有更多的人使用相同的代码。
 
-curl提供的许多功能都需要构建以使用一个或多个外部库。然后它们是curl的依赖项。它们都不是*必需*的，但大多数用户都希望至少使用其中一些。
+curl 提供的许多功能都需要构建以使用一个或多个外部库。然后它们是 curl 的依赖项。它们都不是*必需*的，但大多数用户都希望至少使用其中一些。
 
 ## **zlib**
 
-[http://zlib.net/](http://zlib.net/)
+[`zlib.net/`](http://zlib.net/)
 
-如果使用zlib构建，curl可以自动解压通过HTTP传输的数据。通过传输压缩数据，可以使用更少的带宽。
+如果使用 zlib 构建，curl 可以自动解压通过 HTTP 传输的数据。通过传输压缩数据，可以使用更少的带宽。
 
 ## **c-ares**
 
-[https://c-ares.haxx.se/](https://c-ares.haxx.se/)
+[`c-ares.haxx.se/`](https://c-ares.haxx.se/)
 
-curl可以使用c-ares构建以执行异步名称解析。启用异步名称解析的另一种方法是使用线程化名称解析后端构建curl，然后为每个名称解析创建一个单独的辅助线程。 c-ares在同一个线程中完成所有操作。
+curl 可以使用 c-ares 构建以执行异步名称解析。启用异步名称解析的另一种方法是使用线程化名称解析后端构建 curl，然后为每个名称解析创建一个单独的辅助线程。 c-ares 在同一个线程中完成所有操作。
 
 ## **libssh2**
 
-[https://libssh2.org/](https://libssh2.org/)
+[`libssh2.org/`](https://libssh2.org/)
 
-当curl使用libssh2构建时，它会启用对SCP和SFTP协议的支持。
+当 curl 使用 libssh2 构建时，它会启用对 SCP 和 SFTP 协议的支持。
 
 ## **nghttp2**
 
-[https://nghttp2.org/](https://nghttp2.org/)
+[`nghttp2.org/`](https://nghttp2.org/)
 
-这是一个用于处理HTTP/2帧的库，是curl支持HTTP版本2所必需的先决条件。
+这是一个用于处理 HTTP/2 帧的库，是 curl 支持 HTTP 版本 2 所必需的先决条件。
 
 ## **openldap**
 
-[https://www.openldap.org/](https://www.openldap.org/)
+[`www.openldap.org/`](https://www.openldap.org/)
 
-这个库是一个选项，允许curl支持LDAP和LDAPS URL方案。在Windows上，您还可以选择构建curl以使用winssl库。
+这个库是一个选项，允许 curl 支持 LDAP 和 LDAPS URL 方案。在 Windows 上，您还可以选择构建 curl 以使用 winssl 库。
 
 ## **librtmp**
 
-[https://rtmpdump.mplayerhq.hu/](https://rtmpdump.mplayerhq.hu/)
+[`rtmpdump.mplayerhq.hu/`](https://rtmpdump.mplayerhq.hu/)
 
-要使curl支持RTMP URL方案，您必须使用来自RTMPDump项目的librtmp库构建curl。
+要使 curl 支持 RTMP URL 方案，您必须使用来自 RTMPDump 项目的 librtmp 库构建 curl。
 
 ## **libmetalink**
 
-[https://launchpad.net/libmetalink](https://launchpad.net/libmetalink)
+[`launchpad.net/libmetalink`](https://launchpad.net/libmetalink)
 
-使用libmetalink构建curl以支持[metalink](http://www.metalinker.org/)格式，该格式允许curl从多个位置下载相同的文件。它包括校验和等内容。请参阅curl的[--metalink](https://curl.haxx.se/docs/manpage.html#--metalink)选项。
+使用 libmetalink 构建 curl 以支持[metalink](http://www.metalinker.org/)格式，该格式允许 curl 从多个位置下载相同的文件。它包括校验和等内容。请参阅 curl 的[--metalink](https://curl.haxx.se/docs/manpage.html#--metalink)选项。
 
 ## **libpsl**
 
-[https://rockdaboot.github.io/libpsl/](https://rockdaboot.github.io/libpsl/)
+[`rockdaboot.github.io/libpsl/`](https://rockdaboot.github.io/libpsl/)
 
-当您构建支持libpsl的curl时，cookie解析器将了解公共后缀列表，从而适当地处理此类cookie。
+当您构建支持 libpsl 的 curl 时，cookie 解析器将了解公共后缀列表，从而适当地处理此类 cookie。
 
 ## **libidn2**
 
-[https://www.gnu.org/software/libidn/libidn2/manual/libidn2.html](https://www.gnu.org/software/libidn/libidn2/manual/libidn2.html)
+[`www.gnu.org/software/libidn/libidn2/manual/libidn2.html`](https://www.gnu.org/software/libidn/libidn2/manual/libidn2.html)
 
-curl借助libidn2库处理国际化域名（IDN）。
+curl 借助 libidn2 库处理国际化域名（IDN）。
 
-## TLS库
+## TLS 库
 
-有许多不同的TLS库可供选择，因此它们在[单独的部分](building-tls.html)中进行了介绍。
+有许多不同的 TLS 库可供选择，因此它们在单独的部分中进行了介绍。
 
-# TLS库
+# TLS 库
 
-# 构建以使用TLS库
+# 构建以使用 TLS 库
 
-要使curl支持基于TLS的协议（如HTTPS，FTPS，SMTPS，POP3S，IMAPS等），您需要使用第三方TLS库构建，因为curl本身不实现TLS协议。
+要使 curl 支持基于 TLS 的协议（如 HTTPS，FTPS，SMTPS，POP3S，IMAPS 等），您需要使用第三方 TLS 库构建，因为 curl 本身不实现 TLS 协议。
 
-curl被设计用于与大量TLS库一起工作：
+curl 被设计用于与大量 TLS 库一起工作：
 
 +   **BoringSSL**
 
-+   GSkit（仅限OS/400）
++   GSkit（仅限 OS/400）
 
 +   **GnuTLS**
 
@@ -296,7 +296,7 @@ curl被设计用于与大量TLS库一起工作：
 
 +   **OpenSSL**
 
-+   Secure Transport（本地macOS）
++   Secure Transport（本地 macOS）
 
 +   **WolfSSL**
 
@@ -306,13 +306,13 @@ curl被设计用于与大量TLS库一起工作：
 
 +   **mbedTLS**
 
-+   Schannel（本地Windows）
++   Schannel（本地 Windows）
 
-当您构建curl和libcurl以使用这些库之一时，重要的是您在构建机器上安装了库及其包含头文件。
+当您构建 curl 和 libcurl 以使用这些库之一时，重要的是您在构建机器上安装了库及其包含头文件。
 
 ## 配置
 
-下面，您将学习如何告诉configure使用不同的库。请注意，对于除OpenSSL及其同类外的所有库，您必须通过使用`--without-ssl`来*禁用*对OpenSSL的检查。
+下面，您将学习如何告诉 configure 使用不同的库。请注意，对于除 OpenSSL 及其同类外的所有库，您必须通过使用`--without-ssl`来*禁用*对 OpenSSL 的检查。
 
 ### OpenSSL，BoringSSL，libressl
 
@@ -320,13 +320,13 @@ curl被设计用于与大量TLS库一起工作：
 ./configure 
 ```
 
-默认情况下，configure将在默认路径中检测到OpenSSL。您可以选择将configure指向自定义安装路径前缀，以便它找到openssl：
+默认情况下，configure 将在默认路径中检测到 OpenSSL。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 openssl：
 
 ```
 ./configure --with-ssl=/home/user/installed/openssl 
 ```
 
-备选项[BoringSSL](building-boringssl.html)和libressl看起来相似，因此configure将以与OpenSSL相同的方式检测它们，但它将使用一些额外的措施来确定它使用的特定风格。
+备选项 BoringSSL 和 libressl 看起来相似，因此 configure 将以与 OpenSSL 相同的方式检测它们，但它将使用一些额外的措施来确定它使用的特定风格。
 
 ### GnuTLS
 
@@ -334,7 +334,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-gnutls --without-ssl 
 ```
 
-默认情况下，configure将在默认路径中检测到GnuTLS。您可以选择将configure指向自定义安装路径前缀，以便它找到gnutls：
+默认情况下，configure 将在默认路径中检测到 GnuTLS。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 gnutls：
 
 ```
 ./configure --with-gnutls=/home/user/installed/gnutls --without-ssl 
@@ -346,7 +346,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-nss --without-ssl 
 ```
 
-默认情况下，configure将在默认路径中检测到NSS。您可以选择将configure指向自定义安装路径前缀，以便它找到nss：
+默认情况下，configure 将在默认路径中检测到 NSS。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 nss：
 
 ```
 ./configure --with-nss=/home/user/installed/nss --without-ssl 
@@ -358,7 +358,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-cyassl --without-ssl 
 ```
 
-（cyassl是该库的以前名称）默认情况下，configure将在默认路径中检测到WolfSSL。您可以选择将configure指向自定义安装路径前缀，以便它找到WolfSSL：
+（cyassl 是该库的以前名称）默认情况下，configure 将在默认路径中检测到 WolfSSL。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 WolfSSL：
 
 ```
 ./configure --with-cyassl=/home/user/installed/nss --without-ssl 
@@ -370,7 +370,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-axtls --without-ssl 
 ```
 
-默认情况下，configure将在默认路径中检测到axTLS。您可以选择将configure指向自定义安装路径前缀，以便它找到axTLS：
+默认情况下，configure 将在默认路径中检测到 axTLS。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 axTLS：
 
 ```
 ./configure --with-axtls=/home/user/installed/axtls --without-ssl 
@@ -382,7 +382,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-mbedtls --without-ssl 
 ```
 
-默认情况下，configure将在默认路径中检测到mbedTLS。您可以选择将configure指向自定义安装路径前缀，以便它找到mbedTLS：
+默认情况下，configure 将在默认路径中检测到 mbedTLS。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 mbedTLS：
 
 ```
 ./configure --with-mbedtls=/home/user/installed/mbedtls --without-ssl 
@@ -394,7 +394,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-darwinssl --without-ssl 
 ```
 
-（DarwinSSL是Secure Transport的另一个名称）默认情况下，configure将在默认路径中检测到Secure Transport。您可以选择将configure指向自定义安装路径前缀，以便它找到DarwinSSL：
+（DarwinSSL 是 Secure Transport 的另一个名称）默认情况下，configure 将在默认路径中检测到 Secure Transport。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 DarwinSSL：
 
 ```
 ./configure --with-darwinssl=/home/user/installed/darwinssl --without-ssl 
@@ -406,7 +406,7 @@ curl被设计用于与大量TLS库一起工作：
 ./configure --with-winssl --without-ssl 
 ```
 
-（WinSSL是Schannel的另一个名称）默认情况下，configure将在默认路径中检测到Schannel。您可以选择将configure指向自定义安装路径前缀，以便它找到WinSSL：
+（WinSSL 是 Schannel 的另一个名称）默认情况下，configure 将在默认路径中检测到 Schannel。您可以选择将 configure 指向自定义安装路径前缀，以便它找到 WinSSL：
 
 ```
 ./configure --with-winssl=/home/user/installed/winssl --without-ssl 
@@ -414,11 +414,11 @@ curl被设计用于与大量TLS库一起工作：
 
 # BoringSSL
 
-# 使用boringssl构建curl
+# 使用 boringssl 构建 curl
 
-## 构建boringssl
+## 构建 boringssl
 
-$HOME/src是我在这个示例中放置代码的地方。您可以选择任何地方。
+$HOME/src 是我在这个示例中放置代码的地方。您可以选择任何地方。
 
 ```
 $ cd $HOME/src
@@ -430,9 +430,9 @@ $ cmake ..
 $ make 
 ```
 
-## 设置构建树以被curl的configure检测到
+## 设置构建树以被 curl 的 configure 检测到
 
-在boringssl源代码树根目录下，请确保存在`lib`和`include`目录。`lib`目录应包含两个库（我将它们设置为了构建目录中的符号链接）。`include`目录已经默认存在。像这样创建和填充`lib`（命令在源代码树根目录中执行，而不是在`build/`子目录中）。
+在 boringssl 源代码树根目录下，请确保存在`lib`和`include`目录。`lib`目录应包含两个库（我将它们设置为了构建目录中的符号链接）。`include`目录已经默认存在。像这样创建和填充`lib`（命令在源代码树根目录中执行，而不是在`build/`子目录中）。
 
 ```
 $ mkdir lib
@@ -441,14 +441,14 @@ $ ln -s ../build/ssl/libssl.a
 $ ln -s ../build/crypoto/libcrypto.a 
 ```
 
-## 配置curl
+## 配置 curl
 
-`LIBS=-lpthread ./configure --with-ssl=$HOME/src/boringssl`（其中我指出了boringssl树的根目录）
+`LIBS=-lpthread ./configure --with-ssl=$HOME/src/boringssl`（其中我指出了 boringssl 树的根目录）
 
-验证配置结束时，是否显示检测到将使用BoringSSL。
+验证配置结束时，是否显示检测到将使用 BoringSSL。
 
-## 构建curl
+## 构建 curl
 
-在curl源代码树中运行`make`。
+在 curl 源代码树中运行`make`。
 
-现在，您可以像平常一样使用`make install`等命令来安装curl。
+现在，您可以像平常一样使用`make install`等命令来安装 curl。

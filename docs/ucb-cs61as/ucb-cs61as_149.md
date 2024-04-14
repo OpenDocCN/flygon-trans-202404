@@ -1,4 +1,4 @@
-# 第13课介绍
+# 第 13 课介绍
 
 ## 介绍
 
@@ -6,7 +6,7 @@
 
 这是我们远离以硬件术语表达计算的最大一步。当我们发现流时，我们看到如何以与评估顺序无关的方式表达算法。现在我们将描述一种没有（可见）算法的计算方式！
 
-我们正在使用A&S在Scheme中实现的逻辑编程语言。因此，表示法类似于Scheme，即充满了列表。标准逻辑语言如Prolog有不同的表示法，但思想是相同的。
+我们正在使用 A&S 在 Scheme 中实现的逻辑编程语言。因此，表示法类似于 Scheme，即充满了列表。标准逻辑语言如 Prolog 有不同的表示法，但思想是相同的。
 
 ## 先决条件
 
@@ -14,7 +14,7 @@
 
 ## 阅读材料
 
-大部分这节课内容取自[这些笔记](http://www-inst.eecs.berkeley.edu/~cs61as/reader/notes.pdf#page=102)和[SICP 4.4.1-4.4.3节](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-29.html#%_sec_4.4)。
+大部分这节课内容取自[这些笔记](http://www-inst.eecs.berkeley.edu/~cs61as/reader/notes.pdf#page=102)和[SICP 4.4.1-4.4.3 节](http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-29.html#%_sec_4.4)。
 
 ## 逻辑编程
 
@@ -40,7 +40,7 @@
 (BRIAN LIKES POTSTICKERS) 
 ```
 
-尽管断言和查询采用列表形式，看起来有点像Scheme程序，但实际上不是！这里没有函数对参数的应用；一个断言只是数据。
+尽管断言和查询采用列表形式，看起来有点像 Scheme 程序，但实际上不是！这里没有函数对参数的应用；一个断言只是数据。
 
 尽管出于各种原因，传统上将动词（关系）放在第一位，但这仍然是真实的：
 

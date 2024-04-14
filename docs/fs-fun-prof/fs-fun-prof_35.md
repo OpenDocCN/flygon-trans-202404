@@ -2,7 +2,7 @@
 
 # 为什么我不会写一个单子教程
 
-*“在Haskell中，一个‘新手’是指还没有实现编译器的人。他们只是写了一个单子教程” - [笔名](http://sequence.complete.org/node?page=10)*
+*“在 Haskell 中，一个‘新手’是指还没有实现编译器的人。他们只是写了一个单子教程” - [笔名](http://sequence.complete.org/node?page=10)*
 
 让我们从一个故事开始...
 
@@ -12,19 +12,19 @@
 
 爱丽丝：看那些小猫。
 
-![两只小猫](two_kitties.jpg)
+![两只小猫](img/two_kitties.jpg)
 
 爸爸：它们很可爱。有*两*只。
 
 爱丽丝：看那些小狗。
 
-![两只小猫](two_puppies.jpg)
+![两只小猫](img/two_puppies.jpg)
 
 爸爸：没错。你能数数吗？有*两*只小狗。
 
 爱丽丝：看那些小马。
 
-![两只小猫](two_horses.jpg)
+![两只小猫](img/two_horses.jpg)
 
 爸爸：是的亲爱的。你知道小猫、小狗和小马有什么共同之处吗？
 
@@ -34,7 +34,7 @@
 
 爱丽丝：不！小狗不是小猫。小马也不是小猫。
 
-爸爸：我来为你解释好吗？首先，让我们考虑[一个集合S，严格按照集合成员关系进行良序排列，其中S的每个元素也是S的子集](http://en.wikipedia.org/wiki/Ordinal_number#Von_Neumann_definition_of_ordinals)。这给你一点线索吗？
+爸爸：我来为你解释好吗？首先，让我们考虑[一个集合 S，严格按照集合成员关系进行良序排列，其中 S 的每个元素也是 S 的子集](http://en.wikipedia.org/wiki/Ordinal_number#Von_Neumann_definition_of_ordinals)。这给你一点线索吗？
 
 爱丽丝：[哭泣起来]
 
@@ -48,7 +48,7 @@
 
 不幸的是，由于这种方法，现在单子的概念周围有了一整个神秘感。它已经成为通往真正启蒙的[一座桥梁](http://www.thefreedictionary.com/pons+asinorum)。当然，有[大量的单子教程](http://www.haskell.org/haskellwiki/Monad_tutorials_timeline)可以帮助你跨越它。
 
-这是事实：你*不需要*理解单子就能编写有用的函数式代码。这对于F#来说尤其如此，与Haskell相比。
+这是事实：你*不需要*理解单子就能编写有用的函数式代码。这对于 F#来说尤其如此，与 Haskell 相比。
 
 单子不是[金色锤子](http://en.wikipedia.org/wiki/Law_of_the_instrument)。它们不会让你更有效率。它们不会让你的代码更少出错。
 
@@ -58,7 +58,7 @@
 
 这就是为什么我不会写一个单子教程。我认为这不会帮助人们了解函数式编程。如果有的话，它只会制造混乱和焦虑。
 
-是的，我将在[许多](recipe-part2.html)不同的[帖子](computation-expressions-wrapper-types.html)中使用单子的例子，但除了这里之外，我会尽量避免在这个网站的任何地方使用“单子”这个词。事实上，它在我的[禁用词列表](../about/index.md#banned)中占据了重要位置！
+是的，我将在许多不同的帖子中使用单子的例子，但除了这里之外，我会尽量避免在这个网站的任何地方使用“单子”这个词。事实上，它在我的禁用词列表中占据了重要位置！
 
 ### 为什么你应该写一个单子教程
 

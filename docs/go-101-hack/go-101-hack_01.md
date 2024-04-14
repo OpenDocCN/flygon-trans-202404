@@ -1,10 +1,10 @@
-# 如何搭建Go开发环境
+# 如何搭建 Go 开发环境
 
-# 如何搭建Go开发环境
+# 如何搭建 Go 开发环境
 
 * * *
 
-在`Linux`操作系统下搭建`Go`开发环境总是很容易。以`Linux`操作系统为例（因为我是作为root用户登录的，所以如果您以非root用户登录，可能需要`sudo`来执行一些命令），您需要做的就是从[这里](https://golang.org/dl/)下载与您系统匹配的二进制包，然后解压缩它：
+在`Linux`操作系统下搭建`Go`开发环境总是很容易。以`Linux`操作系统为例（因为我是作为 root 用户登录的，所以如果您以非 root 用户登录，可能需要`sudo`来执行一些命令），您需要做的就是从[这里](https://golang.org/dl/)下载与您系统匹配的二进制包，然后解压缩它：
 
 ```
 # wget https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz
@@ -38,4 +38,4 @@ export GOROOT
 
 [开始](https://golang.org/doc/install);
 
-[实际上您不需要设置GOROOT](http://dave.cheney.net/2013/06/14/you-dont-need-to-set-goroot-really)。
+[实际上您不需要设置 GOROOT](http://dave.cheney.net/2013/06/14/you-dont-need-to-set-goroot-really)。

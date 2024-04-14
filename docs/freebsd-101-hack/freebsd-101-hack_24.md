@@ -1,6 +1,6 @@
-# 在csh中向后搜索
+# 在 csh 中向后搜索
 
-## 在csh中向后搜索
+## 在 csh 中向后搜索
 
 在`bash`中，`Ctrl + R`提供了方便的“向后搜索”功能，默认情况下`csh`不提供该功能。如果你想在`csh`中使用类似的功能，可以使用`csh`内置的`bindkey`命令来实现：
 
@@ -20,4 +20,4 @@ bck:pk
 
 参考资料：
 
-[使用Ctrl-R在csh中向后搜索shell命令](http://stackoverflow.com/questions/1387357/ctrl-r-to-search-backwards-for-shell-commands-in-csh)。
+[使用 Ctrl-R 在 csh 中向后搜索 shell 命令](http://stackoverflow.com/questions/1387357/ctrl-r-to-search-backwards-for-shell-commands-in-csh)。

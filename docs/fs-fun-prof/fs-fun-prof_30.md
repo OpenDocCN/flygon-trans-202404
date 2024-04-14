@@ -4,9 +4,9 @@
 
 *更新：我做了一个关于基于这些文章的属性的演讲。[这里是幻灯片和视频。](http://fsharpforfunandprofit.com/pbt/)*
 
-在[上一篇文章](property-based-testing.html)中，我描述了属性基测试的基础知识，并展示了通过生成随机测试可以节省大量时间的方法。
+在上一篇文章中，我描述了属性基测试的基础知识，并展示了通过生成随机测试可以节省大量时间的方法。
 
-但这里有一个常见的问题。每个看到像FsCheck或QuickCheck这样的属性基测试工具的人都认为它很神奇... 但当开始创建自己的属性时，普遍的抱怨是：“我应该使用什么属性？我想不出任何！”
+但这里有一个常见的问题。每个看到像 FsCheck 或 QuickCheck 这样的属性基测试工具的人都认为它很神奇... 但当开始创建自己的属性时，普遍的抱怨是：“我应该使用什么属性？我想不出任何！”
 
 本文的目标是展示一些常见的模式，这些模式可以帮助您发现适用于您的代码的属性。
 
@@ -14,27 +14,27 @@
 
 根据我的经验，许多属性可以通过以下列出的七种方法之一发现。
 
-+   ["不同的路径，同一个目的地"](#different-paths)
++   "不同的路径，同一个目的地"
 
-+   ["往返之旅"](#there-and-back)
++   "往返之旅"
 
-+   ["有些事情永远不会改变"](#some-things-never-change)
++   "有些事情永远不会改变"
 
-+   ["事物变化越大，保持不变的事物越多"](#idempotence)
++   "事物变化越大，保持不变的事物越多"
 
-+   ["先解决一个较小的问题"](#structural-induction)
++   "先解决一个较小的问题"
 
-+   ["难以证明，易于验证"](#hard-to-prove-easy-to-verify)
++   "难以证明，易于验证"
 
-+   ["测试神谕"](#test-oracle)
++   "测试神谕"
 
-这绝不是一份全面的清单，只是对我最有用的清单。要从不同的角度看问题，请查看微软PEX团队编制的[模式列表](http://research.microsoft.com/en-us/projects/pex/patterns.pdf)。
+这绝不是一份全面的清单，只是对我最有用的清单。要从不同的角度看问题，请查看微软 PEX 团队编制的[模式列表](http://research.microsoft.com/en-us/projects/pex/patterns.pdf)。
 
 ### "不同的路径，同一个目的地"
 
 这些类型的属性是基于以不同的顺序组合操作，但得到相同的结果。例如，在下面的图表中，先做`X`然后做`Y`得到的结果与先做`Y`然后做`X`得到的结果相同。
 
-![交换性质](property_commutative.png)
+![交换性质](img/property_commutative.png)
 
 加法的交换性质是这种模式的一个明显例子。例如，`add 1`然后`add 2`的结果与`add 2`后跟`add 1`的结果相同。
 
@@ -46,7 +46,7 @@
 
 在下图中，执行`X`将`ABC`序列化为某种二进制格式，而`X`的反函数是某种反序列化，将相同的`ABC`值再次返回。
 
-![反函数](property_inverse.png)
+![反函数](img/property_inverse.png)
 
 除了序列化/反序列化之外，还可以通过其他一对操作进行检查：`加法`/`减法`，`写`/`读`，`setProperty`/`getProperty`等等。
 
@@ -58,7 +58,7 @@
 
 在下面的图表中，变换改变了项目的顺序，但之后仍然存在相同的四个项目。
 
-![不变量](property_invariant.png)
+![不变量](img/property_invariant.png)
 
 常见的不变量包括集合的大小（例如`map`），集合的内容（例如`sort`），某物的高度或深度与大小成比例（例如平衡树）。
 
@@ -68,7 +68,7 @@
 
 在下面的图表中，使用`distinct`来过滤集合返回两个项目，但使用`distinct`两次会再次返回相同的集合。
 
-![幂等性](property_idempotence.png)
+![幂等性](img/property_idempotence.png)
 
 幂等性属性非常有用，可以扩展到诸如数据库更新和消息处理之类的事物。
 
@@ -78,7 +78,7 @@
 
 在下面的图表中，我们可以看到，四项列表可以被分成一项加上一个三项列表，然后再分成一项加上一个两项列表。如果我们可以证明该属性对两项列表成立，那么我们可以推断它也对三项列表和四项列表成立。
 
-![归纳](property_induction.png)
+![归纳](img/property_induction.png)
 
 归纳属性通常自然适用于递归结构，例如列表和树。
 
@@ -88,7 +88,7 @@
 
 在下面的图表中，我们可以看到，在迷宫中找到一条路线是困难的，但检查它是否有效是微不足道的！
 
-![难以发现，易于验证](property_easy_verification.png)
+![难以发现，易于验证](img/property_easy_verification.png)
 
 许多著名的问题都属于这种类型，例如质数分解。但这种方法甚至可以用于简单的问题。
 
@@ -98,7 +98,7 @@
 
 在许多情况下，您通常会有一个算法或流程的备用版本（一个"测试预言"），您可以使用它来检查您的结果。
 
-![测试预言](property_test_oracle.png)
+![测试预言](img/property_test_oracle.png)
 
 例如，您可能有一个高性能算法，带有优化调整，您想要测试。在这种情况下，您可能会将其与一个明显较慢但编写正确更容易的暴力算法进行比较。
 
@@ -114,17 +114,17 @@
 
 我们能想到任何一种方法将一个操作*放在*`List.sort`之前，另一个操作*放在*`List.sort`之后，以便最终得到相同的结果吗？也就是说，“先向上再横穿顶部”与“横穿底部再向上”是一样的。
 
-![进行列表排序？](property_list_sort.png)
+![进行列表排序？](img/property_list_sort.png)
 
 这样怎么样？
 
-+   **路径1：** 我们对列表的每个元素加1，然后排序。
++   **路径 1：** 我们对列表的每个元素加 1，然后排序。
 
-+   **路径2：** 我们先排序，然后对列表的每个元素加1。
++   **路径 2：** 我们先排序，然后对列表的每个元素加 1。
 
 +   两个列表应该是相等的。
 
-![加1进行列表排序](property_list_sort1.png)
+![加 1 进行列表排序](img/property_list_sort1.png)
 
 这是一些实现该属性的代码：
 
@@ -154,13 +154,13 @@ Check.Quick (``+1 then sort should be same as sort then +1`` badSort)
 
 如何添加一个我们*知道*在排序后将出现在列表最前面的项目呢？
 
-+   **路径1：** 我们将`Int32.MinValue`追加到列表的*末尾*，然后排序。
++   **路径 1：** 我们将`Int32.MinValue`追加到列表的*末尾*，然后排序。
 
-+   **路径2：** 我们先排序，然后在列表*前面*添加`Int32.MinValue`。
++   **路径 2：** 我们先排序，然后在列表*前面*添加`Int32.MinValue`。
 
 +   两个列表应该是相等的。
 
-![以minValue进行列表排序](property_list_sort2.png)
+![以 minValue 进行列表排序](img/property_list_sort2.png)
 
 这是代码：
 
@@ -189,9 +189,9 @@ Check.Quick (``append minValue then sort should be same as sort then prepend min
 
 所以这很好！
 
-但是...我们在其中有一些硬编码的东西，这是“地狱企业开发人员”（[请参见先前的帖子](property-based-testing.html)）可能会利用的！EDFH将利用我们总是使用`Int32.MinValue`并且总是将其追加或添加到测试列表中的事实。
+但是...我们在其中有一些硬编码的东西，这是“地狱企业开发人员”（请参见先前的帖子）可能会利用的！EDFH 将利用我们总是使用`Int32.MinValue`并且总是将其追加或添加到测试列表中的事实。
 
-换句话说，EDFH可以识别我们所处的路径，并针对每条路径设置特殊情况：
+换句话说，EDFH 可以识别我们所处的路径，并针对每条路径设置特殊情况：
 
 ```
 // The Enterprise Developer From Hell strikes again
@@ -220,7 +220,7 @@ Check.Quick (``append minValue then sort should be same as sort then prepend min
 
 另一种利用“有序性”的替代方法是首先对所有值取负，然后在在对值进行排序之后进行取负的路径上，也添加一个额外的反转操作。
 
-![进行负数列表排序](property_list_sort3.png)
+![进行负数列表排序](img/property_list_sort3.png)
 
 ```
 let ``negate then sort should be same as sort then negate then reverse`` sortFn aList = 
@@ -231,7 +231,7 @@ let ``negate then sort should be same as sort then negate then reverse`` sortFn 
     negateThenSort = sortThenNegateAndReverse 
 ```
 
-这个属性对EDFH来说更难击败，因为没有魔术数字来帮助确定您所处的路径：
+这个属性对 EDFH 来说更难击败，因为没有魔术数字来帮助确定您所处的路径：
 
 ```
 // test
@@ -257,7 +257,7 @@ Check.Quick ( ``negate then sort should be same as sort then negate then reverse
 
 我们可以使用同样的附加/前置技巧：
 
-![列表反转](property_list_rev.png)
+![列表反转](img/property_list_rev.png)
 
 这是属性的代码：
 
@@ -308,7 +308,7 @@ Check.Quick (``append any value then reverse should be same as reverse then prep
 
 列表反转怎么样？嗯，碰巧反转就是它自己的逆！
 
-![具有逆属性的列表反转](property_list_rev_inverse.png)
+![具有逆属性的列表反转](img/property_list_rev_inverse.png)
 
 让我们将其转化为一个属性：
 
@@ -352,7 +352,7 @@ Check.Quick (``reverse then reverse should be same as original`` badReverse)
 
 例如，假设我们想要检查`string split`函数是否正常工作。我们不必编写一个标记生成器——我们所要做的就是确保这些标记，当连接在一起时，能够还原出原始字符串！
 
-![字符串分割属性](property_string_split.png)
+![字符串分割属性](img/property_string_split.png)
 
 这是该属性的核心代码：
 
@@ -405,7 +405,7 @@ Check.Quick ``concatting the elements of a string split by commas recreates the 
 
 我脑海中首先浮现的是列表中每对元素，第一个元素将小于第二个元素。
 
-![成对属性](property_list_sort_pairwise.png)
+![成对属性](img/property_list_sort_pairwise.png)
 
 所以让我们将其��定为一个属性：
 
@@ -425,8 +425,8 @@ Check.Quick (``adjacent pairs from a list should be ordered`` goodSort)
 ```
 System.Exception: Geneflect: type not handled System.IComparable
    at FsCheck.ReflectArbitrary.reflectObj@102-4.Invoke(String message)
-   at Microsoft.FSharp.Core.PrintfImpl.go@523-3[b,c,d](String fmt, Int32 len, FSharpFunc`2 outputChar, FSharpFunc`2 outa, b os, FSharpFunc`2 finalize, FSharpList`1 args, Int32 i)
-   at Microsoft.FSharp.Core.PrintfImpl.run@521[b,c,d](FSharpFunc`2 initialize, String fmt, Int32 len, FSharpList`1 args) 
+   at Microsoft.FSharp.Core.PrintfImpl.go@523-3b,c,d
+   at Microsoft.FSharp.Core.PrintfImpl.run@521b,c,d 
 ```
 
 `System.Exception: type not handled System.IComparable` 是什么意思？这意味着 FsCheck 正在尝试生成一个随机列表，但它只知道元素必须是`IComparable`。但`IComparable`不是一个可以实例化的类型，所以 FsCheck 抛出错误。
@@ -483,7 +483,7 @@ Check.Quick (``adjacent pairs from a list should be ordered`` badSort)
 
 它们通常本身不足以确保正确的实现，但它们*经常*作为对更一般属性的反向检查。
 
-例如，在[上一篇文章](property-based-testing.html)中，我们为加法创建了可交换和可结合的属性，但后来注意到，只需返回零的实现也能满足它们！只有当我们添加`x + 0 = x`作为属性时，我们才能消除那种恶意实现。
+例如，在上一篇文章中，我们为加法创建了可交换和可结合的属性，但后来注意到，只需返回零的实现也能满足它们！只有当我们添加`x + 0 = x`作为属性时，我们才能消除那种恶意实现。
 
 在上面的"列表排序"示例中，我们可以通过一个只返回空列表的函数满足"成对排序"属性！我们该如何修复这个问题？
 
@@ -545,7 +545,7 @@ Check.Quick (``adjacent pairs from a list should be ordered`` badSort2)
 
 答案：假结果是丢弃数据。 真结果始终包含与原始列表相同的内容，只是顺序不同。
 
-![排列属性](property_list_sort_permutation.png)
+![排列属性](img/property_list_sort_permutation.png)
 
 这导致我们有了一个新的属性：排序列表始终是原始列表的排列。 啊哈！ 现在让我们用排列来写属性：
 
@@ -561,7 +561,7 @@ let ``a sorted list is always a permutation of the original list`` sortFn (aList
 
 很好，现在我们只需要一个排列函数。
 
-让我们转到StackOverflow，并~~偷~~ [借用一个实现](http://stackoverflow.com/a/4610704/1136133)。 在这里：
+让我们转到 StackOverflow，并~~偷~~ [借用一个实现](http://stackoverflow.com/a/4610704/1136133)。 在这里：
 
 ```
 /// given aList and anElement to insert,
@@ -616,29 +616,29 @@ permutations [3;3] |> Seq.toList
 //  [[3; 3]; [3; 3]] 
 ```
 
-太好了！ 现在让我们运行FsCheck：
+太好了！ 现在让我们运行 FsCheck：
 
 ```
 Check.Quick (``a sorted list is always a permutation of the original list`` goodSort) 
 ```
 
-嗯。 这很有趣，似乎什么都没有发生。 而且我的CPU出现了某些原因的最大化。 发生了什么？
+嗯。 这很有趣，似乎什么都没有发生。 而且我的 CPU 出现了某些原因的最大化。 发生了什么？
 
 发生的情况是你将会长时间坐在那里！ 如果您正在家中跟着做，请右键单击并取消交互式会话。
 
-看似无害的`permutations`对于任何正常大小的列表来说确实*非常*慢。 例如，仅有10个项目的列表就有3,628,800个排列。 而对于20个项目，您将得到天文数字。
+看似无害的`permutations`对于任何正常大小的列表来说确实*非常*慢。 例如，仅有 10 个项目的列表就有 3,628,800 个排列。 而对于 20 个项目，您将得到天文数字。
 
-当然，FsCheck会进行数百次这样的测试！ 这导致了一个重要的提示：
+当然，FsCheck 会进行数百次这样的测试！ 这导致了一个重要的提示：
 
 **提示：确保您的属性检查非常快速。 你会频繁运行它们的！**
 
-我们已经看到，即使在最好的情况下，FsCheck也会评估属性100次。 如果需要收缩，甚至更多。 因此，请确保您的测试运行速度快！
+我们已经看到，即使在最好的情况下，FsCheck 也会评估属性 100 次。 如果需要收缩，甚至更多。 因此，请确保您的测试运行速度快！
 
 但是，如果你要处理真实系统，比如数据库、网络或其他缓慢的依赖关系，会发生什么呢？
 
-在他（强烈推荐的）[关于使用QuickCheck的视频](http://vimeo.com/68383317)中，约翰·休斯讲述了他的团队试图检测由网络分区和节点故障引起的分布式数据存储中的缺陷。
+在他（强烈推荐的）[关于使用 QuickCheck 的视频](http://vimeo.com/68383317)中，约翰·休斯讲述了他的团队试图检测由网络分区和节点故障引起的分布式数据存储中的缺陷。
 
-当然，杀死真实节点数千次太慢了，所以他们将核心逻辑提取到了虚拟模型中，并对其进行了测试。 结果，代码*后来被重构*以使此类测试更容易。 换句话说，基于属性的测试影响了代码的设计，就像TDD一样。
+当然，杀死真实节点数千次太慢了，所以他们将核心逻辑提取到了虚拟模型中，并对其进行了测试。 结果，代码*后来被重构*以使此类测试更容易。 换句话说，基于属性的测试影响了代码的设计，就像 TDD 一样。
 
 ### 排序不变性 - 第三次尝试
 
@@ -892,7 +892,7 @@ Check.Quick ``querying NonIdempotentService after update gives the same result``
 // Falsifiable, after 2 tests 
 ```
 
-作为替代方案，我们可以创建一个（粗糙的）`IdempotentService`，每个事务都需要一个时间戳。在这种设计中，使用相同时间戳的多个GET请求将始终检索相同的数据。
+作为替代方案，我们可以创建一个（粗糙的）`IdempotentService`，每个事务都需要一个时间戳。在这种设计中，使用相同时间戳的多个 GET 请求将始终检索相同的数据。
 
 ```
 type IdempotentService() =
@@ -926,7 +926,7 @@ Check.Quick ``querying IdempotentService after update gives the same result``
 // Ok, passed 100 tests. 
 ```
 
-因此，如果你正在构建一个REST GET处理程序或数据库查询服务，并且希望具有幂等性，你应该考虑使用诸如ETags、“as-of”时间、日期范围等技术。
+因此，如果你正在构建一个 REST GET 处理程序或数据库查询服务，并且希望具有幂等性，你应该考虑使用诸如 ETags、“as-of”时间、日期范围等技术。
 
 如果你需要关于如何做到这一点的提示，搜索[idempotency patterns](http://blog.jonathanoliver.com/idempotency-patterns/)会得到一些很好的结果。
 
@@ -992,7 +992,7 @@ Check.Quick (``sort should give same result as insertion sort`` badSort)
 
 当你不确定*任何*实现是否正确时，我们也可以使用测试神谕方法互相交叉检查两种不同的实现！
 
-举例来说，在我的帖子["对'罗马数字Kata的评论'"](roman-numeral-kata.html)中，我提出了两种完全不同的生成罗马数字的算法。我们能把它们互相对比，并一次性测试它们吗？
+举例来说，在我的帖子"对'罗马数字 Kata 的评论'"中，我提出了两种完全不同的生成罗马数字的算法。我们能把它们互相对比，并一次性测试它们吗？
 
 第一个算法是基于理解罗马数字是基于记数的，导致这段简单的代码：
 
@@ -1058,7 +1058,7 @@ Check.Quick ``biquinary should give same result as tallying``
 // ArgumentException: The input must be non-negative. 
 ```
 
-所以我们只需要包括正数作为输入。我们还需要排除大于4000的数字，因为算法在那里也会出问题。
+所以我们只需要包括正数作为输入。我们还需要排除大于 4000 的数字，因为算法在那里也会出问题。
 
 我们如何实现这个过滤器？
 
@@ -1072,7 +1072,7 @@ let arabicNumber = Arb.Default.Int32() |> Arb.filter (fun i -> i > 0 && i <= 400
 
 接下来，我们通过使用`Prop.forAll`助手，创建一个*只使用"arabicNumber"*的新属性。
 
-我们会给这个属性取一个相当聪明的名字，"对于所有值的arabicNumber，biquinary应该和记数相同"。
+我们会给这个属性取一个相当聪明的名字，"对于所有值的 arabicNumber，biquinary 应该和记数相同"。
 
 ```
 let ``for all values of arabicNumber biquinary should give same result as tallying`` = 
@@ -1096,7 +1096,7 @@ Check.Quick ``for all values of arabicNumber biquinary should give same result a
 
 然后，当你对受测系统执行某些操作时，你也对你的模型执行相同（但简化的）操作。
 
-最后，你将你的模型状态与受测系统的状态进行比较。如果它们相同，你就完成了。如果不是，要么你的SUT有bug，要么你的模型是错误的，你需要重新开始！
+最后，你将你的模型状态与受测系统的状态进行比较。如果它们相同，你就完成了。如果不是，要么你的 SUT 有 bug，要么你的模型是错误的，你需要重新开始！
 
 ## 插曲：一个基于寻找属性的游戏
 
@@ -1112,7 +1112,7 @@ Check.Quick ``for all values of arabicNumber biquinary should give same result a
 
 这是一个正在进行中的 Zendo 游戏的图片：
 
-![Zendo](zendo1.png)
+![Zendo](img/zendo1.png)
 
 白色石头表示属性已满足，而黑色石头表示失败。你能猜到这里的规则吗？我猜这是类似于“一个集合必须有一个不接触地面的黄色金字塔”的规则。
 
@@ -1252,7 +1252,7 @@ d3.Amount  // 7
 
 我认为“不同路径得到相同结果”非常适用。我们可以像我们对“排序”所做的那样做一个“内部”和“外部”乘法操作，看看它们是否给出相同的结果。
 
-![Dollar times](property_dollar_times.png)
+![Dollar times](img/property_dollar_times.png)
 
 这是用代码表达的那个属性：
 
@@ -1318,7 +1318,7 @@ Check.Quick ``create then times should be same as times then create``
 
 我们可以将这种方法扩展到不同的路径。例如，我们可以提取金额并直接比较，像这样：
 
-![Dollar times](property_dollar_times2.png)
+![Dollar times](img/property_dollar_times2.png)
 
 代码看起来像这样：
 
@@ -1338,7 +1338,7 @@ Check.Quick ``create then times then get should be same as times``
 
 例如，我们可以通过两条不同的路径执行 `Times` 然后是 `Add`，就像这样：
 
-![Dollar times](property_dollar_times3.png)
+![Dollar times](img/property_dollar_times3.png)
 
 这是代码：
 
@@ -1377,7 +1377,7 @@ Check.Quick ``create then times then add should be same as times then add then c
 
 现在我们所有的测试都可以简化为这一个属性：
 
-![Dollar map](property_dollar_map.png)
+![Dollar map](img/property_dollar_map.png)
 
 让我们为`Dollar`添加一个`Map`方法。我们还可以用`Map`重新编写`Times`和`Add`：
 
@@ -1406,7 +1406,7 @@ let ``create then map should be same as map then create`` start f =
 
 但现在我们该如何测试呢？我们应该传入什么函数？
 
-别担心！FsCheck已经为你准备好了！在这种情况下，FsCheck实际上也会为你生成随机函��！
+别担心！FsCheck 已经为你准备好了！在这种情况下，FsCheck 实际上也会为你生成随机函��！
 
 试试看--它只是有效！
 
@@ -1419,7 +1419,7 @@ Check.Quick ``create then map should be same as map then create``
 
 ### 记录函数参数
 
-目前属性存在一个小问题。如果你想看看FsCheck生成的函数是什么，那么详细模式并不有用。
+目前属性存在一个小问题。如果你想看看 FsCheck 生成的函数是什么，那么详细模式并不有用。
 
 ```
 Check.Verbose ``create then map should be same as map then create`` 
@@ -1446,7 +1446,7 @@ Ok, passed 100 tests.
 
 我们无法知道函数值实际是什么。
 
-但是，你可以告诉FsCheck通过将你的函数包装在特殊的`F`情况中来显示更有用的信息，就像这样：
+但是，你可以告诉 FsCheck 通过将你的函数包装在特殊的`F`情况中来显示更有用的信息，就像这样：
 
 ```
 let ``create then map should be same as map then create2`` start (F (_,f)) = 
@@ -1488,9 +1488,9 @@ Ok, passed 100 tests.
 
 ## TDD vs. 基于属性的测试
 
-基于属性的测试（PBT）如何与TDD结合？这是一个常见问题，所以让我快速给出我的看法。
+基于属性的测试（PBT）如何与 TDD 结合？这是一个常见问题，所以让我快速给出我的看法。
 
-首先，TDD使用*具体示例*，而PBT使用*通用属性*。
+首先，TDD 使用*具体示例*，而 PBT 使用*通用属性*。
 
 正如我在之前的帖子中所说的，我认为示例对于设计是有用的，并且可以作为文档的一种形式。但在我看来，仅仅依赖基于示例的测试是一个错误。
 
@@ -1512,11 +1512,11 @@ Ok, passed 100 tests.
 
 因此，任何有助于深入思考需求和可能出错的东西都应该是你个人工具箱中的关键工具！
 
-例如，在罗马数字部分，我们看到接受`int`是一个坏主意（代码崩溃了！）。我们有一个快速修复，但实际上我们应该在我们的领域中对`PositiveInteger`的概念进行建模，然后改变我们的代码以使用该类型而不仅仅是一个`int`。这展示了使用PBT实际上可以改进你的领域模型，而不仅仅是发现错误。
+例如，在罗马数字部分，我们看到接受`int`是一个坏主意（代码崩溃了！）。我们有一个快速修复，但实际上我们应该在我们的领域中对`PositiveInteger`的概念进行建模，然后改变我们的代码以使用该类型而不仅仅是一个`int`。这展示了使用 PBT 实际上可以改进你的领域模型，而不仅仅是发现错误。
 
-同样，在Dollar场景中引入`Map`方法不仅使测试更容易，而且实际上提高了Dollar "api"的实用性。
+同样，在 Dollar 场景中引入`Map`方法不仅使测试更容易，而且实际上提高了 Dollar "api"的实用性。
 
-从宏观角度来看，TDD和基于属性的测试并不冲突。它们都有建立正确程序的相同目标，而且都更关注设计而不是编码（想想"测试驱动的*设计*"而不是"测试驱动的*开发*"）。
+从宏观角度来看，TDD 和基于属性的测试并不冲突。它们都有建立正确程序的相同目标，而且都更关注设计而不是编码（想想"测试驱动的*设计*"而不是"测试驱动的*开发*"）。
 
 ## 最后，结束了
 
@@ -1526,4 +1526,4 @@ Ok, passed 100 tests.
 
 下次，我们将看一些真实世界的例子，以及你如何创建符合你领域的自定义生成器。
 
-*本文中使用的代码示例可在[GitHub上获取](https://github.com/swlaschin/PropertyBasedTesting/blob/master/part2.fsx)*。
+*本文中使用的代码示例可在[GitHub 上获取](https://github.com/swlaschin/PropertyBasedTesting/blob/master/part2.fsx)*。

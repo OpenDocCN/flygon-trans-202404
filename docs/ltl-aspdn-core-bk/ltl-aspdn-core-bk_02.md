@@ -113,7 +113,7 @@ namespace AspNetCoreTodo.Models
 
 此类定义了数据库需要为每个待办事项存储的内容：一个 ID、一个标题或名称、项目是否完成，以及截止日期是什么。每一行定义了类的一个属性：
 
-+   **Id**属性是一个全局唯一标识符（guid）。Guids（或GUIDs）是一长串字母和数字，比如`43ec09f2-7f70-4f4b-9559-65011d5781bb`。因为 guid 是随机生成的，极不可能意外重复，所以它们通常用作唯一标识符。你也可以使用数字（整数）作为数据库实体 ID，但需要配置数据库，以便在向数据库添加新行时始终递增数字。Guids 是随机生成的，所以你不必担心自动递增。
++   **Id**属性是一个全局唯一标识符（guid）。Guids（或 GUIDs）是一长串字母和数字，比如`43ec09f2-7f70-4f4b-9559-65011d5781bb`。因为 guid 是随机生成的，极不可能意外重复，所以它们通常用作唯一标识符。你也可以使用数字（整数）作为数据库实体 ID，但需要配置数据库，以便在向数据库添加新行时始终递增数字。Guids 是随机生成的，所以你不必担心自动递增。
 
 +   **已完成**（IsDone）属性是一个布尔值（true/false）。默认情况下，对于所有新项目，它将是`false`。稍后你会编写代码，在用户在视图中点击项目的复选框时，将此属性切换为`true`。
 
@@ -121,17 +121,17 @@ namespace AspNetCoreTodo.Models
 
 +   **DueAt**属性是一个`DateTimeOffset`，它是 C# 类型，用于存储带有时区偏移量的日期/时间戳。将日期、时间和时区偏移量一起存储使得在不同时区的系统上准确渲染日期变得很容易。
 
-注意`DateTimeOffset`类型后面的`?`问号？那标记了DueAt属性为*可空*或可选。如果不包含`?`，则每个待办事项都需要有到期日期。Id和IsDone属性未标记为可空，因此它们是必需的并且始终具有值（或默认值）。
+注意`DateTimeOffset`类型后面的`?`问号？那标记了 DueAt 属性为*可空*或可选。如果不包含`?`，则每个待办事项都需要有到期日期。Id 和 IsDone 属性未标记为可空，因此它们是必需的并且始终具有值（或默认值）。
 
-> C#中的字符串始终可空，因此不需要将Title属性标记为可空。C#字符串可以为null、空或包含文本。
+> C#中的字符串始终可空，因此不需要将 Title 属性标记为可空。C#字符串可以为 null、空或包含文本。
 
-每个属性后面跟着`get; set;`，这是一种简写方式，表示属性是可读/可写的（或更确切地说，它具有getter和setter方法）。
+每个属性后面跟着`get; set;`，这是一种简写方式，表示属性是可读/可写的（或更确切地说，它具有 getter 和 setter 方法）。
 
-在这一点上，底层数据库技术是什么并不重要。它可以是SQL Server，MySQL，MongoDB，Redis或更奇特的东西。该模型定义了在C#中数据库行或条目的外观，因此您无需担心代码中的底层数据库问题。这种简单的模型风格有时称为“普通的C#对象”或POCO。
+在这一点上，底层数据库技术是什么并不重要。它可以是 SQL Server，MySQL，MongoDB，Redis 或更奇特的东西。该模型定义了在 C#中数据库行或条目的外观，因此您无需担心代码中的底层数据库问题。这种简单的模型风格有时称为“普通的 C#对象”或 POCO。
 
 ### 视图模型
 
-通常，您存储在数据库中的模型（实体）与您要在MVC中使用的模型（视图模型）相似但不完全相同。在这种情况下，`TodoItem`模型表示数据库中的单个项目，但视图可能需要显示两个，十个或一百个待办事项（取决于用户拖延的程度）。
+通常，您存储在数据库中的模型（实体）与您要在 MVC 中使用的模型（视图模型）相似但不完全相同。在这种情况下，`TodoItem`模型表示数据库中的单个项目，但视图可能需要显示两个，十个或一百个待办事项（取决于用户拖延的程度）。
 
 因此，视图模型应该是一个单独的类，其中包含一个`TodoItem`数组：
 
@@ -149,19 +149,19 @@ namespace AspNetCoreTodo.Models
 } 
 ```
 
-`IEnumerable<>`是C#的一种高级方式，表示`Items`属性包含零个、一个或多个`TodoItem`。（从技术上讲，它不完全是数组，而是任何可以枚举或迭代的序列的类似数组的接口。）
+`IEnumerable<>`是 C#的一种高级方式，表示`Items`属性包含零个、一个或多个`TodoItem`。（从技术上讲，它不完全是数组，而是任何可以枚举或迭代的序列的类似数组的接口。）
 
 > `IEnumerable<>`接口存在于`System.Collections.Generic`命名空间中，因此您需要在文件顶部添加一个`using System.Collections.Generic`语句。
 
-现在你有了一些模型，是时候创建一个视图，它将采用`TodoViewModel`并渲染正确的HTML以向用户显示他们的待办事项列表。
+现在你有了一些模型，是时候创建一个视图，它将采用`TodoViewModel`并渲染正确的 HTML 以向用户显示他们的待办事项列表。
 
 # 创建一个视图
 
 ## 创建一个视图
 
-ASP.NET Core中的视图使用Razor模板语言构建，该语言结合了HTML和C#代码。（如果你曾经使用Jade/Pug或Handlebars Mustaches编写过页面，或者使用Ruby on Rails中的ERB，或者Java中的Thymeleaf，你可能已经有了基本的思路。）
+ASP.NET Core 中的视图使用 Razor 模板语言构建，该语言结合了 HTML 和 C#代码。（如果你曾经使用 Jade/Pug 或 Handlebars Mustaches 编写过页面，或者使用 Ruby on Rails 中的 ERB，或者 Java 中的 Thymeleaf，你可能已经有了基本的思路。）
 
-大多数视图代码只是HTML，偶尔会添加C#语句以从视图模型中提取数据并将其转换为文本或HTML。C#语句以`@`符号为前缀。
+大多数视图代码只是 HTML，偶尔会添加 C#语句以从视图模型中提取数据并将其转换为文本或 HTML。C#语句以`@`符号为前缀。
 
 `TodoController`的`Index`操作呈现的视图需要将视图模型中的数据（待办事项数组）显示为用户的漂亮表格。按照惯例，视图放置在`Views`目录中，子目录对应于控制器名称。视图的文件名是动作的名称，带有`.cshtml`扩展名。
 
@@ -271,7 +271,7 @@ namespace AspNetCoreTodo.Services
 } 
 ```
 
-注意这个文件的命名空间是`AspNetCoreTodo.Services`。命名空间是组织.NET代码文件的一种方式，按照文件所在的目录来命名空间是一种习惯做法（对于`Services`目录中的文件来说，命名空间就是`AspNetCoreTodo.Services`，依此类推）。
+注意这个文件的命名空间是`AspNetCoreTodo.Services`。命名空间是组织.NET 代码文件的一种方式，按照文件所在的目录来命名空间是一种习惯做法（对于`Services`目录中的文件来说，命名空间就是`AspNetCoreTodo.Services`，依此类推）。
 
 因为这个文件（在`AspNetCoreTodo.Services`命名空间中）引用了`TodoItem`类（在`AspNetCoreTodo.Models`命名空间中），所以它需要在文件顶部包含一个`using`语句来导入该命名空间。没有`using`语句，你会看到一个错误，如下所示：
 
@@ -281,7 +281,7 @@ The type or namespace name 'TodoItem' could not be found (are you missing a usin
 
 由于这是一个接口，这里实际上没有任何代码，只有`GetIncompleteItemsAsync`方法的定义（或**方法签名**）。这个方法不需要参数，并返回一个`Task<IEnumerable<TodoItem>>`。
 
-> 如果这个语法看起来令人困惑，想一想：“包含一个TodoItems列表的Task”。
+> 如果这个语法看起来令人困惑，想一想：“包含一个 TodoItems 列表的 Task”。
 
 `Task`类型类似于将来或承诺，它在这里被使用，因为这个方法将是**异步**的。换句话说，该方法可能不能立即返回待办事项列表，因为它需要先访问数据库。（稍后详细讨论。）
 
@@ -373,9 +373,9 @@ public IActionResult Index() {
 
 记得`GetIncompleteItemsAsync`方法返回了一个`Task<IEnumerable<TodoItem>>`吗？返回一个`Task`意味着该方法不一定会立即有结果，但您可以使用`await`关键字确保您的代码在继续执行之前等待结果准备就绪。
 
-当您的代码调用数据库或API服务时，`Task`模式很常见，因为它在数据库（或网络）响应之前无法返回真正的结果。如果您在JavaScript或其他语言中使用过promises或回调，`Task`是相同的概念：承诺将来会有一个结果。
+当您的代码调用数据库或 API 服务时，`Task`模式很常见，因为它在数据库（或网络）响应之前无法返回真正的结果。如果您在 JavaScript 或其他语言中使用过 promises 或回调，`Task`是相同的概念：承诺将来会有一个结果。
 
-> 如果您曾经在旧版JavaScript代码中处理过“回调地狱”，那么您很幸运。由于`await`关键字的魔力，处理.NET中的异步代码要容易得多！`await`让您的代码在异步操作上暂停，然后在底层数据库或网络请求完成时继续执行。与此同时，您的应用程序不会被阻塞，因为它可以根据需要处理其他请求。这种模式很简单，但需要一点时间来适应，所以如果一开始不明白也不要担心。只需继续跟着做！
+> 如果您曾经在旧版 JavaScript 代码中处理过“回调地狱”，那么您很幸运。由于`await`关键字的魔力，处理.NET 中的异步代码要容易得多！`await`让您的代码在异步操作上暂停，然后在底层数据库或网络请求完成时继续执行。与此同时，您的应用程序不会被阻塞，因为它可以根据需要处理其他请求。这种模式很简单，但需要一点时间来适应，所以如果一开始不明白也不要担心。只需继续跟着做！
 
 唯一的注意事项是，您需要更新`Index`方法的签名，使其返回`Task<IActionResult>`而不仅仅是`IActionResult`，并将其标记为`async`：
 
@@ -389,7 +389,7 @@ public async Task<IActionResult> Index() {
 } 
 ```
 
-您已经接近成功了！您让`TodoController`依赖于`ITodoItemService`接口，但还没有告诉ASP.NET Core您希望`FakeTodoItemService`是实际在幕后使用的服务。现在可能显而易见，因为您只有一个实现`ITodoItemService`的类，但以后您将有多个实现相同接口的类，因此明确是必要的。
+您已经接近成功了！您让`TodoController`依赖于`ITodoItemService`接口，但还没有告诉 ASP.NET Core 您希望`FakeTodoItemService`是实际在幕后使用的服务。现在可能显而易见，因为您只有一个实现`ITodoItemService`的类，但以后您将有多个实现相同接口的类，因此明确是必要的。
 
 声明（或“连接”）每个接口要使用的具体类是在`Startup`类的`ConfigureServices`方法中完成的。目前，它看起来像这样：
 
@@ -451,6 +451,6 @@ using AspNetCoreTodo.Models;
 
 要启动应用程序，请按 F5（如果你使用的是 Visual Studio 或 Visual Studio Code），或者在终端中运行 `dotnet run`。如果代码编译没有错误，服务器将默认在端口 5000 上启动。
 
-如果你的网络浏览器没有自动打开，请打开它并导航到 [http://localhost:5000/todo](http://localhost:5000/todo)。你将看到你从假数据库层拉取的数据填充了你之前创建的视图。
+如果你的网络浏览器没有自动打开，请打开它并导航到 [`localhost:5000/todo`](http://localhost:5000/todo)。你将看到你从假数据库层拉取的数据填充了你之前创建的视图。
 
 恭喜！你已经构建了一个可工作的 ASP.NET Core 应用程序。接下来，你将通过第三方包和真实的数据库代码进一步完善它。

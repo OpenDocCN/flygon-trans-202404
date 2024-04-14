@@ -1,13 +1,13 @@
-| [![](../Images/d03dc8ab9854158ad15ab0c1410b2f9f.jpg)](/http://philip.greenspun.com/images/pcd1587/17-17.tcl) |
+| ![](img/17-17.tcl) |
 | --- |
 
 ## 外部和遗留数据
 
-部分来自[Web 网络爱好者的 SQL](index.html)（本章由[Michael Booth](mailto:mbooth@arsdigita.com)和[Philip Greenspun](http://philip.greenspun.com/)编写）|
+部分来自 Web 网络爱好者的 SQL（本章由 Michael Booth 和[Philip Greenspun](http://philip.greenspun.com/)编写）|
 
 * * *
 
-[![](../Images/c81fd517eae17ed3d32975824febb5ca.jpg)](/http://philip.greenspun.com/images/pcd1587/1-1.tcl) 世界上大部分有用的数据要么存储在您无法控制的服务器上，要么存储在除 Oracle 之外的数据库管理系统中。无论哪种方式，从本地 Oracle 数据库的角度来看，我们将这些数据称为*外部数据*。您的目标始终是相同的：**将外部数据视为存储在本地 SQL 表中一样处理**。
+![](img/1-1.tcl) 世界上大部分有用的数据要么存储在您无法控制的服务器上，要么存储在除 Oracle 之外的数据库管理系统中。无论哪种方式，从本地 Oracle 数据库的角度来看，我们将这些数据称为*外部数据*。您的目标始终是相同的：**将外部数据视为存储在本地 SQL 表中一样处理**。
 
 将外部数据物理或虚拟地拖回您的 Oracle 洞穴的好处如下：
 
@@ -73,13 +73,13 @@
 > 
 > ```
 
-`stock_quotes` 表在这里是外部表。Blue Cross 没有运营股票交易所。因此，权威的价格变动数据必须从外部来源获取。想象一下，外部来源是 http://quote.yahoo.com/。对于像 Ariba（股票代码 ARBA）这样的软件公司，我们需要在 Web 浏览器中访问 [http://quote.yahoo.com/q?s=arba](http://quote.yahoo.com/q?s=arba) 来获取报价。这是使用带有形式变量 "s" 的参数 "arba" 调用方法 "q"。结果以人类可读的 HTML 页面的形式返回，其中包含大量的呈现标记和英文文本。如果 Yahoo 给我们提供机器可读的结果会更方便，例如，以逗号分隔的值列表或 XML 文档。但是，只要 HTML 页面的结构不因报价而变化，并且百分比变化数字可以用正则表达式或其他计算机程序提取出来，它仍然可以使用。
+`stock_quotes` 表在这里是外部表。Blue Cross 没有运营股票交易所。因此，权威的价格变动数据必须从外部来源获取。想象一下，外部来源是 http://quote.yahoo.com/。对于像 Ariba（股票代码 ARBA）这样的软件公司，我们需要在 Web 浏览器中访问 [`quote.yahoo.com/q?s=arba`](http://quote.yahoo.com/q?s=arba) 来获取报价。这是使用带有形式变量 "s" 的参数 "arba" 调用方法 "q"。结果以人类可读的 HTML 页面的形式返回，其中包含大量的呈现标记和英文文本。如果 Yahoo 给我们提供机器可读的结果会更方便，例如，以逗号分隔的值列表或 XML 文档。但是，只要 HTML 页面的结构不因报价而变化，并且百分比变化数字可以用正则表达式或其他计算机程序提取出来，它仍然可以使用。
 
 设计此问题的聚合架构时有哪些问题？首先是一致性。拥有最新的股票报价会很好，但另一方面，反复查询相同的符号似乎有点愚蠢。实际上，在美国股市关闭后的东部时间下午 4:30 之后，没有任何理由在第二天上午 9:30 之前询问相同的符号的新报价。在对缓存做出一些合理假设后，一旦 `stock_quotes` 表被使用了几次，查询将能够执行得更快，因为报价数据将从本地缓存中提取，而不是从互联网上获取。
 
 我们不必过多考虑可更新性。Blue Cross 不经营股票交易所，因此 Blue Cross 无法更新股票价格。我们的本地视图将不可更新。
 
-这个社会问题乍看起来很简单。Yahoo可以向公共互联网上的任何客户提供报价。乍一看，我们的计算机程序似乎只能一次请求一个报价。然而，如果我们获取 [http://quote.yahoo.com/q?s=arba**+ibm**](http://quote.yahoo.com/q?s=arba+ibm)，我们可以同时获得两个报价。甚至可能一次性获取所有被保险人的雇主的股价，放在一个大页面上。一个潜在的麻烦在于 Yahoo 在其服务条款 [http://docs.yahoo.com/info/terms/](http://docs.yahoo.com/info/terms/) 中规定了。
+这个社会问题乍看起来很简单。Yahoo 可以向公共互联网上的任何客户提供报价。乍一看，我们的计算机程序似乎只能一次请求一个报价。然而，如果我们获取 [`quote.yahoo.com/q?s=arba**+ibm**`](http://quote.yahoo.com/q?s=arba+ibm)，我们可以同时获得两个报价。甚至可能一次性获取所有被保险人的雇主的股价，放在一个大页面上。一个潜在的麻烦在于 Yahoo 在其服务条款 [`docs.yahoo.com/info/terms/`](http://docs.yahoo.com/info/terms/) 中规定了。
 
 > ```
 > 10\. NO RESALE OF SERVICE
@@ -94,15 +94,15 @@
 
 我们需要编写一个计算机程序（“抓取程序”），它可以从 Yahoo 获取 HTML 页面，提取价格变动数据，并将其放入 `stock_quotes` 表中。我们还需要一个更通用的计算机程序（“检查程序”），它可以查看所需的外部数据，查看 `stock_quotes` 中缓存数据的年龄，并在必要时运行抓取程序。
 
-Oracle 内置了三种图灵完备的计算机语言：C、Java、PL/SQL。“图灵完备”意味着可以为任何计算机编写的任何程序都可以编写为在 Oracle 内运行。由于最终希望将外部数据与 Oracle 内部数据结合起来，因此在数据库内运行所有聚合代码是有意义的。Oracle 包含了用于方便检索 Web 页面的内置函数（参见 [http://oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100](http://oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100)）。
+Oracle 内置了三种图灵完备的计算机语言：C、Java、PL/SQL。“图灵完备”意味着可以为任何计算机编写的任何程序都可以编写为在 Oracle 内运行。由于最终希望将外部数据与 Oracle 内部数据结合起来，因此在数据库内运行所有聚合代码是有意义的。Oracle 包含了用于方便检索 Web 页面的内置函数（参见 [`oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100`](http://oradoc.photo.net/ora816/server.816/a76936/utl_http.htm#998100)）。
 
 在理想的世界中，您可以定义一个数据库触发器，每次查询将要从 `stock_quotes` 表中选择时触发。这个触发器将以某种方式找出需要哪些行的外部表。它将运行检查程序，以确保缓存的数据都不太旧，而检查程序可能反过来会运行抓取程序。
 
 为什么这不起作用？截至 Oracle 版本 8.1.6，无法定义对 SELECT 的触发器。即使可以，触发程序也无法探索正在执行的 SQL 查询或询问 SQL 优化器将要求哪些行。
 
-PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见 [http://www.postgresql.org/docs/programmer/x968.htm](http://www.postgresql.org/docs/programmer/x968.htm)），它可以拦截和转换 SELECT 查询。它接收 SQL 解析器的输出，应用一个或多个转换规则，并产生一组新的要执行的查询。例如，一条规则可能指定任何针对表“foo”的 SELECT 应该改为从表“bar”中进行 SELECT；这就是 Postgres 实现视图的方式。目前，对 SELECT 可应用的唯一转换是用单个替代 SELECT 替换它 - 但 PostgreSQL 是开源软件，任何人都可以自由增强它。
+PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见 [`www.postgresql.org/docs/programmer/x968.htm`](http://www.postgresql.org/docs/programmer/x968.htm)），它可以拦截和转换 SELECT 查询。它接收 SQL 解析器的输出，应用一个或多个转换规则，并产生一组新的要执行的查询。例如，一条规则可能指定任何针对表“foo”的 SELECT 应该改为从表“bar”中进行 SELECT；这就是 Postgres 实现视图的方式。目前，对 SELECT 可应用的唯一转换是用单个替代 SELECT 替换它 - 但 PostgreSQL 是开源软件，任何人都可以自由增强它。
 
-长期的解决方案是等待关系型数据库管理系统供应商增强其产品。帮助即将到来。好消息是，ANSI/ISO SQL-99 标准的一部分要求关系型数据库管理系统供应商，包括 Oracle，在外部数据源上提供支持。坏消息是，SQL-99 标准正在分阶段发布，包装器扩展将在2001年之前发布，并且可能需要几年时间才能商业关系型数据库管理系统实现新标准。
+长期的解决方案是等待关系型数据库管理系统供应商增强其产品。帮助即将到来。好消息是，ANSI/ISO SQL-99 标准的一部分要求关系型数据库管理系统供应商，包括 Oracle，在外部数据源上提供支持。坏消息是，SQL-99 标准正在分阶段发布，包装器扩展将在 2001 年之前发布，并且可能需要几年时间才能商业关系型数据库管理系统实现新标准。
 
 短期的解决方案是在将查询发送到 Oracle 之前运行一个过程：
 
@@ -113,18 +113,18 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-我们的检查器是一个名为`checker.stock_quotes`的Oracle存储过程。它检查`stock_quotes`中的每个股票代码，并在报价比指定的时间间隔（以天为单位）旧时调用获取器。如果我们想要向表中添加一个新的`ticker_symbol`，我们调用一个不同版本的`checker.stock_quotes`：
+我们的检查器是一个名为`checker.stock_quotes`的 Oracle 存储过程。它检查`stock_quotes`中的每个股票代码，并在报价比指定的时间间隔（以天为单位）旧时调用获取器。如果我们想要向表中添加一个新的`ticker_symbol`，我们调用一个不同版本的`checker.stock_quotes`：
 
 > ```
 > call checker.stock_quotes( 0.5, 'IBM' )
 > 
 > ```
 
-如果没有半天内更新的IBM条目，检查器将要求获取IBM的股票报价。
+如果没有半天内更新的 IBM 条目，检查器将要求获取 IBM 的股票报价。
 
 ### 聚合示例
 
-在Oracle实现SQL-99包装器扩展之前，Blue Cross将提供大量Prozac。因此，让我们构建一个使用Java存储过程来执行检查和获取的`stock_quotes`外部表。我们将从数据模型开始：
+在 Oracle 实现 SQL-99 包装器扩展之前，Blue Cross 将提供大量 Prozac。因此，让我们构建一个使用 Java 存储过程来执行检查和获取的`stock_quotes`外部表。我们将从数据模型开始：
 
 > ```
 > create table stock_quotes (
@@ -139,9 +139,9 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-这是一个简化版本，我们只存储每个股票代码的最新价格报价。在实际应用程序中，我们肯定希望维护一个旧报价的存档，也许可以使用[触发器](triggers.html)在更新`stock_quotes`时填充审计表。即使您的外部来源提供其自己的历史记录，获取它们也比从自己的审计表中获取数据慢、不可靠且更复杂。
+这是一个简化版本，我们只存储每个股票代码的最新价格报价。在实际应用程序中，我们肯定希望维护一个旧报价的存档，也许可以使用触发器在更新`stock_quotes`时填充审计表。即使您的外部来源提供其自己的历史记录，获取它们也比从自己的审计表中获取数据慢、不可靠且更复杂。
 
-我们将创建一个单独的源代码文件，`StockUpdater.java`。Oracle 8.1.6包括一个Java编译器以及一个虚拟机，因此当这个文件准备好时，我们可以将其加载到Oracle中，并用一个命令编译它：
+我们将创建一个单独的源代码文件，`StockUpdater.java`。Oracle 8.1.6 包括一个 Java 编译器以及一个虚拟机，因此当这个文件准备好时，我们可以将其加载到 Oracle 中，并用一个命令编译它：
 
 > ```
 > bash-2.03$ loadjava -user *username/password* -resolve -force StockUpdater.java
@@ -156,9 +156,9 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-噢。`-resolve`选项告诉Oracle的`loadjava`实用程序立即编译和链接类，但`StockUpdater`依赖于尚未加载到Oracle中的类。大多数Java虚拟机都设计成通过搜索文件系统在运行时自动定位和加载类，但Oracle JVM要求预先将每个类加载到数据库中。
+噢。`-resolve`选项告诉 Oracle 的`loadjava`实用程序立即编译和链接类，但`StockUpdater`依赖于尚未加载到 Oracle 中的类。大多数 Java 虚拟机都设计成通过搜索文件系统在运行时自动定位和加载类，但 Oracle JVM 要求预先将每个类加载到数据库中。
 
-我们需要获取`Perl5Util`和`PatternMatcherInput`类。这些是Oro库的一部分，一个开源的正则表达式库，可以从[http://jakarta.apache.org/oro/index.html](http://jakarta.apache.org/oro/index.html)获取。当我们下载并解压分发时，会找到一个包含我们所需类的JAR文件。我们将整个JAR文件加载到Oracle中，然后再尝试加载`StockUpdater`。
+我们需要获取`Perl5Util`和`PatternMatcherInput`类。这些是 Oro 库的一部分，一个开源的正则表达式库，可以从[`jakarta.apache.org/oro/index.html`](http://jakarta.apache.org/oro/index.html)获取。当我们下载并解压分发时，会找到一个包含我们所需类的 JAR 文件。我们将整个 JAR 文件加载到 Oracle 中，然后再尝试加载`StockUpdater`。
 
 > ```
 > bash-2.03$ loadjava -user *username/password* -resolve jakarta-oro-2.0.jar
@@ -167,7 +167,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-这些命令执行需要一段时间。完成后，我们可以通过运行以下SQL查询来检查结果：
+这些命令执行需要一段时间。完成后，我们可以通过运行以下 SQL 查询来检查结果：
 
 > ```
 > SELECT RPAD(object_name,31) ||
@@ -196,17 +196,17 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 
 我们的源代码标记为`VALID`，并且有一个关联的类也是`VALID`。还有一堆`VALID`正则表达式类。一切正常。
 
-如果我们愿意，我们可以使用独立的Java编译器编译`StockUpdater`类，然后将生成的类文件加载到Oracle中。我们不需要使用内置的Oracle编译器。
+如果我们愿意，我们可以使用独立的 Java 编译器编译`StockUpdater`类，然后将生成的类文件加载到 Oracle 中。我们不需要使用内置的 Oracle 编译器。
 
-`-force`选项强制`loadjava`覆盖任何具有相同名称的现有类，因此如果我们更改我们的类，则不一定需要在加载新类之前删除旧版本。如果我们确实想删除Oracle的存储Java类之一，我们可以使用`dropjava`实用程序。
+`-force`选项强制`loadjava`覆盖任何具有相同名称的现有类，因此如果我们更改我们的类，则不一定需要在加载新类之前删除旧版本。如果我们确实想删除 Oracle 的存储 Java 类之一，我们可以使用`dropjava`实用程序。
 
 #### 调用我们的存储过程
 
-![聚合架构的图示](agg-arch.gif)
+![聚合架构的图示](img/agg-arch.gif)
 
-> **图15-1**：聚合架构。客户端应用程序通过使用SQL查询Oracle表来获取数据。为了保持外部表的最新状态，应用程序调用运行在Oracle内部的Java存储过程Checker和Fetcher。Checker通过两层PL/SQL调用：一层是将PL/SQL调用转换为Java调用的调用规范，另一层是提供自主事务以运行聚合代码的包装过程。
+> **图 15-1**：聚合架构。客户端应用程序通过使用 SQL 查询 Oracle 表来获取数据。为了保持外部表的最新状态，应用程序调用运行在 Oracle 内部的 Java 存储过程 Checker 和 Fetcher。Checker 通过两层 PL/SQL 调用：一层是将 PL/SQL 调用转换为 Java 调用的调用规范，另一层是提供自主事务以运行聚合代码的包装过程。
 
-为了从SQL调用Java存储过程，我们需要定义*调用规范*，这是静态Java方法的PL/SQL前端。以下是一个调用规范的示例：
+为了从 SQL 调用 Java 存储过程，我们需要定义*调用规范*，这是静态 Java 方法的 PL/SQL 前端。以下是一个调用规范的示例：
 
 > ```
 >     PROCEDURE stock_quotes_spec ( interval IN number )
@@ -215,17 +215,17 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-这段代码的含义是：“当程序员调用这个PL/SQL过程时，调用Java类`StockUpdater`的`checkAll`方法。” `checkAll`方法必须是`static`的：Oracle不会自动构造一个新的`StockUpdater`对象。
+这段代码的含义是：“当程序员调用这个 PL/SQL 过程时，调用 Java 类`StockUpdater`的`checkAll`方法。” `checkAll`方法必须是`static`的：Oracle 不会自动构造一个新的`StockUpdater`对象。
 
-我们不允许开发人员直接使用调用规范。相反，我们让他们调用一个单独的PL/SQL过程来启动*自主事务*。我们需要这样做是因为应用程序可能在一个大事务中调用检查器。检查器使用获取器向`stock_quotes`表添加新数据。现在问题是：何时提交对`stock_quotes`表的更改？有三种选择：
+我们不允许开发人员直接使用调用规范。相反，我们让他们调用一个单独的 PL/SQL 过程来启动*自主事务*。我们需要这样做是因为应用程序可能在一个大事务中调用检查器。检查器使用获取器向`stock_quotes`表添加新数据。现在问题是：何时提交对`stock_quotes`表的更改？有三种选择：
 
-1.  使获取器发出COMMIT。这将提交对`stock_quotes`的更改。它还将提交在调用检查器之前进行的任何更改。这是一个非常糟糕的主意。
+1.  使获取器发出 COMMIT。这将提交对`stock_quotes`的更改。它还将提交在调用检查器之前进行的任何更改。这是一个非常糟糕的主意。
 
-1.  使获取器更新`stock_quotes`而不发出COMMIT。这也是一个不好的主意：如果调用例程决定中止事务，则新的股票报价数据将丢失。
+1.  使获取器更新`stock_quotes`而不发出 COMMIT。这也是一个不好的主意：如果调用例程决定中止事务，则新的股票报价数据将丢失。
 
-1.  在独立的事务中运行检查器和获取器。获取器可以提交或回滚更改，而不会影响主事务。Oracle为此提供了`AUTONOMOUS_TRANSACTION`声明，但该声明在调用规范中不起作用 - 它仅适用于常规的PL/SQL过程。因此，我们需要一个单独的粘合代码层来启动自主事务。
+1.  在独立的事务中运行检查器和获取器。获取器可以提交或回滚更改，而不会影响主事务。Oracle 为此提供了`AUTONOMOUS_TRANSACTION`声明，但该声明在调用规范中不起作用 - 它仅适用于常规的 PL/SQL 过程。因此，我们需要一个单独的粘合代码层来启动自主事务。
 
-这里是定义所有PL/SQL过程的SQL代码：
+这里是定义所有 PL/SQL 过程的 SQL 代码：
 
 > ```
 > CREATE OR REPLACE PACKAGE checker AS
@@ -269,7 +269,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 
 我们将这些例程放在一个名为`checker`的*包*中。包允许我们将过程和数据类型分组在一起。我们在这里使用一个包是因为打包的过程定义可以*重载*。`checker.stock_quotes`过程可以使用一个或两个参数调用，并且在每种情况下将运行不同版本。`stock_quotes_spec`过程也有两个版本。
 
-#### 在Java中编写一个Checker
+#### 在 Java 中编写一个 Checker
 
 我们准备开始查看 `StockUpdater.java` 文件本身。它以典型的 Java 方式开始：
 
@@ -543,7 +543,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-日期及其Oracle格式字符串存储在`OracleDate`对象中。 `OracleDate`是一个“内部类”，定义在StockUpdater类内部。 因为它是一个私有类，所以在StockUpdater之外看不到或使用它。 如果以后我们认为`OracleDate`对其他程序员有用，我们可以通过将定义移动到自己的文件中将其转换为公共类。
+日期及其 Oracle 格式字符串存储在`OracleDate`对象中。 `OracleDate`是一个“内部类”，定义在 StockUpdater 类内部。 因为它是一个私有类，所以在 StockUpdater 之外看不到或使用它。 如果以后我们认为`OracleDate`对其他程序员有用，我们可以通过将定义移动到自己的文件中将其转换为公共类。
 
 > ```
 >     /** A class which represents Oracle timestamps. */
@@ -608,7 +608,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-从Yahoo返回的股价通常包含分数，这些分数具有特殊的HTML标记。 `parseFraction`方法将HTML拆分并将股价作为Java `float`返回：
+从 Yahoo 返回的股价通常包含分数，这些分数具有特殊的 HTML 标记。 `parseFraction`方法将 HTML 拆分并将股价作为 Java `float`返回：
 
 > ```
 >     /** Convert some HTML from the Yahoo quotes page to a float, handling
@@ -633,7 +633,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 
 #### 杂项
 
-我们所有的方法都通过调用`getConnection()`来获取它们的JDBC连接。 通过将所有数据库连接请求路由通过这个方法，我们的类将能够在数据库内部或外部运行 - `getConnection`检查其环境并相应地设置连接。 将Java加载到Oracle是一个繁琐的过程，因此能够从外部JVM调试代码是很好的。
+我们所有的方法都通过调用`getConnection()`来获取它们的 JDBC 连接。 通过将所有数据库连接请求路由通过这个方法，我们的类将能够在数据库内部或外部运行 - `getConnection`检查其环境并相应地设置连接。 将 Java 加载到 Oracle 是一个繁琐的过程，因此能够从外部 JVM 调试代码是很好的。
 
 > ```
 >     public static Connection getConnection() 
@@ -691,7 +691,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 > 
 > ```
 
-最后，抓取程序需要一个可以将字符串连接在一起的实用程序。 它类似于Perl或Tcl中的“join”命令。
+最后，抓取程序需要一个可以将字符串连接在一起的实用程序。 它类似于 Perl 或 Tcl 中的“join”命令。
 
 > ```
 >     /** Builds a single string by taking a list of strings
@@ -725,7 +725,7 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 
 #### 外部表的实际操作
 
-现在我们已经实现了所有这些，我们可以在SQL*Plus中查看我们的外部表：
+现在我们已经实现了所有这些，我们可以在 SQL*Plus 中查看我们的外部表：
 
 > ```
 > SQL> select ticker_symbol, last_trade,
@@ -781,26 +781,26 @@ PostgreSQL 关系型数据库管理系统具有一个“规则系统”（参见
 
 ### 参考
 
-+   在这个领域的开创性工作是在1990年代中期由IBM Almaden研究中心的大蒜项目完成的。 这是同一个开发了System R的实验室，这是第一个关系数据库管理系统，最终成为IBM的DB2产品。 要了解IBM在包装传统数据库和外部网站方面的想法是如何展开的，请访问[http://www.almaden.ibm.com/cs/garlic/](http://www.almaden.ibm.com/cs/garlic/)。
++   在这个领域的开创性工作是在 1990 年代中期由 IBM Almaden 研究中心的大蒜项目完成的。 这是同一个开发了 System R 的实验室，这是第一个关系数据库管理系统，最终成为 IBM 的 DB2 产品。 要了解 IBM 在包装传统数据库和外部网站方面的想法是如何展开的，请访问[`www.almaden.ibm.com/cs/garlic/`](http://www.almaden.ibm.com/cs/garlic/)。
 
-+   Java存储过程开发人员指南位于[http://www.oradoc.com/keyword/java_stored_procedures](http://www.oradoc.com/keyword/java_stored_procedures)。
++   Java 存储过程开发人员指南位于[`www.oradoc.com/keyword/java_stored_procedures`](http://www.oradoc.com/keyword/java_stored_procedures)。
 
-+   PL/SQL用户指南和参考资料位于[http://www.oradoc.com/keyword/plsql](http://www.oradoc.com/keyword/plsql)。
++   PL/SQL 用户指南和参考资料位于[`www.oradoc.com/keyword/plsql`](http://www.oradoc.com/keyword/plsql)。
 
-+   Sun的Java2文档位于[http://java.sun.com/j2se/1.3/docs/index.html](http://java.sun.com/j2se/1.3/docs/index.html)。
++   Sun 的 Java2 文档位于[`java.sun.com/j2se/1.3/docs/index.html`](http://java.sun.com/j2se/1.3/docs/index.html)。
 
-接下来：[规范化](normalization)
+接下来：规范化
 
 * * *
 
-[mbooth@arsdigita.com](mailto:mbooth@arsdigita.com)[philg@mit.edu](http://philip.greenspun.com/)
+mbooth@arsdigita.com[philg@mit.edu](http://philip.greenspun.com/)
 
 ### 读者评论
 
-> 好吧，我认为这个页面的时效性已经到期了，所以我可以指出（遗憾的是！）我的电子邮件地址不再是mbooth@arsdigita.com。
+> 好吧，我认为这个页面的时效性已经到期了，所以我可以指出（遗憾的是！）我的电子邮件地址不再是 mbooth@arsdigita.com。
 > 
 > 你可以在[michaelfbooth.com](http://michaelfbooth.com)找到我。
 > 
-> -- [迈克尔·布斯](/shared/community-member?user_id=286155)，2007年11月15日
+> -- 迈克尔·布斯，2007 年 11 月 15 日
 
-[添加评论](/comments/add?page_id=7344) | [添加链接](/links/add?page_id=7344)
+添加评论 | 添加链接

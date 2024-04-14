@@ -11,9 +11,9 @@
 (define integers (integers-starting-from 1)) 
 ```
 
-然后`integers`表示所有正整数的流。更具体地说，`integers`的`stream-car`为1，`integers`的`stream-cdr`是一个等价于`(integers-starting-from 2)`的承诺。
+然后`integers`表示所有正整数的流。更具体地说，`integers`的`stream-car`为 1，`integers`的`stream-cdr`是一个等价于`(integers-starting-from 2)`的承诺。
 
-使用`integers`，我们可以定义其他无限流，例如不能被7整除的整数流：
+使用`integers`，我们可以定义其他无限流，例如不能被 7 整除的整数流：
 
 ```
 (define (divisible? x y)
@@ -23,7 +23,7 @@
                  integers)) 
 ```
 
-然后，我们可以通过访问此流的元素来找到不能被7整除的整数：
+然后，我们可以通过访问此流的元素来找到不能被 7 整除的整数：
 
 ```
 -> (stream-ref no-sevens 100)
@@ -34,7 +34,7 @@
 
 到目前为止，我们一直在定义流的方式与我们定义列表的方式非常相似。现在我们将采取更“流式”的方法。
 
-我们可以利用延迟评估来隐式定义流。例如，我们可以这样定义一个全为1的无限流：
+我们可以利用延迟评估来隐式定义流。例如，我们可以这样定义一个全为 1 的无限流：
 
 ```
 (define ones (cons-stream 1 ones)) 
@@ -49,7 +49,7 @@
   (stream-map + s1 s2) 
 ```
 
-例如，`(add-streams ones ones)`将产生一个全为2的流。
+例如，`(add-streams ones ones)`将产生一个全为 2 的流。
 
 我们可以重新定义然后隐式定义`integers`：
 
@@ -57,11 +57,11 @@
 (define integers (cons-stream 1 (add-streams ones integers))) 
 ```
 
-这定义了`integers`为一个流，其`stream-car`为1，其`stream-cdr`为`ones`和`integers`的和。因此，`integers`的第二个元素是`integers`的第一个元素加1，或者2；`integers`的第三个元素是`integers`的第二个元素加1，或者3；依此类推。这个定义之所以有效，是因为在任何时刻，已经生成了足够多的整数流，以便我们可以将其反馈到定义中，以生成下一个整数。
+这定义了`integers`为一个流，其`stream-car`为 1，其`stream-cdr`为`ones`和`integers`的和。因此，`integers`的第二个元素是`integers`的第一个元素加 1，或者 2；`integers`的第三个元素是`integers`的第二个元素加 1，或者 3；依此类推。这个定义之所以有效，是因为在任何时刻，已经生成了足够多的整数流，以便我们可以将其反馈到定义中，以生成下一个整数。
 
 ## 关于`stream-map`
 
-请注意，在上面的示例中，我们使用两个流调用了`stream-map`。之前，我们只使用一个流调用了stream-map：
+请注意，在上面的示例中，我们使用两个流调用了`stream-map`。之前，我们只使用一个流调用了 stream-map：
 
 ```
 -> (define x (cons-stream 1 (cons-stream 2 (cons-stram 3 the-empty-stream))))
@@ -87,7 +87,7 @@
                             (add-streams (stream-cdr fibs) fibs)))) 
 ```
 
-这个定义表示`fibs`是以0和1开头的流，使得流的其余部分可以通过将`fibs`与自身向右移动一个位置相加来生成。
+这个定义表示`fibs`是以 0 和 1 开头的流，使得流的其余部分可以通过将`fibs`与自身向右移动一个位置相加来生成。
 
 我们还可以使用`scale-stream`定义另一个流操作。它接受两个参数——一个整数流和一个整数，并将流中的所有元素乘以该整数：
 
@@ -96,7 +96,7 @@
   (stream-map (lambda (x) (* x factor)) strm)) 
 ```
 
-现在我们可以这样定义所有2的幂的流：
+现在我们可以这样定义所有 2 的幂的流：
 
 ```
 (define doubles (cons-stream 1 (scale-stream doubles 2))) 
@@ -111,7 +111,7 @@
                               (integers-starting-from 3)))) 
 ```
 
-这可能看起来相当简单——我们从第一个素数2开始，然后我们通过`cons-stream`将其余的素数与之连接起来。然而，`prime?`的定义方式使得这个问题变得有点微妙。
+这可能看起来相当简单——我们从第一个素数 2 开始，然后我们通过`cons-stream`将其余的素数与之连接起来。然而，`prime?`的定义方式使得这个问题变得有点微妙。
 
 我们通过查看一个数是否被小于√(n)的任何一个素数（而不仅仅是任何整数！）整除来检查一个数是否是素数:
 

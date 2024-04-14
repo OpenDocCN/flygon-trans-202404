@@ -2,7 +2,7 @@
 
 ```
 
-    We saw in the [Imp](Imp.html) chapter how a naive approach to defining a
+    We saw in the Imp chapter how a naive approach to defining a
     function representing evaluation for Imp runs into difficulties.
     There, we adopted the solution of changing from a functional to a
     relational definition of evaluation.  In this optional chapter, we
@@ -47,7 +47,7 @@ Fixpoint ceval_step1 (st : state) (c : com) : state :=
 
 ```
 
-    正如我们在章节 [Imp](Imp.html) 中所述，在传统的功能性
+    正如我们在章节 Imp 中所述，在传统的功能性
 
     programming language like ML or Haskell we could write the WHILE
 

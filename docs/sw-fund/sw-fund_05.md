@@ -49,7 +49,7 @@ Inductive boollist : Type :=
 
     新的数据类型定义。
 
-    为了避免所有这些重复，Coq支持*多态*
+    为了避免所有这些重复，Coq 支持*多态*
 
     归纳类型定义。例如，这是一个*多态列表*数据类型。
 
@@ -114,7 +114,7 @@ Check cons.
 
     显示控制），∀ 通常被排版为通常的
 
-    数学中的"倒立的A"，但你仍然会看到拼写出来的
+    数学中的"倒立的 A"，但你仍然会看到拼写出来的
 
     几个地方会看到"forall"。这只是排版的一种怪癖：
 
@@ -180,7 +180,7 @@ Module MumbleGrumble.
 
 ```
 
-#### 练习：2星M（mumble_grumble）
+#### 练习：2 星 M（mumble_grumble）
 
     考虑以下两种归纳定义的类型。
 
@@ -340,7 +340,7 @@ Check repeat.
 
 ```
 
-定义列表123 :=
+定义列表 123 :=
 
 cons nat 1（cons nat 2（cons nat 3（nil nat）））。
 
@@ -350,7 +350,7 @@ cons nat 1（cons nat 2（cons nat 3（nil nat）））。
 
 ```
 
-定义列表123' :=
+定义列表 123' :=
 
 cons _ 1（cons _ 2（cons _ 3（nil _）））。
 
@@ -381,7 +381,7 @@ cons _ 1（cons _ 2（cons _ 3（nil _）））。
 
 ```
 
-定义列表123'' := cons 1 (cons 2 (cons 3 nil))。
+定义列表 123'' := cons 1 (cons 2 (cons 3 nil))。
 
 ```
 
@@ -537,7 +537,7 @@ Fail Definition mynil := nil。
 
 符号"x :: y" :=（cons x y）
 
-（级别60，右结合）。
+（级别 60，右结合）。
 
 符号"[ ]" := nil。
 
@@ -706,7 +706,7 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
 
 ```
 
-#### 练习：1 星，可选M（combine_checks）
+#### 练习：1 星，可选 M（combine_checks）
 
     尝试在纸上回答以下问题并
 
@@ -841,7 +841,7 @@ Example test_hd_error2 : hd_error  [[1];[2]]  = Some [1]。
 
     与许多其他现代编程语言一样 — 包括
 
-    所有的函数式语言（ML、Haskell、Scheme、Scala、Clojure等）
+    所有的函数式语言（ML、Haskell、Scheme、Scala、Clojure 等）
 
     等等。） — Coq 将函数视为一等公民，允许它们作为参数传递给其他函数，作为结果返回，存储在数据结构中等。
 
@@ -936,7 +936,7 @@ Proof。反射性。Qed。
 ```
 
     We can use filter to give a concise version of the
-    countoddmembers function from the [Lists](Lists.html) chapter.
+    countoddmembers function from the Lists chapter.
 
 ```
 
@@ -1197,7 +1197,7 @@ Definition option_map {X Y : Type} (f : X → Y) (xo : option X)
 
 ```
 
-#### 练习：2星，可选（implicit_args）
+#### 练习：2 星，可选（implicit_args）
 
     filter 和 map 的定义和使用使用隐式
 
@@ -1380,7 +1380,7 @@ Module Exercises.
 
 ```
 
-#### 练习：2星（fold_length）
+#### 练习：2 星（fold_length）
 
     我们已经谈到的许多列表上的常见函数可以根据
 
@@ -1407,7 +1407,7 @@ Theorem fold_length_correct : ∀X (l : list X),
 
     ☐
 
-#### 练习：3星M（fold_map）
+#### 练习：3 星 M（fold_map）
 
     我们也可以根据 fold 定义 map。完成 fold_map
 
@@ -1430,7 +1430,7 @@ fold_map 正确，并证明它。
 
     ☐
 
-#### 练习：2星，高级（柯里化）
+#### 练习：2 星，高级（柯里化）
 
     在 Coq 中，函数 f：A → B → C 实际上具有类型 A →（B → C）。也就是说，如果您给 f 一个类型为 A 的值
 
@@ -1504,7 +1504,7 @@ Proof.
 
     ☐
 
-#### 练习：2 星，高级M（nth_error_informal）
+#### 练习：2 星，高级 M（nth_error_informal）
 
     回顾 nth_error 函数的定义：
 

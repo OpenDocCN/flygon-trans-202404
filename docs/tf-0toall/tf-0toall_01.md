@@ -2,7 +2,7 @@
 
 # 实验 01 TensorFlow 入门
 
-[https://www.tensorflow.org/get_started/get_started](https://www.tensorflow.org/get_started/get_started)
+[`www.tensorflow.org/get_started/get_started`](https://www.tensorflow.org/get_started/get_started)
 
 ## 检查 TensorFlow 版本
 
@@ -64,7 +64,7 @@ node1: Tensor("Const_1:0", shape=(), dtype=float32) node2: Tensor("Const_2:0", s
 node3:  Tensor("Add:0", shape=(), dtype=float32) 
 ```
 
-![](144f5297.png)
+![](img/144f5297.png)
 
 ```
 sess = tf.Session()

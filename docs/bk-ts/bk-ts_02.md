@@ -2,9 +2,9 @@
 
 ## 略过部分
 
-本书关注的是我认为是 TypeScript 语言的“主要”部分。这缩小了它的范围，因此，一些你可能认为一个常识性目录应该包括的主题实际上并没有包括^([1](#fn_1))。例如：
+本书关注的是我认为是 TypeScript 语言的“主要”部分。这缩小了它的范围，因此，一些你可能认为一个常识性目录应该包括的主题实际上并没有包括^(1)。例如：
 
-[![](BarackObama.jpg)](https://www.flickr.com/photos/35237092540@N01/8167731771/)- TypeScript 的历史：这是一个有趣的话题^([2](#fn_2))，但并不有助于实现本书的实际目标。如果你想了解更多 TypeScript 的历史，请[咨询维基百科上的专家们开始](https://en.wikipedia.org/wiki/TypeScript#History)。
+![](https://www.flickr.com/photos/35237092540@N01/8167731771/)- TypeScript 的历史：这是一个有趣的话题^(2)，但并不有助于实现本书的实际目标。如果你想了解更多 TypeScript 的历史，请[咨询维基百科上的专家们开始](https://en.wikipedia.org/wiki/TypeScript#History)。
 
 +   IDEs、部署流程、webpack 和任务运行器：这些东西几乎每周都在变化。如果我全力推荐某个特定的“TypeScript 入门”，当你读到我的推荐时，它可能已经被更新更简化的解决方案取代了。此外，你在网络上找到的各种入门项目往往依赖于框架。一类入门项目支持 Angular，另一类支持 React，等等。这本书不涉及这些框架。
 
@@ -18,6 +18,6 @@
 
 关于未涵盖的内容就说这么多。让我们继续讨论第一个重要的主题，TypeScript 到底是如何工作的？
 
-> ¹. 当然，我们并不一定有相同的共识。如果你不喜欢我的观点，可以写一本自己的书 :). 或者，通过 github issue 或直接给我发邮件建议我添加更多内容。导言章节提供了这两种选择的链接。[↩](#reffn_1 "跳回正文中的脚注 [1]")
+> ¹. 当然，我们并不一定有相同的共识。如果你不喜欢我的观点，可以写一本自己的书 :). 或者，通过 github issue 或直接给我发邮件建议我添加更多内容。导言章节提供了这两种选择的链接。↩
 > 
-> ². 你知道 TypeScript 已经超过五岁了吗？在美国，当微软发布这种语言时，巴拉克·奥巴马总统刚刚准备连任。巧合？谁知道呢？（巴拉克·奥巴马的照片来自 Peter Prodoehl @ [https://www.flickr.com/photos/raster/](https://www.flickr.com/photos/raster/)）。 [↩](#reffn_2 "跳回文中脚注 [2]")
+> ². 你知道 TypeScript 已经超过五岁了吗？在美国，当微软发布这种语言时，巴拉克·奥巴马总统刚刚准备连任。巧合？谁知道呢？（巴拉克·奥巴马的照片来自 Peter Prodoehl @ [`www.flickr.com/photos/raster/`](https://www.flickr.com/photos/raster/)）。 ↩

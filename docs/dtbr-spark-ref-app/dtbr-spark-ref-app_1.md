@@ -1,28 +1,28 @@
-# 使用Spark进行日志分析
+# 使用 Spark 进行日志分析
 
-# 使用Spark进行日志分析
+# 使用 Spark 进行日志分析
 
-这个项目演示了使用Apache Spark进行日志分析有多么容易。
+这个项目演示了使用 Apache Spark 进行日志分析有多么容易。
 
-日志分析是Spark的一个理想用例。它是一个非常庞大、常见的数据源，包含着丰富的信息。Spark允许您廉价地将日志存储在磁盘上，同时提供了一种快速简单的处理方法。我们希望这个项目能向您展示如何在您组织的生产日志上使用Apache Spark，并充分利用这些数据的力量。日志数据可以用于监视您的服务器、改善业务和客户情报、构建推荐系统、防止欺诈等等。
+日志分析是 Spark 的一个理想用例。它是一个非常庞大、常见的数据源，包含着丰富的信息。Spark 允许您廉价地将日志存储在磁盘上，同时提供了一种快速简单的处理方法。我们希望这个项目能向您展示如何在您组织的生产日志上使用 Apache Spark，并充分利用这些数据的力量。日志数据可以用于监视您的服务器、改善业务和客户情报、构建推荐系统、防止欺诈等等。
 
 ## 如何使用本项目
 
-这个项目被分成了几个部分，每个部分都有小巧的示例，用于演示用于日志处理的新Spark功能。这使得示例易于运行和学习，因为它们每次只涵盖一个新主题。最后，我们将一些这些示例组装起来，形成一个示例日志分析应用程序。
+这个项目被分成了几个部分，每个部分都有小巧的示例，用于演示用于日志处理的新 Spark 功能。这使得示例易于运行和学习，因为它们每次只涵盖一个新主题。最后，我们将一些这些示例组装起来，形成一个示例日志分析应用程序。
 
-### [第一节：介绍Apache Spark](index2.html)
+### 第一节：介绍 Apache Spark
 
-引入了Apache Spark库，以及Spark SQL和Spark Streaming。通过本章结束时，读者将知道如何调用转换和操作，并且如何使用RDD和DStreams。
+引入了 Apache Spark 库，以及 Spark SQL 和 Spark Streaming。通过本章结束时，读者将知道如何调用转换和操作，并且如何使用 RDD 和 DStreams。
 
-### [第二节：导入数据](index3.html)
+### 第二节：导入数据
 
-本节包括示例，以说明如何将数据输入Spark，并开始涵盖分布式计算的概念。这些示例都适用于数据集太大而无法在一台机器上处理的情况。 
+本节包括示例，以说明如何将数据输入 Spark，并开始涵盖分布式计算的概念。这些示例都适用于数据集太大而无法在一台机器上处理的情况。 
 
-### [第三节：导出数据](index4.html)
+### 第三节：导出数据
 
-本节包括示例，以说明如何从Spark中获取数据。再次强调了分布式计算环境的概念，并且这些示例适用于大型数据集。
+本节包括示例，以说明如何从 Spark 中获取数据。再次强调了分布式计算环境的概念，并且这些示例适用于大型数据集。
 
-### [第四节：日志分析器应用程序](index5.html)
+### 第四节：日志分析器应用程序
 
 本节汇集了其他章节中的一些代码，形成了一个示例日志分析应用程序。
 
@@ -30,29 +30,29 @@
 
 目前就这些，但随着时间的推移，肯定会有更多内容。
 
-# 第一节：介绍Apache Spark
+# 第一节：介绍 Apache Spark
 
-# 第一节：介绍Apache Spark
+# 第一节：介绍 Apache Spark
 
-在本节中，我们演示了使用Apache Spark分析网站日志有多么简单。我们将展示如何加载一个弹性分布式数据集（**RDD**）的访问日志行，并使用Spark转换和操作来计算一些用于Web服务器监视的统计信息。在此过程中，我们将介绍Spark SQL和Spark Streaming库。
+在本节中，我们演示了使用 Apache Spark 分析网站日志有多么简单。我们将展示如何加载一个弹性分布式数据集（**RDD**）的访问日志行，并使用 Spark 转换和操作来计算一些用于 Web 服务器监视的统计信息。在此过程中，我们将介绍 Spark SQL 和 Spark Streaming 库。
 
-在这个解释中，代码片段是用[Java 8](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/java8)编写的。然而，在这个目录中还包括[Java 6](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/java6)、[Scala](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/scala)和[Python](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/python)的示例代码。在这些文件夹中有关于如何构建和运行这些示例的README文件，以及带有所有必需依赖项的必要构建文件。
+在这个解释中，代码片段是用[Java 8](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/java8)编写的。然而，在这个目录中还包括[Java 6](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/java6)、[Scala](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/scala)和[Python](https://github.com/databricks/reference-apps/tree/master/logs_analyzer/chapter1/python)的示例代码。在这些文件夹中有关于如何构建和运行这些示例的 README 文件，以及带有所有必需依赖项的必要构建文件。
 
 本章涵盖以下主题：
 
-1.  [Spark中的第一个日志分析器](spark.html) - 这是第一个独立使用Spark进行日志分析的应用程序。
+1.  Spark 中的第一个日志分析器 - 这是第一个独立使用 Spark 进行日志分析的应用程序。
 
-1.  [Spark SQL](sql.html) - 这个示例与上面的示例做的事情相同，但是使用SQL语法而不是Spark的转换和操作。
+1.  Spark SQL - 这个示例与上面的示例做的事情相同，但是使用 SQL 语法而不是 Spark 的转换和操作。
 
-1.  [Spark Streaming](streaming.html) - 这个示例涵盖了如何使用流处理库计算日志统计信息。
+1.  Spark Streaming - 这个示例涵盖了如何使用流处理库计算日志统计信息。
 
-# Spark中的第一个日志分析器
+# Spark 中的第一个日志分析器
 
-# Spark中的第一个日志分析器
+# Spark 中的第一个日志分析器
 
-在开始本节之前，请先阅读[Spark快速入门](https://spark.apache.org/docs/latest/quick-start.html)并熟悉[Spark编程指南](https://spark.apache.org/docs/latest/programming-guide.html)。
+在开始本节之前，请先阅读[Spark 快速入门](https://spark.apache.org/docs/latest/quick-start.html)并熟悉[Spark 编程指南](https://spark.apache.org/docs/latest/programming-guide.html)。
 
-本节需要在maven文件中依赖Spark Core库 - 请根据您安装的Spark版本更新此依赖：
+本节需要在 maven 文件中依赖 Spark Core 库 - 请根据您安装的 Spark 版本更新此依赖：
 
 ```
 <dependency> <!-- Spark -->
@@ -64,15 +64,15 @@
 
 在我们开始之前，我们需要两样东西：
 
-+   **一个Apache访问日志文件**：如果有一个，使用真实数据会更有趣。
++   **一个 Apache 访问日志文件**：如果有一个，使用真实数据会更有趣。
 
-    +   这是提供的一个简单示例，位于[data/apache.access.log](../data/apache.accesslog)。
+    +   这是提供的一个简单示例，位于 data/apache.access.log。
 
-    +   或者在这里下载一个更好的示例：[http://www.monitorware.com/en/logsamples/apache.php](http://www.monitorware.com/en/logsamples/apache.php)
+    +   或者在这里下载一个更好的示例：[`www.monitorware.com/en/logsamples/apache.php`](http://www.monitorware.com/en/logsamples/apache.php)
 
-+   **日志文件的解析器和模型**：请参阅[ApacheAccessLog.java](ApacheAccessLog.java)。
++   **日志文件的解析器和模型**：请参阅 ApacheAccessLog.java。
 
-示例代码使用Apache访问日志文件，因为这是一个众所周知和常见的日志格式。如果您有另一种日志格式的数据，重写解析器将会很容易。
+示例代码使用 Apache 访问日志文件，因为这是一个众所周知和常见的日志格式。如果您有另一种日志格式的数据，重写解析器将会很容易。
 
 将计算以下统计信息：
 
@@ -80,13 +80,13 @@
 
 +   返回的响应代码计数。
 
-+   所有访问此服务器超过N次的IP地址。
++   所有访问此服务器超过 N 次的 IP 地址。
 
 +   请求次数最多的顶级端点。
 
-在运行[LogAnalyzer.java](LogAnalyzer.java)示例之前，让我们先仔细阅读代码。
+在运行 LogAnalyzer.java 示例之前，让我们先仔细阅读代码。
 
-一个简单Spark应用程序的主体如下。第一步是启动一个Spark上下文。然后Spark上下文可以从文本文件加载数据作为RDD，然后进行处理。最后，在退出函数之前，停止Spark上下文。
+一个简单 Spark 应用程序的主体如下。第一步是启动一个 Spark 上下文。然后 Spark 上下文可以从文本文件加载数据作为 RDD，然后进行处理。最后，在退出函数之前，停止 Spark 上下文。
 
 ```
 public class LogAnalyzer {
@@ -191,7 +191,7 @@ List<Tuple2<String, Long>> topEndpoints = accessLogs
 System.out.println("Top Endpoints: " + topEndpoints); 
 ```
 
-这些代码片段来自 [LogAnalyzer.java](LogAnalyzer.java)。现在我们已经浏览了代码，请尝试运行该示例。请查看 README 以获取特定语言的构建和运行说明。
+这些代码片段来自 LogAnalyzer.java。现在我们已经浏览了代码，请尝试运行该示例。请查看 README 以获取特定语言的构建和运行说明。
 
 # Spark SQL
 
@@ -236,7 +236,7 @@ public class LogAnalyzerSQL {
 } 
 ```
 
-接下来，我们需要一种方法将我们的日志数据注册到表中。在 Java 中，Spark SQL 可以根据标准的 Java POJO 推断表模式 - 使用像我们在 [ApacheAccessLog.java](ApacheAccessLog.java) 中所做的那样的 getter 和 setter。（注意：如果您使用的是除 Java 之外的其他语言，则 Spark 推断表模式的方式不同。此目录中的示例可以直接使用。或者您也可以参考 [Spark SQL 数据源指南](https://spark.apache.org/docs/latest/sql-programming-guide.html#data-sources) 了解更多详细信息。）
+接下来，我们需要一种方法将我们的日志数据注册到表中。在 Java 中，Spark SQL 可以根据标准的 Java POJO 推断表模式 - 使用像我们在 ApacheAccessLog.java 中所做的那样的 getter 和 setter。（注意：如果您使用的是除 Java 之外的其他语言，则 Spark 推断表模式的方式不同。此目录中的示例可以直接使用。或者您也可以参考 [Spark SQL 数据源指南](https://spark.apache.org/docs/latest/sql-programming-guide.html#data-sources) 了解更多详细信息。）
 
 ```
 JavaSchemaRDD schemaRDD = sqlContext.applySchema(accessLogs,
@@ -284,7 +284,7 @@ System.out.println(String.format("Top Endpoints: %s", topEndpoints));
 
 请注意，默认的 SQL 方言不允许将保留关键字用作别名。换句话说，`SELECT COUNT(*) AS count` 会导致错误，但 `SELECT COUNT(*) AS the_count` 可以正常运行。如果您使用 HiveQL 解析器，则应该能够将任何内容用作标识符。
 
-现在尝试运行 [LogAnalyzerSQL.java](LogAnalyzerSQL.java)。
+现在尝试运行 LogAnalyzerSQL.java。
 
 # Spark 流处理
 
@@ -304,7 +304,7 @@ System.out.println(String.format("Top Endpoints: %s", topEndpoints));
 
 之前的示例演示了如何在现有日志文件上计算统计信息 - 但没有演示如何实时监控日志。Spark 流处理使这种功能成为可能。
 
-要运行流处理示例，您将通过 `tail` 命令将日志文件发送到 `netcat` 以发送给 Spark。这不是在生产系统中将数据导入 Spark 的理想方式，但对于第一个 Spark 流处理示例来说，这是一个简单的解决方法。我们将在[第二章中介绍如何为 Spark 流处理导入数据的最佳实践](streaming1.html)。
+要运行流处理示例，您将通过 `tail` 命令将日志文件发送到 `netcat` 以发送给 Spark。这不是在生产系统中将数据导入 Spark 的理想方式，但对于第一个 Spark 流处理示例来说，这是一个简单的解决方法。我们将在第二章中介绍如何为 Spark 流处理导入数据的最佳实践。
 
 在终端窗口中，只需在您将追加到的日志文件上运行以下命令：
 
@@ -320,29 +320,29 @@ System.out.println(String.format("Top Endpoints: %s", topEndpoints));
 
 当数据流入 Spark 时，有两种常见的用例：
 
-1.  [窗口计算](windows.html) 意味着您只关心在最后 N 个时间段内收到的数据。在监视您的 Web 服务器时，也许您只关心过去一小时发生了什么。
+1.  窗口计算 意味着您只关心在最后 N 个时间段内收到的数据。在监视您的 Web 服务器时，也许您只关心过去一小时发生了什么。
 
     +   Spark 流处理方便地将输入数据拆分为所需的时间窗口以便进行简单处理，使用流处理库的 `window` 函数。
 
     +   `forEachRDD` 函数允许您访问每个时间间隔创建的 RDD。
 
-1.  [累积计算](total.html) 意味着您希望保留累积统计信息，同时流入新数据以刷新这些统计信息。在这种情况下，您需要维护这些统计信息的状态。
+1.  累积计算 意味着您希望保留累积统计信息，同时流入新数据以刷新这些统计信息。在这种情况下，您需要维护这些统计信息的状态。
 
-    +   Spark Streaming库具有一些方便的函数来维护状态以支持这种用例，`updateStateByKey`。
+    +   Spark Streaming 库具有一些方便的函数来维护状态以支持这种用例，`updateStateByKey`。
 
-1.  [从批处理中重用代码](reuse.html)介绍了如何从批处理示例中组织业务逻辑代码，以便在Spark Streaming中重用代码。
+1.  从批处理中重用代码介绍了如何从批处理示例中组织业务逻辑代码，以便在 Spark Streaming 中重用代码。
 
-    +   Spark Streaming库具有`transform`函数，允许您应用任意的RDD到RDD函数，从而重用Spark的批处理模式中的代码。
-
-# 窗口计算：window()
+    +   Spark Streaming 库具有`transform`函数，允许您应用任意的 RDD 到 RDD 函数，从而重用 Spark 的批处理模式中的代码。
 
 # 窗口计算：window()
 
-日志分析的典型用例是监视Web服务器，在这种情况下，您可能只对过去一小时发生的事情感兴趣，并希望这些统计信息每分钟刷新一次。一小时是*窗口长度*，而一分钟是*滑动间隔*。在此示例中，我们使用30秒的窗口长度和10秒的滑动间隔作为开发的舒适选择。
+# 窗口计算：window()
 
-Spark Streaming的窗口功能使得非常容易为一段时间内的窗口计算统计数据，使用`window`函数。
+日志分析的典型用例是监视 Web 服务器，在这种情况下，您可能只对过去一小时发生的事情感兴趣，并希望这些统计信息每分钟刷新一次。一小时是*窗口长度*，而一分钟是*滑动间隔*。在此示例中，我们使用 30 秒的窗口长度和 10 秒的滑动间隔作为开发的舒适选择。
 
-第一步是初始化SparkConf和context对象 - 特别是流上下文。请注意，从conf中只创建一个SparkContext，并且从这些上下文中创建流和SQL上下文。接下来，应编写主体。最后，示例调用`start()`在流上下文上，并调用`awaitTermination()`以保持流上下文运行并接受流输入。
+Spark Streaming 的窗口功能使得非常容易为一段时间内的窗口计算统计数据，使用`window`函数。
+
+第一步是初始化 SparkConf 和 context 对象 - 特别是流上下文。请注意，从 conf 中只创建一个 SparkContext，并且从这些上下文中创建流和 SQL 上下文。接下来，应编写主体。最后，示例调用`start()`在流上下文上，并调用`awaitTermination()`以保持流上下文运行并接受流输入。
 
 ```
 public class LogAnalyzerStreamingSQL {
@@ -365,28 +365,28 @@ public class LogAnalyzerStreamingSQL {
 } 
 ```
 
-主体的第一步是从读取套接字创建一个DStream。
+主体的第一步是从读取套接字创建一个 DStream。
 
 ```
 JavaReceiverInputDStream<String> logDataDStream =
     jssc.socketTextStream("localhost", 9999); 
 ```
 
-接下来，调用`map`转换将logDataDStream转换为ApacheAccessLog DStream。
+接下来，调用`map`转换将 logDataDStream 转换为 ApacheAccessLog DStream。
 
 ```
 JavaDStream<ApacheAccessLog> accessLogDStream =
     logDataDStream.map(ApacheAccessLog::parseFromLogLine).cache(); 
 ```
 
-接下来，在accessLogDStream上调用`window`以创建一个窗口化的DStream。`window`函数很好地打包正在流入RDD中的输入数据，其中包含一段时间的窗口长度数据，并且每隔SLIDE_INTERVAL时间创建一个新的RDD。
+接下来，在 accessLogDStream 上调用`window`以创建一个窗口化的 DStream。`window`函数很好地打包正在流入 RDD 中的输入数据，其中包含一段时间的窗口长度数据，并且每隔 SLIDE_INTERVAL 时间创建一个新的 RDD。
 
 ```
 JavaDStream<ApacheAccessLog> windowDStream =
     accessLogDStream.window(WINDOW_LENGTH, SLIDE_INTERVAL); 
 ```
 
-然后在windowDStream上调用`foreachRDD`。传递给`forEachRDD`的函数在windowDStream中每个新RDD创建时调用，因此每个*slide_interval*。传递给函数的RDD包含最后*window_length*时间内的所有输入。现在有了一个ApacheAccessLogs的RDD，只需从两个批处理示例（常规或SQL）中重用代码即可。在此示例中，代码只是复制并粘贴，但您可以将此代码重新整理到一个地方，以便在生产代码库中重用 - 您可以重用所有批处理代码以进行流处理！
+然后在 windowDStream 上调用`foreachRDD`。传递给`forEachRDD`的函数在 windowDStream 中每个新 RDD 创建时调用，因此每个*slide_interval*。传递给函数的 RDD 包含最后*window_length*时间内的所有输入。现在有了一个 ApacheAccessLogs 的 RDD，只需从两个批处理示例（常规或 SQL）中重用代码即可。在此示例中，代码只是复制并粘贴，但您可以将此代码重新整理到一个地方，以便在生产代码库中重用 - 您可以重用所有批处理代码以进行流处理！
 
 ```
 windowDStream.foreachRDD(accessLogs -> {
@@ -409,15 +409,15 @@ windowDStream.foreachRDD(accessLogs -> {
 } 
 ```
 
-现在我们已经浏览了代码，请立即运行[LogAnalyzerStreaming.java](LogAnalyzerStreaming.java)和/或[LogAnalyzerStreamingSQL.java](LogAnalyzerStreamingSQL.java)。在程序启动后，像之前解释的那样使用`cat`命令定期向日志文件添加数据。
+现在我们已经浏览了代码，请立即运行 LogAnalyzerStreaming.java 和/或 LogAnalyzerStreamingSQL.java。在程序启动后，像之前解释的那样使用`cat`命令定期向日志文件添加数据。
 
 # 累积计算：updateStateByKey()
 
 # 累积计算：updateStateByKey()
 
-要跟踪所有时间的日志统计信息，必须在处理RDD时在DStream中保持状态。
+要跟踪所有时间的日志统计信息，必须在处理 RDD 时在 DStream 中保持状态。
 
-为了维护键值对的状态，数据可能太大而无法在一台机器的内存中存储 - Spark Streaming可以为您维护状态。要实现这一点，调用Spark Streaming库的`updateStateByKey`函数。
+为了维护键值对的状态，数据可能太大而无法在一台机器的内存中存储 - Spark Streaming 可以为您维护状态。要实现这一点，调用 Spark Streaming 库的`updateStateByKey`函数。
 
 首先，为了使用`updateStateByKey`，必须在流上下文中启用检查点。只需在流上下文上调用`checkpoint`，并指定一个目录来写入检查点数据。以下是一个流应用程序的主要函数的一部分，将保存所有时间的状态：
 
@@ -450,7 +450,7 @@ private static final AtomicLong runningMin = new AtomicLong(Long.MAX_VALUE);
 private static final AtomicLong runningMax = new AtomicLong(Long.MIN_VALUE); 
 ```
 
-要更新这些值，首先在AccessLogDStream上调用map以检索contentSizeDStream。然后只需通过在contentSizeDstream上调用foreachRDD，并在RDD上调用操作来更新静态变量的值：
+要更新这些值，首先在 AccessLogDStream 上调用 map 以检索 contentSizeDStream。然后只需通过在 contentSizeDstream 上调用 foreachRDD，并在 RDD 上调用操作来更新静态变量的值：
 
 ```
 JavaDStream<Long> contentSizeDStream =
@@ -469,9 +469,9 @@ contentSizeDStream.foreachRDD(rdd -> {
 }); 
 ```
 
-对于其他统计信息，由于它们使用键值对，不能再使用静态变量。需要维护的状态量可能太大而无法在内存中存储。因此，对于这些统计信息，我们将使用`updateStateByKey`，因此Spark Streaming将为数据集中的每个键维护一个值。
+对于其他统计信息，由于它们使用键值对，不能再使用静态变量。需要维护的状态量可能太大而无法在内存中存储。因此，对于这些统计信息，我们将使用`updateStateByKey`，因此 Spark Streaming 将为数据集中的每个键维护一个值。
 
-但在调用`updateStateByKey`之前，我们需要创建一个传递给它的函数。`updateStateByKey`采用不同的reduce函数。虽然我们先前的sum reducer只接受两个值并输出它们的总和，但这个reduce函数接受一个当前值和一个值的迭代器，并输出一个新值。
+但在调用`updateStateByKey`之前，我们需要创建一个传递给它的函数。`updateStateByKey`采用不同的 reduce 函数。虽然我们先前的 sum reducer 只接受两个值并输出它们的总和，但这个 reduce 函数接受一个当前值和一个值的迭代器，并输出一个新值。
 
 ```
 private static Function2<List<Long>, Optional<Long>, Optional<Long>>
@@ -524,17 +524,17 @@ endpointCountsDStream.foreachRDD(rdd -> {
 }); 
 ```
 
-现在自己运行[LogAnalyzerStreamingTotal.java](LogAnalyzerStreamingTotal.java)。
+现在自己运行 LogAnalyzerStreamingTotal.java。
 
 # 从批处理中重用代码：transform()
 
 # 从批处理中重用代码：transform()
 
-正如您可能已经注意到的，虽然您在DStream上调用的函数与批处理示例中调用的函数同名，但它们并不是相同的方法，可能不清楚如何重用批处理示例中的代码。在本节中，我们重构批处理示例中的代码，并展示如何在此处重用它。
+正如您可能已经注意到的，虽然您在 DStream 上调用的函数与批处理示例中调用的函数同名，但它们并不是相同的方法，可能不清楚如何重用批处理示例中的代码。在本节中，我们重构批处理示例中的代码，并展示如何在此处重用它。
 
-DStreams具有`transform`函数，允许您调用任意RDD到RDD函数来处理DStream中的RDD。`transform`函数非常适合重用您可能已经编写的批处理代码中的任何RDD到RDD函数，并希望将其移植到流处理中。让我们看一些代码来说明这一点。
+DStreams 具有`transform`函数，允许您调用任意 RDD 到 RDD 函数来处理 DStream 中的 RDD。`transform`函数非常适合重用您可能已经编写的批处理代码中的任何 RDD 到 RDD 函数，并希望将其移植到流处理中。让我们看一些代码来说明这一点。
 
-假设我们从批处理示例中分离出一个名为`responseCodeCount`的函数，该函数可以根据apache访问日志RDD计算响应代码计数：
+假设我们从批处理示例中分离出一个名为`responseCodeCount`的函数，该函数可以根据 apache 访问日志 RDD 计算响应代码计数：
 
 ```
 public static JavaPairRDD<Integer, Long> responseCodeCount(
@@ -545,7 +545,7 @@ public static JavaPairRDD<Integer, Long> responseCodeCount(
 } 
 ```
 
-可以通过在accessLogDStream上调用`transformToPair`并使用`responseCodeCount`函数来创建responseCodeCountDStream。然后，通过调用`updateStateByKey`来持续计算所有时间��响应代码计数，并使用`forEachRDD`来打印值：
+可以通过在 accessLogDStream 上调用`transformToPair`并使用`responseCodeCount`函数来创建 responseCodeCountDStream。然后，通过调用`updateStateByKey`来持续计算所有时间��响应代码计数，并使用`forEachRDD`来打印值：
 
 ```
 // Compute Response Code to Count.
@@ -577,39 +577,39 @@ ipAddressesDStream.foreachRDD(rdd -> {
 }); 
 ```
 
-现在仔细查看[LogAnalyzerStreamingTotalRefactored.java](LogAnalyzerStreamingTotalRefactored.java)，看看代码是如何重构的，以便重用批处理示例中的代码。
+现在仔细查看 LogAnalyzerStreamingTotalRefactored.java，看看代码是如何重构的，以便重用批处理示例中的代码。
 
 # 第二部分：导入数据
 
 # 第二部分：导入数据
 
-在上一节中，我们讨论了如何开始使用Spark进行日志分析，但在这些示例中，数据只是从本地文件中拉取，统计数据被打印到标准输出中。在本章中，我们将介绍加载和导出适用于生产系统的数据的技术。特别是，这些技术必须能够扩展以处理大量的生产日志。
+在上一节中，我们讨论了如何开始使用 Spark 进行日志分析，但在这些示例中，数据只是从本地文件中拉取，统计数据被打印到标准输出中。在本章中，我们将介绍加载和导出适用于生产系统的数据的技术。特别是，这些技术必须能够扩展以处理大量的生产日志。
 
-为了扩展，Apache Spark旨在部署在一组机器的集群上。阅读[Spark集群概述指南](https://spark.apache.org/docs/latest/cluster-overview.html)，以便您了解Spark驱动程序与执行节点之间的区别。
+为了扩展，Apache Spark 旨在部署在一组机器的集群上。阅读[Spark 集群概述指南](https://spark.apache.org/docs/latest/cluster-overview.html)，以便您了解 Spark 驱动程序与执行节点之间的区别。
 
-虽然您可以继续在本地模式下运行示例，但建议您设置一个Spark集群来运行其余的示例，并练习与集群一起工作 - 比如熟悉集群的Web界面。您可以按照[Spark独立模式](https://spark.apache.org/docs/latest/spark-standalone.html)的说明在本地机器上运行一个小型集群。如果您有更多的机器访问权限 - 比如在AWS上或者您的组织有自己的数据中心，可以参考[集群概述指南](https://spark.apache.org/docs/latest/cluster-overview.html)进行设置。
+虽然您可以继续在本地模式下运行示例，但建议您设置一个 Spark 集群来运行其余的示例，并练习与集群一起工作 - 比如熟悉集群的 Web 界面。您可以按照[Spark 独立模式](https://spark.apache.org/docs/latest/spark-standalone.html)的说明在本地机器上运行一个小型集群。如果您有更多的机器访问权限 - 比如在 AWS 上或者您的组织有自己的数据中心，可以参考[集群概述指南](https://spark.apache.org/docs/latest/cluster-overview.html)进行设置。
 
-一旦您启动了一个Spark集群：
+一旦您启动了一个 Spark 集群：
 
-+   使用spark-submit运行您的作业，而不是使用JVM参数。运行上一章的示例之一来检查您的设置。
++   使用 spark-submit 运行您的作业，而不是使用 JVM 参数。运行上一章的示例之一来检查您的设置。
 
-+   浏览并熟悉Spark的Web界面。如果您设置了本地集群，它位于[http://localhost:8080](http://localhost:8080)。
++   浏览并熟悉 Spark 的 Web 界面。如果您设置了本地集群，它位于[`localhost:8080`](http://localhost:8080)。
 
-有两种将数据导入到Spark中的方式：
+有两种将数据导入到 Spark 中的方式：
 
-1.  [批量数据导入](batch.html) - 如果您一次性加载数据集。
+1.  批量数据导入 - 如果您一次性加载数据集。
 
-1.  [流式数据导入](streaming1.html) - 如果您希望持续将数据流入Spark。
+1.  流式数据导入 - 如果您希望持续将数据流入 Spark。
 
 # 批量导入
 
 # 批量数据导入
 
-本节涵盖了将数据批量导入到Apache Spark中，例如第1章中的非流式示例。这些示例一次性将数据从文件加载到一个RDD中，处理该RDD，作业完成后程序退出。在生产系统中，您可以设置一个cron作业，每晚启动一个批处理作业，处理昨天的日志文件，并发布昨天的统计信息。
+本节涵盖了将数据批量导入到 Apache Spark 中，例如第一章中的非流式示例。这些示例一次性将数据从文件加载到一个 RDD 中，处理该 RDD，作业完成后程序退出。在生产系统中，您可以设置一个 cron 作业，每晚启动一个批处理作业，处理昨天的日志文件，并发布昨天的统计信息。
 
-+   [从文件导入](importing_from_files.html) 涵盖了从文件导入数据时的注意事项。
++   从文件导入 涵盖了从文件导入数据时的注意事项。
 
-+   [从数据库导入](importing_from_databases.html) 链接到从数据库读取数据的示例。
++   从数据库导入 链接到从数据库读取数据的示例。
 
 # 从文件导入
 
@@ -623,13 +623,13 @@ ipAddressesDStream.foreachRDD(rdd -> {
 
 **HDFS** 和 **S3** 是用于大型数据集的出色文件系统 - 构建用于存储大量数据并使集群上的所有机器都能访问这些文件，同时仍具有容错性。我们提供了一些有关使用这些文件系统运行 Spark 的更多提示，因为它们被推荐使用。
 
-+   [S3](s3.html) 是亚马逊 AWS 提供的一种解决方案，用于在云中存储文件，任何注册账户的人都可以轻松访问。
++   S3 是亚马逊 AWS 提供的一种解决方案，用于在云中存储文件，任何注册账户的人都可以轻松访问。
 
-+   [HDFS](hdfs.html) 是 Hadoop 的一部分，是一种分布式文件系统，可以安装在您自己的数据中心。
++   HDFS 是 Hadoop 的一部分，是一种分布式文件系统，可以安装在您自己的数据中心。
 
 好消息是，无论您选择哪种文件系统，都可以运行相同的代码来从中读取 - 这些文件系统都是“Hadoop 兼容”的文件系统。
 
-在本节中，您应该尝试在您选择的任何文件系统上运行 [LogAnalyzerBatchImport.java](LogAnalyzerBatchImport.java)。这段代码没有什么新的内容 - 它只是对[第一章的第一个日志分析器](spark.html)的重构。尝试为 textFile 路径传入“*”或“?”，Spark 将读取所有与该模式匹配的文件以创建 RDD。
+在本节中，您应该尝试在您选择的任何文件系统上运行 LogAnalyzerBatchImport.java。这段代码没有什么新的内容 - 它只是对第一章的第一个日志分析器的重构。尝试为 textFile 路径传入“*”或“?”，Spark 将读取所有与该模式匹配的文件以创建 RDD。
 
 # S3
 
@@ -657,46 +657,46 @@ S3 是亚马逊网络服务用于在云中存储大型文件的解决方案。�
 
     +   创建并[下载您的安全凭证](https://console.aws.amazon.com/iam/home?#security_credential)
 
-    +   在您的集群上的所有机器上设置环境变量AWS_ACCESS_KEY_ID和AWS_SECRET_ACCESS_KEY为正确的值。这些也可以通过编程方式在您的SparkContext对象中设置，如下所示：
+    +   在您的集群上的所有机器上设置环境变量 AWS_ACCESS_KEY_ID 和 AWS_SECRET_ACCESS_KEY 为正确的值。这些也可以通过编程方式在您的 SparkContext 对象中设置，如下所示：
 
 ```
 jssc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", YOUR_ACCESS_KEY)
 jssc.hadoopConfiguration().set("fs.s3n.awsSecretAccessKey", YOUR_SECRET_KEY) 
 ```
 
-现在，运行[LogAnalyzerBatchImport.java](LogAnalyzerBatchImport.java)并传入您文件的s3n路径。
+现在，运行 LogAnalyzerBatchImport.java 并传入您文件的 s3n 路径。
 
 # HDFS
 
 # HDFS
 
-HDFS是一个用于存储大型数据集并具有容错能力的文件系统。在生产系统中，您的Spark集群理想情况下应该与您的Hadoop集群在同一台机器上，以便轻松读取文件。您在集群上运行的Spark二进制文件必须与您希望使用的HDFS版本编译相同。
+HDFS 是一个用于存储大型数据集并具有容错能力的文件系统。在生产系统中，您的 Spark 集群理想情况下应该与您的 Hadoop 集群在同一台机器上，以便轻松读取文件。您在集群上运行的 Spark 二进制文件必须与您希望使用的 HDFS 版本编译相同。
 
-安装HDFS的方法有很多种，但前往[Hadoop主页](http://hadoop.apache.org/)是一个开始并在本地机器上运行hdfs的方法。
+安装 HDFS 的方法有很多种，但前往[Hadoop 主页](http://hadoop.apache.org/)是一个开始并在本地机器上运行 hdfs 的方法。
 
-在您的hdfs目录上的任何文件模式上运行[LogAnalyzerBatchImport.java](LogAnalyzerBatchImport.java)。
+在您的 hdfs 目录上的任何文件模式上运行 LogAnalyzerBatchImport.java。
 
 # 从数据库导入
 
 # 从数据库中读取
 
-很可能，您不会将日志数据存储在数据库中（那可能太昂贵了），但可能有其他数据您想要输入到Spark中，这些数据存储在数据库中。也许这些数据可以与日志数据连接以提供更多信息。
+很可能，您不会将日志数据存储在数据库中（那可能太昂贵了），但可能有其他数据您想要输入到 Spark 中，这些数据存储在数据库中。也许这些数据可以与日志数据连接以提供更多信息。
 
 文件系统随着时间的推移而发展，数据库也是如此。
 
-一个简单的数据库起步是单个数据库 - SQL数据库非常常见。当数据库填满时，一个选择是为数据库购买更大的机器。这些更大的机器的价格变得越来越昂贵（甚至是每单位存储的价格），并且最终在某个时刻不再可能购买足够大的机器。一个常见的选择是切换到分片数据库。通过该选项，编写应用程序级代码来确定数据片段应该读取或写入到哪个数据库分片。
+一个简单的数据库起步是单个数据库 - SQL 数据库非常常见。当数据库填满时，一个选择是为数据库购买更大的机器。这些更大的机器的价格变得越来越昂贵（甚至是每单位存储的价格），并且最终在某个时刻不再可能购买足够大的机器。一个常见的选择是切换到分片数据库。通过该选项，编写应用程序级代码来确定数据片段应该读取或写入到哪个数据库分片。
 
-要从SQL数据库中读取数据，JdbcRDD是适中数据量的一种选择：
+要从 SQL 数据库中读取数据，JdbcRDD 是适中数据量的一种选择：
 
-+   [https://spark.apache.org/docs/0.8.1/api/core/org/apache/spark/rdd/JdbcRDD.html](https://spark.apache.org/docs/0.8.1/api/core/org/apache/spark/rdd/JdbcRDD.html)
++   [`spark.apache.org/docs/0.8.1/api/core/org/apache/spark/rdd/JdbcRDD.html`](https://spark.apache.org/docs/0.8.1/api/core/org/apache/spark/rdd/JdbcRDD.html)
 
-最近，数据库领域出现了一种向**NoSQL**或**键值**数据库发展的趋势，这些数据库旨在扩展。对于这些数据库，应用程序开发人员通常不会意识到底层数据库在多台机器上存储数据。**Cassandra**是一个非常流行的NoSQL数据库。
+最近，数据库领域出现了一种向**NoSQL**或**键值**数据库发展的趋势，这些数据库旨在扩展。对于这些数据库，应用程序开发人员通常不会意识到底层数据库在多台机器上存储数据。**Cassandra**是一个非常流行的 NoSQL 数据库。
 
-要从Cassandra读取数据到Spark，请参阅Spark Cassandra连接器：
+要从 Cassandra 读取数据到 Spark，请参阅 Spark Cassandra 连接器：
 
-+   [https://github.com/datastax/spark-cassandra-connector](https://github.com/datastax/spark-cassandra-connector)
++   [`github.com/datastax/spark-cassandra-connector`](https://github.com/datastax/spark-cassandra-connector)
 
-如果您使用不同的数据库，Spark可能具有用于从该数据库导入的内置库，但更常见的是第三方提供Spark集成 - 因此请搜索。
+如果您使用不同的数据库，Spark 可能具有用于从该数据库导入的内置库，但更常见的是第三方提供 Spark 集成 - 因此请搜索。
 
 通常，从数据库中读取少量数据比读取大量数据要容易得多。了解您的数据库和 Spark 的分布式编程模型对于编写导入非常大数据集的最佳代码非常重要。
 
@@ -706,9 +706,9 @@ HDFS是一个用于存储大型数据集并具有容错能力的文件系统。�
 
 本节涵盖了用于流式处理的数据导入。前一章的流式处理示例通过单个套接字接收数据 - 这不是可扩展的解决方案。在一个真正的生产系统中，有许多服务器不断地写入日志，并且我们希望处理所有这些文件。本节包含用于数据导入的可扩展解决方案。由于现在使用了流式处理，所以不再需要每晚的批处理作业来处理日志，而是 - 此日志处理程序可以长时间运行 - 持续接收新的日志数据，处理数据并计算日志统计信息。
 
-1.  [流式导入的内置方法](built_in.html)
+1.  流式导入的内置方法
 
-1.  [Kafka](kafka.html)
+1.  Kafka
 
 # 流式导入的内置方法
 
@@ -722,7 +722,7 @@ StreamingContext 有许多用于导入流数据的内置方法。 `socketTextStr
 JavaDStream<String> logData = jssc.textFileStream(directory); 
 ```
 
-尝试运行 [LogAnalyzerStreamingImportDirectory.java](LogAnalyzerStreamingImportDirectory.java) 并指定一个目录。在程序运行时，您还需要删除或复制一些新的日志文件到该目录中，以查看计算值更新。
+尝试运行 LogAnalyzerStreamingImportDirectory.java 并指定一个目录。在程序运行时，您还需要删除或复制一些新的日志文件到该目录中，以查看计算值更新。
 
 流式处理有更多的内置输入方法 - 在 StreamingContext 的参考 API 文档中查看它们。
 
@@ -738,23 +738,23 @@ JavaDStream<String> logData = jssc.textFileStream(directory);
 
 +   [Spark 项目的外部模块 KafkaUtils 类](https://github.com/apache/spark/blob/master/external/kafka/src/main/scala/org/apache/spark/streaming/kafka/KafkaUtils.scala) - 这是已编写的从 Kafka 导入数据到 Spark Streaming 的外部模块。
 
-+   [使用Kafka的Spark Streaming示例](https://github.com/apache/spark/blob/master/examples/src/main/java/org/apache/spark/examples/streaming/JavaKafkaWordCount.java) - 这是一个演示如何调用KafkaUtils的示例。
++   [使用 Kafka 的 Spark Streaming 示例](https://github.com/apache/spark/blob/master/examples/src/main/java/org/apache/spark/examples/streaming/JavaKafkaWordCount.java) - 这是一个演示如何调用 KafkaUtils 的示例。
 
-# 第3节：导出数据
+# 第 3 节：导出数据
 
-## 从Spark导出数据
+## 从 Spark 导出数据
 
-这一部分包含将数据从Spark导出到系统的方法。首先，您需要确定您的输出数据是小的（意味着可以适合一个机器的内存）还是大的（太大而无法适合一个机器的内存）。根据您的用例，请参考这两个部分。
+这一部分包含将数据从 Spark 导出到系统的方法。首先，您需要确定您的输出数据是小的（意味着可以适合一个机器的内存）还是大的（太大而无法适合一个机器的内存）。根据您的用例，请参考这两个部分。
 
-+   [小数据集](small.html) - 如果您有一个小数据集，您可以对该数据集调用一个操作，以在驱动程序内存中检索对象，然后以任何您想要的方式写出这些对象。
++   小数据集 - 如果您有一个小数据集，您可以对该数据集调用一个操作，以在驱动程序内存中检索对象，然后以任何您想要的方式写出这些对象。
 
-+   [大数据集](large.html) - 对于大数据集，重要的是要记住这个数据集太大，无法适合驱动程序内存。在这种情况下，您可以要么调用Spark直接从Spark工作节点将数据写入文件，要么实现您自己的自定义解决方案。
++   大数据集 - 对于大数据集，重要的是要记住这个数据集太大，无法适合驱动程序内存。在这种情况下，您可以要么调用 Spark 直接从 Spark 工作节点将数据写入文件，要么实现您自己的自定义解决方案。
 
 # 小数据集
 
 # 导出小数据集
 
-如果您要从Spark导出的数据很小，您可以使用一个操作将RDD转换为驱动程序内存中的对象，然后直接将该输出写入您选择的任何数据存储解决方案。您可能记得我们调用了`take(N)`操作，其中N是某个有限数字，而不是`collect()`操作，以确保输出适合内存 - 无论输入数据集有多大 - 这是一个好的做法。本节将演示代码，您将把日志统计数据写入文件。
+如果您要从 Spark 导出的数据很小，您可以使用一个操作将 RDD 转换为驱动程序内存中的对象，然后直接将该输出写入您选择的任何数据存储解决方案。您可能记得我们调用了`take(N)`操作，其中 N 是某个有限数字，而不是`collect()`操作，以确保输出适合内存 - 无论输入数据集有多大 - 这是一个好的做法。本节将演示代码，您将把日志统计数据写入文件。
 
 将这些统计数据输出到文件可能并不那么有用 - 在实践中，您可能会将这些统计数据写入数据库，以便您的展示层访问。
 
@@ -785,25 +785,25 @@ out.write(String.format("Top Endpoints: %s\n", topEndpoints));
 out.close(); 
 ```
 
-现在，运行[LogAnalyzerExportSmallData.java](java8/src/main/java/com/databricks/apps/logs/chapter2/LogAnalyzerExportSmallData.java)。尝试修改它以将数据写入您选择的数据库。
+现在，运行 LogAnalyzerExportSmallData.java。尝试修改它以将数据写入您选择的数据库。
 
 # 大数据集
 
 # 导出大数据集
 
-如果您要导出一个非常大的数据集，您不能调用`collect()`或类似的操作将所有数据从RDD读取到单个驱动程序中 - 这可能会触发内存不足的问题。相反，您必须小心保存大型RDD。请参阅这两个部分以获取更多信息。
+如果您要导出一个非常大的数据集，您不能调用`collect()`或类似的操作将所有数据从 RDD 读取到单个驱动程序中 - 这可能会触发内存不足的问题。相反，您必须小心保存大型 RDD。请参阅这两个部分以获取更多信息。
 
-+   [将RDD保存到文件](save_the_rdd_to_files.html) - Spark中有内置方法可将大型RDD保存到文件中。
++   将 RDD 保存到文件 - Spark 中有内置方法可将大型 RDD 保存到文件中。
 
-+   [将RDD保存到数据库](save_an_rdd_to_a_database.html) - 本节包含将大型RDD保存到数据库的推荐最佳实践。
++   将 RDD 保存到数据库 - 本节包含将大型 RDD 保存到数据库的推荐最佳实践。
 
-# 将RDD保存到文件
+# 将 RDD 保存到文件
 
-# 将RDD保存到文件
+# 将 RDD 保存到文件
 
-RDD具有一些内置方法可将它们保存到磁盘。一旦保存到文件中，许多Hadoop数据库可以直接从文件中批量加载数据，只要它们符合特定格式。
+RDD 具有一些内置方法可将它们保存到磁盘。一旦保存到文件中，许多 Hadoop 数据库可以直接从文件中批量加载数据，只要它们符合特定格式。
 
-在以下代码示例中，我们演示了简单的`.saveAsTextFile()`方法。这将把数据写入简单的文本文件，其中对每个RDD元素调用了`.toString()`方法，并且每行写入一个元素。输出文件的数量等于要保存的RDD的分区数。在此示例中，RDD被重新分区以控制输出文件的数量。
+在以下代码示例中，我们演示了简单的`.saveAsTextFile()`方法。这将把数据写入简单的文本文件，其中对每个 RDD 元素调用了`.toString()`方法，并且每行写入一个元素。输出文件的数量等于要保存的 RDD 的分区数。在此示例中，RDD 被重新分区以控制输出文件的数量。
 
 ```
 public class LogAnalyzerExportRDD {
@@ -832,19 +832,19 @@ public class LogAnalyzerExportRDD {
 } 
 ```
 
-现在运行[LogAnalyzerExportRDD.java](java8/src/main/java/com/databricks/apps/logs/chapter2/LogAnalyzerExportRDD.java)。注意输出文件的数量与RDD的分区数相同。
+现在运行 LogAnalyzerExportRDD.java。注意输出文件的数量与 RDD 的分区数相同。
 
-参考API文档以了解其他用于保存文件的内置方法。有不同的内置方法可用于将RDD保存到各种格式的文件中，因此请浏览整个RDD包，看看是否有适合您需求的内容。
+参考 API 文档以了解其他用于保存文件的内置方法。有不同的内置方法可用于将 RDD 保存到各种格式的文件中，因此请浏览整个 RDD 包，看看是否有适合您需求的内容。
 
-[Sqoop](http://http://sqoop.apache.org/)是一个非常有用的工具，可以将Hadoop文件导入各种数据库，因此非常适合用于将数据从Spark写入文件到生产数据库中。
+[Sqoop](http://http://sqoop.apache.org/)是一个非常有用的工具，可以将 Hadoop 文件导入各种数据库，因此非常适合用于将数据从 Spark 写入文件到生产数据库中。
 
-# 将RDD保存到数据库
+# 将 RDD 保存到数据库
 
-# 将RDD保存到数据库
+# 将 RDD 保存到数据库
 
-您可以编写自己的自定义写入器，并在您的RDD上调用转换以将每个元素写入您选择的数据库，但有很多方法可以编写看起来可以工作但在分布式环境中效果不佳的东西。以下是一些需要注意的事项：
+您可以编写自己的自定义写入器，并在您的 RDD 上调用转换以将每个元素写入您选择的数据库，但有很多方法可以编写看起来可以工作但在分布式环境中效果不佳的东西。以下是一些需要注意的事项：
 
-+   一个常见的天真错误是在Spark驱动程序上打开连接，然后尝试在Spark工作节点上使用该连接。连接应该在Spark工作节点上打开，例如通过调用`forEachPartition`并在该函数内部打开连接。
++   一个常见的天真错误是在 Spark 驱动程序上打开连接，然后尝试在 Spark 工作节点上使用该连接。连接应该在 Spark 工作节点上打开，例如通过调用`forEachPartition`并在该函数内部打开连接。
 
 +   使用分区控制写入数据存储的并行性。您的数据存储可能不支持太多并发连接。
 
@@ -852,24 +852,24 @@ public class LogAnalyzerExportRDD {
 
 +   确保您的写入机制对故障具有弹性。写出非常大的数据集可能需要很长时间，这增加了出现问题的机会 - 网络故障等。
 
-+   考虑在Spark工作节点上利用静态数据库连接池。
++   考虑在 Spark 工作节点上利用静态数据库连接池。
 
-+   如果您要写入分片数据存储，请将RDD分区以匹配您的分片策略。这样，您的每个Spark工作节点只连接到一个数据库分片，而不是每个Spark工作节点连接到每个数据库分片。
++   如果您要写入分片数据存储，请将 RDD 分区以匹配您的分片策略。这样，您的每个 Spark 工作节点只连接到一个数据库分片，而不是每个 Spark 工作节点连接到每个数据库分片。
 
-在写出大量数据时要谨慎，并确保您了解Spark的分布式特性！
+在写出大量数据时要谨慎，并确保您了解 Spark 的分布式特性！
 
-# 第4节：日志分析器应用程序
+# 第 4 节：日志分析器应用程序
 
 # 日志分析器应用程序
 
-该目录包含来自各章节的代码，组合在一起形成一个示例日志分析器应用程序。已经使用了其他未讨论的库，使其成为一个更完整的应用程序。这是我们的MVP（最小可行产品）日志分析器应用程序的功能：
+该目录包含来自各章节的代码，组合在一起形成一个示例日志分析器应用程序。已经使用了其他未讨论的库，使其成为一个更完整的应用程序。这是我们的 MVP（最小可行产品）日志分析器应用程序的功能：
 
-+   从目录中读取新的日志文件，并将这些新文件输入到Spark Streaming中。
++   从目录中读取新的日志文件，并将这些新文件输入到 Spark Streaming 中。
 
-+   使用Spark对日志进行统计 - 统计最近30秒的数据以及全部时间的数据。
++   使用 Spark 对日志进行统计 - 统计最近 30 秒的数据以及全部时间的数据。
 
-+   将计算出的统计数据写入本地文件系统上的一个html文件中，并在一定时间间隔内刷新。
++   将计算出的统计数据写入本地文件系统上的一个 html 文件中，并在一定时间间隔内刷新。
 
-![日志分析 MVP 应用程序](app_diagram.png)
+![日志分析 MVP 应用程序](img/app_diagram.png)
 
-你可以使用这个简单的应用程序作为框架，并结合各章节的功能来制作自己定制的日志分析应用程序。主要类是[LogAnalyzerAppMain.java](LogAnalyzerAppMain.java)。
+你可以使用这个简单的应用程序作为框架，并结合各章节的功能来制作自己定制的日志分析应用程序。主要类是 LogAnalyzerAppMain.java。

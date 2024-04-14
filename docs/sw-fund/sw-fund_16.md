@@ -1,4 +1,4 @@
-# 从Coq中提取ML
+# 从 Coq 中提取 ML
 
 ```
 
@@ -19,7 +19,7 @@
 
 ```
 
-提取语言Ocaml。
+提取语言 Ocaml。
 
 ```
 
@@ -54,11 +54,11 @@ Extraction "imp1.ml" ceval_step.
 
 # 控制特定类型的提取
 
-    我们可以告诉Coq将某些归纳定义提取到
+    我们可以告诉 Coq 将某些归纳定义提取到
 
-    特定的OCaml类型。对于每一个，我们必须说明
+    特定的 OCaml 类型。对于每一个，我们必须说明
 
-+   Coq类型本身在OCaml中应该如何表示，以及
++   Coq 类型本身在 OCaml 中应该如何表示，以及
 
 +   每个构造函数应如何翻译。
 
@@ -81,7 +81,7 @@ Extract Inductive nat ⇒ "int"
 
 ```
 
-    我们还可以将定义的常量提取为特定的OCaml术语或
+    我们还可以将定义的常量提取为特定的 OCaml 术语或
 
     运算符。
 
@@ -116,9 +116,9 @@ Extraction "imp2.ml" ceval_step.
 
 # 一个完整的例子
 
-    要使用我们提取的评估器运行Imp程序，我们只需要
+    要使用我们提取的评估器运行 Imp 程序，我们只需要
 
-    add是一个调用评估器并打印的小型驱动程序
+    add 是一个调用评估器并打印的小型驱动程序
 
     输出结果。
 
@@ -128,11 +128,11 @@ Extraction "imp2.ml" ceval_step.
 
     此外，为了更容易输入示例，让我们提取一个
 
-    从ImpParser Coq模块中提取解析器。为此，我们需要一些
+    从 ImpParser Coq 模块中提取解析器。为此，我们需要一些
 
-    设置Coq之间正确对应的魔术声明
+    设置 Coq 之间正确对应的魔术声明
 
-    OCaml字符的字符串和列表。
+    OCaml 字符的字符串和列表。
 
 ```
 Require Import Ascii String.
@@ -165,7 +165,7 @@ Extraction "imp.ml" empty_state ceval_step parse.
 
 ```
 
-    现在让我们运行生成的Imp评估器。首先，看一看
+    现在让我们运行生成的 Imp 评估器。首先，看一看
 
     impdriver.ml。（这是手写的，而不是提取的。）
 
@@ -179,7 +179,7 @@ Extraction "imp.ml" empty_state ceval_step parse.
 
 ```
 
-    （ocamlc的-w标志只是为了抑制一些
+    （ocamlc 的-w 标志只是为了抑制一些
 
     不必要的警告。）
 

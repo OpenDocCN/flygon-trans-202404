@@ -1,8 +1,8 @@
-# 装饰类型以实现io.Reader接口
+# 装饰类型以实现 io.Reader 接口
 
-## 装饰类型以实现io.Reader接口
+## 装饰类型以实现 io.Reader 接口
 
-[io包](https://golang.org/pkg/io/)提供了一堆方便的读取函数和方法，但不幸的是，它们都要求参数满足[io.Reader](https://golang.org/pkg/io/#Reader)接口。看下面的例子：
+[io 包](https://golang.org/pkg/io/)提供了一堆方便的读取函数和方法，但不幸的是，它们都要求参数满足[io.Reader](https://golang.org/pkg/io/#Reader)接口。看下面的例子：
 
 ```
 package main

@@ -1,6 +1,6 @@
 # Web 和数据库编程
 
-## 2014年5月15日 - CS240H
+## 2014 年 5 月 15 日 - CS240H
 
 ## 在我们开始之前…
 
@@ -54,7 +54,7 @@
 
     +   像“Java Servlet Container”、“J2EE”、“Enterprise Java Beans”、“POJO”这样的术语
 
-    +   每个人在90年代末/21世纪初都有一个非常糟糕的经历
+    +   每个人在 90 年代末/21 世纪初都有一个非常糟糕的经历
 
     +   Java 仍然是主要的服务器端语言，例如 Google、Amazon
 
@@ -158,7 +158,7 @@ map (* 42) myarr
     type Application = ...
     ```
 
-模板代码：[http://cs240h.scs.stanford.edu/Application.hs](Application.hs)
+模板代码：`cs240h.scs.stanford.edu/Application.hs`
 
 ## 在 Haskell 中建模 Web 应用程序
 

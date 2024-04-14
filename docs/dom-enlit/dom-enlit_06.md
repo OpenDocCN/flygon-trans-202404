@@ -19,7 +19,7 @@
 
 上述 HTML 代码在被浏览器解析时创建了一个包含以树形式结构化的节点的文档（即 DOM）。下面我使用 Opera 的 Dragonfly DOM 检查器展示了上述 HTML 文档的树结构。
 
-![](../Images/c1sec1.png)
+![](img/c1sec1.png)
 
 在左侧你可以看到 HTML 文档的树形式。右侧是表示左侧选定元素的相应 JavaScript 对象。例如，被突出显示为蓝色的选定*<body>*元素是一个元素节点，是*HTMLBodyElement*接口的一个实例。
 
@@ -47,7 +47,7 @@ DOM 最初是用于 XML 文档的应用程序编程接口，已经扩展用于 H
 
 我已经列出了上面的节点类型，格式化为全大写，单词之间用下划线分隔，与 JavaScript 浏览器环境中的*Node*对象的常量属性写法完全一致。这些*Node*属性是常量值，用于存储映射到特定节点对象类型的数值代码值。例如，在下面的代码示例中，*Node.ELEMENT_NODE* 等于*1*。而*1*是用于标识元素节点的代码值。
 
-实时代码：[http://jsfiddle.net/domenlightenment/BAVrs](http://jsfiddle.net/domenlightenment/BAVrs)
+实时代码：[`jsfiddle.net/domenlightenment/BAVrs`](http://jsfiddle.net/domenlightenment/BAVrs)
 
 ```
 <!DOCTYPE html>
@@ -65,7 +65,7 @@ console.log(Node.ELEMENT_NODE) *//logs 1, one is the numeric code value for elem
 
 在下面的代码中，我记录了所有节点类型及其值。
 
-实时代码：[http://jsfiddle.net/domenlightenment/YcXGD](http://jsfiddle.net/domenlightenment/YcXGD)
+实时代码：[`jsfiddle.net/domenlightenment/YcXGD`](http://jsfiddle.net/domenlightenment/YcXGD)
 
 ```
 <!DOCTYPE html>
@@ -124,17 +124,17 @@ DOM 规范在语义上将节点标记为 *Node*、*Element*、*Text*、*Attr* �
 
 *ATTRIBUTE_NODE* 实际上不是树的一部分，但出于历史原因列出。在本书中，我没有提供有关属性节点的章节，而是在 *Element* 节点章节中讨论它们，因为属性节点是元素节点的子节点，不参与实际的 DOM 树结构。请注意，ATTRIBUTE_NODE 在 DOM 4 中已被弃用。
 
-我在本书中没有详细介绍*COMMENT_NODE*，但你应该知道HTML文档中的注释是*Comment*节点，类似于*Text*节点。
+我在本书中没有详细介绍*COMMENT_NODE*，但你应该知道 HTML 文档中的注释是*Comment*节点，类似于*Text*节点。
 
-在本书中讨论节点时，我很少使用*nodeType*名称（例如*ELEMENT_NODE*）来引用特定节点。这是为了与W3C和WHATWG提供的规范中使用的措辞保持一致。
+在本书中讨论节点时，我很少使用*nodeType*名称（例如*ELEMENT_NODE*）来引用特定节点。这是为了与 W3C 和 WHATWG 提供的规范中使用的措辞保持一致。
 
 ## 1.3 子节点对象从*Node*对象继承
 
-典型DOM树中的每个节点对象都从*Node*继承属性和方法。根据文档中节点的类型，还有其他扩展*Node*对象的子节点对象/接口。下面我详细描述了浏览器为最常见的节点接口实现的继承模型（<表示继承自）。
+典型 DOM 树中的每个节点对象都从*Node*继承属性和方法。根据文档中节点的类型，还有其他扩展*Node*对象的子节点对象/接口。下面我详细描述了浏览器为最常见的节点接口实现的继承模型（<表示继承自）。
 
 +   *Object* < *Node* <  *Element* < *HTMLElement* < （例如*HTMLElement*）
 
-+   *Object* <*Node* <  *Attr*（在DOM 4��已弃用）
++   *Object* <*Node* <  *Attr*（在 DOM 4��已弃用）
 
 +   *Object* <*Node* <  *CharacterData* <  *Text*
 
@@ -146,11 +146,11 @@ DOM 规范在语义上将节点标记为 *Node*、*Element*、*Text*、*Attr* �
 
 ### 注意
 
-*Node*只是一个JavaScript构造函数。因此，逻辑上*Node*像JavaScript中的所有对象一样继承自*Object.prototype*。
+*Node*只是一个 JavaScript 构造函数。因此，逻辑上*Node*像 JavaScript 中的所有对象一样继承自*Object.prototype*。
 
 为了验证所有节点类型都从*Node*对象继承属性和方法，让我们循环遍历一个*Element*节点对象并检查其属性和方法（包括继承的）。
 
-实时代码：[http://jsfiddle.net/domenlightenment/6ukxe/](http://jsfiddle.net/domenlightenment/6ukxe)
+实时代码：[`jsfiddle.net/domenlightenment/6ukxe/`](http://jsfiddle.net/domenlightenment/6ukxe)
 
 ```
 <!DOCTYPE html>
@@ -180,21 +180,21 @@ console.log(props.sort());
 
 ```
 
-如果在Web浏览器中运行上述代码，你将看到一个长长的属性列表，这些属性可用于元素节点对象。从*Node*对象继承的属性和方法在此列表中，以及从*Element*、*HTMLElement*、*HTMLAnchorElement*、*Node*和*Object*对象继承的许多其他属性和方法。现在不是检查所有这些属性和方法的时候，而只是简单指出所有节点从其构造函数继承一组基线属性和方法，以及从原型链继承的属性。
+如果在 Web 浏览器中运行上述代码，你将看到一个长长的属性列表，这些属性可用于元素节点对象。从*Node*对象继承的属性和方法在此列表中，以及从*Element*、*HTMLElement*、*HTMLAnchorElement*、*Node*和*Object*对象继承的许多其他属性和方法。现在不是检查所有这些属性和方法的时候，而只是简单指出所有节点从其构造函数继承一组基线属性和方法，以及从原型链继承的属性。
 
-如果你更喜欢视觉学习者，可以考虑通过使用Opera的DOM检查器检查上述HTML文档来表示继承链。
+如果你更喜欢视觉学习者，可以考虑通过使用 Opera 的 DOM 检查器检查上述 HTML 文档来表示继承链。
 
-![](../Images/c1sec3.png)
+![](img/c1sec3.png)
 
 注意锚节点继承自*HTMLAnchorElement*、*HTMLElement*、*Element*、*Node*和*Object*，所有这些都在灰色背景突出显示的属性列表中。这种继承链为所有节点类型提供了大量共享的方法和属性。
 
 ### 注意
 
-你可以扩展DOM。但是扩展宿主对象可能不是一个[好主意](http://perfectionkills.com/whats-wrong-with-extending-the-dom/)。
+你可以扩展 DOM。但是扩展宿主对象可能不是一个[好主意](http://perfectionkills.com/whats-wrong-with-extending-the-dom/)。
 
 ## 1.4 用于操作节点的属性和方法
 
-正如我们一直讨论的，所有节点对象（例如*Element*、*Attr*、*Text*等）都继承自主要的*Node*对象的属性和方法。这些属性和方法是操作、检查和遍历DOM的基线值和函数。除了节点接口提供的属性和方法之外，还有许多其他相关的属性和方法由子节点接口（如*document*、*HTMLElement*或*HTML*Element*接口）提供。
+正如我们一直讨论的，所有节点对象（例如*Element*、*Attr*、*Text*等）都继承自主要的*Node*对象的属性和方法。这些属性和方法是操作、检查和遍历 DOM 的基线值和函数。除了节点接口提供的属性和方法之外，还有许多其他相关的属性和方法由子节点接口（如*document*、*HTMLElement*或*HTML*Element*接口）提供。
 
 下面我列出了所有节点对象继承的最常见的*Node*属性和方法，包括用于处理来自子节点接口的节点的相关继承属性。
 
@@ -266,7 +266,7 @@ HTML *元素属性：
 
 +   *children*
 
-HTML元素方法：
+HTML 元素方法：
 
 +   *insertAdjacentHTML()*
 
@@ -274,9 +274,9 @@ HTML元素方法：
 
 每个节点都有一个继承自*Node*的*nodeType*和*nodeName*属性。例如，*Text*节点的*nodeType*代码为*3*，*nodeName*值为*'#text'*。如前所述，数字值*3*是表示节点代表的底层对象类型的数字代码（即*Node.TEXT_NODE === 3*）。
 
-下面详细说明了本书讨论的节点对象的*nodeType*和*nodeName*返回的值。对于更常见的节点，简单地记住这些数字代码是有意义的，因为我们只处理5个数字代码。
+下面详细说明了本书讨论的节点对象的*nodeType*和*nodeName*返回的值。对于更常见的节点，简单地记住这些数字代码是有意义的，因为我们只处理 5 个数字代码。
 
-实时代码：[http://jsfiddle.net/domenlightenment/8EwNu](http://jsfiddle.net/domenlightenment/8EwNu)
+实时代码：[`jsfiddle.net/domenlightenment/8EwNu`](http://jsfiddle.net/domenlightenment/8EwNu)
 
 ```
 <!DOCTYPE html>
@@ -316,9 +316,9 @@ console.log(
 </html>**** 
 ```
 
-***如果不明显，确定节点是否属于某种类型的最快方法是简单地检查其*nodeType*属性。下面我们检查锚元素是否具有节点编号1。如果是，那么我们可以得出结论它是一个*Element*节点，因为*Node.ELEMENT_NODE === 1*。
+***如果不明显，确定节点是否属于某种类型的最快方法是简单地检查其*nodeType*属性。下面我们检查锚元素是否具有节点编号 1。如果是，那么我们可以得出结论它是一个*Element*节点，因为*Node.ELEMENT_NODE === 1*。
 
-实时代码：[http://jsfiddle.net/domenlightenment/ydzWL](http://jsfiddle.net/domenlightenment/ydzWL)
+实时代码：[`jsfiddle.net/domenlightenment/ydzWL`](http://jsfiddle.net/domenlightenment/ydzWL)
 
 ```
 <!DOCTYPE html>
@@ -345,13 +345,13 @@ console.log(document.querySelector('a').nodeType === Node.ELEMENT_NODE); *//logs
 
 ### 注意
 
-*nodeName*属性返回的值根据节点类型而变化。查看[DOM 4规范](http://www.w3.org/TR/dom/#dom-node-nodename)以获取详细信息。
+*nodeName*属性返回的值根据节点类型而变化。查看[DOM 4 规范](http://www.w3.org/TR/dom/#dom-node-nodename)以获取详细信息。
 
 ## 1.6 获取节点的值
 
 *nodeValue*属性对大多数节点类型（除了*Text*和*Comment*）返回*null*。它的用途集中在从*Text*和*Comment*节点中提取实际文本字符串。在下面的代码中，我演示了它在本书中讨论的所有节点上的用法。
 
-实时代码：[http://jsfiddle.net/domenlightenment/LNyA4](http://jsfiddle.net/domenlightenment/LNyA4)
+实时代码：[`jsfiddle.net/domenlightenment/LNyA4`](http://jsfiddle.net/domenlightenment/LNyA4)
 
 ```
 <!DOCTYPE html>
@@ -378,9 +378,9 @@ console.log(**document.querySelector('a').firstChild.nodeValue**); ***//logs 'Hi
 
 *Text*或*Comment*节点的值可以通过为*nodeValue*属性提供新的字符串值来设置（即*document.body.firstElementChild.nodeValue = 'hi'*）。
 
-## 1.7 使用JavaScript方法创建元素和文本节点
+## 1.7 使用 JavaScript 方法创建元素和文本节点
 
-当浏览器解析HTML文档时，它根据HTML文件的内容构造节点和树。浏览器处理HTML文档的初始加载时的节点创建。但是，可以使用JavaScript创建自己的节点。以下两种方法允许我们使用JavaScript编程方式创建*Element*和*Text*节点。
+当浏览器解析 HTML 文档时，它根据 HTML 文件的内容构造节点和树。浏览器处理 HTML 文档的初始加载时的节点创建。但是，可以使用 JavaScript 创建自己的节点。以下两种方法允许我们使用 JavaScript 编程方式创建*Element*和*Text*节点。
 
 +   *createElement()*
 
@@ -388,7 +388,7 @@ console.log(**document.querySelector('a').firstChild.nodeValue**); ***//logs 'Hi
 
 还有其他方法可用，但通常不常用（例如*createAttribute()*和*createComment()*）。在下面的代码中，我展示了创建元素和文本节点是多么简单。
 
-实时代码：[http://jsfiddle.net/domenlightenment/Vj2Tc](http://jsfiddle.net/domenlightenment/Vj2Tc)
+实时代码：[`jsfiddle.net/domenlightenment/Vj2Tc`](http://jsfiddle.net/domenlightenment/Vj2Tc)
 
 ```
 <!DOCTYPE html>
@@ -418,13 +418,13 @@ console.log(textNode, textNode.nodeType); *//logs Text {} 3, and 3 indicates a t
 
 您应该知道，有一个*createComment()*方法可用于创建注释节点。虽然本书没有讨论它，但对于发现其用途有价值的开发人员来说，它是完全可用的。
 
-## 1.8 使用JavaScript字符串创建和添加元素和文本节点到DOM
+## 1.8 使用 JavaScript 字符串创建和添加元素和文本节点到 DOM
 
-*innerHTML*、*outerHTML*、*textContent*和*insertAdjacentHTML()*属性和方法提供了使用JavaScript字符串创建和添加节点到DOM的功能。
+*innerHTML*、*outerHTML*、*textContent*和*insertAdjacentHTML()*属性和方法提供了使用 JavaScript 字符串创建和添加节点到 DOM 的功能。
 
-在下面的代码中，我们使用*innerHTML*、*outerHTML*和*textContent*属性，从JavaScript字符串创建节点，然后立即将其添加到DOM中。
+在下面的代码中，我们使用*innerHTML*、*outerHTML*和*textContent*属性，从 JavaScript 字符串创建节点，然后立即将其添加到 DOM 中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/UrNT3](http://jsfiddle.net/domenlightenment/UrNT3)
+实时代码：[`jsfiddle.net/domenlightenment/UrNT3`](http://jsfiddle.net/domenlightenment/UrNT3)
 
 ```
 <!DOCTYPE html>
@@ -473,7 +473,7 @@ real!
 
 *insertAdjacentHTML()* 方法仅适用于*Element*节点，比先前提到的方法更加精确。使用这种方法，可以在开始标签之前、开始标签之后、结束标签之前和结束标签之后插入节点。下面我使用*insertAdjacentHTML()*方法构造一个句子。
 
-实时代码：[http://jsfiddle.net/domenlightenment/tvpA6](http://jsfiddle.net/domenlightenment/tvpA6)
+实时代码：[`jsfiddle.net/domenlightenment/tvpA6`](http://jsfiddle.net/domenlightenment/tvpA6)
 
 ```
 <!DOCTYPE html>
@@ -502,15 +502,15 @@ console.log(document.body.innerHTML);
 
 ### 笔记
 
-*innerHTML*属性将字符串中找到的html元素转换为实际的DOM节点，而*textContent*只能用于构建文本节点。如果你向*textContent*传递包含html元素的字符串，它将简单地将其输出为文本。
+*innerHTML*属性将字符串中找到的 html 元素转换为实际的 DOM 节点，而*textContent*只能用于构建文本节点。如果你向*textContent*传递包含 html 元素的字符串，它将简单地将其输出为文本。
 
-*document.write()*也可以用于同时创建和添加节点到DOM。然而，除非需要完成第三方脚本任务，否则通常不再使用它。基本上，*write()*方法会在页面加载/解析期间将传递给它的值输出到页面上。您应该知道使用*write()*方法会阻止正在加载的html文档的解析。
+*document.write()*也可以用于同时创建和添加节点到 DOM。然而，除非需要完成第三方脚本任务，否则通常不再使用它。基本上，*write()*方法会在页面加载/解析期间将传递给它的值输出到页面上。您应该知道使用*write()*方法会阻止正在加载的 html 文档的解析。
 
-*innerHTML*调用了一个复杂且昂贵的HTML解析器，而文本节点生成是微不足道的，因此要谨慎使用innerHTML及其相关方法
+*innerHTML*调用了一个复杂且昂贵的 HTML 解析器，而文本节点生成是微不足道的，因此要谨慎使用 innerHTML 及其相关方法
 
-*insertAdjacentHTML*选项"beforebegin"和"afterend"只有在节点在DOM树中并且有父元素时才会起作用。
+*insertAdjacentHTML*选项"beforebegin"和"afterend"只有在节点在 DOM 树中并且有父元素时才会起作用。
 
-直到版本11，火狐浏览器才原生支持*outerHTML*。有一个[兼容性解决方案](https://gist.github.com/1044128)。
+直到版本 11，火狐浏览器才原生支持*outerHTML*。有一个[兼容性解决方案](https://gist.github.com/1044128)。
 
 *textContent*获取所有元素的内容，包括*<script>*和*<style>*元素，而*innerText*不会
 
@@ -518,11 +518,11 @@ console.log(document.body.innerHTML);
 
 除了火狐浏览器之外，所有现代浏览器都支持*insertAdjacentElement()*和*insertAdjacentText()*
 
-## 1.9 提取DOM树的部分作为JavaScript字符串
+## 1.9 提取 DOM 树的部分作为 JavaScript 字符串
 
-我们用于创建和添加节点到DOM的完全相同的属性（*innerHTML*、*outerHTML*、*textContent*）也可以用于提取DOM的部分（或者实际上整个DOM）作为JavaScript字符串。在下面的代码示例中，我使用这些属性返回一个包含HTML文档中文本和html值的字符串值。
+我们用于创建和添加节点到 DOM 的完全相同的属性（*innerHTML*、*outerHTML*、*textContent*）也可以用于提取 DOM 的部分（或者实际上整个 DOM）作为 JavaScript 字符串。在下面的代码示例中，我使用这些属性返回一个包含 HTML 文档中文本和 html 值的字符串值。
 
-实时代码：[http://jsfiddle.net/domenlightenment/mMYWc](http://jsfiddle.net/domenlightenment/mMYWc)
+实时代码：[`jsfiddle.net/domenlightenment/mMYWc`](http://jsfiddle.net/domenlightenment/mMYWc)
 
 ```
 <!DOCTYPE html>
@@ -555,13 +555,13 @@ console.log(document.getElementById('B').outerText); *//logs 'Dude !'​*​
 
 ### 笔记
 
-当读取*textContent*、*innerText*、*outerText*属性时，将返回所选节点中包含的所有文本节点。因此，例如（实际上不是一个好主意），*document.body.textContent*将获取包含在body元素中的所有文本节点，而不仅仅是第一个文本节点。
+当读取*textContent*、*innerText*、*outerText*属性时，将返回所选节点中包含的所有文本节点。因此，例如（实际上不是一个好主意），*document.body.textContent*将获取包含在 body 元素中的所有文本节点，而不仅仅是第一个文本节点。
 
-## 1.10 使用*appendChild()*和*insertBefore()*向DOM添加节点对象
+## 1.10 使用*appendChild()*和*insertBefore()*向 DOM 添加节点对象
 
 *appendChild()*和*insertBefore()* *Node*方法允许我们将 JavaScript 节点对象插入 DOM 树中。*appendChild()*方法将节点追加到调用该方法的节点的子节点的末尾。如果没有子节点，则被追加的节点将作为第一个子节点追加。例如，在下面的代码中，我们创建了一个元素节点（*<strong>*）和文本节点（*Dude*）。然后从 DOM 中选择了*<p>*，并使用*appendChild()*追加了我们的*<strong>*元素。注意，*<strong>*元素被封装在*<p>*元素内，并作为最后一个子节点添加。接下来选择*<strong>*元素，并将文本*'Dude'*追加到*<strong>*元素中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/HxjFt](http://jsfiddle.net/domenlightenment/HxjFt)
+实时代码：[`jsfiddle.net/domenlightenment/HxjFt`](http://jsfiddle.net/domenlightenment/HxjFt)
 
 ```
 <!DOCTYPE html>
@@ -591,7 +591,7 @@ console.log(document.body.innerHTML);
 
 当需要控制插入位置超出将节点追加到节点子列表末尾时，可以使用*insertBefore()*。在下面的代码中，我在*<ul>*元素的第一个子节点之前插入了*<li>*元素。
 
-实时代码：[http://jsfiddle.net/domenlightenment/UmkME](http://jsfiddle.net/domenlightenment/UmkME)
+实时代码：[`jsfiddle.net/domenlightenment/UmkME`](http://jsfiddle.net/domenlightenment/UmkME)
 
 ```
 <!DOCTYPE html>
@@ -645,7 +645,7 @@ console.log(document.body.innerHTML);
 
 从 DOM 中移除节点是一个多步骤的过程。首先你需要选择要移除的节点。然后通常使用*parentNode*属性获得其父元素的访问权限。在父节点上调用*removeChild()*方法，传递要移除的节点的引用。下面我演示了如何在元素节点和文本节点上使用它。
 
-实时代码：[http://jsfiddle.net/domenlightenment/VDZgP](http://jsfiddle.net/domenlightenment/VDZgP)
+实时代码：[`jsfiddle.net/domenlightenment/VDZgP`](http://jsfiddle.net/domenlightenment/VDZgP)
 
 ```
 <!DOCTYPE html>
@@ -676,7 +676,7 @@ console.log(document.body.innerHTML);
 
 替换元素或文本节点与移除类似。在下面的代码中，我使用了前一个代码示例中使用的相同的 HTML 结构，但这次我使用*replaceChild()*来更新节点而不是移除它们。
 
-实时代码：[http://jsfiddle.net/domenlightenment/zgE8M](http://jsfiddle.net/domenlightenment/zgE8M)
+实时代码：[`jsfiddle.net/domenlightenment/zgE8M`](http://jsfiddle.net/domenlightenment/zgE8M)
 
 ```
 <!DOCTYPE html>
@@ -714,7 +714,7 @@ console.log(document.body.innerHTML);
 
 *replaceChild()*和*removeChild()*都会返回被替换或移除的节点。基本上，它并没有因为你替换或移除而消失。这只是将其从当前实时文档中取出。你仍然在内存中有对它的引用。
 
-我们在DOM 4中还有[更多方法](http://www.w3.org/TR/dom/#mutation-methods)（例如*replace()*、*remove()*）可以期待。
+我们在 DOM 4 中还有[更多方法](http://www.w3.org/TR/dom/#mutation-methods)（例如*replace()*、*remove()*）可以期待。
 
 ## 1.12 使用*cloneNode()*克隆节点
 
@@ -722,7 +722,7 @@ console.log(document.body.innerHTML);
 
 在下面的代码中，我仅克隆了*<ul>*（即*HTMLUListElement*），一旦克隆，它就可以像任何节点引用一样对待。
 
-实时代码：[http://jsfiddle.net/domenlightenment/6DHgC](http://jsfiddle.net/domenlightenment/6DHgC)
+实时代码：[`jsfiddle.net/domenlightenment/6DHgC`](http://jsfiddle.net/domenlightenment/6DHgC)
 
 ```
 <!DOCTYPE html>
@@ -749,7 +749,7 @@ console.log(cloneUL.innerHTML); *//logs (an empty string) as only the ul was clo
 
 要克隆节点及其所有子节点，你需要向*cloneNode()*方法传递一个*true*参数。下面我再次使用*cloneNode()*方法，但这次我们也克隆了所有子节点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/EyFEC](http://jsfiddle.net/domenlightenment/EyFEC)
+实时代码：[`jsfiddle.net/domenlightenment/EyFEC`](http://jsfiddle.net/domenlightenment/EyFEC)
 
 ```
 <!DOCTYPE html>
@@ -776,15 +776,15 @@ console.log(cloneUL.innerHTML); *//logs <li>Hi</li><li>there</li>*
 
 ### 注
 
-当克隆*Element*节点时，所有属性和值也会被克隆。事实上，只有属性被复制！当克隆时，任何你可以添加到DOM节点的东西（例如事件处理程序）都会丢失。
+当克隆*Element*节点时，所有属性和值也会被克隆。事实上，只有属性被复制！当克隆时，任何你可以添加到 DOM 节点的东西（例如事件处理程序）都会丢失。
 
 你可能认为使用*cloneNode(true)*克隆节点及其子节点会返回一个*NodeList*，但事实上并不是这样。
 
-使用*cloneNode()*可能会导致文档中出现重复的元素ID。
+使用*cloneNode()*可能会导致文档中出现重复的元素 ID。
 
 ## 1.13 理解节点集合（即*Nodelist*和*HTMLcollection*）
 
-当从树中选择节点组（在第3章中讨论）或访问预定义节点集时，节点要么放置在[*NodeList*](http://www.w3.org/TR/dom/#nodelist)（例如*document.querySelectorAll('*')*）中，要么放置在[*HTMLCollection*](http://www.w3.org/TR/dom/#htmlcollection)（例如*document.scripts*）中。这些类似数组（即不是真正的*Array*）的对象集合具有以下特点。
+当从树中选择节点组（在第三章中讨论）或访问预定义节点集时，节点要么放置在[*NodeList*](http://www.w3.org/TR/dom/#nodelist)（例如*document.querySelectorAll('*')*）中，要么放置在[*HTMLCollection*](http://www.w3.org/TR/dom/#htmlcollection)（例如*document.scripts*）中。这些类似数组（即不是真正的*Array*）的对象集合具有以下特点。
 
 +   集合可以是实时的或静态的。这意味着集合中包含的节点要么是实时文档的一部分，要么是实时文档的快照。
 
@@ -796,7 +796,7 @@ console.log(cloneUL.innerHTML); *//logs <li>Hi</li><li>there</li>*
 
 使用*childNodes*属性会产生一个类似数组的列表（即[NodeList](https://developer.mozilla.org/En/DOM/NodeList)），包含了直接子节点。下面我选择了*<ul>*元素，然后使用它来创建包含在*<ul>*中的所有直接子节点的列表。
 
-实时代码：[http://jsfiddle.net/domenlightenment/amDev](http://jsfiddle.net/domenlightenment/amDev)
+实时代码：[`jsfiddle.net/domenlightenment/amDev`](http://jsfiddle.net/domenlightenment/amDev)
 
 ```
 <!DOCTYPE html>
@@ -837,7 +837,7 @@ Array.prototype.forEach.call(ulElementChildNodes,function(item){
 
 节点列表和 HTML 集合类似于数组，但不是真正的 JavaScript 数组，它们不继承数组方法。在下面的代码中，我们使用 *isArray()* 来程序确认这一点。
 
-实时代码：[http://jsfiddle.net/domenlightenment/n53Xk](http://jsfiddle.net/domenlightenment/n53Xk)
+实时代码：[`jsfiddle.net/domenlightenment/n53Xk`](http://jsfiddle.net/domenlightenment/n53Xk)
 
 ```
 <!DOCTYPE html>
@@ -865,7 +865,7 @@ console.log(Array.isArray(document.querySelectorAll('a'))); *//returns false, it
 
 要将类似数组的列表转换为真正的 JavaScript 数组，请将类似数组的列表传递给 *call()* 或 *apply()*，其中 *call()* 或 *apply()* 调用返回一个未改变的真正的 JavaScript 数组。在下面的代码中，我使用了 *.slice()* 方法，它实际上并没有切片任何东西，我只是用它来将列表转换为 JavaScript *Array*，因为 *slice()* 返回一个数组。
 
-实时代码：[http://jsfiddle.net/domenlightenment/jHgTY](http://jsfiddle.net/domenlightenment/jHgTY)
+实时代码：[`jsfiddle.net/domenlightenment/jHgTY`](http://jsfiddle.net/domenlightenment/jHgTY)
 
 ```
 <!DOCTYPE html>
@@ -905,7 +905,7 @@ console.log(Array.isArray(Array.prototype.slice.call(document.querySelectorAll('
 
 在下面的代码示例中，我们检查提供 DOM 遍历功能的 *Node* 属性。
 
-实时代码：[http://jsfiddle.net/domenlightenment/Hvfhv](http://jsfiddle.net/domenlightenment/Hvfhv)
+实时代码：[`jsfiddle.net/domenlightenment/Hvfhv`](http://jsfiddle.net/domenlightenment/Hvfhv)
 
 ```
 <!DOCTYPE html>
@@ -957,7 +957,7 @@ console.log(ul.querySelector('#B').**previousSibling**.nodeName); *//logs text*
 
 再次查看我们的代码示例，只使用元素遍历方法。
 
-实时代码：[http://jsfiddle.net/domenlightenment/Wh7nf](http://jsfiddle.net/domenlightenment/Wh7nf)
+实时代码：[`jsfiddle.net/domenlightenment/Wh7nf`](http://jsfiddle.net/domenlightenment/Wh7nf)
 
 ```
 <!DOCTYPE html>
@@ -997,7 +997,7 @@ console.log(ul.children); **//HTMLCollection, all child nodes including text nod
 
 可以使用 *contains()* *Node* 方法知道一个节点是否包含在另一个节点中。在下面的代码中，我询问 *<body>* 是否包含在 *<html lang="en">* 中。
 
-实时代码：[http://jsfiddle.net/domenlightenment/ENU4w](http://jsfiddle.net/domenlightenment/)
+实时代码：[`jsfiddle.net/domenlightenment/ENU4w`](http://jsfiddle.net/domenlightenment/)
 
 ```
 <!DOCTYPE html>
@@ -1048,7 +1048,7 @@ console.log(inside); *//logs true*
 
 在 DOM 中对节点调用 *.isEqualNode()* 方法将询问该节点是否等于您传递的节点。下面我展示了两个相同节点和两个不同节点的情况。
 
-在线代码：[http://jsfiddle.net/domenlightenment/xw68Q](http://jsfiddle.net/domenlightenment/xw68Q)
+在线代码：[`jsfiddle.net/domenlightenment/xw68Q`](http://jsfiddle.net/domenlightenment/xw68Q)
 
 ```
 <!DOCTYPE html>

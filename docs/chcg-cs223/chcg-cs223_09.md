@@ -130,4 +130,4 @@ T 1 1 (T 1 2 (T 1 3 E E) E) E : LeftistHeaps.Heap
 
 #### 必需
 
-+   Okasaki，第3.1章
++   Okasaki，第 3.1 章

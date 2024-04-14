@@ -50,7 +50,7 @@ stream$.subscribe((orders) => {
 Rx.Observable.of() 
 ```
 
-它执行适当的 `ajax()` 调用，就像在 [运算符和 Ajax](operators-and-ajax.html) 中一样
+它执行适当的 `ajax()` 调用，就像在 运算符和 Ajax 中一样
 
 ## 半依赖
 
@@ -90,4 +90,4 @@ stream$.subscribe((result) => {
 
 ## 坑
 
-我们使用 `switchMap()` 而不是 `flatMap()`，这样我们就可以在必要时放弃一个 ajax 调用，这在 [自动完成配方](recipes.html) 中会更有意义
+我们使用 `switchMap()` 而不是 `flatMap()`，这样我们就可以在必要时放弃一个 ajax 调用，这在 自动完成配方 中会更有意义

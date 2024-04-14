@@ -1,18 +1,18 @@
 # Sass
 
-# 添加libsass
+# 添加 libsass
 
-Sass及其端口libsass是领先的CSS预处理器，功能最丰富。但将libsass与JavaScript社区中的其他工具区分开的一点是，它不是用JavaScript编写的。实际上，它是用C/C++编写的。因此，相同的库可移植到几乎任何可以编写包装器的语言中。到目前为止，最受欢迎的包装器是`node-sass`。
+Sass 及其端口 libsass 是领先的 CSS 预处理器，功能最丰富。但将 libsass 与 JavaScript 社区中的其他工具区分开的一点是，它不是用 JavaScript 编写的。实际上，它是用 C/C++编写的。因此，相同的库可移植到几乎任何可以编写包装器的语言中。到目前为止，最受欢迎的包装器是`node-sass`。
 
 所有这些并不真的重要。唯一重要的是，这意味着我们需要经历一些额外的，尽管极其简单的设置步骤。
 
-## 首先，让我们安装Node-Sass：
+## 首先，让我们安装 Node-Sass：
 
 ```
 $ npm install --save node-sass 
 ```
 
-这将安装Sass的Node包装器和C/C++ libsass库。接下来，为了使Grunt能够使用该库，我们需要添加Grunt-Sass包。
+这将安装 Sass 的 Node 包装器和 C/C++ libsass 库。接下来，为了使 Grunt 能够使用该库，我们需要添加 Grunt-Sass 包。
 
 ```
 $ npm install grunt-sass --save 
@@ -37,9 +37,9 @@ module.exports = function(grunt) {
 }; 
 ```
 
-在`files:`对象中，您将列出输出CSS的路径，然后是输入SCSS文件的路径。
+在`files:`对象中，您将列出输出 CSS 的路径，然后是输入 SCSS 文件的路径。
 
-## 添加Sass
+## 添加 Sass
 
 要使其运行，我们需要添加`sass`目录并在其中放入`style.scss`文件。在项目的根目录中：
 
@@ -53,7 +53,7 @@ $ mkdir sass
 $ touch style.scss 
 ```
 
-并添加以下Sass以便我们知道这个功能正常工作：
+并添加以下 Sass 以便我们知道这个功能正常工作：
 
 ```
 $color: orange;
@@ -63,6 +63,6 @@ body {
 } 
 ```
 
-## 运行Grunt
+## 运行 Grunt
 
-在这一点上，我们已经准备好运行`grunt`命令并处理一些Sass了。
+在这一点上，我们已经准备好运行`grunt`命令并处理一些 Sass 了。

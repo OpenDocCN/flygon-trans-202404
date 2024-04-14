@@ -1,4 +1,4 @@
-# 第8章 语法扩展
+# 第八章 语法扩展
 
 *语法扩展*，或*宏*，用于简化和规范程序中重复模式，引入具有新评估规则的语法形式，并执行有助于使程序更高效的转换。
 
@@ -8,9 +8,9 @@
 
 语法扩展在评估开始时（在编译或解释之前）由语法*扩展器*展开为核心形式。如果扩展器遇到语法扩展，它会调用相关的转换器来展开语法扩展，然后对转换器返回的形式重复展开过程。如果扩展器遇到核心语法形式，它会递归处理子形式（如果有的话），并从展开的子形式重构形式。在展开过程中保留有关标识符绑定的信息，以强制变量和关键字的词法作用域。
 
-本章描述的语法扩展机制是“syntax-case”系统的一部分。支持库和顶层程序的可移植实现可在[http://www.cs.indiana.edu/syntax-case/](http://www.cs.indiana.edu/syntax-case/)找到。有关系统背后动机和实现的描述可在文章“Scheme中的语法抽象”[[12](bibliography.html#g230)]中找到。尚未标准化的其他功能，包括`modules`、本地`import`和元定义，可在*Chez Scheme用户指南*[[9](bibliography.html#g227)]中找到。
+本章描述的语法扩展机制是“syntax-case”系统的一部分。支持库和顶层程序的可移植实现可在[`www.cs.indiana.edu/syntax-case/`](http://www.cs.indiana.edu/syntax-case/)找到。有关系统背后动机和实现的描述可在文章“Scheme 中的语法抽象”[12]中找到。尚未标准化的其他功能，包括`modules`、本地`import`和元定义，可在*Chez Scheme 用户指南*[9]中找到。
 
-### 第8.1节 关键字绑定
+### 第 8.1 节 关键字绑定
 
 本节描述了在关键字和转换器之间建立绑定的形式。关键字绑定可以在顶层程序或库体中使用`define-syntax`以及在任何局部范围内使用`define-syntax`、`let-syntax`或`letrec-syntax`来建立。
 
@@ -20,7 +20,7 @@
 
 `*expr*`必须评估为一个转换器。
 
-以下示例将`let*`定义为一个语法扩展，使用`syntax-rules`指定转换器（参见第[8.2](syntax.html#g135)节）。
+以下示例将`let*`定义为一个语法扩展，使用`syntax-rules`指定转换器（参见第 8.2 节）。
 
 `(define-syntax let*
 
@@ -96,7 +96,7 @@ x)`
 
 [(_ x) (f x)])])
 
-(list (f 1) (g 1)))) ![<graphic>](ch2_0.gif) (1 2)
+(list (f 1) (g 1)))) ![<graphic>](img/ch2_0.gif) (1 2)
 
 (let ([f (lambda (x) (+ x 1))])
 
@@ -108,13 +108,13 @@ x)`
 
 [(_ x) (f x)])])
 
-(list (f 1) (g 1)))) ![<graphic>](ch2_0.gif) (1 1)`
+(list (f 1) (g 1)))) ![<graphic>](img/ch2_0.gif) (1 1)`
 
 两个表达式除了第一个表达式中的`let-syntax`形式是第二个表达式中的`letrec-syntax`形式外完全相同。在第一个表达式中，`g`中的`f`指的是`let`绑定的变量`f`，而在第二个表达式中，它指的是由`letrec-syntax`形式建立的关键字`f`。
 
-### 第8.2节。语法规则变换器
+### 第 8.2 节。语法规则变换器
 
-本节描述的`syntax-rules`形式允许以方便的方式指定简单的变换器。这些变换器可以使用第8.1节描述的机制绑定到关键字。虽然它比第8.3节描述的机制要不太表达，但它足以定义许多常见的语法扩展。
+本节描述的`syntax-rules`形式允许以方便的方式指定简单的变换器。这些变换器可以使用第 8.1 节描述的机制绑定到关键字。虽然它比第 8.3 节描述的机制要不太表达，但它足以定义许多常见的语法扩展。
 
 **语法：** `(syntax-rules (*literal* ...) *clause* ...)`
 
@@ -134,15 +134,15 @@ x)`
 
 +   `*P*`是一个下划线或模式变量，
 
-+   `*P*`是一个字面量标识符，而`*F*`是一个具有相同绑定的标识符，由谓词`free-identifier=?`（第8.3节）确定，
++   `*P*`是一个字面量标识符，而`*F*`是一个具有相同绑定的标识符，由谓词`free-identifier=?`（第 8.3 节）确定，
 
 +   `*P*`的形式为`(*P[1]* ... *P[n]*)`，而`*F*`是匹配`*P[1]*`到`*P[n]*`的*n*个元素的列表，
 
-+   `*P*`的形式为`(*P[1]* ... *P[n]* . *P[x]*)`，而`*F*`是一个包含*n*个或更多元素的列表或不完整列表，其前*n*个元素匹配`*P[1]*`到`*P[n]*`，而第*n*个cdr匹配`*P[x]*`，
++   `*P*`的形式为`(*P[1]* ... *P[n]* . *P[x]*)`，而`*F*`是一个包含*n*个或更多元素的列表或不完整列表，其前*n*个元素匹配`*P[1]*`到`*P[n]*`，而第*n*个 cdr 匹配`*P[x]*`，
 
 +   `*P*`的形式为`(*P[1]* ... *P[k]* *P[e]* *ellipsis* *P[*m*+1]* ... *P[n]*)`，其中`*ellipsis*`是标识符`...`，而`*F*`是一个包含*n*个元素的正确列表，其前*k*个元素匹配`*P[1]*`到`*P[k]*`，接下来的*m* - *k*个元素每个匹配`*P[e]*`，其余的*n* - *m*个元素匹配`*P[*m*+1]*`到`*P[n]*`，
 
-+   `*P*`的形式为`(*P[1]* ... *P[k]* *P[e]* *ellipsis* *P[*m*+1]* ... *P[n]* . *P[x]*)`，其中`*ellipsis*`是标识符`...`，而`*F*`是一个包含*n*个元素的列表或不完整列表，其前*k*个元素匹配`*P[1]*`到`*P[k]*`，接下来的*m* - *k*个元素分别匹配`*P[e]*`，接下来的*n* - *m*个元素匹配`*P[*m*+1]*`到`*P[n]*`，而第*n*个和最后一个cdr匹配`*P[x]*`，
++   `*P*`的形式为`(*P[1]* ... *P[k]* *P[e]* *ellipsis* *P[*m*+1]* ... *P[n]* . *P[x]*)`，其中`*ellipsis*`是标识符`...`，而`*F*`是一个包含*n*个元素的列表或不完整列表，其前*k*个元素匹配`*P[1]*`到`*P[k]*`，接下来的*m* - *k*个元素分别匹配`*P[e]*`，接下来的*n* - *m*个元素匹配`*P[*m*+1]*`到`*P[n]*`，而第*n*个和最后一个 cdr 匹配`*P[x]*`，
 
 +   `*P*`的形式为`#(*P[1]* ... *P[n]*)`，而`*F*`是一个包含*n*个元素的向量，其前*n*个元素匹配`*P[1]*`到`*P[n]*`，
 
@@ -150,7 +150,7 @@ x)`
 
 +   `*P*`是一个模式数据（任何非列表、非向量、非符号对象），而`*F*`在`equal?`过程的意义上等于`*P*`。
 
-`syntax-rules` `*pattern*`的最外层结构实际上必须是上述列表结构形式之一，尽管模式的子模式可以是上述任何形式。此外，最外层模式的第一个元素被忽略，因为它总是被假定为命名语法形式的关键字。（这些声明不适用于`syntax-case`；请参见第[8.3](syntax.html#g136)节。）
+`syntax-rules` `*pattern*`的最外层结构实际上必须是上述列表结构形式之一，尽管模式的子模式可以是上述任何形式。此外，最外层模式的第一个元素被忽略，因为它总是被假定为命名语法形式的关键字。（这些声明不适用于`syntax-case`；请参见第 8.3 节。）
 
 如果传递给`syntax-rules`转换器的输入表单与给定子句的模式匹配，则接受该子句，并根据关联模板指定的方式转换表单。在进行此转换时，出现在模式中的模式变量将绑定到相应的输入子表单。在一个或多个省略号后面的子模式中出现的模式变量可以绑定到零个或多个输入子表单的序列或序列。
 
@@ -182,7 +182,7 @@ x)`
 
 (let ([t 'okay])
 
-(或者 如果 t))) ![<graphic>](ch2_0.gif) 好的`
+(或者 如果 t))) ![<graphic>](img/ch2_0.gif) 好的`
 
 在扩展过程中，此表达式被转换为下面表达式的等价形式。
 
@@ -198,7 +198,7 @@ if1))
 
 '好))
 
-#f) ![<graphic>](ch2_0.gif) 好`
+#f) ![<graphic>](img/ch2_0.gif) 好`
 
 在这个示例扩展中，`if1`、`t1` 和 `t2` 代表原始表达式中的 `if` 和 `t`，以及 `or` 的扩展中的 `t` 已被重命名的标识符。
 
@@ -238,7 +238,7 @@ if1))
 
 (define-syntax a (identifier-syntax car))
 
-(list (a '(1 2 3)) a)) ![<graphic>](ch2_0.gif) (1 #<procedure>)`
+(list (a '(1 2 3)) a)) ![<graphic>](img/ch2_0.gif) (1 #<procedure>)`
 
 使用 `identifier-syntax` 的第一种形式，将关联关键字与 `set!` 的表面赋值是一个语法违例。`identifier-syntax` 的第二种更一般的形式允许变换器指定在使用 `set!` 时发生的情况。
 
@@ -256,9 +256,9 @@ if1))
 
 (set! a 1)
 
-(list before a ls))) ![<graphic>](ch2_0.gif) (0 1 (1))`
+(list before a ls))) ![<graphic>](img/ch2_0.gif) (0 1 (1))`
 
-`identifier-syntax` 的定义以 `make-variable-transformer` 的形式显示在第 [307](syntax.html#defn:identifier-syntax) 页。
+`identifier-syntax` 的定义以 `make-variable-transformer` 的形式显示在第 307 页。
 
 ### 第 8.3 节。语法-Case 变换器
 
@@ -292,7 +292,7 @@ if1))
 
 (*pattern* *fender* *output-expression*)`
 
-`syntax-case` 模式可以采用 [8.2](syntax.html#g135) 节中描述的任何形式。
+`syntax-case` 模式可以采用 8.2 节中描述的任何形式。
 
 `syntax-case` 首先评估 `*expr*`，然后尝试将结果值与第一个 `*clause*` 的模式匹配。此值可以是任何 Scheme 对象。如果该值与模式匹配，并且没有 `*fender*` 存在，则评估 `*output-expression*` 并将其值作为 `syntax-case` 表达式的值返回。如果该值与模式不匹配，则将该值与下一个条款进行比较，依此类推。如果该值与任何模式都不匹配，则属于语法违例。
 
@@ -316,7 +316,7 @@ if1))
 
 模板中的列表和向量结构变为真实的列表或向量（适用于直接应用列表或向量操作，如 `map` 或 `vector-ref`），因为列表或向量结构必须被复制以插入模式变量的值，并且空列表永远不会被包装。例如，如果 `x`、`a`、`b` 和 `c` 是模式变量，则 `#'(x ...)`、`#'(a b c)`、`#'()` 都是列表。
 
-下面的 `or` 定义等同于 [8.2](syntax.html#g135) 节中给出的定义，只是它使用 `syntax-case` 和 `syntax` 替代了 `syntax-rules`。
+下面的 `or` 定义等同于 8.2 节中给出的定义，只是它使用 `syntax-case` 和 `syntax` 替代了 `syntax-rules`。
 
 `(define-syntax or
 
@@ -350,7 +350,7 @@ if1))
 
 由于每个 `syntax-rules` 模式的第一个位置总是被忽略，因此在每个 `syntax-rules` 模式中使用下划线代替每个 `keyword`。
 
-由于`lambda`和`syntax`表达式在`syntax-rules`形式中是隐式的，因此用`syntax-rules`表达的定义通常比用`syntax-case`表达的等效定义更短。在两者都足够的情况下选择使用哪一个是一种品味问题，但许多可以轻松用`syntax-case`编写的转换器无法轻松或根本无法用`syntax-rules`编写（请参见第[8.4](syntax.html#g137)节）。
+由于`lambda`和`syntax`表达式在`syntax-rules`形式中是隐式的，因此用`syntax-rules`表达的定义通常比用`syntax-case`表达的等效定义更短。在两者都足够的情况下选择使用哪一个是一种品味问题，但许多可以轻松用`syntax-case`编写的转换器无法轻松或根本无法用`syntax-rules`编写（请参见第 8.4 节）。
 
 **procedure**: `(identifier? *obj*)`
 
@@ -358,7 +358,7 @@ if1))
 
 **libraries:** `(rnrs syntax-case)`, `(rnrs)`
 
-`identifier?`经常在fender中使用，以验证输入形式的某些子形式是否为标识符，如下面未命名`let`的定义所示。
+`identifier?`经常在 fender 中使用，以验证输入形式的某些子形式是否为标识符，如下面未命名`let`的定义所示。
 
 `(define-syntax let
 
@@ -400,7 +400,7 @@ if1))
 
 (pcar 1)
 
-(list a pcar))) ![<graphic>](ch2_0.gif) (0 1)`
+(list a pcar))) ![<graphic>](img/ch2_0.gif) (0 1)`
 
 fender `(identifier? x)`用于识别单例标识符情况。
 
@@ -582,7 +582,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 `#`*template*` 等同于 `(quasisyntax *template*)`，而 `#,*template*` 等同于 `(unsyntax *template*)`，`#,@*template*` 等同于 `(unsyntax-splicing *template*)`。在程序被读取之前，缩写形式会被转换为更长的形式，然后进行宏展开。
 
-`quasisyntax` 类似于 `syntax`，但它允许对引用文本的部分进行评估，类似于 `quasiquote`（第 [6.1](objects.html#g107) 节）。
+`quasisyntax` 类似于 `syntax`，但它允许对引用文本的部分进行评估，类似于 `quasiquote`（第 6.1 节）。
 
 在`quasisyntax` `*template*`中，`unsyntax`和`unsyntax-splicing`形式的子表达式会被评估，而其他内容则被视为普通的模板材料，就像`syntax`一样。每个`unsyntax`子表达式的值会被插入到输出中，取代`unsyntax`形式，而每个`unsyntax-splicing`子表达式的值会被插入到周围的列表或向量结构中。`unsyntax`和`unsyntax-splicing`只在`quasisyntax`表达式中有效。
 
@@ -622,7 +622,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 #,(f (car cmore) (cdr cmore)))]))))])))`
 
-包含零个或多个子表达式的`unsyntax`和`unsyntax-splicing`形式只在拼接（列表或向量）上下文中有效。`(unsyntax *template* ...)`等同于`(unsyntax *template*) ...`，`(unsyntax-splicing *template* ...)`等同于`(unsyntax-splicing *template*) ...`。这些形式主要用作`quasisyntax`扩展器的输出中的中间形式。它们支持某些有用的嵌套准引用（`quasisyntax`）习惯用法[[3](bibliography.html#g221)]，例如`#,@#,@`，在双重嵌套和双重评估的`quasisyntax`表达式中使用时，具有双重间接拼接的效果，就像在第[6.1](objects.html#g107)节中显示的嵌套`quasiquote`示例中一样。
+包含零个或多个子表达式的`unsyntax`和`unsyntax-splicing`形式只在拼接（列表或向量）上下文中有效。`(unsyntax *template* ...)`等同于`(unsyntax *template*) ...`，`(unsyntax-splicing *template* ...)`等同于`(unsyntax-splicing *template*) ...`。这些形式主要用作`quasisyntax`扩展器的输出中的中间形式。它们支持某些有用的嵌套准引用（`quasisyntax`）习惯用法[3]，例如`#,@#,@`，在双重嵌套和双重评估的`quasisyntax`表达式中使用时，具有双重间接拼接的效果，就像在第 6.1 节中显示的嵌套`quasiquote`示例中一样。
 
 `unsyntax`和`unsyntax-splicing`是`quasisyntax`的辅助关键字。在除了被识别为辅助关键字的上下文之外引用这些标识符是语法错误。
 
@@ -654,9 +654,9 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 (set! a 1)
 
-(list before a ls))) ![<graphic>](ch2_0.gif) (0 1 (1))`
+(list before a ls))) ![<graphic>](img/ch2_0.gif) (0 1 (1))`
 
-这种语法抽象可以更简洁地使用`identifier-syntax`定义，如第[8.2](syntax.html#g135)节所示，但`make-variable-transformer`可用于创建执行任意计算的转换器，而`identifier-syntax`仅限于简单的术语重写，如`syntax-rules`。`identifier-syntax`可以根据下面所示的方式定义为`make-variable-transformer`。
+这种语法抽象可以更简洁地使用`identifier-syntax`定义，如第 8.2 节所示，但`make-variable-transformer`可用于创建执行任意计算的转换器，而`identifier-syntax`仅限于简单的术语重写，如`syntax-rules`。`identifier-syntax`可以根据下面所示的方式定义为`make-variable-transformer`。
 
 `(define-syntax identifier-syntax
 
@@ -696,7 +696,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 **库：** `(rnrs syntax-case)`, `(rnrs)`
 
-过程`syntax->datum`从语法对象中剥离所有语法信息，并返回相应的Scheme“数据”。以这种方式剥离的标识符将转换为它们的符号名称，然后可以与`eq?`进行比较。因此，可以定义一个谓词`symbolic-identifier=?`如下。
+过程`syntax->datum`从语法对象中剥离所有语法信息，并返回相应的 Scheme“数据”。以这种方式剥离的标识符将转换为它们的符号名称，然后可以与`eq?`进行比较。因此，可以定义一个谓词`symbolic-identifier=?`如下。
 
 `(define symbolic-identifier=?
 
@@ -706,7 +706,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 (syntax->datum y))))`
 
-两个`free-identifier=?`的标识符不一定是`symbolic-identifier=?`：通常指向相同绑定的两个标识符具有相同的名称，但库的`import`形式（第[345](libraries.html#desc:import)页）的`rename`和`prefix`子形式可能导致具有不同名称但相同绑定的两个标识符。
+两个`free-identifier=?`的标识符不一定是`symbolic-identifier=?`：通常指向相同绑定的两个标识符具有相同的名称，但库的`import`形式（第 345 页）的`rename`和`prefix`子形式可能导致具有不同名称但相同绑定的两个标识符。
 
 **过程：** `(datum->syntax *template-identifier* *obj*)`
 
@@ -742,7 +742,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 (set! ls (cons 'a ls))
 
-(set! n (- n 1)))) ![<graphic>](ch2_0.gif) (a a a)`
+(set! n (- n 1)))) ![<graphic>](img/ch2_0.gif) (a a a)`
 
 如果我们将 `loop` 定义为
 
@@ -836,7 +836,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 (let () b1 b2 ...))))])))`
 
-以这种方式使用`generate-temporaries`的任何转换器都可以重写以避免使用它，尽管会失去一些清晰度。诀窍是使用递归定义的中间形式，每次扩展步骤生成一个临时标识符，并在生成足够多的临时标识符后完成扩展。以下是使用这种技术支持多组绑定的`let-values`（第99页）的定义。
+以这种方式使用`generate-temporaries`的任何转换器都可以重写以避免使用它，尽管会失去一些清晰度。诀窍是使用递归定义的中间形式，每次扩展步骤生成一个临时标识符，并在生成足够多的临时标识符后完成扩展。以下是使用这种技术支持多组绑定的`let-values`（第 99 页）的定义。
 
 `(define-syntax let-values
 
@@ -878,7 +878,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 `lvhelp`的实现因需要在创建任何绑定之前评估所有右侧表达式以及支持不正确的形式列表而变得复杂。
 
-### 第8.4节。示例
+### 第 8.4 节。示例
 
 本节介绍了一系列用`syntax-rules`或`syntax-case`定义的说明性语法扩展，从一些简单但有用的语法扩展开始，以及以自动生成构造函数、谓词、字段访问器和字段设置器为特色的相当复杂的结构定义机制。
 
@@ -900,7 +900,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 (+ x (sum (- x 1))))))
 
-'(0 1 2 3 4 5)) ![<graphic>](ch2_0.gif) (0 1 3 6 10 15)`
+'(0 1 2 3 4 5)) ![<graphic>](img/ch2_0.gif) (0 1 3 6 10 15)`
 
 使用`rec`，我们可以如下定义完整的`let`（包括未命名和命名）。
 
@@ -966,7 +966,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 #'((lambda (x ...) b1 b2 ...) e ...)])))`
 
-要完全健壮，应该在第[8.3](syntax.html#g136)节中未命名的`let`的定义中所用的`ids?`和`unique-ids?`检查也应该在这里使用。
+要完全健壮，应该在第 8.3 节中未命名的`let`的定义中所用的`ids?`和`unique-ids?`检查也应该在这里使用。
 
 两种`let`的变体都可以用简单的一行模式轻松描述，但`do`需要更多的工作。 `do`的精确语法不能直接用单个模式来表达，因为`do`表达式的绑定列表中的一些绑定可能采用`(var val)`的形式，而其他绑定则采用`(var val update)`的形式。 以下`do`的定义在内部使用`syntax-case`来单独解析绑定，而不是整体形式。
 
@@ -1000,7 +1000,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 看起来奇怪的表达式`(if #f #f)`是在没有提供结果表达式`res ...`的情况下插入的，因为`begin`要求至少有一个子表达式。 如果未提供任何结果表达式，则`(if #f #f)`的值是未指定的，这正是我们希望的，因为如果未提供任何结果表达式，则`do`的值也是未指定的。 通过稍微增加一些代码的代价，我们可以使用`syntax-case`来确定是否提供了任何结果表达式，并根据需要使用一个或两个臂的`if`来生成循环。 结果扩展将更干净但语义上等效。
 
-如[8.2](syntax.html#g135)节中提到的，省略号在形式为`(... *template*)`的模板中失去了特殊含义。这个事实允许语法扩展扩展为包含省略号的语法定义。下面的`be-like-begin`的定义说明了这种用法。
+如 8.2 节中提到的，省略号在形式为`(... *template*)`的模板中失去了特殊含义。这个事实允许语法扩展扩展为包含省略号的语法定义。下面的`be-like-begin`的定义说明了这种用法。
 
 `(define-syntax be-like-begin
 
@@ -1040,9 +1040,9 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 #'(if e1 e2 e3)]))])
 
-(if (< 1 5) 2 3)) ![<graphic>](ch2_0.gif) 2`
+(if (< 1 5) 2 3)) ![<graphic>](img/ch2_0.gif) 2`
 
-但是单臂if会导致语法错误。
+但是单臂 if 会导致语法错误。
 
 `(let-syntax ([if (lambda (x)
 
@@ -1052,7 +1052,7 @@ fender `(identifier? x)`用于识别单例标识符情况。
 
 #'(if e1 e2 e3)]))])
 
-(if (< 1 5) 2)) ![<graphic>](ch2_0.gif) *语法违规*`
+(if (< 1 5) 2)) ![<graphic>](img/ch2_0.gif) *语法违规*`
 
 尽管这个`if`的本地定义看起来足够简单，但在尝试编写它时可能会出现一些微妙的问题。如果使用`letrec-syntax`代替`let-syntax`，则插入到输出中的标识符`if`将引用本地`if`而不是内置的`if`，扩展将无限循环。
 
@@ -1138,7 +1138,7 @@ arg
 
 arg (... ...))]))))]))`
 
-对于相互递归过程，可以通过用非标准的 `fluid-let-syntax` 表单替换 `let-syntax` 表单来解决这个问题，这在 *Chez Scheme 用户指南* 中有描述 [[9](bibliography.html#g227)]。
+对于相互递归过程，可以通过用非标准的 `fluid-let-syntax` 表单替换 `let-syntax` 表单来解决这个问题，这在 *Chez Scheme 用户指南* 中有描述 [9]。
 
 `define-integrable` 的两种定义处理了标识符出现在结构化表达式的第一个位置与出现在其他位置的情况，就像描述 `identifier?` 中给出的 `pcar` 示例一样。在其他情况下，这两种情况必须被同等对待。形式 `identifier-syntax` 可以使这样做更加方便。
 
@@ -1152,7 +1152,7 @@ arg (... ...))]))))]))`
 
 (set! x (+ t 1)) t)))
 
-(let ([a x++]) (list a x))) ![<graphic>](ch2_0.gif) (0 1)`
+(let ([a x++]) (list a x))) ![<graphic>](img/ch2_0.gif) (0 1)`
 
 以下示例使用 `identifier-syntax`、`datum->syntax` 和本地语法定义来定义一种 *方法* 形式，这是面向对象编程（OOP）系统的基本构建块之一。`method` 表达式类似于 `lambda` 表达式，但除了形式参数和主体外，`method` 表达式还包含一个实例变量列表 `(ivar ...)`。当调用方法时，始终会传递一个 *对象*（*实例*），表示为与实例变量对应的 *字段* 的向量，以及零个或多个额外参数。在方法主体中，对象隐式绑定到标识符 `self`，额外参数绑定到形式参数。可以通过实例变量引用或赋值在方法主体中访问或更改对象的字段。
 
@@ -1240,7 +1240,7 @@ b1 b2 ...)))])))`
 
 `(let ([m (method (a) (x) (list a x self))])
 
-(m #(1) 2)) ![<graphic>](ch2_0.gif) (1 2 #(1))
+(m #(1) 2)) ![<graphic>](img/ch2_0.gif) (1 2 #(1))
 
 (let ([m (method (a) (x)
 
@@ -1250,7 +1250,7 @@ b1 b2 ...)))])))`
 
 (list a x self))])
 
-(m #(1) 2)) ![<graphic>](ch2_0.gif) (2 4 #(2))`
+(m #(1) 2)) ![<graphic>](img/ch2_0.gif) (2 4 #(2))`
 
 在基于`method`的完整面向对象系统中，实例变量`ivar ...`可能是从类声明中获取的，而不是在`method`表单中明确列出的，尽管相同的技术会被用来使实例变量在方法体中出现为普通变量。
 
@@ -1258,7 +1258,7 @@ b1 b2 ...)))])))`
 
 `(define-structure *name* *field* ...)`
 
-其中`*name*`命名结构，而`*field* ...`命名其字段。 `define-structure`展开为一系列生成的定义：一个构造函数`make-*name*`，一个类型谓词`*name*?`，以及一个访问器`*name*-*field*`和每个字段名称一个setter`set-*name*-*field*!`。
+其中`*name*`命名结构，而`*field* ...`命名其字段。 `define-structure`展开为一系列生成的定义：一个构造函数`make-*name*`，一个类型谓词`*name*?`，以及一个访问器`*name*-*field*`和每个字段名称一个 setter`set-*name*-*field*!`。
 
 `(define-syntax define-structure
 
@@ -1370,14 +1370,14 @@ args))))))
 
 (make-tree 2 3)))
 
-t ![<graphic>](ch2_0.gif) #(tree #(tree 0 1) #(tree 2 3))
+t ![<graphic>](img/ch2_0.gif) #(tree #(tree 0 1) #(tree 2 3))
 
-(tree? t) ![<graphic>](ch2_0.gif) #t
+(tree? t) ![<graphic>](img/ch2_0.gif) #t
 
-(tree-left t) ![<graphic>](ch2_0.gif) #(tree 0 1)
+(tree-left t) ![<graphic>](img/ch2_0.gif) #(tree 0 1)
 
-(tree-right t) ![<graphic>](ch2_0.gif) #(tree 2 3)
+(tree-right t) ![<graphic>](img/ch2_0.gif) #(tree 2 3)
 
 (set-tree-left! t 0)
 
-t ![<graphic>](ch2_0.gif) #(tree 0 #(tree 2 3))`
+t ![<graphic>](img/ch2_0.gif) #(tree 0 #(tree 2 3))`

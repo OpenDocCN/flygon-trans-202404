@@ -1,6 +1,6 @@
-# Sockstat命令
+# Sockstat 命令
 
-## Sockstat命令
+## Sockstat 命令
 
 在`FreeBSD`上，我们可以使用`sockstat`命令列出打开的互联网和`UNIX`域套接字：
 

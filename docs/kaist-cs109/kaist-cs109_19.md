@@ -1,8 +1,8 @@
 # 使用 Junit 进行测试
 
-我们之前已经讨论过对函数进行[增量测试](tutorial-incremental-testing.html)。现在我们将为我们的对象和方法创建更系统化的测试。
+我们之前已经讨论过对函数进行增量测试。现在我们将为我们的对象和方法创建更系统化的测试。
 
-要使用 JUnit，您必须按照[安装说明](project-install.html)中所述安装它。
+要使用 JUnit，您必须按照安装说明中所述安装它。
 
 [JUnit](http://junit.org) 是一个允许我们编写测试套件的 Java 库。测试套件是一个包含任意数量测试的类，检查我们代码的正确性。
 
@@ -123,7 +123,7 @@ java.lang.AssertionError: Expected exception: java.lang.ArithmeticException
 
 #### 测试我们自己的类
 
-对于[多项式计算器项目](project-polynomials.html)，我已经编写了一个在[polynomial.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/60-junit/polynomial.kt)中实现的类 Polynomial。
+对于多项式计算器项目，我已经编写了一个在[polynomial.kt](https://github.com/otfried/cs109-kotlin/raw/master/tutorial/60-junit/polynomial.kt)中实现的类 Polynomial。
 
 现在我们将为 Polynomial 类编写一个测试套件。这比进行交互式测试要好得多，因为当测试失败时，您可以修改代码并重新运行所有测试。如果您需要向您的类添加功能或以任何方式更改它们，拥有您以前使用的所有测试非常有用：您可以再次运行它们以确保您没有破坏任何内容。
 
@@ -144,10 +144,10 @@ public class PolynomialTest {
     assertEquals(p1.toString(), "3")
     val p2 = Polynomial(-1, 3, -4, 0, -6)
     assertEquals(p2.degree(), 4)
-    assertEquals(p2.toString(), "-6 * X^4 - 4 * X^2 + 3 * X - 1")
+    assertEquals(p2.toString(), "-6 * X⁴ - 4 * X² + 3 * X - 1")
     val p3 = Polynomial(0, 0, 1)
     assertEquals(p3.degree(), 2)
-    assertEquals(p3.toString(), "X^2")
+    assertEquals(p3.toString(), "X²")
     val p0 = Polynomial(0)
     assertEquals(p0.degree(), -1)
   }
@@ -160,9 +160,9 @@ public class PolynomialTest {
 
     val q1 = p1 + p2
     val q2 = p2 - p3
-    assertEquals(q1.toString(), "-6 * X^4 - 4 * X^2 + 3 * X + 2")
+    assertEquals(q1.toString(), "-6 * X⁴ - 4 * X² + 3 * X + 2")
     assertEquals(q2.degree(), 2)
-    assertEquals(q2.toString(), "-8 * X^2 + 3 * X - 6")
+    assertEquals(q2.toString(), "-8 * X² + 3 * X - 6")
   }
 
   @Test
@@ -175,10 +175,10 @@ public class PolynomialTest {
     val q1 = p1 * p2
     val q4 = p2 * p3
     val q5 = p2 * p4
-    assertEquals(q1.toString(), "-18 * X^4 - 12 * X^2 + 9 * X - 3")
+    assertEquals(q1.toString(), "-18 * X⁴ - 12 * X² + 9 * X - 3")
     assertEquals(q4.degree(), 6)
-    assertEquals(q4.toString(), "-30 * X^6 - 20 * X^4 + 15 * X^3 - 5 * X^2")
-    assertEquals(q5.toString(), "-48 * X^7 - 36 * X^6 - 8 * X^5 - 12 * X^4 + 26 * X^3 - 26 * X^2 + 10 * X - 2")
+    assertEquals(q4.toString(), "-30 * X⁶ - 20 * X⁴ + 15 * X³ - 5 * X²")
+    assertEquals(q5.toString(), "-48 * X⁷ - 36 * X⁶ - 8 * X⁵ - 12 * X⁴ + 26 * X³ - 26 * X² + 10 * X - 2")
   }
 
   @Test
@@ -191,16 +191,16 @@ public class PolynomialTest {
     assertEquals(q2.degree(), 0)
     assertEquals(q2.coeff(0), 3*3*3*3*3)
     assertEquals(q3.degree(), 10)
-    assertEquals(q3.toString(), "3125 * X^10")
+    assertEquals(q3.toString(), "3125 * X¹⁰")
   }
 
 @Test
   fun creatingPolynomialsUsingX() {
     assertEquals(X.toString(), "X")
     val p4 = -1 * (X pow 5) + 3 * (X pow 3) - (X pow 2) + 5
-    assertEquals(p4.toString(), "-X^5 + 3 * X^3 - X^2 + 5")
+    assertEquals(p4.toString(), "-X⁵ + 3 * X³ - X² + 5")
     val p5 = (X - 1) * (X - 3) * (X + 5) pow 2
-    assertEquals(p5.toString(), "X^6 + 2 * X^5 - 33 * X^4 - 4 * X^3 + 319 * X^2 - 510 * X + 225")
+    assertEquals(p5.toString(), "X⁶ + 2 * X⁵ - 33 * X⁴ - 4 * X³ + 319 * X² - 510 * X + 225")
   }
 
   @Test
@@ -227,10 +227,10 @@ public class PolynomialTest {
     /*
     val q1 = p1.derivative()
     assertEquals(q1.degree(), 3)
-    assertEquals(q1.toString(), "4 * X^3 + 18 * X^2 - 24 * X - 70")
+    assertEquals(q1.toString(), "4 * X³ + 18 * X² - 24 * X - 70")
     val q2 = q1.derivative()
     assertEquals(q2.degree(), 2)
-    assertEquals(q2.toString(), "12 * X^2 + 36 * X - 24")
+    assertEquals(q2.toString(), "12 * X² + 36 * X - 24")
     */
   }
 }

@@ -6,7 +6,7 @@
 
 # 项目主页
 
-[https://github.com/NanXiao/golang-101-hacks](https://github.com/NanXiao/golang-101-hacks)
+[`github.com/NanXiao/golang-101-hacks`](https://github.com/NanXiao/golang-101-hacks)
 
 # 许可证
 

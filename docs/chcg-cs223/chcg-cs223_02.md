@@ -37,7 +37,7 @@ False : Bool
 3 : number 
 ```
 
-阅读上面的最后一行的一种方法是“对于每一种类型`number`，使得`number`=`Int`或`number`=`Float`，3都有类型`number`。”换句话说，“3具有类型`Int`和`Float`”，根据表达式的使用方式，Elm 类型检查器将选择将类型变量`number`实例化为其中一个类型。
+阅读上面的最后一行的一种方法是“对于每一种类型`number`，使得`number`=`Int`或`number`=`Float`，3 都有类型`number`。”换句话说，“3 具有类型`Int`和`Float`”，根据表达式的使用方式，Elm 类型检查器将选择将类型变量`number`实例化为其中一个类型。
 
 ```
 > truncate 3
@@ -167,7 +167,7 @@ plusInt = plus
 
 ### 导入模块
 
-现在我们已经开始将定义放入源文件中了，那么我们如何从REPL和其他文件中导入它们呢？请注意，文件[`IntroML.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/IntroML.elm)定义了同名模块，可以通过几种方式导入。
+现在我们已经开始将定义放入源文件中了，那么我们如何从 REPL 和其他文件中导入它们呢？请注意，文件[`IntroML.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/IntroML.elm)定义了同名模块，可以通过几种方式导入。
 
 以下`import`将要求对所有导入的定义进行限定以供使用。
 
@@ -206,7 +206,7 @@ plusInt = plus
 "Whoa...!" : String 
 ```
 
-请注意，在REPL中输入多行表达式时使用`\`字符。如果相反，在REPL中依次输入两个`import`表达式，则似乎最近的一个会优先。但是，在源文件中，情况并非如此。很快在处理`List`时，这将会变得有用。
+请注意，在 REPL 中输入多行表达式时使用`\`字符。如果相反，在 REPL 中依次输入两个`import`表达式，则似乎最近的一个会优先。但是，在源文件中，情况并非如此。很快在处理`List`时，这将会变得有用。
 
 您还可以导入所有定义以供无限制使用。
 
@@ -242,7 +242,7 @@ plusInt = plus
 1 : Float 
 ```
 
-有一个方便的语法用于多路if表达式，这使得编写嵌套条件非常整洁。
+有一个方便的语法用于多路 if 表达式，这使得编写嵌套条件非常整洁。
 
 ```
 > if | 1 == 1 -> 1.0 \
@@ -261,7 +261,7 @@ True : Bool
 1 : Float 
 ```
 
-尽管多路条件很棒，但与编写嵌套条件相比，它们确实引入了一个潜在的陷阱。如果*没有*谓词（也称为“保护”或“where子句”）的计算结果为`True`会发生什么？
+尽管多路条件很棒，但与编写嵌套条件相比，它们确实引入了一个潜在的陷阱。如果*没有*谓词（也称为“保护”或“where 子句”）的计算结果为`True`会发生什么？
 
 ```
 > if | 1 == 2 -> "uh oh..."
@@ -295,7 +295,7 @@ It is best to use 'otherwise' as the last branch of multi-way-if.
 
 与上面讨论的`number`类型一样，应该将此函数类型解读为在类型变量的“定义”范围内具有一个隐式的“forall”：“对于所有类型`a`，`choose`具有类型`Bool -> a -> a -> a`。
 
-当调用诸如`choose`之类的多态函数时，Elm（像其他ML方言一样）将根据值参数自动*实例化*类型变量为适当的类型参数。
+当调用诸如`choose`之类的多态函数时，Elm（像其他 ML 方言一样）将根据值参数自动*实例化*类型变量为适当的类型参数。
 
 ```
 > choose True True False      -- a instantiated to Bool
@@ -304,7 +304,7 @@ It is best to use 'otherwise' as the last branch of multi-way-if.
 > choose True 1 2             -- a instantiated to number 
 ```
 
-这些函数调用可以被认为是接受类型参数（对于函数的每个全称量化类型变量一个）的，这些参数由类型检查器自动推断。如果Elm的语法允许显式类型实例化，则上述表达式可能看起来像：
+这些函数调用可以被认为是接受类型参数（对于函数的每个全称量化类型变量一个）的，这些参数由类型检查器自动推断。如果 Elm 的语法允许显式类型实例化，则上述表达式可能看起来像：
 
 ```
 choose [Bool] True False
@@ -313,7 +313,7 @@ choose [Float] 1.0 2.0
 choose [number] 1 2 
 ```
 
-想象一下，在Elm中，多态类型需要显式的forall量词。使用类型参数`T`实例化多态类型的结果是通过*替换*类型变量的绑定出现来获得的。
+想象一下，在 Elm 中，多态类型需要显式的 forall 量词。使用类型参数`T`实例化多态类型的结果是通过*替换*类型变量的绑定出现来获得的。
 
 ```
 choose : forall a. Bool -> a      -> a      -> a
@@ -334,7 +334,7 @@ choose : Bool -> c -> c -> c
 choose : Bool -> thing -> thing -> thing 
 ```
 
-所有这些类型都是等价的。然而，在类型检查函数后，Elm可能会选择推翻您对类型变量的选择。
+所有这些类型都是等价的。然而，在类型检查函数后，Elm 可能会选择推翻您对类型变量的选择。
 
 ```
 > import IntroML
@@ -349,7 +349,7 @@ choose : Bool -> thing -> thing -> thing
 choose : Bool -> number -> number -> number 
 ```
 
-该注释下的`choose`函数通过了类型检查，但是此类型比先前的类型更为限制。请记住，如前所述，`number`只能被实例化为`Int`和`Float`类型。Elm对特定变量`number`的特殊处理——而不是其他标识符——是Elm将有限形式的类型类强行加入语言的方式。这是一个非常有趣的设计选择！
+该注释下的`choose`函数通过了类型检查，但是此类型比先前的类型更为限制。请记住，如前所述，`number`只能被实例化为`Int`和`Float`类型。Elm 对特定变量`number`的特殊处理——而不是其他标识符——是 Elm 将有限形式的类型类强行加入语言的方式。这是一个非常有趣的设计选择！
 
 当我们讨论时，还有另一个特殊的目的类型变量称为`comparable`，它用于描述可以使用排序关系进行比较的类型。有关更多信息，请参见[`Basics`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Basics)。
 
@@ -678,7 +678,7 @@ type Maybe a = Just a | Nothing
 
 ### Let-Expressions
 
-到目前为止，我们只使用顶层定义。Elm的`let`表达式允许定义变量，这些变量是“局部”于封闭范围的。与其他语言特性一样，空格很重要，因此确保等式对齐。
+到目前为止，我们只使用顶层定义。Elm 的`let`表达式允许定义变量，这些变量是“局部”于封闭范围的。与其他语言特性一样，空格很重要，因此确保等式对齐。
 
 ```
 plus3 a =

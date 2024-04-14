@@ -1,6 +1,6 @@
-# Elm中的FRP简介
+# Elm 中的 FRP 简介
 
-假设我们想要编写一些JavaScript（伪代码）来跟踪用户当前是否按下了鼠标按钮。我们可能会先定义一个可变变量，然后安装两个“回调”函数，当JavaScript运行时系统触发`mousedown`和`mouseup`事件时，这两个函数会被调用：
+假设我们想要编写一些 JavaScript（伪代码）来跟踪用户当前是否按下了鼠标按钮。我们可能会先定义一个可变变量，然后安装两个“回调”函数，当 JavaScript 运行时系统触发`mousedown`和`mouseup`事件时，这两个函数会被调用：
 
 ```
 // the "state"
@@ -24,9 +24,9 @@ element.addEventListener("mouseup",   handleMouseUp);
 
 *函数式响应式编程（FRP）*是一种范式，它允许直接使用函数式编程的构建块来实现*时变*值（如`isDown`），而不是像上面那样使用突变和回调。
 
-## [什么是Signal？](http://elm-lang.org/learn/What-is-FRP.elm)
+## [什么是 Signal？](http://elm-lang.org/learn/What-is-FRP.elm)
 
-“*信号*是随时间变化的值。”在Elm中，[`Mouse.isDown`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Mouse)是语言提供的一个原始信号，类型为`Signal Bool`。我们可以将`isDown`视为始终指向“当前”值，而不必担心它如何被更新的底层细节。
+“*信号*是随时间变化的值。”在 Elm 中，[`Mouse.isDown`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Mouse)是语言提供的一个原始信号，类型为`Signal Bool`。我们可以将`isDown`视为始终指向“当前”值，而不必担心它如何被更新的底层细节。
 
 更好的是，我们可以使用函数式编程的构建块*抽象*和*组合*信号。例如，我们可以使用
 
@@ -50,11 +50,11 @@ isUp = Signal.map not Mouse.isDown
 
 正如名称所示，`Signal.map`的行为和类型类似于操作其他类型数据的映射函数 — [`List.map`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/List)、[`String.map`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/String)、[`Maybe.map`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Maybe)、[`Dict.map`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Dict) 等。
 
-## 渲染到HTML
+## 渲染到 HTML
 
-在HTML窗口中写入是Elm程序的主要*效果*。Elm模块中的`main`定义指定了要渲染的内容，这个内容采用了[`Graphics.Element`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element)库中定义的`Element`值的形式。
+在 HTML 窗口中写入是 Elm 程序的主要*效果*。Elm 模块中的`main`定义指定了要渲染的内容，这个内容采用了[`Graphics.Element`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Graphics-Element)库中定义的`Element`值的形式。
 
-在测试不会呈现任何HTML的程序时，`elm-repl`非常方便（注意在这些情况下我们没有必要定义`main`）。但现在你可能想要在浏览器中尝试这些示例了 —— 通过使用`elm-make`编译Elm源文件（参见[HW0](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/assignments/HW0.html)进行复习）；使用[在线](http://elm-lang.org/try)的实时编辑器；或者本地构建[Elm网站](https://github.com/elm-lang/elm-lang.org)，这样你就可以在没有互联网连接的情况下运行自己的实时编辑器。
+在测试不会呈现任何 HTML 的程序时，`elm-repl`非常方便（注意在这些情况下我们没有必要定义`main`）。但现在你可能想要在浏览器中尝试这些示例了 —— 通过使用`elm-make`编译 Elm 源文件（参见[HW0](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/assignments/HW0.html)进行复习）；使用[在线](http://elm-lang.org/try)的实时编辑器；或者本地构建[Elm 网站](https://github.com/elm-lang/elm-lang.org)，这样你就可以在没有互联网连接的情况下运行自己的实时编辑器。
 
 第一个例子：
 
@@ -98,17 +98,17 @@ main =
   Signal.map (\b -> plainText (toString b)) isUp 
 ```
 
-尝试一下并点击周围。你也可以玩一下[官方的IsDown示例](http://elm-lang.org/edit/examples/Reactive/IsDown.elm)。
+尝试一下并点击周围。你也可以玩一下[官方的 IsDown 示例](http://elm-lang.org/edit/examples/Reactive/IsDown.elm)。
 
 #### 关于导入的说明
 
 请注意，大多数库，甚至是非常常见的库，都需要明确的`导入`。我认为这在学习语言时会特别方便，因为它需要仔细理解库的结构和目的。
 
-还请注意，在上面的例子中，我选择了混合使用合格和非合格的`导入`。随着你编写Elm代码的经验增加，你会发现一种适合自己的`导入`风格。这将取决于诸如你计划从给定模块中使用多少函数之类的因素 —— 我不知道你，但我打算在[`Mouse`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Mouse)库中疯狂使用很多函数，而且我不想明确列出它的所有定义 —— 以及导入的名称有多独特 —— `plainText`远不如，比如说，`map`容易被其他导入的模块定义，因此在不加限定地使用`plainText`似乎对我来说是一个不错的选择。
+还请注意，在上面的例子中，我选择了混合使用合格和非合格的`导入`。随着你编写 Elm 代码的经验增加，你会发现一种适合自己的`导入`风格。这将取决于诸如你计划从给定模块中使用多少函数之类的因素 —— 我不知道你，但我打算在[`Mouse`](http://package.elm-lang.org/packages/elm-lang/core/1.0.0/Mouse)库中疯狂使用很多函数，而且我不想明确列出它的所有定义 —— 以及导入的名称有多独特 —— `plainText`远不如，比如说，`map`容易被其他导入的模块定义，因此在不加限定地使用`plainText`似乎对我来说是一个不错的选择。
 
 #### 关于函数组合的一点说明
 
-根据你的先前经验和喜好，你可能更喜欢放弃上面`main`定义中的匿名lambda，而是选择一个更强调函数组合的lambda，例如
+根据你的先前经验和喜好，你可能更喜欢放弃上面`main`定义中的匿名 lambda，而是选择一个更强调函数组合的 lambda，例如
 
 ```
 (\b -> b |> toString |> plainText) 
@@ -204,7 +204,7 @@ Mouse.clicks : Signal ()
       Signal.map view (Signal.foldp step initState Mouse.clicks) 
     ```
 
-将此程序下载为[`IntroFRP.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/IntroFRP.elm)，并[尝试](http://elm-lang.org/try)一下。您还可以查看[CountClicks示例](http://elm-lang.org/edit/examples/Reactive/CountClicks.elm)。
+将此程序下载为[`IntroFRP.elm`](https://www.classes.cs.uchicago.edu/archive/2015/winter/22300-1/public-code/IntroFRP.elm)，并[尝试](http://elm-lang.org/try)一下。您还可以查看[CountClicks 示例](http://elm-lang.org/edit/examples/Reactive/CountClicks.elm)。
 
 有一点需要考虑：我们是否可以使用`Mouse.isDown`信号而不是`Mouse.clicks`来实现这个功能？
 
@@ -225,15 +225,15 @@ main =
 
 #### 等一下...
 
-我们将Elm代码分解为模型、视图和控制器，就像我们开始时的JavaScript代码一样。那么，我们到底获得了什么？
+我们将 Elm 代码分解为模型、视图和控制器，就像我们开始时的 JavaScript 代码一样。那么，我们到底获得了什么？
 
-嗯，在JavaScript中，我们会在事件处理程序中编写逻辑，以确定哪些状态的部分需要更新以响应不同的事件。在Elm中，我们直接将新信号定义为现有信号的函数，并且将其留给Elm编译器和运行时来确定何时以及如何重新计算从更原始的信号派生的信号值。所以，我们获得了很多！
+嗯，在 JavaScript 中，我们会在事件处理程序中编写逻辑，以确定哪些状态的部分需要更新以响应不同的事件。在 Elm 中，我们直接将新信号定义为现有信号的函数，并且将其留给 Elm 编译器和运行时来确定何时以及如何重新计算从更原始的信号派生的信号值。所以，我们获得了很多！
 
 这引出了一个问题：编译器将如何弄清楚这一切？
 
-## 编译为JavaScript
+## 编译为 JavaScript
 
-Elm编译器负责生成目标JavaScript，管理可变状态和事件处理程序，类似于我们开始时的伪代码。理解Elm程序的结构的一种方法是将其视为*信号图*，其中节点是计算单元，边表示值的流动。信号图的入边是"原始"JavaScript信号或事件，如鼠标按下、鼠标抬起、鼠标点击等。图的其余部分构成了一个纯函数，以这些原始信号为基础定义。
+Elm 编译器负责生成目标 JavaScript，管理可变状态和事件处理程序，类似于我们开始时的伪代码。理解 Elm 程序的结构的一种方法是将其视为*信号图*，其中节点是计算单元，边表示值的流动。信号图的入边是"原始"JavaScript 信号或事件，如鼠标按下、鼠标抬起、鼠标点击等。图的其余部分构成了一个纯函数，以这些原始信号为基础定义。
 
 因此，一个天真的方法是基于*任何*信号的更改重新计算*整个*程序。这显然是低效的，也是不必要的，因为信号图的许多部分可能独立于许多原始信号的更改。
 

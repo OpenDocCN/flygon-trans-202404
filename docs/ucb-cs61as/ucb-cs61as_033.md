@@ -2,7 +2,7 @@
 
 ## 试一试自己动手！
 
-将以下内容输入到Racket解释器中。其中大部分会生成错误。阅读错误信息并尝试理解其含义。这一部分不需要提交任何内容。
+将以下内容输入到 Racket 解释器中。其中大部分会生成错误。阅读错误信息并尝试理解其含义。这一部分不需要提交任何内容。
 
 ```
 => (require berkeley) ;this should not error out. if it does, ask a TA for help

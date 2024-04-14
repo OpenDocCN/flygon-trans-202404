@@ -6,7 +6,7 @@
 
 本教程帮助您学习如何使用`py.test`框架进行 Python 3 的自动化测试。
 
-![白鲸](mobydick.png)
+![白鲸](img/mobydick.png)
 
 ## 本书的最新版本
 
@@ -16,11 +16,11 @@
 
 ## 版权
 
-欢迎提供反馈和评论至：[krother@academis.eu](mailto:krother@academis.eu)
+欢迎提供反馈和评论至：krother@academis.eu
 
 © 2018 Magdalena & Kristian Rother
 
-以知识共享署名4.0许可发布。
+以知识共享署名 4.0 许可发布。
 
 ## 贡献者
 

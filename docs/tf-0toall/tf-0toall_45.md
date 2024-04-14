@@ -23,7 +23,7 @@ l = [0, 0, 1, 0]
 o = [0, 0, 0, 1] 
 ```
 
-![](5dcfab0f.png)
+![](img/5dcfab0f.png)
 
 ```
 with tf.variable_scope('one_cell') as scope:
@@ -46,7 +46,7 @@ array([[[ 1.,  0.,  0.,  0.]]], dtype=float32)
 array([[[ 0.28406101,  0.53163123]]], dtype=float32) 
 ```
 
-![](82bc5d41.png)
+![](img/82bc5d41.png)
 
 ```
 with tf.variable_scope('two_sequances') as scope:
@@ -75,7 +75,7 @@ array([[[ 0.50641137,  0.55783308],
         [-0.72683465,  0.5266667 ]]], dtype=float32) 
 ```
 
-![](b075f249.png)
+![](img/b075f249.png)
 
 ```
 with tf.variable_scope('3_batches') as scope:

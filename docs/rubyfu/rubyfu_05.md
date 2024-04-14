@@ -1,6 +1,6 @@
-# 模块0x5 | 开发功夫
+# 模块 0x5 | 开发功夫
 
-# 模块0x5 | 开发功夫
+# 模块 0x5 | 开发功夫
 
 ## 骨架利用
 
@@ -78,7 +78,7 @@ ruby m3u_exploit.rb song1.m3u
 
 # 模糊器
 
-模糊器通常用于一般或精确的应用程序功能。在这部分中，我们将展示如何使用ruby模糊最常见的服务。记住，模糊是一种**打击事物的艺术**，它不仅仅是关于工具。
+模糊器通常用于一般或精确的应用程序功能。在这部分中，我们将展示如何使用 ruby 模糊最常见的服务。记住，模糊是一种**打击事物的艺术**，它不仅仅是关于工具。
 
 **模糊器类型**
 
@@ -88,9 +88,9 @@ ruby m3u_exploit.rb song1.m3u
 
 ## 突变
 
-### FTP模糊器
+### FTP 模糊器
 
-模糊FTP服务的一般思路是测试所有命令缓冲区大小。然而，并非所有情况都是一样的，例如，测试用户名和密码缓冲区。此外，相同的技术可以应用于许多服务，甚至定制服务。
+模糊 FTP 服务的一般思路是测试所有命令缓冲区大小。然而，并非所有情况都是一样的，例如，测试用户名和密码缓冲区。此外，相同的技术可以应用于许多服务，甚至定制服务。
 
 ```
 #!/bin/ruby
@@ -211,17 +211,17 @@ insertion.keys.each do |point|
 end 
 ```
 
-> 请注意，这个脚本可以用于其他协议（IMAP，POP3等），因为它涉及到套接字！。
+> 请注意，这个脚本可以用于其他协议（IMAP，POP3 等），因为它涉及到套接字！。
 
 * * *
 
-# 调用Windows API
+# 调用 Windows API
 
-# 调用Windows API
+# 调用 Windows API
 
-由于参与MS-Windows开发，我使用了一些调用Windows API的**C**应用程序，我想试试并逐步进行尝试。
+由于参与 MS-Windows 开发，我使用了一些调用 Windows API 的**C**应用程序，我想试试并逐步进行尝试。
 
-我脑海中想到的最简单的例子是调用*MessageBoxA*函数。如果我们查看*MessageBoxA*函数的[MSDN](https://msdn.microsoft.com/en-us/library/windows/desktop/ms645505.aspx)，我们会在最开始找到函数描述及其参数和返回值。在要求部分，我们会找到调用*MessageBoxA*函数所需的DLL，即*User32.dll*库。
+我脑海中想到的最简单的例子是调用*MessageBoxA*函数。如果我们查看*MessageBoxA*函数的[MSDN](https://msdn.microsoft.com/en-us/library/windows/desktop/ms645505.aspx)，我们会在最开始找到函数描述及其参数和返回值。在要求部分，我们会找到调用*MessageBoxA*函数所需的 DLL，即*User32.dll*库。
 
 ```
 int WINAPI MessageBox( _In_opt_ HWND    hWnd,
@@ -242,13 +242,13 @@ api = Win32API.new('user32', 'MessageBoxA',['L', 'P', 'P', 'L'],'I')
 api.call(0,message,title,0) 
 ```
 
-![](MessageBoxA1.png)
+![](img/MessageBoxA1.png)
 
 [源码和解释](http://www.rubytips.org/2008/05/13/accessing-windows-api-from-ruby-using-win32api-library/)
 
-这真的很容易！但是，`Win32API`将会被弃用，或者在你阅读这部分时已经被弃用。Ruby已经将所有与C、dll函数的处理移至`Fiddle`类，它是`libffi` C库的一个包装器，提供了一个可移植的接口，允许语言调用另一种语言的代码。
+这真的很容易！但是，`Win32API`将会被弃用，或者在你阅读这部分时已经被弃用。Ruby 已经将所有与 C、dll 函数的处理移至`Fiddle`类，它是`libffi` C 库的一个包装器，提供了一个可移植的接口，允许语言调用另一种语言的代码。
 
-如果我们再次使用`Fiddle`构建我们的MessageBoxA脚本，它将会是这样的
+如果我们再次使用`Fiddle`构建我们的 MessageBoxA 脚本，它将会是这样的
 
 ```
 # Load importer part of fiddle (ffi) library
@@ -340,7 +340,7 @@ end
 [+] MessageBoxA is location at 0x77d8050b in user32.dll 
 ```
 
-![](Arwin1.png)
+![](img/Arwin1.png)
 
 # Metasploit
 
@@ -425,7 +425,7 @@ puts open("http://rubyfu.net/content/index.html").read
 
 ## Metasploit 结构
 
-![](MSF-struct.png)
+![](img/MSF-struct.png)
 
 如上图所示，Metasploit 库作为接口为所有模块、接口、工具和插件提供服务。这正好代表了我们在**代码设计模式**中解释的内容。
 
@@ -515,7 +515,7 @@ end
 
 结果是
 
-![](msf_template1.png)
+![](img/msf_template1.png)
 
 ### 加载 Metasploit 模块
 
@@ -541,7 +541,7 @@ end
 
 +   如果您的模块以前已加载并对其进行了更改，只需使用`reload`，但您必须使用该模块，换句话说，`use [YOUR MODULE]`
 
-**注意：** 了解官方 Metasploit 开发文档**（**[http://www.rubydoc.info/github/rapid7/metasploit-framework/](http://www.rubydoc.info/github/rapid7/metasploit-framework/) **）**非常重要
+**注意：** 了解官方 Metasploit 开发文档**（**[`www.rubydoc.info/github/rapid7/metasploit-framework/`](http://www.rubydoc.info/github/rapid7/metasploit-framework/) **）**非常重要
 
 * * *
 
@@ -880,7 +880,7 @@ end
 
 +   检查目标是否在运行 WordPress
 
-+   检查目标是否启用RPC
++   检查目标是否启用 RPC
 
 ```
  #
@@ -903,7 +903,7 @@ end
   end 
 ```
 
-+   设置HTTP与XML POST请求
++   设置 HTTP 与 XML POST 请求
 
 ```
  #
@@ -932,7 +932,7 @@ end
   end 
 ```
 
-+   解析XML请求和响应
++   解析 XML 请求和响应
 
 +   找到确切的正确凭证
 
@@ -1219,15 +1219,15 @@ msf auxiliary(wordpress_xmlrpc_massive_bruteforce) > run
 
 ## 远程利用
 
-### FTP利用
+### FTP 利用
 
-我们的示例将是一个非常简单的易受攻击的FTP服务器，名为ability server。
+我们的示例将是一个非常简单的易受攻击的 FTP 服务器，名为 ability server。
 
 #### 我们想要什么？
 
 +   创建利用模块
 
-+   利用FTP服务器
++   利用 FTP 服务器
 
 +   设置利用等级
 
@@ -1243,9 +1243,9 @@ msf auxiliary(wordpress_xmlrpc_massive_bruteforce) > run
 
 +   设置披露日期
 
-+   目标及其返回地址（EIP偏移）
++   目标及其返回地址（EIP 偏移）
 
-+   设置目标IP、端口的选项。如果需要，还有用户名和密码。
++   设置目标 IP、端口的选项。如果需要，还有用户名和密码。
 
 +   检查目标是否存在漏洞。
 
@@ -1257,7 +1257,7 @@ msf auxiliary(wordpress_xmlrpc_massive_bruteforce) > run
 
 +   创建利用模块
 
-+   利用FTP服务器
++   利用 FTP 服务器
 
 +   为模块设置一个等级
 
@@ -1288,9 +1288,9 @@ include Msf::Exploit::Remote::Ftp
 
 +   设置披露日期
 
-+   目标及其返回地址（EIP偏移）
++   目标及其返回地址（EIP 偏移）
 
-+   设置目标IP、端口的选项。如果需要，还有用户名和密码。
++   设置目标 IP、端口的选项。如果需要，还有用户名和密码。
 
 ```
  def initialize(info = {})
@@ -1513,15 +1513,15 @@ metasploit-framework/tools/dev/msftidy.rb ability_server_stor.rb
 
 # Meterpreter
 
-来自官方[wiki](https://github.com/rapid7/metasploit-framework/wiki/Meterpreter)，Meterpreter是Metasploit自2004年以来的一个高级负载。最初由Matt "skape" Miller编写，数十位贡献者提供了额外的代码，该负载继续作为Metasploit开发的一部分经常更新。
+来自官方[wiki](https://github.com/rapid7/metasploit-framework/wiki/Meterpreter)，Meterpreter 是 Metasploit 自 2004 年以来的一个高级负载。最初由 Matt "skape" Miller 编写，数十位贡献者提供了额外的代码，该负载继续作为 Metasploit 开发的一部分经常更新。
 
-Meterpreter是一个负载框架，提供API与之交互，通过编写脚本和插件来增加其功能。您可以在`metasploit-framework/scripts/meterpreter`中找到Meterpreter脚本，这些脚本可在后期利用中使用**run**（例如getuid、getsystem、migrate、scraper等）。Meterpreter源代码位于`metasploit-framework/lib/rex/post/meterpreter`。
+Meterpreter 是一个负载框架，提供 API 与之交互，通过编写脚本和插件来增加其功能。您可以在`metasploit-framework/scripts/meterpreter`中找到 Meterpreter 脚本，这些脚本可在后期利用中使用**run**（例如 getuid、getsystem、migrate、scraper 等）。Meterpreter 源代码位于`metasploit-framework/lib/rex/post/meterpreter`。
 
-实际上，您无法想象Meterpreter的强大之处，直到阅读其[愿望清单和功能](https://github.com/rapid7/metasploit-framework/wiki/Meterpreter-Wishlist)，而不仅仅是使用它。
+实际上，您无法想象 Meterpreter 的强大之处，直到阅读其[愿望清单和功能](https://github.com/rapid7/metasploit-framework/wiki/Meterpreter-Wishlist)，而不仅仅是使用它。
 
-要开始，让我们在受害者机器上获得一个Meterpreter shell，以便开始内联练习，然后我们可以编写一些脚本
+要开始，让我们在受害者机器上获得一个 Meterpreter shell，以便开始内联练习，然后我们可以编写一些脚本
 
-一旦获得Meterpreter shell，请输入`irb`以进入ruby的IRB。大多数所需模块已经加载。然后输入`require 'irb/completion'`以支持IRB控制台的自动补全，就像下面的例子一样
+一旦获得 Meterpreter shell，请输入`irb`以进入 ruby 的 IRB。大多数所需模块已经加载。然后输入`require 'irb/completion'`以支持 IRB 控制台的自动补全，就像下面的例子一样
 
 ```
 msf exploit(handler) > exploit
@@ -1546,7 +1546,7 @@ meterpreter > pry
 _pry_.prompt = proc { "-> " } 
 ```
 
-正如你所看到的，你已经被放到了一个名为`client`的实例变量的IRB控制台中，该实例变量是正在运行的Meterpreter的一部分。
+正如你所看到的，你已经被放到了一个名为`client`的实例变量的 IRB 控制台中，该实例变量是正在运行的 Meterpreter 的一部分。
 
 试试这个作为一个开始
 
@@ -1564,7 +1564,7 @@ puts client.methods.sort
 
 让我们来检查一些有趣的方法。
 
-+   受害者的IP地址和端口
++   受害者的 IP 地址和端口
 
 ```
 client.session_host
@@ -1594,7 +1594,7 @@ client.exploit_datastore
 client.exploit.datastore 
 ```
 
-返回一个包含导致此Meterpreter会话的所有利用信息的哈希
+返回一个包含导致此 Meterpreter 会话的所有利用信息的哈希
 
 ```
 {"VERBOSE"=>false, "WfsDelay"=>0, "EnableContextEncoding"=>false, "DisablePayloadHandler"=>false, "ExitOnSession"=>true, "ListenerTimeout"=>0, "payload"=>"windows/meterpreter/reverse_tcp", "LPORT"=>4444, "ReverseConnectRetries"=>5, "ReverseAllowProxy"=>false, "ReverseListenerThreaded"=>false, "PayloadUUIDTracking"=>false, "EnableStageEncoding"=>false, "StageEncoderSaveRegisters"=>"", "StageEncodingFallback"=>true, "PrependMigrate"=>false, "EXITFUNC"=>"process", "AutoLoadStdapi"=>true, "AutoVerifySession"=>true, "AutoVerifySessionTimeout"=>30, "InitialAutoRunScript"=>"", "AutoRunScript"=>"", "AutoSystemInfo"=>true, "EnableUnicodeEncoding"=>false, "SessionRetryTotal"=>3600, "SessionRetryWait"=>10, "SessionExpirationTimeout"=>604800, "SessionCommunicationTimeout"=>300, "lhost"=>"192.168.0.18", "ReverseListenerBindPort"=>0, "TARGET"=>0} 
@@ -1602,13 +1602,13 @@ client.exploit.datastore
 
 * * *
 
-# API和扩展
+# API 和扩展
 
-# Meterpreter API和扩展
+# Meterpreter API 和扩展
 
-Meterpreter扩展位于`metasploit-framework/lib/rex/post/meterpreter`。强烈建议浏览并打开文件以了解代码及其风格。
+Meterpreter 扩展位于`metasploit-framework/lib/rex/post/meterpreter`。强烈建议浏览并打开文件以了解代码及其风格。
 
-## 扩展ClientCore：`core`
+## 扩展 ClientCore：`core`
 
 **路径**
 
@@ -1619,11 +1619,11 @@ Meterpreter扩展位于`metasploit-framework/lib/rex/post/meterpreter`。强烈�
 => #<Rex::Post::Meterpreter::ClientCore:0x00000005f83388 @client=#<Session:meterpreter 192.168.0.18:55861 (192.168.242.128) "win7-64-victim\Workshop @ WIN7-64-VICTIM">, @name="core"> 
 ```
 
-**use**方法用于加载meterpreter扩展，该方法用于meterpreter控制台（例如`use sniffer`，`use mimikatz`等）
+**use**方法用于加载 meterpreter 扩展，该方法用于 meterpreter 控制台（例如`use sniffer`，`use mimikatz`等）
 
-> 注意：要列出meterpreter控制台中所有可加载的扩展，请使用`use -l`命令。
+> 注意：要列出 meterpreter 控制台中所有可加载的扩展，请使用`use -l`命令。
 
-从meterpreter的IRB控制台，让我们尝试使用*sniffer*扩展
+从 meterpreter 的 IRB 控制台，让我们尝试使用*sniffer*扩展
 
 ```
 >> client.sniffer
@@ -1639,7 +1639,7 @@ Meterpreter扩展位于`metasploit-framework/lib/rex/post/meterpreter`。强烈�
 => nil 
 ```
 
-正如你所看到的，它返回一个`nil`，因为方法*use*在`core`扩展中可用，而不在meterpreter`client`实例中。
+正如你所看到的，它返回一个`nil`，因为方法*use*在`core`扩展中可用，而不在 meterpreter`client`实例中。
 
 +   加载扩展：`load sniffer`
 
@@ -1652,7 +1652,7 @@ Meterpreter扩展位于`metasploit-framework/lib/rex/post/meterpreter`。强烈�
 
 要检查所有*sniffer*扩展方法，请转到`metasploit-framework/lib/rex/post/meterpreter/extensions/sniffer/sniffer.rb`
 
-同样，从IRB中，获取所有方法，正如我们所知
+同样，从 IRB 中，获取所有方法，正如我们所知
 
 ```
 client.sniffer.methods 
@@ -1675,7 +1675,7 @@ client.sniffer.interfaces
 {"idx"=>2, "name"=>"\\Device\\{DF8BF690-33F1-497F-89ED-A31C236FE8E3}", "description"=>"Intel(R) PRO/1000 MT Network Connection", "type"=>0, "mtu"=>1514, "wireless"=>false, "usable"=>true, "dhcp"=>true}] 
 ```
 
-## 扩展Stdapi::Fs：`fs`
+## 扩展 Stdapi::Fs：`fs`
 
 **路径**
 
@@ -1688,7 +1688,7 @@ client.sniffer.interfaces
 => #<Rex::Post::Meterpreter::ObjectAliases:0x00000001db6ae0 @aliases={"dir"=>#<Class:0x00000001e09e70>, "file"=>#<Class:0x00000001e12890>, "filestat"=>#<Class:0x00000001db7530>, "mount"=>#<Rex::Post::Meterpreter::Extensions::Stdapi::Fs::Mount:0x00000001db6c48 @client=#<Session:meterpreter 192.168.0.18:57016 (192.168.242.128) "win7-64-victim\Workshop @ WIN7-64-VICTIM">>}> 
 ```
 
-### Dir类：`dir.rb`
+### Dir 类：`dir.rb`
 
 `fs`可用的扩展之一是位于`metasploit-framework/lib/rex/post/meterpreter/extensions/stdapi/fs/dir.rb`中的**Dir**。让我们使用一些我们可以从`client.fs.dir.methods`或源代码中了解的方法。
 
@@ -1736,7 +1736,7 @@ client.sniffer.interfaces
     client.fs.file.search("C:\\Users", "*.exe") 
     ```
 
-## 扩展Stdapi::Fs：`sys`
+## 扩展 Stdapi::Fs：`sys`
 
 **路径**
 
@@ -1751,7 +1751,7 @@ client.sniffer.interfaces
 
 ### 配置类：`config.rb`
 
-+   获取用户ID：`getuid`
++   获取用户 ID：`getuid`
 
     ```
     >> client.sys.config.getuid
@@ -1765,7 +1765,7 @@ client.sniffer.interfaces
     => {"Computer"=>"WIN7-64-VICTIM", "OS"=>"Windows 7 (Build 7600).", "Architecture"=>"x64 (Current Process is WOW64)", "System Language"=>"en_US", "Domain"=>"WORKGROUP", "Logged On Users"=>2} 
     ```
 
-+   检查当前进程是否以SYSTEM用户身份运行
++   检查当前进程是否以 SYSTEM 用户身份运行
 
     ```
     >> client.sys.config.is_system?
@@ -1781,7 +1781,7 @@ client.sniffer.interfaces
 
 ### 进程类：`process.rb`
 
-+   获取当前进程ID：`getpid`
++   获取当前进程 ID：`getpid`
 
     ```
     >> client.sys.process.getpid
@@ -1796,7 +1796,7 @@ client.sniffer.interfaces
     client.sys.process.processes 
     ```
 
-## 扩展Stdapi::Fs：`net`
+## 扩展 Stdapi::Fs：`net`
 
 **路径**
 
@@ -2051,7 +2051,7 @@ Railgun 用作 POST 渗透 API，因此熟悉它将为后渗透阶段带来许�
 
 结果
 
-![](msf_meter_railgun1.png)
+![](img/msf_meter_railgun1.png)
 
 +   锁定 Windows 屏幕
 

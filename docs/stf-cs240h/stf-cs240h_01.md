@@ -420,9 +420,9 @@ ghci> quickCheck prop_encodeOne3 *** Failed! Falsifiable (after 1 test): Big '\3
 
 这里的美妙之处有几个方面：
 
-+   我们编写一个简单的Haskell函数，接受一些输入并返回一个`Bool`
++   我们编写一个简单的 Haskell 函数，接受一些输入并返回一个`Bool`
 
-+   QuickCheck为我们生成随机测试用例，并测试我们的函数
++   QuickCheck 为我们生成随机测试用例，并测试我们的函数
 
 +   如果一个测试用例失败，它会告诉我们输入是什么
 
@@ -432,7 +432,7 @@ ghci> quickCheck prop_encodeOne3 *** Failed! Falsifiable (after 1 test): Big '\3
 
 +   一堆单元测试，是对一个主题的小变化
 
-QuickCheck方式：
+QuickCheck 方式：
 
 +   你期望普遍成立的一个属性
 
@@ -454,9 +454,9 @@ QuickCheck方式：
 
 +   我们想找到导致测试失败的*最小*输入。
 
-QuickCheck称之为*缩小*。
+QuickCheck 称之为*缩小*。
 
-## 微型实验室：缩小一个BigChar
+## 微型实验室：缩小一个 BigChar
 
 获取以下源文件：
 
@@ -470,13 +470,13 @@ curl -O http://cs240h.cs.stanford.edu/ShrinkChar.hs
 instance Arbitrary BigChar where arbitrary = choose (Big '0',Big '\x10FFFF') shrink (Big c) = map Big (shrinkChar c) -- Write a body for this. shrinkChar c = undefined
 ```
 
-你有5分钟。
+你有 5 分钟。
 
 ## 生成与过滤值
 
 这里有两种不同的生成测试值的方法。
 
-首先，直接生成它们（看看第2行）：
+首先，直接生成它们（看看第 2 行）：
 
 ```
 prop_encodeOne2 = do c <- choose ('\0', '\xFFFF') return $ length (encodeChar c) == 1
@@ -494,9 +494,9 @@ prop_encodeOne2 = do c <- choose ('\0', '\xFFFF') return $ length (encodeChar c)
 
 有时，通过过滤来识别好的值（通过过滤）比想出如何生成它们更容易。
 
-如果QuickCheck必须生成太多失败`suchThat`或其他过滤器的值，它将放弃，并且可能不会运行您想要的测试数量。
+如果 QuickCheck 必须生成太多失败`suchThat`或其他过滤器的值，它将放弃，并且可能不会运行您想要的测试数量。
 
-+   为了效率*和*确保QuickCheck能够生成足够的值进行测试，值得尝试只生成好的值。
++   为了效率*和*确保 QuickCheck 能够生成足够的值进行测试，值得尝试只生成好的值。
 
 ## 迷你实验室：更多代码！
 
@@ -512,15 +512,15 @@ curl -O http://cs240h.cs.stanford.edu/Utf16.hs
 decodeUtf16 :: [Word16] -> [Char]
 ```
 
-决定一些QuickCheck测试，编写它们，并运行它们。
+决定一些 QuickCheck 测试，编写它们，并运行它们。
 
-你有15分钟。
+你有 15 分钟。
 
 ## 调整测试的大小
 
 测试数据生成器有一个隐含的大小参数，隐藏在`Gen`类型中。
 
-QuickCheck从生成小的测试用例开始；随着测试的进行，它会增加大小。
+QuickCheck 从生成小的测试用例开始；随着测试的进行，它会增加大小。
 
 “大小”的含义是特定于`Arbitrary`实例的���求。
 
@@ -550,7 +550,7 @@ class Functor f where  fmap :: (a -> b) -> f a -> f b
 liftM :: (Monad m) => (a -> b) -> m a -> m b liftM f action = do b <- action return (f b)
 ```
 
-## fmap和liftM
+## fmap 和 liftM
 
 注意类型签名之间的相似之处：
 
@@ -600,7 +600,7 @@ import Control.Monad (liftM2) instance (Arbitrary a) => Arbitrary (Point a) wher
 
 ## 微型实验室：收缩一个点
 
-QuickCheck为我们提供了收缩元组的机制。
+QuickCheck 为我们提供了收缩元组的机制。
 
 利用这个机制来收缩一个`Point`。
 
@@ -608,7 +608,7 @@ QuickCheck为我们提供了收缩元组的机制。
 curl -O http://cs240h.cs.stanford.edu/TestPoint.hs
 ```
 
-花3分钟。
+花 3 分钟。
 
 ```
 import Control.Monad import Test.QuickCheck data Point a = Point a a deriving (Eq, Show) instance (Arbitrary a) => Arbitrary (Point a) where arbitrary = liftM2 Point arbitrary arbitrary -- TODO: provide a body for shrink shrink = undefined
@@ -660,12 +660,12 @@ instance (Arbitrary a) => Arbitrary (Tree a) where arbitrary = sized tree tree :
 
 ## 这一切的目的是什么
 
-QuickCheck相当不错。花时间学会如何使用它。
+QuickCheck 相当不错。花时间学会如何使用它。
 
 学会很好地使用它比单元测试更难，但回报丰厚。
 
 此外：
 
-+   我们真的希望看到您在未来的实验和最终项目中提供QuickCheck测试。
++   我们真的希望看到您在未来的实验和最终项目中提供 QuickCheck 测试。
 
 愉快！

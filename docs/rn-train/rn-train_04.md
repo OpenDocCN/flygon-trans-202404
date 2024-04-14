@@ -2,15 +2,15 @@
 
 # 4 架构
 
-1.MVC问题
+1.MVC 问题
 
-![](QQ20160722-0.png)
+![](img/QQ20160722-0.png)
 
 2.[Flux](http://facebook.github.io/flux/docs/overview.html)
 
-![](flux-diagram-white-background.png) 3.数据流
+![](img/flux-diagram-white-background.png) 3.数据流
 
-![](QQ20160719-1.png)
+![](img/QQ20160719-1.png)
 
 [Flux TodoMVC 示例](https://github.com/facebook/flux/tree/master/examples/flux-todomvc/)
 
@@ -104,11 +104,11 @@ class App extends Component {
 
 4.数据流
 
-![](QQ20160724-0.png)
+![](img/QQ20160724-0.png)
 
-![](QQ20160721-2.png)
+![](img/QQ20160721-2.png)
 
-![](QQ20160721-3.png)
+![](img/QQ20160721-3.png)
 
 # 4.2 react-redux
 
@@ -235,7 +235,7 @@ export default Root;
 
 2.1 主页视图组件
 
-![](QQ20160721-1.png)
+![](img/QQ20160721-1.png)
 
 2.2 主页视图容器
 
@@ -279,13 +279,13 @@ export default connect(
 
 # 4.4 [待办事项 React Native 应用](https://github.com/unbug/TodoRN)
 
-1.概述 ￼￼ ![](QQ20160722-1.png)
+1.概述 ￼￼ ![](img/QQ20160722-1.png)
 
 2.结构
 
-![](QQ20160721-8.png)
+![](img/QQ20160721-8.png)
 
-3.容器和组件 ![](QQ20160721-6.png)
+3.容器和组件 ![](img/QQ20160721-6.png)
 
 # 4.5 命名规范
 

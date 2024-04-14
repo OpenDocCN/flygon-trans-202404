@@ -348,15 +348,15 @@ Definition mylist3 := [1;2;3].
 
 (右结合性，级别为 60)。
 
-例如测试_app1:             [1;2;3] ++ [4;5] = [1;2;3;4;5].
+例如测试 _app1:             [1;2;3] ++ [4;5] = [1;2;3;4;5].
 
 证明。反射性。结束。
 
-例如测试_app2:             nil ++ [4;5] = [4;5].
+例如测试 _app2:             nil ++ [4;5] = [4;5].
 
 证明。反射性。结束。
 
-例如测试_app3:             [1;2;3] ++ nil = [1;2;3].
+例如测试 _app3:             [1;2;3] ++ nil = [1;2;3].
 
 证明。反射性。结束。
 
@@ -526,7 +526,7 @@ Definition bag := natlist.
 
 ```
 
-#### 练习：3星，推荐（bag_functions）
+#### 练习：3 星，推荐（bag_functions）
 
     完成以下函数的定义
 
@@ -550,23 +550,23 @@ Example test_count2:              count 6 [1;2;3;1;4;1] = 0.
 
     多重集和类似于集合并：sum a b 包含
 
-    a和b的所有元素。（数学家通常
+    a 和 b 的所有元素。（数学家通常
 
     在多重集上定义联合有点不同，这
 
     这就是为什么我们不使用该名称来表示此操作的原因。）
 
-    对于sum，我们给出了一个不提供明确的标题
+    对于 sum，我们给出了一个不提供明确的标题
 
     参数的名称。此外，它使用了关键字
 
-    定义而不是Fixpoint，所以即使你有名字
+    定义而不是 Fixpoint，所以即使你有名字
 
     参数，你将无法递归处理它们。
 
     以这种方式陈述问题的重点是鼓励你
 
-    思考一下是否可以用另一种方式实现sum —
+    思考一下是否可以用另一种方式实现 sum —
 
     也许通过使用已经定义的函数。
 
@@ -598,11 +598,11 @@ Example test_member2:             member 2 [1;4;1] = false.
 
     ☐
 
-#### 练习：3星，可选（bag_more_functions）
+#### 练习：3 星，可选（bag_more_functions）
 
     这里有一些更多的袋子函数让你练习。
 
-    当remove_one应用于一个没有��移除的数字的袋子时，
+    当 remove_one 应用于一个没有��移除的数字的袋子时，
 
 它应该返回相同的袋子不变。
 
@@ -650,7 +650,7 @@ Example test_subset2:              subset [1;2;2] [2;1;4;1] = false.
 
     ☐
 
-#### 练习：3星，推荐M（bag_theorem）
+#### 练习：3 星，推荐 M（bag_theorem）
 
     写下一个关于袋子的有趣定理
 
@@ -1076,7 +1076,7 @@ reflexivity.
 
     我们已经看到证明可以利用我们已经
 
-    已经证明，例如，使用rewrite。但是为了引用
+    已经证明，例如，使用 rewrite。但是为了引用
 
     定理，我们需要知道它的名称！实际上，甚至很难
 
@@ -1084,13 +1084,13 @@ reflexivity.
 
     被称为。
 
-    Coq的Search命令在这方面非常有帮助。输入
+    Coq 的 Search 命令在这方面非常有帮助。输入
 
-    搜索foo将导致Coq显示所有定理的列表
+    搜索 foo 将导致 Coq 显示所有定理的列表
 
-    涉及foo。例如，尝试取消注释以下行
+    涉及 foo。例如，尝试取消注释以下行
 
-    要查看我们已经证明的关于rev的定理列表：
+    要查看我们已经证明的关于 rev 的定理列表：
 
 ```
 (*  Search rev. *)
@@ -1101,9 +1101,9 @@ reflexivity.
 
     在本书的其余部分中；它可以节省您很多时间！
 
-    如果你正在使用ProofGeneral，你可以用C-c C-a C-a运行搜索。将其响应粘贴到您的缓冲区中可能会
+    如果你正在使用 ProofGeneral，你可以用 C-c C-a C-a 运行搜索。将其响应粘贴到您的缓冲区中可能会
 
-    用C-c C-;完成。
+    用 C-c C-;完成。
 
 ```
 
@@ -1115,7 +1115,7 @@ reflexivity.
 
 ```
 
-定理app_nil_r：∀l：natlist，
+定理 app_nil_r：∀l：natlist，
 
 l ++ [] = l。
 
@@ -1123,7 +1123,7 @@ l ++ [] = l。
 
 (* 在这里填写*) 已承认。
 
-定理rev_app_distr：∀l[1] l[2]：natlist，
+定理 rev_app_distr：∀l[1] l[2]：natlist，
 
 rev（l[1] ++ l[2]）= rev l[2] ++ rev l[1]。
 
@@ -1131,7 +1131,7 @@ rev（l[1] ++ l[2]）= rev l[2] ++ rev l[1]。
 
 (* 在这里填写*) 已承认。
 
-定理rev_involutive：∀l：natlist，
+定理 rev_involutive：∀l：natlist，
 
 rev（rev l）= l。
 
@@ -1147,7 +1147,7 @@ rev（rev l）= l。
 
 ```
 
-定理app_assoc4：∀l[1] l[2] l[3] l[4]：natlist，
+定理 app_assoc4：∀l[1] l[2] l[3] l[4]：natlist，
 
 l[1] ++（l[2] ++（l[3] ++ l[4]））=（（l[1] ++ l[2]）++ l[3]）++ l[4]。
 
@@ -1161,7 +1161,7 @@ l[1] ++（l[2] ++（l[3] ++ l[4]））=（（l[1] ++ l[2]）++ l[3]）++ l[4]。
 
 ```
 
-引理nonzeros_app：∀l[1] l[2]：natlist，
+引理 nonzeros_app：∀l[1] l[2]：natlist，
 
 非零（l[1] ++ l[2]）=（nonzeros l[1]）++（nonzeros l[2]）。
 
@@ -1185,25 +1185,25 @@ Fixpoint beq_natlist（l[1] l[2]：natlist）：bool
 
 (* 用":= _your_definition_ ." 替换此行*）。已承认。
 
-示例test_beq_natlist1：
+示例 test_beq_natlist1：
 
 （beq_natlist nil nil = true）。
 
 (* 在这里填写*) 已承认。
 
-示例test_beq_natlist2：
+示例 test_beq_natlist2：
 
 beq_natlist [1;2;3] [1;2;3] = true。
 
 (* 在这里填写*) 已承认。
 
-示例test_beq_natlist3：
+示例 test_beq_natlist3：
 
 beq_natlist [1;2;3] [1;2;4] = false。
 
 (* 在这里填写*) 已承认。
 
-定理beq_natlist_refl：∀l：natlist，
+定理 beq_natlist_refl：∀l：natlist，
 
 true = beq_natlist l l。
 
@@ -1217,13 +1217,13 @@ true = beq_natlist l l。
 
 ```
 
-## 列表练习，第2部分
+## 列表练习，第 2 部分
 
-#### 练习：3星，高级（bag_proofs）
+#### 练习：3 星，高级（bag_proofs）
 
     这里有几个关于你的小定理要证明
 
-    上面关于bags的定义。
+    上面关于 bags 的定义。
 
 ```
 Theorem count_member_nonzero : ∀(s : bag),
@@ -1233,7 +1233,7 @@ Proof.
 
 ```
 
-    下面关于leb的引理可能会在下一个证明中帮助你。
+    下面关于 leb 的引理可能会在下一个证明中帮助你。
 
 ```
 Theorem ble_n_Sn : ∀n,
@@ -1254,11 +1254,11 @@ Proof.
 
     ☐
 
-#### 练习：3星，可选M（bag_count_sum）
+#### 练习：3 星，可选 M（bag_count_sum）
 
-    写下一个有趣的关于bags的定理bag_count_sum
+    写下一个有趣的关于 bags 的定理 bag_count_sum
 
-    涉及函数count和sum，并证明它。（您可以
+    涉及函数 count 和 sum，并证明它。（您可以
 
     发现证明的难度取决于你如何定义
 
@@ -1271,9 +1271,9 @@ Proof.
 
     ☐
 
-#### 练习：4星，高级M（rev_injective）
+#### 练习：4 星，高级 M（rev_injective）
 
-    证明rev函数是单射的-也就是说，
+    证明 rev 函数是单射的-也就是说，
 
 ```
     ∀(l[1] l[2] : natlist), rev l[1] = rev l[2] → l[1] = l[2].
@@ -1292,9 +1292,9 @@ Proof.
 
 # 选项
 
-    假设我们想要编写��个返回第n个的函数
+    假设我们想要编写��个返回第 n 个的函数
 
-    一些列表的元素。如果我们给它类型nat → natlist → nat，
+    一些列表的元素。如果我们给它类型 nat → natlist → nat，
 
     然后我们将不得不选择一个数字返回，当列表是
 
@@ -1312,15 +1312,15 @@ Fixpoint nth_bad (l:natlist) (n:nat) : nat :=
 
 ```
 
-    这个解决方案不太好：如果nth_bad返回42，我们
+    这个解决方案不太好：如果 nth_bad 返回 42，我们
 
     无法确定该值是否实际出现在输入中
 
     无需进一步处理。更好的选择是更改
 
-    返回nth_bad的类型包括一个错误值作为可能的
+    返回 nth_bad 的类型包括一个错误值作为可能的
 
-    结果。我们称这种类型为natoption。
+    结果。我们称这种类型为 natoption。
 
 ```
 Inductive natoption : Type :=
@@ -1410,7 +1410,7 @@ Definition option_elim (d : nat) (o : natoption) : nat :=
 
 ```
 
-#### 练习：2星（hd_error）
+#### 练习：2 星（hd_error）
 
     使用相同的思想，修复早期的 hd 函数，以便我们不会
 
@@ -1433,7 +1433,7 @@ Example test_hd_error3 : hd_error [5;6] = Some 5.
 
     ☐
 
-#### 练习：1星，可选（option_elim_hd）
+#### 练习：1 星，可选（option_elim_hd）
 
     这个练习将您的新 hd_error 与旧 hd 相关联。
 
@@ -1490,7 +1490,7 @@ Definition beq_id (x[1] x[2] : id) :=
 
 ```
 
-#### 练习：1星（beq_id_refl）
+#### 练习：1 星（beq_id_refl）
 
 ```
 Theorem beq_id_refl : ∀x, true = beq_id x x.
@@ -1558,7 +1558,7 @@ Fixpoint find (x : id) (d : partial_map) : natoption :=
 
 ```
 
-#### 练习：1星（update_eq）
+#### 练习：1 星（update_eq）
 
 ```
 Theorem update_eq :
@@ -1571,7 +1571,7 @@ Proof.
 
     ☐
 
-#### 练习：1星（update_neq）
+#### 练习：1 星（update_neq）
 
 ```
 Theorem update_neq :
@@ -1589,7 +1589,7 @@ End PartialMap.
 
 ```
 
-#### 练习：2星M（baz_num_elts）
+#### 练习：2 星 M（baz_num_elts）
 
     考虑以下归纳定义：
 

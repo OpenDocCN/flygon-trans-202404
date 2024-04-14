@@ -142,7 +142,7 @@ class Main extends Component {
 
     +   componentWillUnmount
 
-![](QQ20160627-0.png)
+![](img/QQ20160627-0.png)
 
 # 2.4 属性和状态
 
@@ -238,7 +238,7 @@ class Main extends Component {
 
 +   永远不要直接修改 this.state，而是使用 this.setstate。
 
-![](QQ20160702-0.png)
+![](img/QQ20160702-0.png)
 
 4.无状态组件
 
@@ -318,7 +318,7 @@ class Test extends Component {
 
 2.[Gesture Responder System](https://facebook.github.io/react-native/docs/gesture-responder-system.html#responder-lifecycle)
 
-2.1 生命周期 ![](QQ20160630-2.png) 2.2 示例
+2.1 生命周期 ![](img/QQ20160630-2.png) 2.2 示例
 
 ```
 class Test extends Component {
@@ -394,17 +394,17 @@ class Test extends Component {
 
 +   changedTouches - 自上次事件以来发生变化的所有触摸事件的数组
 
-+   identifier - 触摸的ID
++   identifier - 触摸的 ID
 
-+   locationX - 触摸的X位置，相对于元素
++   locationX - 触摸的 X 位置，相对于元素
 
-+   locationY - 触摸的Y位置，相对于元素
++   locationY - 触摸的 Y 位置，相对于元素
 
-+   pageX - 触摸的X位置，相对于根元素
++   pageX - 触摸的 X 位置，相对于根元素
 
-+   pageY - 触摸的Y位置，相对于根元素
++   pageY - 触摸的 Y 位置，相对于根元素
 
-+   target - 接收触摸事件的元素的节点ID
++   target - 接收触摸事件的元素的节点 ID
 
 +   timestamp - 触摸的时间标识符，用于速度计算
 
@@ -436,7 +436,7 @@ this._panResponder = PanResponder.create({
 
 3.2 gestureState 对象包含以下内容：
 
-+   stateID - gestureState 的ID - 只要屏幕上至少有一个触摸，它就会持续存在
++   stateID - gestureState 的 ID - 只要屏幕上至少有一个触摸，它就会持续存在
 
 +   moveX - 最近移动的触摸的最新屏幕坐标
 
@@ -456,7 +456,7 @@ this._panResponder = PanResponder.create({
 
 +   numberActiveTouches - 当前屏幕上的触摸数
 
-3.3 [UIExplorer中的PanResponder示例](https://github.com/facebook/react-native/blob/master/Examples/UIExplorer/PanResponderExample.js)
+3.3 [UIExplorer 中的 PanResponder 示例](https://github.com/facebook/react-native/blob/master/Examples/UIExplorer/PanResponderExample.js)
 
 # 2.6 资源
 
@@ -468,8 +468,8 @@ this._panResponder = PanResponder.create({
 
 +   [props vs state](https://github.com/uberVU/react-guide/blob/master/props-vs-state.md)
 
-+   [在React中思考](https://facebook.github.io/react/docs/thinking-in-react.html)
++   [在 React 中思考](https://facebook.github.io/react/docs/thinking-in-react.html)
 
-+   [深入理解JSX](https://facebook.github.io/react/docs/jsx-in-depth.html)
++   [深入理解 JSX](https://facebook.github.io/react/docs/jsx-in-depth.html)
 
 +   [本章的演示脚本](https://github.com/unbug/react-native-train-scripts)

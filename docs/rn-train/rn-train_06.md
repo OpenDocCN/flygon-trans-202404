@@ -52,7 +52,7 @@ class App extends Component {
 
 3.前进和后退
 
-![](QQ20160727-2.png)
+![](img/QQ20160727-2.png)
 
 ```
 ...
@@ -72,7 +72,7 @@ class App extends Component {
 ... 
 ```
 
-![](QQ20160727-1.png)
+![](img/QQ20160727-1.png)
 
 4.在焦点变化时 & 在焦点将要变化时
 
@@ -108,4 +108,4 @@ componentDidMount(){
 
 # 6.2 资源
 
-+   [React Native中的路由和导航](http://blog.paracode.com/2016/01/05/routing-and-navigation-in-react-native/)
++   [React Native 中的路由和导航](http://blog.paracode.com/2016/01/05/routing-and-navigation-in-react-native/)

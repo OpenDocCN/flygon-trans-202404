@@ -6,7 +6,7 @@
 
 在上一篇文章中，我们看到一个用例是如何被分解成步骤的，并且所有的错误都被分流到一个单独的错误轨道上，就像这样：
 
-![一个带有两个输出的函数](Recipe_Function_ErrorTrack.png)
+![一个带有两个输出的函数](img/Recipe_Function_ErrorTrack.png)
 
 在本文中，我们将看看连接这些步骤函数成一个单一单元的各种方法。函数的详细内部设计将在后续文章中描述。
 
@@ -16,7 +16,7 @@
 
 好吧，有两种可能的情况：要么数据是有效的（正常路径），要么有些问题，这种情况下我们进入失败路径并绕过其余的步骤，就像这样：
 
-![带有两个输出的验证函数](Recipe_Validation_Paths.png)
+![带有两个输出的验证函数](img/Recipe_Validation_Paths.png)
 
 但是和以前一样，这不会是一个有效的函数。一个函数只能有一个输出，所以我们必须使用我们上次定义的`Result`类型：
 
@@ -28,7 +28,7 @@ type Result<'TSuccess,'TFailure> =
 
 现在图表看起来像这样：
 
-![带有成功/失败输出的验证函数](Recipe_Validation_Union2.png)
+![带有成功/失败输出的验证函数](img/Recipe_Validation_Union2.png)
 
 为了向你展示这在实践中是如何工作的，这里是一个实际验证函数可能看起来像的例子：
 
@@ -57,35 +57,35 @@ validateInput : Request -> Result<Request,string>
 
 我们想做的是将一个的`Success`输出连接到下一个的输入，但是在`Failure`输出的情况下绕过第二个函数。这张图表给出了一般的想法：
 
-![将验证函数与更新函数连接起来](Recipe_Validation_Update.png)
+![将验证函数与更新函数连接起来](img/Recipe_Validation_Update.png)
 
 这有一个很好的类比 —— 你可能已经很熟悉了。铁路！
 
 铁路有用于将火车引导到不同轨道的转换器（在英国称为“points”）。我们可以将这些“成功/失败”函数视为铁路转换器，就像这样：
 
-![一个铁路转换器](Recipe_RailwaySwitch.png)
+![一个铁路转换器](img/Recipe_RailwaySwitch.png)
 
 然后我们有两个连续的。
 
-![2个断开的铁路转换器](Recipe_RailwaySwitch1.png)
+![2 个断开的铁路转换器](img/Recipe_RailwaySwitch1.png)
 
 我们如何组合它们以连接两个失败轨道？很明显——像这样！
 
-![连接了2个铁路开关](Recipe_RailwaySwitch2.png)
+![连接了 2 个铁路开关](img/Recipe_RailwaySwitch2.png)
 
 如果我们有一系列开关，我们将得到一个双轨系统，看起来像这样：
 
-![连接了3个铁路开关](Recipe_RailwaySwitch3.png)
+![连接了 3 个铁路开关](img/Recipe_RailwaySwitch3.png)
 
 顶部轨道是顺利路径，底部轨道是失败路径。
 
 现在退一步，审视整体情况，我们可以看到我们将会有一系列黑盒函数，看起来像是横跨着双轨铁路，每个函数都处理数据并将其传递到下一个函数的轨道上：
 
-![不透明函数](Recipe_Railway_Opaque.png)
+![不透明函数](img/Recipe_Railway_Opaque.png)
 
 但是如果我们查看函数内部，我们会看到实际上每个函数内部都有一个开关，用于将坏数据转移到失败轨道上：
 
-![透明函数](Recipe_Railway_Transparent.png)
+![透明函数](img/Recipe_Railway_Transparent.png)
 
 注意，一旦我们进入失败路径，我们就再也（通常）不会回到顺利路径上。我们只是绕过剩下的函数直到达到末端。
 
@@ -97,17 +97,17 @@ validateInput : Request -> Result<Request,string>
 
 如果我们想连接一系列这些单轨函数，我们可以使用从左到右的组合运算符，使用符号`>>`。
 
-![一轨函数的组合](Recipe_Railway_Compose1.png)
+![一轨函数的组合](img/Recipe_Railway_Compose1.png)
 
 相同的组合操作也适用于双轨函数：
 
-![两轨函数的组合](Recipe_Railway_Compose2.png)
+![两轨函数的组合](img/Recipe_Railway_Compose2.png)
 
 组合的唯一约束是左侧函数的输出类型必须与右侧函数的输入类型匹配。
 
 在我们的铁路类比中，这意味着你可以连接单轨输出到单轨输入，或双轨输出到双轨输入，但*不能*直接连接双轨输出到单轨输入。
 
-![两轨函数的组合](Recipe_Railway_Compose3.png)
+![两轨函数的组合](img/Recipe_Railway_Compose3.png)
 
 ## 将开关转换为双轨输入
 
@@ -119,7 +119,7 @@ validateInput : Request -> Result<Request,string>
 
 答案很简单。我们可以创建一个"适配器"函数，它有一个用于开关函数的"孔"或"槽"，并将其转换为一个合适的双轨函数。下面是一个示例：
 
-![绑定适配器](Recipe_Railway_BindAdapter.png)
+![绑定适配器](img/Recipe_Railway_BindAdapter.png)
 
 这就是实际代码的样子。我将适配器函数命名为`bind`，这是它的标准名称。
 
@@ -166,7 +166,7 @@ let bind switchFunction twoTrackInput =
     | Failure f -> Failure f 
 ```
 
-这与第一个定义完全相同。如果你想知道一个有两个参数的函数如何与一个有一个参数的函数完全相同，你需要阅读关于[currying](currying.html)的文章！
+这与第一个定义完全相同。如果你想知道一个有两个参数的函数如何与一个有一个参数的函数完全相同，你需要阅读关于 currying 的文章！
 
 另一种写法是用更简洁的`function`关键字替换`match..with`语法，就像这样：
 
@@ -232,7 +232,7 @@ let combinedValidation =
 
 这里是一个显示`Validate1`开关（未绑定）以及`Validate2`和`Validate3`开关的图表，以及`Validate2'`和`Validate3'`适配器的图表。
 
-![Validate2和Validate3连接](Recipe_Railway_Validator2and3.png)
+![Validate2 和 Validate3 连接](img/Recipe_Railway_Validator2and3.png)
 
 我们也可以像这样“内联”`bind`：
 
@@ -319,19 +319,19 @@ let combinedValidation =
 
 换句话说，这个：
 
-![2个铁路开关断开连接](Recipe_RailwaySwitch1.png)
+![2 个铁路开关断开连接](img/Recipe_RailwaySwitch1.png)
 
 变成这样：
 
-![2个铁路开关连接](Recipe_RailwaySwitch2.png)
+![2 个铁路开关连接](img/Recipe_RailwaySwitch2.png)
 
 但是如果你仔细想一想，这个组合轨道实际上只是另一个开关！如果你遮住中间部分，你就会看到一个输入和两个输出：
 
-![2个铁路开关连接](Recipe_RailwaySwitch2a.png)
+![2 个铁路开关连接](img/Recipe_RailwaySwitch2a.png)
 
 所以我们真正做的是一种开关的组合，像这样：
 
-![开关组合](Recipe_Railway_MComp.png)
+![开关组合](img/Recipe_Railway_MComp.png)
 
 因为每个组合结果只是另一个开关，我们总是可以再次添加另一个开关，从而得到一个更大的仍然是开关的东西，依此类推。
 
@@ -369,11 +369,11 @@ let combinedValidation =
 
 为什么要使用`bind`而不是`switch`组合？这取决于上下文。如果你有一个现有的双轨系统，并且需要插入一个开关，那么你必须使用`bind`作为适配器，将开关转换为接受双轨输入的东西。
 
-![开关组合](Recipe_Railway_WhyBind.png)
+![开关组合](img/Recipe_Railway_WhyBind.png)
 
 另一方面，如果你的整个数据流由一系列开关组成，那么`switch`组合可能更简单。
 
-![开关组合](Recipe_Railway_WhyCompose.png)
+![开关组合](img/Recipe_Railway_WhyCompose.png)
 
 ### 用`bind`来解释`switch`组合
 
@@ -381,15 +381,15 @@ let combinedValidation =
 
 这里有两个独立的开关：
 
-![2个铁路开关断开连接](Recipe_RailwaySwitch1.png)
+![2 个铁路开关断开连接](img/Recipe_RailwaySwitch1.png)
 
 然后这些开关组合在一起形成一个更大的新开关：
 
-![2个铁路开关断开连接](Recipe_RailwaySwitch2.png)
+![2 个铁路开关断开连接](img/Recipe_RailwaySwitch2.png)
 
 然后通过在第二个开关上使用`bind`来完成相同的事情：
 
-![bind作为switch组合](Recipe_Railway_BindIsCompose.png)
+![bind 作为 switch 组合](img/Recipe_Railway_BindIsCompose.png)
 
 这是使用这种思维方式重写的`switch`组合运算符：
 
@@ -421,9 +421,9 @@ let canonicalizeEmail input =
 
 换句话说，我们需要一个适配器块。这与我们用于`bind`的概念相同，只是这次我们的适配器块将有一个单轨功能插槽，并且适配器块的整体“形状”是一个开关。
 
-![提升简单功能](Recipe_Railway_SwitchAdapter.png)
+![提升简单功能](img/Recipe_Railway_SwitchAdapter.png)
 
-这样做的代码非常简单。我们只需要取出单轨功能的输出并将其转换为双轨结果。在这种情况下，���果将*始终*是Success。
+这样做的代码非常简单。我们只需要取出单轨功能的输出并将其转换为双轨结果。在这种情况下，���果将*始终*是 Success。
 
 ```
 // convert a normal function into a switch
@@ -433,7 +433,7 @@ let switch f x =
 
 在铁路术语中，我们增加了一点失败轨道。整体上看，它*看起来*像一个开关功能（单轨输入，双轨输出），但当然，失败轨道只是一个虚拟的，开关实际上从未被使用。
 
-![提升简单功能](Recipe_Railway_SwitchAdapter2.png)
+![提升简单功能](img/Recipe_Railway_SwitchAdapter2.png)
 
 一旦`switch`可用，我们就可以轻松地将`canonicalizeEmail`函数附加到链的末尾。由于我们开始扩展它，让我们将函数重命名为`usecase`。
 
@@ -467,13 +467,13 @@ usecase badInput
 
 但有时，您想直接使用双轨模型，这种情况下，您希望直接将单轨功能转换为双轨功能。
 
-![映射简单功能](Recipe_Railway_MapAdapter2.png)
+![映射简单功能](img/Recipe_Railway_MapAdapter2.png)
 
 再次，我们只需要一个带有简单功能插槽的适配器块。我们通常称这个适配器为`map`。
 
-![映射简单功能](Recipe_Railway_MapAdapter.png)
+![映射简单功能](img/Recipe_Railway_MapAdapter.png)
 
-再次，实际实现非常简单。如果双轨输入是`Success`，则调用该函数，并将其输出转换为Success。另一方面，如果双轨输入是`Failure`，则完全绕过该函数。
+再次，实际实现非常简单。如果双轨输入是`Success`，则调用该函数，并将其输出转换为 Success。另一方面，如果双轨输入是`Failure`，则完全绕过该函数。
 
 这是代码：
 
@@ -517,13 +517,13 @@ let usecase =
 
 从铁路的角度来看，这相当于创建一个死胡同的侧线，就像这样。
 
-![死胡同函数的分歧](Recipe_Railway_Tee.png)
+![死胡同函数的分歧](img/Recipe_Railway_Tee.png)
 
 为了使这个工作起来，我们需要另一个适配器函数，类似于`switch`，只是这次它有一个用于单轨死胡同函数的插槽，并将其转换为具有单轨输出的单轨直通函数。
 
-![死胡同函数的分歧](Recipe_Railway_TeeAdapter.png)
+![死胡同函数的分歧](img/Recipe_Railway_TeeAdapter.png)
 
-这里是代码，我将其称为`tee`，以UNIX tee命令命名：
+这里是代码，我将其称为`tee`，以 UNIX tee 命令命名：
 
 ```
 let tee f x = 
@@ -533,7 +533,7 @@ let tee f x =
 
 一旦我们将死胡同函数转换为简单的单轨直通函数，我们就可以通过使用上述的`switch`或`map`将其用于数据流中。
 
-这是使用“switch组合”风格的代码：
+这是使用“switch 组合”风格的代码：
 
 ```
 // a dead-end function 
@@ -594,7 +594,7 @@ let usecase =
 
 正如我们之前所做的那样，我们将创建一个适配器块，但这次它将有*两个*单独的单轨函数插槽。
 
-![双重映射适配器](Recipe_Railway_DoubleMapAdapter.png)
+![双重映射适配器](img/Recipe_Railway_DoubleMapAdapter.png)
 
 这是代码：
 
@@ -665,11 +665,11 @@ let fail x =
 
 到目前为止，我们已经按顺序组合了函数。但对于诸如验证之类的事情，我们可能希望同时运行多个开关，并组合结果，就像这样：
 
-![并行开关](Recipe_Railway_Parallel.png)
+![并行开关](img/Recipe_Railway_Parallel.png)
 
 为了更容易实现这一点，我们可以重用我们用于开关组合的相同技巧。与其一次性做很多，如果我们只关注一个配对，并将它们“相加”以创建一个新的开关，那么我们就可以轻松地将“加法”链接在一起，以便我们可以添加任意数量。换句话说，我们只需要实现这个：
 
-![并行添加两个开关](Recipe_Railway_MPlus.png)
+![并行添加两个开关](img/Recipe_Railway_MPlus.png)
 
 那么，并行添加两个开关的逻辑是什么？
 
@@ -781,7 +781,7 @@ usecase input4
 // ==>  Result4=Success {name = "Alice"; email = "uppercase";} 
 ```
 
-*也许你会问，我们是否可以创建一种方式来进行验证函数的OR操作？也就是说，如果任何一部分有效，则整体结果有效？答案是肯定的，当然可以。试试看！我建议您使用符号`|||`。*
+*也许你会问，我们是否可以创建一种方式来进行验证函数的 OR 操作？也就是说，如果任何一部分有效，则整体结果有效？答案是肯定的，当然可以。试试看！我建议您使用符号`|||`。*
 
 ## 动态函数注入
 
@@ -870,7 +870,7 @@ input
 | `tryCatch` | 一个适配器，将普通的单轨道函数转换为开关函数，但也捕获异常。 |
 | `doubleMap` | 一个适配器，将两个单轨道函数转换为单个双轨道函数。（也称为`bimap`。） |
 | `plus` | 一个组合器，接受两个开关函数，并通过“并行”连接它们并“添加”结果来创建一个新的开关函数。（在其他上下文中也称为`++`。） |
-| `&&&` | 专门为验证函数调整的“加法”组合器，模拟二进制AND。 |
+| `&&&` | 专门为验证函数调整的“加法”组合器，模拟二进制 AND。 |
 
 ### 铁路轨道函数：完整代码
 
@@ -954,15 +954,15 @@ let plus addSuccess addFailure switch1 switch2 x =
 
 例如，一车菠萝经过名为`function1`的隧道时会神奇地变成苹果。
 
-![菠萝变苹果](Recipe_Railway_Cargo1.png)
+![菠萝变苹果](img/Recipe_Railway_Cargo1.png)
 
 当经过名为`function2`的隧道时，一车苹果将变成香蕉。
 
-![苹果变香蕉](Recipe_Railway_Cargo2.png)
+![苹果变香蕉](img/Recipe_Railway_Cargo2.png)
 
 这条神奇的铁路有一个重要规则，即只能连接携带相同类型货物的轨道。在这种情况下，我们*可以*将`function1`连接到`function2`，因为从`function1`出来的货物（苹果）与进入`function2`的货物（同样是苹果）相同。
 
-![连接函数](Recipe_Railway_Cargo3.png)
+![连接函数](img/Recipe_Railway_Cargo3.png)
 
 当然，并不总是轨道携带相同的货物，货物种类不匹配会导致错误。
 
@@ -1030,7 +1030,7 @@ val map : (int -> int) -> (Result<int,int> -> Result<int,int>)
 
 在本系列的开始，我承诺给你一个简单的配方，你可以遵循。
 
-但是现在您可能感到有点不知所措。我似乎并没有让事情变得简单，反而使事情变得更加复杂。我向您展示了许多完成同一件事的不同方式！Bind与compose。Map与switch。您应该使用哪种方法？哪种方式最好？
+但是现在您可能感到有点不知所措。我似乎并没有让事情变得简单，反而使事情变得更加复杂。我向您展示了许多完成同一件事的不同方式！Bind 与 compose。Map 与 switch。您应该使用哪种方法？哪种方式最好？
 
 当然，并不存在适用于所有情景的“正确方式”，但是正如承诺的那样，这里有一些可作为可靠和可重复配方基础的准则。
 
@@ -1092,25 +1092,25 @@ let usecase =
 
 ## 进一步阅读
 
-+   如果您喜欢这种“铁路导向”方法，您还可以[看到它应用于FizzBuzz](railway-oriented-programming-carbonated.html)。
++   如果您喜欢这种“铁路导向”方法，您还可以看到它应用于 FizzBuzz。
 
 +   我还有一些[幻灯片和视频](http://fsharpforfunandprofit.com/rop/)展示了如何进一步应用这种方法。（我将把这些内容转化为一篇正式的博文）
 
-我曾在2014年的NDC Oslo上就这个主题做过演讲（点击图片查看视频）
+我曾在 2014 年的 NDC Oslo 上就这个主题做过演讲（点击图片查看视频）
 
-[![NDC Oslo 2014的视频](../assets/img/rop-ndcoslo.jpg)](http://vimeo.com/97344498)
+![NDC Oslo 2014 的视频](http://vimeo.com/97344498)
 
 这是我使用的幻灯片：
 
-[//www.slideshare.net/slideshow/embed_code/32242318](//www.slideshare.net/slideshow/embed_code/32242318)
+//www.slideshare.net/slideshow/embed_code/32242318
 
-**[铁路导向编程](https://www.slideshare.net/ScottWlaschin/railway-oriented-programming "铁路导向编程")** 来自 **[我的slideshare页面](http://www.slideshare.net/ScottWlaschin)** 
-
-# 铁路导向编程：碳酸版
+**[铁路导向编程](https://www.slideshare.net/ScottWlaschin/railway-oriented-programming "铁路导向编程")** 来自 **[我的 slideshare 页面](http://www.slideshare.net/ScottWlaschin)** 
 
 # 铁路导向编程：碳酸版
 
-作为对[Railway Oriented Programming](recipe-part2.html) 文章的后续，我想将相同的技术应用到[FizzBuzz](http://imranontech.com/2007/01/24/using-fizzbuzz-to-find-developers-who-grok-coding/)问题中，并将其与其他实现进行比较。
+# 铁路导向编程：碳酸版
+
+作为对 Railway Oriented Programming 文章的后续，我想将相同的技术应用到[FizzBuzz](http://imranontech.com/2007/01/24/using-fizzbuzz-to-find-developers-who-grok-coding/)问题中，并将其与其他实现进行比较。
 
 这篇文章的很大一部分直接~~抄袭自~~受到了 [戴夫·法伦（Dave Fayram）关于 FizzBuzz 的文章](http://dave.fayr.am/posts/2012-10-4-finding-fizzbuzz.html) 的启发，还有一些额外的想法来自 [raganwald](http://weblog.raganwald.com/2007/01/dont-overthink-fizzbuzz.html)。
 
@@ -1260,7 +1260,7 @@ data |> handleThreeCase |> handleFiveCase |> handleAllOtherCases |> printResult
 type Data = {i:int; label:string option} 
 ```
 
-### 管道版本1
+### 管道版本 1
 
 有了这个数据结构，我们可以定义`handleThreeCase`和`handleFiveCase`将如何工作。
 
@@ -1354,7 +1354,7 @@ module FizzBuzz_Pipeline_WithRecord =
     [1..100] |> List.iter fizzBuzz 
 ```
 
-### 管道版本2
+### 管道版本 2
 
 创建一个新的记录类型可能会作为一种文档形式很有用，但在这种情况下，与其创建一个特殊的数据结构，不如只使用一个元组更符合惯例。
 
@@ -1395,9 +1395,9 @@ module FizzBuzz_Pipeline_WithTuple =
 
 作为练习，尝试找出所有必须更改的代码。
 
-### 消除对Some和None的显式测试
+### 消除对 Some 和 None 的显式测试
 
-在上面的元组代码中，我还用一些内置的Option函数`map`和`defaultArg`替换了显式的Option匹配代码`match .. Some .. None`。
+在上面的元组代码中，我还用一些内置的 Option 函数`map`和`defaultArg`替换了显式的 Option 匹配代码`match .. Some .. None`。
 
 这是`carbonate`中的更改：
 
@@ -1445,7 +1445,7 @@ myOption |> defaultArg defaultValue
 myOption |> defaultArg <| defaultValue 
 ```
 
-### 管道版本3
+### 管道版本 3
 
 我们的`carbonate`函数对于任何因子都是通用的，因此我们可以轻松地扩展代码以支持像之前的命令式版本中那样的“规则”。
 
@@ -1520,7 +1520,7 @@ module FizzBuzz_Pipeline_WithRules =
 
 ## FizzBuzz：面向铁路的版本
 
-管道版本是FizzBuzz的一个完全足够的功能实现，但是为了好玩，让我们看看是否可以使用[面向铁路编程](recipe-part2.html)帖子中描述的“双轨道”设计。
+管道版本是 FizzBuzz 的一个完全足够的功能实现，但是为了好玩，让我们看看是否可以使用面向铁路编程帖子中描述的“双轨道”设计。
 
 作为一个快速提醒，在“铁路导向编程”（又称“Either”单子）中，我们定义一个具有两种情况的联合类型：“成功”和“失败”，每种情况代表不同的“轨道”。然后，我们将一组“双轨道”函数连接在一起，以构建铁路。
 
@@ -1781,7 +1781,7 @@ module FizzBuzz_RailwayOriented_UsingCustomChoice =
 
 碰巧，我们可以一举两得，同时解决这两个问题。
 
-与其将所有 "开关" 函数 *串联*在一起，不如在 *并行* 中将它们 "相加" 在一起。在 [铁路导向编程](recipe-part2.html) 文章中，我们使用了这种技术来组合验证函数。对于 FizzBuzz，我们将用它来一次性处理所有因子。
+与其将所有 "开关" 函数 *串联*在一起，不如在 *并行* 中将它们 "相加" 在一起。在 铁路导向编程 文章中，我们使用了这种技术来组合验证函数。对于 FizzBuzz，我们将用它来一次性处理所有因子。
 
 关键是为组合两个函数定义一个 "append" 或 "concat" 函数。一旦我们可以这样添加两个函数，我们就可以继续添加任意数量的函数。
 
@@ -1914,9 +1914,9 @@ module FizzBuzz_RailwayOriented_UsingAddition =
 
 在其他情况下，当然，铁路导向的方法可能不起作用，管道方法可能更好。希望本文对两者都提供了一些有用的见解。
 
-*如果你是FizzBuzz的粉丝，请查看[函数式响应式编程](concurrency-reactive.html)页面，这里有另一种变体的问题。*
+*如果你是 FizzBuzz 的粉丝，请查看函数式响应式编程页面，这里有另一种变体的问题。*
 
-## 后记：在使用List.reduce时要小心
+## 后记：在使用 List.reduce 时要小心
 
 使用`List.reduce`时要小心--如果列表为空，它将失败。因此，如果你有一个空的规则集，代码将抛出`System.ArgumentException`。
 

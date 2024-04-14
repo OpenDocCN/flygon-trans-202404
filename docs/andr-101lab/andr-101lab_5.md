@@ -8,7 +8,7 @@
 
 在这个实验室中，您将完成我们的捐赠案例研究 - **Donation.4.0**的最终重构。我们将在上一个实验室的基础上构建，并添加一些新功能和数据库支持，以及一个应用程序对象。完成此实验室后，您将能够
 
-+   为Android应用程序添加数据库支持
++   为 Android 应用程序添加数据库支持
 
 +   使用一个“应用程序”对象
 
@@ -16,11 +16,11 @@
 
 # 设置 - 起始代码
 
-与以前的实验室一样，您可以下载[Donation.4.0.starter](../archives/Donation.4.0.Starter.zip)的解决方案/起始代码，或者继续使用您自己的版本。
+与以前的实验室一样，您可以下载 Donation.4.0.starter 的解决方案/起始代码，或者继续使用您自己的版本。
 
 您当前的项目（重命名/复制后）应如下所示：
 
-![](lab5s101.png)
+![](img/lab5s101.png)
 
 在这个实验室中，您需要做以下事情：
 
@@ -38,19 +38,19 @@
 
 首先，确认当前菜单如下所示：
 
-![](lab5s201.png)
+![](img/lab5s201.png)
 
 但我们想要类似于这样的东西：
 
-![](lab5s202.png)
+![](img/lab5s202.png)
 
-首先要做的是在strings.xml中添加一个新资源（或者如果直接粘贴菜单项会出现字符串资源错误，请使用Android Studio（Alt + Return）修复它）
+首先要做的是在 strings.xml 中添加一个新资源（或者如果直接粘贴菜单项会出现字符串资源错误，请使用 Android Studio（Alt + Return）修复它）
 
 ```
  <string name="menuReset">Reset</string> 
 ```
 
-然后在donate.xml中对应的菜单项
+然后在 donate.xml 中对应的菜单项
 
 ```
  <item
@@ -71,7 +71,7 @@ public void reset(MenuItem item) {}
 
 再次运行应用程序，并确认您获得以下菜单：
 
-![](lab5s202.png)
+![](img/lab5s202.png)
 
 我们目前无法完全实现此菜单选项，因此目前我们只会将目标金额重置为零（0）- 步骤 03。
 
@@ -98,7 +98,7 @@ the
 
 注释很重要 - 你能解释为什么吗？
 
-因此，添加处理选择“重置”菜单选项所需的代码，并将*totalDonated*重置为零（0）。您还需要更新捐赠UI以反映此重置，所以也尝试一下。
+因此，添加处理选择“重置”菜单选项所需的代码，并将*totalDonated*重置为零（0）。您还需要更新捐赠 UI 以反映此重置，所以也尝试一下。
 
 再次运行应用程序，确认“重置”菜单选项现在正在运行。
 
@@ -136,7 +136,7 @@ public class DonationApp extends Application {
 } 
 ```
 
-应用���象需要在AndroidManifest.xml中引用 - 在最顶部作为'andorid:name'
+应用���象需要在 AndroidManifest.xml 中引用 - 在最顶部作为'andorid:name'
 
 ```
  <application
@@ -150,15 +150,15 @@ public class DonationApp extends Application {
 
 确保在启动应用程序时日志中出现'捐赠应用程序已启动'，以验证它是否已被正确激活。
 
-![](lab5s401.png)
+![](img/lab5s401.png)
 
 # 步骤 05
 
 # 捐赠模型
 
-现在我们需要重构Base类（下一步），并将与捐赠相关的属性和方法（即目标变量、总捐款和捐赠列表，以及newDonation()方法）移到我们的DonationApp类中。
+现在我们需要重构 Base 类（下一步），并将与捐赠相关的属性和方法（即目标变量、总捐款和捐赠列表，以及 newDonation()方法）移到我们的 DonationApp 类中。
 
-这是DonationApp的修订版本 - 现在它管理一个捐赠列表。它还将'makeDonation'事件集中化为一个方法实现。用这个新的替换你的donation：
+这是 DonationApp 的修订版本 - 现在它管理一个捐赠列表。它还将'makeDonation'事件集中化为一个方法实现。用这个新的替换你的 donation：
 
 ```
 package ie.app.main;
@@ -202,7 +202,7 @@ public class DonationApp extends Application {
 
 # 基类重构
 
-现在可以完全重构Base活动以利用DonationApp对象。在这一步结束时，你会遇到错误，因为引用了我们（尚未存在的）数据库类 - 但我们将在接下来的几步中修复这些错误。
+现在可以完全重构 Base 活动以利用 DonationApp 对象。在这一步结束时，你会遇到错误，因为引用了我们（尚未存在的）数据库类 - 但我们将在接下来的几步中修复这些错误。
 
 这是我们的新基类
 
@@ -295,7 +295,7 @@ public class Base extends AppCompatActivity {
 
 一旦你导入了必要的数据库类（以解决上一步中的错误），这一步就相对简单了 - 你只需用相应的***dbManager***调用替换管理***donationList***的方法调用即可。
 
-首先要做的是下载[数据库](database.zip)中必要的数据库类并将它们添加到你的项目中的一个新的*ie.app.database*包中。
+首先要做的是下载数据库中必要的数据库类并将它们添加到你的项目中的一个新的*ie.app.database*包中。
 
 花点时间研究这些类，并熟悉你将要使用的方法。
 
@@ -337,7 +337,7 @@ public class DonationApp extends Application {
 
 **注意对新的*dbManager*对象的引用。**
 
-此外，我们的Donation类需要进行轻微的重构，所以请用这个新的类替换当前的类。
+此外，我们的 Donation 类需要进行轻微的重构，所以请用这个新的类替换当前的类。
 
 ```
 public class Donation {
@@ -361,7 +361,7 @@ public class Donation {
 } 
 ```
 
-一旦你做出这些改变，并注释掉donationList列表（并保存文件），你会得到一些错误，这实际上指示了你现在需要更新和添加数据库调用（以及移除donationList调用）的类。
+一旦你做出这些改变，并注释掉 donationList 列表（并保存文件），你会得到一些错误，这实际上指示了你现在需要更新和添加数据库调用（以及移除 donationList 调用）的类。
 
 每个错误只需要一行代码来修复，所以试试更新每个类（我们将在实验结束时查看解决方案）。
 
@@ -375,7 +375,7 @@ public class Donation {
 
 实验的最后一步涉及在用户希望“重置”时从数据库中删除所有捐赠。
 
-在这一步中实际上并不需要做太多事情 - 当用户选择菜单选项时，只需在你的Donate.java中的reset方法上调用**reset()**即可，所以请按以下方式修改你的reset方法：
+在这一步中实际上并不需要做太多事情 - 当用户选择菜单选项时，只需在你的 Donate.java 中的 reset 方法上调用**reset()**即可，所以请按以下方式修改你的 reset 方法：
 
 ```
  @Override
@@ -398,45 +398,45 @@ public class Donation {
 
 作为一种练习，你应该熟悉安卓设备监视器，特别是它如何与在模拟器/设备上查看你的数据库相关联。
 
-## ![](lab5s901.png)
+## ![](img/lab5s901.png)
 
 在安卓工作室中，你可以如下启动安卓设备监视器：
 
 工具->安卓->安卓设备监视器（如下所示）
 
-![](lab5s902.png)
+![](img/lab5s902.png)
 
-接下来，你需要在设备上的应用程序包内导航到数据/数据文件夹（在我们的案例中是ie.app），如下所示：
+接下来，你需要在设备上的应用程序包内导航到数据/数据文件夹（在我们的案例中是 ie.app），如下所示：
 
-![](lab5s903.png)
+![](img/lab5s903.png)
 
 然后，在 ie.app.databases 文件夹中滚动/查找你的数据库（donations.db）：
 
-![](lab5s904.png)
+![](img/lab5s904.png)
 
 在窗口右上角选择“从设备中拉取文件”：
 
-![](lab5s905.png)
+![](img/lab5s905.png)
 
 并将你的数据库文件保存到一个本地文件夹。
 
 接下来下载并安装[sqlitebrowser](http://sqlitebrowser.org)，这将允许我们以图形方式查看我们的数据库。
 
-![](lab5s906.png)
+![](img/lab5s906.png)
 
 启动你的 sqlitebrowser 应用/程序以获取此窗口：
 
-![](lab5s907.png)
+![](img/lab5s907.png)
 
 然后 '打开数据库' 选择从设备中拉取的数据库。如果一切按计划进行，你应该能够查看你的数据库表及其内容，以及创建表的 SQL。
 
 下面，我们可以看到一个带有 3 个捐款的捐款表
 
-![](lab5s908.png)
+![](img/lab5s908.png)
 
 以及我们安卓应用程序中的相应条目。
 
-![](lab5s909.png)
+![](img/lab5s909.png)
 
 # 解决方案
 
@@ -444,4 +444,4 @@ public class Donation {
 
 这是实验的解决方案：
 
-+   [捐款.4.0](Donation.4.0.zip)
++   捐款.4.0

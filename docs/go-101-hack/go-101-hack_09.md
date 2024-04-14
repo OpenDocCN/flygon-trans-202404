@@ -1,6 +1,6 @@
-# “nil切片” vs “nil映射”
+# “nil 切片” vs “nil 映射”
 
-# “nil切片” vs “nil映射”
+# “nil 切片” vs “nil 映射”
 
 * * *
 
@@ -132,4 +132,4 @@ if v, ok := m[1]; !ok {
 
 参考：
 
-[《Go编程语言》](http://www.gopl.io/)。
+[《Go 编程语言》](http://www.gopl.io/)。

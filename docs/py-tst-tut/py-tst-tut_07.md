@@ -2,7 +2,7 @@
 
 # 测试套件
 
-### 练习1：测试集合
+### 练习 1：测试集合
 
 通过简单输入来运行到目前为止编写的所有测试
 
@@ -10,9 +10,9 @@
 pytest 
 ```
 
-### 练习2：选项
+### 练习 2：选项
 
-尝试一些pytest的选项：
+尝试一些 pytest 的选项：
 
 ```
 pytest -v  # verbose output
@@ -22,11 +22,11 @@ pytest -lf # re-run failed tests
 pytest -x  # stop on first failing test 
 ```
 
-### 练习3：修复测试
+### 练习 3：修复测试
 
 修复`test_suite.py`中的测试
 
-### 练习4：测试选择
+### 练习 4：测试选择
 
 只运行一个测试类
 

@@ -6,7 +6,7 @@
 
 > func Open(name string) (*File, error)
 > 
-> Open打开指定的文件以供读取。如果成功，返回的文件上的方法可用于读取；相关文件描述符的模式为O_RDONLY。如果出现错误，它将是*PathError类型。
+> Open 打开指定的文件以供读取。如果成功，返回的文件上的方法可用于读取；相关文件描述符的模式为 O_RDONLY。如果出现错误，它将是*PathError 类型。
 
 使用`os.Open`函数的惯用方法如下：
 
@@ -89,7 +89,7 @@ The slice must be non-empty!
 
 > func Errorf(format string, a ...interface{}) error
 > 
-> Errorf根据格式说明符进行格式化，并返回作为满足错误的值的字符串。
+> Errorf 根据格式说明符进行格式化，并返回作为满足错误的值的字符串。
 
 因此，上述代码可以重构如下：
 
@@ -105,4 +105,4 @@ func maxElem(s []int) (int, error) {
 
 参考资料：
 
-[《Go编程语言》](http://www.gopl.io/)。
+[《Go 编程语言》](http://www.gopl.io/)。

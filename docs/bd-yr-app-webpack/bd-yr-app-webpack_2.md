@@ -2,11 +2,11 @@
 
 # 基础知识
 
-![开始吧](5724c886.jpg)
+![开始吧](img/5724c886.jpg)
 
 在本节中，我将尝试为你介绍一个基本的 Webpack 工作流程的初始化和配置。
 
-+   [入门](get_started.html)
++   入门
 
 # 入门
 
@@ -47,7 +47,7 @@ project_dir/
 在你的 `index.html` 中，我们加载 Webpack 将为你创建的文件。
 
 ```
-<script src="[bundle](GLOSSARY.html#bundle "Basically taking multiple files (your code, JS libraries, and even static resources like images and more...)  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js"></script> 
+<script src="bundle  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js"></script> 
 ```
 
 在你的 `index.js` 中说 "Hi"。
@@ -62,7 +62,7 @@ console.log('Hello World!');
 module.exports = {
   entry: './index.js',
   output: {
-    filename: '[bundle](GLOSSARY.html#bundle "Basically taking multiple files (your code, JS libraries, and even static resources like images and more...)  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js'
+    filename: 'bundle  And package them into one or multiple files that you can just load into your html without ever worring about loading order and duplication.").js'
   }
 }; 
 ```
@@ -107,7 +107,7 @@ npm install --save-dev webpack-dev-server
 
 你会在你的 `terminal` 中注意到 Webpack 仍在运行。如果你改变你的 `index.js` 文件，它将立即重新处理。然后你只需重新加载你的浏览器。
 
-Webpack 提供了自动页面重新加载等功能，多亏了[插件](GLOSSARY.html#plugins)和[加载器](GLOSSARY.html#loaders)。
+Webpack 提供了自动页面重新加载等功能，多亏了插件和加载器。
 
 ## 一些代码
 
@@ -135,7 +135,7 @@ myModule.sayHi('Webpack');
 
 如果你保持 `webpack-dev-server` 运行，请刷新你的浏览器或重新启动 `webpack-dev-server`。
 
-![魔法](e5257492)
+![魔法](img/e5257492)
 
 你可以在 `console` 中看到 'Hi Webpack'。
 
@@ -170,11 +170,11 @@ npm run dev
 
 # 使用加载器
 
-# 使用[加载器](GLOSSARY.html#loaders "@TODO")
+# 使用加载器
 
 # 使用插件
 
-# 使用[插件](GLOSSARY.html#plugins "@TODO")
+# 使用插件
 
 # 设置一个 ReactJS 应用程序
 

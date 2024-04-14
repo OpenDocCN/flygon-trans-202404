@@ -2,7 +2,7 @@
 
 # 属性基本测试简介
 
-> 这篇文章是[F# Advent Calendar in English 2014](https://sergeytihon.wordpress.com/2014/11/24/f-advent-calendar-in-english-2014/)项目的一部分。去那里查看所有其他精彩的帖子！特别感谢Sergey Tihon组织这个项目。
+> 这篇文章是[F# Advent Calendar in English 2014](https://sergeytihon.wordpress.com/2014/11/24/f-advent-calendar-in-english-2014/)项目的一部分。去那里查看所有其他精彩的帖子！特别感谢 Sergey Tihon 组织这个项目。
 
 *更新：我根据这些帖子做了一个关于属性基本测试的演讲。[幻灯片和视频在这里。](http://fsharpforfunandprofit.com/pbt/)
 
@@ -30,11 +30,11 @@ Co-worker: "You want even *more* tests?"
 
 所以现在想象一下，你不是一名开发人员，而是一名负责测试“add”函数是否正确实现的测试工程师。
 
-不幸的是，该实现是由一位疲惫不堪、总是懒惰而且经常恶意的程序员编写的，我将其称为*地狱企业开发者*，简称“EDFH”。（EDFH有一个[你可能听说过的表兄弟](https://en.wikipedia.org/wiki/Bastard_Operator_From_Hell)）。
+不幸的是，该实现是由一位疲惫不堪、总是懒惰而且经常恶意的程序员编写的，我将其称为*地狱企业开发者*，简称“EDFH”。（EDFH 有一个[你可能听说过的表兄弟](https://en.wikipedia.org/wiki/Bastard_Operator_From_Hell)）。
 
-你正在练习企业级的测试驱动开发，这意味着你编写一个测试，然后EDFH实现通过测试的代码。
+你正在练习企业级的测试驱动开发，这意味着你编写一个测试，然后 EDFH 实现通过测试的代码。
 
-所以你从一个像这样的测试开始（使用原始的NUnit风格）：
+所以你从一个像这样的测试开始（使用原始的 NUnit 风格）：
 
 ```
 [<Test>]
@@ -43,7 +43,7 @@ let ``When I add 1 + 2, I expect 3``()=
     Assert.AreEqual(3,result) 
 ```
 
-然后，EDFH像这样实现`add`函数：
+然后，EDFH 像这样实现`add`函数：
 
 ```
 let add x y =
@@ -55,7 +55,7 @@ let add x y =
 
 你的测试通过了！
 
-当你向EDFH抱怨时，他们说他们正在正确地进行TDD，只[编写最小的代码来使测试通过](http://www.typemock.com/test-driven-development-tdd/)。
+当你向 EDFH 抱怨时，他们说他们正在正确地进行 TDD，只[编写最小的代码来使测试通过](http://www.typemock.com/test-driven-development-tdd/)。
 
 说得有道理。所以你又写了一个测试：
 
@@ -66,7 +66,7 @@ let ``When I add 2 + 2, I expect 4``()=
     Assert.AreEqual(4,result) 
 ```
 
-然后，EDFH将`add`函数的实现更改为这样：
+然后，EDFH 将`add`函数的实现更改为这样：
 
 ```
 let add x y =
@@ -78,9 +78,9 @@ let add x y =
         0 
 ```
 
-当你再次向EDFH抱怨时，他们指出这种方法实际上是最佳实践。显然，这被称为["变换优先原则"](http://blog.8thlight.com/uncle-bob/2013/05/27/TheTransformationPriorityPremise.html)。
+当你再次向 EDFH 抱怨时，他们指出这种方法实际上是最佳实践。显然，这被称为["变换优先原则"](http://blog.8thlight.com/uncle-bob/2013/05/27/TheTransformationPriorityPremise.html)。
 
-在这一点上，你开始认为EDFH是恶意的，这种来回可能会永远持续下去！
+在这一点上，你开始认为 EDFH 是恶意的，这种来回可能会永远持续下去！
 
 ## 打败恶意程序员
 
@@ -96,7 +96,7 @@ let ``When I add two numbers, I expect to get their sum``()=
         Assert.AreEqual(expected,actual) 
 ```
 
-但是EDFH是不知疲倦的，将更新实现以包括所有这些情况。
+但是 EDFH 是不知疲倦的，将更新实现以包括所有这些情况。
 
 一个更好的方法是生成随机数并将其用于输入，以便恶意程序员无法提前知道该怎么做。
 
@@ -113,9 +113,9 @@ let ``When I add two random numbers, I expect their sum``()=
     Assert.AreEqual(expected,actual) 
 ```
 
-如果测试看起来像这样，那么EDFH将被*迫*正确实现`add`函数！
+如果测试看起来像这样，那么 EDFH 将被*迫*正确实现`add`函数！
 
-最后一个改进--EDFH可能只是走运，选出的数字碰巧有效，所以让我们重复随机数测试多次，比如说100次。
+最后一个改进--EDFH 可能只是走运，选出的数字碰巧有效，所以让我们重复随机数测试多次，比如说 100 次。
 
 ```
 [<Test>]
@@ -161,7 +161,7 @@ let ``When I add two numbers, the result should not depend on parameter order``(
         Assert.AreEqual(result1,result2) 
 ```
 
-这是一个很好的开始，但这并不能阻止EDFH。EDFH仍然可以使用`x * y`来实现`add`，而这个测试会通过！
+这是一个很好的开始，但这并不能阻止 EDFH。EDFH 仍然可以使用`x * y`来实现`add`，而这个测试会通过！
 
 那么现在`add`和`multiply`之间的区别是什么？加法真正意味着什么？
 
@@ -192,11 +192,11 @@ let ``Adding 1 twice is the same as adding 2``()=
 
 太棒了！`add`与这个测试完美配合，而`multiply`则不行。
 
-但是，请注意，EDFH仍然可以使用`y - x`来实现`add`，而这个测试会通过！
+但是，请注意，EDFH 仍然可以使用`y - x`来实现`add`，而这个测试会通过！
 
 幸运的是，我们上面还有“参数顺序”测试。因此这两个测试的结合应该将其缩小到只有一个正确的实现，对吧？
 
-提交了这个测试套件后，我们发现EDFH编写了一个通过这两个测试的实现。让我们看看：
+提交了这个测试套件后，我们发现 EDFH 编写了一个通过这两个测试的实现。让我们看看：
 
 ```
 let add x y = 0  // malicious implementation 
@@ -224,13 +224,13 @@ let ``Adding zero is the same as doing nothing``()=
         Assert.AreEqual(result1,result2) 
 ```
 
-现在我们有一组属性，可以用来测试`add`的任何实现，并强制EDFH创建一个正确的实现：
+现在我们有一组属性，可以用来测试`add`的任何实现，并强制 EDFH 创建一个正确的实现：
 
 ## 重构通用代码
 
 在这三个测试中有相当多的重复代码。让我们做些重构。
 
-首先，我们将编写一个名为`propertyCheck`的函数，该函数将生成100对随机整数。
+首先，我们将编写一个名为`propertyCheck`的函数，该函数将生成 100 对随机整数。
 
 `propertyCheck`还将需要一个用于属性本身的参数。这将是一个接受两个整数并返回布尔值的函数：
 
@@ -308,7 +308,7 @@ let ``Adding zero is the same as doing nothing``()=
 
 +   参数顺序无关紧要（“交换性”属性）
 
-+   用1两次进行`add`与一次用2进行`add`是相同的
++   用 1 两次进行`add`与一次用 2 进行`add`是相同的
 
 +   加零什么也不做（“单位元”属性）
 
@@ -318,7 +318,7 @@ let ``Adding zero is the same as doing nothing``()=
 
 这正是数学家所做的。如果你查阅 [维基百科上的加法](https://en.wikipedia.org/wiki/Addition#Properties)，你会看到它完全是根据可交换性、结合性、单位元等来定义的。
 
-请注意，在我们的实验中，我们错过了定义“结合性”，而是创建了一个更弱的属性（`x+1+1 = x+2`）。我们稍后将看到，EDFH确实可以编写一个满足此属性的恶意实现，并且结合性更好。
+请注意，在我们的实验中，我们错过了定义“结合性”，而是创建了一个更弱的属性（`x+1+1 = x+2`）。我们稍后将看到，EDFH 确实可以编写一个满足此属性的恶意实现，并且结合性更好。
 
 遗憾的是，第一次尝试很难完美地得到属性，但即使如此，通过使用我们提出的三个属性，我们对实现的正确性有了更高的信心，实际上，我们也学到了一些东西——我们更深入地理解了要求。
 
@@ -328,7 +328,7 @@ let ``Adding zero is the same as doing nothing``()=
 
 从历史上看，单元测试除了是功能测试外，还被 [用作一种规范的一种方式](https://en.wikipedia.org/wiki/Unit_testing#Documentation)。但是，使用属性而不是带有“魔法”数据的测试的规范方法是一种我认为通常更短且更少歧义的替代方法。
 
-你可能会认为只有数学类型的函数才能以这种方式进行规范，但在未来的文章中，我们将看到这种方法如何用于测试Web服务和数据库。
+你可能会认为只有数学类型的函数才能以这种方式进行规范，但在未来的文章中，我们将看到这种方法如何用于测试 Web 服务和数据库。
 
 当然，并非每个业务需求都可以像这样表示为属性，我们也不应忽视软件开发的社交组成部分。[例如规范](https://en.wikipedia.org/wiki/Specification_by_example)和领域驱动设计在与非技术客户合作时可以发挥重要作用。
 
@@ -336,9 +336,9 @@ let ``Adding zero is the same as doing nothing``()=
 
 即使在前期涉及额外的努力（这种活动的技术术语叫做“思考问题”）后，通过拥有自动化测试和明确的规范来节省的整体时间将远远超过后期的前期成本。
 
-实际上，用来宣传单元测试好处的论点同样适用于基于属性的测试！因此，如果一个TDD粉丝告诉你他们没有时间想出基于属性的测试，那么他们可能没有看到全局。
+实际上，用来宣传单元测试好处的论点同样适用于基于属性的测试！因此，如果一个 TDD 粉丝告诉你他们没有时间想出基于属性的测试，那么他们可能没有看到全局。
 
-## 引入QuickCheck和FsCheck
+## 引入 QuickCheck 和 FsCheck
 
 我们已经实现了自己的属性检查系统，但存在一些问题：
 
@@ -350,19 +350,19 @@ let ``Adding zero is the same as doing nothing``()=
 
 +   我们生成的随机数没有记录，也没有设置种子的方法，这意味着我们无法轻松调试和重现错误。
 
-+   它不可配置。例如，我们不能轻松地将循环次数从100更改为其他值。
++   它不可配置。例如，我们不能轻松地将循环次数从 100 更改为其他值。
 
 如果有一个框架可以为我们做所有这些就好了！
 
-幸运的是有的！["QuickCheck"](https://en.wikipedia.org/wiki/QuickCheck)库最初是由Koen Claessen和John Hughes为Haskell开发的，并已移植到许多其他语言。
+幸运的是有的！["QuickCheck"](https://en.wikipedia.org/wiki/QuickCheck)库最初是由 Koen Claessen 和 John Hughes 为 Haskell 开发的，并已移植到许多其他语言。
 
-在F#（以及C#）中使用的QuickCheck版本是由Kurt Schelfthout创建的优秀的["FsCheck"](https://fsharp.github.io/FsCheck/)库。虽然基于Haskell QuickCheck，但它具有一些不错的附加功能，包括与NUnit和xUnit等测试框架的集成。
+在 F#（以及 C#）中使用的 QuickCheck 版本是由 Kurt Schelfthout 创建的优秀的["FsCheck"](https://fsharp.github.io/FsCheck/)库。虽然基于 Haskell QuickCheck，但它具有一些不错的附加功能，包括与 NUnit 和 xUnit 等测试框架的集成。
 
-让我们看看FsCheck如何执行与我们自制的属性测试系统相同的操作。
+让我们看看 FsCheck 如何执行与我们自制的属性测试系统相同的操作。
 
-## 使用FsCheck测试加法属性
+## 使用 FsCheck 测试加法属性
 
-首先，您需要安装FsCheck并加载DLL（FsCheck可能有点挑剔--请参阅本页底部的说明和故障排除）。
+首先，您需要安装 FsCheck 并加载 DLL（FsCheck 可能有点挑剔--请参阅本页底部的说明和故障排除）。
 
 您的脚本文件顶部应该看起来像这样：
 
@@ -446,7 +446,7 @@ Falsifiable, after 1 test (1 shrink) (StdGen (1657127138,295941511)):
 
 ��过使用随机测试，我们让恶意实现者变得更难。他们现在必须改变策略了！
 
-EDFH 注意到我们在`adding1TwiceIsAdding2OnceProperty`中仍在使用一些魔法数字 -- 即1和2，并决定创建一个利用这一点的实现。他们将为低输入值使用正确的实现，而对于高输入值则使用不正确的实现：
+EDFH 注意到我们在`adding1TwiceIsAdding2OnceProperty`中仍在使用一些魔法数字 -- 即 1 和 2，并决定创建一个利用这一点的实现。他们将为低输入值使用正确的实现，而对于高输入值则使用不正确的实现：
 
 ```
 let add x y = 
@@ -529,9 +529,9 @@ intGenerator
    (4, 47); (5, 44); (6, 26); (7, 16); (8, 14); (9, 12); (10, 3)] 
 ```
 
-你可以看到大多数值都在中心（0生成了181次，1生成了104次），而边缘值很少（10只生成了3次）。
+你可以看到大多数值都在中心（0 生成了 181 次，1 生成了 104 次），而边缘值很少（10 只生成了 3 次）。
 
-你也可以使用更大的样本重复。这个例子在范围[-30,30]内生成了10000个元素
+你也可以使用更大的样本重复。这个例子在范围[-30,30]内生成了 10000 个元素
 
 ```
 intGenerator 
@@ -654,7 +654,7 @@ FsCheck 使用的过程有两个部分：
 let isSmallerThan80 x = x < 80 
 ```
 
-你已经生成了随机数，并发现属性对`100`失败了，你想尝试一个更小的数字。`Arb.shrink`将生成一系列小于100的整数。每一个都会依次用于属性，直到属性再次失败。
+你已经生成了随机数，并发现属性对`100`失败了，你想尝试一个更小的数字。`Arb.shrink`将生成一系列小于 100 的整数。每一个都会依次用于属性，直到属性再次失败。
 
 ```
 isSmallerThan80 100 // false, so start shrinking
@@ -700,9 +700,9 @@ Arb.shrink 81 |> Seq.toList
 // smallest failure is 80 
 ```
 
-在这一点之后，对80的收缩不起作用 -- 不会找到更小的值。
+在这一点之后，对 80 的收缩不起作用 -- 不会找到更小的值。
 
-在这种情况下，FsCheck 将报告`80`使属性失效，并且需要4次收缩。
+在这种情况下，FsCheck 将报告`80`使属性失效，并且需要 4 次收缩。
 
 就像生成器一样，FsCheck 几乎可以为任何类型生成收缩序列：
 
@@ -735,7 +735,7 @@ Check.Quick isSmallerThan80
 
 在这一点上，我们可以尝试一些事情。首先，我们可以尝试增加测试次数。
 
-我们通过更改默认（“Quick”）配置来实现这一点。有一个称为`MaxTest`的字段，我们可以设置它。默认值为100，所以让我们将其增加到1000。
+我们通过更改默认（“Quick”）配置来实现这一点。有一个称为`MaxTest`的字段，我们可以设置它。默认值为 100，所以让我们将其增加到 1000。
 
 最后，要使用特定配置，你需要使用`Check.One(config,property)`而不仅仅是`Check.Quick(property)`。
 
@@ -1245,7 +1245,7 @@ let ``Left Identity`` x =
 
 当然还有更多内容需要涵盖！在未来的文章中，我将涵盖诸如：
 
-+   **[如何提出适用于您的代码的属性](property-based-testing-2)**。属性不一定是数学的。我们将查看更一般的属性，例如反演（用于测试序列化/反序列化）、幂等性（用于安全处理多次更新或重复消息），以及测试预言。
++   **如何提出适用于您的代码的属性**。属性不一定是数学的。我们将查看更一般的属性，例如反演（用于测试序列化/反序列化）、幂等性（用于安全处理多次更新或重复消息），以及测试预言。
 
 +   **如何创建你自己的生成器和收缩器**。我们已经看到了 FsCheck 能够很好地生成随机值。但是，对于诸如正数、有效电子邮件地址或电话号码等约束条件的值，该怎么办呢？FsCheck 为您提供了构建自己的工具。
 

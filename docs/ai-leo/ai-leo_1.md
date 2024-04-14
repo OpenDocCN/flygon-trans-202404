@@ -4,7 +4,7 @@
 
 * * *
 
-本书将介绍实现和理解自己的人工智能和机器学习库所需的基础知识。所有公式和概念将用Matlab和Python中的代码呈现。
+本书将介绍实现和理解自己的人工智能和机器学习库所需的基础知识。所有公式和概念将用 Matlab 和 Python 中的代码呈现。
 
 ## 人工智能和深度学习
 
@@ -12,7 +12,7 @@
 
 如今，人工智能、机器学习和深度学习等术语使人们感到困惑不已。实际上，这些术语只是人工智能的一个子集。
 
-![](AI_DeepLearning.jpg)
+![](img/AI_DeepLearning.jpg)
 
 ## 什么是人工智能
 
@@ -20,7 +20,7 @@
 
 研究如何创建能够智能行为的计算系统的学科领域。一些其他文本将其定义为智能代理的研究/设计。在这里，代理是一个系统（软件/硬件），它感知其环境并采取最大化成功机会的行动。
 
-![](IntelligentAgent-SimpleReflex.png)
+![](img/IntelligentAgent-SimpleReflex.png)
 
 ### 智能定义
 
@@ -40,11 +40,11 @@
 
 基本上，在人工智能的历史上，我们经历了一些令人惊讶/希望和失望的时期。
 
-![](HistoryAI.png)
+![](img/HistoryAI.png)
 
 有趣的是，现在我们处于炒作/恐惧的混合状态
 
-![](StephenFear.jpg)
+![](img/StephenFear.jpg)
 
 ## 为什么现在
 
@@ -52,19 +52,19 @@
 
 机器学习算法（甚至是深度算法）已经存在几十年了，为什么现在才有这个时髦的词汇？
 
-基本上是由于计算能力的进步（通过GPU、多核CPU系统和FPGA）和数据的可用性（通过互联网上的大数据）。
+基本上是由于计算能力的进步（通过 GPU、多核 CPU 系统和 FPGA）和数据的可用性（通过互联网上的大数据）。
 
-此外，现在需要分类的数据量变得太大，无法手动处理，因此大公司谷歌、微软、Facebook开始大力投资这一领域。
+此外，现在需要分类的数据量变得太大，无法手动处理，因此大公司谷歌、微软、Facebook 开始大力投资这一领域。
 
-![](WhyNow.png)
+![](img/WhyNow.png)
 
-![](GPUAccel.png)
+![](img/GPUAccel.png)
 
 ## 新的炒作
 
 * * *
 
-过去几年，2013/2016年，人工智能（机器学习）以接近甚至有时优于人类的结果令人惊讶。例如：
+过去几年，2013/2016 年，人工智能（机器学习）以接近甚至有时优于人类的结果令人惊讶。例如：
 
 +   语音和自然语言处理
 
@@ -78,11 +78,11 @@
 
 +   控制策略（控制工程）
 
-![](Perfomance_1.png)
+![](img/Perfomance_1.png)
 
-![](StoryImg.jpg)![](Go.jpg)
+![](img/StoryImg.jpg)![](img/Go.jpg)
 
-![](GoogleCar.jpg)
+![](img/GoogleCar.jpg)
 
 因此，基本上人们开始担心失去工作，一些人工智能服务器接管世界。
 
@@ -90,7 +90,7 @@
 
 在下面的表格中，我们向您展示了一些硬件平台的每秒可能操作数量和成本。
 
-![](ComputingPowerComparison.png)
+![](img/ComputingPowerComparison.png)
 
 ## 深度思维硬件
 
@@ -98,4 +98,4 @@
 
 仅作说明，下面的图片是用于与世界上最好的围棋选手之一对弈的硬件。
 
-![](DeepmindHardware.png)![](AlphaGoServerImg.jpg)
+![](img/DeepmindHardware.png)![](img/AlphaGoServerImg.jpg)

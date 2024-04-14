@@ -2,17 +2,17 @@
 
 在这个系列中，我们将看到递归类型及其如何使用，并在此过程中，我们将看到积累、尾递归、左折叠和右折叠之间的区别等等。
 
-+   [递归类型简介](recursive-types-and-folds1.html)。不要害怕积累....
++   递归类型简介。不要害怕积累....
 
-+   [积累示例](recursive-types-and-folds-1b.html)。将规则应用于其他领域。
++   积累示例。将规则应用于其他领域。
 
-+   [介绍折叠](recursive-types-and-folds-2.html)。通过递归数据结构传递状态。
++   介绍折叠。通过递归数据结构传递状态。
 
-+   [理解折叠](recursive-types-and-folds-2b.html)。递归 vs. 迭代。
++   理解折叠。递归 vs. 迭代。
 
-+   [通用递归类型](recursive-types-and-folds-3.html)。以三种方式实现领域。
++   通用递归类型。以三种方式实现领域。
 
-+   [现实世界中的树](recursive-types-and-folds-3b.html)。使用数据库、JSON 和错误处理的示例。
++   现实世界中的树。使用数据库、JSON 和错误处理的示例。
 
 # 递归类型简介
 
@@ -26,75 +26,75 @@
 
 +   **第 1 部分：介绍递归类型和积累**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化一切](recursive-types-and-folds1.html#parameterize)
+    +   参数化一切
 
-    +   [介绍积累](recursive-types-and-folds1.html#catamorphisms)
+    +   介绍积累
 
-    +   [积累的好处](recursive-types-and-folds1.html#benefits)
+    +   积累的好处
 
-    +   [创建积累的规则](recursive-types-and-folds1.html#rules)
+    +   创建积累的规则
 
 +   **第 2 部分：积累示例**
 
-    +   [积累示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   积累示例：文件系统领域
 
-    +   [积累示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   积累示例：产品领域
 
 +   **第 3 部分：介绍折叠**
 
-    +   [我们的积累实现中的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们的积累实现中的一个缺陷
 
-    +   [介绍 `fold`](recursive-types-and-folds-2.html#fold)
+    +   介绍 `fold`
 
-    +   [折叠的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [介绍 `foldback`](recursive-types-and-folds-2.html#foldback)
+    +   介绍 `foldback`
 
-    +   [创建折叠的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠的规则
 
 +   **第 4 部分：理解折叠**
 
-    +   [迭代 vs. 递归](recursive-types-and-folds-2b.html#iteration)
+    +   迭代 vs. 递归
 
-    +   [折叠示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠示例：文件系统领域
 
-    +   [关于“fold”的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于“fold”的常见问题
 
 +   **第 5 部分：通用递归类型**
 
-    +   [LinkedList：一个通用的递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   LinkedList：一个通用的递归类型
 
-    +   [使 Gift 领域通用化](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使 Gift 领域通用化
 
-    +   [定义一个通用的容器类型](recursive-types-and-folds-3.html#container)
+    +   定义一个通用的容器类型
 
-    +   [实现礼品领域的第三种方法](recursive-types-and-folds-3.html#another-gift)
+    +   实现礼品领域的第三种方法
 
-    +   [抽象还是具体？比较这三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较这三种设计
 
 +   **第 6 部分：现实世界中的树**
 
-    +   [定义通用的树类型](recursive-types-and-folds-3b.html#tree)
+    +   定义通用的树类型
 
-    +   [现实世界中的树类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的树类型
 
-    +   [映射树类型](recursive-types-and-folds-3b.html#map)
+    +   映射树类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将树序列化为JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将树序列化为 JSON
 
-    +   [示例：从JSON反序列化树](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化树
 
-    +   [示例：从JSON反序列化树-带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化树-带错误处理
 
 * * *
 
@@ -158,7 +158,7 @@ let christmasPresent = Wrapped (Boxed (Chocolate yummyChoc), HappyHolidays)
 
 ### 指南：避免无限递归类型
 
-我建议，在F#中，每个递归类型都应该包含递归和非递归情况的混合。如果没有非递归元素，比如`Book`，那么该类型的所有值都必须是无限递归的。
+我建议，在 F#中，每个递归类型都应该包含递归和非递归情况的混合。如果没有非递归元素，比如`Book`，那么该类型的所有值都必须是无限递归的。
 
 例如，在下面的`ImpossibleGift`类型中，所有情况都是递归的。要构造任何一个情况，你需要一个内部礼物，而那也需要被构造，依此类推。
 
@@ -168,7 +168,7 @@ type ImpossibleGift =
     | WithACard of ImpossibleGift * message:string 
 ```
 
-如果允许[懒惰](https://wiki.haskell.org/Tying_the_Knot)、变异或反射，就可以创建这种类型。但一般来说，在像F#这样的非懒惰语言中，最好避免使用这种类型。
+如果允许[懒惰](https://wiki.haskell.org/Tying_the_Knot)、变异或反射，就可以创建这种类型。但一般来说，在像 F#这样的非懒惰语言中，最好避免使用这种类型。
 
 ### 处理递归类型
 
@@ -390,15 +390,15 @@ christmasPresent |> descriptionUsingCata
 
 折叠函数是一个非常强大的概念，因为它是您可以为这样的结构定义的最基本函数。*任何其他函数*都可以用它来定义。
 
-也就是说，如果我们想要创建一个带有签名`Gift -> string`或`Gift -> int`的函数，我们可以使用catamorphism通过为`Gift`结构中的每个案例指定一个函数来创建它。
+也就是说，如果我们想要创建一个带有签名`Gift -> string`或`Gift -> int`的函数，我们可以使用 catamorphism 通过为`Gift`结构中的每个案例指定一个函数来创建它。
 
-我们上面看到了如何使用catamorphism重写`totalCost`为`totalCostUsingCata`，以及以后会看到许多其他示例。
+我们上面看到了如何使用 catamorphism 重写`totalCost`为`totalCostUsingCata`，以及以后会看到许多其他示例。
 
-### Catamorphisms和folds
+### Catamorphisms 和 folds
 
 虽然`Catamorphisms`通常被称为“folds”，但是有多种类型的折叠，所以我倾向于使用“catamorphism”来指代*概念*，并使用“fold”来指代特定类型的实现。
 
-我将在[后续帖子](recursive-types-and-folds-2.html)中详细讨论各种折叠类型，所以在本帖子的其余部分，我将仅使用“catamorphism”。
+我将在后续帖子中详细讨论各种折叠类型，所以在本帖子的其余部分，我将仅使用“catamorphism”。
 
 ### 整理实现
 
@@ -429,7 +429,7 @@ let rec cataGift fBook fChocolate fWrapped fBox fCard gift =
 
 另一件事是在递归案例中将`innerGift`替换为`gift`--这被称为“遮蔽”。好处是“外部”的`gift`不再对案例处理代码可见，因此我们不会意外地递归进入其中，这会导致无限循环。
 
-通常我会避免遮蔽，但这是一种情况，实际上这是一种良好的做法，因为它消除了一种特别讨厌的bug。
+通常我会避免遮蔽，但这是一种情况，实际上这是一种良好的做法，因为它消除了一种特别讨厌的 bug。
 
 这是清理后的版本：
 
@@ -551,7 +551,7 @@ Gift -> Gift
 
 例如，如果所有客户端都使用范畴折叠函数而不是模式匹配，我可以安全地重命名情况，甚至在小心的情况下添加或删除情况。
 
-这里有一个例子。假设我之前为`Gift`设计了一个没有`WithACard`情况的版本。我将其称为版本1：
+这里有一个例子。假设我之前为`Gift`设计了一个没有`WithACard`情况的版本。我将其称为版本 1：
 
 ```
 type Gift =
@@ -579,7 +579,7 @@ let rec cataGift fBook fChocolate fWrapped fBox gift :'r =
 
 请注意，这只有*四*个函数参数。
 
-现在假设`Gift`的第2个版本出现，添加了`WithACard`情况：
+现在假设`Gift`的第 2 个版本出现，添加了`WithACard`情况：
 
 ```
 type Gift =
@@ -657,7 +657,7 @@ let rec whatsInside gift =
 
 ### 处理情况的函数 vs. 模式匹配
 
-Catamorphisms使用函数参数，正如上面所述，函数比模式匹配更灵活，因为可以使用组合、部分应用等工具。
+Catamorphisms 使用函数参数，正如上面所述，函数比模式匹配更灵活，因为可以使用组合、部分应用等工具。
 
 这是一个例子，其中所有“容器”情况都被忽略，只处理“内容”情况。
 
@@ -692,13 +692,13 @@ christmasPresent
 
 当然，这也可以通过模式匹配来完成，但直接使用现有的`cataGift`函数可以让生活更轻松。
 
-### 使用catamorphisms进行映射
+### 使用 catamorphisms 进行映射
 
-我之前说过，catamorphism是一个将递归类型“折叠”为新值的函数。例如，在`totalCost`中，递归的礼物结构被折叠成一个单一的成本值。
+我之前说过，catamorphism 是一个将递归类型“折叠”为新值的函数。例如，在`totalCost`中，递归的礼物结构被折叠成一个单一的成本值。
 
 但是“单一值”不仅仅是一个原始值 -- 它也可以是一个复杂的结构，比如另一个递归结构。
 
-实际上，catamorphisms非常适合将一种结构映射到另一种结构，特别是它们非常相似的情况。
+实际上，catamorphisms 非常适合将一种结构映射到另一种结构，特别是它们非常相似的情况。
 
 例如，假设我有一个喜欢巧克力的室友，他会偷偷拿走并吃掉礼物中的任何巧克力，留下包装不动，但丢弃盒子和礼品卡。
 
@@ -796,9 +796,9 @@ christmasPresent |> deepCopy
 //    HappyHolidays) 
 ```
 
-这导致了另一种思考catamorphism的方式：
+这导致了另一种思考 catamorphism 的方式：
 
-+   Catamorphism是适用于递归类型的函数，当您传入类型的情况构造函数时，您会得到一个“克隆”函数。
++   Catamorphism 是适用于递归类型的函数，当您传入类型的情况构造函数时，您会得到一个“克隆”函数。
 
 ### 在一次遍历中进行映射和转换
 
@@ -830,11 +830,11 @@ cheapChoc |> upgradeChocolate
 //   Boxed (Chocolate {chocType = SeventyPercent; price = 5M}) 
 ```
 
-如果你认为这开始有点像`map`，那么你是对的。我们将在[第六篇文章中看到通用映射，作为对通用递归类型讨论的一部分](recursive-types-and-folds-3b.html#map)。
+如果你认为这开始有点像`map`，那么你是对的。我们将在第六篇文章中看到通用映射，作为对通用递归类型讨论的一部分。
 
-## 创建catamorphisms的规则
+## 创建 catamorphisms 的规则
 
-我们之前看到创建catamorphism是一个机械过程：
+我们之前看到创建 catamorphism 是一个机械过程：
 
 +   创建一个函数参数来处理结构中的每种情况。
 
@@ -854,7 +854,7 @@ cheapChoc |> upgradeChocolate
 
 本文中我们已经看到如何定义递归类型，并介绍了猫摄影术。
 
-在[下一篇文章](recursive-types-and-folds-1b.html)中，我们将使用这些规则为其他领域创建猫摄影术。
+在下一篇文章中，我们将使用这些规则为其他领域创建猫摄影术。
 
 那么，我们下次见！
 
@@ -866,83 +866,83 @@ cheapChoc |> upgradeChocolate
 
 本文是系列中的第二篇。
 
-在[上一篇文章](recursive-types-and-folds1.html)中，我介绍了“猫摄影术”，这是一种创建递归类型函数的方法，并列举了一些可用于机械实现它们的规则。在本文中，我们将使用这些规则来为其他领域实现猫摄影术。
+在上一篇文章中，我介绍了“猫摄影术”，这是一种创建递归类型函数的方法，并列举了一些可用于机械实现它们的规则。在本文中，我们将使用这些规则来为其他领域实现猫摄影术。
 
 ## 系列内容
 
 以下是本系列的内容：
 
-+   **第1部分：递归类型和猫摄影术简介**
++   **第 1 部分：递归类型和猫摄影术简介**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化所有事物](recursive-types-and-folds1.html#parameterize)
+    +   参数化所有事物
 
-    +   [介绍猫摄影术](recursive-types-and-folds1.html#catamorphisms)
+    +   介绍猫摄影术
 
-    +   [猫摄影术的好处](recursive-types-and-folds1.html#benefits)
+    +   猫摄影术的好处
 
-    +   [创建猫摄影术的规则](recursive-types-and-folds1.html#rules)
+    +   创建猫摄影术的规则
 
-+   **第2部分：猫摄影术示例**
++   **第 2 部分：猫摄影术示例**
 
-    +   [猫摄影术示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   猫摄影术示例：文件系统领域
 
-    +   [猫摄影术示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   猫摄影术示例：产品领域
 
-+   **第3部分：介绍折叠**
++   **第 3 部分：介绍折叠**
 
-    +   [我们猫摄影术实现中的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们猫摄影术实现中的一个缺陷
 
-    +   [介绍`fold`](recursive-types-and-folds-2.html#fold)
+    +   介绍`fold`
 
-    +   [折叠的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [介绍`foldback`](recursive-types-and-folds-2.html#foldback)
+    +   介绍`foldback`
 
-    +   [创建折叠的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠的规则
 
-+   **第4部分：理解折叠**
++   **第 4 部分：理解折叠**
 
-    +   [迭代与递归的比较](recursive-types-and-folds-2b.html#iteration)
+    +   迭代与递归的比较
 
-    +   [折叠示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠示例：文件系统领域
 
-    +   [关于“折叠”的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于“折叠”的常见问题
 
-+   **第5部分：通用递归类型**
++   **第 5 部分：通用递归类型**
 
-    +   [链表：一个通用递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   链表：一个通用递归类型
 
-    +   [使礼物领域变得通用](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使礼物领域变得通用
 
-    +   [定义通用的容器类型](recursive-types-and-folds-3.html#container)
+    +   定义通用的容器类型
 
-    +   [实现礼物领域的第三种方法](recursive-types-and-folds-3.html#another-gift)
+    +   实现礼物领域的第三种方法
 
-    +   [抽象还是具体？比较这三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较这三种设计
 
 +   **第 6 部分：现实世界中的树**
 
-    +   [定义通用的 Tree 类型](recursive-types-and-folds-3b.html#tree)
+    +   定义通用的 Tree 类型
 
-    +   [现实世界中的 Tree 类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的 Tree 类型
 
-    +   [映射 Tree 类型](recursive-types-and-folds-3b.html#map)
+    +   映射 Tree 类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行 grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将树序列化为 JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将树序列化为 JSON
 
-    +   [示例：从 JSON 反序列化树](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化树
 
-    +   [示例：从 JSON 反序列化树 - 带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化树 - 带错误处理
 
 * * *
 
@@ -1131,7 +1131,7 @@ let fDir (name,size,subfiles) =
 
 让我们编写一个辅助函数，提供`File option`的大小，使用以下逻辑：
 
-+   如果`File option`为`None`，则返回0
++   如果`File option`为`None`，则返回 0
 
 +   否则返回选项内文件的大小
 
@@ -1202,7 +1202,7 @@ root |> largestFile
 
 * * *
 
-## 范畴形式示例：Product域
+## 范畴形式示例：Product 域
 
 让我们来处理一个稍微复杂的领域。这一次，想象一下我们制造和销售某种产品：
 
@@ -1397,7 +1397,7 @@ let score vs = vs.score
 
 `Bought`情况的逻辑是：
 
-+   如果供应商存在，则返回一个得分为1的`VendorScore`，但作为一个元素列表而不是单个项目。
++   如果供应商存在，则返回一个得分为 1 的`VendorScore`，但作为一个元素列表而不是单个项目。
 
 +   如果供应商缺失，则返回一个空列表。
 
@@ -1510,7 +1510,7 @@ twoPack |> mostUsedVendor
 
 但是，在对折叠函数的国度中并非一切完美。实际上，本页面上所有的对折叠函数的实现都存在一个潜在的严重缺陷。
 
-在[下一篇文章](recursive-types-and-folds-2.html)中，我们将看到它们可能出现的问题，如何修复它们，并在此过程中查看各种类型的“折叠”。
+在下一篇文章中，我们将看到它们可能出现的问题，如何修复它们，并在此过程中查看各种类型的“折叠”。
 
 到时见！
 
@@ -1524,7 +1524,7 @@ twoPack |> mostUsedVendor
 
 本文是系列文章的第三篇。
 
-在[第一篇文章](recursive-types-and-folds1.html)中，我介绍了“catamorphisms”，一种为递归类型创建函数的方法，在[第二篇文章](recursive-types-and-folds-1b.html)中，我们创建了一些 catamorphism 的实现。
+在第一篇文章中，我介绍了“catamorphisms”，一种为递归类型创建函数的方法，在第二篇文章中，我们创建了一些 catamorphism 的实现。
 
 但在上一篇文章的结尾，我指出到目前为止，所有的 catamorphism 实现都存在一个潜在的严重缺陷。
 
@@ -1536,75 +1536,75 @@ twoPack |> mostUsedVendor
 
 +   **第 1 部分：递归类型和 catamorphisms 介绍**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化所有内容](recursive-types-and-folds1.html#parameterize)
+    +   参数化所有内容
 
-    +   [介绍 catamorphisms](recursive-types-and-folds1.html#catamorphisms)
+    +   介绍 catamorphisms
 
-    +   [catamorphisms 的好处](recursive-types-and-folds1.html#benefits)
+    +   catamorphisms 的好处
 
-    +   [创建 catamorphism 的规则](recursive-types-and-folds1.html#rules)
+    +   创建 catamorphism 的规则
 
 +   **第 2 部分：Catamorphism 示例**
 
-    +   [Catamorphism 示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   Catamorphism 示例：文件系统领域
 
-    +   [Catamorphism 示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   Catamorphism 示例：产品领域
 
 +   **第 3 部分：折叠介绍**
 
-    +   [我们 catamorphism 实现中的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们 catamorphism 实现中的一个缺陷
 
-    +   [介绍 `fold`](recursive-types-and-folds-2.html#fold)
+    +   介绍 `fold`
 
-    +   [折叠的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [介绍 `foldback`](recursive-types-and-folds-2.html#foldback)
+    +   介绍 `foldback`
 
-    +   [创建折叠的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠的规则
 
 +   **第 4 部分：理解折叠**
 
-    +   [迭代 vs. 递归](recursive-types-and-folds-2b.html#iteration)
+    +   迭代 vs. 递归
 
-    +   [折叠示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠示例：文件系统领域
 
-    +   [关于“折叠”的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于“折叠”的常见问题
 
 +   **第 5 部分：通用递归类型**
 
-    +   [LinkedList：通用的递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   LinkedList：通用的递归类型
 
-    +   [使 Gift 领域通用化](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使 Gift 领域通用化
 
-    +   [定义通用的容器类型](recursive-types-and-folds-3.html#container)
+    +   定义通用的容器类型
 
-    +   [实现 Gift 领域的第三种方式](recursive-types-and-folds-3.html#another-gift)
+    +   实现 Gift 领域的第三种方式
 
-    +   [抽象还是具体？比较三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较三种设计
 
 +   **第 6 部分：现实世界中的树**
 
-    +   [定义通用的树类型](recursive-types-and-folds-3b.html#tree)
+    +   定义通用的树类型
 
-    +   [现实世界中的树类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的树类型
 
-    +   [映射树类型](recursive-types-and-folds-3b.html#map)
+    +   映射树类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行 grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将树序列化为 JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将树序列化为 JSON
 
-    +   [示例：从 JSON 反序列化树](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化树
 
-    +   [示例：从 JSON 反序列化树 - 带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化树 - 带错误处理
 
 * * *
 
@@ -1888,7 +1888,7 @@ fBox:('a -> 'a)
 
 对于递归情况，结构是相同的，但所有对`'r`类型的使用都已替换为`'a`类型。递归情况根本不使用`'r`类型。
 
-### 使用fold重新实现`totalCost`函数
+### 使用 fold 重新实现`totalCost`函数
 
 再次，我们可以重新实现总成本函数，但这次使用`foldGift`函数：
 
@@ -1920,9 +1920,9 @@ deeplyNestedBox 100000 |> totalCostUsingFold  // no problem   100020.0M
 deeplyNestedBox 1000000 |> totalCostUsingFold // no problem  1000020.0M 
 ```
 
-## 使用fold的问题
+## 使用 fold 的问题
 
-所以使用fold解决了我们所有的问题，对吧？
+所以使用 fold 解决了我们所有的问题，对吧？
 
 不幸的是，不会。
 
@@ -2329,7 +2329,7 @@ fWrapped:(WrappingPaperStyle -> 'a -> 'a)
 
 在这篇文章中，我们看到了如何定义一个尾递归实现的析取范畴，称为“fold”和相反版本的“foldback”。
 
-在[下一篇文章](recursive-types-and-folds-2b.html)中，我们将稍微退后一步，并花一些时间了解“折叠”真正意味着什么，并提供一些在`fold`、`foldback`和`cata`之间选择的指南。
+在下一篇文章中，我们将稍微退后一步，并花一些时间了解“折叠”真正意味着什么，并提供一些在`fold`、`foldback`和`cata`之间选择的指南。
 
 我们将看看是否可以将这些规则应用于另一个领域。
 
@@ -2341,7 +2341,7 @@ fWrapped:(WrappingPaperStyle -> 'a -> 'a)
 
 这篇文章是系列中的第四篇。
 
-在[上一篇文章](recursive-types-and-folds1.html)中，我介绍了“折叠”，一种为递归类型创建自顶向下迭代函数的方法。
+在上一篇文章中，我介绍了“折叠”，一种为递归类型创建自顶向下迭代函数的方法。
 
 在这篇文章中，我们将花一些时间更详细地了解折叠。
 
@@ -2349,77 +2349,77 @@ fWrapped:(WrappingPaperStyle -> 'a -> 'a)
 
 这个系列的内容如下：
 
-+   **第1部分：递归类型和消解**
++   **第 1 部分：递归类型和消解**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化一切](recursive-types-and-folds1.html#parameterize)
+    +   参数化一切
 
-    +   [介绍消解](recursive-types-and-folds1.html#catamorphisms)
+    +   介绍消解
 
-    +   [消解的好处](recursive-types-and-folds1.html#benefits)
+    +   消解的好处
 
-    +   [创建消解的规则](recursive-types-and-folds1.html#rules)
+    +   创建消解的规则
 
-+   **第2部分：消解示例**
++   **第 2 部分：消解示例**
 
-    +   [消解示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   消解示例：文件系统领域
 
-    +   [消解示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   消解示例：产品领域
 
-+   **第3部分：介绍折叠**
++   **第 3 部分：介绍折叠**
 
-    +   [我们消解实现中的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们消解实现中的一个缺陷
 
-    +   [介绍 `fold`](recursive-types-and-folds-2.html#fold)
+    +   介绍 `fold`
 
-    +   [折叠的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [介绍 `foldback`](recursive-types-and-folds-2.html#foldback)
+    +   介绍 `foldback`
 
-    +   [创建折叠的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠的规则
 
-+   **第4部分：理解折叠**
++   **第 4 部分：理解折叠**
 
-    +   [迭代 vs. 递归](recursive-types-and-folds-2b.html#iteration)
+    +   迭代 vs. 递归
 
-    +   [折叠示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠示例：文件系统领域
 
-    +   [关于“折叠”的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于“折叠”的常见问题
 
-+   **第5部分：通用递归类型**
++   **第 5 部分：通用递归类型**
 
-    +   [链表：一个通用递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   链表：一个通用递归类型
 
-    +   [使礼物领域通用化](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使礼物领域通用化
 
-    +   [定义通用容器类型](recursive-types-and-folds-3.html#container)
+    +   定义通用容器类型
 
-    +   [实现礼物领域的第三种方式](recursive-types-and-folds-3.html#another-gift)
+    +   实现礼物领域的第三种方式
 
-    +   [抽象还是具体？比较三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较三种设计
 
-+   **第6部分：现实世界中的树**
++   **第 6 部分：现实世界中的树**
 
-    +   [定义通用树类型](recursive-types-and-folds-3b.html#tree)
+    +   定义通用树类型
 
-    +   [现实世界中的树类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的树类型
 
-    +   [映射树类型](recursive-types-and-folds-3b.html#map)
+    +   映射树类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行 grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将树序列化为 JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将树序列化为 JSON
 
-    +   [示例：从 JSON 反序列化树](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化树
 
-    +   [示例：从 JSON 反序列化树 - 带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化树 - 带错误处理
 
 * * *
 
@@ -2449,7 +2449,7 @@ accumulatorFromHigherLevel, combined with
     => stuffToSendDownToNextLowerLevel 
 ```
 
-在命令式语言中，这正是一个带有存储累加器的可变变量的“for循环”。
+在命令式语言中，这正是一个带有存储累加器的可变变量的“for 循环”。
 
 ```
 var accumulator = initialValue
@@ -2497,7 +2497,7 @@ let recurse (head::tail) =
 
 ## 折叠示例：文件系统域
 
-在上一篇文章中，我们描述了创建折叠的一些规则。让我们看看是否可以将这些规则应用于另一个领域的折叠，即来自[系列第二篇文章](recursive-types-and-folds-1b.html#file-system)的“文件系统”领域。
+在上一篇文章中，我们描述了创建折叠的一些规则。让我们看看是否可以将这些规则应用于另一个领域的折叠，即来自系列第二篇文章的“文件系统”领域。
 
 作为提醒，这是来自该文章的粗略“文件系统”域：
 
@@ -2554,7 +2554,7 @@ let rec foldFS fFile fDir acc item :'r =
 
 +   依此类推。最后一个子项的输出是最终结果。
 
-尽管这种方法已经可用于我们。这正是`List.fold`所做的！因此，这是Directory情况��代码： 
+尽管这种方法已经可用于我们。这正是`List.fold`所做的！因此，这是 Directory 情况��代码： 
 
 ```
 | Directory dir -> 
@@ -2666,7 +2666,7 @@ root |> largestFile
 // Some {name = "build.bat"; fileSize = 3} 
 ```
 
-将这种实现与[第二篇文章中的递归版本](recursive-types-and-folds-1b.html#file-system)进行比较。我认为这个实现更容易实现。
+将这种实现与第二篇文章中的递归版本进行比较。我认为这个实现更容易实现。
 
 ### 树遍历类型
 
@@ -2690,9 +2690,9 @@ root |> largestFile
 
 但是，等等，我不是在开头说过我们必须注意堆栈溢出吗？
 
-是的，如果递归类型是深度嵌套的。但是考虑一个每个目录只有两个子目录的文件系统。如果有64个嵌套级别，会有多少个目录？（提示：你可能熟悉一个类似的问题。与[国际象棋棋盘上的麦粒问题](https://en.wikipedia.org/wiki/Wheat_and_chessboard_problem)有关）。
+是的，如果递归类型是深度嵌套的。但是考虑一个每个目录只有两个子目录的文件系统。如果有 64 个嵌套级别，会有多少个目录？（提示：你可能熟悉一个类似的问题。与[国际象棋棋盘上的麦粒问题](https://en.wikipedia.org/wiki/Wheat_and_chessboard_problem)有关）。
 
-我们之前看到，堆栈溢出问题只会发生在超过1000个嵌套级别时，而那种级别的嵌套通常只出现在*线性*递归类型中，而不是像FileSystem领域这样的树形结构。
+我们之前看到，堆栈溢出问题只会发生在超过 1000 个嵌套级别时，而那种级别的嵌套通常只出现在*线性*递归类型中，而不是像 FileSystem 领域这样的树形结构。
 
 ## 关于“折叠”的常见问题
 
@@ -2714,7 +2714,7 @@ root |> largestFile
 
 这里有一些指导方针：
 
-+   如果你的递归类型不会太深嵌套（比如少于100层深），那么我们在第一篇文章中描述的简单`cata`范畴叠加就可以了。它真的很容易机械化实现——只需用`'r`替换主递归类型即可。
++   如果你的递归类型不会太深嵌套（比如少于 100 层深），那么我们在第一篇文章中描述的简单`cata`范畴叠加就可以了。它真的很容易机械化实现——只需用`'r`替换主递归类型即可。
 
 +   如果你的递归类型将会被深度嵌套，并且你想要避免堆栈溢出，那就使用迭代的`fold`。
 
@@ -2791,7 +2791,7 @@ level1 data [combined with] level2 data [combined with] level3 data [combined wi
 
 ### 如何中断折叠？
 
-在像C#这样的语言中，您可以使用`break`提前退出迭代循环，就像这样：
+在像 C#这样的语言中，您可以使用`break`提前退出迭代循环，就像这样：
 
 ```
 foreach (var elem in collection)
@@ -2813,7 +2813,7 @@ foreach (var elem in collection)
 
 第一个方法是根本不使用`fold`，而是创建自己的递归函数，在满足所需条件时终止：
 
-在这个例子中，当总和大于100时，循环退出：
+在这个例子中，当总和大于 100 时，循环退出：
 
 ```
 let rec firstSumBiggerThan100 sumSoFar listOfInts =
@@ -2862,7 +2862,7 @@ let firstSumBiggerThan100 listOfInts =
 
 第三个版本是第二个的变体--创建一个特殊值来表示应忽略剩余数据，但将其包装在计算表达式中，使其看起来更自然。
 
-这种方法在[Tomas Petricek的博客](http://tomasp.net/blog/imperative-ii-break.aspx/)上有文档记录，代码如下：
+这种方法在[Tomas Petricek 的博客](http://tomasp.net/blog/imperative-ii-break.aspx/)上有文档记录，代码如下：
 
 ```
 let firstSumBiggerThan100 listOfInts =
@@ -2883,7 +2883,7 @@ let firstSumBiggerThan100 listOfInts =
 
 到目前为止，系列中的所有示例都非常具体；我们为遇到的每个领域实现了自定义折叠。我们能否更通用一些，构建一些可重用的折叠实现呢？
 
-在[下一篇文章](recursive-types-and-folds-3.html)中，我们将看看通用递归类型，以及如何处理它们。
+在下一篇文章中，我们将看看通用递归类型，以及如何处理它们。
 
 *本文的源代码可在[this gist](https://gist.github.com/swlaschin/e065b0e99dd68cd35846)中找到。*
 
@@ -2893,7 +2893,7 @@ let firstSumBiggerThan100 listOfInts =
 
 本文是系列中的第五篇。
 
-在[上一篇文章](recursive-types-and-folds-2b.html)中，我们花了一些时间理解特定领域类型的折叠。
+在上一篇文章中，我们花了一些时间理解特定领域类型的折叠。
 
 在本文中，我们将拓宽视野，看看如何使用通用递归类型。
 
@@ -2901,83 +2901,83 @@ let firstSumBiggerThan100 listOfInts =
 
 以下是本系列的内容：
 
-+   **第1部分：递归类型和catamorphisms简介**
++   **第 1 部分：递归类型和 catamorphisms 简介**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化所有事物](recursive-types-and-folds1.html#parameterize)
+    +   参数化所有事物
 
-    +   [引入分类折叠法](recursive-types-and-folds1.html#catamorphisms)
+    +   引入分类折叠法
 
-    +   [分类折叠法的好处](recursive-types-and-folds1.html#benefits)
+    +   分类折叠法的好处
 
-    +   [创建分类折叠法的规则](recursive-types-and-folds1.html#rules)
+    +   创建分类折叠法的规则
 
 +   **第二部分：分类折叠法示例**
 
-    +   [分类折叠法示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   分类折叠法示例：文件系统领域
 
-    +   [分类折叠法示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   分类折叠法示例：产品领域
 
 +   **第三部分：介绍折叠法**
 
-    +   [我们折叠法实现的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们折叠法实现的一个缺陷
 
-    +   [引入 `fold`](recursive-types-and-folds-2.html#fold)
+    +   引入 `fold`
 
-    +   [折叠法的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠法的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [引入 `foldback`](recursive-types-and-folds-2.html#foldback)
+    +   引入 `foldback`
 
-    +   [创建折叠法的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠法的规则
 
 +   **第四部分：理解折叠**
 
-    +   [迭代与递归的比较](recursive-types-and-folds-2b.html#iteration)
+    +   迭代与递归的比较
 
-    +   [折叠法示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠法示例：文件系统领域
 
-    +   [关于 "fold" 的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于 "fold" 的常见问题
 
 +   **第五部分：通用递归类型**
 
-    +   [LinkedList：一个通用的递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   LinkedList：一个通用的递归类型
 
-    +   [使礼物领域通用化](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使礼物领域通用化
 
-    +   [定义一个通用的 Container 类型](recursive-types-and-folds-3.html#container)
+    +   定义一个通用的 Container 类型
 
-    +   [另一个礼物领域的实现方式](recursive-types-and-folds-3.html#another-gift)
+    +   另一个礼物领域的实现方式
 
-    +   [抽象还是具体？比较三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较三种设计
 
 +   **第六部分：现实世界中的树**
 
-    +   [定义一个通用的 Tree 类型](recursive-types-and-folds-3b.html#tree)
+    +   定义一个通用的 Tree 类型
 
-    +   [现实世界中的 Tree 类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的 Tree 类型
 
-    +   [映射 Tree 类型](recursive-types-and-folds-3b.html#map)
+    +   映射 Tree 类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行 grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将树序列化为 JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将树序列化为 JSON
 
-    +   [示例：从 JSON 反序列化树](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化树
 
-    +   [示例：从 JSON 反序列化树 - 带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化树 - 带错误处理
 
 * * *
 
 ## LinkedList：一个通用的递归类型
 
-这里有一个问题：如果你只有代数类型，并且只能将它们作为积（[元组](tuples.html)、[记录](records.html)）或和（[鉴别联合](discriminated-unions.html)）来组合，那么你如何仅使用这些操作来制作一个列表类型？
+这里有一个问题：如果你只有代数类型，并且只能将它们作为积（元组、记录）或和（鉴别联合）来组合，那么你如何仅使用这些操作来制作一个列表类型？
 
 当然，答案是递归！
 
@@ -3013,7 +3013,7 @@ let linkedList = 1 :: 2 :: 3 :: []
 
 ### `cata` 适用于 LinkedList
 
-按照这个系列中[第一篇文章中的规则](recursive-types-and-folds1.html#rules)，我们可以通过用 `fEmpty` 和 `fCons` 替换 `Empty` 和 `Cons` 来机械地创建一个 `cata` 函数：
+按照这个系列中第一篇文章中的规则，我们可以通过用 `fEmpty` 和 `fCons` 替换 `Empty` 和 `Cons` 来机械地创建一个 `cata` 函数：
 
 ```
 module LinkedList = 
@@ -3041,7 +3041,7 @@ val cata :
 
 ### `fold` 适用于 LinkedList
 
-我们还可以使用这个系列中[早期文章](recursive-types-and-folds-2.html#rules)中的规则创建一个自上而下的迭代 `fold` 函数。
+我们还可以使用这个系列中早期文章中的规则创建一个自上而下的迭代 `fold` 函数。
 
 ```
 module LinkedList = 
@@ -3073,7 +3073,7 @@ module LinkedList =
             recurse newAcc list 
 ```
 
-如果我们将签名与[List.fold文档](https://msdn.microsoft.com/en-us/library/ee353894.aspx)进行比较，我们会发现它们是等效的，其中 `'State` 被替换为 `'r`，`'T list` 被替换为 `LinkedList<'a>`：
+如果我们将签名与[List.fold 文档](https://msdn.microsoft.com/en-us/library/ee353894.aspx)进行比较，我们会发现它们是等效的，其中 `'State` 被替换为 `'r`，`'T list` 被替换为 `LinkedList<'a>`：
 
 ```
 LinkedList.fold : ('r     -> 'a -> 'r    ) -> 'r      -> LinkedList<'a> -> 'r
@@ -3110,7 +3110,7 @@ module LinkedList =
         foldWithEmpty fCons' fEmpty' initialGenerator  list 
 ```
 
-再次，如果我们将签名与[List.foldBack文档](https://msdn.microsoft.com/en-us/library/ee353846.aspx)进行比较，它们也是等效的，其中 `'State` 被替换为 `'r`，`'T list` 被替换为 `LinkedList<'a>`：
+再次，如果我们将签名与[List.foldBack 文档](https://msdn.microsoft.com/en-us/library/ee353846.aspx)进行比较，它们也是等效的，其中 `'State` 被替换为 `'r`，`'T list` 被替换为 `LinkedList<'a>`：
 
 ```
 LinkedList.foldBack : ('a -> 'r     -> 'r    ) -> LinkedList<'a> -> 'r     -> 'r
@@ -3119,7 +3119,7 @@ List.foldBack       : ('T -> 'State -> 'State) -> 'T list        -> 'State -> 'S
 
 ### 使用 `foldBack` 在列表类型之间进行转换
 
-在[第一篇文章](recursive-types-and-folds1.html#benefits)中，我们注意到，catamorphisms可用于在类似结构的类型之间进行转换。
+在第一篇文章中，我们注意到，catamorphisms 可用于在类似结构的类型之间进行转换。
 
 现在，让我们通过创建一些函数来演示，将 `LinkedList` 转换为原生的 `list` 类型，然后再转回来。
 
@@ -3679,7 +3679,7 @@ type GiftDecoration =
 type Gift = {contents: GiftContents; decorations: GiftDecoration list} 
 ```
 
-如果这不明显，阅读我关于[数据类型大小](type-size-and-design.html)的帖子可能会有所帮助。它解释了两种类型如何“等价”，即使乍一看它们似乎完全不同。
+如果这不明显，阅读我关于数据类型大小的帖子可能会有所帮助。它解释了两种类型如何“等价”，即使乍一看它们似乎完全不同。
 
 ### 选择设计
 
@@ -3703,7 +3703,7 @@ type Gift = {contents: GiftContents; decorations: GiftDecoration list}
 
 在本文中，我们探讨了一些将`Gift`建模为通用类型的方式，以及每种方法的优缺点。
 
-在[下一篇文章](recursive-types-and-folds-3b.html)中，我们将看到使用通用递归类型的真实世界示例。
+在下一篇文章中，我们将看到使用通用递归类型的真实世界示例。
 
 *本文的源代码可在[此处的 gist](https://gist.github.com/swlaschin/c423a0f78b22496a0aff)找到。*
 
@@ -3713,7 +3713,7 @@ type Gift = {contents: GiftContents; decorations: GiftDecoration list}
 
 这篇文章是系列中的第六篇。
 
-在[上一篇文章](recursive-types-and-folds-3.html)中，我们简要地看了一些通用类型。
+在上一篇文章中，我们简要地看了一些通用类型。
 
 在本文中，我们将深入研究一些使用树和折叠的真实世界示例。
 
@@ -3723,79 +3723,79 @@ type Gift = {contents: GiftContents; decorations: GiftDecoration list}
 
 +   **第一部分：递归类型和消解简介**
 
-    +   [一个简单的递归类型](recursive-types-and-folds1.html#basic-recursive-type)
+    +   一个简单的递归类型
 
-    +   [参数化所有东西](recursive-types-and-folds1.html#parameterize)
+    +   参数化所有东西
 
-    +   [介绍消解](recursive-types-and-folds1.html#catamorphisms)
+    +   介绍消解
 
-    +   [消解的好处](recursive-types-and-folds1.html#benefits)
+    +   消解的好处
 
-    +   [创建消解的规则](recursive-types-and-folds1.html#rules)
+    +   创建消解的规则
 
 +   **第二部分：消解示例**
 
-    +   [消解示例：文件系统领域](recursive-types-and-folds-1b.html#file-system)
+    +   消解示例：文件系统领域
 
-    +   [消解示例：产品领域](recursive-types-and-folds-1b.html#product)
+    +   消解示例：产品领域
 
 +   **第三部分：介绍折叠**
 
-    +   [我们的消解实现中的一个缺陷](recursive-types-and-folds-2.html#flaw)
+    +   我们的消解实现中的一个缺陷
 
-    +   [介绍 `fold`](recursive-types-and-folds-2.html#fold)
+    +   介绍 `fold`
 
-    +   [折叠的问题](recursive-types-and-folds-2.html#problems)
+    +   折叠的问题
 
-    +   [将函数用作累加器](recursive-types-and-folds-2.html#functions)
+    +   将函数用作累加器
 
-    +   [介绍 `foldback`](recursive-types-and-folds-2.html#foldback)
+    +   介绍 `foldback`
 
-    +   [创建折叠的规则](recursive-types-and-folds-2.html#rules)
+    +   创建折叠的规则
 
 +   **第四部分：理解折叠**
 
-    +   [迭代 vs. 递归](recursive-types-and-folds-2b.html#iteration)
+    +   迭代 vs. 递归
 
-    +   [折叠示例：文件系统领域](recursive-types-and-folds-2b.html#file-system)
+    +   折叠示例：文件系统领域
 
-    +   [关于“折叠”的常见问题](recursive-types-and-folds-2b.html#questions)
+    +   关于“折叠”的常见问题
 
 +   **第五部分：通用递归类型**
 
-    +   [LinkedList：通用递归类型](recursive-types-and-folds-3.html#linkedlist)
+    +   LinkedList：通用递归类型
 
-    +   [使礼物领域成为通用的](recursive-types-and-folds-3.html#revisiting-gift)
+    +   使礼物领域成为通用的
 
-    +   [定义通用容器类型](recursive-types-and-folds-3.html#container)
+    +   定义通用容器类型
 
-    +   [实现礼物领域的第三种方式](recursive-types-and-folds-3.html#another-gift)
+    +   实现礼物领域的第三种方式
 
-    +   [抽象还是具体？比较三种设计](recursive-types-and-folds-3.html#compare)
+    +   抽象还是具体？比较三种设计
 
 +   **第六部分：现实世界中的树**
 
-    +   [定义通用树类型](recursive-types-and-folds-3b.html#tree)
+    +   定义通用树类型
 
-    +   [现实世界中的树类型](recursive-types-and-folds-3b.html#reuse)
+    +   现实世界中的树类型
 
-    +   [映射树类型](recursive-types-and-folds-3b.html#map)
+    +   映射树类型
 
-    +   [示例：创建目录列表](recursive-types-and-folds-3b.html#listing)
+    +   示例：创建目录列表
 
-    +   [示例：并行 grep](recursive-types-and-folds-3b.html#grep)
+    +   示例：并行 grep
 
-    +   [示例：将文件系统存储在数据库中](recursive-types-and-folds-3b.html#database)
+    +   示例：将文件系统存储在数据库中
 
-    +   [示例：将 Tree 序列化为 JSON](recursive-types-and-folds-3b.html#tojson)
+    +   示例：将 Tree 序列化为 JSON
 
-    +   [示例：从 JSON 反序列化 Tree](recursive-types-and-folds-3b.html#fromjson)
+    +   示例：从 JSON 反序列化 Tree
 
-    +   [示例：从 JSON 反序列化 Tree - 带错误处理](recursive-types-and-folds-3b.html#json-with-error-handling)
+    +   示例：从 JSON 反序列化 Tree - 带错误处理
 
 * * *
 
-## 定义通用的Tree类型
+## 定义通用的 Tree 类型
 
 在本文中，我们将使用受之前探索的`FileSystem`领域启发的通用`Tree`。
 
@@ -3859,7 +3859,7 @@ module Tree =
 
 请注意，我*不*打算为`Tree`类型实现`foldBack`，因为树很少会深入到导致堆栈溢出的程度。需要内部数据的函数可以使用`cata`。
 
-### 使用Tree模拟文件系统领域
+### 使用 Tree 模拟文件系统领域
 
 让我们用与之前相同的值来测试它：
 
@@ -3928,7 +3928,7 @@ root |> largestFile
 
 此部分的源代码可在[此要点](https://gist.github.com/swlaschin/1ef784481bae91b63a36)处获得。
 
-## 真实世界中的Tree类型
+## 真实世界中的 Tree 类型
 
 我们也可以使用`Tree`来模拟*真实*的文件系统！要做到这一点，只需将叶节点类型设置为`System.IO.FileInfo`，将内部节点类型设置为`System.IO.DirectoryInfo`。
 
@@ -4002,7 +4002,7 @@ let largestFile fileSystemItem =
 currentDir |> largestFile 
 ```
 
-所以这就是使用通用递归类型的一个巨大好处。如果我们可以将真实的层次结构转换为我们的树结构，我们就可以免费获得所有fold的好处。
+所以这就是使用通用递归类型的一个巨大好处。如果我们可以将真实的层次结构转换为我们的树结构，我们就可以免费获得所有 fold 的好处。
 
 ## 使用通用类型进行映射
 
@@ -4500,19 +4500,19 @@ DbDir_File: inserting parentDir:41 childFile:44
  DbDir_Dir: inserting parentDir:41 childDir:57 
 ```
 
-你可以看到，在迭代文件时生成了ids，并且每个`DbFile`插入后都跟着一个`DbDir_File`插入。
+你可以看到，在迭代文件时生成了 ids，并且每个`DbFile`插入后都跟着一个`DbDir_File`插入。
 
 *此示例的源代码可在[此代码片段](https://gist.github.com/swlaschin/3a416f26d873faa84cde)中找到。*
 
 * * *
 
-## 示例：将树序列化为JSON
+## 示例：将树序列化为 JSON
 
-让我们再看一个常见的挑战：将树序列化和反序列化为JSON、XML或其他格式。
+让我们再看一个常见的挑战：将树序列化和反序列化为 JSON、XML 或其他格式。
 
-让我们再次使用Gift域，但这次，我们将`Gift`类型建模为一棵树。这意味着我们可以在一个盒子里放更多的东西！
+让我们再次使用 Gift 域，但这次，我们将`Gift`类型建模为一棵树。这意味着我们可以在一个盒子里放更多的东西！
 
-### 将Gift域建模为树
+### 将 Gift 域建模为树
 
 这里再次是主要类型，但请注意最终的`Gift`类型被定义为一棵树：
 
@@ -4641,11 +4641,11 @@ twoWrappedPresentsInBox |> description
 //   in a box" 
 ```
 
-### 第1步：定义`GiftDto`
+### 第 1 步：定义`GiftDto`
 
 我们的`Gift`类型由许多区分联合组成。根据我的经验，这些不会序列化得很好。事实上，大多数复杂类型都不会序列化得很好！
 
-因此，我喜欢定义[DTO](https://en.wikipedia.org/wiki/Data_transfer_object)类型，这些类型专门设计用于良好的序列化。实际上，这意味着DTO类型受到以下约束：
+因此，我喜欢定义[DTO](https://en.wikipedia.org/wiki/Data_transfer_object)类型，这些类型专门设计用于良好的序列化。实际上，这意味着 DTO 类型受到以下约束：
 
 +   只应使用记录类型。
 
@@ -4657,9 +4657,9 @@ twoWrappedPresentsInBox |> description
 
 **我们能更好地控制错误处理。** 我在处理序列化数据时的首要规则是“不要相信任何人”。很常见的情况是数据结构正确但对于域来说是无效的：被认为是非空字符串实际上是空的，字符串太长，整数超出了正确的范围，等等。
 
-通过使用DTO，我们可以确保反序列化步骤本身能够工作。然后，当我们将DTO转换为域类型时，我们可以进行适当的验证。
+通过使用 DTO，我们可以确保反序列化步骤本身能够工作。然后，当我们将 DTO 转换为域类型时，我们可以进行适当的验证。
 
-因此，让我们为我们的域定义一些DTO类型。每个DTO类型将对应一个域类型，所以让我们从`GiftContents`开始。我们将定义一个相应的DTO类型，称为`GiftContentsDto`，如下所示：
+因此，让我们为我们的域定义一些 DTO 类型。每个 DTO 类型将对应一个域类型，所以让我们从`GiftContents`开始。我们将定义一个相应的 DTO 类型，称为`GiftContentsDto`，如下所示：
 
 ```
 [<CLIMutableAttribute>]
@@ -4678,7 +4678,7 @@ type GiftContentsDto = {
 
 +   首先，它具有`CLIMutableAttribute`，允许反序列化器使用反射构造它们。
 
-+   其次，它有一个`discriminator`，指示正在使用原始联合类型的哪种情况。显然，这个字符串可以设置为任何值，因此在将DTO转换回域类型时，我们必须仔细检查！
++   其次，它有一个`discriminator`，指示正在使用原始联合类型的哪种情况。显然，这个字符串可以设置为任何值，因此在将 DTO 转换回域类型时，我们必须仔细检查！
 
 +   接下来是一系列字段，每个字段用于存储需要存储的所有可能数据项。例如，在`Book`情况下，我们需要一个`bookTitle`，而在`Chocolate`情况下，我们需要巧克力类型。最后`price`字段在两种类型中都存在。请注意，巧克力类型也存储为字符串，因此在从 DTO 转换为领域时也需要特殊处理。
 
@@ -4939,9 +4939,9 @@ let rec dtoToTree (treeDto:TreeDto<'Leaf,'Node>) :Tree<'Leaf,'Node> =
 
 +   辅助方法（如`strToChocolateType`），将字符串转换为适当的领域类型，并在输入无效时抛出异常。
 
-+   case转换器方法（如`bookFromDto`），将整个DTO转换为一个case。
++   case 转换器方法（如`bookFromDto`），将整个 DTO 转换为一个 case。
 
-+   最后，`dtoToGift`函数本身。它查看`discriminator`字段，看看调用哪个case转换器，并在识别不出discriminator值时抛出异常。
++   最后，`dtoToGift`函数本身。它查看`discriminator`字段，看看调用哪个 case 转换器，并在识别不出 discriminator 值时抛出异常。
 
 ```
 let strToBookTitle str =
@@ -5009,7 +5009,7 @@ let dtoToGift (giftDto:GiftDto) :Gift=
 
 ### 步骤 4：组装管道
 
-现在我们可以组装管道，接受一个JSON字符串并创建一个`Gift`。
+现在我们可以组装管道，接受一个 JSON 字符串并创建一个`Gift`。
 
 ```
 let goodGift = goodJson |> fromJson |> dtoToTree |> dtoToGift
@@ -5021,7 +5021,7 @@ goodGift |> description
 
 这样做没问题，但错误处理很糟糕！
 
-看看如果我们稍微损坏JSON会发生什么：
+看看如果我们稍微损坏 JSON 会发生什么：
 
 ```
 let badJson1 = goodJson.Replace("leafData","leafDataXX")
@@ -5032,7 +5032,7 @@ let badJson1_result = badJson1 |> fromJson |> dtoToTree |> dtoToGift
 
 我们得到一个丑陋的异常。
 
-或者如果discriminator是错误的会怎样？
+或者如果 discriminator 是错误的会怎样？
 
 ```
 let badJson2 = goodJson.Replace("Wrapped","Wrapped2")
@@ -5041,7 +5041,7 @@ let badJson2_result = badJson2 |> fromJson |> dtoToTree |> dtoToGift
 // Exception "Unknown node discriminator 'Wrapped2'" 
 ```
 
-或者WrappingPaperStyle DU的值之一？
+或者 WrappingPaperStyle DU 的值之一？
 
 ```
 let badJson3 = goodJson.Replace("HappyHolidays","HappyHolidays2")
@@ -5057,7 +5057,7 @@ let badJson3_result = badJson3 |> fromJson |> dtoToTree |> dtoToGift
 
 * * *
 
-## 示例：从JSON反序列化Tree - 带有错误处理
+## 示例：从 JSON 反序列化 Tree - 带有错误处理
 
 为了解决错误处理问题，我们将使用下面显示的`Result`类型：
 
@@ -5067,13 +5067,13 @@ type Result<'a> =
     | Failure of string list 
 ```
 
-我不会在这里解释它是如何工作的。如果你对这种方法不熟悉，请[阅读我的文章](recipe-part2.html)或[观看我关于函数式错误处理主题的讲座](http://fsharpforfunandprofit.com/rop/)。
+我不会在这里解释它是如何工作的。如果你对这种方法不熟悉，请阅读我的文章或[观看我关于函数式错误处理主题的讲座](http://fsharpforfunandprofit.com/rop/)。
 
 让我们重新审视前一节中的所有步骤，并使用`Result`而不是抛出异常。
 
 ### 步骤 1：反序列化`TreeDto`
 
-当我们使用JSON序列化器反序列化`TreeDto`时，我们将捕获异常并将其转换为`Result`。
+当我们使用 JSON 序列化器反序列化`TreeDto`时，我们将捕获异常并将其转换为`Result`。
 
 ```
 let fromJson<'a> str = 
@@ -5122,15 +5122,15 @@ let rec dtoToTreeOfResults (treeDto:TreeDto<'Leaf,'Node>) :Tree<Result<'Leaf>,Re
 
 但是这种类型是无用的 -- 我们*真正*想要的是将所有错误合并在一起，并返回包含`Tree`的`Result`。
 
-我们如何将一组Results的Tree转换为一个Tree的Result？
+我们如何将一组 Results 的 Tree 转换为一个 Tree 的 Result？
 
-答案是使用一个`sequence`函数，它可以"交换"这两种类型。你可以在[我的提升世界系列文章中](elevated-world-4.html#sequence)更多地了解`sequence`。
+答案是使用一个`sequence`函数，它可以"交换"这两种类型。你可以在我的提升世界系列文章中更多地了解`sequence`。
 
 *请注意，我们也可以使用稍微复杂一点的`traverse`变体将`map`和`sequence`合并为一步，但为了演示的目的，如果将步骤保持分开，更容易理解。*
 
-我们需要为Tree/Result组合创建自己的`sequence`函数。幸运的是，创建一个序列函数是一个机械过程：
+我们需要为 Tree/Result 组合创建自己的`sequence`函数。幸运的是，创建一个序列函数是一个机械过程：
 
-+   对于低类型（`Result`），我们需要定义 `apply` 和 `return` 函数。有关 `apply` 的更多详细信息，请参见[这里](elevated-world.html#apply)。
++   对于低类型（`Result`），我们需要定义 `apply` 和 `return` 函数。有关 `apply` 的更多详细信息，请参见这里。
 
 +   对于更高的类型（`Tree`），我们需要一个 `cata` 函数，我们已经有了。
 
@@ -5204,7 +5204,7 @@ let strToCardMessage str =
     | _ -> Result.retn str 
 ```
 
-情况转换器方法必须从 `Result` 而不是正常值构建一个 `Book` 或 `Chocolate`。这就是提升函数如 `Result.lift2` 如何帮助的地方。有关此操作的详细信息，请参见[提升文章](elevated-world.html#lift)和[应用验证的文章](elevated-world-3.html#validation)。
+情况转换器方法必须从 `Result` 而不是正常值构建一个 `Book` 或 `Chocolate`。这就是提升函数如 `Result.lift2` 如何帮助的地方。有关此操作的详细信息，请参见提升文章和应用验证的文章。
 
 ```
 let bookFromDto (dto:GiftContentsDto) =
@@ -5286,7 +5286,7 @@ let dtoToGift (giftDto:GiftDto) :Result<Gift>=
 
 +   同样，`dtoToTree` 返回一个 `Result<Tree>`，但管道中的下一个函数（`dtoToGift`）期望一个常规的 `Tree` 作为输入。
 
-在这两种情况下，`Result.bind` 可以用来解决输出/输入不匹配的问题。有关更详细的 bind 讨论，请参见[这里](elevated-world-2.html#bind)。
+在这两种情况下，`Result.bind` 可以用来解决输出/输入不匹配的问题。有关更详细的 bind 讨论，请参见这里。
 
 好的，让我们尝试反序列化我们之前创建的`goodJson`字符串。
 
@@ -5350,6 +5350,6 @@ let badJson4_result = badJson4 |> fromJson |> Result.bind dtoToTree |> Result.bi
 
 ## 总结
 
-在这个系列中，我们已经看到了如何定义catamorphisms（折叠），以及特别是在这篇文章中，如何使用它们来解决实际问题。我希望这些文章对你有用，并为你提供了一些可以应用到自己代码中的提示和见解。
+在这个系列中，我们已经看到了如何定义 catamorphisms（折叠），以及特别是在这篇文章中，如何使用它们来解决实际问题。我希望这些文章对你有用，并为你提供了一些可以应用到自己代码中的提示和见解。
 
 这个系列的长度超出了我的预期，所以感谢您一直坚持看到最后！干杯！

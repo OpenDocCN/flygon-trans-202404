@@ -6,27 +6,27 @@
 
 | 挑战 | 简短描述 | 评级 |
 | --- | --- | --- |
-| [螺旋线](spiral.html) | 绘制一条螺旋线 | 非常简单 |
-| [明信片](postcard.html) | 绘制一张明信片 | 简单 |
-| [缩略图](index2.html) | 生成图像缩略图 | 中等 |
-| [递归图形](recursive_graph.html) | 绘制递归图像 | 中等 |
-| [电影](index3.html) | 拍摄一个短片 | 困难 |
+| 螺旋线 | 绘制一条螺旋线 | 非常简单 |
+| 明信片 | 绘制一张明信片 | 简单 |
+| 缩略图 | 生成图像缩略图 | 中等 |
+| 递归图形 | 绘制递归图像 | 中等 |
+| 电影 | 拍摄一个短片 | 困难 |
 
 ## 数据
 
 | 挑战 | 简短描述 | 评级 |
 | --- | --- | --- |
-| [宝宝姓名生成器](babynamengenerator.html) | 生成随机宝宝姓名 | 简单 |
-| [正则表达式](regex.html) | 在文本中查找模式 | 中等 |
-| [谷歌](google.html) | 进行谷歌搜索 | 中等 |
-| [网络研究](webrecherche.html) | 下载网页 | 中等 |
+| 宝宝姓名生成器 | 生成随机宝宝姓名 | 简单 |
+| 正则表达式 | 在文本中查找模式 | 中等 |
+| 谷歌 | 进行谷歌搜索 | 中等 |
+| 网络研究 | 下载网页 | 中等 |
 
 ## 网页开发
 
 | 挑战 | 简短描述 | 评级 |
 | --- | --- | --- |
-| [显示数据](webpage.md) | 创建一个简单的 Bottle Web 服务器 | 中等 |
-| [博客](blog.html) | 使用 Django 创建博客网站 | 困难 |
+| 显示数据 | 创建一个简单的 Bottle Web 服务器 | 中等 |
+| 博客 | 使用 Django 创建博客网站 | 困难 |
 
 # 螺旋线
 
@@ -36,7 +36,7 @@
 
 编写一个绘制螺旋线的程序：
 
-![螺旋线](60014e26.png)
+![螺旋线](img/60014e26.png)
 
 当你的程序绘制了至少 3 个循环的螺旋线时，你已经掌握了这个挑战。
 
@@ -73,7 +73,7 @@ forward(50)
 
 +   螺旋线上有一个颜色渐变
 
-![带宽度和颜色的螺旋线](27a134f6.png)
+![带宽度和颜色的螺旋线](img/27a134f6.png)
 
 # 明信片
 
@@ -81,7 +81,7 @@ forward(50)
 
 编写一个为你选择的城市创建明信片的程序。
 
-![欢迎来到波兹南](poznan.png)
+![欢迎来到波兹南](img/poznan.png)
 
 ## 1\. 安装 Pillow
 
@@ -167,7 +167,7 @@ forward(50)
 
 Rick Closeview，业余摄影师
 
-![缩略图矩阵](thumbnail_matrix.png)
+![缩略图矩阵](img/thumbnail_matrix.png)
 
 ## 指示
 
@@ -205,15 +205,15 @@ Rick Closeview，业余摄影师
 
 编写一个程序，对于参数 `n=1`，创建一个由四条直线组成的基本形状：
 
-![n=1](snowflake1.png)
+![n=1](img/snowflake1.png)
 
 当你增加 `n` 时，每条线都会被基本形状的较小版本所替换。例如，当 `n=2` 时，你会得到：
 
-![n=2](snowflake2.png)
+![n=2](img/snowflake2.png)
 
 而当 `n=5` 时：
 
-![n=5](snowflake3.png)
+![n=5](img/snowflake3.png)
 
 当你的程序能够为 `0 < n < 6` 生成图片时，你已经掌握了这个挑战。
 
@@ -303,7 +303,7 @@ print(found)
 
 Was haben diese vier Bilder gemeinsam?
 
-![King Kong Flip Flop Hip Hop Ping Pong](regex.jpg)
+![King Kong Flip Flop Hip Hop Ping Pong](img/regex.jpg)
 
 Bildquellen (links oben nach rechts unten):
 
@@ -566,7 +566,7 @@ def strasse_anzeigen(strassenname):
 
 ## 13\. 使用 Folium 绘制地图
 
-将找到的街道显示为交互式地图。首先尝试使用带有 `folium` 模块的 Python 脚本。参见 [https://github.com/krother/python_showcase/tree/master/map_markers](https://github.com/krother/python_showcase/tree/master/map_markers).
+将找到的街道显示为交互式地图。首先尝试使用带有 `folium` 模块的 Python 脚本。参见 [`github.com/krother/python_showcase/tree/master/map_markers`](https://github.com/krother/python_showcase/tree/master/map_markers).
 
 ## 14\. Bootstrap
 

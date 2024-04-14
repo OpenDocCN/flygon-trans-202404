@@ -249,7 +249,7 @@ coverage.py 也有 nose 插件，可以配合使用。
 
 1.  关闭调试和日志
 
-1.  删除不必要的中间件和app
+1.  删除不必要的中间件和 app
 
 这部分建议对于 Python 项目基本上也适用。
 
@@ -527,7 +527,7 @@ with patch('__builtin__.open', mock):
 
 如果 patch 为你创建一个`MagicMock`，则`spec`和`spec_set`关键字参数将传递给`MagicMock`。
 
-此外，您可以传递`spec=True`或`spec_set=True`，这会导致 patch 将被模拟的对象作为规范/spec_set对象传递。
+此外，您可以传递`spec=True`或`spec_set=True`，这会导致 patch 将被模拟的对象作为规范/spec_set 对象传递。
 
 `new_callable` 允许你指定一个不同的类，或者可调用对象，用来创建`new`对象。默认情况下使用`MagicMock`。
 
@@ -535,7 +535,7 @@ with patch('__builtin__.open', mock):
 
 而不是`autospec=True`，您可以传递`autospec=some_object`以使用任意对象作为规范，而不是被替换的对象。
 
-默认情况下，`patch`将无法替换不存在的属性。如果传入`create=True`，并且属性不存在，当调用修补的函数时，`patch`将为您创建属性，并在之后删除它。这对编写针对运行时创建属性的生产代码的测试非常有用。默认情况下它是关闭的，因为它可能很危险。启用它后，您可以针对实际不存在的API编写通过的测试！
+默认情况下，`patch`将无法替换不存在的属性。如果传入`create=True`，并且属性不存在，当调用修补的函数时，`patch`将为您创建属性，并在之后删除它。这对编写针对运行时创建属性的生产代码的测试非常有用。默认情况下它是关闭的，因为它可能很危险。启用它后，您可以针对实际不存在的 API 编写通过的测试！
 
 Patch 可以作为`TestCase`类的装饰器使用。它通过装饰类中的每个测试方法来工作。当测试方法共享常见的修补设置时，这减少了样板代码。`patch`通过查找以`patch.TEST_PREFIX`开头的方法名称来查找测试。默认情况下，这是`test`，与`unittest`查找测试的方式相匹配。您可以通过设置`patch.TEST_PREFIX`来指定替代前缀。
 

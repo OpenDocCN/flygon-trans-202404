@@ -2,7 +2,7 @@
 
 ## Gabriel Gonzalez
 
-### 2014年5月1日 - CS240H
+### 2014 年 5 月 1 日 - CS240H
 
 ## 概述
 
@@ -12,7 +12,7 @@
 
 +   `pipes`背后的理论
 
-+   `pipes` API之旅
++   `pipes` API 之旅
 
 ## 问题
 
@@ -28,7 +28,7 @@ replicateM :: Monad m => Int -> m a -> m [a] mapM :: Monad m => (a -> m b) -> [a
 
 +   这通过缓冲每个结果浪费内存
 
-## 非解决方案：惰性IO
+## 非解决方案：惰性 IO
 
 +   仅适用于`IO`
 
@@ -36,7 +36,7 @@ replicateM :: Monad m => Int -> m a -> m [a] mapM :: Monad m => (a -> m b) -> [a
 
 +   通过将效果与评估顺序联系起来，使等式推理无效
 
-+   承认失败（“Monad太笨拙了”）
++   承认失败（“Monad 太笨拙了”）
 
 ## `pipes` - 一个协程库
 
@@ -60,7 +60,7 @@ $ ./example Hello<Enter> Hello CS240H<Enter> CS240H <Ctrl-D> $
 
 +   `pipes`背后的理论
 
-+   `pipes` API之旅
++   `pipes` API 之旅
 
 ## `Producer`
 
@@ -108,9 +108,9 @@ main = runEffect echo main = isEOF >>= \eof -> if eof then return () else getLin
 
 +   **[`pipes`背后的理论]**
 
-+   `pipes` API之旅
++   `pipes` API 之旅
 
-## 什么使Haskell独特？
+## 什么使 Haskell 独特？
 
 +   设计模式受范畴论启发
 
@@ -122,7 +122,7 @@ main = runEffect echo main = isEOF >>= \eof -> if eof then return () else getLin
 
 ## 问题
 
-![](../Images/445bc2979c85c4ae25ee0ace2d831bcb.jpg)
+![](img/445bc2979c85c4ae25ee0ace2d831bcb.jpg)
 
 ## 如何减少复杂性？
 
@@ -178,7 +178,7 @@ yieldFour :: Monad m => Producer String m () yieldFour = do yieldTwo yieldTwo --
 >>> runEffect (for yieldFour useString) Hello CS240H Hello CS240H
 ```
 
-## `(>>)`和`return ()`形成一个Monoid
+## `(>>)`和`return ()`形成一个 Monoid
 
 ```
 (>>) :: Producer a IO () -- (<>) :: m -> Producer a IO () -- -> m -> Producer a IO () -- -> m return () :: Producer a IO () -- mempty :: m
@@ -196,7 +196,7 @@ yieldFour :: Monad m => Producer String m () yieldFour = do yieldTwo yieldTwo --
 return () >> p = p -- mempty <> x = x p >> return () = p -- x <> mempty = x
 ```
 
-## 类别概括了Monoids
+## 类别概括了 Monoids
 
 ```
 class Category cat where -- class Monoid m where  (.) :: cat b c -> cat a b -> cat a c -- mappend :: m -> m -> m  id :: cat a a -- mempty :: m (>>>) :: Category cat => cat a b -> cat b c -> cat a c (>>>) = flip (.)
@@ -210,7 +210,7 @@ instance Category (->) where -- (.) :: (b -> c) -> (a -> b) -> (a -> c) (g . f) 
 -- Associativity (f . g) . h = f . (g . h) -- (x <> y) <> z = x <> (y <> z) -- Identity id . f = f -- mempty <> x = x f . id = f -- x <> mempty = x
 ```
 
-## `(>=>)`和`return`形成一个Category
+## `(>=>)`和`return`形成一个 Category
 
 ```
 (>=>) :: Monad m => (a -> Producer o m b) -- (>>>) :: cat a b -> (b -> Producer o m c) -- -> cat b c -> (a -> Producer o m c) -- -> cat a c (f >=> g) x = f x >>= g return :: Monad m => (a -> Producer o m a) -- id :: cat a a
@@ -228,7 +228,7 @@ instance Category (->) where -- (.) :: (b -> c) -> (a -> b) -> (a -> c) (g . f) 
 return >=> f = f -- id >>> f = f f >=> return = f -- f >>> id = f
 ```
 
-## Monad定律
+## Monad 定律
 
 结合性：
 
@@ -246,7 +246,7 @@ return >=> f = f return x >>= f = f
 f >=> return = f m >>= return = m
 ```
 
-## `(~>)`和`yield`形成一个Category
+## `(~>)`和`yield`形成一个 Category
 
 ```
 (~>) :: (a -> Producer b IO ()) -- (>>>) :: cat a b -> (b -> Producer c IO ()) -- -> cat b c -> (a -> Producer c IO ()) -- -> cat a c (f ~> g) x = for (f x) g yield :: (a -> Producer a IO ()) -- id :: cat a a
@@ -264,7 +264,7 @@ f >=> return = f m >>= return = m
 yield ~> f = f -- id >>> f = f f ~> yield = f -- f >>> id = f
 ```
 
-## `for`循环定律 - 第1部分
+## `for`循环定律 - 第 1 部分
 
 ```
 yield ~> f = f for (yield x) f = f x
@@ -282,7 +282,7 @@ f ~> yield = f for m yield = m
 >>> let yieldTwo' = for yieldTwo yield >>> runEffect (for yieldTwo' useString) Hello CS240H >>> runEffect (for yieldTwo useString) Hello CS240H >>>
 ```
 
-## `for`循环定律 - 第2部分
+## `for`循环定律 - 第 2 部分
 
 ```
 (f ~> g) ~> h = f ~> (g ~> h) for (for p g) h = for p (\x -> for (g x) h)
@@ -318,7 +318,7 @@ import Pipes import System.IO (isEOF) stdinLn :: Producer String IO () stdinLn =
 
 +   `pipes`背后的理论
 
-+   **[`pipes` API之旅]**
++   **[`pipes` API 之旅]**
 
 ## `Consumer`
 
@@ -384,7 +384,7 @@ awaitFour :: Monad m => Consumer String m String awaitFour = do str1 <- awaitTwo
 >>> runEffect (giveString >~ awaitTwo >~ numbered) Hello<Enter> CS240H<Enter> 0: Hello CS240H You're<Enter> welcome!<Enter> 1: You're welcome! ...
 ```
 
-## `(>~)`和`await`形成一个Category
+## `(>~)`和`await`形成一个 Category
 
 ```
 (>~) :: Consumer a IO b -- (>>>) :: cat a b -> Consumer b IO c -- -> cat b c -> Consumer a IO c -- -> cat a c await :: Consumer a IO a -- id :: cat a a
@@ -444,7 +444,7 @@ import Control.Monad (replicateM_) take n = do replicateM_ n (await >>= yield) l
 import Control.Monad (forever) -- forever m = m >> forever m cat :: Pipe a a IO r cat = forever $ do a <- await yield a customerService :: Pipe String String IO () customerService = do yield "Hello" take 10 yield "Could you please hold for one second?" cat
 ```
 
-## 类型是什么？- 第1部分
+## 类型是什么？- 第 1 部分
 
 怎么回事？
 
@@ -460,7 +460,7 @@ await :: Consumer a m a await :: Pipe a b m a
 yield :: b -> Producer b m () yield :: b -> Pipe a b m ()
 ```
 
-## 类型是什么？- 第2部分
+## 类型是什么？- 第 2 部分
 
 ```
 (>->) :: Producer a IO r -> Pipe a b IO r -> Producer b IO r (>->) :: Pipe a b IO r -> Consumer b IO r -> Consumer a IO r (>->) :: Pipe a b IO r -> Pipe b c IO r -> Pipe a c IO r
@@ -502,7 +502,7 @@ type Producer b = Pipe () b -- White lie
 cat >-> f = f -- id >>> f = f f >-> cat = f -- f >>> id = f
 ```
 
-## 受范畴论启发的API
+## 受范畴论启发的 API
 
 | 组合 | 身份 |
 | :-: | :-: |

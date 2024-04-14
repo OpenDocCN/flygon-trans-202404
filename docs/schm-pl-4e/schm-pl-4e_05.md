@@ -1,8 +1,8 @@
-# 第5章。控制操作
+# 第五章。控制操作
 
 本章介绍了作为 Scheme 程序控制结构的语法形式和过程，第一节涵盖了最基本的控制结构，即过程应用，其余部分涵盖了顺序执行、条件评估、递归、映射、延迟评估、多值和在运行时构建的程序的评估。
 
-### 第5.1节。过程应用
+### 第 5.1 节。过程应用
 
 **语法：** `(*expr[0]* *expr[1]* ...)`
 
@@ -12,15 +12,15 @@
 
 过程和参数表达式的评估顺序是未指定的。可能是从左到右，从右到左，或者任何其他顺序。然而，评估是有保证的：无论选择了哪种顺序，每个表达式在下一个表达式的评估开始之前都会被完全评估。
 
-`(+ 3 4) ![<graphic>](ch2_0.gif) 7
+`(+ 3 4) ![<graphic>](img/ch2_0.gif) 7
 
-((if (odd? 3) + -) 6 2) ![<graphic>](ch2_0.gif) 8
+((if (odd? 3) + -) 6 2) ![<graphic>](img/ch2_0.gif) 8
 
-((lambda (x) x) 5) ![<graphic>](ch2_0.gif) 5
+((lambda (x) x) 5) ![<graphic>](img/ch2_0.gif) 5
 
 (let ([f (lambda (x) (+ x x))])
 
-(f 8)) ![<graphic>](ch2_0.gif) 16`
+(f 8)) ![<graphic>](img/ch2_0.gif) 16`
 
 **过程：** `(apply *procedure* *obj* ... *list*)`
 
@@ -32,13 +32,13 @@
 
 当要传递给过程的一些或所有参数在列表中时，`apply`是有用的，因为它使程序员免于显式地解构列表。
 
-(apply + '(4 5)) ![<graphic>](ch2_0.gif) 9
+(apply + '(4 5)) ![<graphic>](img/ch2_0.gif) 9
 
-(apply min '(6 8 3 2 5)) ![<graphic>](ch2_0.gif) 2
+(apply min '(6 8 3 2 5)) ![<graphic>](img/ch2_0.gif) 2
 
-(apply min  5 1 3 '(6 8 3 2 5)) ![<graphic>](ch2_0.gif) 1
+(apply min  5 1 3 '(6 8 3 2 5)) ![<graphic>](img/ch2_0.gif) 1
 
-(apply vector 'a 'b '(c d e)) ![<graphic>](ch2_0.gif) #(a b c d e)
+(apply vector 'a 'b '(c d e)) ![<graphic>](img/ch2_0.gif) #(a b c d e)
 
 (define first
 
@@ -52,17 +52,17 @@
 
 (apply (lambda (x . y) y) ls)))
 
-(first '(a b c d)) ![<graphic>](ch2_0.gif) a
+(first '(a b c d)) ![<graphic>](img/ch2_0.gif) a
 
-(rest '(a b c d)) ![<graphic>](ch2_0.gif) (b c d)
+(rest '(a b c d)) ![<graphic>](img/ch2_0.gif) (b c d)
 
 (apply append
 
 '(1 2 3)
 
-'((a b) (c d e) (f))) ![<graphic>](ch2_0.gif) (1 2 3 a b c d e f)`
+'((a b) (c d e) (f))) ![<graphic>](img/ch2_0.gif) (1 2 3 a b c d e f)`
 
-### 第5.2节。顺序执行
+### 第 5.2 节。顺序执行
 
 **语法：** `(begin *expr[1]* *expr[2]* ...)`
 
@@ -78,7 +78,7 @@
 
 (set! x (+ x 1))
 
-(+ x x)) ![<graphic>](ch2_0.gif) 8`
+(+ x x)) ![<graphic>](img/ch2_0.gif) 8`
 
 `begin` 表单可以包含零个或多个定义，代替表达式 `*expr[1]* *expr[2]* ...`，在这种情况下，它被视为定义，并且只能出现在定义有效的地方。
 
@@ -86,9 +86,9 @@
 
 (begin (define x 3) (define y 4))
 
-(+ x y)) ![<graphic>](ch2_0.gif) 7`
+(+ x y)) ![<graphic>](img/ch2_0.gif) 7`
 
-这种形式的 `begin` 主要用于必须扩展为多个定义的语法扩展中。（参见第 [101](binding.html#multi-define-syntax) 页。）
+这种形式的 `begin` 主要用于必须扩展为多个定义的语法扩展中。（参见第 101 页。）
 
 许多语法形式的主体，包括 `lambda`、`case-lambda`、`let`、`let*`、`letrec` 和 `letrec*`，以及 `cond`、`case` 和 `do` 的结果子句，被视为在隐式 `begin` 内部；即，构成主体或结果子句的表达式按顺序执行，最后一个表达式的值被返回。
 
@@ -104,9 +104,9 @@
 
 x)))
 
-(swap-pair! (cons 'a 'b)) ![<graphic>](ch2_0.gif) (b . a)`
+(swap-pair! (cons 'a 'b)) ![<graphic>](img/ch2_0.gif) (b . a)`
 
-### 第5.3节 条件语句
+### 第 5.3 节 条件语句
 
 **syntax**: `(if *test* *consequent* *alternative*)`
 
@@ -124,7 +124,7 @@ x)))
 
 '()
 
-(cdr ls))) ![<graphic>](ch2_0.gif) (b c)
+(cdr ls))) ![<graphic>](img/ch2_0.gif) (b c)
 
 (let ([ls '()])
 
@@ -132,7 +132,7 @@ x)))
 
 '()
 
-(cdr ls))) ![<graphic>](ch2_0.gif) ()
+(cdr ls))) ![<graphic>](img/ch2_0.gif) ()
 
 (let ([abs
 
@@ -144,7 +144,7 @@ x)))
 
 x))])
 
-(abs -4)) ![<graphic>](ch2_0.gif) 4
+(abs -4)) ![<graphic>](img/ch2_0.gif) 4
 
 (let ([x -4])
 
@@ -152,7 +152,7 @@ x))])
 
 (list 'minus (- 0 x))
 
-(list 'plus 4))) ![<graphic>](ch2_0.gif) (minus 4)`
+(list 'plus 4))) ![<graphic>](img/ch2_0.gif) (minus 4)`
 
 **procedure**: `(not *obj*)`
 
@@ -162,13 +162,13 @@ x))])
 
 `not` 等同于 `(lambda (x) (if x #f #t))`。
 
-`(not #f) ![<graphic>](ch2_0.gif) #t
+`(not #f) ![<graphic>](img/ch2_0.gif) #t
 
-(not #t) ![<graphic>](ch2_0.gif) #f
+(not #t) ![<graphic>](img/ch2_0.gif) #f
 
-(not '()) ![<graphic>](ch2_0.gif) #f
+(not '()) ![<graphic>](img/ch2_0.gif) #f
 
-(not (< 4 5)) ![<graphic>](ch2_0.gif) #f`
+(not (< 4 5)) ![<graphic>](img/ch2_0.gif) #f`
 
 **syntax**: `(and *expr* ...)`
 
@@ -176,19 +176,19 @@ x))])
 
 **libraries:** `(rnrs base)`, `(rnrs)`
 
-如果没有子表达式，则 `and` 形式评估为 `#t`。否则，`and` 从左到右按顺序评估每个子表达式，直到只剩下一个子表达式或一个子表达式返回 `#f`。如果只剩下一个子表达式，则对其进行评估并返回其值。如果一个子表达式返回 `#f`，则 `and` 返回 `#f` 而不评估剩余的子表达式。`and` 的语法定义见第 [62](further.html#defn:and) 页。
+如果没有子表达式，则 `and` 形式评估为 `#t`。否则，`and` 从左到右按顺序评估每个子表达式，直到只剩下一个子表达式或一个子表达式返回 `#f`。如果只剩下一个子表达式，则对其进行评估并返回其值。如果一个子表达式返回 `#f`，则 `and` 返回 `#f` 而不评估剩余的子表达式。`and` 的语法定义见第 62 页。
 
 `(let ([x 3])
 
-(和 (> x 2) (< x 4))) ![<graphic>](ch2_0.gif) #t
+(和 (> x 2) (< x 4))) ![<graphic>](img/ch2_0.gif) #t
 
 (let ([x 5])
 
-(和 (> x 2) (< x 4))) ![<graphic>](ch2_0.gif) #f
+(和 (> x 2) (< x 4))) ![<graphic>](img/ch2_0.gif) #f
 
-(和 #f '(a b) '(c d)) ![<graphic>](ch2_0.gif) #f
+(和 #f '(a b) '(c d)) ![<graphic>](img/ch2_0.gif) #f
 
-(和 '(a b) '(c d) '(e f)) ![<graphic>](ch2_0.gif) (e f)`
+(和 '(a b) '(c d) '(e f)) ![<graphic>](img/ch2_0.gif) (e f)`
 
 **语法**: `(or *expr* ...)`
 
@@ -196,17 +196,17 @@ x))])
 
 **库:** `(rnrs base)`，`(rnrs)`
 
-如果没有子表达式，则 `or` 形式评估为 `#f`。否则，`or` 从左到右按顺序评估每个子表达式，直到只剩下一个子表达式或一个子表达式返回一个不是 `#f` 的值。如果只剩下一个子表达式，则对其进行评估并返回其值。如果一个子表达式返回一个不是 `#f` 的值，则 `or` 返回该值而不评估剩余的子表达式。`or` 的语法定义见第 [63](further.html#defn:or) 页。
+如果没有子表达式，则 `or` 形式评估为 `#f`。否则，`or` 从左到右按顺序评估每个子表达式，直到只剩下一个子表达式或一个子表达式返回一个不是 `#f` 的值。如果只剩下一个子表达式，则对其进行评估并返回其值。如果一个子表达式返回一个不是 `#f` 的值，则 `or` 返回该值而不评估剩余的子表达式。`or` 的语法定义见第 63 页。
 
 `(let ([x 3])
 
-(或者 (< x 2) (> x 4))) ![<graphic>](ch2_0.gif) #f
+(或者 (< x 2) (> x 4))) ![<graphic>](img/ch2_0.gif) #f
 
 (let ([x 5])
 
-(或者 (< x 2) (> x 4))) ![<graphic>](ch2_0.gif) #t
+(或者 (< x 2) (> x 4))) ![<graphic>](img/ch2_0.gif) #t
 
-(或者 #f '(a b) '(c d)) ![<graphic>](ch2_0.gif) (a b)`
+(或者 #f '(a b) '(c d)) ![<graphic>](img/ch2_0.gif) (a b)`
 
 **语法**: `(cond *clause[1]* *clause[2]* ...)`
 
@@ -236,7 +236,7 @@ x))])
 
 如果没有测试评估为真值且没有 `else` 子句，则值或值未指定。
 
-有关 `cond` 的语法定义，请参见第 [305](syntax.html#defn:cond) 页。
+有关 `cond` 的语法定义，请参见第 305 页。
 
 `(let ([x 0])
 
@@ -246,7 +246,7 @@ x))])
 
 [(> x 0) (列表 'plus x)]
 
-[else (列表 'zero x)])) ![<graphic>](ch2_0.gif) (零 0)
+[else (列表 'zero x)])) ![<graphic>](img/ch2_0.gif) (零 0)
 
 (定义 select
 
@@ -260,11 +260,11 @@ x))])
 
 [else 0])))
 
-(选择 3) ![<graphic>](ch2_0.gif) #t
+(选择 3) ![<graphic>](img/ch2_0.gif) #t
 
-(选择 'b) ![<graphic>](ch2_0.gif) 2
+(选择 'b) ![<graphic>](img/ch2_0.gif) 2
 
-(选择 'e) ![<graphic>](ch2_0.gif) 0`
+(选择 'e) ![<graphic>](img/ch2_0.gif) 0`
 
 **语法**：`else`
 
@@ -296,7 +296,7 @@ x))])
 
 (设定！ sign 'minus))
 
-(列表 符号 x)) ![<graphic>](ch2_0.gif) (减 4)
+(列表 符号 x)) ![<graphic>](img/ch2_0.gif) (减 4)
 
 (定义 check-pair
 
@@ -308,7 +308,7 @@ x))])
 
 x))
 
-(check-pair '(a b c)) ![<graphic>](ch2_0.gif) (a b c)`
+(check-pair '(a b c)) ![<graphic>](img/ch2_0.gif) (a b c)`
 
 `when`可以定义如下：
 
@@ -360,7 +360,7 @@ x))
 
 如果没有一个子句包含匹配的键，且没有 `else` 子句存在，则值或值是未指定的。
 
-请参见第 [306](syntax.html#defn:case) 页，了解 `case` 的语法定义。
+请参见第 306 页，了解 `case` 的语法定义。
 
 `(let ([x 4] [y 5])
 
@@ -370,7 +370,7 @@ x))
 
 [(0 2 4 6 8) 'even]
 
-[else 'out-of-range])) ![<graphic>](ch2_0.gif) odd`
+[else 'out-of-range])) ![<graphic>](img/ch2_0.gif) odd`
 
 ### 第 5.4 节。递归和迭代
 
@@ -380,7 +380,7 @@ x))
 
 **库:** `(rnrs base)`, `(rnrs)`
 
-这种形式的 `let`，称为*命名* `let`，是一个通用的迭代和递归构造。它类似于更常见的 `let` 形式（参见第 [4.4](binding.html#g92) 节），在其中将变量 `*var* ...` 绑定到 `*expr* ...` 的值，这些值在体 `*body[1]* *body[2]* ...` 中被处理和评估，就像一个 `lambda` 体一样。此外，变量 `*name*` 在体内绑定到一个可以用于递归或迭代的过程，该过程的参数成为变量 `*var* ...` 的新值。
+这种形式的 `let`，称为*命名* `let`，是一个通用的迭代和递归构造。它类似于更常见的 `let` 形式（参见第 4.4 节），在其中将变量 `*var* ...` 绑定到 `*expr* ...` 的值，这些值在体 `*body[1]* *body[2]* ...` 中被处理和评估，就像一个 `lambda` 体一样。此外，变量 `*name*` 在体内绑定到一个可以用于递归或迭代的过程，该过程的参数成为变量 `*var* ...` 的新值。
 
 一个形式为 `let` 的命名表达式
 
@@ -396,7 +396,7 @@ x))
 
 *expr* ...)`
 
-可以在第 [312](syntax.html#defn:let) 页找到实现此转换并处理未命名 `let` 的 `let` 的语法定义。
+可以在第 312 页找到实现此转换并处理未命名 `let` 的 `let` 的语法定义。
 
 下面定义的 `divisors` 过程使用命名 `let` 来计算非负整数的非平凡除数。
 
@@ -414,9 +414,9 @@ x))
 
 [else (f (+ i 1))]))))
 
-(divisors 5) ![<graphic>](ch2_0.gif) ()
+(divisors 5) ![<graphic>](img/ch2_0.gif) ()
 
-(divisors 32) ![<graphic>](ch2_0.gif) (2 4 8 16)`
+(divisors 32) ![<graphic>](img/ch2_0.gif) (2 4 8 16)`
 
 上面的版本在找到除数时是非尾递归的，在找不到除数时是尾递归的。下面的版本是完全尾递归的。它以相反的顺序构建列表，但如果需要，可以在退出时轻松纠正这一点，通过反转列表。
 
@@ -450,9 +450,9 @@ x))
 
 尽管大多数语言中的循环结构要求通过赋值来更新循环迭代器，`do` 要求通过重新绑定来更新循环迭代器 `*var* ...`。实际上，在 `do` 表达式的评估中不涉及任何副作用，除非它们由其子表达式显式执行。
 
-查看页面 [313](syntax.html#defn:do) 以获取 `do` 的语法定义。
+查看页面 313 以获取 `do` 的语法定义。
 
-下面的 `factorial` 和 `fibonacci` 的定义是第 [3.2](further.html#g55) 节中给出的尾递归具名 `let` 版本的直接翻译。
+下面的 `factorial` 和 `fibonacci` 的定义是第 3.2 节中给出的尾递归具名 `let` 版本的直接翻译。
 
 `(define factorial
 
@@ -462,7 +462,7 @@ x))
 
 ((zero? i) a))))
 
-(factorial 10) ![<graphic>](ch2_0.gif) 3628800
+(factorial 10) ![<graphic>](img/ch2_0.gif) 3628800
 
 (define fibonacci
 
@@ -476,7 +476,7 @@ x))
 
 ((= i 1) a1)))))
 
-(fibonacci 6) ![<graphic>](ch2_0.gif) 8`
+(fibonacci 6) ![<graphic>](img/ch2_0.gif) 8`
 
 下面的 `divisors` 的定义类似于上面给出的具名 `let` 的尾递归定义 `divisors` 的描述。
 
@@ -514,7 +514,7 @@ ls)])
 
 (scale-vector! vec 2)
 
-vec ![<graphic>](ch2_0.gif) #(2 4 6 8 10)`
+vec ![<graphic>](img/ch2_0.gif) #(2 4 6 8 10)`
 
 ### 第 5.5 节。映射和折叠
 
@@ -528,13 +528,13 @@ vec ![<graphic>](ch2_0.gif) #(2 4 6 8 10)`
 
 `map` 将 `*procedure*` 应用于列表 `*list[1]* *list[2]* ...` 中对应的元素，并返回结果值的列表。列表 `*list[1]* *list[2]* ...` 必须具有相同长度。`*procedure*` 应接受与列表数量相同的参数，应返回单个值，并且不应改变 `*list*` 参数。
 
-`(map abs '(1 -2 3 -4 5 -6)) ![<graphic>](ch2_0.gif) (1 2 3 4 5 6)
+`(map abs '(1 -2 3 -4 5 -6)) ![<graphic>](img/ch2_0.gif) (1 2 3 4 5 6)
 
 (map (lambda (x y) (* x y))
 
 '(1 2 3 4)
 
-'(8 7 6 5)) ![<graphic>](ch2_0.gif) (8 14 18 20)`
+'(8 7 6 5)) ![<graphic>](img/ch2_0.gif) (8 14 18 20)`
 
 尽管应用本身的顺序没有指定，但输出列表中值的顺序与输入列表中相应值的顺序相同。
 
@@ -602,7 +602,7 @@ vec ![<graphic>](ch2_0.gif) #(2 4 6 8 10)`
 
 '(2 3 3 4 7 6))
 
-same-count) ![<graphic>](ch2_0.gif) 3`
+same-count) ![<graphic>](img/ch2_0.gif) 3`
 
 **procedure**: `(存在 *procedure* *list[1]* *list[2]* ...)`
 
@@ -612,13 +612,13 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 列表 `*list[1]* *list[2]* ...` 必须具有相同长度。`*procedure*` 应接受与列表数量相同的参数，并且不应改变 `*list*` 参数。如果列表为空，则 `exists` 返回 `#f`。否则，`exists` 依次对列表 `*list[1]* *list[2]* ...` 中对应的元素应用 `*procedure*`，直到每个列表仅剩一个元素或 `*procedure*` 返回真值 `*t*`。在前一种情况下，`exists` 尾调用 `*procedure*`，将其应用于每个列表的剩余元素。在后一种情况下，`exists` 返回 `*t*`。
 
-`(存在 symbol? '(1.0 #\a "hi" '())) ![<graphic>](ch2_0.gif) #f
+`(存在 symbol? '(1.0 #\a "hi" '())) ![<graphic>](img/ch2_0.gif) #f
 
 (存在 member
 
 '(a b c)
 
-'((c b) (b a) (a c))) ![<graphic>](ch2_0.gif) (b a)
+'((c b) (b a) (a c))) ![<graphic>](img/ch2_0.gif) (b a)
 
 (exists (lambda (x y z) (= (+ x y) z))
 
@@ -626,7 +626,7 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 '(1.2 2.3 3.4 4.5)
 
-'(2.3 4.4 6.4 8.6)) ![<graphic>](ch2_0.gif) #t`
+'(2.3 4.4 6.4 8.6)) ![<graphic>](img/ch2_0.gif) #t`
 
 `exists`可以定义为（有些低效且没有错误检查）如下：
 
@@ -654,13 +654,13 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 列表`*list[1]* *list[2]* ...`必须具有相同的长度。`*procedure*`应接受与列表数量相同的参数，并且不应该改变`*list*`参数。如果列表为空，则`for-all`返回`#t`。否则，`for-all`将`*procedure*`应用于列表`*list[1]* *list[2]* ...`中对应的元素，直到每个列表仅剩下一个元素或`*procedure*`返回`#f`为止。在前一种情况下，`for-all`尾调用`*procedure*`，将其应用于每个列表的剩余元素。在后一种情况下，`for-all`返回`#f`。
 
-`(for-all symbol? '(a b c d)) ![<graphic>](ch2_0.gif) #t
+`(for-all symbol? '(a b c d)) ![<graphic>](img/ch2_0.gif) #t
 
 (for-all =
 
 '(1 2 3 4)
 
-'(1.0 2.0 3.0 4.0)) ![<graphic>](ch2_0.gif) #t
+'(1.0 2.0 3.0 4.0)) ![<graphic>](img/ch2_0.gif) #t
 
 (for-all (lambda (x y z) (= (+ x y) z))
 
@@ -668,7 +668,7 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 '(1.2 2.3 3.4 4.5)
 
-'(2.2 4.3 6.5 8.5)) ![<graphic>](ch2_0.gif) #f`
+'(2.2 4.3 6.5 8.5)) ![<graphic>](img/ch2_0.gif) #f`
 
 `for-all`可以定义为（有些低效且没有错误检查）如下：
 
@@ -696,15 +696,15 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 所有`*list*`参数应具有相同的长度。`*procedure*`应接受比`*list*`参数数量多一个的参数，并返回单个值。它不应该改变`*list*`参数。
 
-`fold-left`如果`*list*`参数为空，则返回`*obj*`。如果它们不为��，则`fold-left`将`*procedure*`应用于`*obj*`和`*list[1]* *list[2]* ...`的car，然后用`*procedure*`返回的值替换`*obj*`，用每个`*list*`的cdr替换`*list*`进行递归。
+`fold-left`如果`*list*`参数为空，则返回`*obj*`。如果它们不为��，则`fold-left`将`*procedure*`应用于`*obj*`和`*list[1]* *list[2]* ...`的 car，然后用`*procedure*`返回的值替换`*obj*`，用每个`*list*`的 cdr 替换`*list*`进行递归。
 
-`(fold-left cons '() '(1 2 3 4)) ![<graphic>](ch2_0.gif) ((((() . 1) . 2) . 3) . 4)
+`(fold-left cons '() '(1 2 3 4)) ![<graphic>](img/ch2_0.gif) ((((() . 1) . 2) . 3) . 4)
 
 (fold-left
 
 (lambda (a x) (+ a (* x x)))
 
-0 '(1 2 3 4 5)) ![<graphic>](ch2_0.gif) 55
+0 '(1 2 3 4 5)) ![<graphic>](img/ch2_0.gif) 55
 
 (fold-left
 
@@ -716,7 +716,7 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 '(is to be)
 
-'(the be: or)) ![<graphic>](ch2_0.gif) (to be or not to be: that is the question)`
+'(the be: or)) ![<graphic>](img/ch2_0.gif) (to be or not to be: that is the question)`
 
 **procedure**：`(fold-right *procedure* *obj* *list[1]* *list[2]* ...)`
 
@@ -728,21 +728,21 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 `fold-right` 如果 `*list*` 参数为空，则返回 `*obj*`。 如果它们不为空，则 `fold-right` 递归地用每个 `*list*` 的 cdr 替换 `*list*`���然后将 `*procedure*` 应用于 `*list[1]* *list[2]* ...` 的 car 和递归返回的结果。
 
-`(fold-right cons '() '(1 2 3 4)) ![<graphic>](ch2_0.gif) (1 2 3 4)
+`(fold-right cons '() '(1 2 3 4)) ![<graphic>](img/ch2_0.gif) (1 2 3 4)
 
 (fold-right
 
 (lambda (x a) (+ a (* x x)))
 
-0 '(1 2 3 4 5)) ![<graphic>](ch2_0.gif) 55
+0 '(1 2 3 4 5)) ![<graphic>](img/ch2_0.gif) 55
 
 (fold-right
 
-(lambda (x y a) (cons* x y a))   ![<graphic>](ch2_0.gif) 分别是如此甜蜜的离别
+(lambda (x y a) (cons* x y a))   ![<graphic>](img/ch2_0.gif) 分别是如此甜蜜的离别
 
-'((with apologies))              ![](ch3_ghostRightarrow.gif)  明天见
+'((with apologies))              ![](img/ch3_ghostRightarrow.gif)  明天见
 
-'(parting such sorrow go ya)     ![](ch3_ghostRightarrow.gif)  (with apologies))
+'(parting such sorrow go ya)     ![](img/ch3_ghostRightarrow.gif)  (with apologies))
 
 '(is sweet gotta see tomorrow))`
 
@@ -754,13 +754,13 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 `vector-map` 将 `*procedure*` 应用于 `*vector[1]* *vector[2]* ...` 的对应元素，并返回一个包含结果值的向量。 向量 `*vector[1]* *vector[2]* ...` 必须具有相同的长度，而 `*procedure*` 应接受与向量数量相同的参数，并返回单个值。
 
-`(vector-map abs '#(1 -2 3 -4 5 -6)) ![<graphic>](ch2_0.gif) #(1 2 3 4 5 6)
+`(vector-map abs '#(1 -2 3 -4 5 -6)) ![<graphic>](img/ch2_0.gif) #(1 2 3 4 5 6)
 
 (vector-map (lambda (x y) (* x y))
 
 '#(1 2 3 4)
 
-'#(8 7 6 5)) ![<graphic>](ch2_0.gif) #(8 14 18 20)`
+'#(8 7 6 5)) ![<graphic>](img/ch2_0.gif) #(8 14 18 20)`
 
 尽管应用本身的顺序未指定，但输出向量中的值的顺序与输入向量中相应值的顺序相同。
 
@@ -786,7 +786,7 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 '#(2 3 3 4 7 6))
 
-same-count) ![<graphic>](ch2_0.gif) 3`
+same-count) ![<graphic>](img/ch2_0.gif) 3`
 
 **procedure**: `(string-for-each *procedure* *string[1]* *string[2]* ...)`
 
@@ -808,11 +808,11 @@ same-count) ![<graphic>](ch2_0.gif) 3`
 
 "1234")
 
-(map list->string (reverse ls))) ![<graphic>](ch2_0.gif) ("a=1" "b=2" "c=3" "d=4")`
+(map list->string (reverse ls))) ![<graphic>](img/ch2_0.gif) ("a=1" "b=2" "c=3" "d=4")`
 
-### 第5.6节。 续延
+### 第 5.6 节。 续延
 
-Scheme中的续延是代表计算中给定点后续部分的过程。可以使用`call-with-current-continuation`获得续延，可以缩写为`call/cc`。
+Scheme 中的续延是代表计算中给定点后续部分的过程。可以使用`call-with-current-continuation`获得续延，可以缩写为`call/cc`。
 
 **procedure**: `(call/cc *procedure*)`
 
@@ -828,7 +828,7 @@ Scheme中的续延是代表计算中给定点后续部分的过程。可以使�
 
 如果`*procedure*`在传递续延过程时正常返回，则`call/cc`返回的值是`*procedure*`返回的值。
 
-续延允许实现非局部退出、回溯 [[14](bibliography.html#g232),[29](bibliography.html#g247)]、协程 [[16](bibliography.html#g234)]和多任务 [[10](bibliography.html#g228),[32](bibliography.html#g250)]。
+续延允许实现非局部退出、回溯 [14,29]、协程 [16]和多任务 [10,32]。
 
 下面的示例说明了使用续延从循环中进行非局部退出的用法。
 
@@ -848,13 +848,13 @@ Scheme中的续延是代表计算中给定点后续部分的过程。可以使�
 
 (break ls)))))))
 
-(member 'd '(a b c)) ![<graphic>](ch2_0.gif) #f
+(member 'd '(a b c)) ![<graphic>](img/ch2_0.gif) #f
 
-(member 'b '(a b c)) ![<graphic>](ch2_0.gif) (b c)`
+(member 'b '(a b c)) ![<graphic>](img/ch2_0.gif) (b c)`
 
-在第 [3.3](further.html#g63) 和 [12.11](examples.html#g208) 节中提供了其他示例。
+在第 3.3 和 12.11 节中提供了其他示例。
 
-当前续延通常在内部表示为一堆过程激活记录的堆栈，并且获取续延涉及将堆栈封装在过程对象中。由于封装的堆栈具有无限范围，必须使用某种机制无限期地保留堆栈内容。这可以以惊人的轻松和效率完成，并且不会对不使用续延的程序产生影响 [[17](bibliography.html#g235)]。
+当前续延通常在内部表示为一堆过程激活记录的堆栈，并且获取续延涉及将堆栈封装在过程对象中。由于封装的堆栈具有无限范围，必须使用某种机制无限期地保留堆栈内容。这可以以惊人的轻松和效率完成，并且不会对不使用续延的程序产生影响 [17]。
 
 **procedure**: `(dynamic-wind *in* *body* *out*)`
 
@@ -864,7 +864,7 @@ Scheme中的续延是代表计算中给定点后续部分的过程。可以使�
 
 `dynamic-wind`提供了对续延调用的“保护”。它用于执行必须在控制进入或离开`*body*`时执行的任务，无论是正常执行还是通过续延应用。
 
-三个参数`*in*`、`*body*`和`*out*`必须是过程，并且应该接受零个参数，即它们应该是`*thunks*`。在应用`*body*`之前，以及每次通过在`*body*`内创建的continuation应用`*body*`时，都会应用`*in*` thunk。在从`*body*`正常退出以及每次通过在`*body*`外创建的continuation退出`*body*`时，都会应用`*out*` thunk。
+三个参数`*in*`、`*body*`和`*out*`必须是过程，并且应该接受零个参数，即它们应该是`*thunks*`。在应用`*body*`之前，以及每次通过在`*body*`内创建的 continuation 应用`*body*`时，都会应用`*in*` thunk。在从`*body*`正常退出以及每次通过在`*body*`外创建的 continuation 退出`*body*`时，都会应用`*out*` thunk。
 
 因此，可以保证至少调用一次`*in*`。此外，如果`*body*`返回，至少会调用一次`*out*`。
 
@@ -880,7 +880,7 @@ Scheme中的续延是代表计算中给定点后续部分的过程。可以使�
 
 (lambda () (close-port p))))
 
-Common Lisp提供了类似的机制（`unwind-protect`）来保护非局部退出。这通常足够了。然而，`unwind-protect`只提供了等价于`*out*`的功能，因为Common Lisp不支持完全通用的continuations。以下是如何使用`dynamic-wind`指定`unwind-protect`的方式。
+Common Lisp 提供了类似的机制（`unwind-protect`）来保护非局部退出。这通常足够了。然而，`unwind-protect`只提供了等价于`*out*`的功能，因为 Common Lisp 不支持完全通用的 continuations。以下是如何使用`dynamic-wind`指定`unwind-protect`的方式。
 
 `(define-syntax unwind-protect
 
@@ -906,9 +906,9 @@ Common Lisp提供了类似的机制（`unwind-protect`）来保护非局部退�
 
 (k (lambda () x))
 
-(set! x 'b)))))) ![<graphic>](ch2_0.gif) b`
+(set! x 'b)))))) ![<graphic>](img/ch2_0.gif) b`
 
-一些Scheme实现支持一种受控的赋值形式，称为*fluid binding*，其中一个变量在给定计算期间采用临时值，并在计算完成后恢复到旧值。以下所定义的语法形式`fluid-let`使用`dynamic-wind`允许将单个变量`x`的fluid binding到表达式`e`的值在`b1 b2 ...`体内。
+一些 Scheme 实现支持一种受控的赋值形式，称为*fluid binding*，其中一个变量在给定计算期间采用临时值，并在计算完成后恢复到旧值。以下所定义的语法形式`fluid-let`使用`dynamic-wind`允许将单个变量`x`的 fluid binding 到表达式`e`的值在`b1 b2 ...`体内。
 
 `(define-syntax fluid-let
 
@@ -924,7 +924,7 @@ Common Lisp提供了类似的机制（`unwind-protect`）来保护非局部退�
 
 支持`fluid-let`的实现通常会扩展它，允许无限数量的`(x e)`对，就像`let`一样。
 
-如果在`fluid-let`的主体中没有调用continuations，那么行为就像变量在进入时简单地被赋予新值，返回时被赋予旧值一样。
+如果在`fluid-let`的主体中没有调用 continuations，那么行为就像变量在进入时简单地被赋予新值，返回时被赋予旧值一样。
 
 `(let ([x 3])
 
@@ -932,9 +932,9 @@ Common Lisp提供了类似的机制（`unwind-protect`）来保护非局部退�
 
 x)
 
-x)) ![<graphic>](ch2_0.gif) 8`
+x)) ![<graphic>](img/ch2_0.gif) 8`
 
-如果在`fluid-let`之外创建的continuation被调用，fluid-bound变量也会恢复到旧值。
+如果在`fluid-let`之外创建的 continuation 被调用，fluid-bound 变量也会恢复到旧值。
 
 `(let ([x 'a])
 
@@ -948,9 +948,9 @@ x)) ![<graphic>](ch2_0.gif) 8`
 
 (k (f)))))
 
-(f)))) ![<graphic>](ch2_0.gif) (b . a)`
+(f)))) ![<graphic>](img/ch2_0.gif) (b . a)`
 
-如果控制已经离开了`fluid-let`的主体，无论是正常离开还是通过调用continuation，如果控制通过调用continuation重新进入主体，fluid-bound变量的临时值将被恢复。此外，对临时值的任何更改都将得到维护和在重新进入时反映出来。
+如果控制已经离开了`fluid-let`的主体，无论是正常离开还是通过调用 continuation，如果控制通过调用 continuation 重新进入主体，fluid-bound 变量的临时值将被恢复。此外，对临时值的任何更改都将得到维护和在重新进入时反映出来。
 
 `(define reenter #f)
 
@@ -962,15 +962,15 @@ x)) ![<graphic>](ch2_0.gif) 8`
 
 (set! x (+ x 1))
 
-x) ![<graphic>](ch2_0.gif) 2
+x) ![<graphic>](img/ch2_0.gif) 2
 
-x ![<graphic>](ch2_0.gif) 0
+x ![<graphic>](img/ch2_0.gif) 0
 
-(reenter '*) ![<graphic>](ch2_0.gif) 3
+(reenter '*) ![<graphic>](img/ch2_0.gif) 3
 
-(reenter '*) ![<graphic>](ch2_0.gif) 4
+(reenter '*) ![<graphic>](img/ch2_0.gif) 4
 
-x ![<graphic>](ch2_0.gif) 0`
+x ![<graphic>](img/ch2_0.gif) 0`
 
 展示了`dynamic-wind`如果不是内建的情况下可能如何实现的库。除了定义`dynamic-wind`之外，代码还定义了一个版本的`call/cc`，该版本对支持`dynamic-wind`做出了贡献。
 
@@ -1058,7 +1058,7 @@ x ![<graphic>](ch2_0.gif) 0`
 
 (apply values ans*)))))`
 
-`dynamic-wind`和`call/cc`共同管理着一个*winders*列表。winder是通过调用`dynamic-wind`建立的一个包含*in*和*out* thunk的对。每当调用`dynamic-wind`时，将调用*in* thunk，一个新的winder（包含*in*和*out* thunk）将被放置在winder列表上，将调用*body* thunk，然后将winder从winder列表中移除，并调用*out* thunk。这种顺序确保了winder只有在通过*in*传递控制而尚未进入*out*时才存在于winder列表中。每当获得一个continuation时，winders列表将被保存，每当调用continuation时，保存的winders列表将被恢复。在恢复期间，当前winders列表上的每个winder的*out* thunk将被调用，而不在当前winders列表上但在保存的winders列表上的每个winder的*in* thunk将被调用。winders列表会进行增量更新，以确保只有当控制通过其*in* thunk并且尚未进入其*out* thunk时，winder才存在于当前winders列表中。
+`dynamic-wind`和`call/cc`共同管理着一个*winders*列表。winder 是通过调用`dynamic-wind`建立的一个包含*in*和*out* thunk 的对。每当调用`dynamic-wind`时，将调用*in* thunk，一个新的 winder（包含*in*和*out* thunk）将被放置在 winder 列表上，将调用*body* thunk，然后将 winder 从 winder 列表中移除，并调用*out* thunk。这种顺序确保了 winder 只有在通过*in*传递控制而尚未进入*out*时才存在于 winder 列表中。每当获得一个 continuation 时，winders 列表将被保存，每当调用 continuation 时，保存的 winders 列表将被恢复。在恢复期间，当前 winders 列表上的每个 winder 的*out* thunk 将被调用，而不在当前 winders 列表上但在保存的 winders 列表上的每个 winder 的*in* thunk 将被调用。winders 列表会进行增量更新，以确保只有当控制通过其*in* thunk 并且尚未进入其*out* thunk 时，winder 才存在于当前 winders 列表中。
 
 在 `call/cc` 中执行的测试 `(not (eq? save winders))` 不是严格必要的，但在保存的 winders 列表与当前 winders 列表相同时，使调用 continuation 更少成本。
 
@@ -1100,9 +1100,9 @@ x ![<graphic>](ch2_0.gif) 0`
 
 (delay (cons n (next (+ n 1))))))
 
-(stream-car counters) ![<graphic>](ch2_0.gif) 1
+(stream-car counters) ![<graphic>](img/ch2_0.gif) 1
 
-(stream-car (stream-cdr counters)) ![<graphic>](ch2_0.gif) 2
+(stream-car (stream-cdr counters)) ![<graphic>](img/ch2_0.gif) 2
 
 (定义 stream-add
 
@@ -1118,9 +1118,9 @@ x ![<graphic>](ch2_0.gif) 0`
 
 (stream-add counters counters))
 
-(stream-car even-counters) ![<graphic>](ch2_0.gif) 2
+(stream-car even-counters) ![<graphic>](img/ch2_0.gif) 2
 
-(stream-car (stream-cdr even-counters)) ![<graphic>](ch2_0.gif) 4`
+(stream-car (stream-cdr even-counters)) ![<graphic>](img/ch2_0.gif) 4`
 
 `delay` 可以定义为
 
@@ -1188,15 +1188,15 @@ val))))`
 
 (定义 p (delay (values 1 2 3)))
 
-(force p) ![<graphic>](ch2_0.gif) 1
+(force p) ![<graphic>](img/ch2_0.gif) 1
 
-![](ch3_ghostRightarrow.gif) 2
+![](img/ch3_ghostRightarrow.gif) 2
 
-![](ch3_ghostRightarrow.gif) 3
+![](img/ch3_ghostRightarrow.gif) 3
 
-(call-with-values (lambda () (force p)) +) ![<graphic>](ch2_0.gif) 6`
+(call-with-values (lambda () (force p)) +) ![<graphic>](img/ch2_0.gif) 6`
 
-两种实现都不太正确，因为如果`force`的参数不是一个promise，它必须引发一个条件类型为`&assertion`的异常。由于无法区分由`make-promise`创建的过程和其他过程，`force`无法可靠地执行此操作。下面对`make-promise`和`force`的重新实现将promise表示为类型为`promise`的记录，以允许`force`进行所需的检查。
+两种实现都不太正确，因为如果`force`的参数不是一个 promise，它必须引发一个条件类型为`&assertion`的异常。由于无法区分由`make-promise`创建的过程和其他过程，`force`无法可靠地执行此操作。下面对`make-promise`和`force`的重新实现将 promise 表示为类型为`promise`的记录，以允许`force`进行所需的检查。
 
 `(define-record-type promise
 
@@ -1226,9 +1226,9 @@ val))))`
 
 (apply values (promise-vals promise))))`
 
-### 第5.8节。多值
+### 第 5.8 节。多值
 
-虽然所有Scheme原语和大多数用户定义的过程都返回一个值，但某些编程问题最好通过返回零个值、多个值甚至可变数量的值来解决。例如，将值列表分成两个子���表的过程需要返回两个值。虽然生产多个值的程序员可以将它们打包成数据结构，消费者可以提取它们，但通常更干净的方法是使用内置的多值接口。该接口由两个过程组成：`values`和`call-with-values`。前者产生多个值，后者将产生多值的过程与消费它们的过程链接起来。
+虽然所有 Scheme 原语和大多数用户定义的过程都返回一个值，但某些编程问题最好通过返回零个值、多个值甚至可变数量的值来解决。例如，将值列表分成两个子���表的过程需要返回两个值。虽然生产多个值的程序员可以将它们打包成数据结构，消费者可以提取它们，但通常更干净的方法是使用内置的多值接口。该接口由两个过程组成：`values`和`call-with-values`。前者产生多个值，后者将产生多值的过程与消费它们的过程链接起来。
 
 **过程**: `(values *obj* ...)`
 
@@ -1238,15 +1238,15 @@ val))))`
 
 过程`values`接受任意数量的参数，并简单地将这些参数传递（返回）给其续体。
 
-`(values) ![<graphic>](ch2_0.gif)
+`(values) ![<graphic>](img/ch2_0.gif)
 
-(values 1) ![<graphic>](ch2_0.gif) 1
+(values 1) ![<graphic>](img/ch2_0.gif) 1
 
-(values 1 2 3) ![<graphic>](ch2_0.gif) 1
+(values 1 2 3) ![<graphic>](img/ch2_0.gif) 1
 
-![](ch3_ghostRightarrow.gif) 2
+![](img/ch3_ghostRightarrow.gif) 2
 
-![](ch3_ghostRightarrow.gif) 3
+![](img/ch3_ghostRightarrow.gif) 3
 
 (定义 head&tail
 
@@ -1254,9 +1254,9 @@ val))))`
 
 (values (car ls) (cdr ls))))
 
-(head&tail '(a b c)) ![<graphic>](ch2_0.gif) a
+(head&tail '(a b c)) ![<graphic>](img/ch2_0.gif) a
 
-![](ch3_ghostRightarrow.gif) (b c)`
+![](img/ch3_ghostRightarrow.gif) (b c)`
 
 **过程**: `(call-with-values *producer* *consumer*)`
 
@@ -1270,9 +1270,9 @@ val))))`
 
 (lambda () (values 'bond 'james))
 
-(lambda (x y) (cons y x))) ![<graphic>](ch2_0.gif) (james . bond)
+(lambda (x y) (cons y x))) ![<graphic>](img/ch2_0.gif) (james . bond)
 
-(call-with-values values list) ![<graphic>](ch2_0.gif) '()`
+(call-with-values values list) ![<graphic>](img/ch2_0.gif) '()`
 
 在第二个例子中，`values`本身充当生产者。它不接收任何参数，因此不返回任何值。因此，`list`被应用于没有参数，因此返回空列表。
 
@@ -1286,9 +1286,9 @@ val))))`
 
 (- (cdr p2) (cdr p1)))))
 
-(dxdy '(0 . 0) '(0 . 5)) ![<graphic>](ch2_0.gif) 0
+(dxdy '(0 . 0) '(0 . 5)) ![<graphic>](img/ch2_0.gif) 0
 
-![](ch3_ghostRightarrow.gif) 5`
+![](img/ch3_ghostRightarrow.gif) 5`
 
 `dxdy`可以用于计算由两个端点表示的线段的长度和斜率。
 
@@ -1312,9 +1312,9 @@ val))))`
 
 (lambda (dx dy) (/ dy dx)))))
 
-(segment-length '(1 . 4) '(4 . 8)) ![<graphic>](ch2_0.gif) 5
+(segment-length '(1 . 4) '(4 . 8)) ![<graphic>](img/ch2_0.gif) 5
 
-(segment-slope '(1 . 4) '(4 . 8)) ![<graphic>](ch2_0.gif) 4/3`
+(segment-slope '(1 . 4) '(4 . 8)) ![<graphic>](img/ch2_0.gif) 4/3`
 
 当然，我们可以将这些组合成一个返回两个值的过程。
 
@@ -1334,9 +1334,9 @@ val))))`
 
 (/ dy dx))))))
 
-(describe-segment '(1 . 4) '(4 . 8)) ![<graphic>](ch2_0.gif) 5
+(describe-segment '(1 . 4) '(4 . 8)) ![<graphic>](img/ch2_0.gif) 5
 
-![<graphic>](ch2_0.gif) 4/3`
+![<graphic>](img/ch2_0.gif) 4/3`
 
 下面的示例使用多个值将列表非破坏性地分成两个交替元素的子列表。
 
@@ -1358,27 +1358,27 @@ val))))`
 
 (cons (cadr ls) evens)))))))
 
-(split '(a b c d e f)) ![<graphic>](ch2_0.gif) (a c e)
+(split '(a b c d e f)) ![<graphic>](img/ch2_0.gif) (a c e)
 
-![](ch3_ghostRightarrow.gif) (b d f)`
+![](img/ch3_ghostRightarrow.gif) (b d f)`
 
 在递归的每个级别，`split`过程返回两个值：参数列表中奇数元素的列表和偶数元素的列表。
 
 对`values`的调用的继续不一定是由对`call-with-values`的调用建立的，也不一定只有`values`用于返回到由`call-with-values`建立的继续。特别地，`(values *e*)`和`*e*`是等价的表达式。例如：
 
-`(+ (values 2) 4) ![<graphic>](ch2_0.gif) 6
+`(+ (values 2) 4) ![<graphic>](img/ch2_0.gif) 6
 
-(if (values #t) 1 2) ![<graphic>](ch2_0.gif) 1
+(if (values #t) 1 2) ![<graphic>](img/ch2_0.gif) 1
 
 (call-with-values
 
 (lambda () 4)
 
-(lambda (x) x)) ![<graphic>](ch2_0.gif) 4`
+(lambda (x) x)) ![<graphic>](img/ch2_0.gif) 4`
 
 同样，`values`可以用于将任意数量的值传递给忽略这些值的继续，如下所示。
 
-`(begin (values 1 2 3) 4) ![<graphic>](ch2_0.gif) 4`
+`(begin (values 1 2 3) 4) ![<graphic>](img/ch2_0.gif) 4`
 
 因为继续可能接受零个或多个值，通过`call/cc`获得的继续可能接受零个或多个参数。
 
@@ -1388,7 +1388,7 @@ val))))`
 
 (call/cc (lambda (k) (k 2 3))))
 
-(lambda (x y) (list x y))) ![<graphic>](ch2_0.gif) (2 3)`
+(lambda (x y) (list x y))) ![<graphic>](img/ch2_0.gif) (2 3)`
 
 当一个期望正好一个值的延续接收到零个值或多个值时，行为是未指定的。例如，以下每个表达式的行为都是未指定的。一些实现会引发异常，而其他实现会在沉默中抑制额外的值或为丢失的值提供默认值。
 
@@ -1410,7 +1410,7 @@ val))))`
 
 `(lambda (x . y) x))]))`
 
-`(if (first (values #t #f)) 'a 'b) ![<graphic>](ch2_0.gif) a`
+`(if (first (values #t #f)) 'a 'b) ![<graphic>](img/ch2_0.gif) a`
 
 由于实现必须在过程不接受传递给它的参数数量时引发带有条件类型`&assertion`的异常，因此以下每个都会引发异常。
 
@@ -1426,7 +1426,7 @@ val))))`
 
 `(lambda (x y) x))`
 
-由于`*producer*`通常是一个`lambda`表达式，因此通常可以使用语法扩展来抑制lambda表达式以提高可读性。
+由于`*producer*`通常是一个`lambda`表达式，因此通常可以使用语法扩展来抑制 lambda 表达式以提高可读性。
 
 `(define-syntax with-values`
 
@@ -1436,25 +1436,25 @@ val))))`
 
 `(call-with-values (lambda () expr) consumer)]))`
 
-`(with-values (values 1 2) list) ![<graphic>](ch2_0.gif) (1 2)`
+`(with-values (values 1 2) list) ![<graphic>](img/ch2_0.gif) (1 2)`
 
 `(with-values (split '(1 2 3 4))
 
 `(lambda (odds evens)`
 
-`evens)) ![<graphic>](ch2_0.gif) (2 4)`
+`evens)) ![<graphic>](img/ch2_0.gif) (2 4)`
 
-如果`*consumer*`也是一个`lambda`表达式，那么第 [4.5](binding.html#g93) 节描述的`let`和`let*`的多值变体通常更加方便。
+如果`*consumer*`也是一个`lambda`表达式，那么第 4.5 节描述的`let`和`let*`的多值变体通常更加方便。
 
 `(let-values ([(odds evens) (split '(1 2 3 4))])`
 
-`evens) ![<graphic>](ch2_0.gif) (2 4)`
+`evens) ![<graphic>](img/ch2_0.gif) (2 4)`
 
 `(let-values ([ls (values 'a 'b 'c)])`
 
-`ls) ![<graphic>](ch2_0.gif) (a b c)`
+`ls) ![<graphic>](img/ch2_0.gif) (a b c)`
 
-许多标准的语法形式和过程传递多个值。其中大多数是“自动”的，意味着实现不需要特别处理就可以使这种情况发生。`let`的通常展开成直接的`lambda`调用会自动传播`let`体产生的多个值。其他运算符必须特别编码以传递多个值。例如，`call-with-port`过程（第 [7.6](io.html#g127) 页）调用其过程参数，然后在返回过程的值之前关闭端口参数，因此它必须临时保存值。这可以通过`let-values`、`apply`和`values`轻松实现：
+许多标准的语法形式和过程传递多个值。其中大多数是“自动”的，意味着实现不需要特别处理就可以使这种情况发生。`let`的通常展开成直接的`lambda`调用会自动传播`let`体产生的多个值。其他运算符必须特别编码以传递多个值。例如，`call-with-port`过程（第 7.6 页）调用其过程参数，然后在返回过程的值之前关闭端口参数，因此它必须临时保存值。这可以通过`let-values`、`apply`和`values`轻松实现：
 
 `(define call-with-port`
 
@@ -1538,7 +1538,7 @@ val))))`
 
 (consumer x))))))`
 
-可以更有效地实现多值 [[2](bibliography.html#g220)]，但此代码用于说明操作符的含义，并且可以用于在不支持它们的旧的、非标准实现中提供多个值。
+可以更有效地实现多值 [2]，但此代码用于说明操作符的含义，并且可以用于在不支持它们的旧的、非标准实现中提供多个值。
 
 ### 第 5.9\. 评估
 
@@ -1554,13 +1554,13 @@ Scheme 的 `eval` 过程允许程序员编写构造和评估其他程序的程�
 
 `(define cons 'not-cons)
 
-(eval '(let ([x 3]) (cons x 4)) (environment '(rnrs))) ![<graphic>](ch2_0.gif) (3 . 4)
+(eval '(let ([x 3]) (cons x 4)) (environment '(rnrs))) ![<graphic>](img/ch2_0.gif) (3 . 4)
 
 (define lambda 'not-lambda)
 
-(eval '(lambda (x) x) (environment '(rnrs))) ![<graphic>](ch2_0.gif) #<procedure>
+(eval '(lambda (x) x) (environment '(rnrs))) ![<graphic>](img/ch2_0.gif) #<procedure>
 
-(eval '(cons 3 4) (environment)) ![<graphic>](ch2_0.gif) *exception*`
+(eval '(cons 3 4) (environment)) ![<graphic>](img/ch2_0.gif) *exception*`
 
 **procedure**: `(environment *import-spec* ...)`
 
@@ -1568,11 +1568,11 @@ Scheme 的 `eval` 过程允许程序员编写构造和评估其他程序的程�
 
 **libraries:** `(rnrs eval)`
 
-`environment` 返回一个由给定导入说明符的组合绑定形成的环境。每个 `*import-spec*` 必须是一个表示有效导入说明符的 S 表达式（参见第 [10](libraries.html#g142) 章）。
+`environment` 返回一个由给定导入说明符的组合绑定形成的环境。每个 `*import-spec*` 必须是一个表示有效导入说明符的 S 表达式（参见第 10 章）。
 
 `(define env (environment '(rnrs) '(prefix (rnrs lists) $)))
 
-(eval '($cons* 3 4 (* 5 8)) env) ![<graphic>](ch2_0.gif) (3 4 . 40)`
+(eval '($cons* 3 4 (* 5 8)) env) ![<graphic>](img/ch2_0.gif) (3 4 . 40)`
 
 **procedure**: `(null-environment *version*)`
 
@@ -1600,6 +1600,6 @@ R. Kent Dybvig / <it>《Scheme 编程语言，第四版》</it>
 
 ISBN 978-0-262-51298-5 / LOC QA76.73.S34D93
 
-[购买此书](http://mitpress.mit.edu/catalog/item/default.asp?ttype=2&tid=11984) / [关于此书](canned/about.html)
+[购买此书](http://mitpress.mit.edu/catalog/item/default.asp?ttype=2&tid=11984) / 关于此书
 
-[http://www.scheme.com](http://www.scheme.com/)
+[`www.scheme.com`](http://www.scheme.com/)

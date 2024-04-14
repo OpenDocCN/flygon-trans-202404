@@ -27,7 +27,7 @@ type OrderId = OrderId of int
 
 +   这反过来又会更频繁地触发垃圾回收器，这经常是托管代码性能问题的原因。
 
-一般来说，我通常不会在设计时过分担心微小的性能问题。许多事情将对性能产生*更大*的影响，包括任何类型的I/O和您选择的算法。
+一般来说，我通常不会在设计时过分担心微小的性能问题。许多事情将对性能产生*更大*的影响，包括任何类型的 I/O 和您选择的算法。
 
 结果，我非常*反对*在上下文之外进行微型基准测试。您应该始终在实际上下文中对真实应用程序进行分析，而不是过分担心可能不重要的事情。
 
@@ -37,13 +37,13 @@ type OrderId = OrderId of int
 
 看看当大量使用包装类型时它的表现如何。假设我们想要：
 
-+   创建一千万个客户ID
++   创建一千万个客户 ID
 
 +   然后，再对它们进行两次映射
 
 +   然后，对它们进行过滤
 
-诚然，将1添加到客户ID有点愚蠢--我们稍后会看一个更好的例子。
+诚然，将 1 添加到客户 ID 有点愚蠢--我们稍后会看一个更好的例子。
 
 无论如何，这里是代码：
 
@@ -73,7 +73,7 @@ Array.init 1000000 CustomerId
 #time 
 ```
 
-*上面的代码示例可以在GitHub上[找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-1-fsx)*。
+*上面的代码示例可以在 GitHub 上[找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-1-fsx)*。
 
 *(再次强调，这是一种糟糕的编码分析方式！)*
 
@@ -83,17 +83,17 @@ Array.init 1000000 CustomerId
 Real: 00:00:00.296, CPU: 00:00:00.296, GC gen0: 6, gen1: 4, gen2: 0 
 ```
 
-也就是说，执行这些步骤大约需要0.3秒，并且会创建相当多的垃圾，触发四次gen1收集。如果您不确定“gen0”、“gen1”和“gen2”是什么意思，那么[这是一个好的起点](https://msdn.microsoft.com/en-us/library/ms973837.aspx)。
+也就是说，执行这些步骤大约需要 0.3 秒，并且会创建相当多的垃圾，触发四次 gen1 收集。如果您不确定“gen0”、“gen1”和“gen2”是什么意思，那么[这是一个好的起点](https://msdn.microsoft.com/en-us/library/ms973837.aspx)。
 
-*免责声明：我将在F#互动环境中进行所有基准测试。经过优化的编译代码可能具有完全不同的性能特征。过去的表现不能保证未来的结果。请自行推断。等等，等等。*
+*免责声明：我将在 F#互动环境中进行所有基准测试。经过优化的编译代码可能具有完全不同的性能特征。过去的表现不能保证未来的结果。请自行推断。等等，等等。*
 
-如果我们将数组大小增加到1000万，我们会得到一个超过10倍的更慢结果：
+如果我们将数组大小增加到 1000 万，我们会得到一个超过 10 倍的更慢结果：
 
 ```
 Real: 00:00:03.489, CPU: 00:00:03.541, GC gen0: 68, gen1: 46, gen2: 2 
 ```
 
-也就是说，执行这些步骤大约需要3.5秒，并且创建了*很多*垃圾，包括一些非常糟糕的 gen2 GC。实际上，你甚至可能会遇到“内存不足”的异常，这种情况下，你将不得不重新启动 F# 交互！
+也就是说，执行这些步骤大约需要 3.5 秒，并且创建了*很多*垃圾，包括一些非常糟糕的 gen2 GC。实际上，你甚至可能会遇到“内存不足”的异常，这种情况下，你将不得不重新启动 F# 交互！
 
 那么使用包装的替代方法有哪些？有两种常见的方法：
 
@@ -160,9 +160,9 @@ Array.init 1000000 (fun i -> i)
 Real: 00:00:00.017, CPU: 00:00:00.015, GC gen0: 0, gen1: 0, gen2: 0 
 ```
 
-执行这些步骤大约需要17毫秒，更重要的是，几乎没有产生垃圾。
+执行这些步骤大约需要 17 毫秒，更重要的是，几乎没有产生垃圾。
 
-如果我们将数组大小增加到1000万，我们会得到一个慢了10倍的结果，但仍然没有垃圾：
+如果我们将数组大小增加到 1000 万，我们会得到一个慢了 10 倍的结果，但仍然没有垃圾：
 
 ```
 Real: 00:00:00.166, CPU: 00:00:00.156, GC gen0: 0, gen1: 0, gen2: 0 
@@ -245,7 +245,7 @@ Real: 00:00:00.022, CPU: 00:00:00.031, GC gen0: 0, gen1: 0, gen2: 0
 
 再次，代码非常快（22 毫秒），同样重要的是，几乎没有产生垃圾。
 
-如果我们将数组大小增加到1000万，我们仍然保持高性能（与类型别名方法一样），而且仍然没有垃圾：
+如果我们将数组大小增加到 1000 万，我们仍然保持高性能（与类型别名方法一样），而且仍然没有垃圾：
 
 ```
 Real: 00:00:00.157, CPU: 00:00:00.156, GC gen0: 0, gen1: 0, gen2: 0 
@@ -271,13 +271,13 @@ let ratio = cid / oid
 // val ratio : int<CustomerIdUOM/OrderIdUOM> = 3 
 ```
 
-三个什么？每个订单ID三个客户ID？这到底是什么意思？
+三个什么？每个订单 ID 三个客户 ID？这到底是什么意思？
 
 是的，当然这在实践中永远不会发生，但是我还是很烦！
 
 ## 使用编译器指令来兼顾两全其美
 
-我提到过我真的很喜欢包装类型吗？直到我接到电话说生产系统由于太多大的GC而出现性能问题之前，我真的很喜欢它们。
+我提到过我真的很喜欢包装类型吗？直到我接到电话说生产系统由于太多大的 GC 而出现性能问题之前，我真的很喜欢它们。
 
 那么，我们能否两全其美？类型安全的包装类型和快速性能？
 
@@ -386,7 +386,7 @@ Array.init 1000000 createCustomerId
 
 *上面的代码示例可在[GitHub](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-4-fsx)上找到*。
 
-结果与之前的例子类似。别名版本更快，不会产生GC压力：
+结果与之前的例子类似。别名版本更快，不会产生 GC 压力：
 
 ```
 // results using wrapped version
@@ -449,7 +449,7 @@ module ActivityHistory =
 
 与之前一样，对于每种类型，都有一个构造函数和每个字段的获取器。
 
-*注意：通常情况下，我会在模块外定义一个类型，但是由于真正的构造函数需要是私有的，我将类型放在了模块内，并给了模块和类型相同的名称。如果这太麻烦了，你可以将模块重命名为与类型不同的名称，或者使用OCaml约定，将模块中的主要类型命名为“T”，这样你就会得到`EmailAddress.T`作为类型名称。*
+*注意：通常情况下，我会在模块外定义一个类型，但是由于真正的构造函数需要是私有的，我将类型放在了模块内，并给了模块和类型相同的名称。如果这太麻烦了，你可以将模块重命名为与类型不同的名称，或者使用 OCaml 约定，将模块中的主要类型命名为“T”，这样你就会得到`EmailAddress.T`作为类型名称。*
 
 为了创建更高性能的版本，我们将`EmailAddress`替换为类型别名，并将`Activity`替换为结构体，就像这样：
 
@@ -488,7 +488,7 @@ module ActivityHistory =
     let visits (act:ActivityHistory) = act.Visits 
 ```
 
-这个版本重新实现了构造函数和每个字段的getter。我也可以使`ActivityHistory`的字段名称在两种情况下相同，但是在结构体情况下，类型推断将无法工作。通过使它们不同，用户被迫使用getter函数而不是点操作。
+这个版本重新实现了构造函数和每个字段的 getter。我也可以使`ActivityHistory`的字段名称在两种情况下相同，但是在结构体情况下，类型推断将无法工作。通过使它们不同，用户被迫使用 getter 函数而不是点操作。
 
 两种实现具有相同的“API”，因此我们可以创建适用于两者的代码：
 
@@ -531,13 +531,13 @@ let mapAndFilter noOfRecords =
 
 例如，如果我开始直接通过点操作访问`ActivityHistory`记录中的字段，那么当编译器指令打开并且使用结构实现时，该代码将会出错。
 
-当然，你也可以创建一个签名文件来强制执行API。
+当然，你也可以创建一个签名文件来强制执行 API。
 
-不足之处在于，我们失去了一些优雅的语法，比如`{rec with ...}`。但你真的只应该在小记录（2-3个字段）上使用这种技术，所以没有`with`并不是一个大负担。
+不足之处在于，我们失去了一些优雅的语法，比如`{rec with ...}`。但你真的只应该在小记录（2-3 个字段）上使用这种技术，所以没有`with`并不是一个大负担。
 
 ### 计时两种实现方式
 
-而不是使用`#time`，这次我编写了一个自定义计时器，运行一个函数10次，并打印出每次运行时使用的GC和内存。
+而不是使用`#time`，这次我编写了一个自定义计时器，运行一个函数 10 次，并打印出每次运行时使用的 GC 和内存。
 
 ```
 /// Do countN repetitions of the function f and print the 
@@ -572,7 +572,7 @@ let time countN label f  =
         printfn "#%2i elapsed:%6ims gen0:%3i gen1:%3i gen2:%3i mem:%6iK" iteration stopwatch.ElapsedMilliseconds (gen0'-gen0) (gen1'-gen1) (gen2'-gen2) changeInMem 
 ```
 
-*上面的代码示例可以在[GitHub上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-5-fsx)*。
+*上面的代码示例可以在[GitHub 上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-5-fsx)*。
 
 现在让我们在数组中运行`mapAndFilter`，其中包含一百万条记录：
 
@@ -616,17 +616,17 @@ mapAndFilter: 1000000 records (Aliased)
 
 现在这段代码不再只由值类型组成，所以性能分析现在变得更加混乱！`mapAndFilter`函数使用`createCustomerWithRandomActivity`，后者又使用`Option`，一个引用类型，因此将会分配大量引用类型。就像在现实生活中一样，保持事情纯粹是很困难的！
 
-即使如此，你可以看到封装版本比别名版本慢（大约800ms对150ms），并且在每次迭代中产生更多的垃圾（大约72Mb对24Mb），最重要的是在第5次和第9次迭代中有两次大的GC暂停，而别名版本甚至从未进行过gen1 GC，更不用说gen2了。
+即使如此，你可以看到封装版本比别名版本慢（大约 800ms 对 150ms），并且在每次迭代中产生更多的垃圾（大约 72Mb 对 24Mb），最重要的是在第 5 次和第 9 次迭代中有两次大的 GC 暂停，而别名版本甚至从未进行过 gen1 GC，更不用说 gen2 了。
 
-*注意：别名版本正在使用内存，但没有gen1，这让我对这些数字有些怀疑。我认为如果在F#交互环境之外运行，结果可能会有所不同。*
+*注意：别名版本正在使用内存，但没有 gen1，这让我对这些数字有些怀疑。我认为如果在 F#交互环境之外运行，结果可能会有所不同。*
 
 ## 那么非记录类型呢？
 
 ���果我们要优化的类型是一个判别联合而不是记录呢？
 
-我的建议是将DU转换为一个带有每种情况标签和所有可能数据字段的结构。
+我的建议是将 DU 转换为一个带有每种情况标签和所有可能数据字段的结构。
 
-例如，假设我们有一个DU，将`Activity`分类为`Active`和`Inactive`，对于`Active`情况，我们存储电子邮件和访问次数，而对于`Inactive`情况，我们只存储电子邮件：
+例如，假设我们有一个 DU，将`Activity`分类为`Active`和`Inactive`，对于`Active`情况，我们存储电子邮件和访问次数，而对于`Inactive`情况，我们只存储电子邮件：
 
 ```
 module Classification =
@@ -703,7 +703,7 @@ let extractActiveEmails noOfRecords =
     |> ignore 
 ```
 
-*上面的代码示例可以在[GitHub上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-5-fsx)*。
+*上面的代码示例可以在[GitHub 上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86#file-typesafe-performance-with-compiler-directives-5-fsx)*。
 
 使用两种不同实现对这个函数进行性能分析的结果如下：
 
@@ -737,7 +737,7 @@ extractActiveEmails: 1000000 records (Aliased)
 #10 elapsed:  3732ms gen0: 33 gen1:  1 gen2:  1 mem:-256432K 
 ```
 
-与之前一样，别名/结构体版本更具性能，更快，生成的垃圾更少（尽管最后有一个GC暂停，哦，天哪）。
+与之前一样，别名/结构体版本更具性能，更快，生成的垃圾更少（尽管最后有一个 GC 暂停，哦，天哪）。
 
 ## 问题
 
@@ -745,7 +745,7 @@ extractActiveEmails: 1000000 records (Aliased)
 
 是的！*我认为一般情况下你不应该这样做。*这只是我的一个实验。
 
-我建议将记录和DUs转换为结构体是最后的选择，只有在消除所有其他瓶颈之后才这样做。
+我建议将记录和 DUs 转换为结构体是最后的选择，只有在消除所有其他瓶颈之后才这样做。
 
 然而，可能有一些特殊情况，速度和内存是至关重要的，那么，也许值得做一些类似的事情。
 
@@ -779,7 +779,7 @@ extractActiveEmails: 1000000 records (Aliased)
 
 ### 还有哪些方法可以提高性能？
 
-由于 F# 是一种.NET语言，C# 的性能提示同样适用于 F#，像标准的东西：
+由于 F# 是一种.NET 语言，C# 的性能提示同样适用于 F#，像标准的东西：
 
 +   所有 I/O 都应该是异步的。如果可能的话，使用流式 I/O 而不是随机访问 I/O。批量处理你的请求。
 
@@ -791,13 +791,13 @@ extractActiveEmails: 1000000 records (Aliased)
 
 +   通过减少分配来避免对垃圾收集器的压力。避免创建在 gen0 收集中幸存的长寿命对象。
 
-明确一点，我并不自称是.NET性能和垃圾收集方面的专家。实际上，如果你发现这个分析有什么问题，请告诉我！
+明确一点，我并不自称是.NET 性能和垃圾收集方面的专家。实际上，如果你发现这个分析有什么问题，请告诉我！
 
 这里有一些帮助我的资源：
 
-+   本书 [编写高性能.NET代码](http://www.writinghighperf.net/) 由本·沃森编写。
++   本书 [编写高性能.NET 代码](http://www.writinghighperf.net/) 由本·沃森编写。
 
-+   马丁·汤普森在性能方面有一个很棒的[博客](http://mechanical-sympathy.blogspot.jp/2012/08/memory-access-patterns-are-important.html)，还有一些优秀的视频，比如[前10个性能迷思](http://www.infoq.com/presentations/top-10-performance-myths)。（[这里有一个很好的总结](http://weronikalabaj.com/performance-myths-and-facts/)。）
++   马丁·汤普森在性能方面有一个很棒的[博客](http://mechanical-sympathy.blogspot.jp/2012/08/memory-access-patterns-are-important.html)，还有一些优秀的视频，比如[前 10 个性能迷思](http://www.infoq.com/presentations/top-10-performance-myths)。（[这里有一个很好的总结](http://weronikalabaj.com/performance-myths-and-facts/)。）
 
 +   [理解延迟](https://www.youtube.com/watch?v=9MKY4KypBzg)，由吉尔·特纳制作的视频。
 
@@ -809,7 +809,7 @@ extractActiveEmails: 1000000 records (Aliased)
 
     +   乔恩·哈罗普有很多好文章，比如[这篇](http://flyingfrogblog.blogspot.co.uk/2012/06/are-functional-languages-inherently.html)，但其中一些内容是付费的。
 
-    +   视频：[在.NET和GPU上进行高性能F#编程](https://vimeo.com/33699102)，由杰克·帕帕斯制作。声音很糟糕，但幻灯片和讨论很好！
+    +   视频：[在.NET 和 GPU 上进行高性能 F#编程](https://vimeo.com/33699102)，由杰克·帕帕斯制作。声音很糟糕，但幻灯片和讨论很好！
 
     +   [数学和统计资源](http://fsharp.org/guides/math-and-statistics/) 在 fsharp.org 上
 
@@ -823,4 +823,4 @@ extractActiveEmails: 1000000 records (Aliased)
 
 最后，我自己在一个大型生产系统中没有使用过这种方法（我从未需要过），所以我很想听听战壕中的人们对他们的做法有什么反馈。
 
-*本文中使用的代码示例可以在[GitHub上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86)*。
+*本文中使用的代码示例可以在[GitHub 上找到](https://gist.github.com/swlaschin/348b6b9e64d4b150cf86)*。

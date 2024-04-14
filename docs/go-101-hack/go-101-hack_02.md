@@ -1,6 +1,6 @@
-# 创建Go工作空间
+# 创建 Go 工作空间
 
-# 创建Go工作空间
+# 创建 Go 工作空间
 
 * * *
 
@@ -24,7 +24,7 @@ export GOPATH
 
 工作空间应包含`3`个子目录：
 
-> src：包含Go源代码。
+> src：包含 Go 源代码。
 > 
 > pkg：包含包对象。你可以将它们视为在链接阶段用于生成最终可执行文件的库。
 > 
@@ -146,4 +146,4 @@ Hello 中国!
 
 参考：
 
-[如何编写Go代码](https://golang.org/doc/code.html)。
+[如何编写 Go 代码](https://golang.org/doc/code.html)。

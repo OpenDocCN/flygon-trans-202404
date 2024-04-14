@@ -189,7 +189,7 @@ $ kotlinc -d number-game.jar -include-runtime number-game.kt
 
 ```
 
-编译器将创建一个新文件 number-game.jar。您可以直接在Java虚拟机上运行它：
+编译器将创建一个新文件 number-game.jar。您可以直接在 Java 虚拟机上运行它：
 
 ```
 $ java -jar number-game.jar 
@@ -206,4 +206,4 @@ You got it
 
 ```
 
-这将在任何已安装JVM的计算机上运行。如果您的程序具有[图形用户界面](tutorial-cs109ui.html)，您可能也可以通过单击jar文件来启动它。
+这将在任何已安装 JVM 的计算机上运行。如果您的程序具有图形用户界面，您可能也可以通过单击 jar 文件来启动它。

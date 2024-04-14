@@ -2,7 +2,7 @@
 
 # 测试
 
-测试异步代码通常相当棘手。异步代码可能在毫秒甚至几分钟内完成。因此，您需要一种方法来完全模拟它，就像您在jasmine中所做的那样。
+测试异步代码通常相当棘手。异步代码可能在毫秒甚至几分钟内完成。因此，您需要一种方法来完全模拟它，就像您在 jasmine 中所做的那样。
 
 ```
 spyOn(service,'method').and.callFake(() => {
@@ -20,9 +20,9 @@ spyOn(service,'method').and.callFake(() => {
 spyOn(service,'method').and.callFake(q.when('some data')) 
 ```
 
-关键是您尝试避免整个时间问题。Rxjs在`Rxjs 4`中历史上提供了使用具有自己内部时钟的TestScheduler的方法，这使��能够增加时间。这种方法有两种风味：
+关键是您尝试避免整个时间问题。Rxjs 在`Rxjs 4`中历史上提供了使用具有自己内部时钟的 TestScheduler 的方法，这使��能够增加时间。这种方法有两种风味：
 
-**方法1**
+**方法 1**
 
 ```
 let testScheduler = new TestScheduler();
@@ -84,9 +84,9 @@ collectionAssert.assertEqual(results.messages, [
 
 在我看来有点难以阅读，但您仍然可以理解，您控制时间，因为您有一个`TestScheduler`来指导时间流逝的速度。
 
-这都是Rxjs 4，它在Rxjs 5中有所改变。我应该说，我即将写下的内容是一个大致的方向和一个不断变化的目标，所以本章节将会更新，但是让我们开始吧。
+这都是 Rxjs 4，它在 Rxjs 5 中有所改变。我应该说，我即将写下的内容是一个大致的方向和一个不断变化的目标，所以本章节将会更新，但是让我们开始吧。
 
-在Rxjs 5中使用了称为`Marble Testing`的东西。是的，这与[Marble Diagram](marble-diagrams.html)有关，即您用图形符号表示预期输入和实际输出。
+在 Rxjs 5 中使用了称为`Marble Testing`的东西。是的，这与 Marble Diagram 有关，即您用图形符号表示预期输入和实际输出。
 
 第一次查看[官方文档页面](https://github.com/ReactiveX/rxjs/blob/master/doc/writing-marble-tests.md)时，我就像*现在怎么办？*。但在自己写了几个测试之后，我得出结论，这是一个相当优雅的方法。
 
@@ -153,7 +153,7 @@ const expectedMap = {
 } 
 ```
 
-这就是我们设置所需的内容，但为了使测试运行，我们需要将其`flush`以便`TestScheduler`在内部可以触发HotObservable并运行一个断言。查看`createHotObservable()`方法，我们发现它解析我们提供的mable模式并将其推送到列表中：
+这就是我们设置所需的内容，但为了使测试运行，我们需要将其`flush`以便`TestScheduler`在内部可以触发 HotObservable 并运行一个断言。查看`createHotObservable()`方法，我们发现它解析我们提供的 mable 模式并将其推送到列表中：
 
 ```
 // excerpt from createHotObservable
@@ -169,7 +169,7 @@ return subject;
 
 2) flush()
 
-expect调用基本上设置了对我们的HotObservable的订阅
+expect 调用基本上设置了对我们的 HotObservable 的订阅
 
 ```
 // excerpt from expectObservable()

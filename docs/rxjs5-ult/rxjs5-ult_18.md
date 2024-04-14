@@ -65,7 +65,7 @@ let objectStream$ = Rx.Observable.of( { name : 'chris' }, { age : 11 } )
 
 ## 平均值
 
-`average()`运算符在Rxjs5中不再存在，但你仍然可以用`reduce()`来实现相同的功能
+`average()`运算符在 Rxjs5 中不再存在，但你仍然可以用`reduce()`来实现相同的功能
 
 ```
 let stream$ = Rx.Observable.of( 3, 6 ,9 )

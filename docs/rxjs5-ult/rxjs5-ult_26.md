@@ -2,7 +2,7 @@
 
 # Subject
 
-Subject具有双重性质。它既具有[Observer](observer.html)的行为，也具有[Observable](observable-anatomy.html)的行为。因此，以下是可能的：
+Subject 具有双重性质。它既具有 Observer 的行为，也具有 Observable 的行为。因此，以下是可能的：
 
 发出值
 
@@ -51,11 +51,11 @@ proxySubject.next( 3 )  // emits 3 and then 0 1 2 ( async )
 
 **注意**
 
-任何在创建订阅之前发生的`next()`都会丢失。还有其他可以满足此要求的Subject类型如下。
+任何在创建订阅之前发生的`next()`都会丢失。还有其他可以满足此要求的 Subject 类型如下。
 
 ### 业务案例
 
-那么这有什么有趣之处？它可以在某些数据到达时监听某个源，同时具有发出自己数据的能力，所有数据都到达同一订阅者。在组件之间以总线方式通信的能力是我能想到的最明显的用例。组件1可以通过`next()`传递其值，组件2可以订阅，反之亦然，组件2可以反过来发出值，组件1可以订阅。
+那么这有什么有趣之处？它可以在某些数据到达时监听某个源，同时具有发出自己数据的能力，所有数据都到达同一订阅者。在组件之间以总线方式通信的能力是我能想到的最明显的用例。组件 1 可以通过`next()`传递其值，组件 2 可以订阅，反之亦然，组件 2 可以反过来发出值，组件 1 可以订阅。
 
 ```
 sharedService.getDispatcher = function(){
@@ -125,7 +125,7 @@ asyncSubject.next( 1 );
 asyncSubject.next( 2 ); 
 ```
 
-看到这个我们期望1,2会被发出对吗？错误。
+看到这个我们期望 1,2 会被发出对吗？错误。
 
 除非发生`complete()`，否则不会发出任何内容
 
@@ -152,7 +152,7 @@ asyncSubject.complete()
 
 ## BehaviourSubject
 
-这个Subject发出以下内容：
+这个 Subject 发出以下内容：
 
 +   初始值
 

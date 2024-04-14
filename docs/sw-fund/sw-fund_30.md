@@ -184,7 +184,7 @@ Inductive tm  : Type :=
 
     在非正式示例中，我们还将自由使用扩展
 
-    在 [MoreStlc](MoreStlc.html) 章节中开发的 STLC 的一部分；然而，为了保持
+    在 MoreStlc 章节中开发的 STLC 的一部分；然而，为了保持
 
     证明小，我们不会在这里再次正式化它们。（它
 
@@ -454,21 +454,21 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     主体。由于函数抽象是值，两个 let 都是
 
-    通过简单地将这些函数绑定到名称incc和
+    通过简单地将这些函数绑定到名称 incc 和
 
-    decc，而不是通过实际增加或减少c。
+    decc，而不是通过实际增加或减少 c。
 
-    后来，对这些函数中的一个进行caddll将导致其主体
+    后来，对这些函数中的一个进行 caddll 将导致其主体
 
     被执行一次并对其进行适当的突变
 
     c。这样的函数通常被称为*thunks*。
 
-    在这些声明的上下文中，调用incc会导致
+    在这些声明的上下文中，调用 incc 会导致
 
-    对c的更改可以通过调用decc观察到。对于
+    对 c 的更改可以通过调用 decc 观察到。对于
 
-    例如，如果我们用（incc unit; incc unit; decc unit）替换...，整个程序的结果将是1。
+    例如，如果我们用（incc unit; incc unit; decc unit）替换...，整个程序的结果将是 1。
 
 ```
 
@@ -484,11 +484,11 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
         λ_:Unit。
 
-            让c = ref 0 in
+            让 c = ref 0 in
 
-            让incc = λ_:Unit。 (c := succ (!c); !c) in
+            让 incc = λ_:Unit。 (c := succ (!c); !c) in
 
-            让decc = λ_:Unit。 (c := pred (!c); !c) in
+            让 decc = λ_:Unit。 (c := pred (!c); !c) in
 
             {i=incc，d=decc}
 
@@ -502,17 +502,17 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
 ```
 
-    让c1 = newcounter unit in
+    让 c1 = newcounter unit in
 
-    让c2 = newcounter unit in
+    让 c2 = newcounter unit in
 
     //请注意，我们现在已经分配了两个独立的存储单元！
 
-    让r1 = c1.i unit in
+    让 r1 = c1.i unit in
 
-    让r2 = c2.i unit in
+    让 r2 = c2.i unit in
 
-    r2 //产生1，而不是2！
+    r2 //产生 1，而不是 2！
 
 ```
 
@@ -542,11 +542,11 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     函数来给出数组的（低效的）实现
 
-    的数字，如下所示。为类型编写NatArray
+    的数字，如下所示。为类型编写 NatArray
 
     Ref（Nat→Nat）。
 
-    回想一下[MoreStlc](MoreStlc.html)章节中的equal函数：
+    回想一下 MoreStlc 章节中的 equal 函数：
 
 ```
       equal =
@@ -561,7 +561,7 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     要构建一个新数组，我们分配一个引用单元并填充
 
-    用一个函数替换它，当给定一个索引时，总是返回0。
+    用一个函数替换它，当给定一个索引时，总是返回 0。
 
 ```
       newarray = λ_:Unit. ref (λn:Nat.0)
@@ -585,7 +585,7 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     当被要求在这个索引处的值时，返回新的
 
-    给定给update的值，而在所有其他索引上传递
+    给定给 update 的值，而在所有其他索引上传递
 
     查找到先前存储在引用中的函数。
 
@@ -602,7 +602,7 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     列表和树。
 
-#### 练习：2星，推荐（compact_update）
+#### 练习：2 星，推荐（compact_update）
 
     如果我们像这样更紧凑地定义更新
 
@@ -639,10 +639,10 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
     we may or may not have a valid pointer in our hands.  Fortunately,
     there is no need to extend the basic mechanisms of references to
     represent such situations: the sum types introduced in the
-    [MoreStlc](MoreStlc.html) chapter already give us what we need.
+    MoreStlc chapter already give us what we need.
 
     First, we can use sums to build an analog of the option types
-    introduced in the [Lists](Lists.html) chapter.  Define Option T to be an
+    introduced in the Lists chapter.  Define Option T to be an
     abbreviation for Unit + T.
 
     Then a "nullable reference to a T" is simply an element of the
@@ -660,7 +660,7 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     不再需要。相反，像许多现代语言一样（包括
 
-    ML和Java）我们依赖运行时系统执行*垃圾回收*，自动识别和重用可以
+    ML 和 Java）我们依赖运行时系统执行*垃圾回收*，自动识别和重用可以
 
     不再被程序访问。
 
@@ -731,7 +731,7 @@ tapp (tabs (Id "x") TUnit t[2]) t[1].
 
     它正在被使用，并返回索引（通常是 32 位或
 
-    64位整数）指向新分配区域的起始位置。 这些
+    64 位整数）指向新分配区域的起始位置。 这些
 
     索引是引用。
 
@@ -873,35 +873,35 @@ simpl. rewrite IHl...
 
     Qed.
 
-引理lookup_replace_eq：对于l、t和st，
+引理 lookup_replace_eq：对于 l、t 和 st，
 
-当l小于st的长度时 →
+当 l 小于 st 的长度时 →
 
 store_lookup l (replace l t st) = t.
 
     证明与自动化相关。
 
-引入l、t和st。
+引入 l、t 和 st。
 
-展开[store_lookup](References.html#STLCRef.store_lookup)。
+展开 store_lookup。
 
-推广l。
+推广 l。
 
-以st为基础进行归纳，当st为空或者为t' :: st'时，引入l和Hlen。
+以 st 为基础进行归纳，当 st 为空或者为 t' :: st'时，引入 l 和 Hlen。
 
 - (* st =  *) 
 
-对Hlen进行反演。
+对 Hlen 进行反演。
 
 - (* st = t' :: st' *)
 
-对l进行分析; 简化...
+对 l 进行分析; 简化...
 
-应用IHst'。在Hlen中简化。omega。
+应用 IHst'。在 Hlen 中简化。omega。
 
     证毕。
 
-引理lookup_replace_neq：对于l[1]、l[2]、t和st，
+引理 lookup_replace_neq：对于 l[1]、l[2]、t 和 st，
 
 l[1] ≠ l[2] →
 
@@ -909,29 +909,29 @@ store_lookup l[1] (replace l[2] t st) = store_lookup l[1] st.
 
     证明与自动化相关。
 
-展开[store_lookup](References.html#STLCRef.store_lookup)。
+展开 store_lookup。
 
-以l[1]为基础进行归纳，引入l[2]、t和st，Hneq表示不相等。
+以 l[1]为基础进行归纳，引入 l[2]、t 和 st，Hneq 表示不相等。
 
 - (* l[1] = 0 *)
 
-对st进行分析。
+对 st 进行分析。
 
-+ (* st =  *) 重写[replace_nil](References.html#STLCRef.replace_nil)...
++ (* st =  *) 重写 replace_nil...
 
-+ (* st = _ :: _ *) 对l[2]进行分析... 反驳Hneq...
++ (* st = _ :: _ *) 对 l[2]进行分析... 反驳 Hneq...
 
 - (* l[1] = S l[1]' *)
 
-对st进行分析，作为[t[2] st]的情况。
+对 st 进行分析，作为[t[2] st]的情况。
 
-+ (* st =  *) 对l[2]进行分析...
++ (* st =  *) 对 l[2]进行分析...
 
 + (* st = t[2] :: st[2] *)
 
-对l[2]进行分析...
+对 l[2]进行分析...
 
-简化；应用IHl1'...
+简化；应用 IHl1'...
 
     证毕。
 
@@ -1185,15 +1185,15 @@ store_lookup l[1] (replace l[2] t st) = store_lookup l[1] st.
 
 保留记号"t1 '/' st1 '⇒' t2 '/' st2"
 
-(在40级，st[1]在39级，t[2]在39级)。
+(在 40 级，st[1]在 39 级，t[2]在 39 级)。
 
-导入ListNotations。
+导入 ListNotations。
 
 步骤的归纳定义：tm * store → tm * store → Prop :=
 
 | ST_AppAbs : ∀x T t[12] v[2] st,
 
-值v[2] →
+值 v[2] →
 
 tapp (tabs x T t[12]) v[2] / st ⇒ [x:=v[2]]t[12] / st
 
@@ -1205,7 +1205,7 @@ tapp t[1] t[2] / st ⇒ tapp t[1]' t[2] / st'
 
 | ST_App2 : ∀v[1] t[2] t[2]' st st',
 
-值v[1] →
+值 v[1] →
 
 t[2] / st ⇒ t[2]' / st' →
 
@@ -1243,7 +1243,7 @@ tmult t[1] t[2] / st ⇒ tmult t[1]' t[2] / st'
 
 | ST_Mult2 : ∀v[1] t[2] t[2]' st st',
 
-值v[1] →
+值 v[1] →
 
 t[2] / st ⇒ t[2]' / st' →
 
@@ -1265,7 +1265,7 @@ tif0 (tnat (S n)) t[2] t[3] / st ⇒ t[3] / st
 
 | ST_RefValue : ∀v[1] st,
 
-值v[1] →
+值 v[1] →
 
 tref v[1] / st ⇒ tloc (length st) / (st ++ v[1]::nil)
 
@@ -1277,7 +1277,7 @@ tref t[1] /  st ⇒ tref t[1]' /  st'
 
 | ST_DerefLoc : ∀st l,
 
-当l小于st的长度时 →
+当 l 小于 st 的长度时 →
 
 tderef (tloc l) / st ⇒ store_lookup l st / st
 
@@ -1289,7 +1289,7 @@ tderef t[1] / st ⇒ tderef t[1]' / st'
 
 | ST_Assign : ∀v[2] l st,
 
-值v[2] →
+值 v[2] →
 
 l < length st →
 
@@ -1303,7 +1303,7 @@ tassign t[1] t[2] / st ⇒ tassign t[1]' t[2] / st'
 
 | ST_Assign2 : ∀v[1] t[2] t[2]' st st',
 
-值v[1] →
+值 v[1] →
 
 t[2] / st ⇒ t[2]' / st' →
 
@@ -1899,7 +1899,7 @@ intros l ST ST' Hlen H。
 
 - (* nil *) 反转 Hlen。
 
-- (* cons *) 在 * 中展开 [store_Tlookup](References.html#STLCRef.store_Tlookup)。
+- (* cons *) 在 * 中展开 store_Tlookup。
 
 拆分 ST'。
 
@@ -2028,7 +2028,7 @@ store_well_typed ST' st')。
 
     引理，以及关于上下文不变性的相同机制
 
-    我们在STLC的替换引理的证明中使用的
+    我们在 STLC 的替换引理的证明中使用的
 
 ```
 Inductive appears_free_in : id → tm → Prop :=
@@ -2086,7 +2086,7 @@ Lemma free_in_context : ∀x t T Γ ST,
   - (* afi_abs *)
     inversion H[1]; subst.
     apply IHappears_free_in in H[8].
-    rewrite [update_neq](Maps.html#update_neq) in H[8]; assumption.
+    rewrite update_neq in H[8]; assumption.
     Qed.
 
 Lemma context_invariance : ∀Γ Γ' ST t T,
@@ -2099,17 +2099,17 @@ Lemma context_invariance : ∀Γ Γ' ST t T,
   generalize dependent Γ'.
   induction H; intros...
   - (* T_Var *)
-    apply [T_Var](References.html#STLCRef.T_Var). symmetry. rewrite ← H...
+    apply T_Var. symmetry. rewrite ← H...
   - (* T_Abs *)
-    apply [T_Abs](References.html#STLCRef.T_Abs). apply IHhas_type; intros.
-    unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
-    destruct ([beq_idP](Maps.html#beq_idP) x x[0])...
+    apply T_Abs. apply IHhas_type; intros.
+    unfold update, t_update.
+    destruct (beq_idP x x[0])...
   - (* T_App *)
-    eapply [T_App](References.html#STLCRef.T_App).
+    eapply T_App.
       apply IHhas_type1...
       apply IHhas_type2...
   - (* T_Mult *)
-    eapply [T_Mult](References.html#STLCRef.T_Mult).
+    eapply T_Mult.
       apply IHhas_type1...
       apply IHhas_type2...
   - (* T_If[0] *)
@@ -2118,7 +2118,7 @@ Lemma context_invariance : ∀Γ Γ' ST t T,
       apply IHhas_type2...
       apply IHhas_type3...
   - (* T_Assign *)
-    eapply [T_Assign](References.html#STLCRef.T_Assign).
+    eapply T_Assign.
       apply IHhas_type1...
       apply IHhas_type2...
     Qed.
@@ -2135,33 +2135,33 @@ Lemma substitution_preserves_typing : ∀Γ ST x s S t T,
     inversion H; subst; simpl...
   - (* tvar *)
     rename i into y.
-    destruct ([beq_idP](Maps.html#beq_idP) x y).
+    destruct (beq_idP x y).
     + (* x = y *)
       subst.
-      rewrite [update_eq](Maps.html#update_eq) in H[3].
+      rewrite update_eq in H[3].
       inversion H[3]; subst.
-      eapply [context_invariance](References.html#STLCRef.context_invariance)...
+      eapply context_invariance...
       intros x Hcontra.
-      destruct ([free_in_context](References.html#STLCRef.free_in_context) _ _ _ _ _ Hcontra Hs)
+      destruct (free_in_context _ _ _ _ _ Hcontra Hs)
         as [T' HT'].
       inversion HT'.
     + (* x <> y *)
-      apply [T_Var](References.html#STLCRef.T_Var).
-      rewrite [update_neq](Maps.html#update_neq) in H[3]...
+      apply T_Var.
+      rewrite update_neq in H[3]...
   - (* tabs *) subst.
     rename i into y.
-    destruct ([beq_idP](Maps.html#beq_idP) x y).
+    destruct (beq_idP x y).
     + (* x = y *)
       subst.
-      apply [T_Abs](References.html#STLCRef.T_Abs). eapply [context_invariance](References.html#STLCRef.context_invariance)...
-      intros. rewrite [update_shadow](Maps.html#update_shadow). reflexivity.
+      apply T_Abs. eapply context_invariance...
+      intros. rewrite update_shadow. reflexivity.
     + (* x <> x[0] *)
-      apply [T_Abs](References.html#STLCRef.T_Abs). apply IHt.
-      eapply [context_invariance](References.html#STLCRef.context_invariance)...
-      intros. unfold [update](Maps.html#update), [t_update](Maps.html#t_update).
-      destruct ([beq_idP](Maps.html#beq_idP) y x[0])...
+      apply T_Abs. apply IHt.
+      eapply context_invariance...
+      intros. unfold update, t_update.
+      destruct (beq_idP y x[0])...
       subst.
-      rewrite [false_beq_id](Maps.html#false_beq_id)...
+      rewrite false_beq_id...
     Qed.
 
 ```
@@ -2172,7 +2172,7 @@ Lemma substitution_preserves_typing : ∀Γ ST x s S t T,
 
     用适当类型的新值替换存储器中的内容不会改变
 
-    存储的整体类型。（这对于ST_Assign是必要的
+    存储的整体类型。（这对于 ST_Assign 是必要的
 
     规则。）
 
@@ -2186,16 +2186,16 @@ Lemma assign_pres_store_typing : ∀ST st l t,
     Proof with auto.
   intros ST st l t Hlen HST Ht.
   inversion HST; subst.
-  split. rewrite [length_replace](References.html#STLCRef.length_replace)...
+  split. rewrite length_replace...
   intros l' Hl'.
   destruct ([beq_nat](http://coq.inria.fr/library/Coq.Arith.EqNat.html#beq_nat) l' l) eqn: Heqll'.
   - (* l' = l *)
     apply [beq_nat_true](http://coq.inria.fr/library/Coq.Arith.EqNat.html#beq_nat_true) in Heqll'; subst.
-    rewrite [lookup_replace_eq](References.html#STLCRef.lookup_replace_eq)...
+    rewrite lookup_replace_eq...
   - (* l' <> l *)
     apply [beq_nat_false](http://coq.inria.fr/library/Coq.Arith.EqNat.html#beq_nat_false) in Heqll'.
-    rewrite [lookup_replace_neq](References.html#STLCRef.lookup_replace_neq)...
-    rewrite [length_replace](References.html#STLCRef.length_replace) in Hl'.
+    rewrite lookup_replace_neq...
+    rewrite length_replace in Hl'.
     apply H[0]...
     Qed.
 
@@ -2211,7 +2211,7 @@ Lemma assign_pres_store_typing : ∀ST st l t,
 
     原始的。
 
-    （该引理称为store_weakening，因为它类似于
+    （该引理称为 store_weakening，因为它类似于
 
     在证明理论中找到的“弱化”引理，显示添加一个
 
@@ -2228,20 +2228,20 @@ Lemma store_weakening : ∀Γ ST ST' t T,
     Proof with eauto.
   intros. induction H[0]; eauto.
   - (* T_Loc *)
-    erewrite ← [extends_lookup](References.html#STLCRef.extends_lookup)...
-    apply [T_Loc](References.html#STLCRef.T_Loc).
-    eapply [length_extends](References.html#STLCRef.length_extends)...
+    erewrite ← extends_lookup...
+    apply T_Loc.
+    eapply length_extends...
     Qed.
 
 ```
 
-    我们可以使用store_weakening引理证明，如果一个存储器是
+    我们可以使用 store_weakening 引理证明，如果一个存储器是
 
     关于存储类型的类型化，然后扩展存储
 
-    用一个新术语t扩展后，仍然会根据
+    用一个新术语 t 扩展后，仍然会根据
 
-    存储类型扩展为t的类型。
+    存储类型扩展为 t 的类型。
 
 ```
 Lemma store_well_typed_app : ∀ST st t[1] T[1],
@@ -2251,19 +2251,19 @@ Lemma store_well_typed_app : ∀ST st t[1] T[1],
 
     Proof with auto.
   intros.
-  unfold [store_well_typed](References.html#STLCRef.store_well_typed) in *.
+  unfold store_well_typed in *.
   inversion H as [Hlen Hmatch]; clear H.
   rewrite [app_length](http://coq.inria.fr/library/Coq.Lists.List.html#app_length), [plus_comm](http://coq.inria.fr/library/Coq.Arith.Plus.html#plus_comm). simpl.
   rewrite [app_length](http://coq.inria.fr/library/Coq.Lists.List.html#app_length), [plus_comm](http://coq.inria.fr/library/Coq.Arith.Plus.html#plus_comm). simpl.
   split...
   - (* types match. *)
     intros l Hl.
-    unfold [store_lookup](References.html#STLCRef.store_lookup), [store_Tlookup](References.html#STLCRef.store_Tlookup).
+    unfold store_lookup, store_Tlookup.
     apply [le_lt_eq_dec](http://coq.inria.fr/library/Coq.Arith.Compare_dec.html#le_lt_eq_dec) in Hl; inversion Hl as [Hlt | Heq].
     + (* l < length st *)
       apply [lt_S_n](http://coq.inria.fr/library/Coq.Arith.Lt.html#lt_S_n) in Hlt.
       rewrite ![app_nth1](http://coq.inria.fr/library/Coq.Lists.List.html#app_nth1)...
-      * apply [store_weakening](References.html#STLCRef.store_weakening) with ST. apply [extends_app](References.html#STLCRef.extends_app).
+      * apply store_weakening with ST. apply extends_app.
         apply Hmatch...
       * rewrite Hlen...
     + (* l = length st *)
@@ -2271,8 +2271,8 @@ Lemma store_well_typed_app : ∀ST st t[1] T[1],
       rewrite [app_nth2](http://coq.inria.fr/library/Coq.Lists.List.html#app_nth2); try omega.
       rewrite ← Hlen.
       rewrite [minus_diag](http://coq.inria.fr/library/Coq.Arith.Minus.html#minus_diag). simpl.
-      apply [store_weakening](References.html#STLCRef.store_weakening) with ST...
-      { apply [extends_app](References.html#STLCRef.extends_app). }
+      apply store_weakening with ST...
+      { apply extends_app. }
         rewrite [app_nth2](http://coq.inria.fr/library/Coq.Lists.List.html#app_nth2); try omega.
       rewrite [minus_diag](http://coq.inria.fr/library/Coq.Arith.Minus.html#minus_diag). simpl. trivial.
     Qed.
@@ -2309,17 +2309,17 @@ Theorem preservation : ∀ST t t' T st st',
      empty; ST' ⊢ t' ∈ T ∧
      store_well_typed ST' st').
 
-    Proof with eauto using [store_weakening](References.html#STLCRef.store_weakening), [extends_refl](References.html#STLCRef.extends_refl).
-  remember (@[empty](Maps.html#empty) [ty](References.html#STLCRef.ty)) as Γ.
+    Proof with eauto using store_weakening, extends_refl.
+  remember (@empty ty) as Γ.
   intros ST t t' T st st' Ht.
   generalize dependent t'.
   induction Ht; intros t' HST Hstep;
     subst; try solve_by_invert; inversion Hstep; subst;
-    try (eauto using [store_weakening](References.html#STLCRef.store_weakening), [extends_refl](References.html#STLCRef.extends_refl)).
+    try (eauto using store_weakening, extends_refl).
   (* T_App *)
   - (* ST_AppAbs *) ∃ST.
     inversion Ht[1]; subst.
-    split; try split... eapply [substitution_preserves_typing](References.html#STLCRef.substitution_preserves_typing)...
+    split; try split... eapply substitution_preserves_typing...
   - (* ST_App1 *)
     eapply IHHt1 in H[0]...
     inversion H[0] as [ST' [Hext [Hty Hsty]]].
@@ -2357,15 +2357,15 @@ Theorem preservation : ∀ST t t' T st st',
     ∃(ST ++ T[1]::[nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)).
     inversion HST; subst.
     split.
-      apply [extends_app](References.html#STLCRef.extends_app).
+      apply extends_app.
     split.
-      replace ([TRef](References.html#STLCRef.TRef) T[1])
-        with ([TRef](References.html#STLCRef.TRef) ([store_Tlookup](References.html#STLCRef.store_Tlookup) ([length](http://coq.inria.fr/library/Coq.Init.Datatypes.html#length) st) (ST ++ T[1]::[nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)))).
-      apply [T_Loc](References.html#STLCRef.T_Loc).
+      replace (TRef T[1])
+        with (TRef (store_Tlookup ([length](http://coq.inria.fr/library/Coq.Init.Datatypes.html#length) st) (ST ++ T[1]::[nil](http://coq.inria.fr/library/Coq.Init.Datatypes.html#nil)))).
+      apply T_Loc.
       rewrite ← H. rewrite [app_length](http://coq.inria.fr/library/Coq.Lists.List.html#app_length), [plus_comm](http://coq.inria.fr/library/Coq.Arith.Plus.html#plus_comm). simpl. omega.
-      unfold [store_Tlookup](References.html#STLCRef.store_Tlookup). rewrite ← H. rewrite [nth_eq_last](References.html#STLCRef.nth_eq_last).
+      unfold store_Tlookup. rewrite ← H. rewrite nth_eq_last.
       reflexivity.
-      apply [store_well_typed_app](References.html#STLCRef.store_well_typed_app); assumption.
+      apply store_well_typed_app; assumption.
   - (* ST_Ref *)
     eapply IHHt in H[0]...
     inversion H[0] as [ST' [Hext [Hty Hsty]]].
@@ -2374,7 +2374,7 @@ Theorem preservation : ∀ST t t' T st st',
   - (* ST_DerefLoc *)
     ∃ST. split; try split...
     inversion HST as [_ Hsty].
-    replace T[11] with ([store_Tlookup](References.html#STLCRef.store_Tlookup) l ST).
+    replace T[11] with (store_Tlookup l ST).
     apply Hsty...
     inversion Ht; subst...
   - (* ST_Deref *)
@@ -2384,7 +2384,7 @@ Theorem preservation : ∀ST t t' T st st',
   (* T_Assign *)
   - (* ST_Assign *)
     ∃ST. split; try split...
-    eapply [assign_pres_store_typing](References.html#STLCRef.assign_pres_store_typing)...
+    eapply assign_pres_store_typing...
     inversion Ht[1]; subst...
   - (* ST_Assign1 *)
     eapply IHHt1 in H[0]...
@@ -2398,11 +2398,11 @@ Theorem preservation : ∀ST t t' T st st',
 
 ```
 
-#### 练习：3星（保留非正式）
+#### 练习：3 星（保留非正式）
 
     仔细写出保留定理的非正式证明，
 
-    集中在T_App、T_Deref、T_Assign和T_Ref
+    集中在 T_App、T_Deref、T_Assign 和 T_Ref
 
     情况。
 
@@ -2426,13 +2426,13 @@ Theorem preservation : ∀ST t t' T st st',
 
 存储类型良好 ST st →
 
-（值t ∨ ∃t'，∃st'，t / st ⇒ t' / st'）。
+（值 t ∨ ∃t'，∃st'，t / st ⇒ t' / st'）。
 
     Proof with eauto.
 
-intros ST t T st Ht HST. remember (@[empty](Maps.html#empty) [ty](References.html#STLCRef.ty)) as Γ。
+intros ST t T st Ht HST. remember (@empty ty) as Γ。
 
-归纳Ht; subst; try solve_by_invert...
+归纳 Ht; subst; try solve_by_invert...
 
 - (* T_App *)
 
@@ -2448,13 +2448,13 @@ destruct IHHt2 as [Ht2p | Ht2p]...
 
 inversion Ht2p as [t[2]' [st' Hstep]]。
 
-∃([tapp](References.html#STLCRef.tapp) ([tabs](References.html#STLCRef.tabs) x T t) t[2]'). ∃st'...
+∃(tapp (tabs x T t) t[2]'). ∃st'...
 
 + (* t[1] 步骤 *)
 
 inversion Ht1p as [t[1]' [st' Hstep]]。
 
-∃([tapp](References.html#STLCRef.tapp) t[1]' t[2]). ∃st'...
+∃(tapp t[1]' t[2]). ∃st'...
 
 - (* T_Succ *)
 
@@ -2464,15 +2464,15 @@ right. destruct IHHt as [Ht1p | Ht1p]...
 
 inversion Ht1p; subst; try solve [ inversion Ht ]。
 
-* (* t[1] 是一个tnat *)
+* (* t[1] 是一个 tnat *)
 
-∃([tnat](References.html#STLCRef.tnat) ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n)). ∃st...
+∃(tnat ([S](http://coq.inria.fr/library/Coq.Init.Datatypes.html#S) n)). ∃st...
 
 + (* t[1] 步骤 *)
 
 inversion Ht1p as [t[1]' [st' Hstep]]。
 
-∃([tsucc](References.html#STLCRef.tsucc) t[1]'). ∃st'...
+∃(tsucc t[1]'). ∃st'...
 
 - (* T_Pred *)
 
@@ -2482,15 +2482,15 @@ right. destruct IHHt as [Ht1p | Ht1p]...
 
 inversion Ht1p; subst; try solve [inversion Ht ]。
 
-* (* t[1] 是一个tnat *)
+* (* t[1] 是一个 tnat *)
 
-∃([tnat](References.html#STLCRef.tnat) ([pred](http://coq.inria.fr/library/Coq.Init.Peano.html#pred) n)). ∃st...
+∃(tnat ([pred](http://coq.inria.fr/library/Coq.Init.Peano.html#pred) n)). ∃st...
 
 + (* t[1] 步骤 *)
 
 inversion Ht1p as [t[1]' [st' Hstep]]。
 
-∃([tpred](References.html#STLCRef.tpred) t[1]'). ∃st'...
+∃(tpred t[1]'). ∃st'...
 
 - (* T_Mult *)
 
@@ -2606,7 +2606,7 @@ right. 分解 IHHt1 为 [Ht1p|Ht1p]...
 
 # References and Nontermination
 
-    An important fact about the STLC (proved in chapter [Norm](Norm.html)) is
+    An important fact about the STLC (proved in chapter Norm) is
     that it is is *normalizing* — that is, every well-typed term can
     be reduced to a value in a finite number of steps.
 
@@ -2693,19 +2693,19 @@ tapp
 
 应用 [T_App](https://example.org/STLCRef.RefsAndNontermination.T_App)...
 
-eapply [T_Abs](References.html#STLCRef.RefsAndNontermination.T_Abs). eapply [T_App](References.html#STLCRef.RefsAndNontermination.T_App). eapply [T_Deref](References.html#STLCRef.RefsAndNonTermination.T_Deref). eapply [T_Var](References.html#STLCRef.RefsAndNonTermination.T_Var).
+eapply T_Abs. eapply T_App. eapply T_Deref. eapply T_Var.
 
-展开 [update](Maps.html#update), [t_update](Maps.html#t_update). 简化。反射性。自动。
+展开 update, t_update. 简化。反射性。自动。
 
-eapply [T_Assign](References.html#STLCRef.RefsAndNontermination.T_Assign).
+eapply T_Assign.
 
-eapply [T_Var](References.html#STLCRef.RefsAndNontermination.T_Var). 展开 [update](Maps.html#update), [t_update](Maps.html#t_update). 简化。反射性。
+eapply T_Var. 展开 update, t_update. 简化。反射性。
 
-eapply [T_Abs](References.html#STLCRef.RefsAndNontermination.T_Abs).
+eapply T_Abs.
 
-eapply [T_App](References.html#STLCRef.RefsAndNontermination.T_App)...
+eapply T_App...
 
-eapply [T_Deref](References.html#STLCRef.RefsAndNonTermination.T_Deref). eapply [T_Var](References.html#STLCRef.RefsAndNonTermination.T_Var). 反射性。
+eapply T_Deref. eapply T_Var. 反射性。
 
     完成。
 
@@ -2803,11 +2803,11 @@ tapp (tderef (tloc 0)) tunit / cons ([r:=tloc 0]loop_fun) nil。
 
     证明与 eauto。
 
-展开 [loop_fun](References.html#STLCRef.RefsAndNontermination.loop_fun); 简化。
+展开 loop_fun; 简化。
 
-eapply [sc_step](References.html#STLCRef.RefsAndNontermination.sc_step). apply [ST_App1](References.html#STLCRef.RefsAndNontermination.ST_App1)...
+eapply sc_step. apply ST_App1...
 
-eapply [sc_one](References.html#STLCRef.RefsAndNontermination.sc_one). compute. apply [ST_AppAbs](References.html#STLCRef.RefsAndNontermination.ST_AppAbs)...
+eapply sc_one. compute. apply ST_AppAbs...
 
     完成。
 
@@ -2851,7 +2851,7 @@ eapply [sc_one](References.html#STLCRef.RefsAndNontermination.sc_one). compute. 
 
 # 附加练习
 
-#### 练习：5星，可选（垃圾回收器）
+#### 练习：5 星，可选（垃圾回收器）
 
     挑战问题：修改我们的形式化以包括一个账户
 

@@ -2,7 +2,7 @@
 
 # 分析
 
-+   [物联网分析Top 20 IoT公司](http://iot-analytics.com/top-20-iot-companies-q2-2015/)
++   [物联网分析 Top 20 IoT 公司](http://iot-analytics.com/top-20-iot-companies-q2-2015/)
 
 # 在线培训
 
@@ -10,13 +10,13 @@
 
 # Coursera，物联网和嵌入式系统简介
 
-> “物联网”的爆炸式增长正在改变我们的世界，Typical IoT组件价格的快速下降使人们可以在家中创新设计和产品。在这个专业的第一堂课中，您将了解物联网在社会中的重要性，Typical IoT设备的当前组件以及未来的趋势。还将涵盖物联网设计考虑因素、约束和物理世界与您的设备之间的接口。您还将学习如何在硬件和软件之间做出设计权衡。我们还将介绍网络的关键组成部分，以确保学生了解如何将其设备连接到互联网。[物联网和嵌入式系统简介](https://www.coursera.org/learn/iot/home/welcome)
+> “物联网”的爆炸式增长正在改变我们的世界，Typical IoT 组件价格的快速下降使人们可以在家中创新设计和产品。在这个专业的第一堂课中，您将了解物联网在社会中的重要性，Typical IoT 设备的当前组件以及未来的趋势。还将涵盖物联网设计考虑因素、约束和物理世界与您的设备之间的接口。您还将学习如何在硬件和软件之间做出设计权衡。我们还将介绍网络的关键组成部分，以确保学生了解如何将其设备连接到互联网。[物联网和嵌入式系统简介](https://www.coursera.org/learn/iot/home/welcome)
 
 [物联网](https://theiotlearninginitiative.gitbooks.io/internetofthings101/content/documentation/InternetOfThings.html)部分
 
 **指导** 完成所有“物联网和嵌入式系统简介”
 
-+   模块1 什么是物联网（IoT）？
++   模块 1 什么是物联网（IoT）？
 
     +   第一课：物联网（IoT）定义
 
@@ -24,7 +24,7 @@
 
     +   第三课：物联网（IoT）在社会中的重要性
 
-+   模块2 嵌入式系统
++   模块 2 嵌入式系统
 
     +   第一课：嵌入式系统的特性和约束
 
@@ -32,7 +32,7 @@
 
     +   第三课：与物理世界互动
 
-+   模块3 硬件和软件
++   模块 3 硬件和软件
 
     +   第一课：硬件组件
 
@@ -40,13 +40,13 @@
 
     +   第三课：操作系统
 
-+   模块4 网络和互联网
++   模块 4 网络和互联网
 
     +   第一课：网络基础知识
 
-    +   第二课：Internet协议
+    +   第二课：Internet 协议
 
-    +   第三课：网络层和MANETS
+    +   第三课：网络层和 MANETS
 
 # 挑战
 
@@ -60,13 +60,13 @@
 
 1.  数据报告，系统通信协议，RESTFul API
 
-1.  数据报告，云计算服务，freeboard.io和dweet.io
+1.  数据报告，云计算服务，freeboard.io 和 dweet.io
 
 1.  数据报告，云计算服务，adafruit.io
 
-1.  数据报告，云计算平台，IBM Watson IoT平台
+1.  数据报告，云计算平台，IBM Watson IoT 平台
 
-1.  物理传感器（Seeed Studio Grove套件）
+1.  物理传感器（Seeed Studio Grove 套件）
 
 1.  软件版本控制系统推送代码
 
@@ -182,7 +182,7 @@ def functionDataSensorMqttPublish():
 
 记住 UPM 库为您提供了 Python 绑定，以便轻松使用您的 Grove 传感器
 
-+   [https://github.com/intel-iot-devkit/upm/tree/master/examples/python](https://github.com/intel-iot-devkit/upm/tree/master/examples/python)
++   [`github.com/intel-iot-devkit/upm/tree/master/examples/python`](https://github.com/intel-iot-devkit/upm/tree/master/examples/python)
 
 +   [传感器 Grove 光线](https://github.com/intel-iot-devkit/upm/blob/master/examples/python/grovelight.py)
 

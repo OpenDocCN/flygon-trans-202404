@@ -452,7 +452,7 @@ Just (Params []) `mappend` Just (Params [])
 
 我们有一个`Monoid`实例：
 
-+   有一个糟糕的API
++   有一个糟糕的 API
 
 +   使用了一个不靠谱的语言扩展
 
@@ -466,13 +466,13 @@ Just (Params []) `mappend` Just (Params [])
 data Payload a = NoPayload | Raw ContentType String | Params [Param] | FormData [Part] deriving (Show)
 ```
 
-类型变量`a`*不出现在RHS中*。
+类型变量`a`*不出现在 RHS 中*。
 
 我们称之为*幻影类型*。
 
 它是用来做什么的？
 
-## 一个小型的上传API
+## 一个小型的上传 API
 
 ```
 param :: String -> String -> Payload [Param] param name value = Params [(name, value)]
@@ -518,7 +518,7 @@ curl -L http://cs240h.scs.stanford.edu/PayloadPhantom.hs
 
 ## 让这一切都起作用
 
-我们为创建`Payload`值有一个受限的公共API。
+我们为创建`Payload`值有一个受限的公共 API。
 
 ```
 param :: String -> String -> Payload [Param] filePart :: String -> FilePath -> IO (Payload [Part]) fileString :: String -> Maybe FilePath -> String -> (Payload [Part])
@@ -600,13 +600,13 @@ data Payload a = NoPayload | Raw ContentType String | Params [Param] | FormData 
 
 +   客户容易使用
 
-+   强迫你早期解决API设计问题
++   强迫你早期解决 API 设计问题
 
 ## 没有单位的幺半群
 
 喜欢抽象代数的方法吗？
 
-Hackage上的一个名为`semigroups`的包为我们提供了没有单位操作的幺半群：半群。
+Hackage 上的一个名为`semigroups`的包为我们提供了没有单位操作的幺半群：半群。
 
 唉：
 
@@ -622,13 +622,13 @@ Hackage上的一个名为`semigroups`的包为我们提供了没有单位操作�
 
 幺半群帮助我们专注于简单性。
 
-幻影类型使得构建API更容易，编译器可以防止绝对错误的行为。
+幻影类型使得构建 API 更容易，编译器可以防止绝对错误的行为。
 
 ## 可变变量
 
 我们已经看到了非常方便的`MVar`类型，它表示一个“阻塞可变盒子”：我们可以放入一个值或取出一个值，但如果放入时已满或取出时为空，我们将被阻塞。
 
-尽管`MVar`是行业中最快的阻塞并发结构（它在不到十二秒的时间内完成了Kessel跑道！），但我们并不总是希望阻塞语义。
+尽管`MVar`是行业中最快的阻塞并发结构（它在不到十二秒的时间内完成了 Kessel 跑道！），但我们并不总是希望阻塞语义。
 
 对于需要*非*阻塞更新的情况，有`IORef`类型，它提供了可变引用。
 
@@ -718,6 +718,6 @@ module Ref ( Ref, -- export type ctor, but not value ctor newRef, readOnly, read
 
 +   [使用单子进行数据分析](http://twdkz.wordpress.com/2013/05/31/data-analysis-with-monoids/)
 
-用于MapReduce的单子：
+用于 MapReduce 的单子：
 
-+   [Google的MapReduce编程模型---再探](http://userpages.uni-koblenz.de/~laemmel/MapReduce/paper.pdf)
++   [Google 的 MapReduce 编程模型---再探](http://userpages.uni-koblenz.de/~laemmel/MapReduce/paper.pdf)

@@ -4,7 +4,7 @@
 
 "`go get`"命令是下载和安装包及其相关依赖项的标准方式，让我们通过一个示例来查看它的细节：
 
-(1) 在github中创建一个[playstack](https://github.com/NanXiao/playstack)仓库；
+(1) 在 github 中创建一个[playstack](https://github.com/NanXiao/playstack)仓库；
 
 (2) 在`playstack`文件夹中有一个`LICENSE`文件和一个`play`目录；
 
