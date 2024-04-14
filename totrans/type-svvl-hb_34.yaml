@@ -1,0 +1,259 @@
+- en: オブジェクトを浅くコピーする
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://typescriptbook.jp/tips/shallow-copy-object](https://typescriptbook.jp/tips/shallow-copy-object)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: オブジェクトとは色々なキーとプロパティの組み合わせをひとつのモノとして扱うことができます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: オブジェクトを扱っているとき、そのインスタンスに対する比較や代入は他の言語と同じように参照の比較、代入です。その参照をほかのどこかで持たれているとそこで書き換えられる可能性があります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: インスタンスを安易に上書きすると起こる弊害[​](#インスタンスを安易に上書きすると起こる弊害 "インスタンスを安易に上書きすると起こる弊害 への直接リンク")
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: たとえば生活習慣病に関するサービスを作るとします。そのサービスでは一日の食事を入力するとその食事から熱量 (カロリー) が計算され、さらに将来的に生活習慣病
+    (少々異なりますがMetabolic Syndromeとします) になるかどうか判定できるとします。
+  prefs: []
+  type: TYPE_NORMAL
+- en: ここで一日の食事を意味するオブジェクトの型として`MealsPerDay`を定義し、一日に摂取した食事の熱量からいずれ生活習慣病になるかどうか判定する関数`willBeMetabo()`を定義すれば次のようになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 使い方としては次のようになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: ですが、これだけだと食べ物ではないもの、たとえばネジなどの不正な入力があったときにサービスが予想しない反応をしかねません。そこで入力されているものが本当に食事かどうかをバリデーションする関数として`isMeals()`を定義します。この関数は食事ではないものが与えられると例外を投げます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isMeals()`の構造は単純です。朝食、昼食、夕食をそれぞれそれが食事であるかどうかを判定するだけです。ひとつの食事が食事であるかを判定する関数`isMeal()`があるとすれば内部でそれを呼ぶだけです。`isMeal()`の実装については今回は重要ではないため省略します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 今回のユースケースでは`isMeals()`でバリデーションを行ったあとその食事を`willBeMetabo()`で判定します。食べられないものが与られたときは例外を捕捉して対応できればよいので大まかにはこのような形になるでしょう。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: ここで`isMeals()`の制作者あるいは維持者が何を思ってか`isMeals()`に自分の好きなコッテコテギトギトの食事を、もとのインスタンスを上書きするようにプログラムを書いたとします。この変更によって前述のとても健康的で500
+    kcalにも満たない食事をしているはずのユーザーが`isMeals()`を19,800 kcalものカロリー爆弾を摂取していることになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`isMeals()`を呼んでしまったらもうどのような食事が与えられても`willBeMetabo()`は誰もが生活習慣病に一直線であると判別されることになります。変数`meals`の変更は`isMeals()`内に留まらず、外側にも影響を与えます。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 今回の問題[​](#今回の問題 "今回の問題 への直接リンク")
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 今回の例は`isMeals()`が悪さをしました。この関数が自分たちで作ったものであればすぐに原因を見つけることができるでしょう。このような問題のある関数を書かないようにすることはもちろん大事なことですが、未熟なチームメイトがいればこのような関数を書くかもしれません。人類が過ちを犯さない前提よりも過ちを犯すことがないようにする設計の方が大事です。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isMeals()`が外部から持ってきたパッケージだとすると問題です。自分たちでこのパッケージに手を加えることは容易ではないため (できなくはありません)
+    。制作者にプルリクエストを出してバグフィックスが行われるまで開発を止めるというのも現実的ではありません。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: どうすればよかったのか[​](#どうすればよかったのか "どうすればよかったのか への直接リンク")
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: そもそもインスタンスを書き換えられないようにしてしまうか、元のインスタンスが破壊されないようにスケープゴートのインスタンスを用意するのが一般的です。前者はバリューオブジェクトと呼ばれるものが代表します。ここで紹介するのは後者のスケープゴート、つまりコピーを用意する方法です。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 浅いコピー (shallow copy) とは[​](#浅いコピー-shallow-copy-とは "浅いコピー (shallow copy) とは への直接リンク")
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 題名にもあるとおり**浅い**とは何を指しているのでしょうか？それはオブジェクトのコピーをするにあたりオブジェクトがいかに深い構造になっていても (ネストしていても)
+    第一階層のみをコピーすることに由来します。当然対義語は深いコピー (deep copy) です。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 浅いコピーをしたオブジェクトは等しくない[​](#浅いコピーをしたオブジェクトは等しくない "浅いコピーをしたオブジェクトは等しくない への直接リンク")
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 浅いコピーをする関数を`shallowCopy()`とします。実装は難しくありませんが今回は挙動についてのみ触れたいため言及は後にします。浅いコピーをしたオブジェクトとそのオリジナルは`===`で比較すると`false`を返します。これはコピーの原義から当然の挙動であり、もし`true`を返すようであればそれはコピーに失敗していることになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 次の例は先ほどのインスタンスの上書きを浅いコピーをすることにより防いでいる例です。`meals`のインスタンスは変化せず`isMeals()`に引数として与えた`scapegoat`だけが変更されます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 浅いコピーで防ぎきれない場合[​](#浅いコピーで防ぎきれない場合 "浅いコピーで防ぎきれない場合 への直接リンク")
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 先ほども述べたように浅いコピーはオブジェクトの第一階層のみをコピーします。そのためもしオブジェクトが深い、複雑な階層を持っている場合、それらをすべてコピーしているのではなく、第二階層以降は単なる参照になります。次の例は浅いコピーのプロパティにオブジェクトがある場合、それがコピーではなく参照になっていることを示しています。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 完全なコピーを作りたい場合は浅いコピーと一緒に出てきた深いコピーを使います。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 深いコピーについて今回は深く触れません。浅いコピーに比べ深いコピーはコピーに時間がかかり、さらに参照ではなく実体をコピーするため、記憶領域を同じ量確保しなければなりません。何でもかんでも深いコピーをするとあっという間に時間的、空間的な領域を浪費します。浅いコピーでこと足りる場合は浅いコピーを使用する方がよいでしょう。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 浅いコピーを実装する[​](#浅いコピーを実装する "浅いコピーを実装する への直接リンク")
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 浅いコピーの実装は昨今のJSでは大変楽になっており、次のコードで完成です。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: もちろん変数`sample`はオブジェクトである必要があります。この`...`はスプレッド構文です。スプレッド構文については関数の章を参照ください。
+  prefs: []
+  type: TYPE_NORMAL
+- en: オブジェクトのコピーにスプレッド構文を使えるようになったのはES2018からです。たとえば次のような浅いコピーの例を
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: ES2018でコンパイルすると次のようになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: ほぼ同じですがES2017でコンパイルすると次のようになります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: となります。スプレッド構文が実装される前はこの`Object.assign()`を使っていました。このふたつはまったく同じものではありませんが`Object.assign({},
+    obj)`を`{...obj}`のほぼ代替として使うことができます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: コピー用のAPIを使う[​](#コピー用のapiを使う "コピー用のAPIを使う への直接リンク")
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: JavaScriptではオブジェクトによって、浅いコピーを簡潔に書くためのAPIが提供されているものがあります。`Map`や`Set`はそれが利用できます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Map<K, V>`のコピー[​](#mapk-vのコピー "mapk-vのコピー への直接リンク")'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`Map`をコピーする場合は、`Map`コンストラクタにコピーしたい`Map`オブジェクトを渡します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[## 📄️ Map<K, V>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MapはJavaScriptの組み込みAPIのひとつで、キーと値のペアを取り扱うためのオブジェクトです。Mapにはひとつのキーについてはひとつの値のみを格納できます。](/reference/builtin-api/map)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Set<T>`のコピー[​](#settのコピー "settのコピー への直接リンク")'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`Set`をコピーする場合は、`Set`コンストラクタにコピーしたい`Set`オブジェクトを渡します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[## 📄️ Set<T>'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SetはJavaScriptの組み込みAPIのひとつで、値のコレクションを扱うためのオブジェクトです。Setには重複する値が格納できません。Setに格納された値は一意(unique)になります。](/reference/builtin-api/set)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Array<T>`のコピー[​](#arraytのコピー "arraytのコピー への直接リンク")'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 配列をコピーする方法はいくつかありますが、もっとも簡単なのは配列のスプレッド構文を用いたものです。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: このときスプレッド構文`...`を書き忘れると配列の配列`T[][]`型ができあがるので気をつけてください。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 関連情報[​](#関連情報 "関連情報 への直接リンク")
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[## 📄️ 配列のスプレッド構文「...」'
+  prefs: []
+  type: TYPE_NORMAL
+- en: JavaScript の配列ではスプレッド構文「...」を使うことで、要素を展開することができます。](/reference/values-types-variables/array/spread-syntax-for-array)
+  prefs: []
+  type: TYPE_NORMAL

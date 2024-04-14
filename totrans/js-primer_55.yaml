@@ -1,0 +1,267 @@
+- en: Todoアプリのリファクタリング
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://jsprimer.net/use-case/todoapp/final/](https://jsprimer.net/use-case/todoapp/final/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 前のセクションで、予定していたTodoアプリの機能はすべて実装できました。 しかし、`App.js`を見てみるとほとんどがHTML要素の処理になっています。
+    このようなHTML要素の作成処理は表示する内容が増えるほど、コードの行数が線形的に増えていきます。 このままTodoアプリを拡張していくと`App.js`が肥大化してコードが読みにくくなり、メンテナンス性が低下してしまいます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: ここで、`App.js`の役割を振り返ってみましょう。 `App`というクラスを持ち、このクラスではModelの初期化やHTML要素とModel間で発生するイベントを中継する役割を持っています。
+    表示から発生したイベントをModelに伝え、Modelから発生した変更イベントを表示に伝えている管理者と言えます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: このセクションでは`App`クラスをイベントの管理者という役割に集中させるため、`App`クラスに書かれているHTML要素を作成する処理を別のクラスへ切り出すリファクタリングを行います。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#component)*Viewコンポーネント*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*`App`クラスの大部分を占めているのは`TodoItemModel`の配列に対応するTodoリストのHTML要素を作成する処理です。 このような表示のための処理を部品ごとのモジュールに分け、`App`クラスから作成したモジュールを使うような形にリファクタリングしていきます。
+    ここでは、表示のための処理を扱うクラスをViewコンポーネントと呼び、ここでは`View`をファイル名の末尾につけることで区別します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Todoリストの表示は次の2つの部品（Viewコンポーネント）から成り立っています。
+  prefs: []
+  type: TYPE_NORMAL
+- en: TodoアイテムViewコンポーネント
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TodoアイテムをリストとしてまとめたTodoリストViewコンポーネント
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: この部品に対応するように次のViewのモジュールを作成していきます。 これらのViewのモジュールは、`src/view/`ディレクトリに作成していきます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TodoItemView`: TodoアイテムViewコンポーネント'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TodoListView`: TodoリストViewコンポーネント'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](#TodoItemView)*TodoItemViewを作成する*'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*まずは、Todoアイテムに対応する`TodoItemView`から作成しています。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`src/view/TodoItemView.js`ファイルを作成して、次のような`TodoItemView`クラスを`export`します。 この`TodoItemView`は、Todoアイテムに対応するHTML要素を返す`createElement`メソッドを持ちます。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: src/view/TodoItemView.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: TodoItemViewの`createElement`メソッドの中身は`App`クラスでのHTML要素を作成する部分を元にしています。 `createElement`メソッドは、`TodoItemModel`のインスタンスだけではなく`onUpdateTodo`と`onDeleteTodo`というリスナー関数を受け取っています。
+    この受け取ったリスナー関数はそれぞれ対応するイベントがViewで発生した際に呼び出されます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: このように引数としてリスナー関数を外から受け取ることで、イベントが発生したときの具体的な処理はViewクラスの外側に定義できます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: たとえば、この`TodoItemView`クラスは次のように利用できます。 `TodoItemModel`のインスタンスとイベントリスナーのオブジェクトを受け取り、TodoアイテムのHTML要素を返します。
+  prefs: []
+  type: TYPE_NORMAL
+- en: TodoItemViewを利用するサンプルコード
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[](#TodoListView)*TodoListViewを作成する*'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*次はTodoリストに対応する`TodoListView`を作成します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`src/view/TodoListView.js`ファイルを作成し、次のような`TodoListView`クラスを`export`します。 この`TodoListView`は`TodoItemModel`の配列からTodoリストのHTML要素を作成して返す`createElement`メソッドを持ちます。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: src/view/TodoListView.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: TodoListViewの`createElement`メソッドは`TodoItemView`を使ってTodoアイテムのHTML要素を作り、`todoListElement`へと追加していきます。
+    このTodoListViewの`createElement`メソッドも`onUpdateTodo`と`onDeleteTodo`のリスナー関数を受け取ります。
+    しかし、`TodoListView`ではこのリスナー関数を`TodoItemView`にそのまま渡しています。 なぜなら具体的なDOMイベントを発生させる要素が作られるのは`TodoItemView`の中となるためです。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#app-refactoring)*Appのリファクタリング*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*最後に作成した`TodoItemView`クラスと`TodoListView`クラスを使って`App`クラスをリファクタリングしていきます。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`App.js`を次のように`TodoListView`クラスを使うように書き換えます。 `onChange`のリスナー関数で`TodoListView`クラスを使ってTodoリストのHTML要素を作るように変更します。
+    このときTodoListViewの`createElement`メソッドには次のようにそれぞれ対応するコールバック関数を渡します。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`onUpdateTodo`のコールバック関数では、TodoListModelの`updateTodo`メソッドを呼ぶ'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`onDeleteTodo`のコールバック関数では、TodoListModelの`deleteTodo`メソッドを呼ぶ'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: src/App.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: これで`App`クラスからHTML要素の作成処理がViewクラスに移動でき、`App`クラスはModelとView間のイベントを管理するだけになりました。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#app-event-listener)*Appのイベントリスナーを整理する*'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*`App`クラスで登録しているイベントのリスナー関数を見てみると次の4種類となっています。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| イベントの流れ | リスナー関数 | 役割 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Model` → `View` | `this.#todoListModel.onChange(listener)` | `TodoListModel`が変更イベントを受け取る
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `View` → `Model` | `formElement.addEventListener("submit", listener)` | フォームの送信イベントを受け取る
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `View` → `Model` | `onUpdateTodo: listener` | Todoアイテムのチェックボックスの更新イベントを受け取る
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `View` → `Model` | `onDeleteTodo: listener` | Todoアイテムの削除イベントを受け取る |'
+  prefs: []
+  type: TYPE_TB
+- en: イベントの流れがViewからModelとなっているリスナー関数が3箇所あり、それぞれリスナー関数はコード上バラバラな位置に書かれています。 また、それぞれのリスナー関数はTodoアプリの機能と対応していることがわかります。
+    これらのリスナー関数がTodoアプリの扱っている機能であるということをわかりやすくするため、リスナー関数を`App`クラスのメソッドとして定義し直してみましょう。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 次のように、それぞれ対応するリスナー関数を`handle`メソッドとして実装して、それを呼び出すように変更しました。
+  prefs: []
+  type: TYPE_NORMAL
+- en: src/App.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: このように`App`クラスのメソッドとしてリスナー関数を並べることで、Todoアプリの機能がコード上の見た目としてわかりやすくなりました。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](#section-conclusion)*セクションのまとめ*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*このセクションでは、次のことを行いました。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Appから表示に関する処理をViewコンポーネントに分割した
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Todoアプリの機能と対応するリスナー関数を`App`クラスのメソッドへ移動した
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Todoアプリを完成させた
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 完成したTodoアプリは次のURLで確認できます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://jsprimer.net/use-case/todoapp/final/final/](https://jsprimer.net/use-case/todoapp/final/final/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 実はこのTodoアプリにはまだアプリケーションとして、完成していない部分があります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 入力欄でEnterキーを連打すると、空のTodoアイテムが追加されてしまうのは意図しない挙動です。 また、Appの`mount`メソッドでTodoListModelの`onChange`メソッドなどにイベントリスナーを登録していますが、そのイベントリスナーを解除していません。
+    このTodoアプリではあまり問題にはなりませんが、イベントリスナーは登録したままだとメモリリークにつながる場合もあります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: 余力がある人は、次の機能を追加してTodoアプリを完成させてみてください。
+  prefs: []
+  type: TYPE_NORMAL
+- en: タイトルが空の場合は、フォームを送信してもTodoアイテムを追加できないようにする
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Appの`mount`メソッドでのイベントリスナー登録に対応して、Appに`unmount`メソッドを実装し、イベントリスナーを解除できるようにする
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Appの`mount`メソッドと対応する`unmount`メソッドを作成するというTodoは、アプリケーションのライフサイクルを意識するという課題になります。
+    ウェブページにはページ読み込みが完了したときに発生する`load`イベントと、読み込んだページを破棄したときに発生する`unload`イベントがあります。
+    Todoアプリも`mount`と`unmount`を実装し、次のようにウェブページのライフサイクルに合わせられます。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 残ったTodoを実装したコードは、次のURLで確認できます。 ぜひ、自分で実装してみてウェブページやアプリの動きについて考えてみてください。
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://jsprimer.net/use-case/todoapp/final/more/](https://jsprimer.net/use-case/todoapp/final/more/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](#todo-conclusion)*Todoアプリのまとめ*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*今回は、Todoアプリを構成する要素をModelとViewという単位でモジュールに分けていました。 モジュールを分けることでコードの見通しを良くしたり、Todoアプリにさらなる機能を追加しやすい形にしました。
+    このようなモジュールの分け方などの設計には正解はなく、さまざまな考え方があります。'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 今回Todoアプリという題材をユースケースに選んだのは、JavaScriptのウェブアプリケーションではよく利用されている題材であるためです。 さまざまなライブラリを使ったTodoアプリの実装が[TodoMVC](https://todomvc.com/)と呼ばれるサイトにまとめられています。
+    今回作成したTodoアプリは、TodoMVCからフィルター機能などを削ったものをライブラリを使わずに実装したものです。^([1](#fn_1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 現実では、ライブラリをまったく使わずウェブアプリケーションを実装することはほとんどありません。 ライブラリを使うことで、`html-util.js`のようなものは自分で書く必要がなくなったり、最後の課題として残ったライフサイクルの問題なども解決しやすくなります。
+  prefs: []
+  type: TYPE_NORMAL
+- en: しかし、ライブラリを使って開発する場合でも、第一部の基本文法や第二部のユースケースで紹介したようなJavaScriptの基礎は重要です。 なぜならライブラリも、これらの基礎の上に実装されているためです。
+  prefs: []
+  type: TYPE_NORMAL
+- en: また、作るアプリケーションの種類や目的によって適切なライブラリは異なります。 ライブラリによっては魔法のような機能を提供しているものもありますが、それらも基礎となる技術を使っていることは覚えておいてください。
+  prefs: []
+  type: TYPE_NORMAL
+- en: この書籍ではJavaScriptの基礎を中心に紹介しましたが、「[ECMAScript](../../../basic/ecmascript/)」の章で紹介したようにJavaScriptの基礎も年々更新されています。
+    基礎が更新されると応用であるライブラリも新しいものが登場し、定番だったものも徐々に変化していきます。 知らなかったものが出てくるのは、JavaScript自体が成長しているということです。
+  prefs: []
+  type: TYPE_NORMAL
+- en: この書籍を読んでまだ理解できなかったことや知らなかったことがあるのは問題ありません。 知らなかったことを見つけたときにそれが何かを調べられるということが、
+    JavaScriptという変化していく言語やそれを利用する環境においては重要です。
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¹. ライブラリやフレームワークを使わずに実装したJavaScriptをVanilla JSと呼ぶことがあります。 [↩](#reffn_1 "Jump
+    back to footnote [1] in the text.")*******
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
