@@ -1,1111 +1,1744 @@
 - en: 非同期処理:Promise/Async Function
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 原文：[https://jsprimer.net/basic/async/](https://jsprimer.net/basic/async/)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: この章ではJavaScriptの非同期処理について学んでいきます。 非同期処理はJavaScriptにおけるとても重要な概念です。 また、ブラウザやNode.jsなどのAPIには非同期処理でしか扱えないものもあるため、非同期処理を避けることはできません。
     JavaScriptには非同期処理を扱うためのPromiseというビルトインオブジェクト、さらにはAsync Functionと呼ばれる構文的なサポートがあります。
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: この章では非同期処理とはどのようなものかという話から、非同期処理での例外処理、非同期処理の扱い方を見ていきます。
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
 - en: '[](#sync-processing)*同期処理*'
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*多くのプログラミング言語にはコードの評価の仕方として、**同期処理**（sync）と**非同期処理**（async）という大きな分類があります。'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
 - en: 今まで書いていたコードは**同期処理**と呼ばれているものです。 同期処理ではコードを順番に処理していき、ひとつの処理が終わるまで次の処理は行いません。
     同期処理では実行している処理はひとつだけとなるため、とても直感的な動作となります。
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
 - en: 一方、同期的にブロックする処理が行われていた場合には問題があります。 同期処理ではひとつの処理が終わるまで、次の処理へ進むことができないためです。
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
 - en: 次のコードの`blockTime`関数は指定した`timeout`ミリ秒だけ無限ループを実行し、同期的にブロックする処理です。 `timeout`ミリ秒経過したかの判定には、無限ループの中でUnix時間（1970年1月1日午前0時0分0秒から経過した時間）のミリ秒を返す`Date.now`メソッドを利用しています。
     この`blockTime`関数を呼び出すと、指定時間が経過するまで次の処理（タスクB）は呼ばれません。
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 同期的にブロックする処理があると、ブラウザでは大きな問題となります。 なぜなら、JavaScriptは基本的にブラウザのメインスレッド（UIスレッドとも呼ばれる）で実行されるためです。
     メインスレッドは表示の更新といったUIに関する処理も行っています。 そのため、メインスレッドがJavaScriptの処理で専有されると、表示が更新されなくなりフリーズしたようになります。
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
 - en: '![single-thread-tasks](../Images/ea2de27ccec75c73dbf81a75015f0ab8.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
 - en: 先ほどの例では1秒間も処理をブロックしているため、1秒間スクロールなどの操作が効かないといった悪影響がでます。
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: '[](#async-processing)*非同期処理*'
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*非同期処理はコードを順番に処理していきますが、ひとつの非同期処理が終わるのを待たずに次の処理を評価します。 つまり、非同期処理では同時に実行している処理が複数あります。'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
 - en: JavaScriptにおいて非同期処理の代表的な関数として`setTimeout`関数があります。 `setTimeout`関数は`delay`ミリ秒後に、`コールバック関数`を呼び出すようにタイマーへ登録する非同期処理です。
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 次のコードでは、見た目上はタスクA → 非同期のタスク → タスクBという流れになっています。 しかし、`setTimeout`関数を使い、非同期のタスクは1000ミリ秒（1秒）後に実行するようにタイマーへ登録しています。
     そのため、実際にはタスクA → タスクB → 非同期のタスクという順番で実行されます。
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: このように、非同期処理（`setTimeout`のコールバック関数）は、コードの見た目上の並びとは異なる順番で実行されることがわかります。
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
 - en: '![非同期処理とタイマー](../Images/7c4cf9a7c958c70e85a0602203d1afc1.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
 - en: '[](#async-and-main-thread)*非同期処理はメインスレッドで実行される*'
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*メインスレッドはUIスレッドとも呼ばれ、重たいJavaScriptの同期処理はメインスレッドで実行する他の処理（画面の更新など）をブロックする問題について紹介しました。
     これは非同期処理においても同様の問題があります。なぜならJavaScriptにおける非同期処理の大部分はメインスレッドで実行されるためです。'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: 非同期処理は名前から考えるとメインスレッド以外で実行されるように見えますが、 基本的には非同期処理も同期処理と同じようにメインスレッドで実行されます。
     このセクションでは非同期処理がどのようにメインスレッドで実行されているかを簡潔に見ていきます。
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
 - en: 次のコードは、`setTimeout`関数でタイマーに登録したコールバック関数が呼ばれるまで、実際にどの程度の時間がかかったかを計測しています。 `setTimeout`関数で10ミリ秒後に非同期のタスクを実行するように登録し、その直後に1秒間を同期的にブロックする処理を呼び出しています。
     このコードを実行してみると、同期的にブロックする処理により、非同期のタスクはタイマーに登録した時間（10ミリ秒後）よりも大きく遅れて呼び出されます。
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 非同期処理（`setTimeout`のコールバック関数）がメインスレッド以外のスレッドで実行されるならば、 この非同期処理はメインスレッドで同期的にブロックする処理の影響を受けないはずです。
     しかし、実際にはこの非同期処理もメインスレッドで実行された同期的にブロックする処理の影響を受けます。
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
 - en: 多くの環境では、このときの非同期処理のコールバック関数が呼ばれるまでは1秒以上かかります。 これは、10ミリ秒後に非同期のコールバック関数を実行するようにタイマーへ登録自体はできていますが、同期的にブロックする処理によって非同期のタスクの実行も後ろにずれてしまうためです。
     このように**非同期処理**も**同期処理**の影響を受けることから、同じメインスレッドで実行されていることがわかります。
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: '![非同期処理とブロックする同期処理](../Images/08ac12ef96bd2d65a0790af3d9e3cc26.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
 - en: JavaScriptでは一部の例外を除き非同期処理が**並行処理（Concurrent）**として扱われます。 並行処理とは、処理を一定の単位ごとに分けて処理を切り替えながら実行することです。
     そのため非同期処理の実行前にとても重たい処理があると、非同期処理の実行が遅れるという現象を引き起こします。
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
 - en: ただし、非同期処理の中にもメインスレッドとは別のスレッドで実行できるAPIが実行環境によっては存在します。 たとえばブラウザでは[Web Worker](https://developer.mozilla.org/ja/docs/Web/API/Web_Workers_API/Using_web_workers)
     APIを使い、メインスレッド以外でJavaScriptを実行できます。 このWeb Workerにおける非同期処理は**並列処理（Parallel）**です。
     並列処理とは、排他的に複数の処理を同時に実行することです。
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: ただし、非同期処理の中にもメインスレッドとは別のスレッドで実行できるAPIが実行環境によっては存在します。 たとえばブラウザでは[Web Worker](https://developer.mozilla.org/ja/docs/Web/API/Web_Workers_API/Using_web_workers)
+    APIを使い、メインスレッド以外でJavaScriptを実行できます。 このWeb Workerにおける非同期処理は**並列処理（Parallel）**です。
+    並列処理とは、排他的に複数の処理を同時に実行することです。
 - en: Web Workerではメインスレッドとは異なるWorkerスレッドで実行されるため、Workerスレッド内で同期的にブロックする処理を実行してもメインスレッドは影響を受けにくくなります。
     ただし、Web Workerとメインスレッドでのデータのやり取りには`postMessage`というメソッドを利用する必要があります。 そのため、重たい処理をWorkerに移動できるというメリットはありますが、メインスレッドとWorkerスレッドのデータのやり取りに制限があるというトレードオフの関係になります。
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: Web Workerではメインスレッドとは異なるWorkerスレッドで実行されるため、Workerスレッド内で同期的にブロックする処理を実行してもメインスレッドは影響を受けにくくなります。
+    ただし、Web Workerとメインスレッドでのデータのやり取りには`postMessage`というメソッドを利用する必要があります。 そのため、重たい処理をWorkerに移動できるというメリットはありますが、メインスレッドとWorkerスレッドのデータのやり取りに制限があるというトレードオフの関係になります。
 - en: このように、非同期処理のすべてをひとくくりにはできませんが、基本的な非同期処理（タイマーなど）はメインスレッドで実行されているという性質を知ることは大切です。JavaScriptの大部分の**非同期処理**は**非同期的なタイミングで実行される処理**であると理解しておく必要があります。
     この書籍で紹介する非同期処理のほとんどは、メインスレッドで処理を切り替えながら実行する**並行処理（Concurrent）**となっています。
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: このように、非同期処理のすべてをひとくくりにはできませんが、基本的な非同期処理（タイマーなど）はメインスレッドで実行されているという性質を知ることは大切です。JavaScriptの大部分の**非同期処理**は**非同期的なタイミングで実行される処理**であると理解しておく必要があります。
+    この書籍で紹介する非同期処理のほとんどは、メインスレッドで処理を切り替えながら実行する**並行処理（Concurrent）**となっています。
 - en: '[](#async-processing-and-error-handling)*非同期処理と例外処理*'
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#async-processing-and-error-handling)*非同期処理と例外処理*'
 - en: '*非同期処理は処理の流れが同期処理とは異なることについて紹介しました。 これは非同期処理における**例外処理**においても大きな影響を与えます。'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '*非同期処理は処理の流れが同期処理とは異なることについて紹介しました。 これは非同期処理における**例外処理**においても大きな影響を与えます。'
 - en: 同期処理では、`try...catch`構文を使うことで同期的に発生した例外がキャッチできます（詳細は「[例外処理](../error-try-catch/)」の章を参照）。
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 同期処理では、`try...catch`構文を使うことで同期的に発生した例外がキャッチできます（詳細は「[例外処理](../error-try-catch/)」の章を参照）。
 - en: '[PRE4]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 非同期処理では、`try...catch`構文を使っても非同期的に発生した例外をキャッチできません。 次のコードでは、10ミリ秒後に非同期的なエラーを発生させています。
     しかし、`try...catch`構文では次のような非同期エラーをキャッチできません。
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 非同期処理では、`try...catch`構文を使っても非同期的に発生した例外をキャッチできません。 次のコードでは、10ミリ秒後に非同期的なエラーを発生させています。
+    しかし、`try...catch`構文では次のような非同期エラーをキャッチできません。
 - en: '[PRE5]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '`try`ブロックはそのブロック内で発生した例外をキャッチする構文です。 しかし、`setTimeout`関数で登録されたコールバック関数が実際に実行されて例外を投げるのは、すべての同期処理が終わった後となります。
     つまり、`try`ブロックで例外が発生しうるとマークした**範囲外**で例外が発生します。'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '`try`ブロックはそのブロック内で発生した例外をキャッチする構文です。 しかし、`setTimeout`関数で登録されたコールバック関数が実際に実行されて例外を投げるのは、すべての同期処理が終わった後となります。
+    つまり、`try`ブロックで例外が発生しうるとマークした**範囲外**で例外が発生します。'
 - en: そのため、`setTimeout`関数のコールバック関数における例外は、次のようにコールバック関数内で同期的なエラーとしてキャッチする必要があります。
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: そのため、`setTimeout`関数のコールバック関数における例外は、次のようにコールバック関数内で同期的なエラーとしてキャッチする必要があります。
 - en: '[PRE6]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: このようにコールバック関数内でエラーをキャッチできますが、**非同期処理の外**からは**非同期処理の中**で例外が発生したかがわかりません。 非同期処理の外から例外が起きたことを知るためには、非同期処理の中で例外が発生したことを非同期処理の外へ伝える方法が必要です。
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: このようにコールバック関数内でエラーをキャッチできますが、**非同期処理の外**からは**非同期処理の中**で例外が発生したかがわかりません。 非同期処理の外から例外が起きたことを知るためには、非同期処理の中で例外が発生したことを非同期処理の外へ伝える方法が必要です。
 - en: また、JavaScriptでのHTTPリクエストやファイルの読み書きといった処理も非同期処理のAPIとして提供されています。 これらの非同期処理はネットワークにつながっていない場合やファイルが存在しない場合などには失敗します。
     そのため、非同期処理における例外の扱い方（エラーハンドリング）は、極めて重要になります。
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: また、JavaScriptでのHTTPリクエストやファイルの読み書きといった処理も非同期処理のAPIとして提供されています。 これらの非同期処理はネットワークにつながっていない場合やファイルが存在しない場合などには失敗します。
+    そのため、非同期処理における例外の扱い方（エラーハンドリング）は、極めて重要になります。
 - en: 非同期処理で発生した例外の扱い方についてはさまざまなパターンがあります。 この章では主要な非同期処理と例外の扱い方として、主にPromise、Async
     Functionの2つを見ていきます。
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 非同期処理で発生した例外の扱い方についてはさまざまなパターンがあります。 この章では主要な非同期処理と例外の扱い方として、主にPromise、Async
+    Functionの2つを見ていきます。
 - en: Async FunctionはPromiseの上に成り立っている構文です。 そのため、どちらか片方ではなく両方とも理解することが重要です。
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: Async FunctionはPromiseの上に成り立っている構文です。 そのため、どちらか片方ではなく両方とも理解することが重要です。
 - en: '[](#promise)*[ES2015] Promise*'
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#promise)*[ES2015] Promise*'
 - en: '*[Promise](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Promise)はES2015で導入された非同期処理の状態や結果を表現するビルトインオブジェクトです。
     非同期処理はPromiseのインスタンスを返し、そのPromiseインスタンスには状態変化をした際に呼び出されるコールバック関数を登録できます。'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '*[Promise](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Promise)はES2015で導入された非同期処理の状態や結果を表現するビルトインオブジェクトです。
+    非同期処理はPromiseのインスタンスを返し、そのPromiseインスタンスには状態変化をした際に呼び出されるコールバック関数を登録できます。'
 - en: 次のコードは、Promiseを扱う非同期処理を行う例です。 このコードは、大きく分けて2つの部分からなっています。
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードは、Promiseを扱う非同期処理を行う例です。
 - en: '非同期処理をする部分（`asyncPromiseTask`関数）: Promiseのインスタンスを返す'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '非同期処理をする部分（`asyncPromiseTask`関数）: Promiseのインスタンスを返す'
 - en: '非同期処理の結果を扱う部分: Promiseのインスタンスを受け取り、成功時の処理と失敗時の処理をコールバック関数で登録する'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '非同期処理の結果を扱う部分: Promiseのインスタンスを受け取り、成功時の処理と失敗時の処理をコールバック関数で登録する'
 - en: '[PRE7]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '`asyncPromiseTask`関数は、`Promise`というビルトインオブジェクトのインスタンスを返しています。 `Promise`インスタンスは、`asyncPromiseTask`関数内で行った非同期処理が成功したか失敗したかの状態を表すオブジェクトです。
     また、この`Promise`インスタンスに対して、`then`や`catch`メソッドで成功時や失敗時に呼び出される処理をコールバック関数として登録することで、非同期処理の結果を扱えます。'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '`asyncPromiseTask`関数は、`Promise`というビルトインオブジェクトのインスタンスを返しています。 `Promise`インスタンスは、`asyncPromiseTask`関数内で行った非同期処理が成功したか失敗したかの状態を表すオブジェクトです。
+    また、この`Promise`インスタンスに対して、`then`や`catch`メソッドで成功時や失敗時に呼び出される処理をコールバック関数として登録することで、非同期処理の結果を扱えます。'
 - en: Promiseに慣れるまで少しややこしいように見えますが、Promiseは非同期処理の状態や結果をラップしたようなオブジェクトです。 同期的な関数では関数を実行するとすぐ結果がわかりますが、非同期な関数では関数を実行してもすぐには結果がわかりません。
     そのため、非同期な関数はPromiseという非同期処理の状態をラップしたオブジェクトを返し、その結果が決まったら登録しておいたコールバック関数へ結果を渡すという仕組みになっています。
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: Promiseに慣れるまで少しややこしいように見えますが、Promiseは非同期処理の状態や結果をラップしたようなオブジェクトです。 同期的な関数では関数を実行するとすぐ結果がわかりますが、非同期な関数では関数を実行してもすぐには結果がわかりません。
+    そのため、非同期な関数はPromiseという非同期処理の状態をラップしたオブジェクトを返し、その結果が決まったら登録しておいたコールバック関数へ結果を渡すという仕組みになっています。
 - en: 実際に`Promise`の使い方をみていきます。
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 実際に`Promise`の使い方をみていき��す。
 - en: '[](#promise-instance)*`Promise`インスタンスの作成*'
+  id: totrans-55
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-instance)*`Promise`インスタンスの作成*'
 - en: '*Promiseは`new`演算子で`Promise`のインスタンスを作成して利用します。 このときのコンストラクタには`resolve`と`reject`の2つの引数を取る`executor`と呼ばれる関数を渡します。
     `executor`関数の中で非同期処理を行い、非同期処理が成功した場合は`resolve`関数を呼び、失敗した場合は`reject`関数を呼び出します。'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Promiseは`new`演算子で`Promise`のインスタンスを作成して利用します。 このときのコンストラクタには`resolve`と`reject`の2つの引数を取る`executor`と呼ばれる関数を渡します。
+    `executor`関数の中で非同期処理を行い、非同期処理が成功した場合は`resolve`関数を呼び、失敗した場合は`reject`関数を呼び出します。'
 - en: '[PRE8]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: この`Promise`インスタンスの`then`メソッドで、Promiseが`resolve`（成功）、`reject`（失敗）したときに呼ばれるコールバック関数を登録します。
     `then`メソッドの第一引数には`resolve`（成功）時に呼ばれるコールバック関数、第二引数には`reject`（失敗）時に呼ばれるコールバック関数を渡します。
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用此`Promise`实例的`then`方法，您可以注册在Promise`resolve`（成功）或`reject`（失败）时调用的回调函数。 将成功时的回调函数传递给`then`方法的第一个参数，将失败时的回调函数传递给`then`方法的第二个参数。
 - en: '[PRE9]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '`Promise`コンストラクタの`resolve`と`reject`、`then`メソッドの`onFulfilled`と`onRejected`は次のような関係となります。'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise`构造函数的`resolve`和`reject`，以及`then`方法的`onFulfilled`和`onRejected`之间有如下关系。'
 - en: '`resolve`（成功）したとき'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当`resolve`（成功）时
 - en: '`onFulfilled`が呼ばれる'
+  id: totrans-62
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将调用`onFulfilled`。
 - en: '`reject`（失敗）したとき'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当发生`reject`（失败）时
 - en: '`onRejected` が呼ばれる'
+  id: totrans-64
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将调用`onRejected`
 - en: '[](#promise-then-and-catch)*`Promise.prototype.then`と`Promise.prototype.catch`*'
+  id: totrans-65
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-then-and-catch)*`Promise.prototype.then` and `Promise.prototype.catch`*'
 - en: '*`Promise`のようにコンストラクタに関数を渡すパターンは今までなかったので、`then`メソッドの使い方について具体的な例を紹介します。 また、`then`メソッドのエイリアスでもある`catch`メソッドについても見ていきます。'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '*因为以前没有像Promise这样将函数传递给构造函数的模式，所以我们将介绍具体的`then`方法用法示例。 同时，我们还将研究作为`then`方法别名的`catch`方法。'
 - en: 次のコードの`dummyFetch`関数は`Promise`のインスタンスを作成して返します。 `dummyFetch`関数はリソースの取得に成功した場合は`resolve`関数を呼び、失敗した場合は`reject`関数を呼びます。
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码中的`dummyFetch`函数创建并返回一个`Promise`实例。 如果成功获取资源，则调用`resolve`函数；如果失败，则调用`reject`函数。
 - en: '`resolve`に渡した値は、`then`メソッドの1番目のコールバック関数（`onFulfilled`）に渡されます。 `reject`に渡したエラーオブジェクトは、`then`メソッドの2番目のコールバック関数（`onRejected`）に渡されます。'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 传递给`resolve`的值将传递给`then`方法的第一个回调函数（`onFulfilled`）。 传递给`reject`的错误对象将传递给`then`方法的第二个回调函数（`onRejected`）。
 - en: '[PRE10]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Promiseの`then`メソッドは成功（`onFulfilled`）と失敗（`onRejected`）のコールバック関数の2つを受け取りますが、どちらの引数も省略できます。
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: Promise的`then`方法接受两个回调函数参数：成功（`onFulfilled`）和失败（`onRejected`），但两者都可以省略。
 - en: 次のコードの`delay`関数は一定時間後に解決（`resolve`）される`Promise`インスタンスを返します。 この`Promise`インスタンスに対して`then`メソッドで**成功時のコールバック関数だけ**を登録しています。
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码中的`delay`函数返回一个在一定时间后解决（`resolve`）的`Promise`实例。 在这个`Promise`实例上，仅注册了**成功时的回调函数**。
 - en: '[PRE11]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 一方、`then`メソッドでは失敗時のコールバック関数だけの登録もできます。 このとき`then(undefined, onRejected)`のように第1引数には`undefined`を渡す必要があります。
     `then(undefined, onRejected)`と同様のことを行う方法としてPromiseの`catch`メソッドが用意されています。
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，`then`方法也可以仅注册失败时的回调函数。 在这种情况下，第一个参数应传递`undefined`，如`then(undefined, onRejected)`。
+    Promise提供了`catch`方法，作为执行类似操作的替代方法，即`then(undefined, onRejected)`。
 - en: 次のコードでは`then`メソッドと`catch`メソッドで失敗時のエラー処理をしていますが、どちらも同じ意味となります。 `then`メソッドに`undefined`を渡すのはわかりにくいため、失敗時の処理だけを登録する場合は`catch`メソッドの利用を推奨しています。
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，我们使用`then`方法和`catch`方法处理失败的错误，但两者的含义相同。 由于向`then`方法传递`undefined`不够直观，因此建议仅在注册失败处理时使用`catch`方法。
 - en: '[PRE12]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[](#promise-exception)*Promiseと例外*'
+  id: totrans-76
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-exception)*Promise and Exceptions*'
 - en: '*Promiseではコンストラクタの処理で例外が発生した場合に自動的に例外がキャッチされます。 例外が発生した`Promise`インスタンスは`reject`関数を呼び出したのと同じように失敗したものとして扱われます。
     そのため、Promise内で例外が発生すると`then`メソッドの第二引数や`catch`メソッドで登録したエラー時のコールバック関数が呼び出されます。'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如果在构造函数中发生异常，则会自动捕获异常。 发生异常的`Promise`实例将被视为失败，就像调用`reject`函数一样。 因此，如果Promise内部发生异常，则将调用`then`方法的第二个参数或`catch`方法中注册的错误处理回调函数。'
 - en: '[PRE13]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: このようにPromiseにおける処理では`try...catch`構文を使わなくても、自動的に例外がキャッチされます。
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在Promise处理中，无需使用`try...catch`语法，自动捕获异常。
 - en: '[](#promise-status)*Promiseの状態*'
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-status)*Promise的状态*'
 - en: '*Promiseの`then`メソッドや`catch`メソッドによる処理がわかったところで、`Promise`インスタンスの状態について整理していきます。'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '*现在我们已经了解了Promise的`then`方法和`catch`方法的处理方式，接下来我们将整理一下`Promise`实例的状态。'
 - en: '`Promise`インスタンスには、内部的に次の3つの状態が存在します。'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise`实例内部实际上有三种状态。'
 - en: '**Fulfilled**'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Fulfilled**'
 - en: '`resolve`（成功）したときの状態。このとき`onFulfilled`が呼ばれる'
+  id: totrans-84
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当`resolve`（成功）时的状态。 这时将调用`onFulfilled`。
 - en: '**Rejected**'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Rejected**'
 - en: '`reject`（失敗）または例外が発生したときの状態。このとき`onRejected`が呼ばれる'
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当发生`reject`（失败）或异常时的状态。 这时将调用`onRejected`。
 - en: '**Pending**'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Pending**'
 - en: FulfilledまたはRejectedではない状態
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不是Fulfilled或Rejected的状态
 - en: '`new Promise`でインスタンスを作成したときの初期状態'
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建Promise实例时的初始状态
 - en: これらの状態はECMAScriptの仕様として決められている内部的な状態です。 しかし、この状態をPromiseのインスタンスから取り出す方法はありません。
     そのためAPIとしてこの状態を直接扱うことはできませんが、Promiseについて理解するのに役立ちます。
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些状态是ECMAScript规范中确定的内部状态。 但是，没有方法从Promise实例中获取这些状态。 因此，虽然不能直接处理此状态作为API，但可以帮助理解Promise。
 - en: '`Promise`インスタンスの状態は作成時に**Pending**となり、一度でも**Fulfilled**または**Rejected**へ変化すると、それ以降状態は変化しなくなります。
     そのため、**Fulfilled**または**Rejected**の状態であることを**Settled**（不変）と呼びます。'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: Promise实例的状态在创建时为**Pending**，一旦变为**Fulfilled**或**Rejected**，状态就不会再改变。 因此，将状态更改为**Fulfilled**或**Rejected**后，它将被称为**Settled**（已解决）。
 - en: 一度でも**Settled**（**Fulfilled**または**Rejected**）となった`Promise`インスタンスは、それ以降別の状態には変化しません。
     そのため、`resolve`を呼び出した後に`reject`を呼び出しても、その`Promise`インスタンスは最初に呼び出した`resolve`によって**Fulfilled**のままとなります。
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦`Promise`实例变为**Settled**（**Fulfilled**或**Rejected**），它将不会再转换为其他状态。 因此，即使在调用`resolve`后调用`reject`，该`Promise`实例仍将保持最初的**Fulfilled**状态。
 - en: 次のコードでは、`reject`を呼び出しても状態が変化しないため、`then`で登録したonRejectedのコールバック関数は呼び出されません。 `then`メソッドで登録したコールバック関数は、状態が変化した場合に一度だけ呼び出されます。
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，由于状态不会更改，因此不会调用注册的onRejected回调函数。 使用`then`方法注册的回调函数仅在状态更改时调用一次。
 - en: '[PRE14]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 同じように、`Promise`コンストラクタ内で`resolve`を何度呼び出しても、その`Promise`インスタンスの状態は一度しか変化しません。
     そのため、次のように`resolve`を何度呼び出しても、`then`で登録したコールバック関数は一度しか呼び出されません。
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，`Promise`构造函数内部多次调用`resolve`也不会改变`Promise`实例的状态。 因此，即使多次调用`resolve`，`then`方法注册的回调函数也只会被调用一次。
 - en: '[PRE15]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: このように`Promise`インスタンスの状態が変化したときに、一度だけ呼ばれるコールバック関数を登録するのが`then`や`catch`メソッドとなります。
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 当`Promise`实例的状态更改时，您可以注册一次性回调函数以通过`then`和`catch`方法深入了解。
 - en: また`then`や`catch`メソッドはすでにSettledへと状態が変化済みの`Promise`インスタンスに対してもコールバック関数を後から登録できます。
     状態が変化済みの`Promise`インスタンスに`then`や`catch`メソッドで登録したコールバック関数も同じように非同期処理として呼び出されます。
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，对于已更改状态的`Promise`实例，甚至可以稍后注册`then`或`catch`方法的回调函数。 对于已更改状态的`Promise`实例，通过`then`或`catch`方法注册的回调函数也会异步地调用。
 - en: 具体的にどうなるかを、状態が変化済みの`Promise`インスタンスを作成できる`Promise.resolve`と`Promise.reject`メソッドと一緒に見ていきます。
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体的来说，我们将与已更改状态的`Promise`实例一起查看`Promise.resolve`和`Promise.reject`方法的结果。
 - en: '[](#promise-resolve)*`Promise.resolve`*'
+  id: totrans-100
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-resolve)*`Promise.resolve`*'
 - en: '*`Promise.resolve`メソッドは**Fulfilled**の状態となった`Promise`インスタンスを作成します。'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '*`Promise.resolve`メソッドは**Fulfilled**の状態となった`Promise`インスタンスを作成します。'
 - en: '[PRE16]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '`Promise.resolve`メソッドは`new Promise`の糖衣構文（シンタックスシュガー）です。 糖衣構文とは、同じ意味の処理を元の構文よりシンプルに書ける別の書き方のことです。
     `Promise.resolve`メソッドは次のコードの糖衣構文です。'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.resolve`メソッドは`new Promise`の糖衣構文（シンタックスシュガー）です。 糖衣構文とは、同じ意味の処理を元の構文よりシンプルに書ける別の書き方のことです。
+    `Promise.resolve`メソッドは次のコードの糖衣構文です。'
 - en: '[PRE17]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '`Promise.resolve`メソッドは引数に`resolve`される値を渡すこともできます。'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.resolve`メソッドは引数に`resolve`される値を渡すこともできます。'
 - en: '[PRE18]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '`Promise.resolve`メソッドで作成した**Fulfilled**の状態となった`Promise`インスタンスに対しても`then`メソッドでコールバック関数を登録できます。
     状態が変化済みの`Promise`インスタンスに`then`メソッドで登録したコールバック関数は、常に非同期なタイミングで実行されます。'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.resolve`メソッドで作成した**Fulfilled**の状態となった`Promise`インスタンスに対しても`then`メソッドでコールバック関数を登録できます。
+    状態が変化済みの`Promise`インスタンスに`then`メソッドで登録したコールバック関数は、常に非同期なタイミングで実行されます。'
 - en: 次のコードを実行すると、すべての同期的な処理が実行された後に、`then`メソッドのコールバック関数が非同期なタイミングで実行されることがわかります。
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードを実行すると、すべての同期的な処理が実行された後に、`then`メソッドのコールバック関数が非同期なタイミングで実行されることがわかります。
 - en: '[PRE19]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '`Promise.resolve`メソッドは`new Promise`の糖衣構文であるため、この実行順序は`new Promise`を使った場合も同じです。
     次のコードは、先ほどの`Promise.resolve`メソッドを使ったものと同じ動作になります。'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.resolve`メソッドは`new Promise`の糖衣構文であるため、この実行順序は`new Promise`を使った場合も同じです。
+    次のコードは、先ほどの`Promise.resolve`メソッドを使ったものと同じ動作になります。'
 - en: '[PRE20]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: このコードを実行すると、まず`Promise`のコンストラクタ関数が実行され、続いて同期的な処理が実行されます。最後に`then`メソッドで登録していたコールバック関数が非同期的に呼ばれることがわかります。
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: このコードを実行すると、まず`Promise`のコンストラクタ関数が実行され、続いて同期的な処理が実行されます。最後に`then`メソッドで登録していたコールバック関数が非同期的に呼ばれることがわかります。
 - en: '[](#promise-reject)*`Promise.reject`*'
+  id: totrans-113
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-reject)*`Promise.reject`*'
 - en: '*`Promise.reject`メソッドは **Rejected**の状態となった`Promise`インスタンスを作成します。'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '*`Promise.reject`メソッドは **Rejected**の状態となった`Promise`インスタンスを作成します。'
 - en: '[PRE21]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '`Promise.reject`メソッドは`new Promise`の糖衣構文（シンタックスシュガー）です。 そのため、`Promise.reject`メソッドは次のコードと同じ意味になります。'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.reject`メソッドは`new Promise`の糖衣構文（シンタックスシュガー）です。 そのため、`Promise.reject`メソッドは次のコードと同じ意味になります。'
 - en: '[PRE22]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '`Promise.reject`メソッドで作成した**Rejected**状態の`Promise`インスタンスに対しても`then`や`catch`メソッドでコールバック関数を登録できます。
     **Rejected**状態へ変化済みの`Promise`インスタンスに登録したコールバック関数は、常に非同期なタイミングで実行されます。これは**Fulfilled**の場合と同様です。'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.reject`メソッドで作成した**Rejected**状態の`Promise`インスタンスに対しても`then`や`catch`メソッドでコールバック関数を登録できます。
+    **Rejected**状態へ変化済みの`Promise`インスタンスに登録したコールバック関数は、常に非同期なタイミングで実行されます。これは**Fulfilled**の場合と同様です。'
 - en: '[PRE23]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '`Promise.resolve`や`Promise.reject`は短く書けるため、テストコードなどで利用されることがあります。 また、`Promise.reject`は次に解説するPromiseチェーンにおいて、Promiseの状態を操作するのに利用できます。'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.resolve`や`Promise.reject`は短く書けるため、テストコードなどで利用されることがあります。 また、`Promise.reject`は次に解説するPromiseチェーンにおいて、Promiseの状態を操作するのに利用できます。'
 - en: '[](#promise-chain)*Promiseチェーン*'
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-chain)*Promiseチェーン*'
 - en: '*Promiseは非同期処理における統一的なインターフェースを提供するビルトインオブジェクトです。 Promiseによる統一的な処理方法は複数の非同期処理を扱う場合に特に効力を発揮します。
     これまでは、1つの`Promise`インスタンスに対して`then`や`catch`メソッドで1組のコールバック処理を登録するだけでした。'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Promiseは非同期処理における統一的なインターフェースを提供するビルトインオブジェクトです。 Promiseによる統一的な処理方法は複数の非同期処理を扱う場合に特に効力を発揮します。
+    これまでは、1つの`Promise`インスタンスに対して`then`や`catch`メソッドで1組のコールバック処理を登録するだけでした。'
 - en: 非同期処理が終わったら次の非同期処理というように、複数の非同期処理を順番に扱いたい場合もあります。 Promiseではこのような複数の非同期処理からなる一連の非同期処理を簡単に書く方法が用意されています。
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 非同期処理が終わったら次の非同期処理というように、複数の非同期処理を順番に扱いたい場合もあります。 Promiseではこのような複数の非同期処理からなる一連の非同期処理を簡単に書く方法が用意されています。
 - en: この仕組みのキーとなるのが`then`や`catch`メソッドは常に新しい`Promise`インスタンスを作成して返すという仕様です。 そのため`then`メソッドの返り値である`Promise`インスタンスにさらに`then`メソッドで処理を登録できます。
     これはメソッドチェーンと呼ばれる仕組みですが、この書籍ではPromiseをメソッドチェーンでつなぐことを**Promiseチェーン**と呼びます（メソッドチェーンは「[配列](../array/#method-chain-and-high-order-function)」の章を参照）。
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: この仕組みのキーとなるのが`then`や`catch`メソッドは常に新しい`Promise`インスタンスを作成して返すという仕様です。 そのため`then`メソッドの返り値である`Promise`インスタンスにさらに`then`メソッドで処理を登録できます。
+    これはメソッドチェーンと呼ばれる仕組みですが、この書籍ではPromiseをメソッドチェーンでつなぐことを**Promiseチェーン**と呼びます（メソッドチェーンは「[配列](../array/#method-chain-and-high-order-function)」の章を参照）。
 - en: 次のコードでは、`then`メソッドでPromiseチェーンをしています。 Promiseチェーンでは、Promiseが失敗（**Rejected**な状態）しない限り、順番に`then`メソッドで登録した成功時のコールバック関数を呼び出します。
     そのため、次のコードでは、`1`、`2`と順番にコンソールへログが出力されます。
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、`then`メソッドでPromiseチェーンをしています。 Promiseチェーンでは、Promiseが失敗（**Rejected**な状態）しない限り、順番に`then`メソッドで登録した成功時のコールバック関数を呼び出します。
+    そのため、次のコードでは、`1`、`2`と順番にコンソールへログが出力されます。
 - en: '[PRE24]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: このPromiseチェーンは、次のコードのように毎回新しい変数に入れて処理をつなげるのと結果的には同じ意味となります。
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: このPromiseチェーンは、次のコードのように毎回新しい変数に入れて処理をつなげるのと結果的には同じ意味となります。
 - en: '[PRE25]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: もう少し具体的なPromiseチェーンの例を見ていきましょう。
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: もう少し具体的なPromiseチェーンの例を見ていきましょう。
 - en: 次のコードの`asyncTask`関数はランダムでFulfilledまたはRejected状態の`Promise`インスタンスを返します。 この関数が返す`Promise`インスタンスに対して、`then`メソッドで成功時の処理を書いています。
     `then`メソッドの返り値は新しい`Promise`インスタンスであるため、続けて`catch`メソッドで失敗時の処理を書けます。
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードの`asyncTask`関数はランダムでFulfilledまたはRejected状態の`Promise`インスタンスを返します。 この関数が返す`Promise`インスタンスに対して、`then`メソッドで成功時の処理を書いています。
+    `then`メソッドの返り値は新しい`Promise`インスタンスであるため、続けて`catch`メソッドで失敗時の処理を書けます。
 - en: '[PRE26]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '`asyncTask`関数が成功（resolve）した場合は`then`メソッドで登録した成功時の処理だけが呼び出され、`catch`メソッドで登録した失敗時の処理は呼び出されません。
     一方、`asyncTask`関数が失敗（reject）した場合は`then`メソッドで登録した成功時の処理は呼び出されずに、`catch`メソッドで登録した失敗時の処理だけが呼び出されます。'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '`asyncTask`関数が成功（resolve）した場合は`then`メソッドで登録した成功時の処理だけが呼び出され、`catch`メソッドで登録した失敗時の処理は呼び出されません。
+    一方、`asyncTask`関数が失敗（reject）した場合は`then`メソッドで登録した成功時の処理は呼び出されずに、`catch`メソッドで登録した失敗時の処理だけが呼び出されます。'
 - en: 先ほどのコードにおけるPromiseの状態とコールバック関数は次のような処理の流れとなります。
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 先ほどのコードにおけるPromiseの状態とコールバック関数は次のような処理の流れとなります。
 - en: '![promise-chain](../Images/8725c9e1178b5a8f4700fe3a8210c63b.png)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![promise-chain](../Images/8725c9e1178b5a8f4700fe3a8210c63b.png)'
 - en: Promiseの状態が**Rejected**となった場合は、もっとも近い失敗時の処理（`catch`または`then`の第二引数）が呼び出されます。
     このとき間にある成功時の処理（`then`の第一引数）はスキップされます。
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: Promiseの状態が**Rejected**となった場合は、もっとも近い失敗時の処理（`catch`または`then`の第二引数）が呼び出されます。
+    このとき間にある成功時の処理（`then`の第一引数）はスキップされます。
 - en: 次のコードでは、**Rejected**のPromiseに対して`then` → `then` → `catch`とPromiseチェーンで処理を記述しています。
     このときもっとも近い失敗時の処理（`catch`）が呼び出されますが、間にある2つの成功時の処理（`then`）は実行されません。
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、**Rejected**のPromiseに対して`then` → `then` → `catch`とPromiseチェーンで処理を記述しています。
+    このときもっとも近い失敗時の処理（`catch`）が呼び出されますが、間にある2つの成功時の処理（`then`）は実行されません。
 - en: '[PRE27]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Promiseのコンストラクタの処理の場合と同様に、`then`や`catch`のコールバック関数内で発生した例外は自動的にキャッチされます。 例外が発生したとき、`then`や`catch`メソッドは**Rejected**な`Promise`インスタンスを返します。
     そのため、例外が発生するともっとも近くの失敗時の処理（`catch`または`then`の第二引数）が呼び出されます。
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 与Promise构造函数处理相同，`then`或`catch`中发生的异常将自动捕获。 当发生异常时，`then`或`catch`方法将返回**Rejected**的`Promise`实例。
+    因此，当发生异常时，将调用最接近的失败处理（`catch`或`then`的第二个参数）。
 - en: '[PRE28]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: また、Promiseチェーンで失敗を`catch`メソッドなどで一度キャッチすると、次に呼ばれるのは成功時の処理です。 これは、`then`や`catch`メソッドは**Fulfilled**状態のPromiseインスタンスを作成して返すためです。
     そのため、一度キャッチするとそこからは次の`then`で登録した処理が呼ばれるPromiseチェーンに戻ります。
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，一旦在Promise链中使用`catch`方法捕获失败，下一步调用的是成功处理。 这是因为`then`和`catch`方法返回的是**Fulfilled**状态的Promise实例。
+    因此，一旦捕获，就会返回到使用下一个`then`注册的处理的Promise链。
 - en: '[PRE29]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: このようにPromiseの`then`メソッドや`catch`メソッドをつないで、成功時や失敗時の処理を書いていくことをPromiseチェーンと呼びます。
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这样，通过`then`方法或`catch`方法链接，编写成功或失败的处理被称为Promise链。
 - en: '[](#promise-chain-value)*Promiseチェーンで値を返す*'
+  id: totrans-143
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '[](#promise-chain-value)*在Promise链中返回值*'
 - en: '*Promiseチェーンではコールバックで返した値を次のコールバックへ引数として渡せます。'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在Promise链中，可以通过回调返回的值将其传递给下一个回调函数。'
 - en: '`then`や`catch`メソッドのコールバック関数は数値、文字列、オブジェクトなどの任意の値を返せます。 このコールバック関数が返した値は、次の`then`のコールバック関数へ引数として渡されます。'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: '`then`和`catch`方法的回调函数可以返回数字、字符串、对象等任意值。 回调函数返回的值将传递给下一个`then`的回调函数作为参数。'
 - en: '[PRE30]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: ここでは`then`メソッドを元に解説しますが、`catch`メソッドは`then`メソッドの糖衣構文であるため同じ動作となります。 Promiseチェーンで一度キャッチすると、次に呼ばれるのは成功時の処理となります。
     そのため、`catch`メソッドで返した値は次の`then`メソッドのコールバック関数に引数として渡されます。
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们以`then`方法为基础进行解释，但是`catch`方法是`then`方法的语法糖，因此具有相同的行为。 一旦在Promise链中捕获一次，下一步调用的是成功处理。
+    因此，通过`catch`方法返回的值将作为参数传递给下一个`then`方法的回调函数。
 - en: '[PRE31]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[](#promise-then-return-promise)*コールバック関数で`Promise`インスタンスを返す*'
+  id: totrans-149
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '[](#promise-then-return-promise)*通过回调函数返回`Promise`实例*'
 - en: '*Promiseチェーンで一度キャッチすると、次に呼ばれるのは成功時の処理（`then`メソッド）でした。 これは、コールバック関数で任意の値を返すと、その値で`resolve`された**Fulfilled**状態の`Promise`インスタンスを作成するためです。
     しかし、コールバック関数で`Promise`インスタンスを返した場合は例外的に異なります。'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '*一旦在Promise链中捕获一次，下一步调用的是成功处理（`then`方法）。 这是因为，当回调函数返回任意值时，将创建一个以该值解析为**Fulfilled**状态的`Promise`实例。
+    但是，如果回调函数返回`Promise`实例，则情况就会有所不同。'
 - en: コールバック関数で`Promise`インスタンスを返した場合は、同じ状態を持つ`Promise`インスタンスが`then`や`catch`メソッドの返り値となります。
     つまり`then`メソッドで**Rejected**状態の`Promise`インスタンスを返した場合は、次に呼ばれるのは失敗時の処理です。
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在回调函数中返回`Promise`实例，则`then`或`catch`方法的返回值将是具有相同状态的`Promise`实例。 换句话说，如果在`then`方法中返回**Rejected**状态的`Promise`实例，则下一步调用的是失败处理。
 - en: 次のコードでは、`then`メソッドのコールバック関数で`Promise.reject`メソッドを使って**Rejected**な`Promise`インスタンスを返しています。
     **Rejected**な`Promise`インスタンスは、次の`catch`メソッドで登録した失敗時の処理を呼び出すまで、`then`メソッドの成功時の処理をスキップします。
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，`then`方法的回调函数使用`Promise.reject`方法返回了一个**Rejected**的`Promise`实例。 **Rejected**的`Promise`实例会跳过`then`方法的成功处理，直到调用了下一个`catch`方法的失败处理。
 - en: '[PRE32]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: このコードにおけるPromiseの状態とコールバック関数は次のような処理の流れとなります。
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这段代码中，Promise的状态和回调函数的处理流程如下所示。
 - en: '![then-rejected-promise.png](../Images/6694fa071bb3df0a84426ce082708c0e.png)'
+  id: totrans-155
   prefs: []
   type: TYPE_IMG
+  zh: '![then-rejected-promise.png](../Images/6694fa071bb3df0a84426ce082708c0e.png)'
 - en: 通常は一度`catch`すると次に呼び出されるのは成功時の処理でした。 この`Promise`インスタンスを返す仕組みを使うことで、`catch`してもそのまま**Rejected**な状態を継続できます。
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常情况下，一旦进行了`catch`处理，下一步调用的是成功处理。 使用此`Promise`实例返回机制，即使进行了`catch`处理，也可以保持**Rejected**状态。
 - en: 次のコードでは`catch`メソッドでログを出力しつつ`Promise.reject`メソッドを使って**Rejected**な`Promise`インスタンスを返しています。
     これによって、`main`で発生したエラーのログを取りながら、Promiseチェーンはエラーのまま処理を継続できます。
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，我们在`catch`方法中输出日志，并使用`Promise.reject`方法返回了一个**Rejected**的`Promise`实例。
+    这样，我们可以在处理链中保持错误的同时记录错误日志。
 - en: '[PRE33]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '[](#promise-finally)*[ES2018] Promiseチェーンの最後に処理を書く*'
+  id: totrans-159
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '[](#promise-finally)*[ES2018] 在Promise链的最后写入处理*'
 - en: '*Promiseの`finally`メソッドは成功時、失敗時どちらの場合でも呼び出されるコールバック関数を登録できます。 `try...catch...finally`構文の`finally`節と同様の役割を持つメソッドです。'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Promise的`finally`方法允许注册一个回调函数，在成功或失败时都会被调用。 这类似于`try...catch...finally`结构中的`finally`块。'
 - en: '[PRE34]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 次のコードでは、リソースを取得して`then`で成功時の処理、`catch`で失敗時の処理を登録しています。 また、リソースを取得中かどうかを判定するためのフラグを`isLoading`という変数で管理しています。
     成功失敗どちらにもかかわらず、取得が終わったら`isLoading`は`false`にします。 `then`と`catch`の両方で`isLoading`へ`false`を代入できますが、`finally`メソッドを使うことで代入を一箇所にまとめられます。
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，我们获取资源并在`then`中注册成功处理，在`catch`中注册失败处理。 此外，我们使用一个名为`isLoading`的变量来管理是否正在获取资源。
+    无论成功与否，一旦获取完成，`isLoading`都将设置为`false`。 我们可以在`then`和`catch`中都将`false`分配给`isLoading`，但使用`finally`方法可以将分配集中到一个位置。
 - en: '[PRE35]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '[](#promise-sequential)*Promiseチェーンで逐次処理*'
+  id: totrans-164
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-sequential)*在Promise链中进行顺序处理*'
 - en: '*Promiseチェーンで非同期処理の流れを書く大きなメリットは、非同期処理のさまざまなパターンに対応できることです。'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Promise链中编写异步处理流程的一个主要优点是，它可以适应异步处理的各种模式。'
 - en: ここでは、典型的な例として複数の非同期処理を順番に処理していく逐次処理を考えていきましょう。 Promiseで逐次的な処理といっても難しいことはなく、単純に`then`で非同期処理をつないでいくだけです。
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将考虑逐个处理多个异步处理作为一个典型的例子。 使用Promise进行顺序处理并不复杂，只需简单地使用`then`连接异步处理即可。
 - en: 次のコードでは、Resource AとResource Bを順番に取得しています。 それぞれ取得したリソースを変数`results`に追加し、すべて取得し終わったらコンソールに出力します。
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，我们依次获取Resource A和Resource B。 我们将获取的每个资源添加到变量`results`中，并在所有获取完成后将其输出到控制台。
 - en: '[PRE36]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: '[](#promise-all)*`Promise.all`で複数のPromiseをまとめる*'
+  id: totrans-169
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-all)*使用`Promise.all`将多个Promise组合在一起*'
 - en: '*`Promise.all`を使うことで複数のPromiseを使った非同期処理をひとつのPromiseとして扱えます。'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '*通过使用`Promise.all`，可以将多个Promise作为一个Promise处理。'
 - en: '`Promise.all`メソッドは `Promise`インスタンスの配列を受け取り、新しい`Promise`インスタンスを返します。 その配列のすべての`Promise`インスタンスが**Fulfilled**となった場合は、返り値の`Promise`インスタンスも**Fulfilled**となります。
     一方で、ひとつでも**Rejected**となった場合は、返り値の`Promise`インスタンスも**Rejected**となります。'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.all`方法接受一个`Promise`实例数组，并返回一个新的`Promise`实例。 如果数组中的所有`Promise`实例都处于**Fulfilled**状态，则返回的`Promise`实例也将处于**Fulfilled**状态。
+    反之，如果有一个**Rejected**，则返回的`Promise`实例也将处于**Rejected**状态。'
 - en: 返り値の`Promise`インスタンスに`then`メソッドで登録したコールバック関数には、Promiseの結果をまとめた配列が渡されます。 このときの配列の要素の順番は`Promise.all`メソッドに渡した配列のPromiseの要素の順番と同じになります。
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过`then`方法注册的回调函数，将接收到一个包含Promise结果的数组。 在这种情况下，数组中的元素顺序与传递给`Promise.all`方法的数组的Promise元素的顺序相同。
 - en: '[PRE37]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 先ほどのPromiseチェーンでリソースを取得する例では、Resource Aを取得し終わってからResource Bを取得というように逐次的でした。
     しかし、Resource AとBどちらを先に取得しても問題ない場合は、`Promise.all`メソッドを使って複数のPromiseを1つのPromiseとしてまとめられます。
     また、Resource AとBを同時に取得すればより早い時間で処理が完了します。
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的Promise链中，获取资源的例子是逐步进行的，先获取资源A，然后获取资源B。但是，如果无论是先获取资源A还是B都没有问题，那么可以使用`Promise.all`方法将多个Promise合并为一个Promise。此外，同时获取资源A和B将更快地完成处理。
 - en: 次のコードでは、Resource AとBを同時に取得開始しています。 両方のリソースの取得が完了すると、`then`のコールバック関数にはAとBの結果が配列として渡されます。
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码同时开始获取资源A和B。当两个资源都获取完成后，`then`的回调函数会以数组的形式传递A和B的结果。
 - en: '[PRE38]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 渡したPromiseがひとつでも**Rejected**となった場合は、失敗時の処理が呼び出されます。
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果传递的Promise中有一个变为**Rejected**，则会调用失败时的处理。
 - en: '[PRE39]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: '[](#promise-race)*`Promise.race`*'
+  id: totrans-179
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-race)*`Promise.race`*'
 - en: '*`Promise.all`メソッドは複数のPromiseがすべて完了するまで待つ処理でした。 `Promise.race`メソッドでは複数のPromiseを受け取りますが、Promiseが1つでも完了した（Settled状態となった）時点で次の処理を実行します。'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '*`Promise.all`方法等待多个Promise全部完成。`Promise.race`方法接收��个Promise，但只要有一个Promise完成（变为Settled状态），就会执行下一步操作。'
 - en: '`Promise.race`メソッドは`Promise`インスタンスの配列を受け取り、新しい`Promise`インスタンスを返します。 この新しい`Promise`インスタンスは、配列の中で一番最初に**Settled**状態となった`Promise`インスタンスと同じ状態になります。'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Promise.race`方法接收一个`Promise`实例数组，并返回一个新的`Promise`实例。这个新的`Promise`实例将与数组中第一个**Settled**状态的`Promise`实例具有相同的状态。'
 - en: 配列の中で一番最初に**Settled**となったPromiseが**Fulfilled**の場合は、新しい`Promise`インスタンスも**Fulfilled**になる
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配列の中で一番最初に**Settled**となったPromiseが**Fulfilled**の場合は、新しい`Promise`インスタンスも**Fulfilled**になる
 - en: 配列の中で一番最初に**Settled**となったPromiseが**Rejected**の場合は、新しい`Promise`インスタンスも **Rejected**になる
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配列中第一个**Settled**的Promise如果是**Rejected**，那么新的`Promise`实例也会变为**Rejected**
 - en: つまり、複数のPromiseによる非同期処理を同時に実行して競争（race）させて、一番最初に完了した`Promise`インスタンスに対する次の処理を呼び出します。
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，通过同时执行多个Promise的异步处理并使它们竞争，可以在第一个完成的`Promise`实例上调用下一步处理。
 - en: 次のコードでは、`delay`関数という`timeoutMs`ミリ秒後に**Fulfilled**となる`Promise`インスタンスを返す関数を定義しています。
     `Promise.race`メソッドは1ミリ秒、32ミリ秒、64ミリ秒、128ミリ秒後に完了する`Promise`インスタンスの配列を受け取っています。 この配列の中で一番最初に完了するのは、1ミリ秒後に**Fulfilled**となる`Promise`インスタンスです。
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码定义了一个名为`delay`的函数，该函数返回一个在`timeoutMs`毫秒后变为**Fulfilled**的`Promise`实例。`Promise.race`方法接收一个在1毫秒、32毫秒、64毫秒、128毫秒后完成的`Promise`实例数组。在这个数组中，第一个完成的是在1毫秒后变为**Fulfilled**的`Promise`实例。
 - en: '[PRE40]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: このときに、一番最初に`resolve`された値で`racePromise`も`resolve`されます。 そのため、`then`メソッドのコールバック関数に`1`という値が渡されます。
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，第一个`resolve`的值将使`racePromise`也`resolve`。因此，`then`方法的回调函数将收到值`1`。
 - en: 他の`delay`関数が作成した`Promise`インスタンスも32ミリ秒、64ミリ秒、128ミリ秒後に`resolve`されます。 しかし、`Promise`インスタンスは一度**Settled**（**Fulfilled**または**Rejected**）となると、それ以降は状態も変化せず`then`のコールバック関数も呼び出しません。
     そのため、`racePromise`は何度も`resolve`されますが、初回以外は無視されるため`then`のコールバック関数は一度しか呼び出されません。
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他`delay`函数创建的`Promise`实例也会在32毫秒、64毫秒、128毫秒后被`resolve`。但是，一旦`Promise`实例变为**Settled**（**Fulfilled**或**Rejected**），它将保持不变，不会再改变状态，也不会再调用`then`的回调函数。因此，`racePromise`会被多次`resolve`，但除了第一次外都会被忽略，因此`then`的回调函数只会被调用一次。
 - en: '`Promise.race`メソッドを使うことでPromiseを使った非同期処理のタイムアウトが実装できます。 ここでのタイムアウトとは、一定時間経過しても処理が終わっていないならエラーとして扱う処理のことです。'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`Promise.race`方法可以实现基于Promise的异步操作的超时处理。这里的超时是指，如果经过一定时间仍未完成处理，则将其视为错误处理。
 - en: 次のコードでは`timeout`関数と`dummyFetch`関数が返す`Promise`インスタンスを`Promise.race`メソッドで競争させています。
     `dummyFetch`関数ではランダムな時間をかけてリソースを取得し`resolve`する`Promise`インスタンスを返します。 `timeout`関数は指定ミリ秒経過すると`reject`する`Promise`インスタンスを返します。
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码使用`Promise.race`方法竞争`timeout`函数和`dummyFetch`函数返回的`Promise`实例。`dummyFetch`函数会以随机时间获取资源并`resolve`返回`Promise`实例。`timeout`函数会在指定的毫秒数后`reject`返回`Promise`实例。
 - en: この2つの`Promise`インスタンスを競争させて、`dummyFetch`が先に完了すれば処理は成功、`timeout`が先に完了すれば処理は失敗というタイムアウト処理が実現できます。
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过让这两个`Promise`实例竞争，如果`dummyFetch`先完成，则处理成功，如果`timeout`先完成，则处理失败，可以实现超时处理。
 - en: '[PRE41]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: このようにPromiseを使うことで非同期処理のさまざまなパターンが形成できます。 より詳しいPromiseの使い方については「[JavaScript
     Promiseの本](https://azu.github.io/promises-book/)」というオンラインで公開されている文書にまとめられています。
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Promise可以创建各种异步处理模式。有关更详细的Promise用法，请参阅在线公开文档“[JavaScript Promise的本](https://azu.github.io/promises-book/)”。
 - en: 一方で、Promiseはただのビルトインオブジェクトであるため、非同期処理間の連携をするにはPromiseチェーンのように少し特殊な書き方や見た目になります。
     また、エラーハンドリングについてもPromiseの`catch`メソッドや`finally`メソッドなど`try...catch`構文とよく似た名前を使います。
     しかし、Promiseは構文ではなくただのオブジェクトであるため、それらをメソッドチェーンとして実現しないといけないといった制限があります。
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，Promise只是一个内置对象，因此在处理异步操作之间的协作时，需要使用类似Promise链的特殊写法和外观。此外，关于错误处理，Promise使用`catch`方法和`finally`方法，类似于`try...catch`语法。但是，由于Promise只是一个对象而不是语法，因此必须将它们实现为方法链。
 - en: ES2017では、このPromiseチェーンの不格好な見た目を解決するためにAsync Functionと呼ばれる構文が導入されました。
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: ES2017では、このPromiseチェーンの不格好な見た目を解決するためにAsync Functionと呼ばれる構文が導入されました。
 - en: '[](#async-function)*[ES2017] Async Function*'
+  id: totrans-196
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#async-function)*[ES2017] 异步函数*'
 - en: '*ES2017では、Async Functionという非同期処理を行う関数を定義する構文が導入されました。 Async Functionは通常の関数とは異なり、必ず`Promise`インスタンスを返す関数を定義する構文です。'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: '*ES2017引入了一种称为Async Function的语法，用于定义执行异步操作的函数。 Async Function与普通函数不同，它定义了一个必须返回`Promise`实例的函数。'
 - en: Async Functionは次のように関数の前に`async`をつけることで定義できます。 この`doAsync`関数は常に`Promise`インスタンスを返します。
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过在函数前加上`async`，可以定义Async Function。这个`doAsync`函数总是返回一个`Promise`实例。
 - en: '[PRE42]'
+  id: totrans-199
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: このAsync Functionは次のように書いた場合と同じ意味になります。 Async Functionでは`return`した値の代わりに、`Promise.resolve(返り値)`のように返り値をラップした`Promise`インスタンスを返します。
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个Async Function是这样写的，与下面的写法意思相同。在Async Function中，返回的不是`return`的值，而是将返回值包装成`Promise`实例返回，类似于`Promise.resolve(返回值)`。
 - en: '[PRE43]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 重要なこととしてAsync FunctionはPromiseの上に作られた構文です。 そのためAsync Functionを理解するには、Promiseを理解する必要があることに注意してください。
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是Async Function是建立在Promise之上的语法。因此，请注意要理解Async Function，您需要先理解Promise。
 - en: またAsync Function内では`await`式というPromiseの非同期処理が完了するまで待つ構文が利用できます。 `await`式を使うことで非同期処理を同期処理のように扱えるため、Promiseチェーンで実現していた処理の流れを読みやすく書けます。
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，在Async Function内部，可以使用`await`表达式，该表达式等待Promise的异步操作完成。通过使用`await`表达式，可以像处理同步操作一样处理异步操作，使得处理流程更易于阅读。
 - en: このセクションではAsync Functionと`await`式について見ていきます。
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节将介绍Async Function和`await`表达式。
 - en: '[](#declare-async-function)*Async Functionの定義*'
+  id: totrans-205
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#declare-async-function)*Async Functionの定義*'
 - en: '*Async Functionは関数の定義に`async`キーワードをつけることで定義できます。 JavaScriptの関数定義には関数宣言や関数式、Arrow
     Function、メソッドの短縮記法などがあります。 どの定義方法でも`async`キーワードを前につけるだけでAsync Functionとして定義できます。'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Async Functionは関数の定義に`async`キーワードをつけることで定義できます。 JavaScriptの関数定義には関数宣言や関数式、Arrow
+    Function、メソッドの短縮記法などがあります。 どの定義方法でも`async`キーワードを前につけるだけでAsync Functionとして定義できます。'
 - en: '[PRE44]'
+  id: totrans-207
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: これらのAsync Functionは、次の点以外は通常の関数と同じ性質を持ちます。
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: これらのAsync Functionは、次の点以外は通常の関数と同じ性質を持ちます。
 - en: Async Functionは必ず`Promise`インスタンスを返す
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Async Functionは必ず`Promise`インスタンスを返す
 - en: Async Function内では`await`式が利用できる
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Async Function内では`await`式が利用できる
 - en: '[](#async-function-return-promise)*Async FunctionはPromiseを返す*'
+  id: totrans-211
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#async-function-return-promise)*Async FunctionはPromiseを返す*'
 - en: '*Async Functionとして定義した関数は必ず`Promise`インスタンスを返します。 具体的にはAsync Functionが返す値は次の3つのケースが考えられます。'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Async Functionとして定義した関数は必ず`Promise`インスタンスを返します。 具体的にはAsync Functionが返す値は次の3つのケースが考えられます。'
 - en: Async Functionが値をreturnした場合、その返り値を持つ**Fulfilled**なPromiseを返す
+  id: totrans-213
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Async Functionが値をreturnした場合、その返り値を持つ**Fulfilled**なPromiseを返す
 - en: Async FunctionがPromiseをreturnした場合、その返り値のPromiseをそのまま返す
+  id: totrans-214
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Async FunctionがPromiseをreturnした場合、その返り値のPromiseをそのまま返す
 - en: Async Function内で例外が発生した場合は、そのエラーを持つ**Rejected**なPromiseを返す
+  id: totrans-215
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Async Function内で例外が発生した場合は、そのエラーを持つ**Rejected**なPromiseを返す
 - en: 次のコードでは、Async Functionがそれぞれの返り値によってどのような`Promise`インスタンスを返すかを確認できます。 この1から3の挙動は、Promiseの`then`メソッドの返り値とそのコールバック関数の関係とほぼ同じです。
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、Async Functionがそれぞれの返り値によってどのような`Promise`インスタンスを返すかを確認できます。 この1から3の挙動は、Promiseの`then`メソッドの返り値とそのコールバック関数の関係とほぼ同じです。
 - en: '[PRE45]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: どの場合でもAsync Functionは必ずPromiseを返すことがわかります。 このようにAsync Functionを呼び出す側から見れば、Async
     FunctionはPromiseを返すただの関数と何も変わりません。
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: どの場合でもAsync Functionは必ずPromiseを返すことがわかります。 このようにAsync Functionを呼び出す側から見れば、Async
+    FunctionはPromiseを返すただの関数と何も変わりません。
 - en: '[](#await-expression)*`await`式*'
+  id: totrans-219
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#await-expression)*`await`式*'
 - en: '*`await`式は次の箇所で利用できる式です。 次の箇所以外では`await`式は構文エラーとなるため、利用できません。'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: '*`await`式は次の箇所で利用できる式です。 次の箇所以外では`await`式は構文エラーとなるため、利用できません。'
 - en: Async Functionの関数の直下
+  id: totrans-221
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Async Functionの関数の直下
 - en: ECMAScriptモジュールの直下
+  id: totrans-222
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: ECMAScriptモジュールの直下
 - en: まず最初に、一般的に使われるAsync Functionの関数の直下における`await`式を見ていきます。
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: まず最初に、一般的に使われるAsync Functionの関数の直下における`await`式を見ていきます。
 - en: '`await`式は右辺の`Promise`インスタンスが**Fulfilled**または**Rejected**になるまでその場で非同期処理の完了を待ちます。
     そして`Promise`インスタンスの状態が変わると、次の行の処理を再開します。'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: '`await`式は右辺の`Promise`インスタンスが**Fulfilled**または**Rejected**になるまでその場で非同期処理の完了を待ちます。
+    そして`Promise`インスタンスの状態が変わると、次の行の処理を再開します。'
 - en: '[PRE46]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 普通の処理の流れでは、非同期処理を実行した場合にその非同期処理の完了を待つことなく、次の行（次の文）を実行します。 しかし`await`式では非同期処理を実行して完了するまで、次の行（次の文）を実行しません。
     そのため`await`式を使うことで非同期処理が同期処理のように上から下へと順番に実行するような処理順で書けます。
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 普通の処理の流れでは、非同期処理を実行した場合にその非同期処理の完了を待つことなく、次の行（次の文）を実行します。 しかし`await`式では非同期処理を実行して完了するまで、次の行（次の文）を実行しません。
+    そのため`await`式を使うことで非同期処理が同期処理のように上から下へと順番に実行するような処理順で書けます。
 - en: '[PRE47]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: '`await`式は、`await`の右辺（`Promise`インスタンス）の評価結果を値として返します（**式**については「[文と式](../statement-expression/)」の章を参照）。
     この`await`式の評価方法は評価するPromiseの状態（**Fulfilled**または**Rejected**）によって異なります。'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: '`await`式は、`await`の右辺（`Promise`インスタンス）の評価結果を値として返します（**式**については「[文と式](../statement-expression/)」の章を参照）。
+    この`await`式の評価方法は評価するPromiseの状態（**Fulfilled**または**Rejected**）によって異なります。'
 - en: '`await`の右辺のPromiseが**Fulfilled**となった場合は、resolveされた値が`await`式の返り値となります。'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: '`await`の右辺のPromiseが**Fulfilled**となった場合は、resolveされた値が`await`式の返り値となります。'
 - en: 次のコードでは、`await`の右辺にある`Promise`インスタンスは`42`という値でresolveされています。 そのため`await`式の返り値は`42`となり、`value`変数にもその値が入ります。
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、`await`の右辺にある`Promise`インスタンスは`42`という値でresolveされています。 そのため`await`式の返り値は`42`となり、`value`変数にもその値が入ります。
 - en: '[PRE48]'
+  id: totrans-231
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: これはPromiseを使って書くと次のコードと同様の意味となります。 `await`式を使うことでコールバック関数を使わずに非同期処理の流れを表現できていることがわかります。
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: これはPromiseを使って書くと次のコードと同様の意味となります。 `await`式を使うこでコールバック関数を使わずに非同期処理の流れを表現できていることがわかります。
 - en: '[PRE49]'
+  id: totrans-233
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: '`await`式の右辺のPromiseが**Rejected**となった場合は、その場でエラーを`throw`します。 またAsync Function内で発生した例外は自動的にキャッチされます。
     そのため`await`式でPromiseが**Rejected**となった場合は、そのAsync Functionが**Rejected**なPromiseを返すことになります。'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: '`await`式の右辺のPromiseが**Rejected**となった場合は、その場でエラーを`throw`します。 またAsync Function内で発生した例外は自動的にキャッチされます。
+    そのため`await`式でPromiseが**Rejected**となった場合は、そのAsync Functionが**Rejected**なPromiseを返すことになります。'
 - en: 次のコードでは、`await`の右辺にある`Promise`インスタンスが**Rejected**の状態になっています。 そのため`await`式は`エラー`を`throw`します。そのエラーを自動的にキャッチするため`asyncMain`関数は**Rejected**なPromiseを返します。
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、`await`の右辺にある`Promise`インスタンスが**Rejected**の状態になっています。 そのため`await`式は`エラー`を`throw`します。そのエラーを自動的にキャッチするため`asyncMain`関数は**Rejected**なPromiseを返します。
 - en: '[PRE50]'
+  id: totrans-236
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: '`await`式がエラーを`throw`するということは、そのエラーは`try...catch`構文でキャッチできます（詳細は「[例外処理](../error-try-catch/)」の章の「[try...catch構文](../error-try-catch/#try-catch)」を参照）。
     通常の非同期処理では完了する前に次の行が実行されてしまうため`try...catch`構文ではエラーをキャッチできませんでした。 そのためPromiseでは`catch`メソッドを使ってPromise内で発生したエラーをキャッチしていました。'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '`await`式がエラーを`throw`するということは、そのエラーは`try...catch`構文でキャッチできます（詳細は「[例外処理](../error-try-catch/)」の章の「[try...catch構文](../error-try-catch/#try-catch)」を参照）。
+    通常の非同期処理では完了する前に次の行が実行されてしまうため`try...catch`構文ではエラーをキャッチできませんでした。 そのためPromiseでは`catch`メソッドを使ってPromise内で発生したエラーをキャッチしていました。'
 - en: 次のコードでは、`await`式で発生した例外を`try...catch`構文でキャッチしています。 そのため、`asyncMain`関数はResolvedなPromiseを返し、`catch`メソッドのコールバック関数は呼び出されません。
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、`await`式で発生した例外を`try...catch`構文でキャッチしています。 そのため、`asyncMain`関数はResolvedなPromiseを返し、`catch`メソッドのコールバック関数は呼び出されません。
 - en: '[PRE51]'
+  id: totrans-239
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: このように`await`式を使うことで、`try...catch`構文のように非同期処理を同期処理と同じ構文を使って扱えます。 またコードの見た目も同期処理と同じように、その行（その文）の処理が完了するまで次の行を評価しないという分かりやすい形になるのは大きな利点です。
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: このように`await`式を使うことで、`try...catch`構文のように非同期処理を同期処理と同じ構文を使って扱えます。 またコードの見た目も同期処理と同じように、その行（その文）の処理が完了するまで次の行を評価しないという分かりやすい形になるのは大きな利点です。
 - en: '[](#promise-chain-to-async-function)*Promiseチェーンを`await`式で表現する*'
+  id: totrans-241
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#promise-chain-to-async-function)*Promiseチェーンを`await`式で表現する*'
 - en: '*Async Functionと`await`式を使うことでPromiseチェーンとして表現していた非同期処理を同期処理のような見た目で書けます。 まずは、Promiseチェーンで複数の非同期処理を逐次的に行うケースを見ていきます。
     その後に、同様の処理をAsync Functionと`await`式で書き直して比較してみます。'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Async Functionと`await`式を使うことでPromiseチェーンとして表現していた非同期処理を同期処理のような見た目で書けます。 まずは、Promiseチェーンで複数の非同期処理を逐次的に行うケースを見ていきます。
+    その後に、同様の処理をAsync Functionと`await`式で書き直して比較してみます。'
 - en: 次のコードの`fetchAB`関数はリソースAとリソースBを順番に取得する処理をPromiseチェーンで書いています。
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードの`fetchAB`関数はリソースAとリソースBを順番に取得する処理をPromiseチェーンで書いています。
 - en: '[PRE52]'
+  id: totrans-244
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 同様の処理をAsync Functionと`await`式で書くと次のように書けます。 `await`式を使ってリソースが取得できるまで待ち、その結果を変数`results`に追加していくという形で逐次処理が実装できます。
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 同様の処理をAsync Functionと`await`式で書くと次のように書けます。 `await`式を使ってリソースが取得できるまで待ち、その結果を変数`results`に追加していくという形で逐次処理が実装できます。
 - en: '[PRE53]'
+  id: totrans-246
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: Promiseチェーンで`fetchAB`関数を書いた場合は、コールバックの中で処理するためややこしい見た目になりがちです。 一方、Async Functionと`await`式で書いた場合は、取得と追加を順番に行うだけとなり、ネストがなく、見た目はシンプルです。
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: Promiseチェーンで`fetchAB`関数を書いた場合は、コールバックの中で処理するためややこしい見た目になりがちです。 一方、Async Functionと`await`式で書いた場合は、取得と追加を順番に行うだけとなり、ネストがなく、見た目はシンプルです。
 - en: '[](#async-function-combination)*Async Functionと組み合わせ*'
+  id: totrans-248
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#async-function-combination)*Async Functionと組み合わせ*'
 - en: '*これまでで基本的なAsync Functionの動きを見てきましたが、他の構文やPromise APIと組み合わせたAsync Functionの使い方を見ていきましょう。'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: '*これまでで基本的なAsync Functionの動きを見てきましたが、他の構文やPromise APIと組み合わせたAsync Functionの使い方を見ていきましょう。'
 - en: '[](#async-function-array)*Async Functionと反復処理*'
+  id: totrans-250
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#async-function-array)*Async Functionと反復処理*'
 - en: '*複数の非同期処理を行う際に、Async Functionはforループなどの反復処理と組み合わせることが可能です。'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '*複数の非同期処理を行う際に、Async Functionはforループなどの反復処理と組み合わせることが可能です。'
 - en: 次のコードでは、指定したリソースのパスの配列を渡してそれらを順番に取得する`fetchResources`関数を実装しています。 Async Function内でfor文を使った反復処理を行い、forループの中で`await`文を使ってリソースの取得を待ち、その結果を追加しています。
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、指定したリソースのパスの配列を渡してそれらを順番に取得する`fetchResources`関数を実装しています。 Async Function内でfor文を使った反復処理を行い、forループの中で`await`文を使ってリソースの取得を待ち、その結果を追加しています。
 - en: '[PRE54]'
+  id: totrans-253
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: Async Functionでは、非同期処理であってもforループのような既存の構文と組み合わせて利用することが簡単です。 Promiseのみの場合は、Promiseチェーンでコールバック関数を使った反復処理を実装する必要があります。
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: Async Functionでは、非同期処理であってもforループのような既存の構文と組み合わせて利用することが簡単です。 Promiseのみの場合は、Promiseチェーンでコールバック関数を使った反復処理を実装する必要があります。
 - en: '[](#relationship-promise-async-function)*Promise APIとAsync Functionを組み合わせる*'
+  id: totrans-255
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#relationship-promise-async-function)*Promise APIとAsync Functionを組み合わせる*'
 - en: '*Async Functionと`await`式を使うことで、非同期処理を同期処理のような見た目で書けます。 一方で同期処理のような見た目となるため、複数の非同期処理を反復処理する場合に無駄な待ち時間を作ってしまうコードを書きやすくなります。'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Async Functionと`await`式を使うことで、非同期処理を同期処理のような見た目で書けます。 一方で同期処理のような見た目となるため、複数の非同期処理を反復処理する場合に無駄な待ち時間を作ってしまうコードを書きやすくなります。'
 - en: 先ほどの`fetchResources`関数ではリソースを順番に1つずつ取得していました。 たとえば、リソースAとBを取得しようとした場合にかかる時間は、リソースAとBの取得時間の合計となります。
     このとき、リソースAに1秒、リソースBに2秒かかるとした場合、すべてのリソースを取得するのに3秒かかります。
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 先ほどの`fetchResources`関数ではリソースを順番に1つずつ取得していました。 たとえば、リソースAとBを取得しようとした場合にかかる時間は、リソースAとBの取得時間の合計となります。
+    このとき、リソースAに1秒、リソースBに2秒かかるとした場合、すべてのリソースを取得するのに3秒かかります。
 - en: 取得する順番に意味がない場合は、複数のリソースを同時に取得することで余計な待ち時間を解消できます。 先ほどの例ならば、リソースAとBを同時に取得すれば、最大でもリソースBの取得にかかる2秒程度ですべてのリソースが取得できるはずです。
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 取得する順番に意味がない場合は、複数のリソースを同時に取得することで余計な待ち時間を解消できます。 先ほどの例ならば、リソースAとBを同時に取得すれば、最大でもリソースBの取得にかかる2秒程度ですべてのリソースが取得できるはずです。
 - en: Promiseチェーンでは`Promise.all`メソッドを使って、複数の非同期処理を1つの`Promise`インスタンスにまとめることで同時に取得していました。
     `await`式が評価するのは`Promise`インスタンスであるため、`await`式も`Promise.all`メソッドと組み合わせて利用できます。
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: Promiseチェーンでは`Promise.all`メソッドを使って、複数の非同期処理を1つの`Promise`インスタンスにまとめることで同時に取得していました。
+    `await`式が評価するのは`Promise`インスタンスであるため、`await`式も`Promise.all`メソッドと組み合わせて利用できます。
 - en: 次のコードでは、`Promise.all`メソッドとAsync Functionを組み合わせて、同時にリソースを取得する`fetchAllResources`関数を実装しています。
     `Promise.all`メソッドは複数のPromiseを配列で受け取り、それを1つのPromiseとしてまとめたものを返す関数です。 `Promise.all`メソッドの返す`Promise`インスタンスを`await`することで、非同期処理の結果を配列としてまとめて取得できます。
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードでは、`Promise.all`メソッドとAsync Functionを組み合わせて、同時にリソースを取得する`fetchAllResources`関数を実装しています。
+    `Promise.all`メソッドは複数のPromiseを配列で受け取り、それを1つのPromiseとしてまとめたものを返す関数です。 `Promise.all`メソッドの返す`Promise`インスタンスを`await`することで、非同期処理の結果を配列としてまとめて取得できます。
 - en: '[PRE55]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: このようにAsync Functionや`await`式は既存のPromise APIと組み合わせて利用できます。 Async Functionも内部的にPromiseの仕組みを利用しているため、両者は対立関係ではなく共存関係になります。
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: このようにAsync Functionや`await`式は既存のPromise APIと組み合わせて利用できます。 Async Functionも内部的にPromiseの仕組みを利用しているため、両者は対立関係ではなく共存関係になります。
 - en: '[](#await-in-async-function)*`await`式はAsync Functionの直下でのみ利用可能*'
+  id: totrans-263
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#await-in-async-function)*`await`式はAsync Functionの直下でのみ利用可能*'
 - en: '*Async Functionで`await`式を利用する際には、`await`式が関数の直下でのみ利用可能な点に注意が必要です。'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Async Functionで`await`式を利用する際には、`await`式が関数の直下でのみ利用可能な点に注意が必要です。'
 - en: 次のコードのように、Async Functionではない通常の関数で`await`式を使うと構文エラー（`SyntaxError`）となります。 これは、間違った`await`式の使い方を防止するための仕様です。
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 次のコードのように、Async Functionではない通常の関数で`await`式を使うと構文エラー（`SyntaxError`）となります。 これは、間違った`await`式の使い方を防止するための仕様です。
 - en: '[PRE56]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: Async Function内で`await`式を使って処理を待っている間も、関数の外側では通常どおり処理が進みます。 次のコードを実行してみると、Async
     Function内で`await`しても、Async Function外の処理は停止していないことがわかります。
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: Async Function内で`await`式を使って処理を待っている間も、関数の外側では通常どおり処理が進みます。 次のコードを実行してみると、Async
+    Function内で`await`しても、Async Function外の処理は停止していないことがわかります。
 - en: '[PRE57]'
+  id: totrans-268
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: このように`await`式でAsync Function内の非同期処理を一時停止しても、Async Function外の処理が停止するわけではありません。
     Async Function外の処理も停止できてしまうと、JavaScriptでは基本的にメインスレッドで多くの処理をするため、UIを含めた他の処理が止まってしまいます。
     これが`await`式がAsync Functionの外で利用できない理由の1つです。
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: このように`await`式でAsync Function内の非同期処理を一時停止しても、Async Function外の処理が停止するわけではありません。
+    Async Function外の処理も停止できてしまうと、JavaScriptでは基本的にメインスレッドで多くの処理をするため、UIを含めた他の処理が止まってしまいます。
+    これが`await`式がAsync Functionの外で利用できない理由の1つです。
 - en: この仕様は、Async Functionをコールバック関数内で利用しようとしたときに混乱を生む場合があります。 具体例として、先ほどの逐次的にリソースを取得する`fetchResources`関数を見てみます。
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: この仕様は、Async Functionをコールバック関数内で利用しようとしたときに混乱を生む場合があります。 具体例として、先ほどの逐次的にリソースを取得する`fetchResources`関数を見てみます。
 - en: 先ほどの`fetchResources`関数ではforループと`await`式を利用していました。 このときにforループの代わりにArrayの`forEach`メソッドは利用できません。
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 先ほどの`fetchResources`関数ではforループと`await`式を利用していました。 このときにforループの代わりにArrayの`forEach`メソッドは利用できません。
 - en: 単純に`fetchResources`関数のforループから`Array`の`forEach`メソッドに書き換えてみると、構文エラー（`SyntaxError`）が発生してしまいます。
     これは`await`式がAsync Functionの中でのみ利用ができる構文であるためです。
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 単純に`fetchResources`関数のforループから`Array`の`forEach`メソッドに書き換えてみると、構文エラー（`SyntaxError`）が発生してしまいます。
+    これは`await`式がAsync Functionの中でのみ利用ができる構文であるためです。
 - en: '[PRE58]'
+  id: totrans-273
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: そのため、Arrayの`forEach`メソッドのコールバック関数もAsync Functionとして定義しないと、コールバック関数では`await`式が利用できません。
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: そのため、Arrayの`forEach`メソッドのコールバック関数もAsync Functionとして定義しないと、コールバック関数では`await`式が利用できません。
 - en: この構文エラーはArrayの`forEach`メソッドのコールバック関数をAsync Functionにすることで解決できます。 しかし、コールバック関数をAsync
     Functionにしただけでは、`fetchResources`関数は常に空の配列で解決されるPromiseを返すという意図しない挙動となります。
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: この構文エラーはArrayの`forEach`メソッドのコールバック関数をAsync Functionにすることで解決できます。 しかし、コールバック関数をAsync
+    Functionにしただけでは、`fetchResources`関数は常に空の配列で解決されるPromiseを返すという意図しない挙動となります。
 - en: '[PRE59]'
+  id: totrans-276
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: なぜこのようになるかを`fetchResources`関数の動きを見てみましょう。
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: なぜこのようになるかを`fetchResources`関数の動きを見てみましょう。
 - en: '`forEach`メソッドのコールバック関数としてAsync Functionを渡し、コールバック関数中で`await`式を利用して非同期処理の完了を待っています。
     しかし、この非同期処理の完了を待つのはコールバック関数Async Functionの中だけで、コールバック関数の外側では`fetchResources`関数の処理が進んでいます。'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
 - en: 次のように`fetchResources`関数にコンソールログを入れてみると動作がわかりやすいでしょう。 `forEach`メソッドのコールバック関数が完了するのは、`fetchResources`関数の呼び出しがすべて終わった後になります。
     そのため、`forEach`メソッドのコールバック関数でリソースの取得が完了する前に、`fetchResources`関数はその時点の`results`である空の配列で解決してしまいます。
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE60]'
+  id: totrans-280
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: このように、Async Functionとコールバック関数を組み合わせた場合には気をつける必要があります。
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
 - en: この問題を解決する方法として、最初の`fetchResources`関数のように、コールバック関数を使わずにすむforループと`await`式を組み合わせる方法があります。
     また、`fetchAllResources`関数のように、複数の非同期処理を1つのPromiseにまとめることでループ中に`await`式を使わないようにする方法があります。
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
 - en: '[](#top-level-await-in-module)*[ES2022] Module直下での`await`式*'
+  id: totrans-283
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '*ES2021までは、`await`式はAsync Functionの直下でのみ利用可能なことを紹介しました。 ES2022では、これに加えてModuleの直下ではAsync
     Functionで囲まなくても`await`式が利用できます。'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
 - en: 最初に「[JavaScriptとは](../introduction/)」の章において、JavaScriptには実行コンテキストとして"Script"と"Module"があるという話をしました。
     たとえば、ブラウザでは`<script>`と書けば"Script"として実行され、`<script type="module">`と書けば"Module"として実行されます。
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
 - en: '"Module"としてJavaScriptを実行した時のみ、トップレベル（もっとも外側のスコープ）においてはAsync Functionなしで`await`式が利用できます。'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
 - en: たとえば、次のコードを"Module"として実行した場合は、Async Functionなしで`await`式が利用できていることがわかります。 これは、"Module"ではトップレベルでの`await`が許可されているためです。
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE61]'
+  id: totrans-288
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: このようにModuleのトップレベルにおいて`await`式が利用できることは、Top-Level `await`と呼ばれます。
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
 - en: ES2021まではAsync Functionの直下のみでしか`await`式が利用できませんでした。 そのため、メイン処理のように他の処理を呼び出すスクリプトの開始地点で`await`を使いたい場合は、Async
     Functionを使った即時実行関数で`await`を囲むケースがありました。
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE62]'
+  id: totrans-291
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: しかし、ES2022ではTop-Level `await`が利用できるようになったため、"Module"においてはこのような即時実行関数は不要となります。
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
 - en: '[](#error-first-callback)*[コラム] エラーファーストコールバック*'
+  id: totrans-293
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*ECMAScript 2015（ES2015）でPromiseが仕様に入るまで、非同期処理中に発生した例外を扱う仕様はありませんでした。 このため、ES2015より前までは、**エラーファーストコールバック**という非同期処理中に発生した例外を扱う方法をコミュニティで決めたルールが広く使われていました。'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
 - en: エラーファーストコールバックとは、非同期処理におけるコールバック関数の呼び出し方を決めた次のようなルールです。
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
 - en: 処理が失敗した場合は、コールバック関数の1番目の引数にエラーオブジェクトを渡して呼び出す
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 処理が成功した場合は、コールバック関数の1番目の引数には`null`を渡し、2番目以降の引数に成功時の結果を渡して呼び出す
+  id: totrans-297
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: つまり、ひとつのコールバック関数で失敗した場合と成功した場合の両方を扱うルールとなります。
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
 - en: たとえば、Node.jsでは`fs.readFile`関数というファイルシステムからファイルをロードする非同期処理の関数があります。 指定したパスのファイルを読むため、ファイルが存在しない場合やアクセス権限の問題から読み取りに失敗することがあります。
     そのため、`fs.readFile`関数の第2引数に渡すコールバック関数にはエラーファーストコールバックスタイルの関数を渡します。
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
 - en: ファイルを読み込むことに失敗した場合は、コールバック関数の1番目の引数に`Error`オブジェクトが渡されます。 ファイルを読み込むことに成功した場合は、コールバック関数の1番目の引数に`null`、2番目の引数に読み込んだデータを渡します。
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE63]'
+  id: totrans-301
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'このエラーファーストコールバックはNode.jsでは広く使われ、Node.jsの標準APIでも利用されています。 詳しい扱い方については、「[ユースケース:
     Node.jsでCLIアプリケーション](../../use-case/nodecli/)」の章にて紹介します。'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
 - en: 実際にエラーファーストコールバックで非同期な例外処理を扱うコードを書いてみましょう。
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
 - en: 次のコードの`dummyFetch`関数は、疑似的なリソースの取得をする非同期な処理です。 第1引数に任意のパスを受け取り、第2引数にエラーファーストコールバックスタイルの関数を受け取ります。
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
 - en: この`dummyFetch`関数は、任意のパスにマッチするリソースがある場合には、第2引数のコールバック関数に`null`とレスポンスオブジェクトを渡して呼び出します。
     一方、任意のパスにマッチするリソースがない場合には、第2引数のコールバック関数にエラーオブジェクトを渡して呼び出します。
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE64]'
+  id: totrans-306
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: このように、コールバック関数の1番目の引数にはエラーオブジェクトまたは`null`を入れ、それ以降の引数にデータを渡すというルールを**エラーファーストコールバック**と呼びます。
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
 - en: エラーファーストコールバックは言語の仕様ではなく、非同期処理を扱う関数の呼び出し方をコミュニティで決めたルールです。 そのため、エラーファーストコールバックというルールを破ってもコードが動かなくなるわけではありません。
     また、エラーファーストコールバックはPromiseとは異なり、コールバック内で例外が発生した場合に自動的にエラーをキャッチできる仕組みはありません。
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
 - en: Promiseが標準化されて以降は、多くの非同期APIはPromiseベースのAPIとして提供されています。 これはNode.jsのコアモジュールも同様で、現在（Node.js
     v20.11.1）ではPromiseベースのAPIが提供されています。 そのため、エラーファーストコールバックを新しいコードで利用することはかなり限定的となっています。
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 自从Promise标准化以来，许多异步API都以Promise为基础提供。这也适用于Node.js的核心模块，目前（Node.js v20.11.1）提供了基于Promise的API。因此，在新代码中使用错误优先回调的情况相当有限。
 - en: '[](#conclusion)*まとめ*'
+  id: totrans-310
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#conclusion)*まとめ*'
 - en: '*この章では、非同期処理に関するPromise、Async Functionについて学びました。'
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在本章中，我们学习了关于Promise和Async Function的异步处理。'
 - en: 非同期処理はその処理が終わるのを待つ前に次の処理を評価すること
+  id: totrans-312
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 非同期処理是在等待处理完成之前评估下一个处理的过程
 - en: 非同期処理であってもメインスレッドで実行されることがある
+  id: totrans-313
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使是异步处理，也可能在主线程中执行
 - en: Promiseは、ES2015で導入された非同期処理を扱うビルトインオブジェクト
+  id: totrans-314
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Promise是处理异步操作的内置对象，引入自ES2015
 - en: Async Functionは、ES2017で導入された非同期処理を扱う構文
+  id: totrans-315
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Async Function是处理异步操作的语法，引入自ES2017
 - en: Async FunctionはPromiseの上に作られた構文であるため、Promiseと組み合わせて利用する
+  id: totrans-316
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Async Function是建立在Promise之上的语法，因此与Promise结合使用
 - en: エラーファーストコールバックは、非同期処理での例外を扱うルールの1つで、Node.jsで広く使われていた
+  id: totrans-317
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 错误优先回调是处理异步操作中异常的一种规则，在Node.js中被广泛使用。
 - en: PromiseやAsync Functionの応用パターンについては「[JavaScript Promiseの本](https://azu.github.io/promises-book/)」も参照してください。******************************
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关Promise和Async Function的应用模式，请参考「[JavaScript Promiseの本](https://azu.github.io/promises-book/)」。
