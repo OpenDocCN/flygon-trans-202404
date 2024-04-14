@@ -1,153 +1,216 @@
 - en: Promiseを活用する
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 原文：[https://jsprimer.net/use-case/ajaxapp/promise/](https://jsprimer.net/use-case/ajaxapp/promise/)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: ここまでのセクションで、Fetch APIを使ってAjax通信を行い、サーバーから取得したデータを表示できました。 最後に、Fetch APIの返り値でもある**Promise**を活用してソースコードを整理することで、エラーハンドリングをしっかり行います。
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: '[](#split-function)*関数の分割*'
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*まずは、大きくなりすぎた`fetchUserInfo`関数を整理しましょう。 この関数では、Fetch APIを使ったデータの取得・HTML文字列の組み立て・組み立てたHTMLの表示をしています。
     そこで、HTML文字列を組み立てる`createView`関数とHTMLを表示する`displayView`関数を作り、処理を分割します。'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
 - en: また、後述するエラーハンドリングを行いやすくするため、アプリケーションにエントリーポイントを設けます。 `index.js`に新しく`main`関数を作り、`main`関数から`fetchUserInfo`関数を呼び出すようにします。
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-6
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: ボタンのclickイベントで呼び出す関数もこれまでの`fetchUserInfo`関数から`main`関数に変更します。
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
 - en: index.html
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-9
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[](#error-handling)*Promiseのエラーハンドリング*'
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*次に`fetchUserInfo`関数を変更し、Fetch APIの返り値でもあるPromiseオブジェクトを`return`します。 この変更によって、`fetchUserInfo`関数を呼び出す`main`関数のほうで非同期処理の結果を扱えるようになります。
     Promiseチェーンの中で投げられたエラーは、Promiseの`catch`メソッドを使って一箇所で受け取れます。'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: 次のコードでは、`fetchUserInfo`関数から返されたPromiseオブジェクトを、`main`関数でエラーハンドリングしてログを出力します。
     `fetchUserInfo`関数の`catch`メソッドでハンドリングしていたエラーは、`main`関数の`catch`メソッドでハンドリングされます。
     一方、Responseの`ok`プロパティで判定していた400や500などのエラーレスポンスがそのままでは`main`関数でハンドリングできません。 そこで、`Promise.reject`メソッドを使ってRejectedなPromiseを返し、Promiseチェーンをエラーの状態にします。
     Promiseチェーンがエラーとなるため、`main`関数の`catch`でハンドリングできます。
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '[](#refactor-promise-chain)*Promiseチェーンのリファクタリング*'
+  id: totrans-14
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '*現在の`fetchUserInfo`関数はデータの取得に加えて、HTMLの組み立て（`createView`）と表示（`displayView`）も行っています。
     `fetchUserInfo`関数に処理が集中して見通しが悪いため、`fetchUserInfo`関数はデータの取得だけを行うように変更します。 併せて`main`関数で、データの取得（`fetchUserInfo`）、HTMLの組み立て（`createView`）と表示（`displayView`）という一連の流れをPromiseチェーンで行うように変更していきます。'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
 - en: Promiseの`then`メソッドでつながるPromiseチェーンは、`then`に渡されたコールバック関数の返り値をそのまま次の`then`へ渡します。
     ただし、コールバック関数の返り値がPromiseである場合は、そのPromiseで解決された値を次の`then`に渡します。 つまり、`then`のコールバック関数が同期処理から非同期処理に変わったとしても、次の`then`が受け取る値の型は変わらないということです。
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
 - en: Promiseチェーンを使って処理を分割する利点は、同期処理と非同期処理を区別せずに連鎖できることです。 一般に、同期的に書かれた処理を後から非同期処理へと変更するのは、全体を書き換える必要があるため難しいです。
     そのため、最初から処理を分けておき、処理を`then`を使ってつなぐことで、変更に強いコードを書けます。 どのように処理を区切るかは、それぞれの関数が受け取る値の型と、返す値の型に注目するのがよいでしょう。
     Promiseチェーンで処理を分けることで、それぞれの処理が簡潔になりコードの見通しがよくなります。
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
 - en: '`index.js`の`fetchUserInfo`関数と`main`関数を次のように書き換えます。 まず、`fetchUserInfo`関数がResponseの`json`メソッドの返り値をそのまま返すように変更します。
     Responseの`json`メソッドの返り値はJSONオブジェクトで解決されるPromiseなので、次の`then`ではユーザー情報のJSONオブジェクトが渡されます。
     次に、`main`関数が`fetchUserInfo`関数のPromiseチェーンで、HTMLの組み立て（`createView`）と表示（`displayView`）を行うように変更します。'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '[](#rewrite-to-async-function)*Async Functionへの置き換え*'
+  id: totrans-20
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: '*Promiseチェーンによって、Promiseの非同期処理と同じ見た目で同期処理を記述できるようになりました。 さらにAsync Functionを使うと、同期処理と同じ見た目でPromiseの非同期処理を記述できるようになります。
     Promiseの`then`メソッドによるコールバック関数の入れ子がなくなり、手続き的で可読性が高いコードになります。 また、エラーハンドリングも同期処理と同じく`try...catch`構文を使うことができます。'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
 - en: '`main`関数を次のように書き換えましょう。まず関数宣言の前に`async`をつけてAsync Functionにしています。 次に`fetchUserInfo`関数の呼び出しに`await`をつけます。
     これによりPromiseに解決されたJSONオブジェクトを`userInfo`変数に代入できます。'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: もし`fetchUserInfo`関数の中で例外が投げられた場合は、`try...catch`構文でエラーハンドリングできます。 このように、あらかじめ非同期処理の関数がPromiseを返すようにしておくと、Async
     Functionにリファクタリングしやすくなります。
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[](#changeable-userid)*ユーザーIDを変更できるようにする*'
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: '*仕上げとして、今まで`js-primer-example`で固定としていたユーザーIDを変更できるようにしましょう。 index.htmlに`<input>`タグを追加し、JavaScriptから値を取得するために`userId`というIDを付与しておきます。'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '*作为最后一步，让我们修改之前在`js-primer-example`中固定的用户ID。 在index.html中添加`<input>`标签，并为从JavaScript中获取值而赋予一个名为`userId`的ID。'
 - en: index.html
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: index.html
 - en: '[PRE5]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: index.jsにも`<input>`タグから値を受け取るための処理を追加すると、最終的に次のようになります。
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在index.js中添加处理来自`<input>`标签的值的代码后，最终结果如下。
 - en: index.js
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: index.js
 - en: '[PRE6]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: アプリケーションを実行すると、次のようになります。 要件を満たすことができたので、このアプリケーションはこれで完成です。
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行应用程序后，情况如下。 由于满足了要求，因此该应用程序已完成。
 - en: '![完成したアプリケーション](../Images/15c5ac161b62092e5c6077e19e7195b1.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![完成的应用程序](../Images/15c5ac161b62092e5c6077e19e7195b1.png)'
 - en: '[](#section-checklist)*このセクションのチェックリスト*'
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#section-checklist)*本节的检查清单*'
 - en: '**   HTMLの組み立てと表示の処理を`createView`関数と`displayView`関数に分離した'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '**将HTML的构建和显示逻辑分离到`createView`函数和`displayView`函数中**'
 - en: '`main`関数を宣言し、`fetchUserInfo`関数が返すPromiseのエラーハンドリングを行った'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 声明了`main`函数，并处理了`fetchUserInfo`函数返回的Promise的错误
 - en: Promiseチェーンを使って`fetchUserInfo`関数をリファクタリングした
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Promise链对`fetchUserInfo`函数进行了重构
 - en: '[Async Function](../../../basic/async/#async-function) を使って`main`関数をリファクタリングした'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用[Async Function](../../../basic/async/#async-function)对`main`函数进行了重构
 - en: '`index.html`に`<input>`タグを追加し、`getUserId`関数でユーザーIDを取得した'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在`index.html`中添加`<input>`标签，并在`getUserId`函数中获取用户ID
 - en: この章で作成したアプリは次のURLで確認できます。
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章创建的应用程序可以在以下URL中查看。
 - en: '[https://jsprimer.net/use-case/ajaxapp/promise/example/](https://jsprimer.net/use-case/ajaxapp/promise/example/)******'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://jsprimer.net/use-case/ajaxapp/promise/example/](https://jsprimer.net/use-case/ajaxapp/promise/example/)******'
