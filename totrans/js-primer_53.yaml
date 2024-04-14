@@ -1,400 +1,648 @@
 - en: イベントとモデル
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: イベントとモデル
 - en: 原文：[https://jsprimer.net/use-case/todoapp/event-model/](https://jsprimer.net/use-case/todoapp/event-model/)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://jsprimer.net/use-case/todoapp/event-model/](https://jsprimer.net/use-case/todoapp/event-model/)
 - en: Todoアイテムを追加する機能を実装しましたが、イベントを受け取って直接DOMを更新する方法には柔軟性がないという問題があります。 また「Todoアイテムの更新」という機能を実装するには、追加したTodoアイテム要素を識別する方法が必要です。
     具体的には、Todoアイテムごとに`id`属性などのユニークな識別子がないため、特定のアイテムを指定して更新や削除をする機能が実装できません。
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Todoアイテムを追加する機能を実装しましたが、イベントを受け取って直接DOMを更新する方法には柔軟性がないという問題があります。 また「Todoアイテムの更新」という機能を実装するには、追加したTodoアイテム要素を識別する方法が必要です。
+    具体的には、Todoアイテムごとに`id`属性などのユニークな識別子がないため、特定のアイテムを指定して更新や削除をする機能が実装できません。
 - en: このセクションでは、まずどのような点で柔軟性の問題が起きやすいのかを見ていきます。 そして、柔軟性や識別子の問題を解決するために**モデル**という概念を導入し、「Todoアイテムの追加」の機能をリファクタリングしていきます。
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: このセクションでは、まずどのような点で柔軟性の問題が起きやすいのかを見ていきます。 そして、柔軟性や識別子の問題を解決するために**モデル**という概念を導入し、「Todoアイテムの追加」の機能をリファクタリングしていきます。
 - en: '[](#direct-dom-modification-issue)*直接DOMを更新する問題*'
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#direct-dom-modification-issue)*直接DOMを更新する問題*'
 - en: '*「[Todoアイテムの追加を実装する](../form-event/)」では、操作した結果発生したイベントという入力に対して、DOM（表示）を直接更新していました。
     そのため、TodoリストにTodoアイテムが何個あるか、どのようなアイテムがあるかという状態がDOM上にしか存在しないことになります。'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '*「[Todoアイテムの追加を実装する](../form-event/)」では、操作した結果発生したイベントという入力に対して、DOM（表示）を直接更新していました。
+    そのため、TodoリストにTodoアイテムが何個あるか、どのようなアイテムがあるかという状態がDOM上にしか存在しないことになります。'
 - en: この場合にTodoアイテムの状態を更新するには、HTML要素にTodoアイテムの情報（タイトルや識別子となるidなど）をすべて埋め込む必要があります。
     しかし、HTML要素は文字列しか扱えないため、Todoアイテムのデータを文字列にしないといけないという制限が発生します。
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: この場合にTodoアイテムの状態を更新するには、HTML要素にTodoアイテムの情報（タイトルや識別子となるidなど）をすべて埋め込む必要があります。
+    しかし、HTML要素は文字列しか扱えないため、Todoアイテムのデータを文字列にしないといけないという制限が発生します。
 - en: また、1つの操作に対して複数の箇所の表示が更新されることもあります。 今回のTodoアプリでもTodoリスト（`#js-todo-list`）とTodoアイテム数（`#js-todo-count`）の2箇所を更新する必要があります。
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: また、1つの操作に対して複数の箇所の表示が更新されることもあります。 今回のTodoアプリでもTodoリスト（`#js-todo-list`）とTodoアイテム数（`#js-todo-count`）の2箇所を更新する必要があります。
 - en: 次の表に**操作**に対して更新する**表示**をまとめてみます。
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 次の表に**操作**に対して更新する**表示**をまとめてみます。
 - en: '| 機能 | 操作 | 表示 |'
+  id: totrans-9
   prefs: []
   type: TYPE_TB
+  zh: '| 機能 | 操作 | 表示 |'
 - en: '| --- | --- | --- |'
+  id: totrans-10
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| Todoアイテムの追加 | フォームを入力して送信 | Todoリスト（`#js-todo-list`）にTodoアイテム要素を作成して子要素として追加。合わせてTodoアイテム数（`#js-todo-count`）を更新
     |'
+  id: totrans-11
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの追加 | フォームを入力して送信 | Todoリスト（`#js-todo-list`）にTodoアイテム要素を作成して子要素として追加。合わせてTodoアイテム数（`#js-todo-count`）を更新
+    |'
 - en: '| Todoアイテムの更新 | チェックボックスをクリック | Todoリスト（`#js-todo-list`）にある指定したTodoアイテム要素のチェック状態を更新
     |'
+  id: totrans-12
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの更新 | チェックボックスをクリック | Todoリスト（`#js-todo-list`）にある指定したTodoアイテム要素のチェック状態を更新
+    |'
 - en: '| Todoアイテムの削除 | 削除ボタンをクリック | Todoリスト（`#js-todo-list`）にある指定したTodoアイテム要素を削除。合わせてTodoアイテム数（`#js-todo-count`）を更新
     |'
+  id: totrans-13
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの削除 | 削除ボタンをクリック | Todoリスト（`#js-todo-list`）にある指定したTodoアイテム要素を削除。合わせてTodoアイテム数（`#js-todo-count`）を更新
+    |'
 - en: 1つの操作に対する表示の更新箇所が増えるほど、操作に対する処理（リスナーの処理）が複雑化していくことが予想できます。
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 1つの操作に対する表示の更新箇所が増えるほど、操作に対する処理（リスナーの処理）が複雑化していくことが予想できます。
 - en: ここでは、次の2つの問題が見つかりました。
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: ここでは、次の2つの問題が見つかりました。
 - en: Todoリストの状態がDOM上にしか存在しないため、状態をすべてDOM上に文字列で埋め込まないといけない
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Todoリストの状態がDOM上にしか存在しないため、状態をすべてDOM上に文字列で埋め込まないといけない
 - en: 操作に対して更新する表示箇所が増えてくると、表示の処理が複雑化する
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作に対して更新する表示箇所が増えてくると、表示の処理が複雑化する
 - en: '[](#introduce-model)*モデルを導入する*'
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#introduce-model)*モデルを導入する*'
 - en: '*この問題を避けるために、Todoアイテムという情報をJavaScriptクラスとしてモデル化します。 ここでのモデルとはTodoアイテムやTodoリストなどの**モノの状態や操作方法**を定義したオブジェクトという意味です。
     クラスでは操作方法はメソッドとして実装し、状態はインスタンスのプロパティで管理できるため、今回はクラスでモデルを表現します。'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '*この問題を避けるために、Todoアイテムという情報をJavaScriptクラスとしてモデル化します。 ここでのモデルとはTodoアイテムやTodoリストなどの**モノの状態や操作方法**を定義したオブジェクトという意味です。
+    クラスでは操作方法はメソッドとして実装し、状態はインスタンスのプロパティで管理できるため、今回はクラスでモデルを表現します。'
 - en: たとえば、Todoリストを表現するモデルとして`TodoListModel`クラスを考えます。 TodoリストにはTodoアイテムを追加できるので、TodoListModelに`addItem`というメソッドがあると良さそうです。
     また、Todoリストからアイテムの一覧を取得できる必要もあるので、TodoListModelに`getAllItems`というメソッドも必要そうです。 このようにTodoリストをクラスで表現する際に、オブジェクトがどのような処理や状態を持つかを考えて実装します。
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: たとえば、Todoリストを表現するモデルとして`TodoListModel`クラスを考えます。 TodoリストにはTodoアイテムを追加できるので、TodoListModelに`addItem`というメソッドがあると良さそうです。
+    また、Todoリストからアイテムの一覧を取得できる必要もあるので、TodoListModelに`getAllItems`というメソッドも必要そうです。 このようにTodoリストをクラスで表現する際に、オブジェクトがどのような処理や状態を持つかを考えて実装します。
 - en: このようにモデルを考えた後、先ほどの操作と表示の間にモデルを入れることを考えてみます。 「フォームを入力して送信」という**操作**をした場合には、`TodoListModel`（Todoリスト）に対して`TodoItemModel`（Todoアイテム）を追加します。
     そして、`TodoListModel`からTodoアイテムの一覧を取得し、それを元にDOMを組み立て、**表示**を更新します。
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: このようにモデルを考えた後、先ほどの操作と表示の間にモデルを入れることを考えてみます。 「フォームを入力して送信」という**操作**をした場合には、`TodoListModel`（Todoリスト）に対して`TodoItemModel`（Todoアイテム）を追加します。
+    そして、`TodoListModel`からTodoアイテムの一覧を取得し、それを元にDOMを組み立て、**表示**を更新します。
 - en: 先ほどの表にモデルを入れてみます。 **操作**に対する**モデルの処理**はさまざまですが、**操作**に対する**表示**の処理はどの場合も同じになります。
     これは表示箇所が増えた場合でも**表示**の処理の複雑さが一定に保てることを意味しています。
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 先ほどの表にモデルを入れてみます。 **操作**に対する**モデルの処理**はさまざまですが、**操作**に対する**表示**の処理はどの場合も同じになります。
+    これは表示箇所が増えた場合でも**表示**の処理の複雑さが一定に保てることを意味しています。
 - en: '| 機能 | 操作 | モデルの処理 | 表示 |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '| 機能 | 操作 | モデルの処理 | 表示 |'
 - en: '| --- | --- | --- | --- |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- |'
 - en: '| Todoアイテムの追加 | フォームを入力して送信 | `TodoListModel`へ新しい`TodoItemModel`を追加 | `TodoListModel`を元に表示を更新
     |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの追加 | フォームを入力して送信 | `TodoListModel`へ新しい`TodoItemModel`を追加 | `TodoListModel`を元に表示を更新
+    |'
 - en: '| Todoアイテムの更新 | チェックボックスをクリック | `TodoListModel`の指定した`TodoItemModel`の状態を更新 |
     `TodoListModel`を元に表示を更新 |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの更新 | チェックボックスをクリック | `TodoListModel`の指定した`TodoItemModel`の状態を更新 |
+    `TodoListModel`を元に表示を更新 |'
 - en: '| Todoアイテムの削除 | 削除ボタンをクリック | `TodoListModel`から指定の`TodoItemModel`を削除 | `TodoListModel`を元に表示を更新
     |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| Todoアイテムの削除 | 削除ボタンをクリック | `TodoListModel`から指定の`TodoItemModel`を削除 | `TodoListModel`を元に表示を更新
+    |'
 - en: この表を元に改めて先ほどの問題点を見ていきましょう。
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: この表を元に改めて先ほどの問題点を見ていきましょう。
 - en: Todoリストの状態がDOM上にしか存在しないため、状態をすべてDOM上に文字列で埋め込まないといけない
+  id: totrans-29
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: Todoリストの状態がDOM上にしか存在しないため、状態をすべてDOM上に文字列で埋め込まないといけない
 - en: モデルであるクラスのインスタンスを参照すれば、Todoアイテムの情報が手に入ります。 またモデルはただのJavaScriptクラスであるため、文字列ではない情報も保持できます。
     そのため、DOMにすべての情報を埋め込む必要はありません。
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: モデルであるクラスのインスタンスを参照すれば、Todoアイテムの情報が手に入ります。 またモデルはただのJavaScriptクラスであるため、文字列ではない情報も保持できます。
+    そのため、DOMにすべての情報を埋め込む必要はありません。
 - en: 操作に対して更新する表示箇所が増えてくると、表示の処理が複雑化する
+  id: totrans-31
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 操作に対して更新する表示箇所が増えてくると、表示の処理が複雑化する
 - en: 表示はモデルの状態を元にしてHTML要素を作成し、表示を更新します。 モデルの状態が変化していなければ、表示は変わらなくても問題ありません。
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示はモデルの状態を元にしてHTML要素を作成し、表示を更新します。 モデルの状態が変化していなければ、表示は変わらなくても問題ありません。
 - en: そのため操作したタイミングではなく、モデルの状態が変化したタイミングで表示を更新すればよいはずです。 具体的には「フォームを入力して送信」されたから表示を更新するのではなく、
     「`TodoListModel`というモデルの状態が変化」したから表示を更新すればいいはずです。
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，您应该在模型状态发生变化时更新显示，而不是在操作发生时更新显示。 具体来说，应该是“当`TodoListModel`的状态发生变化时”更新显示，而不是“输入表单并提交”后更新显示。
 - en: そのためには、`TodoListModel`というモデルの状態が変化したことを表示側から知る必要があります。 ここで再び出てくるのがイベントです。
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，显示端需要知道`TodoListModel`的状态何时发生变化。 这里再次出现的是事件。
 - en: '[](#model-and-event)*モデルの変化を伝えるイベント*'
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#model-and-event)*传递模型变化的事件*'
 - en: '*フォームを送信したらform要素から`submit`イベントが発生します。 これと同じように`TodoListModel`の状態が変化したら自分自身へ`change`イベントを発生（ディスパッチ）させます。
     表示側はそのイベントをリッスンしてイベントが発生したら表示を更新すればよいはずです。'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '*当提交表单时，会触发来自form元素的`submit`事件。 类似地，当`TodoListModel`的状态发生变化时，会向自身分发`change`事件。
+    显示端只需监听该事件，当事件发生时更新显示即可。'
 - en: '`TodoListModel`の状態の変化とは、「`TodoListModel`に新しい`TodoItemModel`が追加される」などが該当します。
     先ほどの表の「モデルの処理」は何かしら状態が変化しているので、表示を更新する必要があるわけです。'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`TodoListModel`的状态变化包括“向`TodoListModel`添加新的`TodoItemModel`”等情况。 由于上表中的“模型处理”中的某些状态发生了变化，因此需要更新显示。'
 - en: DOM APIのイベントの仕組みをモデルでも利用できれば、モデルが更新されたら表示を更新する仕組みを作れそうです。 ブラウザのDOM APIでは、`EventTarget`と呼ばれるイベントの仕組みが利用できます。
     Node.jsでは、`events`と呼ばれる組み込みのモジュールで同様のイベントの仕組みが利用できます。
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果模型中也可以使用DOM API的事件机制，那么似乎可以创建一个机制，当模型更新时更新显示。 在浏览器的DOM API中，可以使用称为`EventTarget`的事件机制。
+    在Node.js中，可以使用名为`events`的内置模块来实现类似的事件机制。
 - en: 実行環境が提供するイベントの仕組みを利用すると簡単ですが、ここではイベントの仕組みを理解するために、イベントのディスパッチとリッスンする機能を持つクラスを作ってみましょう。
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然使用执行环境提供的事件机制很容易，但为了理解事件机制，让我们尝试创建一个具有分发和监听事件功能的类。
 - en: とても難しく聞こえますが、今まで学んだクラスやコールバック関数などを使えば実現できます。
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然听起来很困难，但是通过使用之前学到的类和回调函数等内容，可以实现这一点。
 - en: '[](#event-emitter)*EventEmitter*'
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#event-emitter)*EventEmitter*'
 - en: '*イベントの仕組みとは「イベントをディスパッチする側」と「イベントをリッスンする側」の2つの面から成り立ちます。 場合によっては自分自身へイベントをディスパッチし、自分自身でイベントをリッスンすることもあります。'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '*事件机制是由“分发事件的一方”和“监听事件的一方”两个方面组成。 有时会自己分发事件并自己监听事件。'
 - en: このイベントの仕組みを言い換えると「イベントをディスパッチした（イベントを発生させた）ときにイベントをリッスンしているコールバック関数（イベントリスナー）を呼び出す」となります。
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种事件机制的另一种说法是“当分发事件时，调用已注册的回调函数（事件监听器）”，这样就可以理解了。
 - en: モデルが更新されたら表示を更新するには「`TodoListModel`が更新されたときに指定したコールバック関数を呼び出すクラス」を作れば目的は達成できます。
     しかし、「`TodoListModel`が更新されたとき」というのはとても具体的な処理であるため、モデルを増やすたびに同じ処理をそれぞれのモデルへ実装するのは大変です。
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 要更新显示以反映模型的更新，只需创建一个“当`TodoListModel`更新时调用指定的回调函数”类即可实现目的。 但是，“当`TodoListModel`更新时”是非常具体的处理，因此每次增加模型时都要在每个模型中实现相同的处理是很困难的。
 - en: そのため、先ほどのイベントの仕組みを持った概念として`EventEmitter`というクラスを作成します。 そして`TodoListModel`は作成した`EventEmitter`を継承することでイベントの仕組みを導入していきます。
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '因此，我们将创建一个名为`EventEmitter`的类，该类具有在分发事件时调用已注册的回调函数（事件监听器）的功能。 '
 - en: '親クラス（`EventEmitter`）: イベントをディスパッチしたとき、登録されているコールバック関数（イベントリスナー）を呼び出すクラス'
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 父类（`EventEmitter`）：在分发事件时调用已注册的回调函数（事件监听器）的类
 - en: '子クラス（`TodoListModel`）: 値を更新したとき、登録されているコールバック関数を呼び出すクラス'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 子类（`TodoListModel`）：在更新值时，调用已注册的回调函数的类
 - en: まずは、親クラスとなる`EventEmitter`を作成していきます。
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将创建父类`EventEmitter`。
 - en: '`EventEmitter`はイベントの仕組みで書いたディスパッチ側とリッスン側の機能を持ったクラスとなります。'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '`EventEmitter`是一个具有分发和监听功能的事件机制类。'
 - en: 'ディスパッチ側: `emit`メソッドは、指定された`イベント名`に登録済みのすべてのコールバック関数を呼び出す'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 分发端：`emit`方法调用已注册的所有回调函数以指定的`事件名称`
 - en: 'リッスン側: `addEventListener`メソッドは、指定した`イベント名`に任意のコールバック関数を登録できる'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 监听端：`addEventListener`方法允许为指定的`事件名称`注册任意的回调函数
 - en: これによって、`emit`メソッドを呼び出すと指定したイベントに関係する登録済みのコールバック関数を呼び出せます。 このようなパターンはObserverパターンとも呼ばれ、ブラウザやNode.jsなど多くの実行環境に類似するAPIが存在します。
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这样做，您可以调用`emit`方法来调用与指定事件相关的已注册回调函数。 这种模式也被称为观察者模式，并且在许多执行环境中（如浏览器和Node.js）存在类似的API。
 - en: 次のように`src/EventEmitter.js`へ`EventEmitter`クラスを定義します。
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码将`EventEmitter`类定义为`src/EventEmitter.js`。
 - en: src/EventEmitter.js
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: src/EventEmitter.js
 - en: '[PRE0]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: この`EventEmitter`では次のようにイベントのリッスンとイベントのディスパッチの機能が利用できます。 リッスン側は`addEventListener`メソッドでイベントの種類（`type`）に対するイベントリスナー（`listener`）を登録します。
     ディスパッチ側は`emit`メソッドでイベントをディスパッチし、イベントリスナーを呼び出します。
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个`EventEmitter`，您可以使用以下方式来监听事件和分发事件。 监听端使用`addEventListener`方法为事件类型（`type`）注册事件监听器（`listener`）。
+    分发端使用`emit`方法分发事件并调用事件监听器。
 - en: 次のコードでは、`addEventListener`メソッドで`test-event`イベントに対して2つのイベントリスナーを登録しています。 そのため、`emit`メソッドで`test-event`イベントをディスパッチすると、登録済みのイベントリスナーが呼び出されています。
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码中，我们使用`addEventListener`方法为`test-event`事件注册了两个事件监听器。 因此，当使用`emit`方法分发`test-event`事件时，已注册的事件监听器被调用。
 - en: EventEmitterの実行サンプル
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: EventEmitter的执行示例
 - en: '[PRE1]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[](#event-emitter-todolist-model)*EventEmitterを継承したTodoListモデル*'
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#event-emitter-todolist-model)*继承自EventEmitter的TodoList模型*'
 - en: '*次は作成した`EventEmitter`クラスを継承した`TodoListModel`クラスを作成しています。 `src/model/`ディレクトリを新たに作成し、このディレクトリに各モデルクラスを実装したファイルを作成します。'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '*接下来，我们将创建继承自创建的`EventEmitter`类的`TodoListModel`类。 创建一个新的`src/model/`目录，并在该目录中创建实现每个模型类的文件。'
 - en: 作成するモデルは、Todoリストを表現する`TodoListModel`と各Todoアイテムを表現する`TodoItemModel`です。 `TodoListModel`が複数の`TodoItemModel`を保持することでTodoリストを表現することになります。
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建的模型是表示Todo列表的`TodoListModel`和表示每个Todo项目的`TodoItemModel`。 `TodoListModel`通过保存多个`TodoItemModel`来表示Todo列表。
 - en: '`TodoListModel`: Todoリストを表現するモデル'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`TodoListModel`：表示Todo列表的模型'
 - en: '`TodoItemModel`: Todoアイテムを表現するモデル'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`TodoItemModel`：表示Todo项目的模型'
 - en: まずは`TodoItemModel`を`src/model/TodoItemModel.js`というファイル名で作成します。
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将创建`TodoItemModel`，并将其命名为`src/model/TodoItemModel.js`。
 - en: '`TodoItemModel`クラスは各Todoアイテムに必要な情報を定義します。 各Todoアイテムにはタイトル（`title`）、アイテムの完了状態（`completed`）、アイテムごとにユニークな識別子（`id`）を持たせます。
     ただのデータの集合であるため、クラスではなくオブジェクトでも問題はありませんが、今回はクラスとして作成します。'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`TodoItemModel`类定义了每个Todo项目所需的信息。 每个Todo项目都有标题（`title`）、完成状态（`completed`）和每个项目的唯一标识符（`id`）。
+    由于它只是数据集合，因此可以是对象而不是类，但在这种情况下我们选择创建类。'
 - en: 次のように`src/model/TodoItemModel.js`へ`TodoItemModel`クラスを定義します。
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码将`TodoItemModel`类定义为`src/model/TodoItemModel.js`。
 - en: src/model/TodoItemModel.js
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: src/model/TodoItemModel.js
 - en: '[PRE2]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 次のコードでは`TodoItemModel`クラスはインスタンス化でき、それぞれの`id`が自動的に異なる値となっていることが確認できます。 この`id`は後ほど特定のTodoアイテムを指定して更新する処理のときに、アイテムを区別する識別子として利用します。
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码显示了`TodoItemModel`类是可以实例化的，并且每个`id`都自动具有不同的值。这个`id`将在稍后用于指定要更新的特定Todo项目时作为区分项目的标识符。
 - en: TodoItemModel.jsを利用するサンプルコード
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用TodoItemModel.js的示例代码
 - en: '[PRE3]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 次に`TodoListModel`を`src/model/TodoListModel.js`というファイル名で作成します。
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将创建`TodoListModel`并保存为`src/model/TodoListModel.js`。
 - en: '`TodoListModel`クラスは、先ほど作成した`EventEmitter`クラスを継承します。 `TodoListModel`クラスは`TodoItemModel`の配列を保持し、新しいTodoアイテムを追加する際はその配列に追加します。
     このとき`TodoListModel`の状態が変更したことを通知するために自分自身へ`change`イベントをディスパッチします。'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '`TodoListModel`类继承自先前创建的`EventEmitter`类。`TodoListModel`类维护了一个`TodoItemModel`数组，并在添加新Todo项目时将其添加到该数组中。在此过程中，为了通知`TodoListModel`的状态已更改，它会向自身分派`change`事件。'
 - en: src/model/TodoListModel.js
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: src/model/TodoListModel.js
 - en: '[PRE4]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 次のコードは`TodoListModel`クラスのインスタンスに対して、新しい`TodoItemModel`を追加するサンプルコードです。 TodoListModelの`addTodo`メソッドで新しいTodoアイテムを追加したときに、TodoListModelの`onChange`メソッドで登録したイベントリスナーが呼び出されます。
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码是向`TodoListModel`类的实例添加新`TodoItemModel`的示例代码。当使用TodoListModel的`addTodo`方法添加新Todo项目时，将调用TodoListModel的`onChange`方法注册的事件监听器。
 - en: TodoListModel.jsを利用するサンプルコード
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用了TodoListModel.js的示例代码
 - en: '[PRE5]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: これでTodoリストに必要なそれぞれのモデルクラスが作成できました。 次はこれらのモデルを使って、表示の更新をしてみましょう。
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在每个所需的模型类都已经创建好了。接下来让我们使用这些模型来更新显示。
 - en: '[](#model-update-view)*モデルを使って表示を更新する*'
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#model-update-view)*使用模型更新视图*'
 - en: '*先ほど作成した`TodoListModel`と`TodoItemModel`クラスを使って、「Todoアイテムの追加」を書き直してみます。'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '*使用先前创建的`TodoListModel`和`TodoItemModel`类，重新编写“添加Todo项目”的功能。'
 - en: 前回のコードでは、フォームを送信すると直接DOMへ要素を追加していました。 今回のコードでは、フォームを送信すると`TodoListModel`へ`TodoItemModel`を追加します。
     `TodoListModel`に新しいTodoアイテムが増えると、`onChange`に登録したイベントリスナーが呼び出されるため、 そのリスナー関数内でDOM（表示）を更新します。
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一次的代码中，提交表单会直接向DOM添加元素。而在本次代码中，提交表单会向`TodoListModel`添加`TodoItemModel`。当`TodoListModel`中添加新的Todo项目时，由于已注册了`onChange`事件监听器，因此该监听器函数会被调用，从而更新DOM（显示）。
 - en: まずは書き換え後の`App.js`を見ていきます。
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先看一下修改后的`App.js`。
 - en: src/App.js
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: src/App.js
 - en: '[PRE6]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 変更後の`App.js`では大きく分けて3つの部分が変更されているので、順番に見ていきます。
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 修改后的`App.js`主要有三个部分进行了更改，让我们逐个来看。
 - en: '[](#app-todolist-initialize)*1\. TodoListModelの初期化*'
+  id: totrans-88
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#app-todolist-initialize)*1\. 初始化TodoListModel*'
 - en: '*作成した`TodoListModel`と`TodoItemModel`をインポートしています。'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '*导入了创建的`TodoListModel`和`TodoItemModel`。'
 - en: '[PRE7]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: そして、`App`クラスにPrivateクラスフィールドで`TodoListModel`を初期化したものを定義しています。 TodoListModelは`App`クラスの外からは触る必要がないため、`#todoListModel`というPrivateクラスフィールドとして定義しています。
     このTodoアプリでは、開始時（`App`クラスのインスタンス化時）にTodoリストの中身が空の状態で開始されるのに合わせるためです。
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且，在`App`类中通过私有类字段初始化了`TodoListModel`。由于`TodoListModel`不需要从外部访问，因此将其定义为私有类字段`#todoListModel`。这是为了使Todo列表在开始时（实例化`App`类时）以空状态开始。
 - en: src/App.jsより抜粋
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: src/App.jsより抜粋
 - en: '[PRE8]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[](#app-todolist-onchange)*2\. TodoListModelの状態が更新されたら表示を更新する*'
+  id: totrans-94
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#app-todolist-onchange)*2\. 当TodoListModel的状态更新时更新显示*'
 - en: '*`mount`メソッド内で`TodoListModel`が更新されたら表示を更新するという処理を実装します。 TodoListModelの`onChange`メソッドで登録したリスナー関数は、`TodoListModel`の状態が更新されたら呼び出されます。'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在`mount`方法中实现了当`TodoListModel`更新时更新显示的逻辑。通过`TodoListModel`的`onChange`方法注册的监听器函数会在`TodoListModel`的状态更新时被调用。'
 - en: このリスナー関数内ではTodoListModelの`getTodoItems`メソッドでTodoアイテムを取得しています。 そして、アイテム一覧から次のようなリスト要素（`todoListElement`）を作成しています。
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个监听器函数内部使用了TodoListModel的`getTodoItems`方法来获取Todo项目。然后，从项目列表中创建类似以下的列表元素（`todoListElement`）。
 - en: '[PRE9]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: この作成した`todoListElement`要素を、前回作成した`html-util.js`の`render`関数を使ってコンテナ要素の中身に上書きしています。
     また、アイテム数はTodoListModelの`getTotalCount`メソッドで取得できるため、アイテム数を管理していた`todoItemCount`という変数は削除できます。
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建的`todoListElement`元素使用了之前创建的`html-util.js`的`render`函数来覆盖容器元素的内容。此外，由于可以通过TodoListModel的`getTotalCount`方法获取项目数，因此可以删除管理项目数的`todoItemCount`变量。
 - en: src/App.jsより抜粋
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: src/App.jsより抜粋
 - en: '[PRE10]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[](#app-add-new-todoitem)*3\. フォームを送信したら、新しいTodoItemを追加する*'
+  id: totrans-101
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '[](#app-add-new-todoitem)*3\. 提交表单后，添加新的TodoItem*'
 - en: '*前回のコードでは、フォームを送信（`submit`）すると直接DOMへ要素を追加していました。 今回のコードでは、`TodoListModel`の状態が更新されたら表示を更新する仕組みがすでにできています。'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在上一次的代码中，提交表单（`submit`）时会直接向DOM添加元素。而在本次代码中，`TodoListModel`的状态更新后会更新显示的机制已经建立好了。'
 - en: そのため、`submit`イベントのリスナー関数内では`TodoListModel`に対して新しい`TodoItemModel`を追加するだけで表示が更新されます。
     直接DOMへ`appendChild`していた部分をTodoListModelの`addTodo`メソッドを使ってモデルを更新する処理へ置き換えるだけです。
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在`submit`事件的监听器函数中，只需向`TodoListModel`添加新的`TodoItemModel`，显示就会更新。只需将直接向DOM添加`appendChild`的部分替换为使用`TodoListModel`的`addTodo`方法来更新模型即可。
 - en: '[](#conclusion)*まとめ*'
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#conclusion)*总结*'
 - en: '*今回のセクションでは、前セクションの「[Todoアイテムの追加を実装する](../form-event/)」をモデルとイベントの仕組みを使うようにリファクタリングしました。
     コード量は増えましたが、次に実装する「Todoアイテムの更新」や「Todoアイテムの削除」も同様の仕組みで実装できます。 前回のセクションのように操作に対してDOMを直接更新した場合、追加は簡単ですが既存の要素を指定する必要がある更新や削除は難しくなります。'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在本节中，我们使用模型和事件机制对上一节的“[实现添加Todo项目](../form-event/)”进行了重构。虽然代码量增加了，但下一步要实现的“更新Todo项目”和“删除Todo项目”也可以使用类似的机制来实现。与上一节直接更新DOM的操作不同，虽然添加很容易，但更新或删除现有元素需要指定元素，这就变得困难了。'
 - en: 次のセクションでは、残りの機能である「Todoアイテムの更新」や「Todoアイテムの削除」を実装していきます。
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一节将实现剩余功能，如“更新Todo项目”和“删除Todo项目”。
 - en: '[](#section-checklist)*このセクションのチェックリスト*'
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '[](#section-checklist)*本节的检查清单*'
 - en: '**   直接DOMを更新する問題について理解した'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '**   理解了直接更新DOM的问题'
 - en: '`EventEmitter`クラスでイベントの仕組みを実装した'
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`EventEmitter`类实现了事件机制
 - en: TodoリストとTodoアイテムをモデルとして実装した
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实现了Todo列表和Todo项目作为模型
 - en: '`TodoListModel`を`EventEmitter`クラスを継承して実装した'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 继承了`TodoListModel`的`EventEmitter`类
 - en: Todoアイテムの追加の機能をモデルを使ってリファクタリングした
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用模型来重构了添加Todo项目的功能
 - en: ここまでのTodoアプリは次のURLで確認できます。
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以在以下URL查看到目前的Todo应用程序。
 - en: '[https://jsprimer.net/use-case/todoapp/event-model/event-emitter/](https://jsprimer.net/use-case/todoapp/event-model/event-emitter/)***********'
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://jsprimer.net/use-case/todoapp/event-model/event-emitter/](https://jsprimer.net/use-case/todoapp/event-model/event-emitter/)***********'
