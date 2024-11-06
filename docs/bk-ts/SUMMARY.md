@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [TypeScript 手册](README.md)
 +   [第一章：路线图](bk-ts_01.md)
 +   [第二章：略过部分](bk-ts_02.md)
 +   [第三章：使用 TypeScript - 实用概述](bk-ts_03.md)

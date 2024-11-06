@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [97 件每位程序员都应该知道的事情](README.md)
 +   [以谨慎行事](97thing-prog-shld-know_01.md)
 +   [应用函数式编程原则](97thing-prog-shld-know_02.md)
 +   [提出“用户会做什么？”（你不是用户）](97thing-prog-shld-know_03.md)

@@ -1,4 +1,4 @@
-+   [简介](README.md)
++   [FreeBSD 101 黑魔法](README.md)
 +   [获取系统版本](freebsd-101-hack_01.md)
 +   [启用 SSH 上的 root 登录](freebsd-101-hack_02.md)
 +   [配置代理](freebsd-101-hack_03.md)

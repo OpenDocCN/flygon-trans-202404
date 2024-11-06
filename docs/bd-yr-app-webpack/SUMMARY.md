@@ -1,4 +1,4 @@
-+   [读我](README.md)
++   [使用 Webpack 构建你自己的应用](README.md)
 +   [介绍](bd-yr-app-webpack_1.md)
 +   [基础知识](bd-yr-app-webpack_2.md)
 +   [高级](bd-yr-app-webpack_3.md)

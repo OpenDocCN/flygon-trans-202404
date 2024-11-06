@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [Android 101 实验](README.md)
 +   [实验室 01: Android Studio 和 'Hello World'](andr-101lab_1.md)
 +   [实验 02：介绍“捐赠”](andr-101lab_2.md)
 +   [实验 03：Donation 2.0 - 多屏应用程序和菜单](andr-101lab_3.md)

@@ -1,4 +1,4 @@
-+   [Introduction](README.md)
++   [Python 从入门到精通](README.md)
 +   [如何写出优美的代码](py-1tom_01.md)
 +   [REPL 环境](py-1tom_02.md)
 +   [科学计算](py-1tom_03.md)

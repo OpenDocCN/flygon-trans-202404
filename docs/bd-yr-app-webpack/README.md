@@ -1,4 +1,4 @@
-# 读我
+# 使用 Webpack 构建你自己的应用
 
 # [Webpack](https://github.com/webpack/webpack)
 

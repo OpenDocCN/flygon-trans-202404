@@ -1,6 +1,4 @@
-# 简介
-
-# FreeBSD-101-Hacks
+# FreeBSD 101 黑魔法
 
 一系列的 FreeBSD 技巧。
 

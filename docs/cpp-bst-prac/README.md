@@ -1,5 +1,3 @@
-# 简介
-
 # cpp 最佳实践
 
 ![](https://gitter.im/lefticus/cppbestpractices?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

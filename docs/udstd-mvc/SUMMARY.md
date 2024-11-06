@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [理解模型-视图-控制器](README.md)
 +   [从智能 UI 到传统 MVC](udstd-mvc_01.md)
 +   [MVC 变体](udstd-mvc_02.md)
 +   [分层 MVC](udstd-mvc_03.md)

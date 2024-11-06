@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [面向团队的 Java 代码异味指南](README.md)
 +   [过程](java-sml-tm_1.md)
 +   [风格](java-sml-tm_2.md)
 +   [具体内容](java-sml-tm_3.md)

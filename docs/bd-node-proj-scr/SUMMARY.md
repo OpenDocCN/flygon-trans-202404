@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [从零开始构建一个 Node.js 项目](README.md)
 +   [Node 和 npm](bd-node-proj-scr_01.md)
 +   [Express](bd-node-proj-scr_02.md)
 +   [Grunt](bd-node-proj-scr_03.md)

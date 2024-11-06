@@ -1,6 +1,5 @@
-# 介绍
 
-# React Native 培训
+# React Native 培训手册
 
 ![](img/QQ20160705-3.png)
 

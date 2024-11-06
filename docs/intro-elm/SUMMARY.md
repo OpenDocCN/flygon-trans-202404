@@ -1,4 +1,4 @@
-+   [简介](README.md)
++   [Elm 入门指南](README.md)
 +   [安装](intro-elm_1.md)
 +   [核心语言](intro-elm_2.md)
 +   [Elm 架构](intro-elm_3.md)

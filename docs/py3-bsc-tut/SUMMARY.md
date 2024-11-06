@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [Python 3 基础教程](README.md)
 +   [安装 Python](py3-bsc-tut_01.md)
 +   [IPython Shell 的第一步](py3-bsc-tut_02.md)
 +   [编写 Python 程序](py3-bsc-tut_03.md)

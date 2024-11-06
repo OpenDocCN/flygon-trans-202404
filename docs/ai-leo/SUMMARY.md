@@ -1,4 +1,4 @@
-+   [序言](README.md)
++   [LEO AI 笔记](README.md)
 +   [介绍](ai-leo_1.md)
 +   [机器学习](ai-leo_2.md)
 +   [人工智能](ai-leo_3.md)

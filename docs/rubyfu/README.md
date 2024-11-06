@@ -1,6 +1,6 @@
-# 模块 0x0 | 介绍
 
-# RubyFu
+
+# RubyFu 中文版
 
 ![](img/rubyfu.png)
 

@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [React Native 培训手册](README.md)
 +   [1 初次了解](rn-train_01.md)
 +   [2 组件](rn-train_02.md)
 +   [3 样式](rn-train_03.md)

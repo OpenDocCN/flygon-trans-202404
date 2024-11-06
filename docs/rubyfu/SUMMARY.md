@@ -1,4 +1,4 @@
-+   [模块 0x0 | 介绍](README.md)
++   [RubyFu 中文版](README.md)
 +   [模块 0x1 | 基础 Ruby Kung Fu](rubyfu_01.md)
 +   [模块 0x2 | 系统功夫](rubyfu_02.md)
 +   [模块 0x3 | 网络功夫](rubyfu_03.md)

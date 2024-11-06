@@ -1,4 +1,4 @@
-+   [简介](README.md)
++   [Golang 101 秘籍](README.md)
 +   [如何搭建 Go 开发环境](go-101-hack_01.md)
 +   [创建 Go 工作空间](go-101-hack_02.md)
 +   [包](go-101-hack_03.md)

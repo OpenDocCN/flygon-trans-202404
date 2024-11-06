@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [F# 有趣又有利的电子书](README.md)
 +   [书籍内容](fs-fun-prof_01.md)
 +   [在一页上了解“为什么使用 F#？”](fs-fun-prof_02.md)
 +   [安装和使用 F#](fs-fun-prof_03.md)

@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [使用 LLVM 实现语言](README.md)
 +   [词法分析器](impl-lang-llvm_1.md)
 +   [解析器](impl-lang-llvm_2.md)
 +   [代码生成](impl-lang-llvm_3.md)

@@ -1,5 +1,3 @@
-# 介绍
-
 # Databricks 参考应用程序
 
 在 Databricks，我们正在开发一套演示如何使用 Apache Spark 的参考应用程序。本书/存储库包含了参考应用程序。

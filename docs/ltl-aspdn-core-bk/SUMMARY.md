@@ -1,4 +1,4 @@
-+   [介绍](README.md)
++   [ASP.NET Core 小型手册](README.md)
 +   [你的第一个应用程序](ltl-aspdn-core-bk_01.md)
 +   [MVC 基础知识](ltl-aspdn-core-bk_02.md)
 +   [添加外部包](ltl-aspdn-core-bk_03.md)

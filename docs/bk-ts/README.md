@@ -1,6 +1,4 @@
-# 介绍
-
-# TypeScript 的书
+# TypeScript 手册
 
 > 来自：[pagalvin/tsbook](https://github.com/pagalvin/tsbook)
 

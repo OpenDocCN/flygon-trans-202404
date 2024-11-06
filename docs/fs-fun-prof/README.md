@@ -1,5 +1,3 @@
-# 介绍
-
 # F# 有趣又有利的电子书
 
 这是我网站[fsharpforfunandprofit.com](http://fsharpforfunandprofit.com)的电子书版本，受到许多人的要求而创建，供那些想要在 Kindle 或手机上离线阅读的人使用。特别感谢 Roman Provaznik 最后的催促。

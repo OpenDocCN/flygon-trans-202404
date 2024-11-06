@@ -1,6 +1,4 @@
-# 介绍
-
-# 学习 Rust 🚧
+#  Rust 学习手册 🚧
 
 > 🔥 🔥 🔥 这个项目已经迁移到[`learning-rust.github.io`](https://learning-rust.github.io) 🔥 🔥 🔥
 

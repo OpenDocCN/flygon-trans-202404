@@ -1,4 +1,4 @@
-+   [简介](README.md)
++   [cpp 最佳实践](README.md)
 +   [前言](cpp-bst-prac_01.md)
 +   [利用现有工具](cpp-bst-prac_02.md)
 +   [风格](cpp-bst-prac_03.md)
